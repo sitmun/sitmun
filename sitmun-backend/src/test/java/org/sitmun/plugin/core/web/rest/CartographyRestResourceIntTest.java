@@ -20,6 +20,7 @@ import org.json.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.sitmun.plugin.core.config.RepositoryRestConfig;
 import org.sitmun.plugin.core.domain.Cartography;
 import org.sitmun.plugin.core.domain.CartographyAvailability;
 import org.sitmun.plugin.core.domain.Service;
@@ -34,9 +35,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.data.rest.webmvc.config.RepositoryRestConfigurer;
 import org.springframework.hateoas.MediaTypes;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
@@ -46,6 +52,14 @@ import org.springframework.transaction.annotation.Transactional;
 @AutoConfigureMockMvc
 @Transactional
 public class CartographyRestResourceIntTest {
+
+  @TestConfiguration
+  static class ContextConfiguration {
+    @Bean
+    RepositoryRestConfigurer repositoryRestConfigurer() {
+        return new RepositoryRestConfig();
+    }
+  }
 
   private static final String ADMIN_USERNAME = "admin";
   private static final String CARTOGRAPHY_NAME = "Cartography Name";
@@ -78,28 +92,33 @@ public class CartographyRestResourceIntTest {
     service.setName("Service");
     service.setServiceURL("");
     service.setType("");
-    serviceRepository.saveAll(Arrays.asList(service));
+    serviceRepository.saveAll(Collections.singletonList(service));
 
     ArrayList<Cartography> cartosToCreate = new ArrayList<>();
     ArrayList<CartographyAvailability> availabilitesToCreate =
         new ArrayList<>();
 
-    cartography = new Cartography();
-    cartography.setName(CARTOGRAPHY_NAME);
-    cartography.setLayers(Collections.emptyList());
-    cartography.setApplyFilterToGetMap(false);
-    cartography.setApplyFilterToGetFeatureInfo(false);
-    cartography.setApplyFilterToSpatialSelection(false);
-    cartography.setService(service);
+    cartography = Cartography.builder()
+        .setName(CARTOGRAPHY_NAME)
+        .setLayers(Collections.emptyList())
+        .setApplyFilterToGetMap(false)
+        .setApplyFilterToGetFeatureInfo(false)
+        .setApplyFilterToSpatialSelection(false)
+        .setService(service)
+        .setAvailabilities(Collections.emptySet())
+        .build();
     cartosToCreate.add(cartography);
 
-    Cartography cartographyWithAvailabilities = new Cartography();
-    cartographyWithAvailabilities.setName("Cartography with availabilities");
-    cartographyWithAvailabilities.setLayers(Collections.emptyList());
-    cartographyWithAvailabilities.setApplyFilterToGetMap(false);
-    cartographyWithAvailabilities.setApplyFilterToGetFeatureInfo(false);
-    cartographyWithAvailabilities.setApplyFilterToSpatialSelection(false);
-    cartographyWithAvailabilities.setService(service);
+    Cartography cartographyWithAvailabilities = Cartography.builder()
+        .setName("Cartography with availabilities")
+        .setLayers(Collections.emptyList())
+        .setApplyFilterToGetMap(false)
+        .setApplyFilterToGetFeatureInfo(false)
+        .setApplyFilterToSpatialSelection(false)
+        .setService(service)
+        .setAvailabilities(Collections.emptySet())
+        .build();
+
     cartosToCreate.add(cartographyWithAvailabilities);
 
     cartographyRepository.saveAll(cartosToCreate);
