@@ -20,6 +20,9 @@ spring:
       indent-output: true
   jpa:
     show-sql: false
+  liquibase:
+    change-log: classpath:config/liquibase/master.xml
+    contexts: prod
 
 server:
   port: 8080
