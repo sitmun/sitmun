@@ -7,6 +7,7 @@ import org.sitmun.plugin.core.security.TokenProvider;
 import org.sitmun.plugin.core.security.jwt.JWTConfigurer;
 import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
@@ -27,6 +28,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
 
 @EnableWebSecurity
+@Profile("!unsafe")
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
   private final AuthenticationManagerBuilder authenticationManagerBuilder;
   private final TokenProvider tokenProvider;

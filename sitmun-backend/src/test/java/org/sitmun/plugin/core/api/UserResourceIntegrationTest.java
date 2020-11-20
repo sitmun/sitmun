@@ -16,8 +16,12 @@ import org.sitmun.plugin.core.service.dto.UserDTO;
 import org.sitmun.plugin.core.test.ClientHttpLoggerRequestInterceptor;
 import org.sitmun.plugin.core.web.rest.AuthController.JWTToken;
 import org.sitmun.plugin.core.web.rest.dto.LoginRequest;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.web.server.LocalServerPort;
+import org.springframework.hateoas.CollectionModel;
+import org.springframework.hateoas.config.HypermediaRestTemplateConfigurer;
+import org.springframework.hateoas.server.core.TypeReferences;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -47,6 +51,10 @@ public class UserResourceIntegrationTest {
   private static final Boolean USER_ADMINISTRATOR = true;
   @LocalServerPort
   private int port;
+
+  @Autowired
+  HypermediaRestTemplateConfigurer configurer;
+
   private RestTemplate restTemplate;
   private User organizacionAdmin;
 
@@ -61,6 +69,7 @@ public class UserResourceIntegrationTest {
     }
     interceptors.add(new ClientHttpLoggerRequestInterceptor());
     restTemplate.setInterceptors(interceptors);
+    configurer.registerHypermediaTypes(restTemplate);
 
     organizacionAdmin = new User();
     organizacionAdmin.setAdministrator(USER_ADMINISTRATOR);
@@ -80,8 +89,8 @@ public class UserResourceIntegrationTest {
     ResponseEntity<JWTToken> loginResponse =
         restTemplate
             .postForEntity("http://localhost:{port}/api/authenticate", login, JWTToken.class, port);
-    HttpHeaders headers = new HttpHeaders();
     assertThat(loginResponse.getBody()).isNotNull();
+    HttpHeaders headers = new HttpHeaders();
     headers.set(HEADER_STRING, TOKEN_PREFIX + loginResponse.getBody().getIdToken());
 
     UserDTO newUser = new UserDTO(organizacionAdmin);
@@ -123,6 +132,29 @@ public class UserResourceIntegrationTest {
 
     restTemplate
         .postForEntity("http://localhost:{port}/api/users", newUser, UserDTO.class, port);
+  }
+
+  @Test
+  public void getAllUsers() {
+    LoginRequest login = new LoginRequest();
+    login.setUsername(ADMIN_USERNAME);
+    login.setPassword(ADMIN_PASSWORD);
+    ResponseEntity<JWTToken> loginResponse =
+        restTemplate
+            .postForEntity("http://localhost:{port}/api/authenticate", login, JWTToken.class, port);
+    assertThat(loginResponse.getBody()).isNotNull();
+
+    HttpHeaders headers = new HttpHeaders();
+    headers.set(HEADER_STRING, TOKEN_PREFIX + loginResponse.getBody().getIdToken());
+
+    ResponseEntity<CollectionModel<User>> response = restTemplate
+        .exchange("http://localhost:{port}/api/users", HttpMethod.GET,
+            new HttpEntity<CollectionModel<User>>(headers),
+            new TypeReferences.CollectionModelType<User>() {
+            }, port);
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+    assertThat(response.getBody()).isNotNull();
+    assertThat(response.getBody().getContent().size()).isEqualTo(1332);
   }
 
 }
