@@ -3,21 +3,22 @@ import { Observable } from 'rxjs';
 import { ColumnApi, Module } from '@ag-grid-community/all-modules';
 import { TranslateService } from '@ngx-translate/core';
 import { MatDialog } from '@angular/material/dialog';
+import * as ɵngcc0 from '@angular/core';
 export declare class DataGridComponent implements OnInit {
     dialog: MatDialog;
     translate: TranslateService;
-    private _eventRefreshSubscription;
-    private _eventGetSelectedRowsSubscription;
-    private _eventGetAllRowsSubscription;
-    private _eventSaveAgGridStateSubscription;
+    _eventRefreshSubscription: any;
+    _eventGetSelectedRowsSubscription: any;
+    _eventGetAllRowsSubscription: any;
+    _eventSaveAgGridStateSubscription: any;
     modules: Module[];
     UndeRedoActions: any;
     searchValue: string;
-    private gridApi;
-    private gridColumnApi;
+    gridApi: any;
+    gridColumnApi: any;
     statusColumn: boolean;
     changesMap: Map<number, Map<string, number>>;
-    private params;
+    params: any;
     rowData: any[];
     changeCounter: number;
     previousChangeCounter: number;
@@ -63,6 +64,7 @@ export declare class DataGridComponent implements OnInit {
     ngOnInit(): void;
     firstDataRendered(): void;
     onGridReady(params: any): void;
+    areRowsSelected(): Boolean;
     emitSelectedRows(): void;
     emitAllRows(): void;
     saveAgGridState(): void;
@@ -87,4 +89,8 @@ export declare class DataGridComponent implements OnInit {
     getColumnIndexByColId(api: ColumnApi, colId: string): number;
     paintCells(params: any, changesMap: Map<number, Map<string, number>>): void;
     changeCellStyleColumns(params: any, changesMap: Map<number, Map<string, number>>, color: string): void;
+    static ɵfac: ɵngcc0.ɵɵFactoryDef<DataGridComponent, never>;
+    static ɵcmp: ɵngcc0.ɵɵComponentDefWithMeta<DataGridComponent, "app-data-grid", never, { "frameworkComponents": "frameworkComponents"; "eventRefreshSubscription": "eventRefreshSubscription"; "eventGetSelectedRowsSubscription": "eventGetSelectedRowsSubscription"; "eventGetAllRowsSubscription": "eventGetAllRowsSubscription"; "eventSaveAgGridStateSubscription": "eventSaveAgGridStateSubscription"; "eventAddItemsSubscription": "eventAddItemsSubscription"; "columnDefs": "columnDefs"; "getAll": "getAll"; "discardChangesButton": "discardChangesButton"; "id": "id"; "undoButton": "undoButton"; "defaultColumnSorting": "defaultColumnSorting"; "redoButton": "redoButton"; "applyChangesButton": "applyChangesButton"; "deleteButton": "deleteButton"; "newButton": "newButton"; "actionButton": "actionButton"; "addButton": "addButton"; "globalSearch": "globalSearch"; "themeGrid": "themeGrid"; "singleSelection": "singleSelection"; "nonEditable": "nonEditable"; "title": "title"; "hideExportButton": "hideExportButton"; "hideDuplicateButton": "hideDuplicateButton"; "hideSearchReplaceButton": "hideSearchReplaceButton"; }, { "remove": "remove"; "new": "new"; "add": "add"; "sendChanges": "sendChanges"; "getSelectedRows": "getSelectedRows"; "duplicate": "duplicate"; "getAllRows": "getAllRows"; "getAgGridState": "getAgGridState"; }, never, never>;
 }
+
+//# sourceMappingURL=data-grid.component.d.ts.map
