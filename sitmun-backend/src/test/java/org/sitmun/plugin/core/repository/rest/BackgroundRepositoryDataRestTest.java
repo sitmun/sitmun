@@ -1,27 +1,23 @@
 package org.sitmun.plugin.core.repository.rest;
 
 import com.jayway.jsonpath.JsonPath;
+import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.sitmun.plugin.core.config.RepositoryRestConfig;
 import org.sitmun.plugin.core.test.URIConstants;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.context.annotation.Bean;
-import org.springframework.data.rest.webmvc.config.RepositoryRestConfigurer;
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
-import org.springframework.validation.Validator;
-import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 
 import static org.sitmun.plugin.core.test.TestConstants.SITMUN_ADMIN_USERNAME;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @RunWith(SpringRunner.class)
@@ -35,7 +31,11 @@ public class BackgroundRepositoryDataRestTest {
 
   @Test
   public void backgroundIsNotDependentOfBackgroundMap() throws Exception {
-    String content = "{\"name\":\"test \",\"description\":\"test\",\"active\":\"true\"}";
+    String content = "{" +
+      "\"name\":\"test\"," +
+      "\"description\":\"test\"," +
+      "\"active\":\"true\"" +
+      "}";
 
     MvcResult result = mvc.perform(post(URIConstants.BACKGROUNDS_URI)
       .content(content)
@@ -51,17 +51,54 @@ public class BackgroundRepositoryDataRestTest {
       .andReturn();
   }
 
-  @TestConfiguration
-  static class ContextConfiguration {
-    @Bean
-    public Validator validator() {
-      return new LocalValidatorFactoryBean();
-    }
+  @Test
+  public void createBackgroundWithMap() throws Exception {
+    String content = "{" +
+      "\"name\":\"test\"," +
+      "\"description\":\"test\"," +
+      "\"active\":\"true\"," +
+      "\"cartographyGroup\":\"http://localhost/api/cartography-group/129\"" +
+      "}";
+    String location = mvc.perform(post(URIConstants.BACKGROUNDS_URI)
+      .content(content)
+      .with(SecurityMockMvcRequestPostProcessors.user(SITMUN_ADMIN_USERNAME))
+    )
+      .andDo(print())
+      .andExpect(status().isCreated())
+      .andReturn().getResponse().getHeader("Location");
 
-    @Bean
-    RepositoryRestConfigurer repositoryRestConfigurer() {
-      return new RepositoryRestConfig(validator());
-    }
+    Assert.assertNotNull(location);
+
+    mvc.perform(delete(location)
+      .with(SecurityMockMvcRequestPostProcessors.user(SITMUN_ADMIN_USERNAME))
+    ).andExpect(status().isNoContent());
   }
 
+  @Test
+  public void failCreateBackgroundWithInvalidMap() throws Exception {
+    String content = "{" +
+      "\"name\":\"test\"," +
+      "\"description\":\"test\"," +
+      "\"active\":\"true\"," +
+      "\"cartographyGroup\":\"http://localhost/api/cartography-group/193\"" +
+      "}";
+    mvc.perform(post(URIConstants.BACKGROUNDS_URI)
+      .content(content)
+      .with(SecurityMockMvcRequestPostProcessors.user(SITMUN_ADMIN_USERNAME))
+    )
+      .andExpect(status().isBadRequest())
+      .andExpect(jsonPath("$.errors[0].invalidValue").value("C"));
+  }
+
+  @Test
+  public void failUpdateBackgroundWithInvalidMap() throws Exception {
+    String content = "http://localhost/api/cartography-group/193";
+    mvc.perform(put(URIConstants.BACKGROUND_URI_CARTOGRAPHY_GROUP, 1)
+      .content(content)
+      .contentType("text/uri-list")
+      .with(SecurityMockMvcRequestPostProcessors.user(SITMUN_ADMIN_USERNAME))
+    )
+      .andExpect(status().isBadRequest())
+      .andExpect(jsonPath("$.errors[0].invalidValue").value("C"));
+  }
 }
