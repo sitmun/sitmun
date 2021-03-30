@@ -46,7 +46,8 @@
   "lang": {
     "catalan": "Català",
     "spanish": "Castellà",
-    "english": "Anglès"
+    "english": "Anglès",
+    "aranese": "Aranès"
   },
   "sideMenu": {
     "generalData": "Dades Generals",
@@ -73,6 +74,15 @@
     "taskGroup": "Grup tasca",
     "status": "Estat"
   },
+  "dashboard": {
+    "newUsers": "Nous usuaris",
+    "services": "Serveis",
+    "tasks": "Tasques",
+    "territories": "Territoris",
+    "cartographies": "Cartografies",
+    "applications": "Aplicacions",
+    "applicationsTerritories": "Aplicacions de territoris"
+  },
   "userEntity": {
     "generalData": "Dades Generals",
     "user": "Usuari",
@@ -87,7 +97,7 @@
     "permissionsChildren": "Permisos fills",
     "role": "Rol",
     "roles": "Rols",
-    "territories": "Territories",
+    "territories": "Territoris",
     "territory": "Territori",
     "dataOfTerritory": "Dades associades al territori",
     "position": "Càrrec",
@@ -212,7 +222,11 @@
     "radio": "Radio",
     "visible": "Visible",
     "cartography":"Cartografia",
-    "configuration" : "Configuració"
+    "metadataURL":"URL metadades",
+    "datasetURL": "URL dataset",
+    "description":"Descripció",
+    "configuration" : "Configuració",
+    "image": "Imatge"
   },
   "taskGroupEntity": {
     "generalData": "Dades Generals",
@@ -228,7 +242,8 @@
     "active": "Actiu",
     "cartographyGroup": "Grup cartografia",
     "status": "Estat",
-    "createdDate": "Alta"
+    "createdDate": "Alta",
+    "image": "Imatge"
   },
   "applicationEntity": {
     "generalData": "Dades Generals",
