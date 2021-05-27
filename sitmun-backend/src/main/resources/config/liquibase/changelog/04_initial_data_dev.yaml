@@ -3,6 +3,7 @@ databaseChangeLog:
       id: 4
       author: sitmun
       context: dev
+      dbms: oracle,h2
       changes:
         - loadData:
             encoding: UTF-8
@@ -1037,10 +1038,10 @@ databaseChangeLog:
                   type: NUMERIC
               - column:
                   name: THE_COLORMIN
-                  type: NUMERIC
+                  type: STRING
               - column:
                   name: THE_COLORMAX
-                  type: NUMERIC
+                  type: STRING
               - column:
                   name: THE_SIZEMIN
                   type: NUMERIC
