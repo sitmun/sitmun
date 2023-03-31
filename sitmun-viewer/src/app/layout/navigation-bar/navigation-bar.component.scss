@@ -1,0 +1,36 @@
+.nav-bar {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  height: 5em;
+  color: white;
+  background: orange;
+
+  .logo {
+    margin-left: 2em;
+  }
+
+  .lang-buttons {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    margin-right: 2em;
+
+    button {
+      color: black;
+      background: white;
+      font-weight: bold;
+      margin: 0 0.5em;
+      height: 2.5em;
+      width: 3.5em;
+      border: none;
+      border-radius: 10px;
+    }
+
+    button:hover {
+      color: white;
+      background: #ff9300;
+    }
+  }
+}
