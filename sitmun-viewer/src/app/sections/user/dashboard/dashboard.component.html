@@ -1,8 +1,42 @@
 <div class="dashboard">
-  <h1>{{'dashboardPage.title' | translate}}</h1>
-  <div class="application" *ngFor="let app of applicationsList">
-    <h2>{{'dashboardPage.id' | translate}}: {{app.id}}</h2>
-    <h2>{{'dashboardPage.name' | translate}}: {{app.name}}</h2>
-    <h2>{{'dashboardPage.url' | translate}}: <a href="/user/map">{{app.url}}</a></h2>
+  <div class="header">
+    <div class="show-by-territories">
+      <select #dashboardType (change)="onChange(dashboardType.value)">
+        <option [value]="DashboardTypes.APPLICATIONS">{{'dashboardPage.showByApplications' | translate}}</option>
+        <option [value]="DashboardTypes.TERRITORIES">{{'dashboardPage.showByTerritories' | translate}}</option>
+      </select>
+    </div>
+  </div>
+  <div class="container">
+    <ng-container *ngIf="type === DashboardTypes.APPLICATIONS">
+      <h1>{{'dashboardPage.applicationsTitle' | translate}}</h1>
+      <div class="cards-container">
+        <div class="application" *ngFor="let app of applicationsList" (click)="goToMap()">
+          <div class="card-img">
+            <img src="assets/logos/logo_sitmun.svg">
+          </div>
+          <div class="card-titles">
+<!--            <h2>{{'dashboardPage.img' | translate}}: {{territory.img}}</h2>-->
+            <h4>{{'dashboardPage.id' | translate}}: {{app.id}}</h4>
+            <h4>{{'dashboardPage.name' | translate}}: {{app.name}}</h4>
+          </div>
+        </div>
+      </div>
+    </ng-container>
+    <ng-container *ngIf="type === DashboardTypes.TERRITORIES">
+      <h1>{{'dashboardPage.territoriesTitle' | translate}}</h1>
+      <div class="cards-container">
+        <div class="application" *ngFor="let territory of territoriesList" (click)="goToMap()">
+          <div class="card-img">
+            <img src="assets/logos/logo_sitmun.svg">
+          </div>
+          <div class="card-titles">
+<!--            <h2>{{'dashboardPage.img' | translate}}: {{territory.img}}</h2>-->
+            <h4>{{'dashboardPage.id' | translate}}: {{territory.id}}</h4>
+            <h4>{{'dashboardPage.name' | translate}}: {{territory.name}}</h4>
+          </div>
+        </div>
+      </div>
+    </ng-container>
   </div>
 </div>

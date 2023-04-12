@@ -1,9 +1,15 @@
 import { Component } from '@angular/core';
+import { Router } from '@angular/router';
 
-interface Application {
+interface Item {
+  img: string;
   id: number;
   name: string;
-  url: string;
+}
+
+export enum DashboardTypes {
+  APPLICATIONS,
+  TERRITORIES
 }
 
 @Component({
@@ -12,10 +18,56 @@ interface Application {
   styleUrls: ['./dashboard.component.scss']
 })
 export class DashboardComponent {
-  applicationsList: Application[] = [
-    { id: 1, name: 'App1', url: 'https://map.visor.com/app1' },
-    { id: 2, name: 'App2', url: 'https://map.visor.com/app2' },
-    { id: 3, name: 'App3', url: 'https://map.visor.com/app3' }
+  type: DashboardTypes;
+
+  applicationsList: Item[] = [
+    {
+      img: '',
+      id: 1,
+      name: 'App 1'
+    },
+    {
+      img: '',
+      id: 2,
+      name: 'App 2'
+    },
+    {
+      img: '',
+      id: 3,
+      name: 'App 3'
+    }
   ];
-  constructor() {}
+
+  territoriesList: Item[] = [
+    {
+      img: '',
+      id: 1,
+      name: 'Territory 1'
+    },
+    {
+      img: '',
+      id: 2,
+      name: 'Territory 2'
+    },
+    {
+      img: '',
+      id: 3,
+      name: 'Territory 3'
+    }
+  ];
+
+  constructor(private router: Router) {
+    this.type = DashboardTypes.APPLICATIONS;
+  }
+
+  onChange(type: string) {
+    this.type =
+      type === '0' ? DashboardTypes.APPLICATIONS : DashboardTypes.TERRITORIES;
+  }
+
+  goToMap() {
+    this.router.navigateByUrl('/user/map');
+  }
+
+  protected readonly DashboardTypes = DashboardTypes;
 }
