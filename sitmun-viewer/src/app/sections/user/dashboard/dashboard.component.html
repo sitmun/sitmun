@@ -2,4 +2,6 @@
   <button type="button" (click)="onApplicationsClick()">{{'dashboardPage.applicationsTitle' | translate}}</button>
   <button type="button" (click)="onTerritoriesClick()">{{'dashboardPage.territoriesTitle' | translate}}</button>
 </div>
-<app-dashboard-items [items]="items" [type]="type"/>
+<div class="items-container">
+  <app-dashboard-items [items]="items" [type]="type"/>
+</div>
