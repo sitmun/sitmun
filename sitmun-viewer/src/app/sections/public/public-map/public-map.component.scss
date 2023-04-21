@@ -1,0 +1,9 @@
+@use 'src/styles/colors';
+
+.map-container {
+  position: absolute;
+  height: calc(100% - 80px);
+  width: 100%;
+}
+
+
