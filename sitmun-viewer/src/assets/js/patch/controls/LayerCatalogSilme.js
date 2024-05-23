@@ -8,13 +8,13 @@ if (!TC.control.LayerCatalog) {
   TC.syncLoadJS(TC.apiLocation + 'TC/control/LayerCatalog');
 }
 
-(function () {
+(function() {
   const cacheCapabilities = {};
 
   const realTree = new Object();
   var SEARCH_MIN_LENGTH = 3;
 
-  TC.control.LayerCatalogSilme = function () {
+  TC.control.LayerCatalogSilme = function() {
     var _ctl = this;
 
     TC.control.LayerCatalog.apply(_ctl, arguments);
@@ -26,7 +26,7 @@ if (!TC.control.LayerCatalog) {
 
   TC.inherit(TC.control.LayerCatalogSilme, TC.control.LayerCatalog);
 
-  TC.control.LayerCatalogSilme.prototype.register = function (map) {
+  TC.control.LayerCatalogSilme.prototype.register = function(map) {
     var _ctl = this;
 
     _ctl.template[_ctl.CLASS] = "assets/js/patch/templates/LayerCatalogSilme.hbs";
@@ -39,19 +39,18 @@ if (!TC.control.LayerCatalog) {
     const result = TC.control.LayerCatalog.prototype.register.call(_ctl, map);
 
     map
-      .on(TC.Consts.event.LAYERADD + ' ' + TC.Consts.event.UPDATEPARAMS, function (e) {
+      .on(TC.Consts.event.LAYERADD + ' ' + TC.Consts.event.UPDATEPARAMS, function(e) {
         // MV 20221006 - Cercam dins els layers del capabilities
         CercaLayerDinsCapabilities(e);
 
         const layer = e.layer;
         if (!layer.isBase && layer.type === TC.Consts.layerType.WMS) {
 
-          _ctl.loaded().then(function () { // Esperamos a que cargue primero las capas de la configuración
+          _ctl.loaded().then(function() { // Esperamos a que cargue primero las capas de la configuración
 
             if (_ctl.getLayerRootNode(layer)) {
               updateControl.call(_ctl, layer);
-            }
-            else {
+            } else {
               // la capa no está renderizada, pero podría estar en proceso, comprobamos que no está en la lista de capas del control
               var layerAlreadyAdded = false;
               for (var i = 0, len = _ctl.layers.length; i < len; i++) {
@@ -77,7 +76,7 @@ if (!TC.control.LayerCatalog) {
                   title: layer.title || layer.wrap.getServiceTitle(),
                   hideTitle: true,
                   hideTree: false
-                })).then(function () {
+                })).then(function() {
                   updateControl.call(_ctl, layer);
                 });
               }
@@ -85,18 +84,18 @@ if (!TC.control.LayerCatalog) {
           });
         }
       })
-      .on(TC.Consts.event.EXTERNALSERVICEADDED, function (e) {
+      .on(TC.Consts.event.EXTERNALSERVICEADDED, function(e) {
         if (e && e.layer) {
           _ctl.addLayer(e.layer);
           _ctl.div.classList.remove(TC.Consts.classes.COLLAPSED);
         }
       });
 
-    getInstance = function () {
+    getInstance = function() {
       return _ctl;
     }
 
-    silmeLayerCatalog = this;//Silme
+    silmeLayerCatalog = this; //Silme
 
     return result;
   };
@@ -106,19 +105,19 @@ if (!TC.control.LayerCatalog) {
       const result = TC.control.LayerCatalog.prototype.getRenderedHtml.call(_ctl, templateId, data, callback);
   };*/
 
-  const addLogicToTreeGroup = function (node) {
+  const addLogicToTreeGroup = function(node) {
     const self = this;
 
-    node.querySelectorAll('li > button.' + self.CLASS + '-collapse-btn').forEach(function (btn) {
+    node.querySelectorAll('li > button.' + self.CLASS + '-collapse-btn').forEach(function(btn) {
       btn.addEventListener('click', onCollapseButtonClick);
     });
 
-    node.querySelectorAll('li > span').forEach(function (span) {
+    node.querySelectorAll('li > span').forEach(function(span) {
       span.addEventListener('click', onCollapseButtonClick);
     });
 
-    node.querySelectorAll('span').forEach(function (span) {
-      span.addEventListener('click', function (e) {
+    node.querySelectorAll('span').forEach(function(span) {
+      span.addEventListener('click', function(e) {
         onSpanClick(e, self);
       });
     });
@@ -135,7 +134,7 @@ if (!TC.control.LayerCatalog) {
     }
   };
 
-  const onSpanClick = function (e, ctl) {
+  const onSpanClick = function(e, ctl) {
     if (e.target.classList.contains(SITNA.Consts.classes.SELECTABLE)) {
       const li = e.target.parentNode;
       if (!li.classList.contains(TC.Consts.classes.LOADING) && !li.classList.contains(TC.Consts.classes.CHECKED)) {
@@ -152,17 +151,13 @@ if (!TC.control.LayerCatalog) {
         var layer;
         for (var i = 0, len = ctl._roots.length; i < len; i++) {
           const root = ctl._roots[i];
-          if (root.contains(li) && li.parentElement.parentElement == ctl._roots[i]) {
-            //layer = ctl.getLayer(root.dataset.layerId);//rewrite
+          //if (root.contains(li) && li.parentElement.parentElement == ctl._roots[i]) {
+          if (root.contains(li)) {
             layer = ctl.getLayer(root.id);
-            //layer = root;
-            break;
+            if (layer) break;
           }
         }
-        if (!layer) {
-          //layer = ctl.getLayer(root.dataset.layerId);//rewrite
-          layer = ctl.getLayer(root.id);
-        }
+
         if (layer && layerName) {
           layer.uid = li.dataset.layerUid;
           var redrawTime = 1;
@@ -181,9 +176,9 @@ if (!TC.control.LayerCatalog) {
           li.classList.add(TC.Consts.classes.LOADING);
           li.querySelector('span').dataset.tooltip = '';
 
-          const reDraw = function (element) {
-            return new Promise(function (resolve, reject) {
-              setTimeout(function () {
+          const reDraw = function(element) {
+            return new Promise(function(resolve, reject) {
+              setTimeout(function() {
                 element.offsetHeight = element.offsetHeight;
                 element.offsetWidth = element.offsetWidth;
 
@@ -192,17 +187,35 @@ if (!TC.control.LayerCatalog) {
             });
           };
 
-          reDraw(li).then(function () {
+          reDraw(li).then(function() {
             addLayerToMap.call(ctl, layer, layerName);
           });
           e.stopPropagation();
         }
 
       }
+    } else {
+      //if (e.target.parentElement.querySelector('li').dataset.layerUid) {
+      if (e.target.parentElement.classList.contains("sitmun-folder")) {
+        e.target.parentElement.classList.add(SITNA.Consts.classes.CHECKED);
+        e.target.parentElement.classList.remove(SITNA.Consts.classes.COLLAPSED);
+        e.target.parentElement.querySelector("ul").classList.remove(SITNA.Consts.classes.COLLAPSED);
+
+        var clickEvent = new MouseEvent("click", {
+          "view": window,
+          "bubbles": true,
+          "cancelable": false
+        });
+
+        //e.target.parentElement.querySelectorAll("ul")[0].querySelector('span.tc-selectable').dispatchEvent(clickEvent);
+        e.target.parentElement.querySelectorAll("ul").forEach(value => {
+          value.querySelector('span.tc-selectable').dispatchEvent(clickEvent);
+        })
+      }
     }
   };
 
-  const getLayer = function (id) {
+  const getLayer = function(id) {
     const self = this;
     for (var i = 0, len = self.layers.length; i < len; i++) {
       const layer = self.layers[i];
@@ -221,13 +234,13 @@ if (!TC.control.LayerCatalog) {
     return null;
   };
 
-  const createSearchAutocomplete = function () {
+  const createSearchAutocomplete = function() {
     const self = this;
 
     self.textInput = self.div.querySelector("." + self.CLASS + "-input");
     self.list = self.div.querySelector("." + self.CLASS + "-search ul");
     // Clear results list when x button is pressed in the search input
-    self.textInput.addEventListener('mouseup', function (_e) {
+    self.textInput.addEventListener('mouseup', function(_e) {
       var oldValue = self.textInput.value;
 
       if (oldValue === '') {
@@ -236,7 +249,7 @@ if (!TC.control.LayerCatalog) {
 
       // When this event is fired after clicking on the clear button
       // the value is not cleared yet. We have to wait for it.
-      setTimeout(function () {
+      setTimeout(function() {
         var newValue = self.textInput.value;
 
         if (newValue === '') {
@@ -254,11 +267,11 @@ if (!TC.control.LayerCatalog) {
       link: '#',
       target: self.list,
       minLength: 0,
-      source: function (text, callback) {
+      source: function(text, callback) {
         //lista de capas marcadas
         layerCheckedList = [];
-        self._roots.forEach(function (root) {
-          root.querySelectorAll("li." + TC.Consts.classes.CHECKED).forEach(function (item) {
+        self._roots.forEach(function(root) {
+          root.querySelectorAll("li." + TC.Consts.classes.CHECKED).forEach(function(item) {
             layerCheckedList.push(item.dataset.layerName);
           });
         });
@@ -267,11 +280,10 @@ if (!TC.control.LayerCatalog) {
         text = text.trim();
         if (text.length < SEARCH_MIN_LENGTH) {
           self.list.innerHTML = '';
-        }
-        else if (text.length >= SEARCH_MIN_LENGTH) {
+        } else if (text.length >= SEARCH_MIN_LENGTH) {
           if (TC._search.retryTimeout)
             clearTimeout(TC._search.retryTimeout);
-          TC._search.retryTimeout = setTimeout(function () {
+          TC._search.retryTimeout = setTimeout(function() {
             var results = [];
             for (var i = 0, ii = self.sourceLayers.length; i < ii; i++) {
               const sourceLayer = self.sourceLayers[i];
@@ -286,17 +298,20 @@ if (!TC.control.LayerCatalog) {
                 });
               }
             }
-            callback({ servicesFound: results, servicesLooked: self.sourceLayers.length });
+            callback({
+              servicesFound: results,
+              servicesLooked: self.sourceLayers.length
+            });
           }, TC._search.interval);
         }
       },
-      callback: function (e) {
+      callback: function(e) {
         self.textInput.value = e.target.text || e.target.innerText;
         TC._search.lastPattern = self.textInput.value;
         self.goToResult(unescape(e.target.hash).substring(1));
         TC.UI.autocomplete.call(self.textInput, 'clear');
       },
-      buildHTML: function (data) {
+      buildHTML: function(data) {
         var container = this.target;
         //si hay resultados, mostramos la lista
         if (data.results && data.results.servicesFound.length > 0) {
@@ -329,7 +344,7 @@ if (!TC.control.LayerCatalog) {
           }
         }
         var ret = '';
-        self.getRenderedHtml(self.CLASS + '-results', data.results).then(function (out) {
+        self.getRenderedHtml(self.CLASS + '-results', data.results).then(function(out) {
           container.innerHTML = ret = out;
           // Marcamos el botón "i" correspondiente si el panel de info está abierto
           const visibleInfoPane = self.div.querySelector(`.${self.CLASS}-info`);
@@ -353,7 +368,7 @@ if (!TC.control.LayerCatalog) {
 
     if (!self.searchInit) {
       //botón de la lupa para alternar entre búsqueda y árbol
-      self.div.querySelector('h2 button').addEventListener(TC.Consts.event.CLICK, function (e) {
+      self.div.querySelector('h2 button').addEventListener(TC.Consts.event.CLICK, function(e) {
         e.target.blur();
 
         const searchPane = self.div.querySelector('.' + self.CLASS + '-search');
@@ -369,8 +384,7 @@ if (!TC.control.LayerCatalog) {
           self.hideLayerInfo()
           self.textInput.focus();
           e.target.setAttribute('title', self.getLocaleString('viewAvailableLayersTree'));
-        }
-        else {
+        } else {
           self.hideSearchLayerInfo()
           e.target.setAttribute('title', self.getLocaleString('searchLayersByText'));
 
@@ -380,12 +394,14 @@ if (!TC.control.LayerCatalog) {
             infoPane.classList.remove(TC.Consts.classes.HIDDEN);
           }
         }
-      }, { passive: true });
+      }, {
+        passive: true
+      });
 
 
       //evento de expandir nodo de info
       //self._$div.off("click", ".tc-ctl-lcat-search button");
-      self.div.addEventListener("change", TC.EventTarget.listenerBySelector("." + self.CLASS + "-search input[type=checkbox]." + self.CLASS + "-search-btn-info", function (evt) {
+      self.div.addEventListener("change", TC.EventTarget.listenerBySelector("." + self.CLASS + "-search input[type=checkbox]." + self.CLASS + "-search-btn-info", function(evt) {
         evt.stopPropagation();
         const target = evt.target;
         if (target.checked) {
@@ -403,13 +419,13 @@ if (!TC.control.LayerCatalog) {
         }
       }));
 
-      self.div.addEventListener("click", TC.EventTarget.listenerBySelector("." + self.CLASS + "-search input[type=checkbox]." + self.CLASS + "-search-btn-info", function (evt) {
+      self.div.addEventListener("click", TC.EventTarget.listenerBySelector("." + self.CLASS + "-search input[type=checkbox]." + self.CLASS + "-search-btn-info", function(evt) {
         evt.stopPropagation();
       }));
 
       //click en un resultado - añadir capa
       const searchListElementSelector = '.' + self.CLASS + '-search li';
-      self.div.addEventListener('click', TC.EventTarget.listenerBySelector(searchListElementSelector, function (evt) {
+      self.div.addEventListener('click', TC.EventTarget.listenerBySelector(searchListElementSelector, function(evt) {
         evt.stopPropagation();
         var li = evt.target;
         while (li && !li.matches(searchListElementSelector)) {
@@ -455,20 +471,21 @@ if (!TC.control.LayerCatalog) {
             layerNames: [layerName]
           });
           if (layer.isCompatible(self.map.crs)) {
-            self.map.addLayer(layer, function (layer) {
+            self.map.addLayer(layer, function(layer) {
               li.dataset.layerId = layer.id;
-              layer.wrap.$events.on(TC.Consts.event.TILELOADERROR, function (event) {
+              layer.wrap.$events.on(TC.Consts.event.TILELOADERROR, function(event) {
                 var layer = this.parent;
                 if (event.error.code === 401 || event.error.code === 403)
-                  layer.map.toast(event.error.text, { type: TC.Consts.msgType.ERROR });
+                  layer.map.toast(event.error.text, {
+                    type: TC.Consts.msgType.ERROR
+                  });
                 layer.map.removeLayer(layer);
               });
             });
             //marcamos el resultado como añadido
             li.classList.add(TC.Consts.classes.CHECKED);
             li.querySelector('h5').dataset.tooltip = self.getLocaleString('layerAlreadyAdded');
-          }
-          else {
+          } else {
             showProjectionChangeDialog(self, layer);
           }
         }
@@ -478,7 +495,7 @@ if (!TC.control.LayerCatalog) {
     }
   };
 
-  const getLayerTree = function (layer) {
+  const getLayerTree = function(layer) {
     var result = layer.getTree();
     var makeNodeVisible = function makeNodeVisible(node) {
       var result = false;
@@ -493,11 +510,16 @@ if (!TC.control.LayerCatalog) {
       }
       return node.isVisible;
     };
+    // var checkIfFolder = function checkIfFolder(node) {
+    //   //if (node.folder)
+    //   result.serviceNode = true;
+    // }
     makeNodeVisible(result);
+    //checkIfFolder(result);
     return result;
   };
 
-  const getInfo = function (name, layer) {
+  const getInfo = function(name, layer) {
     var self = layer;
     var result = {};
     var capabilities = self.parent.capabilities;
@@ -527,16 +549,17 @@ if (!TC.control.LayerCatalog) {
           //End Silme
           result.legend = [];
 
-          var _process = function (value) {
+          var _process = function(value) {
             var legend = this.getLegend(value);
 
             if (legend.src)
               result.legend.push({
-                src: legend.src, title: value.Title
+                src: legend.src,
+                title: value.Title
               });
           };
 
-          var _traverse = function (o, func) {
+          var _traverse = function(o, func) {
             if (o.Layer && o.Layer.length > 0) {
               for (var i in o.Layer) {
                 //bajar un nivel en el árbol
@@ -555,14 +578,20 @@ if (!TC.control.LayerCatalog) {
             for (var j = 0; j < l.MetadataURL.length; j++) {
               var md = l.MetadataURL[j];
               result.metadata.push({
-                format: md.Format, type: md.type, url: md.OnlineResource
+                format: md.Format,
+                type: md.type,
+                url: md.OnlineResource
               });
             }
           }
           //Silme
           result.dataUrl = [];
           if (l.DataURL) {
-            result.dataUrl.push({ format: l.DataURL.Format, type: l.DataURL.OnlineResource.type, url: l.DataURL.OnlineResource.href });
+            result.dataUrl.push({
+              format: l.DataURL.Format,
+              type: l.DataURL.OnlineResource.type,
+              url: l.DataURL.OnlineResource.href
+            });
           }
 
           if (Array.isArray(capabilities.Service)) {
@@ -622,18 +651,18 @@ if (!TC.control.LayerCatalog) {
     return result;
   };
 
-  const showLayerInfo = function (layer, name, uid, li) {
+  const showLayerInfo = function(layer, name, uid, li) {
     const self = this;
     var result = null;
 
     var info = self.div.querySelector('.' + self.CLASS + '-info');
     // Make the DIV element draggable:
-    dragElement(info);//Silme
+    dragElement(info); //Silme
     //Silme - Amb això el DIV de info sempre surtira enmig
     info.style['left'] = null;
     info.style['top'] = null;
 
-    const toggleInfo = function (layerName, infoObj) {
+    const toggleInfo = function(layerName, infoObj) {
       var result = false;
       //if (lName !== undefined && lName.toString() === layerName) {
       //    info.dataset.layerName = '';
@@ -645,13 +674,15 @@ if (!TC.control.LayerCatalog) {
         info.dataset.layerName = layerName;
         info.classList.remove(TC.Consts.classes.HIDDEN);
         self.getRenderedHtml(self.CLASS + '-info', infoObj)
-          .then(function (out) {
+          .then(function(out) {
             info.innerHTML = out;
-            info.querySelector('.' + self.CLASS + '-info-close').addEventListener(TC.Consts.event.CLICK, function () {
+            info.querySelector('.' + self.CLASS + '-info-close').addEventListener(TC.Consts.event.CLICK, function() {
               self.hideLayerInfo();
-            }, { passive: true })
+            }, {
+              passive: true
+            })
           })
-          .catch(function (err) {
+          .catch(function(err) {
             TC.error(err);
           });
       }
@@ -659,7 +690,7 @@ if (!TC.control.LayerCatalog) {
       return result;
     };
 
-    self.div.querySelectorAll('.' + self.CLASS + '-btn-info, .' + self.CLASS + '-search-btn-info').forEach(function (btn) {
+    self.div.querySelectorAll('.' + self.CLASS + '-btn-info, .' + self.CLASS + '-search-btn-info').forEach(function(btn) {
       btn.classList.remove(TC.Consts.classes.CHECKED);
     });
 
@@ -685,7 +716,7 @@ if (!TC.control.LayerCatalog) {
               infoSilme = getInfo(name, layerParent.wrap);
             //End Silme
             if (infoSilme.metadata) {
-              infoSilme.metadata.forEach(function (md) {
+              infoSilme.metadata.forEach(function(md) {
                 md.formatDescription = formatDescriptions[md.format] =
                   formatDescriptions[md.format] ||
                   self.getLocaleString(TC.Util.getSimpleMimeType(md.format)) ||
@@ -705,13 +736,13 @@ if (!TC.control.LayerCatalog) {
     return result;
   };
 
-  const showSearchLayerInfo = function (layer, name, uid, li) {
+  const showSearchLayerInfo = function(layer, name, uid, li) {
     const self = this;
     var result = null;
 
     var info = self.div.querySelector('.' + self.CLASS + '-info');
 
-    const toggleInfo = function (layerName, infoObj) {
+    const toggleInfo = function(layerName, infoObj) {
       var result = false;
       //if (lName !== undefined && lName.toString() === layerName) {
       //    info.dataset.layerName = '';
@@ -724,13 +755,15 @@ if (!TC.control.LayerCatalog) {
         info.dataset.layerName = layerName;
         info.classList.remove(TC.Consts.classes.HIDDEN);
         self.getRenderedHtml(self.CLASS + '-info', infoObj)
-          .then(function (out) {
+          .then(function(out) {
             info.innerHTML = out;
-            info.querySelector('.' + self.CLASS + '-info-close').addEventListener(TC.Consts.event.CLICK, function () {
+            info.querySelector('.' + self.CLASS + '-info-close').addEventListener(TC.Consts.event.CLICK, function() {
               self.hideSearchLayerInfo();
-            }, { passive: true });
+            }, {
+              passive: true
+            });
           })
-          .catch(function (err) {
+          .catch(function(err) {
             TC.error(err);
           });
       }
@@ -738,16 +771,16 @@ if (!TC.control.LayerCatalog) {
       return result;
     };
 
-    self.div.querySelectorAll('.' + self.CLASS + '-btn-info, .' + self.CLASS + '-search-btn-info').forEach(function (btn) {
+    self.div.querySelectorAll('.' + self.CLASS + '-btn-info, .' + self.CLASS + '-search-btn-info').forEach(function(btn) {
       btn.checked = false;
     });
 
-    const getInfoByTitle = function (layer, title) {
+    const getInfoByTitle = function(layer, title) {
       if (layer.Title === title) {
         return {
           title: title,
           abstract: layer.Abstract,
-          metadata: !layer.MetadataURL ? null : layer.MetadataURL.reduce(function (vi, va) {
+          metadata: !layer.MetadataURL ? null : layer.MetadataURL.reduce(function(vi, va) {
             vi.push({
               format: va.Format,
               formatDescription: TC.Util.getLocaleString(self.map.options.locale, TC.Util.getSimpleMimeType(va.Format)) ||
@@ -804,7 +837,7 @@ if (!TC.control.LayerCatalog) {
     return result;
   };
 
-  const addLayerToMap = function (layer, layerName) {
+  const addLayerToMap = function(layer, layerName) {
     const self = this;
     const layerOptions = TC.Util.extend({}, layer.options);
     layerOptions.id = self.getUID();
@@ -813,21 +846,22 @@ if (!TC.control.LayerCatalog) {
     layerOptions.uid = layer.uid;
     const newLayer = new TC.layer.Raster(layerOptions);
     if (newLayer.isCompatible(self.map.crs)) {
-      self.map.addLayer(layerOptions).then(function (layer) {
-        layer.wrap.$events.on(TC.Consts.event.TILELOADERROR, function (event) {
+      self.map.addLayer(layerOptions).then(function(layer) {
+        layer.wrap.$events.on(TC.Consts.event.TILELOADERROR, function(event) {
           var layer = this.parent;
           if (event.error.code === 401 || event.error.code === 403)
-            layer.map.toast(event.error.text, { type: TC.Consts.msgType.ERROR });
+            layer.map.toast(event.error.text, {
+              type: TC.Consts.msgType.ERROR
+            });
           layer.map.removeLayer(layer);
         });
       });
-    }
-    else {
+    } else {
       showProjectionChangeDialog(self, newLayer);
     }
   };
 
-  const _refreshResultList = function () {
+  const _refreshResultList = function() {
     const self = this;
 
     if ("createEvent" in document) {
@@ -836,18 +870,17 @@ if (!TC.control.LayerCatalog) {
       if (self.textInput) {
         self.textInput.dispatchEvent(evt);
       }
-    }
-    else {
+    } else {
       if (self.textInput) {
         self.textInput.fireEvent("keyup");
       }
     }
   };
 
-  const updateControl = function (layer) {
+  const updateControl = function(layer) {
     const self = this;
 
-    self.getLayerNodes(layer).forEach(function (node) {
+    self.getLayerNodes(layer).forEach(function(node) {
       node.classList.remove(TC.Consts.classes.LOADING);
       node.classList.add(TC.Consts.classes.CHECKED);
       node.querySelector('span').dataset.tooltip = self.getLocaleString('layerAlreadyAdded');
@@ -855,7 +888,7 @@ if (!TC.control.LayerCatalog) {
     _refreshResultList.call(self);
   };
 
-  const addLogicToNode = function (node, layer, control) {
+  const addLogicToNode = function(node, layer, control) {
     //const self = this;
     const self = control;
 
@@ -895,10 +928,10 @@ if (!TC.control.LayerCatalog) {
     }
 
     var formatDescriptions = {};
-    node.querySelectorAll('.' + self.CLASS + '-btn-info').forEach(function (a) {
+    node.querySelectorAll('.' + self.CLASS + '-btn-info').forEach(function(a) {
       const span = a.parentElement.querySelector('span');
       const name = a.parentElement.dataset.layerName;
-      var uid = a.parentElement.dataset.layerUid;//Silme MV
+      var uid = a.parentElement.dataset.layerUid; //Silme MV
       var info;
       if (name) {
         span.classList.add(TC.Consts.classes.SELECTABLE);
@@ -917,9 +950,8 @@ if (!TC.control.LayerCatalog) {
         //End silme
         if (!info.hasOwnProperty('abstract') && !info.hasOwnProperty('legend') && !info.hasOwnProperty('metadata')) {
           a.parentElement.removeChild(a);
-        }
-        else {
-          a.addEventListener(TC.Consts.event.CLICK, function (e) {
+        } else {
+          a.addEventListener(TC.Consts.event.CLICK, function(e) {
             const a = e.target;
             var li = a;
             do {
@@ -929,7 +961,7 @@ if (!TC.control.LayerCatalog) {
 
             e.stopPropagation();
             const elm = this;
-            var uid = elm.parentElement.dataset.layerUid;//Silme
+            var uid = elm.parentElement.dataset.layerUid; //Silme
             if (elm.classList.toggle(TC.Consts.classes.CHECKED)) {
               showLayerInfo.call(self, layer, name, uid, li);
             } else {
@@ -951,24 +983,23 @@ if (!TC.control.LayerCatalog) {
             }
           }
         }
-      }
-      else {
+      } else {
         span.dataset.tooltip = '';
         a.parentElement.removeChild(a);
       }
     });
   };
 
-  TC.control.LayerCatalogSilme.prototype.renderBranch = function (layer, callback, promiseRenderResolve) {
+  TC.control.LayerCatalogSilme.prototype.renderBranch = function(layer, callback, promiseRenderResolve) {
     const self = this;
 
     self.sourceLayers.unshift(layer);
     layer.getCapabilitiesPromise()
-      .then(function (result) {
+      .then(function(result) {
 
         //self.sourceLayers.push(layer);
 
-        self.getRenderedHtml(self.CLASS + '-branch', getLayerTree(this), function (html) {
+        self.getRenderedHtml(self.CLASS + '-branch', getLayerTree(this), function(html) {
           var template = document.createElement('template');
           template.innerHTML = html;
 
@@ -989,13 +1020,15 @@ if (!TC.control.LayerCatalog) {
 
           if (TC.Util.isFunction(callback)) {
             // pasamos el callback el item
-            callback(self.sourceLayers[self.sourceLayers.map(function (l) { return l.id }).indexOf(this.id)]);
+            callback(self.sourceLayers[self.sourceLayers.map(function(l) {
+              return l.id
+            }).indexOf(this.id)]);
           }
 
         }.bind(this));
 
       }.bind(layer))
-      .catch(function (error) {
+      .catch(function(error) {
         /*
         var index = self.layers.map(function (l) { return l.id }).indexOf(this.id);
         self.layers.splice(index, 1);
@@ -1010,16 +1043,16 @@ if (!TC.control.LayerCatalog) {
       }.bind(layer));
   };
 
-  TC.control.LayerCatalogSilme.prototype.render = function (callback) {
+  TC.control.LayerCatalogSilme.prototype.render = function(callback) {
     const self = this;
 
-    return self._set1stRenderPromise(new Promise(function (resolve, reject) {
-      const promises = self.layers.map(function (layer) {
+    return self._set1stRenderPromise(new Promise(function(resolve, reject) {
+      const promises = self.layers.map(function(layer) {
         return layer.wrap.getLayer();
       })
-      Promise.all(promises).then(function () {//SILME 20210419
+      Promise.all(promises).then(function() { //SILME 20210419
         //Tot ok, no fem res
-      }, function (reject) {
+      }, function(reject) {
         //si entram aquí és perque un servei (o més d'un) han fallat.
 
         //lo que fem és treure les capes que no tenen capabilities associat, o sigui,
@@ -1029,17 +1062,19 @@ if (!TC.control.LayerCatalog) {
         //hauriem de veure si es pot eliminar codi redundant o fer una funció que s'executi després, hagi fallat o no (HERE)
         for (var i = 0; i < self.layers.length; i++) {
           if (self.layers[i].capabilities == undefined) {
-            self.map.toast(self.getLocaleString('errorCarregarCapa') + self.layers[i].title, { type: TC.Consts.msgType.ERROR });
+            self.map.toast(self.getLocaleString('errorCarregarCapa') + self.layers[i].title, {
+              type: TC.Consts.msgType.ERROR
+            });
             self.layers.splice(i, 1);
             i--;
           }
 
         }
-      }).then(function () {
+      }).then(function() {
         //Si totes les capes estan OK passem aquí directament, sino eliminem les que no estàn bé de l'arbre de capes i després passem aquí
-        var layerTrees = self.layers.map(function (layer) {
+        var layerTrees = self.layers.map(function(layer) {
           var result = layer.getTree();
-          layer.tree = result;//mv
+          layer.tree = result; //mv
           var makeNodeVisible = function makeNodeVisible(node) {
             var result = false;
             var childrenVisible = false;
@@ -1057,8 +1092,8 @@ if (!TC.control.LayerCatalog) {
           return result;
         });
 
-        layerTrees.forEach(function (item) {
-          var layer = self.layers.find(function (layer) {
+        layerTrees.forEach(function(item) {
+          var layer = self.layers.find(function(layer) {
             return item.title === layer.title
           });
         });
@@ -1066,9 +1101,9 @@ if (!TC.control.LayerCatalog) {
         realTree.children = new Array();
 
         //TC.control.LayerCatalog.prototype.render.call(self, function () {
-        renderParent.call(self, function () {
+        renderParent.call(self, function() {
 
-          const getLayerTree = function (layer) {
+          const getLayerTree = function(layer) {
             if (layer.tree == null) {
               for (var i = 0; i < layer.children.length; i++) {
                 if (layer.children[i].tree == null) {
@@ -1118,8 +1153,8 @@ if (!TC.control.LayerCatalog) {
           };
 
           // TODO DELETE si sa funció modificada dia 20231017 funciona
-          //const getLayerTree = function (layer) {
-          //    if (layer.tree == null) {
+          //           //const getLayerTree = function (layer) {
+          //           //    if (layer.tree == null) {
           //        for (var i = 0; i < layer.children.length; i++) {
           //            var resultChild = layer.children[i].getTree();
           //            resultChild.id = layer.children[i].id;
@@ -1181,13 +1216,13 @@ if (!TC.control.LayerCatalog) {
 
             for (var i = 0; i < realTree.children.length; i++) {
               //Hem d'agafar lo mateix que al LayerCatalog self.getLayerTree(self.layers[0])
-              selfClass.getRenderedHtml(self.CLASS + '-node', getLayerTree(realTree.children[i]), function (html) {
+              selfClass.getRenderedHtml(self.CLASS + '-node', getLayerTree(realTree.children[i]), function(html) {
                 var template = document.createElement('template');
                 template.innerHTML = html;
 
                 var newChild = template.content ? template.content.firstChild : template.firstChild;
 
-                if (self.div.querySelector('#' + newChild.id) == null)//no existeix
+                if (self.div.querySelector('#' + newChild.id) == null) //no existeix
                 {
                   self.div.querySelector('.' + self.CLASS + '-branch').appendChild(newChild);
                 }
@@ -1207,13 +1242,15 @@ if (!TC.control.LayerCatalog) {
             //self.div.querySelector('.tc-ctl-lcat-branch').children[0].classList.remove(TC.Consts.classes.COLLAPSED);//Desplegam el primer node
             //self.div.querySelector('.tc-ctl-lcat-branch').querySelector('.tc-ctl-lcat-branch').classList.remove(TC.Consts.classes.COLLAPSED);
 
-            callback(self.sourceLayers[self.sourceLayers.map(function (l) { return l.id }).indexOf(this.id)]);
+            callback(self.sourceLayers[self.sourceLayers.map(function(l) {
+              return l.id
+            }).indexOf(this.id)]);
           }
 
           resolve();
         });
 
-        const AfageixTotsElsParesQueNoShaginAfegit = function (capaActualPare, capaActual) {
+        const AfageixTotsElsParesQueNoShaginAfegit = function(capaActualPare, capaActual) {
           var catalog = silmeLayerCatalog.options;
 
           // Miram dins cada node...
@@ -1223,9 +1260,9 @@ if (!TC.control.LayerCatalog) {
 
             if (nodeActual.id == capaActualPare) {
               // Si el nodeActual depen d'un nodePare
-              if (nodePare != ""
-                && nodePare != null
-                && nodeActual.id != nodePare) {
+              if (nodePare != "" &&
+                nodePare != null &&
+                nodeActual.id != nodePare) {
 
                 // Si el nodePare no és dins el realTree
                 if (!cercaIdDinsArray(realTree.children, nodePare)) {
@@ -1254,8 +1291,8 @@ if (!TC.control.LayerCatalog) {
 
                 // Si el nodeActual ja és dins el nodePare, afegim el contingut de la capaActual dins el nodeActual
                 if (capaActual) {
-                  if (!cercaIdDinsArray(realTree.children, nodeActual.id)
-                    && nodeActual.id != nodePare) {
+                  if (!cercaIdDinsArray(realTree.children, nodeActual.id) &&
+                    nodeActual.id != nodePare) {
                     capaActual.children = capaActual.getTree().children;
                     // Per cercar el nodeActual hem de cercar dins els nodesFills de tots els nodes
                     var realNodeActual = cercaIdDinsArray(realTree.children, nodeActual.id);
@@ -1290,7 +1327,7 @@ if (!TC.control.LayerCatalog) {
         }
 
         // Event botó projectes
-        self.div.addEventListener('click', TC.EventTarget.listenerBySelector('#canvi-projecte-silme', function (e) {
+        self.div.addEventListener('click', TC.EventTarget.listenerBySelector('#canvi-projecte-silme', function(e) {
           const projPane = self.div.querySelector('#projects');
 
           if (window.innerWidth < 760) {
@@ -1305,14 +1342,14 @@ if (!TC.control.LayerCatalog) {
           }
 
           projPane.classList.toggle(TC.Consts.classes.HIDDEN);
-          projPane.querySelector('.' + self.CLASS + '-proj-close').addEventListener(TC.Consts.event.CLICK, function () {
+          projPane.querySelector('.' + self.CLASS + '-proj-close').addEventListener(TC.Consts.event.CLICK, function() {
             self.div.querySelector('#projects').classList.add(TC.Consts.classes.HIDDEN);
             projPane.querySelectorAll('.' + self.CLASS + '-proj-selected').forEach(item => {
               item.classList.remove(self.CLASS + '-proj-selected');
             });
           });
 
-          projPane.querySelector('.' + self.CLASS + '-proj-accept').addEventListener('click', function () {
+          projPane.querySelector('.' + self.CLASS + '-proj-accept').addEventListener('click', function() {
             self.div.querySelector('#projects').classList.add(TC.Consts.classes.HIDDEN);
             const selectedProject = projPane.querySelector('.' + self.CLASS + '-proj-selected');
             if (selectedProject) {
@@ -1324,7 +1361,7 @@ if (!TC.control.LayerCatalog) {
             }
           });
 
-          projPane.querySelector('.' + self.CLASS + '-proj-cancel').addEventListener('click', function () {
+          projPane.querySelector('.' + self.CLASS + '-proj-cancel').addEventListener('click', function() {
             self.div.querySelector('#projects').classList.add(TC.Consts.classes.HIDDEN);
             projPane.querySelectorAll('.' + self.CLASS + '-proj-selected').forEach(item => {
               item.classList.remove(self.CLASS + '-proj-selected');
@@ -1339,7 +1376,7 @@ if (!TC.control.LayerCatalog) {
               catalogElement.classList.add(self.CLASS + '-proj-selected');
 
             // Afegir listener als catàlegs
-            catalogElement.addEventListener('click', function () {
+            catalogElement.addEventListener('click', function() {
               projPane.querySelector('.' + self.CLASS + '-proj-selected').classList.remove(self.CLASS + '-proj-selected');
               catalogElement.classList.add(self.CLASS + '-proj-selected');
             });
@@ -1348,35 +1385,37 @@ if (!TC.control.LayerCatalog) {
 
         // Renderitzar l'html de la modal amb la llista de catàlegs
         selfClass = self;
-        self.getRenderedHtml(self.CLASS + '-proj', ({ "catalogs": window.layerCatalogsSilmeForModal.catalogs })).then(function (out) {
+        self.getRenderedHtml(self.CLASS + '-proj', ({
+          "catalogs": window.layerCatalogsSilmeForModal.catalogs
+        })).then(function(out) {
           var template = document.createElement('template');
           template.innerHTML = out;
           if (self.div.querySelector('.tc-ctl-lcat-proj') != null)
             self.div.querySelector('.tc-ctl-lcat-proj').innerHTML = template.innerHTML;
-        }).catch(function (err) {
+        }).catch(function(err) {
           TC.error(err);
         });
 
         // 2 Capes de fons
-        if (true) { // SILME - posam fals perque no volem dos mapes de fons
-          if (treeLayers.length > 0) {
-            if (typeof secondBaseLayer != 'undefined') {
-              if (secondBaseLayer == false) {
-                addSecondBaseLayer();
-                setSpan1();
-                setSpan2();
-                selectB1();
-                document.querySelector('#rangeTransparency').addEventListener('input', function () {
-                  silmeMap.map.getLayers().array_[1].setOpacity(this.value / 100);
-                  silmeMap.map.render();
-                });
-              }
-            }
-          }
-        }
-      }, function () {
+        // if (true) { // SILME - posam fals perque no volem dos mapes de fons
+        //   if (treeLayers.length > 0) {
+        //     if (typeof secondBaseLayer != 'undefined') {
+        //       if (secondBaseLayer == false) {
+        //         addSecondBaseLayer();
+        //         setSpan1();
+        //         setSpan2();
+        //         selectB1();
+        //         document.querySelector('#rangeTransparency').addEventListener('input', function() {
+        //           silmeMap.map.getLayers().array_[1].setOpacity(this.value / 100);
+        //           silmeMap.map.render();
+        //         });
+        //       }
+        //     }
+        //   }
+        // }
+      }, function() {
 
-      }).then(function () {
+      }).then(function() {
 
         if (treeLayers.length > 0)
           layerCatalogCarregat();
@@ -1388,13 +1427,17 @@ if (!TC.control.LayerCatalog) {
     }));
   };
 
-  const renderParent = function (callback) {
+  const renderParent = function(callback) {
     const self = this;
     self.sourceLayers = [];
 
-    return self._set1stRenderPromise(new Promise(function (resolve, _reject) {
+    return self._set1stRenderPromise(new Promise(function(resolve, _reject) {
       if (self.layers.length === 0) {
-        self.renderData({ layerTrees: [], enableSearch: false, enableChangeTopic: false }, function () {
+        self.renderData({
+          layerTrees: [],
+          enableSearch: false,
+          enableChangeTopic: false
+        }, function() {
 
           if (TC.Util.isFunction(callback)) {
             callback();
@@ -1404,11 +1447,15 @@ if (!TC.control.LayerCatalog) {
         });
       } else {
         const shouldEnableChangeTopic = window.layerCatalogsSilmeForModal.catalogs.length > 1;
-        self.renderData({ layers: self.layers, enableSearch: true, enableChangeTopic: shouldEnableChangeTopic }, function () {
+        self.renderData({
+          layers: self.layers,
+          enableSearch: true,
+          enableChangeTopic: shouldEnableChangeTopic
+        }, function() {
 
           createSearchAutocomplete.call(self);
 
-          self.layers.forEach(function (layer) {
+          self.layers.forEach(function(layer) {
             self.renderBranch(layer, callback, resolve);
           });
         });
@@ -1416,26 +1463,26 @@ if (!TC.control.LayerCatalog) {
     }));
   };
 
-  TC.control.LayerCatalogSilme.prototype.addLayer = function (layer) {
+  TC.control.LayerCatalogSilme.prototype.addLayer = function(layer) {
     const self = this;
-    return new Promise(function (resolve, reject) {
+    return new Promise(function(resolve, reject) {
       var fromLayerCatalog = [];
 
       if (self.options.layers && self.options.layers.length) {
-        fromLayerCatalog = self.options.layers.filter(function (l) {
+        fromLayerCatalog = self.options.layers.filter(function(l) {
           var getMap = TC.Util.reqGetMapOnCapabilities(l.url);
           return getMap && getMap.replace(TC.Util.regex.PROTOCOL) == layer.url.replace(TC.Util.regex.PROTOCOL);
         });
       }
 
       if (fromLayerCatalog.length == 0)
-        fromLayerCatalog = self.layers.filter(function (l) {
+        fromLayerCatalog = self.layers.filter(function(l) {
           return l.url.replace(TC.Util.regex.PROTOCOL) == layer.url.replace(TC.Util.regex.PROTOCOL);
         });
 
       if (fromLayerCatalog.length == 0) {
         self.layers.push(layer);
-        layer.getCapabilitiesPromise().then(function () {
+        layer.getCapabilitiesPromise().then(function() {
           layer.compatibleLayers = layer.wrap.getCompatibleLayers(self.map.crs);
           layer.title = layer.title || layer.wrap.getServiceTitle();
 
@@ -1453,15 +1500,15 @@ if (!TC.control.LayerCatalog) {
           //self.renderBranch(layer, function () {
           //    resolve(); //ver linea 55 y por ahí
           //});
-          TC.control.LayerCatalog.prototype.getRenderedHtml.call(self, 'tc-ctl-lcat-node', SITNA.Cfg.controls.layerCatalogSilme.layerTreeGroups.filter(e => e.id === "node99")[0], function (html) {
+          TC.control.LayerCatalog.prototype.getRenderedHtml.call(self, 'tc-ctl-lcat-node', SITNA.Cfg.controls.layerCatalogSilme.layerTreeGroups.filter(e => e.id === "node99")[0], function(html) {
             var template = document.createElement('template');
             template.innerHTML = html;
 
             var newChild = template.content ? template.content.firstChild : template.firstChild;
 
-            if (self.div.querySelector('#' + newChild.id) != null)//Silme
+            if (self.div.querySelector('#' + newChild.id) != null) //Silme
             {
-              self.div.querySelector('#' + newChild.id).remove()//Silme - eliminem l'arbre anterior
+              self.div.querySelector('#' + newChild.id).remove() //Silme - eliminem l'arbre anterior
             }
 
             //silme if (self.div.querySelector('#' + newChild.id) == null)//no existeix
@@ -1480,8 +1527,10 @@ if (!TC.control.LayerCatalog) {
             addLogicToTreeGroup.call(self, newChild);
           });
         });
-      } else { resolve(); }
-    }).then(function () {
+      } else {
+        resolve();
+      }
+    }).then(function() {
       //mv 20210527 açò ho hem afegit per que carregui la capa corresponent després d'afegir un nou servei
       //a l'arbre de capes des del control localitzar (trams i fites de camí de cavalls, però podrien ser altres)
       if (pendingLayer) {
@@ -1491,13 +1540,13 @@ if (!TC.control.LayerCatalog) {
     });
   };
 
-  TC.control.LayerCatalogSilme.prototype.loaded = function () {
+  TC.control.LayerCatalogSilme.prototype.loaded = function() {
     return this._readyPromise;
   };
 
-  TC.control.LayerCatalogSilme.prototype.hideLayerInfo = function () {
+  TC.control.LayerCatalogSilme.prototype.hideLayerInfo = function() {
     var self = this;
-    self.div.querySelectorAll('.' + self.CLASS + '-btn-info, .' + self.CLASS + '-search-btn-info').forEach(function (btn) {
+    self.div.querySelectorAll('.' + self.CLASS + '-btn-info, .' + self.CLASS + '-search-btn-info').forEach(function(btn) {
       btn.classList.remove(TC.Consts.classes.CHECKED);
     });
     const infoPanel = self.div.querySelector('.' + self.CLASS + '-info');
@@ -1506,9 +1555,9 @@ if (!TC.control.LayerCatalog) {
     infoPanel.classList.add(TC.Consts.classes.HIDDEN);
   };
 
-  TC.control.LayerCatalogSilme.prototype.hideSearchLayerInfo = function () {
+  TC.control.LayerCatalogSilme.prototype.hideSearchLayerInfo = function() {
     var self = this;
-    self.div.querySelectorAll('.' + self.CLASS + '-btn-info, .' + self.CLASS + '-search-btn-info').forEach(function (btn) {
+    self.div.querySelectorAll('.' + self.CLASS + '-btn-info, .' + self.CLASS + '-search-btn-info').forEach(function(btn) {
       btn.checked = false;
     });
     const infoPanel = self.div.querySelector('.' + self.CLASS + '-info');
@@ -1517,7 +1566,7 @@ if (!TC.control.LayerCatalog) {
     infoPanel.classList.add(TC.Consts.classes.HIDDEN);
   };
 
-  TC.control.LayerCatalogSilme.prototype.getLayerNodes = function (layer) {
+  TC.control.LayerCatalogSilme.prototype.getLayerNodes = function(layer) {
     const self = this;
     const result = [];
     const rootNode = self.getLayerRootNode(layer);
@@ -1528,7 +1577,7 @@ if (!TC.control.LayerCatalog) {
           continue;
         }
         result.push(liLayer);
-        liLayer.querySelectorAll('li').forEach(function (li) {
+        liLayer.querySelectorAll('li').forEach(function(li) {
           result.push(li);
         });
       }
@@ -1536,7 +1585,7 @@ if (!TC.control.LayerCatalog) {
     return result;
   };
 
-  TC.control.LayerCatalogSilme.prototype.getLayerRootNode = function (layer) {
+  TC.control.LayerCatalogSilme.prototype.getLayerRootNode = function(layer) {
     const self = this;
     var result = null;
     if (!layer.isBase) {
@@ -1544,12 +1593,8 @@ if (!TC.control.LayerCatalog) {
       if (self._roots) {
         self._roots.forEach(function (li) {
           const lyr = self.getLayer(li.dataset.layerId);
-          var node = li.querySelectorAll('li[data-layer-name]');
-          var capa;
-          for (var i = 0; i < node.length; i++) {
-            if (layer.availableNames && li.querySelectorAll('li[data-layer-name]')[i].dataset.layerName == layer.availableNames[0]) {
-              result = li;
-            }
+          if (lyr && lyr.type === layer.type && lyr.options.url.toLowerCase() === url.toLowerCase()) {
+            if (layer.names.every((name) => li.querySelector(`li[data-layer-name="${name}"]`))) result = li;
           }
         });
       }
@@ -1596,10 +1641,10 @@ if (!TC.control.LayerCatalog) {
         }
       }
     } else {
-      //if (keywordList.Keyword && keywordList.Keyword.includes("Aquesta cartografia no és vigent")) {
-      //    // alert("Desactualitzat"); // *  --> mostra missatge a continuació
-      //    toastr.info(keywordList.Keyword.substr(keywordList.Keyword.indexOf("* ") + 2), "Atenció");
-      //}
+      if (keywordList && keywordList.Keyword && keywordList.Keyword.includes("IDENOTA* ")) {
+        // alert("Desactualitzat"); // *  --> mostra missatge a continuació
+        toastr.info(keywordList.Keyword.substr(keywordList.Keyword.indexOf("* ") + 2), "Atenció");
+      }
     }
   }
 
