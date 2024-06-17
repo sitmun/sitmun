@@ -1,4 +1,4 @@
-# SITMUN Touristic Mobile Application Application Stack
+# SITMUN Touristic Mobile Application
 
 Description.
 
