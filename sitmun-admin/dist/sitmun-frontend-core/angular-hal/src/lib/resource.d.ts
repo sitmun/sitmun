@@ -1,8 +1,8 @@
 import { HalOptions } from './rest.service';
 import { SubTypeBuilder } from './subtype-builder';
 import { Observable } from 'rxjs';
+import * as i0 from "@angular/core";
 /** Abstract resource class*/
-import * as ɵngcc0 from '@angular/core';
 export declare abstract class Resource {
     /** proxy URL */
     proxyUrl: string;
@@ -13,8 +13,9 @@ export declare abstract class Resource {
     /** subtypes */
     _subtypes: Map<string, any>;
     /** get subtypes */
+    get subtypes(): Map<string, any>;
     /** set subtypes */
-    subtypes: Map<string, any>;
+    set subtypes(_subtypes: Map<string, any>);
     /** constructor*/
     constructor();
     /** Get collection of related resources */
@@ -37,8 +38,6 @@ export declare abstract class Resource {
     deleteRelation<T extends Resource>(relation: string, resource: T): Observable<any>;
     /** Unbind the resource with the given relation from this resource*/
     deleteAllRelation<T extends Resource>(relation: string): Observable<any>;
-    static ɵfac: ɵngcc0.ɵɵFactoryDef<Resource, never>;
-    static ɵprov: ɵngcc0.ɵɵInjectableDef<Resource>;
+    static ɵfac: i0.ɵɵFactoryDef<Resource, never>;
+    static ɵprov: i0.ɵɵInjectableDef<Resource>;
 }
-
-//# sourceMappingURL=resource.d.ts.map
