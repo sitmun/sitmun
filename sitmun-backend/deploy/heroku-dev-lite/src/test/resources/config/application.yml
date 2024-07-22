@@ -71,6 +71,9 @@ spring:
       thread-name-prefix: sample-scheduling-
       pool:
         size: 2
+  liquibase:
+    change-log: classpath:config/liquibase/master.xml
+    contexts: dev
 
 server:
   servlet:
