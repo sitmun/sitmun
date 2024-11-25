@@ -1,4 +1,4 @@
-# SITMUN Administration Mobile Application
+# SITMUN Edition Mobile Application
 
 Description.
 
