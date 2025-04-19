@@ -1,5 +1,5 @@
-import {Component, OnDestroy, OnInit, TemplateRef, ViewChild} from "@angular/core";
-import {sitmunMixedBase} from "@app/components/sitmun-base.component";
+import { Component, OnDestroy, OnInit, TemplateRef, ViewChild } from "@angular/core";
+import { sitmunMixedBase } from "@app/components/sitmun-base.component";
 import {
   CodeListService,
   Role,
@@ -19,16 +19,17 @@ import {
   TaskUIService,
   TerritoryProjection,
   TerritoryService,
-  TranslationService
+  TranslationService,
+  TaskPropertiesBuilder
 } from "@app/domain";
-import {MatDialog} from "@angular/material/dialog";
-import {TranslateService} from "@ngx-translate/core";
-import {ActivatedRoute, Router} from "@angular/router";
-import {UtilsService} from "@app/services/utils.service";
-import {LoggerService} from "@app/services/logger.service";
-import {ErrorHandlerService} from "@app/services/error-handler.service";
-import {DataTableDefinition, TemplateDialog} from "@app/components/data-tables.util";
-import {firstValueFrom, map, of} from "rxjs";
+import { MatDialog } from "@angular/material/dialog";
+import { TranslateService } from "@ngx-translate/core";
+import { ActivatedRoute, Router } from "@angular/router";
+import { UtilsService } from "@app/services/utils.service";
+import { LoggerService } from "@app/services/logger.service";
+import { ErrorHandlerService } from "@app/services/error-handler.service";
+import { DataTableDefinition, TemplateDialog } from "@app/components/data-tables.util";
+import { firstValueFrom, map, of } from "rxjs";
 import {
   canKeepOrUpdate,
   onCreate,
@@ -36,20 +37,20 @@ import {
   onUpdatedRelation,
   Status
 } from "@app/frontend-gui/src/lib/data-grid/data-grid.component";
-import {FormControl, FormGroup, Validators} from "@angular/forms";
+import { FormControl, FormGroup, Validators } from "@angular/forms";
 
 /**
  * Component for managing basic tasks in the SITMUN application.
  * Provides a form interface for creating, editing, and duplicating basic tasks.
- * 
+ *
  * This component handles:
  * - Task metadata (name, UI)
  * - Task role assignments
  * - Task availability per territory
  * - Task parameters configuration
- * 
+ *
  * Each task is associated with a specific task type and task group.
- * 
+ *
  * @extends sitmunMixedBase<TaskProjection>
  * @implements OnInit, OnDestroy
  */
@@ -59,6 +60,12 @@ import {FormControl, FormGroup, Validators} from "@angular/forms";
   styles: []
 })
 export class TaskBasicFormComponent extends sitmunMixedBase<TaskProjection>() implements OnInit, OnDestroy {
+
+  /**
+   * The reactive form for editing task properties.
+   * Contains form controls for name and UI selection with validation rules.
+   */
+  public override entityForm: FormGroup;
 
   /**
    * Data table definition for managing role assignments to the task.
@@ -106,13 +113,13 @@ export class TaskBasicFormComponent extends sitmunMixedBase<TaskProjection>() im
    * List of available task UIs that can be assigned to this task.
    * Retrieved during initialization.
    */
-  private uiList: TaskUI[] = [];
+  protected uiList: TaskUI[] = [];
 
   /**
    * Reference to the dialog template for adding new parameters.
    * Used by the parameters table for creating new task parameters.
    */
-  @ViewChild('newParameterDialog', {static: true})
+  @ViewChild('newParameterDialog', { static: true })
   private readonly newParameterDialog: TemplateRef<any>;
 
   /**
@@ -179,7 +186,7 @@ export class TaskBasicFormComponent extends sitmunMixedBase<TaskProjection>() im
   /**
    * Initializes component data before fetching.
    * Extracts task type from route, registers data tables, and loads required data.
-   * 
+   *
    * @returns Promise that resolves when initialization is complete
    * @throws Error if task type or group is not found
    */
@@ -192,6 +199,8 @@ export class TaskBasicFormComponent extends sitmunMixedBase<TaskProjection>() im
     this.taskTypeName = params.type ?? 'Basic';
     this.taskTypeNameTranslated = this.translateService.instant(`tasksEntity.${this.taskTypeName}`);
     await this.initCodeLists(['tasksEntity.type'])
+    this.initTranslations('Task', ['name'])
+
     const [taskTypes, taskGroups, uiList] = await Promise.all([
       firstValueFrom(this.taskTypeService.getAllEx()),
       firstValueFrom(this.taskGroupService.getAllEx()),
@@ -216,7 +225,7 @@ export class TaskBasicFormComponent extends sitmunMixedBase<TaskProjection>() im
 
   /**
    * Fetches the original entity by ID.
-   * 
+   *
    * @returns Promise that resolves to the task projection
    */
   override fetchOriginal(): Promise<TaskProjection> {
@@ -226,7 +235,7 @@ export class TaskBasicFormComponent extends sitmunMixedBase<TaskProjection>() im
   /**
    * Creates a copy of an existing entity for duplication.
    * Prefixes the name with "copy_" to distinguish from the original.
-   * 
+   *
    * @returns Promise that resolves to the duplicated task projection
    */
   override fetchCopy(): Promise<TaskProjection> {
@@ -238,7 +247,7 @@ export class TaskBasicFormComponent extends sitmunMixedBase<TaskProjection>() im
 
   /**
    * Creates an empty task entity with default values.
-   * 
+   *
    * @returns New empty task projection
    */
   override empty(): TaskProjection {
@@ -246,9 +255,17 @@ export class TaskBasicFormComponent extends sitmunMixedBase<TaskProjection>() im
   }
 
   /**
+   * Fetches related data for the entity.
+   * Loads translations for the current entity.
+   */
+  override async fetchRelatedData() {
+    return this.loadTranslations(this.entityToEdit);
+  }
+
+  /**
    * Initializes the form after entity data is fetched.
    * Sets up reactive form with entity values and validation rules.
-   * 
+   *
    * @throws Error if entity is undefined
    */
   override postFetchData() {
@@ -270,7 +287,7 @@ export class TaskBasicFormComponent extends sitmunMixedBase<TaskProjection>() im
 
   /**
    * Creates a Task object from the current form values.
-   * 
+   *
    * @param id - Optional ID for the new object, used when updating
    * @returns New Task instance populated with form values
    */
@@ -288,7 +305,7 @@ export class TaskBasicFormComponent extends sitmunMixedBase<TaskProjection>() im
   /**
    * Creates a new task entity in the database.
    * Also sets immutable relationships to task type and group.
-   * 
+   *
    * @returns Promise resolving to the ID of the created entity
    */
   override async createEntity(): Promise<number> {
@@ -302,7 +319,7 @@ export class TaskBasicFormComponent extends sitmunMixedBase<TaskProjection>() im
 
   /**
    * Updates an existing task entity with form values.
-   * 
+   *
    * @returns Promise that resolves when the update is complete
    */
   override async updateEntity() {
@@ -313,20 +330,20 @@ export class TaskBasicFormComponent extends sitmunMixedBase<TaskProjection>() im
   /**
    * Updates related data after the task is saved.
    * Updates UI relationship if the form is dirty or being duplicated.
-   * 
+   *
    * @param isDuplicated - Whether this is a duplication operation
    * @returns Promise that resolves when related data is updated
    */
   override async updateDataRelated(isDuplicated: boolean) {
-    if (this.entityForm.dirty || isDuplicated) {
-      await firstValueFrom(this.entityToEdit.updateRelationEx("ui", this.taskUIService.createProxy(this.entityForm.get('uiId')?.value)));
-    }
+    const entityToUpdate = this.createObject(this.entityID);
+    await this.saveTranslations(entityToUpdate);
+    await firstValueFrom(entityToUpdate.updateRelationEx("ui", this.taskUIService.createProxy(this.entityForm.get('uiId')?.value)));
   }
 
   /**
    * Defines the data table configuration for managing roles.
    * Sets up columns, data fetching, updating logic, and target selection.
-   * 
+   *
    * @returns Configured data table definition for roles
    */
   private defineRolesTable(): DataTableDefinition<Role, Role> {
@@ -342,7 +359,7 @@ export class TaskBasicFormComponent extends sitmunMixedBase<TaskProjection>() im
         if (this.isNew()) {
           return of([]);
         }
-        return this.entityToEdit.getRelationArrayEx(Role, 'roles', {projection: 'view'})
+        return this.entityToEdit.getRelationArrayEx(Role, 'roles', { projection: 'view' })
       })
       .withRelationsUpdater(async (roles: (Role & Status)[]) => {
         await onUpdatedRelation(roles).forAll(item => this.entityToEdit.substituteAllRelation('roles', item));
@@ -361,7 +378,7 @@ export class TaskBasicFormComponent extends sitmunMixedBase<TaskProjection>() im
   /**
    * Defines the data table configuration for managing task availabilities.
    * Sets up columns, data fetching, updating logic, and target selection.
-   * 
+   *
    * @returns Configured data table definition for availabilities
    */
   private defineAvailabilitiesTable(): DataTableDefinition<TaskAvailabilityProjection, TerritoryProjection> {
@@ -377,7 +394,7 @@ export class TaskBasicFormComponent extends sitmunMixedBase<TaskProjection>() im
       .withRelationsOrder('territoryName')
       .withRelationsFetcher(() => {
         if (!this.isNew()) {
-          return this.entityToEdit.getRelationArrayEx(TaskAvailabilityProjection, 'availabilities', {projection: 'view'})
+          return this.entityToEdit.getRelationArrayEx(TaskAvailabilityProjection, 'availabilities', { projection: 'view' })
         }
         return of([]);
       })
@@ -410,7 +427,7 @@ export class TaskBasicFormComponent extends sitmunMixedBase<TaskProjection>() im
   /**
    * Defines the data table configuration for managing task parameters.
    * Sets up columns, data fetching, updating logic, and dialog templates.
-   * 
+   *
    * @returns Configured data table definition for parameters
    */
   private defineParametersTable(): DataTableDefinition<TaskParameter, TaskParameter> {
@@ -431,13 +448,9 @@ export class TaskBasicFormComponent extends sitmunMixedBase<TaskProjection>() im
         return of<TaskParameter[]>([])
       })
       .withRelationsUpdater(async (parameters: (TaskParameter & Status)[]) => {
-        console.log('parameters', parameters);
         const parametersToSave = parameters.filter(canKeepOrUpdate).map(value => TaskParameter.fromObject(value))
-        if (!this.entityToEdit.properties) {
-          this.entityToEdit.properties = {parameters: parametersToSave};
-        } else {
-          this.entityToEdit.properties.parameters = parametersToSave;
-        }
+        this.entityToEdit.properties = TaskPropertiesBuilder.from(this.entityToEdit.properties)
+          .withParameters(parametersToSave).build();
         await firstValueFrom(this.taskService.update(this.entityToEdit));
       })
       .withTemplateDialog('newParameterDialog', () => TemplateDialog.builder()
