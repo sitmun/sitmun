@@ -1,0 +1,101 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button (click)="backPage()">
+        <ion-icon name="arrow-back" size="large"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title>{{rootNode['title']}}</ion-title>
+    <ion-buttons slot="end">
+      <ion-select [(ngModel)]="selectedLanguage" (ionChange)="setLanguage($event.detail.value)"
+                  interface="popover">
+        <ion-select-option *ngFor="let lang of languageOptions" [value]="lang.code">
+          {{ lang.name }}
+        </ion-select-option>
+      </ion-select>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <div class="container ion-padding">
+    <div class="row section">
+      <p class="text-center fs-4 text-dark">
+        <ion-icon src="../../../assets/icon/persona.svg" style="color: #70889E;"></ion-icon>
+        {{'searchNearElements' | translate}}:
+      </p>
+      <ion-segment [(ngModel)]="searchPoint">
+        <ion-segment-button value="location">
+          <ion-label class="fs-6" style="text-transform: none !important;">{{'myPosition' | translate}}</ion-label>
+        </ion-segment-button>
+        <ion-segment-button value="center">
+          <ion-label class="fs-6" style="text-transform: none !important;">{{'mapCenter' | translate}}</ion-label>
+        </ion-segment-button>
+      </ion-segment>
+    </div>
+    <div class="row section">
+      <p class="co-black">{{ metricSystem ? ('radiusMetric' | translate) : ('radiusNonMetric' | translate) }}:</p>      
+      <ng-container *ngIf="metricSystem; else noMetric">
+        <div class="col-4">
+          <ion-input [(ngModel)]="distance" min="1000" max="15000" fill="outline" type="number" shape="round" class="text-center text-dark"></ion-input>
+        </div>
+        <div class="col-8">
+          <ion-range [(ngModel)]="distance" [min]="1000" [max]="15000"></ion-range>
+        </div>          
+      </ng-container>
+      <ng-template #noMetric>
+        <div class="col-4">
+          <ion-input [(ngModel)]="distanceMiles" min="1.0" max="10.0" fill="outline" type="number" step="0.1" shape="round" class="text-center text-dark"></ion-input>
+        </div>
+        <div class="col-8">
+          <ion-range [(ngModel)]="distanceMiles" min="1.0" max="10.0" step="0.1"></ion-range>
+        </div> 
+      </ng-template> 
+    </div>
+    <div class="row section">
+      <p class="co-black">{{'categories' | translate}} ({{selectedCategories.length}}/{{categories.length}} {{'selected' | translate}}):</p>
+    </div>
+    <div class="row cat-container">
+      <div class="co-black" *ngFor="let cat of categories">
+        <ion-button class="category" (click)="toggleCategory($event, cat.id)" shape="round" expand="block">{{cat.name}}</ion-button>
+      </div>
+    </div>
+    <div class="row section">
+      <ion-button (click)="search()" shape="round" style="--background: #70889E;">{{'apply' | translate}}</ion-button>
+    </div>
+  </div>
+</ion-content>
+
+<ion-footer [translucent]="true"> 
+  <!-- <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button (click)="nextPage('node/12771')">
+        <ion-icon name="map" size="large"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <div>
+      <ion-button (click)="nextPage('node/12770')" style="--background: rgb(241, 243, 244); --box-shadow: none;">
+        <ion-icon src="../../../assets/icon/persona.svg" size="large"></ion-icon>
+      </ion-button>
+    </div>
+    <ion-buttons slot="end">
+      <ion-button (click)="nextPage('node/12769')">
+        <ion-icon name="list" size="large"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar> -->
+  <ion-toolbar>
+    <ion-buttons slot="start">
+        <div class="vertical-btn" (click)="startPage()">
+          <ion-icon name="home" size="large"></ion-icon>
+          <ion-label class="ion-text-wrap text-dark">{{'home' | translate}}</ion-label>
+        </div>
+    </ion-buttons>
+    <ion-buttons slot="end">
+      <div class="vertical-btn">
+        <ion-icon [routerLink]="['/']" name="exit-outline" size="large"></ion-icon>
+        <ion-label class="ion-text-wrap text-dark"> {{ 'exit.exit' | translate }} </ion-label>
+      </div>
+    </ion-buttons>  
+  </ion-toolbar>
+</ion-footer>

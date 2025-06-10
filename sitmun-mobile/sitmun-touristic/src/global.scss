@@ -1,0 +1,143 @@
+/*
+ * App Global CSS
+ * ----------------------------------------------------------------------------
+ * Put style rules here that you want to apply globally. These styles are for
+ * the entire app and not just one component. Additionally, this file can be
+ * used as an entry point to import other CSS/Sass files to be included in the
+ * output CSS.
+ * For more information on global stylesheets, visit the documentation:
+ * https://ionicframework.com/docs/layout/global-stylesheets
+ */
+
+/* Core CSS required for Ionic components to work properly */
+@import "@ionic/angular/css/core.css";
+
+/* Basic CSS for apps built with Ionic */
+@import "@ionic/angular/css/normalize.css";
+@import "@ionic/angular/css/structure.css";
+@import "@ionic/angular/css/typography.css";
+@import "@ionic/angular/css/display.css";
+
+/* Optional CSS utils that can be commented out */
+@import "@ionic/angular/css/padding.css";
+@import "@ionic/angular/css/float-elements.css";
+@import "@ionic/angular/css/text-alignment.css";
+@import "@ionic/angular/css/text-transformation.css";
+@import "@ionic/angular/css/flex-utils.css";
+
+/**
+ * Ionic Dark Mode
+ * -----------------------------------------------------
+ * For more info, please see:
+ * https://ionicframework.com/docs/theming/dark-mode
+ */
+
+/* @import "@ionic/angular/css/palettes/dark.always.css"; */
+/* @import "@ionic/angular/css/palettes/dark.class.css"; */
+@import "@ionic/angular/css/palettes/dark.system.css";
+
+ion-content {
+    --background: rgb(241, 243, 244);
+}
+
+ion-toolbar {
+    --background: rgb(241, 243, 244);
+    padding: 0 5vw;
+    text-align: center;
+    color: #70889E;
+    
+    ion-title{
+        font-weight: 700; 
+    }
+
+    ion-button{
+        --color: #70889E;
+    }
+
+    ion-select{
+        color: black;
+        --background: white;
+        --border-radius: 9999px;
+        --padding-end: 1.5em;
+        --padding-start: 1.5em;
+    }
+}
+
+.list-img-container {
+    border-radius: 20%;
+    overflow: hidden;
+}
+
+.list-img, .list-img-container {
+    height: 25vw;
+    width: 25vw;
+}
+
+.list-img-sm, .list-img-container-sm {
+    height: 23vw;
+    width: 23vw;
+    border-radius: 20%;
+    overflow: hidden;
+}
+
+.img-cover {
+    object-fit: cover;
+}
+
+.modal-img {
+    --width: fit-content;
+    --min-width: 75vw;
+    --height: fit-content;
+    --min-height: 50px;
+    --border-radius: 6px;
+    --box-shadow: 0 28px 48px rgba(0, 0, 0, 0.4);
+    padding: 5vw;
+}
+
+.access-btn{
+    --background: #70889E;
+    text-transform: none !important;
+}
+
+.location-btn, .delete-btn  {
+    --background: red;
+}
+
+.favorite-btn, .visit-btn {
+    --background: rgb(241, 243, 244);
+}
+
+.favorite-btn.active, .visit-btn.active {
+    --background: green;
+}
+
+.dl-btn {
+    --color: white;
+    border-radius: 50%;
+}
+
+.vertical-btn{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-size: 12px;
+    margin-top: 2px;
+}
+
+.co-black, .co-black:hover, .co-black:focus {
+    color: black;
+    --color: black;
+}
+
+@media only screen and (max-width: 768px) {
+    .m-popup.m-collapsed {
+        top: calc(100vh - 112px) !important;
+    }
+    .m-popup.m-full {
+        top: 56px !important;
+    }
+}
+
+.m-areas>div.m-area>div.m-panel.m-plugin-information {
+    display: none !important;
+}

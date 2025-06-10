@@ -1,0 +1,10 @@
+@media only screen and (max-width: 768px) {
+    .m-popup.m-collapsed {
+        top: calc(100vh - 112px) !important;
+    }
+}
+
+#map{
+  height: 100%;
+  width: 100%;
+}

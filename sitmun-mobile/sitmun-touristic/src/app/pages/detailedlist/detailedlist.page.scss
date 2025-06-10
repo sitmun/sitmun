@@ -1,0 +1,98 @@
+.list-item{
+    background-color: white;
+    border: 1px solid rgba(0, 0, 0, 0.2); 
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
+
+    &:hover {
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2); 
+        transform: translateY(-2px);
+        }
+}
+
+.card-title {
+    font-weight: 700; 
+    color: #333;      
+}
+
+/*
+#list-grid>ion-row{
+    height: 15vh;
+}
+
+.item-data {
+    color: black;
+}
+
+.item-data>h6 {
+    font-weight: bold;
+}
+
+.item-data>p {
+    font-size: 0.8rem;
+}
+
+.forward-col {
+    vertical-align: middle;
+}
+
+.forward-col>ion-icon {
+    color: black;
+    margin-top: calc(7.5vh - 16px);
+}
+*/
+.container:has(.root-img-container)>.grid-container {
+    height: calc(75vh - 112px);
+}
+
+.grid-container {
+    height: calc(100vh - 112px);
+    overflow: auto;
+}
+
+.root-img-container>ion-img {
+    height: 25vh;
+    object-fit: cover;
+}
+
+ion-modal#extraInfo-modal {
+    --width: fit-content;
+    --min-width: 75vw;
+    --height: fit-content;
+    --border-radius: 6px;
+    --box-shadow: 0 28px 48px rgba(0, 0, 0, 0.4);
+    --background: white;
+}
+
+ion-modal#extraInfo-modal h1 {
+    margin: 20px 20px 10px 20px;
+    color: black;
+}
+
+ion-modal#extraInfo-modal .wrapper {
+    margin-bottom: 10px;
+}
+
+.extraInfo-content {
+    color: black;
+}
+
+ion-accordion {
+    background-color: white;
+}
+
+ion-accordion ion-item {
+    --background: white;
+    width: 53vw;
+}
+
+.extraInfo-data {
+    max-height: 25vh;
+    overflow: auto;
+}
+
+.extraInfo-label, .ion-accordion-toggle-icon {
+    text-align: center;
+    font-weight: 700; 
+    color: #333;   
+}

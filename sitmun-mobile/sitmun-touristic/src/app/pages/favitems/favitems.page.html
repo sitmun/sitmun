@@ -1,0 +1,89 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button (click)="backPage()">
+        <ion-icon name="arrow-back" size="large"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title>{{category['name']}}</ion-title>
+    <ion-buttons slot="end">
+      <ion-select [(ngModel)]="selectedLanguage" (ionChange)="setLanguage($event.detail.value)"
+                  interface="popover">
+        <ion-select-option *ngFor="let lang of languageOptions" [value]="lang.code">
+          {{ lang.emoji }} {{ lang.name }}
+        </ion-select-option>
+      </ion-select>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <div class="container">
+    <div class="row mb-4" *ngFor="let fav of favorites">
+      <div class="col-3">
+        <div class="list-img-container my-auto" (click)="openModal($event, fav.element['image'])">
+          <ion-img class="list-img img-cover" src="{{fav.element['image'] || '../../assets/icon/no-image.jpg'}}"></ion-img>
+        </div>
+      </div>
+      <div class="col-6 item-data">
+        <h6>{{fav.element['name']}}</h6>
+        <p [innerHTML]="fav.element['description'].substring(0, 50) + '...'"></p>
+      </div>
+      <div class="col-2 forward-col">
+        <ion-button shape="round" class="access-btn dl-btn" (click)="locateElement(fav.element)">
+          <ion-icon slot="icon-only" name="location"></ion-icon>
+        </ion-button>
+        <ion-button shape="round" class="delete-btn dl-btn" (click)="deleteFavorite(fav)">
+          <ion-icon slot="icon-only" name="trash"></ion-icon>
+        </ion-button>
+        <ion-button shape="round" class="visit-btn dl-btn" [ngClass]="{'active' : fav.visited}" (click)="toggleVisited($event, fav)">
+          <ion-icon slot="icon-only" name="flag"></ion-icon>
+        </ion-button>
+      </div>
+    </div>
+    <div class="d-flex justify-content-center mt-3">
+      <ion-button shape="round" class="access-btn dl-btn" (click)="locateAllElements()">
+        <ion-icon slot="icon-only" name="map"></ion-icon>
+      </ion-button>
+    </div> 
+  </div>
+  <ion-modal class="modal-img" [isOpen]="isModalOpen" (ionModalDidDismiss)="closeModal()">
+    <ng-template>
+        <ion-img src="{{ imageModal || '../../assets/icon/no-image.jpg' }}"></ion-img>
+    </ng-template>
+  </ion-modal>
+</ion-content>
+
+<ion-footer [translucent]="true">
+  <!-- <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button (click)="nextPage('node/12771')">
+        <ion-icon name="map" size="large"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <div>
+      <ion-button (click)="nextPage('node/12770')" style="--background: white; --box-shadow: none;">
+        <ion-icon src="../../../assets/icon/persona.svg" size="large"></ion-icon>
+      </ion-button>
+    </div>
+    <ion-buttons slot="end">
+      <ion-button (click)="nextPage('node/12769')">
+        <ion-icon name="list" size="large"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar> -->
+  <ion-toolbar>
+    <ion-buttons slot="start">
+        <div class="vertical-btn" (click)="startPage()">
+          <ion-icon name="home" size="large"></ion-icon>
+          <ion-label class="ion-text-wrap text-dark">{{'home' | translate}}</ion-label>
+        </div>
+    </ion-buttons>
+    <ion-buttons slot="end">
+      <div class="vertical-btn">
+        <ion-icon [routerLink]="['/']" name="exit-outline" size="large"></ion-icon>
+        <ion-label class="ion-text-wrap text-dark"> {{ 'exit.exit' | translate }} </ion-label>
+      </div>
+    </ion-buttons>  
+  </ion-toolbar>
+</ion-footer>

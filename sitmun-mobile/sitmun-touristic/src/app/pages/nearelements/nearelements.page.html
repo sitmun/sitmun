@@ -1,0 +1,80 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button (click)="backPage()">
+        <ion-icon name="arrow-back" size="large"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title>{{rootNode['title']}}</ion-title>
+    <ion-buttons slot="end">
+      <ion-select [(ngModel)]="selectedLanguage" (ionChange)="setLanguage($event.detail.value)"
+                  interface="popover">
+        <ion-select-option *ngFor="let lang of languageOptions" [value]="lang.code">
+          {{ lang.emoji }} {{ lang.name }}
+        </ion-select-option>
+      </ion-select>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <div id="container">
+    <div class="grid-container">
+      <ion-grid id="list-grid">
+        <ion-row *ngFor="let elem of elements">
+          <ion-col size="3">
+            <div class="bus-container mx-auto my-auto" style="background-color: #e1e1e1;">
+              <ion-icon name="bus" style="color: #70889E;"></ion-icon>
+            </div>
+          </ion-col>
+          <ion-col size="7" class="item-data">
+            <h6>{{elem['name']}}</h6>
+            <p>{{roundDistance(elem['distance'])}}m</p>
+          </ion-col>
+          <ion-col size="2" class="forward-col">
+            <ion-button shape="round" class="dl-btn schedule-btn" (click)="showSchedule(elem)">
+              <ion-icon slot="icon-only" name="time-outline"></ion-icon>
+            </ion-button>
+            <ion-button shape="round" class="dl-btn location-btn" (click)="locateElement(elem)">
+              <ion-icon slot="icon-only" name="location"></ion-icon>
+            </ion-button>
+          </ion-col>
+        </ion-row>
+      </ion-grid>
+    </div>
+  </div>
+</ion-content>
+
+<ion-footer [translucent]="true">
+  <!-- <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button (click)="nextPage('node/12771')">
+        <ion-icon name="map" size="large"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <div>
+      <ion-button (click)="nextPage('node/12770')" style="--background: white; --box-shadow: none;">
+        <ion-icon src="../../../assets/icon/persona.svg" size="large"></ion-icon>
+      </ion-button>
+    </div>
+    <ion-buttons slot="end">
+      <ion-button (click)="nextPage('node/12769')">
+        <ion-icon name="list" size="large"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar> -->
+  <ion-toolbar>
+    <ion-buttons slot="start">
+        <div class="vertical-btn" (click)="startPage()">
+          <ion-icon name="home" size="large"></ion-icon>
+          <ion-label class="ion-text-wrap text-dark">{{'home' | translate}}</ion-label>
+        </div>
+    </ion-buttons>
+    <ion-buttons slot="end">
+      <div class="vertical-btn">
+        <ion-icon [routerLink]="['/']" name="exit-outline" size="large"></ion-icon>
+        <ion-label class="ion-text-wrap text-dark"> {{ 'exit.exit' | translate }} </ion-label>
+      </div>
+    </ion-buttons>  
+  </ion-toolbar>
+</ion-footer>

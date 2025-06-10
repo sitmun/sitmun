@@ -1,0 +1,194 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button (click)="backPage()">
+        <ion-icon name="arrow-back" size="large"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title>{{rootNode['title']}}</ion-title>
+    <ion-buttons slot="end">
+      <ion-select [(ngModel)]="selectedLanguage" (ionChange)="setLanguage($event.detail.value)"
+                  interface="popover">
+        <ion-select-option *ngFor="let lang of languageOptions" [value]="lang.code">
+          {{ lang.name }}
+        </ion-select-option>
+      </ion-select>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <div class="container">
+    <div class="row section">
+      <div class="col-10">
+        <ion-input [placeholder]="'searchEvent' | translate" fill="outline" [(ngModel)]="filters['keyWord']">
+          <ion-button fill="clear" slot="end" aria-label="Show/hide" (click)="filterEvents()">
+            <ion-icon slot="icon-only" name="search" size="large"></ion-icon>
+          </ion-button>
+        </ion-input>
+      </div>
+      <div class="col-2">
+        <ion-button shape="round" class="access-btn mx-auto" (click)="openModal()">
+          <ion-icon slot="icon-only" name="options"></ion-icon>
+        </ion-button>
+      </div>
+    </div>
+    <!--<div class="row section">
+      <h4 class="my-auto">{{'category' | translate}}</h4>
+    </div>
+    <div class="row">
+      <div class="categories carrusel">
+        <ion-button class="carr-elem" *ngFor="let cat of categories" (click)="filterByCategory($event, cat.name)">{{cat.name}}</ion-button>
+      </div>
+    </div>-->
+    <div class="row section">
+      <h4 class="my-auto text-dark">{{'nextActivities' | translate}} ({{events.length}})</h4>
+    </div>
+    <div class="row">
+      <div id="events-carrusel" class="carrusel">
+        <div class="co-black" *ngIf="noEvents">
+          {{'noEvents' | translate}}
+        </div>
+        <ion-card *ngFor="let evt of events" class="carr-elem">
+          <div class="card-img-container">
+            <ion-img class="img-cover" [src]="evt['image'] || '../../assets/icon/no-image.jpg'"></ion-img>
+            <div class="cat-container">
+              {{evt.category}}
+            </div>
+            <div class="btns-container">
+              <ion-button shape="round" class="favorite-btn dl-btn" [ngClass]="{'active' : evt['isFav']}" (click)="toggleFavorite($event, evt)">
+                <ion-icon slot="icon-only" name="heart"></ion-icon>
+              </ion-button>
+              <ion-button shape="round" class="location-btn dl-btn" (click)="locateElement(evt)">
+                <ion-icon slot="icon-only" name="location"></ion-icon>
+              </ion-button>
+            </div>
+          </div>
+          <ion-card-header class="section">
+            <ion-card-title>
+              {{evt.name}}
+            </ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
+            <p class="evt-content" [innerHTML]="evt.description"></p>
+            <div class="footer">
+              <p><strong>Donde:</strong> {{evt.address}}</p>
+              <p class="dates"><ion-icon name="calendar"></ion-icon> {{dateFormat(evt.startdate)}} - {{dateFormat(evt.enddate)}}</p>
+            </div>
+          </ion-card-content>
+        </ion-card>
+      </div>
+    </div>
+  </div>
+
+  <ion-modal id="filtersModal" [isOpen]="isModalOpen">
+    <ng-template>
+      <ion-header>
+        <ion-toolbar>
+          <ion-title>{{ 'filters' | translate }}</ion-title>
+          <ion-buttons slot="start">
+            <ion-button fill="clear" disabled style="opacity: 0; pointer-events: none;">
+              <ion-icon name="close" size="large"></ion-icon>
+            </ion-button>
+          </ion-buttons>          
+          <ion-buttons slot="end">
+            <ion-button (click)="closeModal()">
+              <ion-icon name="close" size="large"></ion-icon>
+            </ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-header>
+      <ion-content class="ion-padding">
+        <div class="container">
+          <div class="row" *ngIf="categories.length > 0">
+            <ion-item>
+              <ion-select [(ngModel)]="filters['category']" label="{{'category' | translate}}" justify="space-between" interface="action-sheet">
+                <ion-select-option value="*">{{'anyFilter' | translate}}</ion-select-option>
+                <ion-select-option *ngFor="let cat of categories" value="{{cat.name}}">{{cat.name}}</ion-select-option>
+              </ion-select>
+            </ion-item>
+          </div>
+          <div class="row" *ngIf="locations.length > 0">
+            <ion-item>
+              <ion-select [(ngModel)]="filters['muni']" label="{{'muni' | translate}}" justify="space-between" interface="action-sheet">
+                <ion-select-option value="*">{{'anyFilter' | translate}}</ion-select-option>
+                <ion-select-option *ngFor="let loc of locations" value="{{loc.name}}">{{loc.name}}</ion-select-option>
+              </ion-select>
+            </ion-item>
+          </div>
+          <div class="row">
+            <ion-item>
+              <ion-label>{{'startdate' | translate}}</ion-label>
+              <ion-datetime-button datetime="startdate"></ion-datetime-button>
+            </ion-item>
+          </div>
+          <div class="row">
+            <ion-item>
+              <ion-label>{{'enddate' | translate}}</ion-label>
+              <ion-datetime-button datetime="enddate"></ion-datetime-button>
+            </ion-item>
+          </div>
+          <div class="row">
+            <ion-item class="co-black">
+              <ion-checkbox [(ngModel)]="filters['near']">{{'nearme' | translate}}</ion-checkbox>
+            </ion-item>
+          </div>
+          <div class="row">
+            <ion-button class="access-btn" (click)="filterEvents()">{{'apply' | translate}}</ion-button>
+          </div>
+        </div>
+      </ion-content>
+    </ng-template>
+  </ion-modal>
+
+  <ion-modal [keepContentsMounted]="true">
+    <ng-template>
+      <ion-datetime id="startdate" presentation="date"
+      locale="es-ES" [firstDayOfWeek]="1" [(ngModel)]="filters['startdate']"
+      [showDefaultButtons]="true" [doneText]="'doneText' | translate" [cancelText]="'cancelText' | translate">
+      </ion-datetime>
+    </ng-template>
+  </ion-modal>
+  <ion-modal [keepContentsMounted]="true">
+    <ng-template>
+      <ion-datetime id="enddate" presentation="date"
+      locale="es-ES" [firstDayOfWeek]="1" [(ngModel)]="filters['enddate']"
+      [showDefaultButtons]="true" [doneText]="'doneText' | translate" [cancelText]="'cancelText' | translate">
+      </ion-datetime>
+    </ng-template>
+  </ion-modal>
+</ion-content>
+
+<ion-footer [translucent]="true">
+  <!-- <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button (click)="nextPage('node/12771')">
+        <ion-icon name="map" size="large"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <div>
+      <ion-button (click)="nextPage('node/12770')" style="--background: white; --box-shadow: none;">
+        <ion-icon src="../../../assets/icon/persona.svg" size="large"></ion-icon>
+      </ion-button>
+    </div>
+    <ion-buttons slot="end">
+      <ion-button (click)="nextPage('node/12769')">
+        <ion-icon name="list" size="large"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar> -->
+  <ion-toolbar>
+    <ion-buttons slot="start">
+        <div class="vertical-btn" (click)="startPage()">
+        <ion-icon name="home" size="large"></ion-icon>
+          <ion-label class="ion-text-wrap text-dark">{{'home' | translate}}</ion-label>
+        </div>
+    </ion-buttons>
+    <ion-buttons slot="end">
+      <div class="vertical-btn">
+      <ion-icon [routerLink]="['/']" name="exit-outline" size="large"></ion-icon>
+        <ion-label class="ion-text-wrap text-dark"> {{ 'exit.exit' | translate }} </ion-label>
+      </div>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-footer>

@@ -1,0 +1,43 @@
+.list-item{
+    background-color: white;
+    border: 1px solid rgba(0, 0, 0, 0.2); 
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
+
+    &:hover {
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2); 
+        transform: translateY(-2px);
+        }
+}
+
+.card-title {
+    font-weight: 700; 
+    font-size: 1.25rem; 
+    color: #333;      
+  }
+/*
+#list-grid>ion-row{
+    height: 15vh;
+}
+
+.item-data {
+    color: black;
+}
+
+.item-data>h6 {
+    font-weight: bold;
+}
+
+.item-data>p {
+    font-size: 0.8rem;
+}
+
+.forward-col {
+    vertical-align: middle;
+}
+
+.forward-col>ion-icon {
+    color: black;
+    margin-top: calc(7.5vh - 16px);
+}
+    */
