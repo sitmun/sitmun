@@ -1,0 +1,180 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button (click)="backPage()">
+        <ion-icon name="arrow-back" size="large"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title>{{ 'map.title' | translate }}</ion-title>
+    <ion-buttons slot="end">
+      <ion-select [(ngModel)]="selectedLanguage" (ionChange)="setLanguage($event.detail.value)"
+                  interface="popover">
+        <ion-select-option *ngFor="let lang of languageOptions" [value]="lang.code">
+          {{ lang.name }}
+        </ion-select-option>
+      </ion-select>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <ion-fab slot="fixed" vertical="top" horizontal="end">
+    <ion-fab-button (click)="openTocModal()">
+      <ion-icon name="layers"></ion-icon>
+    </ion-fab-button>
+    <!-- Botones condicionales según procendencia -->
+    <ng-container *ngIf="!downloadMap; else downloadBtn">
+      <ion-fab-button (click)="createNewFeature()">
+        <ion-icon name="location"></ion-icon>
+      </ion-fab-button>
+      <ion-fab-button (click)="saveFeatures()">
+        <ion-icon name="save"></ion-icon>
+      </ion-fab-button>
+    </ng-container>
+    <ng-template #downloadBtn>
+      <ion-fab-button (click)="saveMap()">
+        <ion-icon name="cloud-download"></ion-icon>
+      </ion-fab-button>
+    </ng-template>
+  </ion-fab>
+
+  <div #map id="map"></div>
+
+  <ion-modal #modal [isOpen]="isTocModalOpen">
+    <ng-template>
+      <ion-header>
+        <ion-toolbar>
+          <ion-title>Capas</ion-title>
+          <ion-buttons slot="end">
+            <ion-button (click)="closeTocModal()">
+              <ion-icon name="close" size="large"></ion-icon>
+            </ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-header>
+      <ion-content class="ion-padding">
+        <div class="tree-container">
+          <ul class="list-group">
+            <ng-container *ngFor="let node of treeData">
+              <li class="list-group-item">
+                <div class="d-flex align-items-center">
+                  <button class="btn btn-link p-0 me-2 eye" [ngClass]="{'visible': node.visible}" (click)="toggleVisible(node)">
+                    <ion-icon size="large" name="eye"></ion-icon>
+                  </button>             
+                  {{ node.name }}
+                  <button class="btn btn-sm btn-link p-0 me-2 pos-end" *ngIf="node.children && node.children.length > 0" (click)="toggleExpand(node)">
+                    <ion-icon size="large" [name]="node.expanded ? 'chevron-down' : 'chevron-forward'"></ion-icon>
+                  </button>
+                </div>
+                <ul class="list-group ms-4" *ngIf="node.expanded && node.children">
+                  <ng-container *ngTemplateOutlet="recursiveList; context:{ nodes: node.children }"></ng-container>
+                </ul>
+              </li>
+            </ng-container>
+          </ul>
+          
+          <ng-template #recursiveList let-nodes="nodes">
+            <ng-container *ngFor="let child of nodes">
+              <li class="list-group-item">
+                <div class="d-flex align-items-center">
+                  <button class="btn btn-link p-0 me-2 eye" [ngClass]="{'visible': child.visible}" (click)="toggleVisible(child)">
+                    <ion-icon size="large" name="eye"></ion-icon>
+                  </button> 
+                  {{ child.name }}
+                  <!-- Checkbox según procendencia -->
+                  <ng-container *ngIf="!downloadMap">
+                    <input *ngIf="child.children.length === 0" type="checkbox" class="form-check-input me-2 pos-end" [(ngModel)]="child.checked" (change)="toggleCheck(child)" />
+                  </ng-container>
+                  <button class="btn btn-sm btn-link p-0 me-2 pos-end" *ngIf="child.children && child.children.length > 0" (click)="toggleExpand(child)">
+                    <ion-icon size="large" [name]="child.expanded ? 'chevron-down' : 'chevron-forward'"></ion-icon>
+                  </button>
+                </div>
+                <ul class="list-group ms-4" *ngIf="child.expanded && child.children && child.children.length > 0">
+                  <ng-container *ngTemplateOutlet="recursiveList; context:{ nodes: child.children }"></ng-container>
+                </ul>
+              </li>
+            </ng-container>
+          </ng-template>
+        </div>
+      </ion-content>
+    </ng-template>
+  </ion-modal>
+
+  <ion-modal #modal [isOpen]="isFeatureModalOpen">
+    <ng-template>
+      <ion-header>
+        <ion-toolbar>
+          <ion-title *ngIf="newPoint">{{ 'map.addPoint' | translate }}</ion-title>
+          <ion-title *ngIf="!newPoint">{{ 'map.editPoint' | translate }}</ion-title>
+          <ion-buttons slot="end">
+            <ion-button (click)="closeFeatureModal()">
+              <ion-icon name="close" size="large"></ion-icon>
+            </ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-header>
+      <ion-content class="ion-padding">
+        <div class="container">
+          <div class="row">
+            <div class="col-2">
+              <ion-button shape="round" class="dl-btn mx-auto" (click)="editGeometry()">
+                <ion-icon slot="icon-only" name="location"></ion-icon>
+              </ion-button>
+            </div>
+            <div class="col-6"></div>
+            <div class="col-2">
+              <ion-button shape="round" class="dl-btn mx-auto" (click)="onSaveModal()">
+                <ion-icon slot="icon-only" name="save"></ion-icon>
+              </ion-button>
+            </div>
+            <div class="col-2">
+              <ion-button shape="round" class="dl-btn mx-auto" (click)="onDeleteModal()">
+                <ion-icon slot="icon-only" name="trash"></ion-icon>
+              </ion-button>
+            </div>
+          </div>
+          <div class="row attr-container">
+            <div class="row feature-attr">
+              <div class="d-flex align-items-center">
+                <ion-select class="text-dark" placeholder="{{ 'map.selector' | translate  }}" [(ngModel)]="selectedAttr" interface="popover" fill="outline" style="width: 50%;">
+                  <ng-container *ngFor="let key of attrKeys">
+                    <ion-select-option value="{{key}}">{{key}}</ion-select-option>
+                  </ng-container>
+                </ion-select>
+                <ion-button class="dl-btn mx-auto" shape="round" (click)="selectImg()">
+                  <ion-icon slot="icon-only" name="camera"></ion-icon>
+                </ion-button>
+              </div>              
+              <div *ngIf="imageBase64 != null" class="position-relative d-inline-block feature-attr">
+                <ion-img [src]="imageBase64" alt="Imagen Previsualizada" class="w-100" style="max-width: 80px;"></ion-img>
+                <ion-button fill="outline" color="light" class="position-absolute top-0 end-1 m-1" (click)="removeImg()">
+                  <ion-icon name="trash" size="small" slot="icon-only"></ion-icon>
+                </ion-button>           
+              </div>              
+              <ion-text color="danger" *ngIf="errorImg.length > 0">
+                <p *ngFor="let error of errorImg" class="ion-padding-start"> {{ 'map.' + error | translate }} </p>
+              </ion-text>        
+            </div>
+            <div class="row feature-attr" *ngFor="let key of attrKeys">
+              <ion-input label="{{key}}" [(ngModel)]="featureAttr[key]" labelPlacement="stacked" fill="outline" class="mx-auto co-black"></ion-input>
+            </div>
+          </div>
+        </div>
+      </ion-content>
+    </ng-template>
+  </ion-modal>
+</ion-content>
+
+<ion-footer [translucent]="true">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button *ngIf="!networkConnected" class="offlineButton">
+        <ion-icon name="cloud-offline-outline" slot="start"></ion-icon>
+        {{'offline' | translate}}
+      </ion-button>
+    </ion-buttons>
+    <ion-buttons slot="end">
+      <ion-icon [routerLink]="['/']" name="exit-outline" size="large"></ion-icon>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-footer>

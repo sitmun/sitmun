@@ -1,0 +1,45 @@
+{
+    "home":{
+        "access": "Access",
+        "instanceSelection": "Select instance",
+        "sitmunInstance": "Sitmun instance",
+        "user": "User",
+        "password": "Password"
+    },
+    "applist": {
+        "title": "Applications",
+        "selectTer": "Select territory",
+        "openMap": "Open map",
+        "openDownload": "Open download",
+        "cancel": "Cancel"
+    },
+    "download": {
+        "title": "Download",
+        "downloadZone": "Define area to download",
+        "scope": "Scope",
+        "zoomLevel": "Zoom level",
+        "selectData": "Select data to download",
+        "update": "Update",
+        "minx": "Min x",
+        "miny": "Min y",
+        "maxx": "Max x",
+        "maxy": "Max y",
+        "selectProj": "Projection",
+        "toast": "Download successfully"
+    },
+    "map": {
+        "title": "Map",
+        "addPoint": "Add point",
+        "editPoint": "Edit point",
+        "selector": "Field",
+        "imageFormatError": "Incorrect image format",
+        "imagePermissionError": "Camera permission not granted"
+    },
+    "exit": {
+        "title": "Exit",
+        "message": "Exit the application?",
+        "exit": "Exit",
+        "continue": "Continue"
+    },
+    "offline": "Offline"
+}

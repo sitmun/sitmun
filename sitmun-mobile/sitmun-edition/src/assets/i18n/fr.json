@@ -1,0 +1,45 @@
+{
+    "home":{
+        "access": "Accéder",
+        "instanceSelection": "Sélectionner une instance",
+        "sitmunInstance": "Instance de Sitmun",
+        "user": "Utilisateur",
+        "password": "Mot de passe"
+    },
+    "applist": {
+        "title": "Applications",
+        "selectTer": "Sélectionner un territoire",
+        "openMap": "Ouvrir la carte",
+        "openDownload": "Abrir descarga",
+        "cancel": "Annuler"
+    },
+    "download": {
+        "title": "Télécharger",
+        "downloadZone": "Définir la zone à télécharger",
+        "scope": "Portée",
+        "zoomLevel": "Niveau de zoom",
+        "selectData": "Sélectionner les données à télécharger",
+        "update": "Mettre à jour",
+        "minx": "Min x",
+        "miny": "Min y",
+        "maxx": "Max x",
+        "maxy": "Max y",
+        "selectProj": "Projection",
+        "toast": "Télécharger avec succès"
+    },
+    "map": {
+        "title": "Carte",
+        "addPoint": "Ajouter un point",
+        "editPoint": "Éditer un point",
+        "selector": "Champ",
+        "imageFormatError": "Format d'image incorrect",
+        "imagePermissionError": "L'autorisation de la caméra n'a pas été accordée"
+    },
+    "exit": {
+        "title": "Quitter",
+        "message": "Quitter l'application?",
+        "exit": "Quitter",
+        "continue": "Continuer"
+    },
+    "offline": "Hors ligne"
+}

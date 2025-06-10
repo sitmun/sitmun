@@ -1,0 +1,45 @@
+{
+    "home":{
+        "access": "Accedir",
+        "instanceSelection": "Seleccionar instància",
+        "sitmunInstance": "Instància de Sitmun",
+        "user": "Usuari",
+        "password": "Contrasenya"
+    },
+    "applist": {
+        "title": "Aplicacions",
+        "selectTer": "Seleccionar territori",
+        "openMap": "Obrir mapa",
+        "openDownload": "Abrir descarga",
+        "cancel": "Cancelar"
+    },
+    "download": {
+        "title": "Descarregar",
+        "downloadZone": "Definir zona a descarregar",
+        "scope": "Àmbit",
+        "zoomLevel": "Nivell de zoom",
+        "selectData": "Seleccionar dades a descarregar",
+        "update": " Actualitzar",
+        "minx": "Min x",
+        "miny": "Min y",
+        "maxx": "Max x",
+        "maxy": "Max y", 
+        "selectProj": "Projecció",
+        "toast": "Descàrrega amb èxit"
+    },
+    "map": {
+        "title": "Mapa",
+        "addPoint": "Afegir punt",
+        "editPoint": "Editar punt",
+        "selector": "Camp",
+        "imageFormatError": "Format d'imatge incorrecte",
+        "imagePermissionError": "Permís de cambra no concedit"
+    },
+    "exit": {
+        "title": "Sortir",
+        "message": "Sortir de l'aplicació?",
+        "exit": "Sortir",
+        "continue": "Continuar"
+    },
+    "offline": "Sense connexió"
+}

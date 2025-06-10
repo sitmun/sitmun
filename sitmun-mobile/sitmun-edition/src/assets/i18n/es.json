@@ -1,0 +1,45 @@
+{
+    "home":{
+        "access": "Acceder",
+        "instanceSelection": "Seleccionar instancia",
+        "sitmunInstance": "Instancia de sitmun",
+        "user": "Usuario",
+        "password": "Contraseña"
+    },
+    "applist": {
+        "title": "Aplicaciones",
+        "selectTer": "Seleccionar territorio",
+        "openMap": "Abrir mapa",
+        "openDownload": "Abrir descarga",
+        "cancel": "Cancelar"
+    },
+    "download": {
+        "title": "Descargar",
+        "downloadZone": "Definir zona a descargar",
+        "scope": "Ámbito",
+        "zoomLevel": "Nivel de zoom",
+        "selectData": "Seleccionar datos a descargar",
+        "update": "Actualizar",
+        "minx": "Min x",
+        "miny": "Min y",
+        "maxx": "Max x",
+        "maxy": "Max y",
+        "selectProj": "Proyección",
+        "toast": "Descarga con éxito"
+    },
+    "map": {
+        "title": "Mapa",
+        "addPoint": "Añadir punto",
+        "editPoint": "Editar punto",
+        "selector": "Campo",
+        "imageFormatError": "Formato de imagen incorrecto",
+        "imagePermissionError": "Permiso de cámara no concedido"
+    },
+    "exit": {
+        "title": "Salir",
+        "message": "¿Salir de la aplicación?",
+        "exit": "Salir",
+        "continue": "Continuar"
+    },
+    "offline": "Sin conexión"
+}

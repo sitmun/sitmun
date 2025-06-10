@@ -1,0 +1,90 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button *ngIf="!networkConnected" class="offlineButton">
+        <ion-icon name="cloud-offline-outline" slot="start"></ion-icon>
+        {{'offline' | translate}}
+      </ion-button>
+    </ion-buttons>
+    <ion-buttons slot="end">
+      <ion-select [(ngModel)]="selectedLanguage" (ionChange)="setLanguage($event.detail.value)"
+                  interface="popover">
+        <ion-select-option *ngFor="let lang of languageOptions" [value]="lang.code">
+          {{ lang.name }}
+        </ion-select-option>
+      </ion-select>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <div class="container">
+      <div class="row">
+        <div class="col"></div>
+        <div class="col">
+          <div class="logo-content">
+            <ion-img src="../../assets/icon/logo_sitmun.png"></ion-img>
+          </div>
+        </div>
+        <div class="col"></div>
+      </div>
+      <form [formGroup]="loginForm" (ngSubmit)="access()">
+        <div class="container">
+          <div class="row">
+            <div class="col">
+              <strong>{{ 'home.instanceSelection' | translate }}</strong>
+            </div>
+          </div>
+          <div class="row" *ngIf="networkConnected">
+            <div class="col">
+              <ion-select id="instance-selector" class="login-input mx-auto text-center" [placeholder]="'home.sitmunInstance' | translate"
+              [attr.aria-label]="'sitmunInstance' | translate" interface="action-sheet" formControlName="instance" (ionChange)="onInstanceChange($event)">
+                <ion-select-option *ngFor="let instance of instanceOptions" value="{{instance.value}}">{{instance.name}}</ion-select-option>
+              </ion-select>
+            </div>
+          </div>
+          <div class="row" *ngIf="networkConnected">
+            <div class="col">
+              <ion-input class="login-input mx-auto" [placeholder]="'home.user' | translate" formControlName="user">
+                <ion-icon class="login-icon-left" slot="start" name="person"size="large"></ion-icon>
+              </ion-input>
+            </div>
+          </div>
+          <div class="row" *ngIf="networkConnected">
+            <div class="col">
+              <ion-input class="login-input mx-auto" [placeholder]="'home.password' | translate" type="password" formControlName="password">
+                <ion-icon class="login-icon-left" slot="start" name="lock-closed" size="large"></ion-icon>
+                <!--<ion-icon class="login-icon-right" slot="end" name="eye" size="large"></ion-icon>-->
+              </ion-input>
+            </div>
+          </div>
+          <div class="row" *ngIf="!networkConnected">
+            <div class="col">
+              <ion-select id="instance-selector" class="login-input mx-auto text-center" [placeholder]="'home.sitmunInstance' | translate"
+              [attr.aria-label]="'sitmunInstance' | translate" interface="action-sheet" formControlName="instance" (ionChange)="onOfflineInstanceChange($event)">
+                <ion-select-option *ngFor="let instance of offline.instances" value="{{instance}}">{{instance}}</ion-select-option>
+              </ion-select>
+            </div>
+          </div>
+          <div class="row" *ngIf="!networkConnected">
+            <div class="col">
+              <ion-select id="instance-selector" class="login-input mx-auto text-center" [placeholder]="'home.user' | translate"
+              [attr.aria-label]="'home.user' | translate" interface="action-sheet" formControlName="user">
+                <ion-select-option *ngFor="let user of offline.users" value="{{user}}">{{user}}</ion-select-option>
+              </ion-select>
+            </div>
+          </div>
+          <div class="row error" *ngIf="loginError">
+            <div class="mx-auto">
+              {{errorMsg}}
+            </div>
+          </div>
+          <div class="row">
+            <div class="col mx-auto">
+              <ion-button class="access-btn" shape="round" type="submit">{{ 'home.access' | translate }}</ion-button>
+            </div>
+          </div>
+        </div>
+      </form>
+  </div>
+</ion-content>
