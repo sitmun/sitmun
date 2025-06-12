@@ -94,7 +94,6 @@ export class AuthorizationService {
   }
 
   async getPageNodes(serviceUrl: string = this.instancesService.initPageUrl, addProfile: boolean = false) {
-    serviceUrl = serviceUrl.replace('localhost', '192.168.61.157');
     const url = serviceUrl.startsWith('http') ? serviceUrl : this.instancesService.authorizationUrl.concat(serviceUrl);
     this.addProfile = addProfile;
     return this.requestPages(url);

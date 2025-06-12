@@ -18,19 +18,6 @@ export class RequestService {
 
   constructor(private instancesService: InstancesService, private mapaService: MapaService) { }
 
-  setTaskUrl(task: any) {
-    let newUrl = task.url;
-    const instanceName = this.instancesService.instanceName;
-    if (instanceName === 'casa') {
-      newUrl = newUrl.replace('localhost', '192.168.1.140');
-    } else if (instanceName === 'oficina') {
-      newUrl = newUrl.replace('localhost', '192.168.60.173');
-    } else if (instanceName === 'eduardo') {
-      newUrl = newUrl.replace('localhost', '192.168.61.157');
-    }
-    task.url = newUrl;
-  }
-
   addParamsToUrl(task: any) {
     const params = task.parameters;
     if (params) {
@@ -49,7 +36,6 @@ export class RequestService {
   }
 
   async templateRequest(task: any, mapping: any, parentData: any = {}, params: any = {}) {
-    this.setTaskUrl(task);
     this.addParamsToUrl(task);
     this.responseType = 'json';
     const uri = await this.generateUrlByTemplate(task.url, task.parameters, mapping, parentData, params);
