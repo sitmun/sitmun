@@ -62,9 +62,25 @@ h4, ion-input, ion-range {
 }
 
 ion-select{
-    color: white;
-    --background: orange;
+    color: black;
+    --background: white;
     --border-radius: 9999px;
     --padding-end: 1.5em;
     --padding-start: 1.5em;
 }
+
+.icono-dwl {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    ion-icon {
+        font-size: 2rem; 
+        color: orange;
+      }
+
+    span{
+        font-size: 0.6rem;
+    }
+
+  }

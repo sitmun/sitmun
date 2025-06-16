@@ -41,20 +41,33 @@ export class ApplistPage implements OnInit {
     this.refreshApplications();
   }
 
-  refreshApplications() {
+  async refreshApplications() {
     if (this.networkConnected) {
-      this.getApplications();
+      await this.getApplications();
     } else {
       this.getOfflineApplications();
     }
   }
 
-  getApplications() {
-    this.authorizationService.getApplications().then(resp => {
+  async getApplications() {
+    try{
+      const resp = await this.authorizationService.getApplications();
+
+      for (const app of resp) {
+        //this.layers[app.id] = await this.databaseService.getLayersByApp(app.id);
+        const layers = await this.databaseService.getLayersByApp(app.id);
+
+        const geojsonTotal: string[] = [];
+        layers.forEach(layer => {
+          geojsonTotal.push(layer.geojson);
+        });
+        app.layersSizeBytes = new Blob(geojsonTotal).size; 
+        app.layersSizeMBytes = Math.round(app.layersSizeBytes / (1024 * 1024) * 10) / 10;
+      }
       this.applications = resp;
-    }).catch(error => {
+    }catch(error) {
       console.log('Error obteniendo las aplicaciones disponibles:', error);
-    });
+    };
   }
 
   async getOfflineApplications() {

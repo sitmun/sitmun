@@ -8,29 +8,35 @@ import { environment } from 'src/environments/environment';
 export class InstancesService {
 
   private instancesUrl = environment.instancesUrl;
-  instanceName = 'menorca';
-  authorizationUrl = 'http://localhost:8080';
+  instanceName = '';
+  authorizationUrl = '';
   private proxyUrl = 'http://localhost:8080/proxy';
   private proxyRequestTemplate = '/{appId}/{terId}/{type}/{typeId}';
 
   constructor() { }
 
   async getSitmunInstances() {
-    const options = {
-      url: this.instancesUrl,
-      method: 'GET',
-      headers: {
-        'Accept': 'application/json'
-      },
-      params: {}
-    };
-    return new Promise<object>((resolve, reject) => {
-      Http.request(options).then(data => {
-        resolve(data.data);
-      }).catch(error => {
-        reject(error);
+    if (this.instancesUrl) {
+      const options = {
+        url: this.instancesUrl,
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json'
+        },
+        params: {}
+      };
+      return new Promise<object>((resolve, reject) => {
+        Http.request(options).then(data => {
+          resolve(data.data);
+        }).catch(error => {
+          reject(error);
+        });
       });
-    });
+    } else {
+      return new Promise<object>((resolve, reject) => {
+        resolve(environment.instancesData);
+      });
+    }
   }
 
   setProxyUrl(proxyUrl: string, appId: string, terId: string) {

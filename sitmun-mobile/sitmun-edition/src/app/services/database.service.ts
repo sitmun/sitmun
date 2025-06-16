@@ -27,6 +27,7 @@ export class DatabaseService {
       if (isConnection.result) {
         console.log("Obteniendo conexion");
         this.db = await this.sqlite.retrieveConnection(name);
+        await this.db.open();
       } else {
         console.log("Creando conexion");
         this.db = await this.sqlite.createConnection(name, false, "no-encryption", 1);
@@ -61,6 +62,9 @@ export class DatabaseService {
     }
     try {
       this.dbName = dbName;
+      if (this.sqlite.getPlatform() === 'web') {
+        await this.sqlite.initializeWebStore();
+      }
       console.log('Inicializando base de datos');
       await this.loadConnection(this.dbName);
       await this.createTables();
@@ -91,7 +95,7 @@ export class DatabaseService {
     await this.createAppsTable();
     await this.createTerritoryTable();
     await this.createLayersTable();
-    await this.createAppTerLayerTable();
+    //await this.createAppTerLayerTable();
   }
 
   private async createUsersTables(): Promise<void> {
@@ -148,6 +152,7 @@ export class DatabaseService {
     const createTableQuery = `
       CREATE TABLE IF NOT EXISTS territory (
         id INTEGER PRIMARY KEY,
+        id_app INTEGER,
         name TEXT
       );
     `;
@@ -168,9 +173,15 @@ export class DatabaseService {
   private async createLayersTable() {
     const createTableQuery = `
       CREATE TABLE IF NOT EXISTS layers (
-        id TEXT PRIMARY KEY,
+        id_app INTEGER,
+        id_ter INTEGER,
+        id_layer TEXT,
         name TEXT,
-        geojson TEXT
+        geojson TEXT,
+        extension TEXT,
+        zoom INTEGER,
+        proj TEXT,        
+        PRIMARY KEY(id_app, id_ter, id_layer)
       );
     `;
 
@@ -186,7 +197,7 @@ export class DatabaseService {
       console.error('Error creando tabla layers:', error);
     }
   }
-
+/*
   private async createAppTerLayerTable() {
     const createTableQuery = `
       CREATE TABLE IF NOT EXISTS app_ter_layer (
@@ -209,7 +220,7 @@ export class DatabaseService {
       console.error('Error creando tabla app_ter_layer:', error);
     }
   }
-
+  */
   async insertApp(id: number, title: string, logo: string) {
     await this.loadConnection(this.dbName);
     const statement = `INSERT OR REPLACE INTO apps (id, title, logo) VALUES (?, ?, ?)`;
@@ -226,10 +237,10 @@ export class DatabaseService {
     await this.closeConnection(this.dbName);
   }
 
-  async insertTerritory(id: number, name: string) {
+  async insertTerritory(id: number, idApp: number, name: string) {
     await this.loadConnection(this.dbName);
-    const statement = `INSERT OR REPLACE INTO territory (id, name) VALUES (?, ?)`;
-    const values = [id, name];
+    const statement = `INSERT OR REPLACE INTO territory (id, id_app, name) VALUES (?, ?, ?)`;
+    const values = [id, idApp, name];
 
     try {
       if (this.db) {
@@ -241,7 +252,7 @@ export class DatabaseService {
     }
     await this.closeConnection(this.dbName);
   }
-
+/*
   async insertAppTerLayer(idApp: number, idTer: number, idLayer: string) {
     //await this.loadConnection(this.dbName);
     const statement = `INSERT OR REPLACE INTO app_ter_layer (id_app, id_ter, id_layer) VALUES (?, ?, ?)`;
@@ -257,11 +268,12 @@ export class DatabaseService {
     }
     //await this.closeConnection(this.dbName);
   }
-
-  async insertLayer(idLayer: string, name: string, geojson: string) {
-    //await this.loadConnection(this.dbName);
-    const statement = `INSERT OR REPLACE INTO layers (id, name, geojson) VALUES (?, ?, ?)`;
-    const values = [idLayer, name, geojson];
+*/
+  async insertLayer(idApp: number, idTer: number, idLayer: string, 
+    name: string, geojson: string, extension: string, zoom: number, proj: string) {
+    await this.loadConnection(this.dbName);
+    const statement = `INSERT OR REPLACE INTO layers (id_app, id_ter, id_layer, name, geojson, extension, zoom, proj) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
+    const values = [idApp, idTer, idLayer, name, geojson, extension, zoom, proj];
 
     try {
       if (this.db) {
@@ -271,7 +283,7 @@ export class DatabaseService {
     } catch (error) {
       console.error('Error al insertar el layer', error);
     }
-    //await this.closeConnection(this.dbName);
+    await this.closeConnection(this.dbName);
   }
 
   async insertUserLogin(instance: string, name: string) {
@@ -351,7 +363,7 @@ export class DatabaseService {
 
   async getTerritoriesByApp(idApp: Number) {
     await this.loadConnection(this.dbName);
-    const statement = 'SELECT * FROM territory WHERE id IN (SELECT id_ter FROM app_ter_layer WHERE id_app = ?)';
+    const statement = 'SELECT * FROM territory WHERE id_app = ?';
     const values = [idApp];
     try {
       if (this.db) {
@@ -364,10 +376,74 @@ export class DatabaseService {
       }
       return [];
     } catch (error) {
-      console.error('Error obteniendo las apps:', error);
+      console.error('Error obteniendo los territorios:', error);
       return [];
     } finally {
       await this.closeConnection(this.dbName);
+    }
+  }
+
+  async getLayersByApp(idApp: Number) {
+    await this.loadConnection(this.dbName);
+    const statement = 'SELECT * FROM layers WHERE id_app = ?';
+    const values = [idApp];
+
+    try {
+      if (this.db) {
+        const results = (await this.db.query(statement, values)).values;
+        if (results) {
+          return results;
+        } else {
+          return [];
+        }
+      }
+      return [];
+    } catch (error) {
+      console.error('Error obteniendo las layers:', error);
+      return [];
+    } finally {
+      await this.closeConnection(this.dbName);
+    }
+  }
+
+
+  async getLayersByAppAndTer(idApp: Number, idTer: number) {
+    await this.loadConnection(this.dbName);
+    const statement = 'SELECT * FROM layers WHERE id_app = ? AND id_ter = ?';
+    const values = [idApp, idTer];
+
+    try {
+      if (this.db) {
+        const results = (await this.db.query(statement, values)).values;
+        if (results) {
+          return results;
+        } else {
+          return [];
+        }
+      }
+      return [];
+    } catch (error) {
+      console.error('Error obteniendo las layers:', error);
+      return [];
+    } finally {
+      await this.closeConnection(this.dbName);
+    }
+  }
+
+  async deleteLayersByAppAndTer(idApp: Number, idTer: number) {
+    await this.loadConnection(this.dbName);
+    const statement = 'DELETE FROM layers WHERE id_app = ? AND id_ter = ?';
+    const values = [idApp, idTer];
+
+    try {
+      if (this.db) {
+        await this.db.run(statement, values);
+        console.log('Capas previas eliminadas');
+      }
+    } catch (error) {
+      console.error('Error al eliminar capas:', error);
+    } finally {
+      await this.sqlite.closeConnection(this.dbName);
     }
   }
 

@@ -20,8 +20,14 @@
           <ion-img class="list-img img-cover" src="{{app['logo'] || '../../assets/icon/no-image.jpg'}}"></ion-img>
         </div>
       </div>
-      <div class="col-6 item-data my-auto" (click)="mapPage(app)">
+      <div class="col-5 item-data my-auto" (click)="mapPage(app)">
         <h6>{{app['title']}}</h6>
+      </div>
+      <div class="col-1 my-auto">
+        <div class="dl-btn mx-auto icono-dwl" *ngIf="app['layersSizeBytes'] > 0">
+          <ion-icon name="layers" size="small"></ion-icon>
+          <span class="text-dark">{{ app.layersSizeMBytes }}MB</span>
+        </div>
       </div>
       <div class="col-2 my-auto">
         <ion-button shape="round" class="dl-btn mx-auto" (click)="downloadPage(app)" *ngIf="networkConnected">

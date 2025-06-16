@@ -25,9 +25,7 @@
     <div class="row">
     <div class="col-auto">
       <ion-select placeholder= "{{ 'download.selectProj' | translate }}" interface="popover" [(ngModel)]="mapProjSelected" (ngModelChange)="onProjChange()">
-        <ng-container *ngFor="let format of mapProj">
-          <ion-select-option value="{{ format }}">{{ format }}</ion-select-option>
-        </ng-container>
+          <ion-select-option *ngFor="let proj of mapProj" value="{{ proj }}">{{ proj }}</ion-select-option>
       </ion-select>
     </div>
     </div>         
@@ -62,6 +60,10 @@
       <div class="col">
         <div class="row">
           <h4 class="text-center">{{ 'download.selectData' | translate }}</h4>
+            <div class="dl-btn mx-auto icono-dwl" *ngIf="layersSizeBytes > 0">
+              <ion-icon name="layers"></ion-icon>
+              <span class="text-dark text-sm">{{ layersSizeMBytes }}MB</span>
+            </div>
         </div>
         <div class="row tree-row">
           <div class="tree-container">

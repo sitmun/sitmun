@@ -85,4 +85,18 @@ export class TreeviewService {
     });
     return checkedLayers;
   }
+
+  setCheckedLayers(nodes: TreeNode[], resources: string[]): void {
+    nodes.forEach(node => {
+      if (node.resource && resources.includes(node.resource)) {
+        node.checked = true;
+      }
+  
+      if (node.children && node.children.length > 0) {
+        this.setCheckedLayers(node.children, resources);
+      }
+    });
+  } 
+
+
 }

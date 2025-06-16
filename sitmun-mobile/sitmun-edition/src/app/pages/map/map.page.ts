@@ -89,48 +89,57 @@ export class MapPage implements OnInit {
     this.authorizationService.getProfile(this.app.id, this.ter.id).then(profile => {
       // Si hay capas para descargar, filtramos el árbol
       if (this.downloadMap) {
-        profile.trees = this.filterProfileTrees(profile.trees, this.downloadLayers);   
+        profile.trees = this.filterProfileTrees(profile.trees, this.downloadLayers); 
       }
       this.createMap(profile);
       this.treeData = this.treeviewService.createTreeData(profile.trees);      
     });    
   }
   
-private filterProfileTrees(trees: any[], layers: string[]): any[] {
-  return trees.filter(tree => {
-    const nodes = tree.nodes;
-    const validNodes = new Set<string>();
+  private filterProfileTrees(trees: any[], layers: string[]): any[] {
+    return trees.filter(tree => {
+      const nodes = tree.nodes;
+      const validNodes = new Set<string>();
 
-    //nodos seleccionados
-    Object.entries(nodes).forEach(([id, node]: [string, any]) => {
-      if (node.resource && layers.includes(node.resource)) {
-        validNodes.add(id);
-      }
-    });
-
-    // incluir padres de nodos seleccionados
-    let add = true;
-    while (add) {
-      add = false;
+      //nodos seleccionados
       Object.entries(nodes).forEach(([id, node]: [string, any]) => {
-        if (!validNodes.has(id) && node.children?.some((childId: string) => validNodes.has(childId))) {
+        if (node.resource && layers.includes(node.resource)) {
           validNodes.add(id);
-          add = true;
         }
       });
-    }
 
-    // eliminar nodos no válidos
-    for (const id in nodes) {
-      if (!validNodes.has(id)) {
-        delete nodes[id];
-      } 
-    }
+      // incluir padres de nodos seleccionados
+      let add = true;
+      while (add) {
+        add = false;
+        Object.entries(nodes).forEach(([id, node]: [string, any]) => {
+          if (!validNodes.has(id) && node.children?.some((childId: string) => validNodes.has(childId))) {
+            validNodes.add(id);
+            add = true;
+          }
+        });
+      }
 
-    // quedarse solo con los arboles con algún nodo filtrado
-    return Object.keys(nodes).length > 0;
-  });
-}
+      // Limpiar los children de los nodos, dejando solo los válidos
+      validNodes.forEach((id) => {
+        const node = nodes[id];
+        if (node?.children) {
+          node.children = node.children.filter((childId: string) => validNodes.has(childId));
+        }
+      });
+
+
+      // eliminar nodos no válidos
+      for (const id in nodes) {
+        if (!validNodes.has(id)) {
+          delete nodes[id];
+        } 
+      }
+
+      // quedarse solo con los arboles con algún nodo filtrado
+      return Object.keys(nodes).length > 0;
+    });
+  }
 
   async createMap(profile: any) {
     this.mapa = await this.mapService.initMap('map', profile, this.zoom, this.extent, this.mapProjSelected);
@@ -308,7 +317,8 @@ private filterProfileTrees(trees: any[], layers: string[]): any[] {
         app: this.app,
         ter: this.ter,
         zoom: this.mapa.getZoom(),
-        bbox: this.mapa.getBbox()
+        bbox: this.mapa.getBbox(),
+        map: true
       }
     };
     this.navigate('download', navigationExtras);
