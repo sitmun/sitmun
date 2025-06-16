@@ -1,11 +1,13 @@
 import { Injectable } from '@angular/core';
-import { Http } from '@capacitor-community/http';
+import { Http, HttpOptions } from '@capacitor-community/http';
 import { InstancesService } from './instances.service';
 import * as uriTemplate from 'uri-templates';
 import * as jp from 'jsonpath';
 import * as xpath from 'xpath';
 import * as xmldom from 'xmldom';
 import { MapaService } from './mapa.service';
+import { create } from 'xmlbuilder2';
+import { XMLBuilder } from 'xmlbuilder2/lib/interfaces';
 
 @Injectable({
   providedIn: 'root'
@@ -20,6 +22,7 @@ export class RequestService {
 
   addParamsToUrl(task: any) {
     const params = task.parameters;
+    let url = task.url;
     if (params) {
       const keys = Object.keys(params);
       const queryParams: string[] = [];
@@ -30,15 +33,16 @@ export class RequestService {
         }
       });
       if (queryParams.length > 0) {
-        task.url = `${task.url}{?${queryParams.toString()}}`;
+        url = `${task.url}{?${queryParams.toString()}}`;
       }
     }
+    return url;
   }
 
   async templateRequest(task: any, mapping: any, parentData: any = {}, params: any = {}) {
-    this.addParamsToUrl(task);
+    const requestUrl = this.addParamsToUrl(task);
     this.responseType = 'json';
-    const uri = await this.generateUrlByTemplate(task.url, task.parameters, mapping, parentData, params);
+    const uri = await this.generateUrlByTemplate(requestUrl, task.parameters, mapping, parentData, params);
     console.log(`Requested url: ${uri}`);
     let url = uri;
     try {
@@ -48,7 +52,7 @@ export class RequestService {
     }
     const urlParts = url.split('?');
     params = this.addParams(params, urlParts.length > 1 ? urlParts[1] : '');
-    const options = {
+    const options: HttpOptions = {
       url: urlParts[0],
       method: 'GET',
       headers: {
@@ -70,7 +74,7 @@ export class RequestService {
     const position = strInput.includes('${LONGITUD}') || strInput.includes('${LONGITUD}') ? await this.mapaService.getLocation() : null;
     //const url = await this.generateStandard(template, params, mapping, parentData, urlParams, position);
     const url = await this.generateWithUriTemplate(template, params, mapping, parentData, urlParams, position);
-    this.removeAllParams(strInput, urlParams);
+    this.removeAllParams(strInput.toUpperCase(), urlParams);
     return url;
   }
 
@@ -98,6 +102,8 @@ export class RequestService {
     this.removeParams(strInput, '${LATITUD}', params, 'latitud');
     this.removeParams(strInput, '${LONGITUD}', params, 'longitud');
     this.removeParams(strInput, '${DISTANCE}', params, 'distance');
+    this.removeParams(strInput, '${WFSFILTER}', params, 'keyWord');
+    this.removeParams(strInput, 'PROPERTYNAME', params, 'propertyname');
   }
 
   private removeParams(strInput: string, mapKey: string, params: any, paramKey: string) {
@@ -137,9 +143,41 @@ export class RequestService {
         return urlParams.keyWord ? `%${urlParams.keyWord}%` : '%_%';
       case 'DISTANCE':
         return urlParams.distance ? urlParams.distance : 1000;
+      case 'WFSFILTER':
+        return urlParams.keyWord ? this.buildWfsFilter(urlParams) : '';
       default:
         return param;
     }
+  }
+
+  buildWfsFilter(params: any) {
+    let doc = null;
+    if (params.propertyname) {
+      doc = create()
+      .ele('ogc:Filter', {
+        'xmlns:ogc': 'http://www.opengis.net/ogc'
+      });
+      const orElem = doc.ele('ogc:Or');
+      params.propertyname.forEach((prop: string) => this.wfsPropertyFilter(orElem, prop, params.keyWord));
+    }
+    return doc !== null ? doc.end({ headless: true }) : '';
+  }
+
+  wfsPropertyFilter(doc: XMLBuilder, property: string, query: string) {
+    const orParent = doc.ele('Or');
+    this.wfsPropertyLike(orParent, property, query.toLowerCase());
+    this.wfsPropertyLike(orParent, property, query.toUpperCase());
+  }
+
+  wfsPropertyLike(doc: XMLBuilder, property: string, query: string) {
+    const propDoc = doc.ele('PropertyIsLike', {
+      escape: '\\\\',
+      singleChar: '_',
+      wildCard: '*',
+      matchCase: 'false'
+    });
+    propDoc.ele('PropertyName').txt(property);
+    propDoc.ele('Literal').txt(`*${query}*`);
   }
 
   private mappingResponse(response: any, mapping: any): any {
@@ -268,26 +306,6 @@ export class RequestService {
     return result;
   }
 
-  private getXPathValueOld(obj: any, path: string) {
-    let result = null;
-    if (path) {
-      const segments = path.substring(1).split('/');
-      result = obj;
-      for (let seg of segments) {
-        if(seg.startsWith('@')) {
-          result = result['$'][seg.substring(1)];
-        } else if (seg.endsWith('[pos]')) {
-          const elements: any[] = result[seg.replace('[pos]', '')];
-          this.posLength = elements.length;
-          result = elements[this.pathPos];
-        } else {
-          result = result[seg];
-        }
-      }
-    }
-    return result;
-  }
-
   private getSelectionValue(selection: any) {
     let result = '';
     if (selection) {
@@ -305,12 +323,14 @@ export class RequestService {
     const newParams: any = {};
     Object.keys(params).forEach(k => {
       if (params[k]) {
-        newParams[k] = params[k];
+        const value = params[k];
+        newParams[k] = value;
       }
     });
     if (urlParams) {
       const urlParamsMap = urlParams.split('&').map((s) => {
-        const keyValue = s.split('=');
+        const equalIndex = s.indexOf('=');
+        const keyValue = [s.substring(0, equalIndex), s.substring(equalIndex + 1)];
         return {key: keyValue[0], value: keyValue[1]};
       });
       urlParamsMap.forEach(p => {

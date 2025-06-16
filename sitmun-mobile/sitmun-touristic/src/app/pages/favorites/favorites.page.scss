@@ -2,10 +2,13 @@ h6 {
     margin-top: 2rem;
 }
 
+ion-content{
+    --background: white;
+}
+
 .container {
-    background-color: white;
     padding-top: 2rem;
-    padding-bottom: 2rem;
+    padding-bottom: 3rem;
 }
 
 #list-grid>ion-row{
@@ -31,4 +34,10 @@ h6 {
 .forward-col>ion-icon {
     color: black;
     margin-top: calc(7.5vh - 16px);
+}
+
+.locate-bottom{
+    background-color:white; 
+    bottom: 6vh;
+    padding: 2vh;
 }

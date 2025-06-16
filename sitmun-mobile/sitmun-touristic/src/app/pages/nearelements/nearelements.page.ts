@@ -64,9 +64,12 @@ export class NearelementsPage implements OnInit {
     console.log(elem);
   }
 
-  locateElement(elem: any) {
+  async locateElement(elem: any) {
     console.log(elem.geom);
-    this.routingService.navigate('map', {features: [elem]});
+    const mapData = {features: [elem]};
+    //this.routingService.navigate('map', mapData);
+    const data = await this.authorizationService.getPagesMapNode();
+    this.routingService.redirect(data, mapData);
   }
 
   async showSchedule(elem: any) {

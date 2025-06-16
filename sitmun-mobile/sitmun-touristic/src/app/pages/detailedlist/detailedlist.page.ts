@@ -108,9 +108,12 @@ export class DetailedlistPage implements OnInit {
     console.log(elem);
   }
 
-  locateElement(elem: any) {
+  async locateElement(elem: any) {
     console.log(elem.geom);
-    this.routingService.navigate('map', {features: [elem], activeLayer: this.taskNode.resource || '*'});
+    const mapData = {features: [elem], activeLayer: this.taskNode.resource || '*'};
+    //this.routingService.navigate('map', mapData);
+    const data = await this.authorizationService.getPagesMapNode();
+    this.routingService.redirect(data, mapData);
   }
 
   async startPage() {

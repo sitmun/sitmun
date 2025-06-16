@@ -19,11 +19,10 @@ export class RoutingService {
   }
 
   redirect(data: any, parentData: any = {}) {
+    data['parentData'] = parentData;
     if (data.task) {
-      data['parentData'] = parentData;
       this.navigate(this.paths['task'][String(data.taskNode.viewMode)], data);
-    } else if (data.tasks) {
-      data['parentData'] = parentData;
+    } else if (data.tasks && data.rootNode.type !== 'map') {
       this.navigate(this.paths['task'][String(data.taskNodes[0].viewMode)], data);
     } else {
       this.navigate(this.paths[data.rootNode.type], data);

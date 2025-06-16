@@ -12,6 +12,7 @@
     "startdate": "From",
     "enddate": "To",
     "searchEvent": "Gastronomy, theater, music...",
+    "searchMap": "Search...",
     "noEvents": "No events available with the current filter.",
     "anyFilter": "Any",
     "nearme": "Near me",

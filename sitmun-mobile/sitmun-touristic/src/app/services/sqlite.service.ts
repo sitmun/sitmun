@@ -29,6 +29,10 @@ export class SQLiteService {
       this.sqlite = new SQLiteConnection(this.sqlitePlugin);
       this.isService = true;
     }
+
+    async initializeWebStore() {
+      await this.sqlite?.initWebStore();
+    }
     
     getPlatform() {
       return this.platform;

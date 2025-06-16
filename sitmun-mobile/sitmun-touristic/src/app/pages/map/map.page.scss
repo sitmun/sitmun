@@ -8,3 +8,20 @@
   height: 100%;
   width: 100%;
 }
+
+ion-fab-button {
+  --color: white;
+  --background: #71a7d3;
+  border: 2px solid white;
+  border-radius: 50%;
+}
+
+ion-item, ion-item-divider {
+  --background: white;
+  --color: black;
+}
+
+ion-item-divider {
+  font-size: 1.15rem;
+  font-weight: bold;
+}

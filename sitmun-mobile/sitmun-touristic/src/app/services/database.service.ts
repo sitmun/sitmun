@@ -63,6 +63,9 @@ export class DatabaseService {
       return;
     }
     try {
+      if (this.sqlite.getPlatform() === 'web') {
+        await this.sqlite.initializeWebStore();
+      }
       await this.loadConnection();
       await this.createTables();
       await this.sqlite.closeConnection(this.dbName);      

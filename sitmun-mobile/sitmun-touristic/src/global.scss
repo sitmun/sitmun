@@ -87,8 +87,8 @@ ion-toolbar {
 .modal-img {
     --width: fit-content;
     --min-width: 75vw;
-    --height: fit-content;
-    --min-height: 50px;
+    --height: auto;
+    --min-height: 100px;
     --border-radius: 6px;
     --box-shadow: 0 28px 48px rgba(0, 0, 0, 0.4);
     padding: 5vw;

@@ -72,7 +72,7 @@
           <ion-card-content>
             <p class="evt-content" [innerHTML]="evt.description"></p>
             <div class="footer">
-              <p><strong>Donde:</strong> {{evt.address}}</p>
+              <p><strong>Donde:</strong> {{evt.address}} ({{evt.muni}})</p>
               <p class="dates"><ion-icon name="calendar"></ion-icon> {{dateFormat(evt.startdate)}} - {{dateFormat(evt.enddate)}}</p>
             </div>
           </ion-card-content>

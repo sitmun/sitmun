@@ -70,9 +70,9 @@ export class HomePage implements OnInit, OnDestroy {
         this.instances = data;
         this.instanceOptions = [];
         const instancesKeys = Object.keys(this.instances);
-        if (instancesKeys.length > 1) {
-          instancesKeys.forEach((key: string) => this.instanceOptions.push({value: key, name: this.instances[key].name}));
-        } else {
+        instancesKeys.forEach((key: string) => this.instanceOptions.push({value: key, name: this.instances[key].name}));
+
+        if (instancesKeys.length == 1) {
           this.selectedInstance = instancesKeys[0];
           this.access();
         }

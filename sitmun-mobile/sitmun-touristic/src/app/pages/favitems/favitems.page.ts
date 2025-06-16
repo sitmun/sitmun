@@ -55,17 +55,22 @@ export class FavitemsPage implements OnInit {
     this.languageOptions = this.languageService.getLanguageOptions();
   }
 
-  locateElement(elem: any) {
+  async locateElement(elem: any) {
     console.log(elem.geom);
-    this.routingService.navigate('map', {features: [elem]});
+    const mapData = {features: [elem]};
+    //this.routingService.navigate('map', mapData);
+    const data = await this.authorizationService.getPagesMapNode();
+    this.routingService.redirect(data, mapData);
   }
 
-  locateAllElements(){
+  async locateAllElements(){
     const favoritesElement = this.favorites.map((f) => {
       return f.element;
     });
-
-    this.routingService.navigate('map', {features: favoritesElement});
+    const mapData = {features: favoritesElement}
+    //this.routingService.navigate('map', mapData);
+    const data = await this.authorizationService.getPagesMapNode();
+    this.routingService.redirect(data, mapData);
   }
 
   async deleteFavorite(fav: any) {
@@ -73,18 +78,17 @@ export class FavitemsPage implements OnInit {
     this.getFavorites();
   }
 
-  async toggleVisited(event: any, fav: any) {
-    const btn = event.target;
+  async toggleVisited(boton: any, fav: any) {
+    const btn = boton.target;
     let visitChange = false;
-    if (fav.visited){
-      visitChange = false;
+    if (btn.classList.contains('active')) {
       btn.classList.remove('active');
-    }else{
-      visitChange = true;
+      visitChange = false;
+    } else {
       btn.classList.add('active');
+      visitChange = true;
     }
     await this.databaseService.visitFavoriteChange(fav, visitChange);
-    this.getFavorites();
   }
 
   async startPage() {

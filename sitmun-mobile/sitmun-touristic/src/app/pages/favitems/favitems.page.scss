@@ -1,7 +1,10 @@
+ion-content{
+    --background: white;
+}
+
 .container {
-    background-color: white;    
     padding-top: 2rem;
-    padding-bottom: 2rem;
+    padding-bottom: 3rem;
 }
 
 #list-grid>ion-row{
@@ -33,4 +36,10 @@
 .grid-container {
     height: calc(75vh - 56px);
     overflow: auto;
+}
+
+.locate-bottom{
+    background-color:white; 
+    bottom: 6vh;
+    padding: 2vh;
 }

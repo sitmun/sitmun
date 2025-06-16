@@ -191,9 +191,12 @@ export class EventsPage implements OnInit {
     btn.classList.add('active');
   }
 
-  locateElement(elem: any) {
+  async locateElement(elem: any) {
     console.log(elem.geom);
-    this.routingService.navigate('map', {features: [elem], activeLayer: this.eventsNode.resource || '*'});
+    const mapData = {features: [elem], activeLayer: this.eventsNode.resource || '*'};
+    //this.routingService.navigate('map', mapData);
+    const data = await this.authorizationService.getPagesMapNode();
+    this.routingService.redirect(data, mapData);
   }
   
   toggleFavorite(event: any, elem: any) {
@@ -245,15 +248,13 @@ export class EventsPage implements OnInit {
 
   getToday() {
     const today = new Date();
-    //return today.toISOString().split('T')[0];
-    return '2021-07-01';
+    return today.toISOString().split('T')[0];
   }
 
   getNext15() {
     const next15days = new Date();
     next15days.setDate(next15days.getDate() + 15);
-    //return next15days.toISOString().split('T')[0];
-    return '2021-07-30';
+    return next15days.toISOString().split('T')[0];
   }
 
   openModal() {

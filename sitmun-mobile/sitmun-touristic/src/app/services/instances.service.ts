@@ -8,29 +8,35 @@ import { environment } from 'src/environments/environment';
 export class InstancesService {
 
   private instancesUrl = environment.instancesUrl;
-  instanceName = 'menorca';
-  authorizationUrl = 'http://localhost:8080';
+  instanceName = '';
+  authorizationUrl = 'http://localhost:9000/backend';
   private initPageUrlTemplate = '/api/config/client/profile/{appId}/{terId}';
-  initPageUrl = '/api/config/client/profile/19/4';
+  initPageUrl = '';
 
   constructor() { }
 
   async getSitmunInstances() {
-    const options = {
-      url: this.instancesUrl,
-      method: 'GET',
-      headers: {
-        'Accept': 'application/json'
-      },
-      params: {}
-    };
-    return new Promise<object>((resolve, reject) => {
-      Http.request(options).then(data => {
-        resolve(data.data);
-      }).catch(error => {
-        reject(error);
+    if (this.instancesUrl) {
+      const options = {
+        url: this.instancesUrl,
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json'
+        },
+        params: {}
+      };
+      return new Promise<object>((resolve, reject) => {
+        Http.request(options).then(data => {
+          resolve(data.data);
+        }).catch(error => {
+          reject(error);
+        });
       });
-    });
+    } else {
+      return new Promise<object>((resolve, reject) => {
+        resolve(environment.instancesData);
+      });
+    }
   }
   
   setInitPageUrl(appId: string, terId: string) {

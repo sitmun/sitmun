@@ -89,15 +89,16 @@ export class FavoritesPage implements OnInit {
     this.selectedFlag = this.languageService.updateFlag(langCode);
   }
 
-  locateAllElements(){
-    this.databaseService.getAllFavorites().then(data => {
-      const favoritesElement = data.map((f) => {
-        f.element = JSON.parse(f.element);
-        return f.element;
-      });
-
-      this.routingService.navigate('map', {features: favoritesElement});
-    });    
+  async locateAllElements(){
+    const favs = await this.databaseService.getAllFavorites();
+    const favoritesElement = favs.map((f) => {
+      f.element = JSON.parse(f.element);
+      return f.element;
+    });
+    const mapData = {features: favoritesElement}
+    //this.routingService.navigate('map', mapData);
+    const data = await this.authorizationService.getPagesMapNode();
+    this.routingService.redirect(data, mapData); 
   }
 
 }

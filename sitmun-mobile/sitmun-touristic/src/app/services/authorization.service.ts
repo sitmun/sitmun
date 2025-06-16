@@ -7,7 +7,7 @@ import { constants } from 'src/environments/constants';
 
 export interface Node {
   uri: String;
-  title: String;
+  title: string;
   description: String;
   resource: String;
   action: String;
@@ -18,6 +18,7 @@ export interface Node {
   image: String;
   order: number;
   children: string[];
+  mapping: any,
   id?: string;
 }
 
@@ -94,26 +95,50 @@ export class AuthorizationService {
   }
 
   async getPageNodes(serviceUrl: string = this.instancesService.initPageUrl, addProfile: boolean = false) {
+    serviceUrl = serviceUrl.replace('localhost', '192.168.61.157');
     const url = serviceUrl.startsWith('http') ? serviceUrl : this.instancesService.authorizationUrl.concat(serviceUrl);
     this.addProfile = addProfile;
     return this.requestPages(url);
   }
 
-  async getPagesNodesBD(idParentNode: string = 'root') {
+  async getBDProfile() {
     const trees = JSON.parse((await this.databaseService.getProfileData('trees'))[0].json);
     const tasks = JSON.parse((await this.databaseService.getProfileData('tasks'))[0].json);
     const profile: Profile = {trees, tasks};
+    return profile;
+  }
+
+  async getPagesNodesBD(idParentNode: string = 'root') {
+    const profile: Profile = await this.getBDProfile();
     return this.getPagesByProfile(profile, idParentNode);
+  }
+
+  async getPagesMapNode() {
+    const profile: Profile = await this.getBDProfile();
+    const touristicTree = profile.trees?.find((t: Tree) => t.type === constants.codeValue.treeType.touristicTree);
+    if (touristicTree) {
+      const nodeKeys = Object.keys(touristicTree.nodes);
+      const mapNode = nodeKeys.find(k => touristicTree.nodes[k].type === constants.codeValue.treenodeFolderType.map);
+      if (mapNode) {
+        this.setTouristicTreeRootNode(touristicTree, mapNode);
+        return this.transformData(profile);
+      }
+    }
+    return null;
   }
 
   getPagesByProfile(profile: Profile, idParentNode: string = 'root') {
     const touristicTree = profile.trees?.find((t: Tree) => t.type === constants.codeValue.treeType.touristicTree);
+    this.setTouristicTreeRootNode(touristicTree, idParentNode);
+    return this.transformData(profile);
+  }
+
+  setTouristicTreeRootNode(touristicTree: any, idNode: string) {
     if (touristicTree) {
-      if (idParentNode !== 'root') {
-        touristicTree.rootNode = idParentNode;
+      if (idNode !== 'root') {
+        touristicTree.rootNode = idNode;
       }
     }
-    return this.transformData(profile);
   }
 
   async getLastPageNodes() {
@@ -171,7 +196,8 @@ export class AuthorizationService {
       if (touristicTree) {
         const rootNode: Node = touristicTree.nodes[touristicTree.rootNode];
         rootNode.id = touristicTree.rootNode;
-        if (rootNode.type === constants.codeValue.treenodeLeafType.task && profile.tasks) {
+        if ((rootNode.type === constants.codeValue.treenodeLeafType.task || rootNode.type === constants.codeValue.treenodeFolderType.map)
+          && profile.tasks) {
           const taskNodes: Node[] = [];
           if (rootNode['children']) {
             rootNode['children'].forEach((n) => {
