@@ -1,5 +1,4 @@
 import { Component, OnInit } from '@angular/core';
-import { Location } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { RoutingService } from 'src/app/services/routing.service';
 import { LanguageService } from 'src/app/services/language.service';
@@ -23,8 +22,7 @@ export class FavitemsPage implements OnInit {
   
   constructor(private router: Router, private route: ActivatedRoute,
     private routingService: RoutingService, private languageService: LanguageService,
-    private databaseService: DatabaseService , private _location: Location,
-  private authorizationService: AuthorizationService) {
+    private databaseService: DatabaseService , private authorizationService: AuthorizationService) {
       this.route.queryParams.subscribe(params => {
       let navigation = this.router.getCurrentNavigation();
       if (navigation) {
@@ -104,7 +102,7 @@ export class FavitemsPage implements OnInit {
   }
 
   backPage() {
-    this._location.back();
+    this.routingService.navigateBack();
   }
 
   setLanguage(langCode: string) {

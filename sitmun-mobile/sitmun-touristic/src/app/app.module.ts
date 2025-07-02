@@ -12,8 +12,8 @@ import { AuthorizationService } from './services/authorization.service';
 import { RequestService } from './services/request.service';
 import { InstancesService } from './services/instances.service';
 import { LanguageService } from './services/language.service';
-import { SQLiteService } from './services/sqlite.service';
 import { DatabaseService } from './services/database.service';
+import { SQLiteService } from './services/sqlite.service';
 import { TruncatePipe } from './components/truncate.pipe';
 import { MapaService } from './services/mapa.service';
 
@@ -39,9 +39,21 @@ export function createTranslateLoader(http: HttpClient) {
       }
     })
   ],
-  providers: [{ provide: RouteReuseStrategy, useClass: IonicRouteStrategy },
-    Platform, InstancesService, LanguageService, AuthorizationService, RequestService,
-    TranslateService, provideHttpClient(), SQLiteService, DatabaseService, MapaService],
+  providers: [
+    {
+      provide: RouteReuseStrategy,
+      useClass: IonicRouteStrategy
+    },
+    Platform,
+    InstancesService,
+    LanguageService,
+    AuthorizationService,
+    RequestService,
+    DatabaseService,
+    SQLiteService,
+    MapaService,
+    TranslateService, provideHttpClient()
+  ],
   bootstrap: [AppComponent],
 })
 export class AppModule {}

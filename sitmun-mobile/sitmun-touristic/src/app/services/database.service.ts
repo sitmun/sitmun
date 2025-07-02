@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { CapacitorSQLite, SQLiteDBConnection } from '@capacitor-community/sqlite';
+import { SQLiteDBConnection } from '@capacitor-community/sqlite';
 import { InstancesService } from './instances.service';
 import { SQLiteService } from './sqlite.service';
 import { Capacitor } from '@capacitor/core';
@@ -24,10 +24,9 @@ export interface Favorite {
 export class DatabaseService {
 
   private db: SQLiteDBConnection | null = null;
-  private dbName: string;
+  private dbName: string = '';
 
   constructor(private instanceService: InstancesService, private sqlite: SQLiteService) {
-    this.dbName = instanceService.instanceName + '.db';
   }
 
   private async loadConnection() {
@@ -59,6 +58,7 @@ export class DatabaseService {
   }
 
   async initDatabase() {
+    this.dbName = this.instanceService.instanceName + '.db';
     if (!this.checkPlugin()) {
       return;
     }
@@ -68,7 +68,7 @@ export class DatabaseService {
       }
       await this.loadConnection();
       await this.createTables();
-      await this.sqlite.closeConnection(this.dbName);      
+      await this.closeConnection();      
     } catch (error) {
       throw Error(`DatabaseServiceError: ${error}`);
     }
@@ -78,6 +78,7 @@ export class DatabaseService {
     await this.createProfileTable();
     await this.createCategoriesTable();
     await this.createFavoritesTable();
+    await this.createCacheTable();
   }
 
   private async createProfileTable() {
@@ -88,17 +89,7 @@ export class DatabaseService {
       );
     `;
 
-    try {
-      if(this.db) {
-        console.log("Creando tabla profile...");
-        const changes = await this.db.execute(createTableQuery);
-        console.log('Tabla profile creada correctamente');
-      } else {
-        console.log("Conexion nula 1");
-      }
-    } catch (error) {
-      console.error('Error creando tabla profile:', error);
-    }
+    await this.createTableGeneric(createTableQuery, 'profile');
   }
 
   private async createCategoriesTable() {
@@ -110,17 +101,7 @@ export class DatabaseService {
       );
     `;
 
-    try {
-      if(this.db) {
-        console.log("Creando tabla categories...");
-        const changes = await this.db.execute(createTableQuery);
-        console.log('Tabla categories creada correctamente');
-      } else {
-        console.log("Conexion nula 1");
-      }
-    } catch (error) {
-      console.error('Error creando tabla categories:', error);
-    }
+    await this.createTableGeneric(createTableQuery, 'catogories');
   }
 
   private async createFavoritesTable() {
@@ -136,16 +117,34 @@ export class DatabaseService {
       );
     `;
 
+    await this.createTableGeneric(createTableQuery, 'favorites');
+  }
+
+  private async createCacheTable() {
+    const createTableQuery = `
+      CREATE TABLE IF NOT EXISTS cache (
+        url TEXT,
+        params TEXT,
+        response TEXT,
+        request_date DATETIME,
+        PRIMARY KEY (url, params)
+      );
+    `;
+
+    await this.createTableGeneric(createTableQuery, 'cache');
+  }
+
+  async createTableGeneric(createTableQuery: string, tableName: string) {
     try {
       if(this.db) {
-        console.log("Creando tabla favorites...");
+        console.log(`Creando tabla ${tableName}...`);
         const changes = await this.db.execute(createTableQuery);
-        console.log('Tabla favorites creada correctamente');
+        console.log(`Tabla ${tableName} creada correctamente`);
       } else {
-        console.log("Conexion nula 2");
+        console.log("Conexion nula");
       }
     } catch (error) {
-      console.error('Error creando tabla favorites:', error);
+      console.error(`Error creando tabla ${tableName}:`, error);
     }
   }
 
@@ -153,7 +152,7 @@ export class DatabaseService {
     await this.loadConnection();
     await this.insertCategory(category);
     await this.insertFavorite(favorite);
-    await this.sqlite.closeConnection(this.dbName);
+    await this.closeConnection();
   }
 
   async addProfile(profile: any) {
@@ -163,7 +162,7 @@ export class DatabaseService {
     for (let k of keys) {
       await this.insertProfileData(k, JSON.stringify(profile[k]));
     }
-    await this.sqlite.closeConnection(this.dbName);
+    await this.closeConnection();
   }
 
   private async truncateProfileData() {
@@ -221,6 +220,23 @@ export class DatabaseService {
     }
   }
 
+  async insertCacheData(url: string, params: string, response: string) {
+    await this.loadConnection();
+    const statement = `INSERT OR REPLACE INTO cache (url, params, response, request_date) VALUES (?, ?, ?, strftime('%s', 'now'))`;
+    const values = [url, params, response];
+
+    try {
+      if (this.db) {
+        await this.db.run(statement, values);
+        console.log(`cache agregada`);
+      }
+    } catch (error) {
+      console.error('Ya existe cache');
+    } finally {
+      await this.closeConnection();
+    }
+  }
+
   async getProfileData(type: string): Promise<any[]> {
     await this.loadConnection();
     const statement = 'SELECT * FROM profile WHERE name = ?';
@@ -239,7 +255,7 @@ export class DatabaseService {
       console.error('Error obteniendo profile:', error);
       return [];
     } finally {
-      await this.sqlite.closeConnection(this.dbName);
+      await this.closeConnection();
     }
   }
 
@@ -261,7 +277,7 @@ export class DatabaseService {
       console.error('Error obteniendo categorias:', error);
       return [];
     } finally {
-      await this.sqlite.closeConnection(this.dbName);
+      await this.closeConnection();
     }
   }
 
@@ -282,7 +298,7 @@ export class DatabaseService {
     } catch (error) {
       console.error('Error al eliminar categoria:', error);
     } finally {
-      await this.sqlite.closeConnection(this.dbName);
+      await this.closeConnection();
     }
   }
 
@@ -305,7 +321,7 @@ export class DatabaseService {
       console.error('Error obteniendo favoritos:', error);
       return [];
     } finally {
-      await this.sqlite.closeConnection(this.dbName);
+      await this.closeConnection();
     }
   }
 
@@ -327,7 +343,7 @@ export class DatabaseService {
       console.error('Error obteniendo favoritos:', error);
       return [];
     } finally {
-      await this.sqlite.closeConnection(this.dbName);
+      await this.closeConnection();
     }
   }
   
@@ -344,7 +360,7 @@ export class DatabaseService {
     } catch (error) {
       console.error('Error al eliminar favorito:', error);
     } finally {
-      await this.sqlite.closeConnection(this.dbName);
+      await this.closeConnection();
     }
   }
 
@@ -361,7 +377,7 @@ export class DatabaseService {
     } catch (error) {
       console.error('Error al modificar favorito:', error);
     } finally {
-      await this.sqlite.closeConnection(this.dbName);
+      await this.closeConnection();
     }
   }
 
@@ -381,11 +397,51 @@ export class DatabaseService {
       console.error('Error obteniendo favorito:', error);
       return false;
     } finally {
-      await this.sqlite.closeConnection(this.dbName);
+      await this.closeConnection();
     }
   }
 
-  async closeDatabase(): Promise<void> {
+  async getCacheData(url: string, params: string): Promise<any[]> {
+    await this.loadConnection();
+    const statement = `SELECT response, request_date as request_date FROM cache WHERE url = ? and params = ?`;
+    const values = [url, params];
+    try {
+      if (this.db) {
+        const results = (await this.db.query(statement, values)).values;
+        if (results) {
+          return results;
+        } else {
+          return [];
+        }
+      }
+      return [];
+    } catch (error) {
+      console.error('Error obteniendo cache:', error);
+      return [];
+    } finally {
+      await this.closeConnection();
+    }
+  }
+
+  async removeCache(url: string, params: string) {
+    await this.loadConnection();
+    const statement = 'DELETE FROM cache WHERE url = ? and params = ?';
+    const values = [url, params];
+
+    try {
+      if (this.db) {
+        console.log('Eliminando cache');
+        (await this.db.run(statement, values)).changes;
+      }
+      console.log('Cache eliminada');
+    } catch (error) {
+      console.error('Error al eliminar cache:', error);
+    } finally {
+      await this.closeConnection();
+    }
+  }
+
+  async closeConnection(): Promise<void> {
     await this.sqlite.closeConnection(this.dbName);
   }
 }

@@ -1,6 +1,4 @@
 import { Component, OnInit } from '@angular/core';
-import { Location } from '@angular/common';
-import { ActivatedRoute, Router } from '@angular/router';
 import { AuthorizationService, Node } from 'src/app/services/authorization.service';
 import { RoutingService } from 'src/app/services/routing.service';
 import { LanguageService } from 'src/app/services/language.service';
@@ -26,39 +24,50 @@ export class DetailedlistPage implements OnInit {
   isModalOpenImg = false;
   currentExtraInfo = {title: '', content: ''};
   imageModal: String = '';
+  loaded = false;
+  arraySkeleton: any[] = new Array(3);
   
-  constructor(private router: Router, private route: ActivatedRoute, private authorizationService: AuthorizationService,
-    private routingService: RoutingService, private languageService: LanguageService, private requestService: RequestService,
-    private databaseService: DatabaseService , private _location: Location) {
-      this.route.queryParams.subscribe(params => {
-      let navigation = this.router.getCurrentNavigation();
-      if (navigation) {
-        let tempState = navigation.extras.state;
-        if (tempState) {
-          this.rootNode = tempState['rootNode'];
-          this.taskNode = tempState['taskNodes'][0];
-          this.task = tempState['tasks'][0];
-          if (tempState['parentData']){
-            this.parentData = tempState['parentData'];
-          }
-        }
-      }
-    });
+  constructor(private authorizationService: AuthorizationService, private routingService: RoutingService,
+    private languageService: LanguageService, private requestService: RequestService, private databaseService: DatabaseService) {
   }
 
   ngOnInit(): void {
+    //this.getParams();
+    //this.getData();
+  }
+
+  ionViewWillEnter() {
+    this.loaded = false;
+    this.selectedLanguage = this.languageService.getLanguage();
+    this.selectedFlag = this.languageService.getFlag();
+    this.languageOptions = this.languageService.getLanguageOptions();
+    this.getParams();
+    this.getData();
+  }
+
+  getParams() {
+    let navigation = window.history;
+    if (navigation) {
+      let tempState = navigation.state;
+      if (tempState) {
+        this.rootNode = tempState['rootNode'];
+        this.taskNode = tempState['taskNodes'][0];
+        this.task = tempState['tasks'][0];
+        if (tempState['parentData']){
+          this.parentData = tempState['parentData'];
+        }
+      }
+    }
+  }
+
+  getData() {
     console.log("Obteniendo elementos");
     this.requestService.templateRequest(this.task, this.taskNode.mapping, this.parentData).then(results => {
       this.elements = results;
       console.log("Elementos obtenidos");
       this.setFavorites();
+      this.loaded = true;
     });
-  }
-
-  ionViewWillEnter() {
-    this.selectedLanguage = this.languageService.getLanguage();
-    this.selectedFlag = this.languageService.getFlag();
-    this.languageOptions = this.languageService.getLanguageOptions();
   }
 
   async setFavorites() {
@@ -121,20 +130,49 @@ export class DetailedlistPage implements OnInit {
     this.routingService.redirect(data);
   }
 
-  async nextPage(idNode: string) {
+  async nextPage(idNode: string, parentData: any = {}) {
     if(idNode) {
       const data = await this.authorizationService.getPagesNodesBD(idNode);
-      this.routingService.redirect(data);
+      this.routingService.redirect(data, parentData);
     }
   }
 
   backPage() {
-    this._location.back();
+    this.routingService.navigateBack();
   }
 
   setLanguage(langCode: string) {
     this.selectedLanguage = langCode;
     this.languageService.setLanguage(langCode);
+  }
+
+  isValidHref(href: String): boolean {    
+    return (
+      href &&
+      (href.startsWith('tel:') ||
+      href.startsWith('mailto:') ||
+      href.startsWith('http://') ||
+      href.startsWith('https://'))
+    );
+  }
+
+  getBtnText(href: String): string {
+    if (href.startsWith('tel:')) {
+      return 'Llamar';
+    } else if (href.startsWith('mailto:')) {
+      return 'Enviar Email';
+    } else if (href.startsWith('http://') || href.startsWith('https://')) {
+      return 'Abrir Sitio Web';
+    }
+    return '';
+  }
+
+  openExtraInfo(elem: any, key: string) {
+    if (this.taskNode.children) {
+      this.nextPage(this.taskNode.id, elem);
+    } else if (elem[key]) {
+      this.openExtraInfoModal('Extra info', elem[key]);
+    }
   }
 
   openExtraInfoModal(title: string, content: string) {
@@ -155,6 +193,10 @@ export class DetailedlistPage implements OnInit {
     event.stopPropagation();
     this.imageModal = image || '';
     this.isModalOpenImg = true;
+  }
+
+  openLink(link: string) {
+    window.open(link, '_system');
   }
 
 }

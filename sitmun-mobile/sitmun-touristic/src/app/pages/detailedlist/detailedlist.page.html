@@ -24,6 +24,8 @@
     </div>
     <div class="grid-container">
       <div class="container">
+
+      @if (loaded) {
         <div class="row" *ngFor="let elem of elements">
           <div class="card list-item mb-1">
             <div class="row g-0">
@@ -45,23 +47,41 @@
                 </ion-button>
               </div>
             </div>
-            <div class="row">
-              <ion-accordion-group *ngIf="elem['description'] || elem.schedule || elem.price">
+            <div class="row" *ngIf="elem['description'] || elem['leftbtn'] || elem['rightbtn']">
+              <ion-accordion-group>
                 <ion-accordion value="first">
                   <ion-item slot="header" class="mx-auto">
                     <ion-label class="extraInfo-label">{{'moreInfo' | translate}}</ion-label>
                     <ion-icon name="chevron-down" slot="end" class="ion-accordion-toggle-icon"></ion-icon>
                   </ion-item>
                   <div class="extraInfo-content ion-padding container" slot="content">
-                    <div class="row extraInfo-data mb-5">
-                      <div *ngIf="elem['description']" [innerHTML]="elem['description']"></div>
+                    <div class="row extraInfo-data mb-5" *ngIf="elem['description']">
+                      <div [innerHTML]="elem['description']"></div>
                     </div>
-                    <div class="row justify-content-evenly">
+                    <div class="row justify-content-evenly" *ngIf="elem['leftbtn'] || elem['rightbtn']">
                       <div class="col-6">
-                        <ion-button class="access-btn w-100" shape="round" *ngIf="elem.schedule" (click)="openExtraInfoModal('schedule', elem.schedule)">{{'schedule' | translate}}</ion-button>
+                        <div *ngIf="elem.leftbtn || taskNode.children">
+                          <ion-button class="access-btn w-100" shape="round" *ngIf="isValidHref(elem.leftbtn)"
+                            (click)="openLink(elem.leftbtn)">
+                            {{ getBtnText(elem.leftbtn) | translate }}
+                          </ion-button>
+                          <ion-button class="access-btn w-100" shape="round" *ngIf="!isValidHref(elem.leftbtn)"
+                            (click)="openExtraInfo(elem, 'leftbtn')">
+                            {{'schedule' | translate}}
+                          </ion-button>
+                        </div>
                       </div>
                       <div class="col-6">
-                        <ion-button class="access-btn w-100" shape="round" *ngIf="elem.price" (click)="openExtraInfoModal('price', elem.price)">{{'price' | translate}}</ion-button>
+                        <div *ngIf="elem.rightbtn || (taskNode.children && elem.leftbtn)">
+                          <ion-button class="access-btn w-100" shape="round" *ngIf="isValidHref(elem.rightbtn)"
+                            (click)="openLink(elem.rightbtn)">
+                            {{ getBtnText(elem.rightbtn) | translate }}
+                          </ion-button>
+                          <ion-button class="access-btn w-100" shape="round" *ngIf="!isValidHref(elem.rightbtn)"
+                            (click)="openExtraInfo(elem, 'rightbtn')">
+                            {{'price' | translate}}
+                          </ion-button>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -70,6 +90,31 @@
             </div>
           </div>
         </div>
+          } @else {
+            <div class="row" *ngFor="let i of arraySkeleton">
+              <div class="card list-item mb-1 p-2">
+                <div class="row g-0">
+                  <div class="col-3 list-img-container-sm my-auto">
+                    <ion-skeleton-text [animated]="true"></ion-skeleton-text>
+                  </div>
+                  <div class="col-7">
+                    <div class="card-body">
+                      <h5 class="card-title">
+                        <ion-skeleton-text [animated]="true"></ion-skeleton-text>
+                      </h5>
+                      <p class="card-text">
+                        <ion-skeleton-text [animated]="true"></ion-skeleton-text>
+                      </p>
+                      <p class="card-text">
+                        <ion-skeleton-text [animated]="true"></ion-skeleton-text>
+                      </p>
+                    </div>                
+                  </div>
+                </div>
+              </div>
+            </div> 
+          }
+          
       </div>
     </div>
   </div>
@@ -101,25 +146,6 @@
 </ion-content>
 
 <ion-footer [translucent]="true">
-  <!--  
-  <ion-toolbar>
-    <ion-buttons slot="start">
-      <ion-button (click)="nextPage('node/12771')">
-        <ion-icon name="map" size="large"></ion-icon>
-      </ion-button>
-    </ion-buttons>
-    <div>
-      <ion-button (click)="nextPage('node/12770')" style="--background: white; --box-shadow: none;">
-        <ion-icon src="../../../assets/icon/persona.svg" size="large"></ion-icon>
-      </ion-button>
-    </div>
-    <ion-buttons slot="end">
-      <ion-button (click)="nextPage('node/12769')">
-        <ion-icon name="list" size="large"></ion-icon>
-      </ion-button>
-    </ion-buttons>
-  </ion-toolbar>
-  -->
   <ion-toolbar>
     <ion-buttons slot="start">
         <div class="vertical-btn" (click)="startPage()">

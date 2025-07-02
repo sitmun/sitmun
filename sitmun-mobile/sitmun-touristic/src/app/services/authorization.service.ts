@@ -190,7 +190,7 @@ export class AuthorizationService {
   }
 
   private transformData(profile: Profile) {
-    let params = {};
+    let params: any = {};
     if (profile.trees && profile.trees.length > 0) {
       const touristicTree = profile.trees.find(t => t.type === constants.codeValue.treeType.touristicTree);
       if (touristicTree) {
@@ -232,7 +232,7 @@ export class AuthorizationService {
   }
 
   transformTask(tasks: any[], rootNode: Node, taskNodes: Node[]) {
-    let params = {};
+    let params: any = {};
     if (tasks && tasks.length > 0) {
       const actions = taskNodes.map(tn => tn.action);     
       const filterTask = tasks.filter(t => actions.includes(t.id));

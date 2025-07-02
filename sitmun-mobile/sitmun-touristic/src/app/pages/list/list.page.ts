@@ -1,5 +1,4 @@
 import { Component } from '@angular/core';
-import { Location } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AuthorizationService, Node } from 'src/app/services/authorization.service';
 import { RoutingService } from 'src/app/services/routing.service';
@@ -21,7 +20,7 @@ export class ListPage {
   imageModal: String = "";
   
   constructor(private router: Router, private route: ActivatedRoute, private authorizationService: AuthorizationService,
-    private routingService: RoutingService, private languageService: LanguageService, private _location: Location) {
+    private routingService: RoutingService, private languageService: LanguageService) {
       this.route.queryParams.subscribe(params => {
       let navigation = this.router.getCurrentNavigation();
       if (navigation) {
@@ -60,7 +59,7 @@ export class ListPage {
   }
 
   backPage() {
-    this._location.back();
+    this.routingService.navigateBack();
   }
 
   setLanguage(langCode: string) {

@@ -28,11 +28,18 @@
     "radiusNonMetric": "En un radio de (millas)",
     "categories": "Categorias",
     "selected": "seleccionadas",
+    "selectCategory": "Seleccione al menos una categoría",
+    "alertLocation": {
+        "header": "Ubicación no disponible",
+        "message": "No se ha podido obtener la ubicación actual. Se utilizará centro del mapa por defecto.",
+        "settings": "Cambiar configuración"
+    },
     "exit": {
         "title": "Salir",
         "message": "¿Salir de la aplicación?",
         "exit": "Salir",
-        "continue": "Continuar"
+        "continue": "Continuar",
+        "cancel": "Cancelar"
     }, 
     "home": "Inicio"
 }

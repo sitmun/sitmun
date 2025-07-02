@@ -28,11 +28,18 @@
     "radiusNonMetric": "Dans un rayon de (milles)",
     "categories": "Catégories",
     "selected": "sélectionnées",
+    "selectCategory": "Sélectionnez au moins une catégorie",
+    "alertLocation": {
+        "header": "Emplacement non disponible",
+        "message": "Impossible d'obtenir l'emplacement actuel. Le centre de la carte sera utilisé par défaut.",
+        "settings": "Modifier les paramètres"
+    },
     "exit": {
         "title": "Quitter",
         "message": "Quitter l'application?",
         "exit": "Quitter",
-        "continue": "Continuer"
-    }, 
+        "continue": "Continuer",
+        "cancel": "Annuler"
+    },
     "home": "Début"
 }

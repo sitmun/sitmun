@@ -37,18 +37,18 @@ export const constants = {
         }
     },
     paths: {
-        menu: 'menu',
-        list: 'list',
-        fav: 'favorites',
-        map: 'map',
-        nm: 'nearme',
+        menu: '/menu',
+        list: '/list',
+        fav: '/favorites',
+        map: '/map',
+        nm: '/nearme',
         task: {
-            dl: 'detailedlist',
-            ne: 'nearelements',
-            sch: 'schedule',
-            evt: 'events',
-            evtcat: 'events',
-            evtloc: 'events'
+            dl: '/detailedlist',
+            ne: '/nearelements',
+            sch: '/schedule',
+            evt: '/events',
+            evtcat: '/events',
+            evtloc: '/events'
         }
     }
 }

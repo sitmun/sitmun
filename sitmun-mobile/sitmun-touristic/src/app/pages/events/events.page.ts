@@ -1,5 +1,4 @@
 import { Component, OnInit } from '@angular/core';
-import { Location } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AuthorizationService, Node } from 'src/app/services/authorization.service';
 import { RoutingService } from 'src/app/services/routing.service';
@@ -36,10 +35,11 @@ export class EventsPage implements OnInit {
     enddate: '',
     near: false
   };
+  loaded = false;
 
   constructor(private router: Router, private route: ActivatedRoute, private authorizationService: AuthorizationService,
     private routingService: RoutingService, private languageService: LanguageService, private requestService: RequestService,
-    private databaseService: DatabaseService , private _location: Location, private mapService: MapaService,
+    private databaseService: DatabaseService, private mapService: MapaService,
     private loadingCtrl: LoadingController) {
       this.filters['startdate'] = this.getToday();
       this.filters['enddate'] = this.getNext15();
@@ -90,7 +90,7 @@ export class EventsPage implements OnInit {
   }
 
   backPage() {
-    this._location.back();
+    this.routingService.navigateBack();
   }
 
   setLanguage(langCode: string) {
@@ -139,6 +139,7 @@ export class EventsPage implements OnInit {
       this.resetCarruselScroll();
       this.hideLoading();
       console.log("Eventos obtenidos");
+      this.loaded = true;
     });
   }
 
@@ -158,17 +159,21 @@ export class EventsPage implements OnInit {
         let paramKey: string = k;
         if (!['startdate', 'enddate', 'keyWord'].includes(k)){
           paramKey = this.eventsNode.mapping.output[k].value;
-          paramKey = paramKey.substring(paramKey.lastIndexOf('.') + 1);
+          if (paramKey.startsWith('$')) {
+            paramKey = paramKey.substring(paramKey.lastIndexOf('.') + 1);
+          } else {
+            paramKey = paramKey.substring(paramKey.lastIndexOf('/') + 1);
+          }
         }
         filterParams[paramKey] = value;
       }
     });
+    console.log(`Filtros: ${filterParams}`);
     return filterParams;
   }
 
   async showLoading() {
     const loading = await this.loadingCtrl.create({});
-
     loading.present();
   }
 

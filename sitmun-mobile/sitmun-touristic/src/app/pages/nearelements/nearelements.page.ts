@@ -1,5 +1,4 @@
 import { Component, OnInit } from '@angular/core';
-import { Location } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AuthorizationService, Node } from 'src/app/services/authorization.service';
 import { RoutingService } from 'src/app/services/routing.service';
@@ -21,10 +20,11 @@ export class NearelementsPage implements OnInit {
   parentData: any = {};
   task: any = {};
   elements: any[] = [];
+  loaded = false;
+  arraySkeleton: any[] = new Array(6);
   
   constructor(private router: Router, private route: ActivatedRoute, private authorizationService: AuthorizationService,
-    private routingService: RoutingService, private languageService: LanguageService, private requestService: RequestService,
-    private _location: Location) {
+    private routingService: RoutingService, private languageService: LanguageService, private requestService: RequestService) {
       this.route.queryParams.subscribe(params => {
       let navigation = this.router.getCurrentNavigation();
       if (navigation) {
@@ -44,7 +44,8 @@ export class NearelementsPage implements OnInit {
   ngOnInit(): void {
     const proxyParams = this.task.id.split('/');
     this.requestService.templateRequest(this.task, this.taskNode.mapping, this.parentData).then(results => {
-      this.elements = results.sort((a, b) => a.distance - b.distance);
+      this.elements = results.sort((a: any, b: any) => a.distance - b.distance);
+      this.loaded = true;
     });
   }
 
@@ -96,7 +97,7 @@ export class NearelementsPage implements OnInit {
   }
 
   backPage() {
-    this._location.back();
+    this.routingService.navigateBack();
   }
 
   setLanguage(langCode: string) {

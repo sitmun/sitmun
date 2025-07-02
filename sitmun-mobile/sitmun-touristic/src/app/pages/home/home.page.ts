@@ -7,6 +7,8 @@ import { LanguageService } from 'src/app/services/language.service';
 import { DatabaseService } from 'src/app/services/database.service';
 import { Geolocation, PermissionStatus } from '@capacitor/geolocation';
 import { App } from '@capacitor/app';
+import { NativeSettings, AndroidSettings, IOSSettings } from 'capacitor-native-settings';
+
 
 const LABELS: Record<string, string> = {
   title: 'exit.title',
@@ -31,8 +33,8 @@ export class HomePage implements OnInit, OnDestroy {
   private subscriptionBack: any = null;
   instances: Record<string, any> = {};
   instanceOptions: Instance[] = [];
-  selectedInstance: string = ''
-  messages_: any = {}
+  selectedInstance: string = '';
+  messages_: any = {};
   selectedLanguage: string | null = null;
   selectedFlag: string | null = null;
   languageOptions: any[] = [];
@@ -52,6 +54,7 @@ export class HomePage implements OnInit, OnDestroy {
     this.subscriptionBack = this.platform.backButton.subscribeWithPriority(-1, (evt) => {
       this.showExitMessage();
     });
+    this.routingService.clearhistoric();
   }
 
   ionViewDidLeave() {
@@ -76,6 +79,9 @@ export class HomePage implements OnInit, OnDestroy {
           this.selectedInstance = instancesKeys[0];
           this.access();
         }
+      }).catch(error => {
+        this.showErrorAlert('Ha ocurrido un error al obtener los territorios disponibles');
+        console.error(error);
       });
     });
     this.requestPermisions();
@@ -92,10 +98,53 @@ export class HomePage implements OnInit, OnDestroy {
   }
 
   async showAlert() {
+
+    const language = await this.languageService.getLanguage();
+    let header = '';
+    let message = '';
+    let settings = '';
+
+    switch (language) {
+      case 'ca':
+        header = 'Permís de Localització Denegat';
+        message = 'L\'aplicació pot no funcionar correctament en alguns casos';
+        settings = 'Canviar configuració';
+        break;
+      case 'es':
+        header = 'Permiso de Localización Denegado';
+        message = 'La aplicación puede no funcionar correctamente en algunos casos';
+        settings = 'Cambiar configuración';
+        break;
+      case 'fr':
+        header = "Permis de Localisation Refusé";
+        message = "L'application peut ne pas fonctionner correctement dans certains cas.";
+        settings = "Changer la configuration";
+        break;
+      default:
+        header = 'Location Permit Denied';
+        message = 'The application may not work properly in some cases.';
+        settings = 'Change settings';
+        break;
+    }
+
     const alert = await this.alertController.create({
-      header: 'Permiso Denegado',
-      message: 'La aplicación puede no funcionar correctamente en algunos casos.',
-      buttons: ['OK'],
+      header: header,
+      message: message,
+      buttons: [
+                {
+                  text: settings,
+                  handler: async () => {
+                    await NativeSettings.open({
+                      optionAndroid: AndroidSettings.ApplicationDetails,
+                      optionIOS: IOSSettings.App,
+                    });
+                  },
+                },
+                {
+                  text: 'OK',
+                  role: 'confirm'
+                },
+              ]
     });
 
     await alert.present();
@@ -109,73 +158,52 @@ export class HomePage implements OnInit, OnDestroy {
     const target = event.target;
     this.selectedInstance = target.value;
   }
-/*
+
   async access() {
     if (this.selectedInstance) {
       this.showLoading();
+
       const selectInstance = this.instances[this.selectedInstance];
       this.instancesService.instanceName = this.selectedInstance;
-      await this.databaseService.initDatabase();
       this.instancesService.authorizationUrl = selectInstance.urlBackend;
-      this.authorizationService.getTouristicApp().then((apps: any[]) => {
-        const idApp = apps[0].id;
-        this.authorizationService.getTerritoryByApp(idApp).then(territories => {
-          const idTer = territories.content[0].id;
-          this.instancesService.setInitPageUrl(idApp, idTer);
-          this.authorizationService.getProfile().then(profile => {
+      this.databaseService.initDatabase().then(() => {
+        this.authorizationService.getTouristicApp().then(apps => {
+          const idApp = apps[0].id;
+          this.authorizationService.getTerritoryByApp(idApp).then(territories => {
+            const idTer = territories.content[0].id;
+            this.instancesService.setInitPageUrl(idApp, idTer);
+
+            this.authorizationService.getProfile().then(profile => {
+              this.databaseService.addProfile(profile).then(() => {
+                const data = this.authorizationService.getPagesByProfile(profile);
+                this.hideLoading();
+                this.routingService.addHistoric('/home', {});
+                this.routingService.redirect(data);
+              }).catch(error => {
+                this.showErrorAlert('Ha ocurrido un error al guardar la configuración');
+                console.error(error);
+                this.hideLoading();
+              });
+            }).catch(error => {
+              this.showErrorAlert('Ha ocurrido un error al obtener la configuración');
+              console.error(error);
+              this.hideLoading();
+            });
+          }).catch(error => {
+            this.showErrorAlert('Ha ocurrido un error al obtener el territorio de la app');
+            console.error(error);
             this.hideLoading();
-            const data = this.authorizationService.getPagesByProfile(profile);
-            this.routingService.redirect(data);
           });
+        }).catch(error => {
+          this.showErrorAlert('Ha ocurrido un error al obtener la app turística');
+          console.error(error);
+          this.hideLoading();
         });
+      }).catch(error => {
+        this.showErrorAlert('Ha ocurrido un error al inicializar la base de datos');
+        console.error(error);
+        this.hideLoading();
       });
-    }
-  }
-*/
-
-  async access() {
-    if (this.selectedInstance) {
-      const tiempo0 = Date.now();
-      this.showLoading();
-
-      this.databaseService.initDatabase();
-
-      const selectInstance = this.instances[this.selectedInstance];
-      this.instancesService.instanceName = this.selectedInstance;
-
-      this.instancesService.authorizationUrl = selectInstance.urlBackend;
-
-      const tiempo2 = Date.now();
-      const apps = await this.authorizationService.getTouristicApp();
-      console.log(`Tiempo de carga getTouristicApp: ${Date.now() - tiempo2} ms`);
-
-      const idApp = apps[0].id;
-
-      const tiempo3 = Date.now();
-      const territories = await this.authorizationService.getTerritoryByApp(idApp);
-      console.log(`Tiempo de carga GetTerritoryByApp: ${Date.now() - tiempo3} ms`);
-
-      const idTer = territories.content[0].id;
-      this.instancesService.setInitPageUrl(idApp, idTer);
-
-      const tiempo4 = Date.now();
-      const profile = await this.authorizationService.getProfile();
-      console.log(`Tiempo de carga getProfile: ${Date.now() - tiempo4} ms`);
-
-      const tiempo1 = Date.now();
-      await this.databaseService.addProfile(profile);
-      console.log(`Tiempo de carga Base de datos: ${Date.now() - tiempo1} ms`);
-
-      const tiempo5 = Date.now();
-      const data = this.authorizationService.getPagesByProfile(profile);
-      console.log(`Tiempo de carga getPagesByProfile: ${Date.now() - tiempo5} ms`);
-
-      this.hideLoading();
-
-      const tiempoTotal = Date.now() - tiempo0;
-      console.log(`Tiempo total de carga: ${tiempoTotal} ms`);
-
-      this.routingService.redirect(data);
     }
   }
 
@@ -187,6 +215,16 @@ export class HomePage implements OnInit, OnDestroy {
 
   hideLoading() {
     this.loadingCtrl.dismiss();
+  }
+
+  async showErrorAlert(msg: string) {
+    const alert = await this.alertController.create({
+      header: 'Error de comunicación',
+      message: msg,
+      buttons: ['Ok'],
+    });
+
+    await alert.present();
   }
 
   async showExitMessage() {

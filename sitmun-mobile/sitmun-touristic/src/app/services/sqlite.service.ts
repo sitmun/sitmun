@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Capacitor } from '@capacitor/core';
 import { CapacitorSQLite, SQLiteDBConnection,
-  SQLiteConnection, capSQLiteResult,} from '@capacitor-community/sqlite';
+  SQLiteConnection, capSQLiteResult } from '@capacitor-community/sqlite';
 
 @Injectable()
 

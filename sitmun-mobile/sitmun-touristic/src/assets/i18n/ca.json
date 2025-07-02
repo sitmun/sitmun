@@ -28,11 +28,18 @@
     "radiusNonMetric": "En un radi de (milles)",
     "categories": "Categories",
     "selected": "seleccionades",
+    "selectCategory": "Seleccioneu almenys una categoria",
+    "alertLocation": {
+        "header": "Ubicació no disponible",
+        "message": "No s'ha pogut obtenir la ubicació actual. Se utilizarà el centre del mapa per defecte.",
+        "settings": "Canviar configuració"
+    },
     "exit": {
         "title": "Sortir",
         "message": "Sortir de l'aplicació?",
         "exit": "Sortir",
-        "continue": "Continuar"
+        "continue": "Continuar",
+        "cancel": "Cancel·lar"
     },
     "home": "Inici"
 }

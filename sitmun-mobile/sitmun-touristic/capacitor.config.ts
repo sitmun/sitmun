@@ -19,7 +19,8 @@ const config: CapacitorConfig = {
       androidDatabaseLocation: 'default',
       web: {
         enabled: true
-      }
+      },
+      androidIsEncryption: false
     }
   }
 };

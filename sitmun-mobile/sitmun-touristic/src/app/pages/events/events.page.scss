@@ -20,16 +20,16 @@ ion-input {
     border-radius: 1rem;
 }
 
-.carrusel>ion-card {
+ion-card {
     height: 65vh;
     width: 85vw;
     background-color: white;
     color: black;
-}
 
-.carrusel>ion-card ion-card-title{
+    ion-card-title{
     color: black;
     font-weight: bold;
+    }
 }
 
 .categories.carrusel ion-button {

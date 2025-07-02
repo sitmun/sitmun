@@ -28,11 +28,18 @@
     "radiusNonMetric": "Within a radius of (miles)",
     "categories": "Categories",
     "selected": "selected",
+    "selectCategory": "Select at least one category",
+    "alertLocation": {
+        "header": "Location not available",
+        "message": "Could not obtain current location. Defaulting to map center.",
+        "settings": "Change settings"
+    },
     "exit": {
         "title": "Exit",
         "message": "Exit the application?",
         "exit": "Exit",
-        "continue": "Continue"
+        "continue": "Continue",
+        "cancel": "Cancel"
     },
     "home": "Start"
 }

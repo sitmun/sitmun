@@ -1,6 +1,5 @@
 import { Component } from '@angular/core';
-import { Location } from '@angular/common';
-import { ActivatedRoute, Data, Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { AuthorizationService, Node } from 'src/app/services/authorization.service';
 import { RoutingService } from 'src/app/services/routing.service';
 import { LanguageService } from 'src/app/services/language.service';
@@ -22,7 +21,7 @@ export class MenuPage {
   imgLogo: string = '';
 
   constructor(private router: Router, private route: ActivatedRoute, private authorizationService: AuthorizationService,
-    private routingService: RoutingService, private languageService: LanguageService, private _location: Location, private databaseService: DatabaseService) {
+    private routingService: RoutingService, private languageService: LanguageService, private databaseService: DatabaseService) {
       
       this.route.queryParams.subscribe(params => {
       let navigation = this.router.getCurrentNavigation();
@@ -68,7 +67,7 @@ export class MenuPage {
   }
 
   backPage() {
-    this._location.back();
+    this.routingService.navigateBack();
   }
 
   setLanguage(langCode: string) {

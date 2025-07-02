@@ -1,5 +1,4 @@
 import { Component, OnInit } from '@angular/core';
-import { Location } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AuthorizationService, Node } from 'src/app/services/authorization.service';
 import { RoutingService } from 'src/app/services/routing.service';
@@ -22,10 +21,11 @@ export class SchedulePage implements OnInit {
   parentData: any = {};
   elements: any[] = [];
   intervalId: any; 
+  loaded = false;
+  arraySkeleton: any[] = new Array(6);
   
   constructor(private router: Router, private route: ActivatedRoute, private authorizationService: AuthorizationService,
-    private routingService: RoutingService, private languageService: LanguageService, private requestService: RequestService,
-    private _location: Location) {
+    private routingService: RoutingService, private languageService: LanguageService, private requestService: RequestService) {
       this.route.queryParams.subscribe(params => {
       let navigation = this.router.getCurrentNavigation();
       if (navigation) {
@@ -46,6 +46,7 @@ export class SchedulePage implements OnInit {
   }
 
   ionViewWillEnter() {
+    this.loaded = false;
     this.selectedLanguage = this.languageService.getLanguage();
     this.selectedFlag = this.languageService.getFlag();
     this.languageOptions = this.languageService.getLanguageOptions();
@@ -71,7 +72,8 @@ export class SchedulePage implements OnInit {
   getSchedule() {
     const proxyParams = this.task.id.split('/');
     this.requestService.templateRequest(this.task, this.taskNode.mapping, this.parentData).then(results => {
-      this.elements = results.sort((a, b) => a.hour.localeCompare(b.hour));
+      this.elements = results.sort((a: any, b: any) => a.hour.localeCompare(b.hour));
+      this.loaded = true;
     });
   }
 
@@ -88,7 +90,7 @@ export class SchedulePage implements OnInit {
   }
 
   backPage() {
-    this._location.back();
+    this.routingService.navigateBack();
   }
 
   setLanguage(langCode: string) {

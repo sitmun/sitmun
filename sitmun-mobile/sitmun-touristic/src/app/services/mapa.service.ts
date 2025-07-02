@@ -212,9 +212,14 @@ export class MapaService {
   }
 
   createFeature(obj: any, mapProj: string) {
-    const feature: any = this.createFeatureByWKT(obj.geom, obj.proj, mapProj);
-    let id = `featureid_${obj.id}`;
-    feature.setId(id);
+    let feature: any = null;
+    if (!(obj.geom instanceof Object)) {
+      feature = this.createFeatureByWKT(obj.geom, obj.proj, mapProj);
+    } else {
+      feature = this.createFeatureByGeoJson(obj.geom, obj.proj, mapProj);
+    }
+    const id = `featureid_${obj.id}`;
+    //feature.setId(id);
     feature.setAttributes(obj);
     return feature;
   }
@@ -226,21 +231,32 @@ export class MapaService {
     return feature;
   }
 
+  createFeatureByGeoJson(jsonGeom: Object, geomProj: string, mapProj: string) {
+    const feature = new M.Feature();
+    feature.setGeometry(jsonGeom);
+    feature.getImpl().getOLFeature().getGeometry().transform(geomProj, mapProj);
+    return feature;
+  }
+
   async getLocation() {
-    let position = {x: 4, y: 40};
+    let position = {x: 4, y: 40, permission: false};
     try {
       const permission = await Geolocation.requestPermissions();
       if(permission.location === 'granted') {
         const currentPos = await Geolocation.getCurrentPosition();
         position = {
           x: currentPos.coords.longitude,
-          y: currentPos.coords.latitude
+          y: currentPos.coords.latitude,
+          permission: true
         };
         console.log('Ubicacion: ', position);
       } else {
         console.log('No se tienen permisos para obtener la ubicación, obteniendo de la configuración del mapa');
         await this.errorLocationToast("permissionError");
-        position = await this.getLocationByConfig();
+        const pos = await this.getLocationByConfig();
+        position.x = pos.x;
+        position.y = pos.y;
+        position.permission = false;
       }
     } catch (error) {
       console.error('Error obteniendo ubicación:', error);      
@@ -250,7 +266,7 @@ export class MapaService {
         await this.errorLocationToast("error");
       }      
     }
-    console.log(`Position: ${position.x}, ${position.y}`);
+    console.log(`Position: ${position.x}, ${position.y}. Permiso: ${position.permission}`);
     return position;
   }
 

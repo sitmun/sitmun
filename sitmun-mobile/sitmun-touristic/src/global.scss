@@ -91,7 +91,7 @@ ion-toolbar {
     --min-height: 100px;
     --border-radius: 6px;
     --box-shadow: 0 28px 48px rgba(0, 0, 0, 0.4);
-    padding: 5vw;
+    padding: 5vw;    
 }
 
 .access-btn{
@@ -127,6 +127,11 @@ ion-toolbar {
 .co-black, .co-black:hover, .co-black:focus {
     color: black;
     --color: black;
+}
+
+ion-skeleton-text {
+    --background: rgba(112, 136, 158, 0.065);
+    --background-rgb: 112, 136, 158;
 }
 
 @media only screen and (max-width: 768px) {

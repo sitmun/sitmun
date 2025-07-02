@@ -1,5 +1,4 @@
 import { Component, OnInit } from '@angular/core';
-import { Location } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { LanguageService } from 'src/app/services/language.service';
 import { MapaService } from 'src/app/services/mapa.service';
@@ -34,9 +33,9 @@ export class MapPage implements OnInit {
   private layer: any;
   
   constructor(private router: Router, private route: ActivatedRoute,
-    private languageService: LanguageService, private _location: Location,
-    private mapaService: MapaService, private authorizationService: AuthorizationService,
-    private routingService: RoutingService, private requestService: RequestService) {
+    private languageService: LanguageService, private mapaService: MapaService,
+    private authorizationService: AuthorizationService, private routingService: RoutingService,
+    private requestService: RequestService) {
       this.route.queryParams.subscribe(params => {
       let navigation = this.router.getCurrentNavigation();
       if (navigation) {
@@ -86,8 +85,6 @@ export class MapPage implements OnInit {
         this.layer = new M.layer.Vector({name: 'pois'}, {displayInLayerSwitcher: false});
         //this.layer.setVisible(false);  
         this._mapa.addLayers(this.layer);
-      } else {
-        this.layer.removeFeatures(this.layer.getFeatures());
       }
       
       console.log('aplicando estilo a la capa');
@@ -160,7 +157,7 @@ export class MapPage implements OnInit {
     this.searchSubj.next(query);
   }
 
-  search(query: string) {
+  async search(query: string) {
     if (this.searchTasks) {
       this.searchKeys = [];
       this.searchResults = {};
@@ -178,19 +175,49 @@ export class MapPage implements OnInit {
     }
   }
 
-  searchRequest(node: Node, task: any, filterParams: any) {
-    this.requestService.templateRequest(task, node.mapping, {}, filterParams).then(results => {
+  async searchRequest(node: Node, task: any, filterParams: any) {
+    this.searchPromise(task, node.mapping, {}, filterParams).then(results => {
       if (results && results.length > 0) {
-        this.searchKeys.push(node.title);
-        this.searchResults[node.title] = results;
+        if (!this.searchKeys.includes(node.title)) {
+          this.searchKeys.push(node.title);
+        }
+        if (node.children && node.children.length > 0) {
+          results.forEach((r: any) => r.childNode = node.children[0]);
+        }
+        this.searchResults[node.title] = this.removeDuplicateSearchResults(results);
       }
     });
   }
 
-  locateElement(elem: any) {
-    const mFeature = this.mapaService.createFeature(elem, this._mapa.getProjection().code);
-    this.addFeaturesToLayer([mFeature], true);
+  async searchPromise( task: any, mapping: any, parentData: any, filterParams: any) {
+    return await this.requestService.templateRequest(task, mapping, parentData, filterParams);
+  }
+
+  removeDuplicateSearchResults(results: any[]) {
+    const distinctMap: any = {};
+    results.forEach(r => distinctMap[r.id] = r);
+    return Object.values(distinctMap);
+  }
+
+  async locateElement(elem: any, clear = true) {
+    if (elem.geom) {
+      const mFeature = this.mapaService.createFeature(elem, this._mapa.getProjection().code);
+      this.addFeaturesToLayer([mFeature], clear);
+    } else if (elem.childNode) {
+      const data = await this.authorizationService.getPagesNodesBD(elem.childNode);
+      const results = await this.searchPromise(data.tasks[0], data.taskNodes[0].mapping, elem, {});
+      //results.forEach(r => this.locateElement(r, false));
+      this.locateElements(results);
+    }
     this.closeSearchModal();
+  }
+
+  locateElements(elements: any[]) {
+    const mFeatures: any[] = [];
+    elements.forEach(e => {
+      mFeatures.push(this.mapaService.createFeature(e, this._mapa.getProjection().code));
+    });
+    this.addFeaturesToLayer(mFeatures, true);
   }
 
   async startPage() {
@@ -206,7 +233,7 @@ export class MapPage implements OnInit {
   }
 
   backPage() {
-    this._location.back();
+    this.routingService.navigateBack();
   }
 
   setLanguage(langCode: string) {

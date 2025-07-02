@@ -64,6 +64,37 @@
       <ion-button (click)="search()" shape="round" style="--background: #70889E;">{{'apply' | translate}}</ion-button>
     </div>
   </div>
+
+  <ion-modal [isOpen]="isModalOpen" (ionModalDidDismiss)="closeModal()">
+    <ng-template>
+      <div class="text-center" id="content">
+        <div class="row">
+          <h1>{{ 'alertLocation.header' | translate }}</h1>
+        </div>
+        <div class="row">
+          <p class="mx-auto co-black">{{ 'alertLocation.message' | translate }}</p>
+          <p (click)="openSettings()">
+            <u>{{ 'alertLocation.settings' | translate }}</u>
+          </p>
+        </div>
+        <ion-row class="ion-justify-content-center ion-padding-top">
+          <ion-col size="auto">
+            <ion-button (click)="continueModal()">{{ 'exit.continue' | translate }}</ion-button>
+          </ion-col>
+          <ion-col size="auto">
+            <ion-button (click)="closeModal()">{{ 'exit.cancel' | translate }}</ion-button>
+          </ion-col>
+        </ion-row>
+      </div>
+    </ng-template>
+  </ion-modal>
+
+   <ion-toast
+    [isOpen]="isToastOpen"
+    message="{{ 'selectCategory' | translate }}"
+    [duration]="5000"
+    (didDismiss)="isToastOpen = false"
+  ></ion-toast>
 </ion-content>
 
 <ion-footer [translucent]="true"> 

@@ -1,14 +1,13 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Location } from '@angular/common';
 import { AuthorizationService, Node } from 'src/app/services/authorization.service';
 import { DatabaseService } from 'src/app/services/database.service';
 import { LanguageService } from 'src/app/services/language.service';
-import { RequestService } from 'src/app/services/request.service';
 import { RoutingService } from 'src/app/services/routing.service';
 import { constants } from 'src/environments/constants';
 import { Device } from '@capacitor/device';
 import { MapaService } from 'src/app/services/mapa.service';
+import { NativeSettings, AndroidSettings, IOSSettings } from 'capacitor-native-settings';
 
 @Component({
   selector: 'app-nearme',
@@ -28,9 +27,12 @@ export class NearmePage implements OnInit {
   searchPoint = 'location';
   categories: any[] = [];
   selectedCategories: string[] = []; 
+  isModalOpen = false;
+  isToastOpen = false;
+  position: any = {x: 0, y: 0, permission: false};
 
   constructor(private router: Router, private route: ActivatedRoute, private authorizationService: AuthorizationService,
-    private routingService: RoutingService, private languageService: LanguageService, private _location: Location,
+    private routingService: RoutingService, private languageService: LanguageService,
     private databaseService: DatabaseService, private mapService: MapaService) {
       this.route.queryParams.subscribe(params => {
         let navigation = this.router.getCurrentNavigation();
@@ -98,7 +100,7 @@ export class NearmePage implements OnInit {
   }
 
   backPage() {
-    this._location.back();
+    this.routingService.navigateBack();
   }
 
   setLanguage(langCode: string) {
@@ -131,22 +133,56 @@ export class NearmePage implements OnInit {
   }
 
   async search() {
+
+    if (this.selectedCategories.length === 0) {
+      this.isToastOpen = true;
+      return;
+    }
+
     //Reconvertir distancia a metros 
     this.metricSystem ? this.distance : this.distance = Math.round(this.distanceMiles * 1609.34708789);
-    let position = {x: 4, y: 40};
-    if (this.searchPoint === 'location') {
-      position = await this.mapService.getLocation();
+
+    if (this.searchPoint === 'location') { //usuario selecciona su ubicacion
+      this.position = await this.mapService.getLocation();    
+      if (!this.position.permission) {
+        this.isModalOpen = true;
+      } else {
+        this.sendSearchData();
+      }
     } else {
-      position = await this.mapService.getLocationByConfig();
+      const pos = await this.mapService.getLocationByConfig(); //usuario selecciona centro mapa
+      this.position.x = pos.x;
+      this.position.y = pos.y;
+      this.sendSearchData();
     }
-    
+  }
+
+  private sendSearchData() {
     const filterData = {
       DISTANCE: this.distance,
-      LONGITUD: position.x,
-      LATITUD: position.y
+      LONGITUD: this.position.x,
+      LATITUD: this.position.y
     };
     console.log(filterData);
     this.nextPage(this.selectedCategories[0], filterData);
   }
+
+  async openSettings(){
+    this.isModalOpen = false;
+
+    await NativeSettings.open({
+      optionAndroid: AndroidSettings.ApplicationDetails,
+      optionIOS: IOSSettings.App,
+    });
+  }
+
+  continueModal() {
+    this.isModalOpen = false;
+    this.sendSearchData();
+  }
+
+  closeModal() {
+    this.isModalOpen = false;
+  } 
 
 }

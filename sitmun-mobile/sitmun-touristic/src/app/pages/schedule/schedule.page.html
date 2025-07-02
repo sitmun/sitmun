@@ -29,13 +29,31 @@
         <th>{{'destination' | translate}}</th>
       </tr>
     </thead>
-    <tbody>
+
+    @if(loaded){
+    <tbody>      
       <tr *ngFor="let elem of elements">
         <td>{{elem.hour.split('T')[1]}}</td>
         <td>{{elem.id}}</td>
         <td>{{elem.path}}</td>
       </tr>
     </tbody>
+    } @else {
+      <tbody>      
+        <tr *ngFor="let i of arraySkeleton">
+          <td>
+            <ion-skeleton-text [animated]="true"></ion-skeleton-text>
+          </td>
+          <td>
+            <ion-skeleton-text [animated]="true"></ion-skeleton-text>
+          </td>
+          <td>
+            <ion-skeleton-text [animated]="true"></ion-skeleton-text>
+          </td>
+        </tr>
+      </tbody>
+    }
+    
   </table>
 </ion-content>
 
