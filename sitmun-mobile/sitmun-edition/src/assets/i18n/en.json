@@ -1,8 +1,8 @@
 {
     "home":{
         "access": "Access",
-        "instanceSelection": "Select instance",
-        "sitmunInstance": "Sitmun instance",
+        "instanceSelection": "Enter instance URL",
+        "registerInstance": "Register",
         "user": "User",
         "password": "Password"
     },
@@ -33,7 +33,15 @@
         "editPoint": "Edit point",
         "selector": "Field",
         "imageFormatError": "Incorrect image format",
-        "imagePermissionError": "Camera permission not granted"
+        "imagePermissionError": "Camera permission not granted",
+        "locationPermissionError": "No permissions to obtain the location",
+        "locationDisabled": "Location is disabled",
+        "locationError": "Error obtaining location",
+        "doneText": "Done",
+        "cancelText": "Cancel",
+        "editGeometryError": "You must save before editing the geometry",
+        "noEditLayerSelected": "You must select the layer to edit first",
+        "invalidFeatureForm": "There are required fields that are not filled in"
     },
     "exit": {
         "title": "Exit",

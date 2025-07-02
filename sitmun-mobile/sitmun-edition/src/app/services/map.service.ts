@@ -95,6 +95,7 @@ export class MapService {
     const trees: any[] = profile.trees;
     const layers: any[] = profile.layers;
     const services: any[] = profile.services;
+    const tasks: any[] = profile.tasks;
     const groupLayers: any[] = [];
     trees.forEach((t: any) => {
       const gLayers: any[] = [];
@@ -109,12 +110,12 @@ export class MapService {
         const children = treeNodes[rootNode].children;
         children.forEach((c: string) => {
           const node = treeNodes[c];
-          let MLayer = this.processCartographyNode(node, treeNodes, layers, services);          
+          let MLayer = this.processCartographyNode(node, treeNodes, layers, services, tasks);          
           groupOpts.layers.push(MLayer);
         });
       } else {
         const node = treeNodes[rootNode];
-        let MLayer = this.processCartographyNode(node, treeNodes, layers, services);
+        let MLayer = this.processCartographyNode(node, treeNodes, layers, services, tasks);
         groupOpts.layers.push(MLayer);
       }
       groupLayers.push(new M.layer.LayerGroup(groupOpts));
@@ -140,14 +141,29 @@ export class MapService {
     return bg;
   }
 
-  private processCartographyNode(node: any, treeNodes: any, layers: any[], services: any[]) {
+  private processCartographyNode(node: any, treeNodes: any, layers: any[], services: any[], tasks: any[]) {
     const layerId = node.resource;
+    const taskId = node.action;
     let result;
-    if (layerId) { // Capa
+    if (layerId || taskId) { // Nodo hoja
       const layer = layers.find(l => l.id === layerId);
       const service = services.find(s => s.id === layer.service);
-      result = this.createLayer(service, layer);
-    } else { // Grupo de capas
+      const task = tasks.find(t => t.id === taskId);
+      layer.title = 'Capa de referencia';
+      const groupLayers = [];
+      if (layer && service) {
+        groupLayers.push(this.createLayer(service, layer));
+      }
+      if (task) {
+        groupLayers.push(this.createLayerByTask(task));
+      }
+      const groupOpts = {
+        name: node.title,
+        legend: node.title,
+        layers: groupLayers
+      };
+      result = new M.layer.LayerGroup(groupOpts);
+    } else { // Nodo carpeta
       const groupLayers: any[] = [];
       const groupOpts = {
         name: node.title,
@@ -157,7 +173,7 @@ export class MapService {
       const children = node.children;
       children.forEach((c: string) => {
         const node = treeNodes[c];
-        let MLayer = this.processCartographyNode(node, treeNodes, layers, services);
+        let MLayer = this.processCartographyNode(node, treeNodes, layers, services, tasks);
         groupOpts.layers.push(MLayer);
       });
       result = new M.layer.LayerGroup(groupOpts);
@@ -180,7 +196,22 @@ export class MapService {
     return result;
   }
 
-  private buildLayerByType(type: string, options: any, extraOptions: any) {
+  createLayerByTask(task: any) {
+    let layerOptions = {
+      url: task.url,
+      name: task.parameters.typename.value,
+      legend: 'Capa editable',
+      isBase: false,
+      displayInLayerSwitcher: true,
+      visible: true
+    };
+    const result = this.buildLayerByType('WFS', layerOptions);
+    result.idLayer = task.id;
+    console.log(`Creado layer: ${layerOptions}`);
+    return result;
+  }
+
+  private buildLayerByType(type: string, options: any, extraOptions: any = {}) {
     let layer = null;
     switch (type) {
       case 'WMS':
@@ -271,48 +302,21 @@ export class MapService {
   }
 
   private async errorLocationToast(typeError: string) {
-    const language = await this.languageService.getLanguage();
-    let permissions = '';
-    let location = '';
-    let error = '';
-
-    switch (language) {
-      case 'ca':
-        permissions = 'No es tenen permisos per obtenir la ubicació';
-        location = 'La ubicació està desactivada';
-        error = 'Error en obtenir la ubicació';
-        break;
-      case 'es':
-        permissions = 'No se tienen permisos para obtener la ubicación';
-        location = 'La ubicación está desactivada';
-        error = 'Error al obtener la ubicación';
-        break;
-      case 'fr':
-        permissions = "Aucune autorisation pour obtenir l'emplacement";
-        location = "L'emplacement est désactivé";
-        error = "Erreur lors de l'obtention de l'emplacement";
-        break;
-      default:
-        permissions = 'No permissions to obtain the location';
-        location = 'Location is disabled';
-        error = 'Error obtaining location';
-        break;
-    }
-
-    let text = '';
     if (typeError === 'permissionError') {
-      text = permissions;
+      this.languageService.translateTag('map.locationPermissionError').subscribe(text => this.createToast(text, 'warning', 'bottom'));
     } else if (typeError === 'locationError') {
-      text = location;
+      this.languageService.translateTag('map.locationDisabled').subscribe(text => this.createToast(text, 'warning', 'bottom'));
     }else{
-      text = error;
+      this.languageService.translateTag('map.locationError').subscribe(text => this.createToast(text, 'warning', 'bottom'));
     }
+  }
 
+  async createToast(msg: string, type: string, pos: "top" | "bottom" | "middle" | undefined) {
     const toast = await this.toastController.create({
-      message: text,
+      message: msg,
       duration: 3000,
-      color: 'warning',
-      position: 'bottom'
+      color: type,
+      position: pos
     });
     await toast.present();
   }

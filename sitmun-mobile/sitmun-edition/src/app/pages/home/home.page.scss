@@ -43,31 +43,35 @@ ion-content {
   color: black;
   background-color: white;
   border-radius: 26px;
-  padding: 3px 26px;
 }
-/*
-#instance-selector {
-  width: auto;
-  margin: 0 auto;
-}*/
+
+::ng-deep .login-input input {
+  padding: 0 50px !important;
+}
 
 #instance-selector::part(icon) {
   position: absolute;
   right: 0;
   left: auto;
 }
-/*
-#instance-selector::part(text),
-#instance-selector::part(placeholder) {
-  text-align: center;
-  display: block;
-  width: 100%;
-}
 
-#instance-selector .select-wrapper-inner,
-#instance-selector::part(container) {
-  width: 100%
-}*/
+ion-modal {
+  --width: fit-content;
+  --min-width: 75vw;
+  --height: fit-content;
+  --border-radius: 6px;
+  --box-shadow: 0 28px 48px rgba(0, 0, 0, 0.4);
+  --background: orange;
+
+  ion-input{     
+    --background: white; 
+    --highlight-color-focused:rgb(137, 194, 225);
+  }
+
+  #content{
+    padding: 2rem;
+  }
+}
 
 .logo-content>ion-img {
   width: 46vw;
@@ -85,6 +89,19 @@ ion-grid {
 .access-btn {
   --background: coral;
   width: 50vw;
+}
+
+.instanceBtn {
+  --background: white;
+  --color: coral;
+}
+
+.instanceModal {
+  --background: navajowhite;
+}
+
+.instanceModal ion-button {
+  --background: coral;
 }
 
 .login-icon-left {

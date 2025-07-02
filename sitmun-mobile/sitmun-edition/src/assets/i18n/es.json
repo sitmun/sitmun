@@ -1,8 +1,8 @@
 {
     "home":{
         "access": "Acceder",
-        "instanceSelection": "Seleccionar instancia",
-        "sitmunInstance": "Instancia de sitmun",
+        "instanceSelection": "Introduzca url de instancia",
+        "registerInstance": "Registrar",
         "user": "Usuario",
         "password": "Contraseña"
     },
@@ -33,7 +33,15 @@
         "editPoint": "Editar punto",
         "selector": "Campo",
         "imageFormatError": "Formato de imagen incorrecto",
-        "imagePermissionError": "Permiso de cámara no concedido"
+        "imagePermissionError": "Permiso de cámara no concedido",
+        "locationPermissionError": "No se tienen permisos para obtener la ubicación",
+        "locationDisabled": "La ubicación está desactivada",
+        "locationError": "Error al obtener la ubicación",
+        "doneText": "Hecho",
+        "cancelText": "Cancelar",
+        "editGeometryError": "Se debe guardar antes de editar la geometría",
+        "noEditLayerSelected": "Se debe seleccionar la capa a editar previamente",
+        "invalidFeatureForm": "Hay campos obligatorios sin rellenar"
     },
     "exit": {
         "title": "Salir",

@@ -35,10 +35,11 @@ export class ApplistPage implements OnInit {
     this.languageOptions = this.languageService.getLanguageOptions();
     this.updateNetworkStatus(await this.networkService.getStatus());
     this.networkService.addListener(this.updateNetworkStatus.bind(this));
+    this.refreshApplications();
   }
 
   ngOnInit() {
-    this.refreshApplications();
+    //this.refreshApplications();
   }
 
   async refreshApplications() {
@@ -155,7 +156,9 @@ export class ApplistPage implements OnInit {
   }
 
   updateNetworkStatus(connected: boolean) {
-    this.networkConnected = connected;
-    this.refreshApplications();
+    if (this.networkConnected !== connected) {
+      this.networkConnected = connected;
+      this.refreshApplications();
+    }
   }
 }

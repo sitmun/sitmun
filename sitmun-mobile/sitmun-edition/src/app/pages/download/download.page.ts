@@ -79,8 +79,7 @@ export class DownloadPage implements OnInit {
 
   private async initPage(){
     this.profile = await this.authorizationService.getProfile(this.app.id, this.ter.id);
-    this.treeData = await this.treeviewService.createTreeData(this.profile.trees);
-    //this.mapProjSelectedPrev = this.profile.application.srs; 
+    this.treeData = await this.treeviewService.createTreeData(this.profile);
     console.log("treedata");
     console.log(this.treeData);
 
@@ -106,12 +105,13 @@ export class DownloadPage implements OnInit {
     }
     await this.databaseService.insertApp(this.app.id, this.app.title, this.app.logo);
     await this.databaseService.insertTerritory(this.ter.id, this.app.id, this.ter.name);
-    //await this.databaseService.loadConnectionDefault();
    
     await this.databaseService.deleteLayersByAppAndTer(this.app.id, this.ter.id); //eliminar capas previas
 
     for (const cl of checkedLayers) {
-      await this.loadFeaturesByLayer(cl, extent, this.mapProjSelected, this.zoomValue);
+      if (cl.action) {
+        await this.loadFeaturesByTask(cl.action, extent, this.mapProjSelected, this.zoomValue);
+      }
     }
     
     await this.getLayersData();
@@ -131,7 +131,14 @@ export class DownloadPage implements OnInit {
     const resp = await this.wfsService.getFeatures(service.url, layer.layers[0], extent, mapProj);
     console.log(resp.data);
     await this.databaseService.insertLayer(this.app.id, this.ter.id, layerId, layer.title, JSON.stringify(resp.data), extent, zoom, mapProj);
-      //this.databaseService.insertAppTerLayer(this.app.id, this.ter.id, layerId);   
+  }
+
+  async loadFeaturesByTask(taskId: string, extent: string, mapProj: string, zoom: number) {
+    const task = this.profile.tasks.find((t: any) => t.id === taskId);
+    const layerName = task.parameters.typename.value;
+    const resp = await this.wfsService.getFeatures(task.url, layerName, extent, mapProj);
+    console.log(resp.data);
+    await this.databaseService.insertLayer(this.app.id, this.ter.id, taskId, layerName, JSON.stringify(resp.data), extent, zoom, mapProj);
   }
 
   private getLayersData(){

@@ -1,23 +1,18 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { InstancesService } from 'src/app/services/instances.service';
 import { AlertController, Platform } from '@ionic/angular';
 import { LanguageService } from 'src/app/services/language.service';
 import { LoginService } from 'src/app/services/login.service';
 import { Router } from '@angular/router';
 import { DatabaseService } from 'src/app/services/database.service';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { NetworkService } from 'src/app/services/network.service';
+import { AuthorizationService } from 'src/app/services/authorization.service';
 
 const LABELS: Record<string, string> = {
   title: 'exit.title',
   message: 'exit.message',
   exit: 'exit.exit',
   continue: 'exit.continue'
-}
-
-interface Instance {
-  value: string;
-  name: string;
 }
 
 @Component({
@@ -29,8 +24,6 @@ interface Instance {
 export class HomePage implements OnInit, OnDestroy {
 
   private subscriptionBack: any = null;
-  instances: Record<string, any> = {};
-  instanceOptions: Instance[] = [];
   messages_: any = {};
   selectedLanguage: string | null = null;
   languageOptions: any[] = [];
@@ -44,8 +37,10 @@ export class HomePage implements OnInit, OnDestroy {
   loginError = false;
   errorMsg = '';
   dbinit = false;
+  isModalOpen = false;
+  instanceDB: string = '';
 
-  constructor(private platform: Platform, private instancesService: InstancesService, private router: Router,
+  constructor(private platform: Platform, private authorizationService: AuthorizationService, private router: Router,
     private alertController: AlertController, private languageService: LanguageService, private loginService: LoginService,
     private databaseService: DatabaseService, private formBuilder: FormBuilder, private networkService: NetworkService
   ) {
@@ -59,12 +54,12 @@ export class HomePage implements OnInit, OnDestroy {
   async ionViewWillEnter() {
     this.selectedLanguage = this.languageService.getLanguage();
     this.languageOptions = this.languageService.getLanguageOptions();
-    if (!this.dbinit) {
-      await this.databaseService.initUsersDatabase();
-      this.dbinit = true;
-    }
     this.loginService.logout();
+    this.instanceDB = this.loginForm.value.instance;
     this.loginForm.reset();
+    this.loginForm.patchValue({
+      instance: this.instanceDB
+    });
     this.updateNetworkStatus(await this.networkService.getStatus());
     this.networkService.addListener(this.updateNetworkStatus.bind(this));
     if (!this.networkConnected) {
@@ -85,48 +80,41 @@ export class HomePage implements OnInit, OnDestroy {
     }
   }
 
-  ngOnInit(): void {
+  ngOnInit() {
     this._loadLang();
     this.languageService.subscribeLang(this._loadLang);
     this.platform.ready().then(() => {
-      this.instancesService.getSitmunInstances().then((data: object) => {
-        this.instances = data;
-        this.instanceOptions = [];
-        Object.keys(this.instances).forEach((key: string) => this.instanceOptions.push({value: key, name: this.instances[key].name}))
-      });
+      this.initialice();
     });
+  }
+
+  async initialice() {
+    if (!this.dbinit) {
+      await this.databaseService.initPublicDatabase();
+      this.dbinit = true;
+    }
+    const instances = await this.databaseService.getInstances();
+    if (instances.length > 0) {
+      this.instanceDB = instances[0].instance;
+      this.loginForm.patchValue({
+        instance: this.instanceDB
+      });
+    }
   }
 
   ngOnDestroy(): void {
     this.languageService.unsubscribeLang();
   }
 
-  onInstanceChange(event: any) {
-    const target = event.target;
-    this.setInstanceOnService(target.value);
-  }
-
-  onOfflineInstanceChange(event: any) {
-    const target = event.target;
-    this.refreshOfflineUsers(target.value);
-    this.setInstanceOnService(target.value);
-  }
-
-  setInstanceOnService(instance: string) {
-    const selectInstance = this.instances[instance];
-    this.instancesService.instanceName = instance;
-    this.instancesService.authorizationUrl = selectInstance.urlBackend;
-    this.instancesService.setProxyUrl(selectInstance.urlProxy, selectInstance.touristicAppId, selectInstance.terId);
-  }
-
   access() {
     this.loginForm.get('instance')?.markAsTouched();
     if (this.loginForm.valid) {
+      this.authorizationService.authorizationUrl = this.instanceDB;
       const formValue = this.loginForm.value;
       if (this.networkConnected) {
         this.loginService.login(formValue.user, formValue.password).then(resp => {
           if (resp) {
-            this.loginOnline(formValue);
+            this.login(formValue);
           } else {
             this.errorMsg = 'Usuario o contraseña incorrectos';
             this.loginError = true;
@@ -135,25 +123,18 @@ export class HomePage implements OnInit, OnDestroy {
           console.error('Login error:', error);
         });
       } else {
-        this.loginOffline(formValue);
+        this.login(formValue);
       }
     } else {
-      this.errorMsg = 'No se ha seleccionado una instancia';
+      this.errorMsg = 'No se ha registrado una instancia';
       this.loginError = true;
     }
   }
 
-  async loginOnline(formValue: any) {
+  async login(formValue: any) {
     this.loginError = false;
-    await this.databaseService.insertUserLogin(formValue.instance, formValue.user);
-    await this.databaseService.initDatabase(`${formValue.instance}_${formValue.user}`);
-    this.nextPage();
-  }
-
-  async loginOffline(formValue: any) {
-    this.loginError = false;
-    await this.databaseService.insertUserLogin(formValue.instance, formValue.user);
-    await this.databaseService.initDatabase(`${formValue.instance}_${formValue.user}`);
+    await this.databaseService.insertUserLogin(formValue.user);
+    await this.databaseService.initUserDatabase(formValue.user);
     this.nextPage();
   }
 
@@ -204,17 +185,27 @@ export class HomePage implements OnInit, OnDestroy {
 
   async getCachedUsers() {
     this.loginusers = await this.databaseService.getLoginUsers();
-    const instances = new Set<string>();
-    this.loginusers.forEach(u => instances.add(u.instance));
-    this.offline.instances = Array.from(instances);
-    this.loginForm.reset();
-    this.loginForm.patchValue({
-      instance: this.offline.instances[0]
-    });
-    this.refreshOfflineUsers(this.offline.instances[0]);
+    this.refreshOfflineUsers();
   }
 
-  refreshOfflineUsers(instance: string) {
-    this.offline.users = this.loginusers.filter(u => u.instance === instance).map(u => u.name);
+  refreshOfflineUsers() {
+    this.offline.users = this.loginusers.map(u => u.name);
+  }
+
+  openInstance(){
+    this.isModalOpen = true;
+  }
+
+  closeModal(){
+    this.isModalOpen = false;
+  }
+
+  async saveInstance(){
+    await this.databaseService.insertInstance(this.instanceDB);
+    console.log(this.instanceDB);
+    this.isModalOpen = false;
+    this.loginForm.patchValue({
+      instance: this.instanceDB
+    });
   }
 }

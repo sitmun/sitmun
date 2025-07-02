@@ -8,6 +8,7 @@ import { TreeNode, TreeviewService } from 'src/app/services/treeview.service';
 import { NetworkService } from 'src/app/services/network.service';
 import { WfsService } from 'src/app/services/wfs.service';
 import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 
 declare var M: any;
 declare var ol: any;
@@ -28,8 +29,9 @@ export class MapPage implements OnInit {
   isFeatureModalOpen = false;
   isTocModalOpen = false;
   layerEdit: any = null;
-  attrKeys: any[] = [];
-  featureAttr: any = {};
+  attrData: any[] = [];
+  featureAttr: Record<string, any> = {};
+  featureAttrForm: FormGroup;
   feature: any = null;
   newPoint = false;
   treeData: TreeNode[] = [];
@@ -38,19 +40,20 @@ export class MapPage implements OnInit {
     deletes: [],
     updates: []
   };
-  imageBase64: string | null = null;
+  imageValue: string | null = null;
   errorImg: string[] = [];
-  selectedAttr: string = '';
+  imageAttr: string = '';
   downloadMap: boolean = false;
   zoom: number = 9;
-  downloadLayers: string[] = [];
+  downloadLayers: any[] = [];
   extent: number[] = [];
   mapProjSelected: string = '';
+  currentEditionTask: any = null;
 
   constructor(private mapService: MapService, private languageService: LanguageService, private _location: Location,
     private router: Router, private route: ActivatedRoute, private authorizationService: AuthorizationService,
     private treeviewService: TreeviewService, private networkService: NetworkService, private cdr: ChangeDetectorRef,
-    private wfsService: WfsService
+    private wfsService: WfsService, private formBuilder: FormBuilder
   ) {
     this.route.queryParams.subscribe(params => {
         const navigation = this.router.getCurrentNavigation();
@@ -83,6 +86,7 @@ export class MapPage implements OnInit {
           }
         }
     });
+    this.featureAttrForm = this.formBuilder.group({});
   }
 
   ngOnInit() {
@@ -92,18 +96,18 @@ export class MapPage implements OnInit {
         profile.trees = this.filterProfileTrees(profile.trees, this.downloadLayers); 
       }
       this.createMap(profile);
-      this.treeData = this.treeviewService.createTreeData(profile.trees);      
+      this.treeData = this.treeviewService.createTreeData(profile, true);
     });    
   }
   
-  private filterProfileTrees(trees: any[], layers: string[]): any[] {
+  private filterProfileTrees(trees: any[], layers: any[]): any[] {
     return trees.filter(tree => {
       const nodes = tree.nodes;
       const validNodes = new Set<string>();
 
       //nodos seleccionados
       Object.entries(nodes).forEach(([id, node]: [string, any]) => {
-        if (node.resource && layers.includes(node.resource)) {
+        if ((node.resource || node.action) && layers.find(l => l.resource === node.resource || l.action === node.action)) {
           validNodes.add(id);
         }
       });
@@ -170,13 +174,9 @@ export class MapPage implements OnInit {
     this.newPoint = newPoint;
     this.isFeatureModalOpen = true;
     this.mapService.removeMoveInteraction(this.mapa);
-    //inicializa campo imagen si algún campo ha sido definido anteriormente como imagen
-    const attrBase64 = Object.entries(this.featureAttr).find(
-      ([key, value]: [string, any]) => typeof value === "string" && value.startsWith("data:image/")
-    );    
-    if (attrBase64) {
-      this.selectedAttr = attrBase64[0];
-      this.imageBase64 = attrBase64[1] as string;
+    //inicializa campo imagen si algún campo ha sido definido anteriormente como imagen  
+    if (this.imageAttr) {
+      this.imageValue = this.featureAttrForm.value[this.imageAttr];
     } 
   }
 
@@ -195,56 +195,140 @@ export class MapPage implements OnInit {
   createNewFeature() {
     if (this.layerEdit) {
       this.feature = null;
+      this.imageAttr = '';
+      this.imageValue = null;
       const baseFeat = this.layerEdit.getFeatures()[0];
-      this.attrKeys = Object.keys(baseFeat.getAttributes()).filter(k => k !== 'vendor.mapea.click');
+      //this.attrKeys = Object.keys(baseFeat.getAttributes()).filter(k => k !== 'vendor.mapea.click');
       this.featureAttr = {};
-      this.attrKeys.forEach(k => this.featureAttr[k] = '');
+      this.setAttrData();
+      /*const formControls: any = {};
+      this.attrData.forEach(ad => {
+        let value;
+        switch (ad.type) {
+          case 'text':
+          case 'listbox':
+          case 'date':
+          case 'image':
+            value = ad.defaultValue || '';
+            break;
+          case 'number':
+            value = ad.defaultValue || 0;
+            break;
+        }
+        if (ad.required) {
+          formControls[ad.key] = [value, Validators.required];
+        } else {
+          formControls[ad.key] = [value, Validators.required];
+        }
+      });
+      this.featureAttrForm = this.formBuilder.group(formControls);*/
       this.openFeatureModal(true);
     } else {
-      console.log('Se debe seleccionar la capa a editar previamente');
+      this.languageService.translateTag('map.noEditLayerSelected').subscribe(text => this.mapService.createToast(text, 'warning', 'top'));
     }
   }
 
   featureClickHandler(evt: any, feature: any) {
     this.feature = feature;
+    this.imageAttr = '';
+    this.imageValue = null;
     this.featureAttr = this.feature.getAttributes();
-    this.attrKeys = Object.keys(this.featureAttr).filter(k => k !== 'vendor.mapea.click');
+    //this.attrKeys = Object.keys(this.featureAttr).filter(k => k !== 'vendor.mapea.click');
+    this.setAttrData();
     this.openFeatureModal(false);
     this.cdr.detectChanges();
   }
 
+  setAttrData() {
+    const fieldsKeys = Object.keys(this.currentEditionTask.fields);
+    const formControls: any = {};
+    this.attrData = fieldsKeys.filter((f: any) => this.currentEditionTask.fields[f].editable).map((fk: any) => {
+      const field = this.currentEditionTask.fields[fk];
+      const data: Record<string, any> = {
+        key: fk,
+        label: field.label,
+        type: field.type,
+        defaultValue: this.featureAttr[fk] || field.value,
+        required: field.required
+      };
+      if (field.listValues) {
+        data['listValues'] = field.listValues;
+      }
+      if (field.type === 'image') {
+        this.imageAttr = fk;
+      }
+      this.addFeatureFormControl(data, formControls);
+      return data;
+    });
+    this.featureAttrForm = this.formBuilder.group(formControls);
+  }
+
+  addFeatureFormControl(attrData: any, formControls: any) {
+    let value;
+    switch (attrData.type) {
+      case 'text':
+      case 'listbox':
+      case 'date':
+      case 'image':
+        value = attrData.defaultValue || '';
+        break;
+      case 'number':
+        value = attrData.defaultValue || 0;
+        break;
+    }
+    if (attrData.required) {
+      formControls[attrData.key] = [value, Validators.required];
+    } else {
+      formControls[attrData.key] = [value, null];
+    }
+  }
+
+  onFeatureDateChange(key: string, event: any) {
+    const values: any = {};
+    values[key] = event.detail.value;
+    this.featureAttrForm?.patchValue(values);
+  }
+
   async onSaveModal() {
     //guardar imagen
-    if (this.errorImg.length === 0 && this.selectedAttr !== '')  {
-      this.featureAttr[this.selectedAttr] = this.imageBase64;
+    if (this.errorImg.length === 0 && this.imageAttr !== '')  {
+      const values: any = {};
+      values[this.imageAttr] = this.imageValue;
+      this.featureAttrForm?.patchValue(values);
     }
-    if (this.newPoint) {
-      const position: any = await this.mapService.getLocation();
-      if (position) {
-        const coordinates = [position.x, position.y];
-        const id = `new${Date.now()}`;
-        const geojson = {
-          type: 'Feature',
-          id,
-          geometry: {
-            type: 'Point',
-            coordinates
-          },
-          properties: this.featureAttr
-        };
-        const mapProj = this.mapa.getProjection();
-        this.feature = this.mapService.createFeaturesGeojson(geojson, 'EPSG:4326', mapProj)[0];
-        this.feature.setId(id);
-        this.feature.setAttribute('vendor.mapea.click', this.featureClickHandler.bind(this));
-        this.layerEdit.addFeatures([this.feature]);
-        this.centerMapByFeature(this.feature);
-        this.addFeatureEdition('inserts');
+    this.featureAttrForm.markAllAsTouched();
+    if (this.featureAttrForm.valid) {
+      this.featureAttr = this.featureAttrForm.value;
+      if (this.newPoint) {
+        const position: any = await this.mapService.getLocation();
+        if (position) {
+          const coordinates = [position.x, position.y];
+          const id = `new${Date.now()}`;
+          const geojson = {
+            type: 'Feature',
+            id,
+            geometry: {
+              type: 'Point',
+              coordinates
+            },
+            properties: this.featureAttr
+          };
+          const mapProj = this.mapa.getProjection();
+          this.feature = this.mapService.createFeaturesGeojson(geojson, 'EPSG:4326', mapProj)[0];
+          this.feature.setId(id);
+          this.feature.setAttribute('vendor.mapea.click', this.featureClickHandler.bind(this));
+          this.layerEdit.addFeatures([this.feature]);
+          this.centerMapByFeature(this.feature);
+          this.addFeatureEdition('inserts');
+        }
+      } else {
+        this.feature.setAttributes(this.featureAttr);
+        this.addFeatureEdition('updates');
       }
+      this.newPoint = false;
     } else {
-      this.feature.setAttributes(this.featureAttr);
-      this.addFeatureEdition('updates');
+      this.languageService.translateTag('map.invalidFeatureForm').subscribe(text => this.mapService.createToast(text, 'danger', 'top'));
     }
-    this.newPoint = false;
   }
 
   centerMapByFeature(feature: any) {
@@ -274,8 +358,8 @@ export class MapPage implements OnInit {
     node.visible = !node.visible;
     this.treeviewService.toggleVisible(node);
     let layer = null;
-    if (node.resource) { //layer
-      layer = this.mapa.getImpl().getAllLayerInGroup().find((l:any) => l.idLayer === node.resource);
+    if (node.resource || node.action) { //layer
+      layer = this.mapa.getImpl().getAllLayerInGroup().find((l:any) => [node.resource, node.action].includes(l.idLayer));
     } else { //layerGroup
       layer = this.mapa.getLayerGroup().find((lg:any) => lg.legend === node.name)
     }
@@ -288,14 +372,15 @@ export class MapPage implements OnInit {
     if (checked) {
       this.treeData.forEach(tn => this.treeviewService.toggleCheck(tn));
       node.checked = checked;
+      this.currentEditionTask = node.task;
     }
-    this.layerEdit = this.mapa.getImpl().getAllLayerInGroup().find((l:any) => l.idLayer === node.resource);
+    this.layerEdit = this.mapa.getImpl().getAllLayerInGroup().find((l:any) => l.idLayer === node.action);
     this.layerEdit.extract = checked;
   }
 
   editGeometry() {
     if (this.newPoint) {
-      console.log('Guardar antes de editar la geometria');
+      this.languageService.translateTag('map.editGeometryError').subscribe(text => this.mapService.createToast(text, 'warning', 'top'));
     } else {
       const olFeature = this.feature.getImpl().getOLFeature();
       this.mapService.addMoveInteraction(this.mapa, [olFeature], this.onMoveEnd.bind(this));
@@ -332,12 +417,12 @@ export class MapPage implements OnInit {
     this.errorImg = [];
     const permission = await this.requestCameraPermission();
     if (permission){
-      this.imageBase64 = await this.takePhoto();
+      this.imageValue = await this.takePhoto();
     }
   }
 
   removeImg(){
-    this.imageBase64 = null;
+    this.imageValue = null;
   }
 
   private async requestCameraPermission() {

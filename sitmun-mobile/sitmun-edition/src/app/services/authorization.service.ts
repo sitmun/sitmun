@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Http } from '@capacitor-community/http';
-import { InstancesService } from './instances.service';
 import { LoginService } from './login.service';
+import { InstancesService } from './instances.service';
 
 @Injectable({
   providedIn: 'root'
@@ -9,11 +9,13 @@ import { LoginService } from './login.service';
 export class AuthorizationService {
 
   private filter: Function = (obj: any) => { return true;};
+  authorizationUrl = '';
 
-  constructor(private instancesService: InstancesService, private loginService: LoginService) { }
+  constructor(private loginService: LoginService, private instancesServices: InstancesService) { }
 
   async getApplications() {
-    const url = this.instancesService.authorizationUrl.concat('/api/config/client/application');
+    //const url = this.authorizationUrl.concat('/api/config/client/application');
+    const url = (await this.instancesServices.getInstanceUrl()).concat('/api/config/client/application');
     console.log(url);
     const options = {
       url,
@@ -29,7 +31,8 @@ export class AuthorizationService {
   }
 
   async getTerritoriesByApp(idApp: Number) {
-    const url = this.instancesService.authorizationUrl.concat(`/api/config/client/application/${idApp}/territories`);
+    //const url = this.authorizationUrl.concat(`/api/config/client/application/${idApp}/territories`);
+    const url = (await this.instancesServices.getInstanceUrl()).concat(`/api/config/client/application/${idApp}/territories`);
     console.log(url);
     const options = {
       url,
@@ -44,7 +47,8 @@ export class AuthorizationService {
   }
 
   async getProfile(idApp: Number, idTer: Number) {
-    const url = this.instancesService.authorizationUrl.concat(`/api/config/client/profile/${idApp}/${idTer}`);
+    //const url = this.authorizationUrl.concat(`/api/config/client/profile/${idApp}/${idTer}`);
+    const url = (await this.instancesServices.getInstanceUrl()).concat(`/api/config/client/profile/${idApp}/${idTer}`);
     console.log(url);
     const options = {
       url,

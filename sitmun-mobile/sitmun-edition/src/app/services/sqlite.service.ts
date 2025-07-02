@@ -9,7 +9,6 @@ export class SQLiteService {
     sqlite: SQLiteConnection | null = null;
     isService: boolean = false;
     platform: string = '';
-    sqlitePlugin: any;
     native: boolean = false;
 
     constructor() {
@@ -25,8 +24,7 @@ export class SQLiteService {
         console.log('SQLite nativo');
         this.native = true;
       }
-      this.sqlitePlugin = CapacitorSQLite;
-      this.sqlite = new SQLiteConnection(this.sqlitePlugin);
+      this.sqlite = new SQLiteConnection(CapacitorSQLite);
       this.isService = true;
     }
 

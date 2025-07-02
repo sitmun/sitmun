@@ -2,7 +2,6 @@ import { Injectable } from '@angular/core';
 import { SQLiteDBConnection } from '@capacitor-community/sqlite';
 import { SQLiteService } from './sqlite.service';
 import { Capacitor } from '@capacitor/core';
-import { InstancesService } from './instances.service';
 
 @Injectable({
   providedIn: 'root'
@@ -10,15 +9,10 @@ import { InstancesService } from './instances.service';
 export class DatabaseService {
 
   private db: SQLiteDBConnection | null = null;
-  private dbName: string = '';
-  private dbUsers: string = 'users'
+  private dbPublic: string = 'public.db';
+  private dbUser: string = ''
 
-  constructor(private instanceService: InstancesService, private sqlite: SQLiteService) {
-    this.dbName = this.instanceService.instanceName + '.db';
-  }
-
-  async loadConnectionDefault() {
-    await this.loadConnection(this.dbName);
+  constructor(private sqlite: SQLiteService) {
   }
 
   async loadConnection(name: string) {
@@ -42,6 +36,7 @@ export class DatabaseService {
   async closeConnection(name: string): Promise<void> {
     await this.sqlite.closeConnection(name);
     this.db = null;
+    console.log("Conexion cerrada");
   }
 
   checkPlugin() {
@@ -55,61 +50,57 @@ export class DatabaseService {
     return available;
   }
 
-  async initDatabase(dbName: string) {
-    if (!this.checkPlugin()) {
-      console.log('Plugin no disponible');
-      return;
-    }
+  async initDatabase(dbName: string, createTables: Function) {
     try {
-      this.dbName = dbName;
+      console.log('Inicializando base de datos');
       if (this.sqlite.getPlatform() === 'web') {
         await this.sqlite.initializeWebStore();
+        console.log('Web store inicializado');
       }
-      console.log('Inicializando base de datos');
-      await this.loadConnection(this.dbName);
-      await this.createTables();
-      await this.closeConnection(this.dbName);
-      console.log(`Base de datos ${this.dbName} inicializada`);
+      await this.loadConnection(dbName);
+      await createTables();
+      await this.closeConnection(dbName);
+      console.log(`Base de datos ${dbName} inicializada`);
     } catch (error) {
       throw Error(`DatabaseServiceError: ${error}`);
     }
   }
 
-  async initUsersDatabase() {
-    if (!this.checkPlugin()) {
+  async initUserDatabase(dbName: string) {
+    if (this.sqlite.getPlatform() !== 'web' && !this.checkPlugin()) {
       console.log('Plugin no disponible');
       return;
     }
-    try {
-      console.log('Inicializando base de datos');
-      await this.loadConnection(this.dbUsers);
-      await this.createUsersTables();
-      await this.closeConnection(this.dbUsers);
-      console.log(`Base de datos ${this.dbUsers} inicializada`);
-    } catch (error) {
-      throw Error(`DatabaseServiceError: ${error}`);
-    }
+    this.dbUser = `${dbName}.db`;
+    await this.initDatabase(this.dbUser, this.createUserTables.bind(this));
   }
 
-  private async createTables(): Promise<void> {
+  async initPublicDatabase() {
+    if (this.sqlite.getPlatform() !== 'web' && !this.checkPlugin()) {
+      console.log('Plugin no disponible');
+      return;
+    }
+    await this.initDatabase(this.dbPublic, this.createPublicTables.bind(this));
+  }
+
+  private async createUserTables(): Promise<void> {
     await this.createAppsTable();
     await this.createTerritoryTable();
     await this.createLayersTable();
     //await this.createAppTerLayerTable();
   }
 
-  private async createUsersTables(): Promise<void> {
+  private async createPublicTables(): Promise<void> {
     await this.createUserLoginTable();
+    await this.createInstanceTable();
   }
 
   private async createUserLoginTable() {
     const createTableQuery = `
       CREATE TABLE IF NOT EXISTS userlogin (
-        instance TEXT,
-        name TEXT,
+        name TEXT PRIMARY KEY,
         logged BOOLEAN,
-        last_login DATETIME,
-        PRIMARY KEY (instance, name)
+        last_login DATETIME
       );
     `;
 
@@ -123,6 +114,27 @@ export class DatabaseService {
       }
     } catch (error) {
       console.error('Error creando tabla userlogin:', error);
+    }
+  }
+
+  private async createInstanceTable() {
+    const createTableQuery = `
+      CREATE TABLE IF NOT EXISTS instances (
+        instance TEXT,
+        PRIMARY KEY (instance)
+      );
+    `;
+
+    try {
+      if(this.db) {
+        console.log("Creando tabla instances...");
+        const changes = await this.db.execute(createTableQuery);
+        console.log('Tabla instances creada correctamente');
+      } else {
+        console.log("Conexion nula (instances)");
+      }
+    } catch (error) {
+      console.error('Error creando tabla instances:', error);
     }
   }
 
@@ -222,7 +234,7 @@ export class DatabaseService {
   }
   */
   async insertApp(id: number, title: string, logo: string) {
-    await this.loadConnection(this.dbName);
+    await this.loadConnection(this.dbUser);
     const statement = `INSERT OR REPLACE INTO apps (id, title, logo) VALUES (?, ?, ?)`;
     const values = [id, title, logo];
 
@@ -234,11 +246,11 @@ export class DatabaseService {
     } catch (error) {
       console.error('Error al insertar la app', error);
     }
-    await this.closeConnection(this.dbName);
+    await this.closeConnection(this.dbUser);
   }
 
   async insertTerritory(id: number, idApp: number, name: string) {
-    await this.loadConnection(this.dbName);
+    await this.loadConnection(this.dbUser);
     const statement = `INSERT OR REPLACE INTO territory (id, id_app, name) VALUES (?, ?, ?)`;
     const values = [id, idApp, name];
 
@@ -250,7 +262,7 @@ export class DatabaseService {
     } catch (error) {
       console.error('Error al insertar el territorio', error);
     }
-    await this.closeConnection(this.dbName);
+    await this.closeConnection(this.dbUser);
   }
 /*
   async insertAppTerLayer(idApp: number, idTer: number, idLayer: string) {
@@ -271,7 +283,7 @@ export class DatabaseService {
 */
   async insertLayer(idApp: number, idTer: number, idLayer: string, 
     name: string, geojson: string, extension: string, zoom: number, proj: string) {
-    await this.loadConnection(this.dbName);
+    await this.loadConnection(this.dbUser);
     const statement = `INSERT OR REPLACE INTO layers (id_app, id_ter, id_layer, name, geojson, extension, zoom, proj) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
     const values = [idApp, idTer, idLayer, name, geojson, extension, zoom, proj];
 
@@ -283,13 +295,13 @@ export class DatabaseService {
     } catch (error) {
       console.error('Error al insertar el layer', error);
     }
-    await this.closeConnection(this.dbName);
+    await this.closeConnection(this.dbUser);
   }
 
-  async insertUserLogin(instance: string, name: string) {
-    await this.loadConnection(this.dbUsers);
-    const statement = `INSERT OR REPLACE INTO userlogin (instance, name, logged, last_login) VALUES (?, ?, TRUE, strftime('%s', 'now'))`;
-    const values = [instance, name];
+  async insertUserLogin(name: string) {
+    await this.loadConnection(this.dbPublic);
+    const statement = `INSERT OR REPLACE INTO userlogin (name, logged, last_login) VALUES (?, TRUE, strftime('%s', 'now'))`;
+    const values = [name];
 
     try {
       if (this.db) {
@@ -299,11 +311,41 @@ export class DatabaseService {
     } catch (error) {
       console.error('Error al insertar el usuario', error);
     }
-    await this.closeConnection(this.dbUsers);
+    await this.closeConnection(this.dbPublic);
+  }
+
+   async insertInstance(instance: string) {
+    await this.loadConnection(this.dbPublic);
+    await this.truncateInstances();
+    const statement = `INSERT OR REPLACE INTO instances (instance) VALUES (?)`;
+    const values = [instance];
+
+    try {
+      if (this.db) {
+        await this.db.run(statement, values);
+        console.log(`Instancia ${instance} agregada`);
+      }
+    } catch (error) {
+      console.error('Error al insertar la instancia', error);
+    }
+    await this.closeConnection(this.dbPublic);
+  }
+
+  private async truncateInstances() {
+    const statement = 'DELETE FROM instances';
+
+    try {
+      if (this.db) {
+        await this.db.run(statement);
+        console.log('Instancias eliminadas');
+      }
+    } catch (error) {
+      console.error('Error al eliminar instancias:', error);
+    }
   }
 
   async logoutUser() {
-    await this.loadConnection(this.dbUsers);
+    await this.loadConnection(this.dbPublic);
     const statement = 'UPDATE userlogin SET logged = FALSE';
 
     try {
@@ -314,11 +356,11 @@ export class DatabaseService {
     } catch (error) {
       console.error('Ha ocurrido un error al actualizar el usuario', error);
     }
-    await this.closeConnection(this.dbUsers);
+    await this.closeConnection(this.dbPublic);
   }
 
   async getLoginUsers() {
-    await this.loadConnection(this.dbUsers);
+    await this.loadConnection(this.dbPublic);
     const statement = `SELECT instance, name, logged, datetime(last_login, 'unixepoch') as last_login FROM userlogin`;
 
     try {
@@ -335,12 +377,34 @@ export class DatabaseService {
       console.error('Error obteniendo los usuarios:', error);
       return [];
     } finally {
-      await this.closeConnection(this.dbUsers);
+      await this.closeConnection(this.dbPublic);
+    }
+  }
+
+  async getInstances() {
+    await this.loadConnection(this.dbPublic);
+    const statement = `SELECT * FROM instances`;
+
+    try {
+      if (this.db) {
+        const results = (await this.db.query(statement)).values;
+        if (results) {
+          return results;
+        } else {
+          return [];
+        }
+      }
+      return [];
+    } catch (error) {
+      console.error('Error obteniendo las instancias:', error);
+      return [];
+    } finally {
+      await this.closeConnection(this.dbPublic);
     }
   }
 
   async getApps() {
-    await this.loadConnection(this.dbName);
+    await this.loadConnection(this.dbUser);
     const statement = 'SELECT * FROM apps';
 
     try {
@@ -357,12 +421,12 @@ export class DatabaseService {
       console.error('Error obteniendo las apps:', error);
       return [];
     } finally {
-      await this.closeConnection(this.dbName);
+      await this.closeConnection(this.dbUser);
     }
   }
 
   async getTerritoriesByApp(idApp: Number) {
-    await this.loadConnection(this.dbName);
+    await this.loadConnection(this.dbUser);
     const statement = 'SELECT * FROM territory WHERE id_app = ?';
     const values = [idApp];
     try {
@@ -379,12 +443,12 @@ export class DatabaseService {
       console.error('Error obteniendo los territorios:', error);
       return [];
     } finally {
-      await this.closeConnection(this.dbName);
+      await this.closeConnection(this.dbUser);
     }
   }
 
   async getLayersByApp(idApp: Number) {
-    await this.loadConnection(this.dbName);
+    await this.loadConnection(this.dbUser);
     const statement = 'SELECT * FROM layers WHERE id_app = ?';
     const values = [idApp];
 
@@ -402,13 +466,13 @@ export class DatabaseService {
       console.error('Error obteniendo las layers:', error);
       return [];
     } finally {
-      await this.closeConnection(this.dbName);
+      await this.closeConnection(this.dbUser);
     }
   }
 
 
   async getLayersByAppAndTer(idApp: Number, idTer: number) {
-    await this.loadConnection(this.dbName);
+    await this.loadConnection(this.dbUser);
     const statement = 'SELECT * FROM layers WHERE id_app = ? AND id_ter = ?';
     const values = [idApp, idTer];
 
@@ -426,12 +490,12 @@ export class DatabaseService {
       console.error('Error obteniendo las layers:', error);
       return [];
     } finally {
-      await this.closeConnection(this.dbName);
+      await this.closeConnection(this.dbUser);
     }
   }
 
   async deleteLayersByAppAndTer(idApp: Number, idTer: number) {
-    await this.loadConnection(this.dbName);
+    await this.loadConnection(this.dbUser);
     const statement = 'DELETE FROM layers WHERE id_app = ? AND id_ter = ?';
     const values = [idApp, idTer];
 
@@ -443,7 +507,7 @@ export class DatabaseService {
     } catch (error) {
       console.error('Error al eliminar capas:', error);
     } finally {
-      await this.sqlite.closeConnection(this.dbName);
+      await this.sqlite.closeConnection(this.dbUser);
     }
   }
 

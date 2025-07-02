@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Http } from '@capacitor-community/http';
-import { InstancesService } from './instances.service';
 import { DatabaseService } from './database.service';
+import { InstancesService } from './instances.service';
 
 @Injectable({
   providedIn: 'root'
@@ -10,7 +10,7 @@ export class LoginService {
 
   private token: string = '';
 
-  constructor(private instancesService: InstancesService, private dbService: DatabaseService) { }
+  constructor(private dbService: DatabaseService, private instancesServices: InstancesService) { }
 
   getToken() {
     return this.token;
@@ -24,7 +24,8 @@ export class LoginService {
   }
 
   async login(user: string, password: string) {
-    const url = this.instancesService.authorizationUrl.concat('/api/authenticate');
+    //const url = this.authorizationService.authorizationUrl.concat('/api/authenticate');
+    const url = (await this.instancesServices.getInstanceUrl()).concat('/api/authenticate');
     console.log(url);
     const options = {
       url,

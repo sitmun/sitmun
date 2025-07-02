@@ -9,7 +9,7 @@ export class LanguageService {
 
   private languageSubscribed: any = null;
   languages = {
-    default: 'es',
+    default: 'ca',
     options: [
         { code: 'es', name: 'Cas'},
         { code: 'en', name: 'En'},
@@ -64,5 +64,9 @@ export class LanguageService {
 
   getLanguageOptions() {
     return this.languages.options;
+  }
+
+  translateTag(tag: string) {
+    return this.translate.get(tag);
   }
 }

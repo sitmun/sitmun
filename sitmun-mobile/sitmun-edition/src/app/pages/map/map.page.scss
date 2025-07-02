@@ -19,6 +19,12 @@ ion-fab-button {
     overflow: auto;
 }
 
+.attr-container ion-item {
+    --background: white;
+    color: black;
+    margin-bottom: 2rem;
+}
+
 .feature-attr {
     margin-top: 1.5rem;
 }

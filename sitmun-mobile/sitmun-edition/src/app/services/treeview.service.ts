@@ -7,6 +7,8 @@ export interface TreeNode {
   checked?: boolean;
   visible?: boolean;
   resource?: string;
+  action?: string;
+  task?: any;
 }
 
 @Injectable({
@@ -14,31 +16,62 @@ export interface TreeNode {
 })
 export class TreeviewService {
 
+  complex = false;
+
   constructor() { }
 
-  createTreeData(trees: any[]) {
+  createTreeData(profile: any, complex = false) {
+    this.complex = complex;
     const treeData: TreeNode[] = [];
-    trees.forEach((t: any) => {
+    profile.trees.forEach((t: any) => {
       const rootNode = t.nodes[t.rootNode];
-      treeData.push(this.createTreeNode(rootNode, t));
+      treeData.push(this.createTreeNode(rootNode, t, profile.tasks));
     });
     return treeData;
   }
 
-  createTreeNode(node: any, tree: any): TreeNode {
+  createTreeNode(node: any, tree: any, tasks: any[]): TreeNode {
     const treeNode: TreeNode = {
       name: node.title,
       expanded: true,
       checked: false,
       visible: true,
-      children: [],
-      resource: node.resource
+      children: []
     };
     if (node.children && node.children.length > 0) {
       node.children.forEach((c: string) => {
         const childNode = tree.nodes[c];
-        treeNode.children?.push(this.createTreeNode(childNode, tree));
+        treeNode.children?.push(this.createTreeNode(childNode, tree, tasks));
       });
+    } else if (this.complex ) {
+      if (node.resource) {
+        const treeNodeRef: TreeNode = {
+          name: 'Capa de referencia',
+          expanded: true,
+          checked: false,
+          visible: true,
+          children: [],
+          resource: node.resource
+        };
+        treeNode.children?.push(treeNodeRef);
+      }
+      if (node.action) {
+        const treeNodeEdit: TreeNode = {
+          name: 'Capa de edición',
+          expanded: true,
+          checked: false,
+          visible: true,
+          children: [],
+          action: node.action,
+          task: tasks.find((t: any) => t.id === node.action)
+        };
+        treeNode.children?.push(treeNodeEdit);
+      } else {
+        treeNode.resource = node.resource;
+      }
+    } else {
+      treeNode.resource = node.resource;
+      treeNode.action = node.action;
     }
     return treeNode;
   }
@@ -73,11 +106,14 @@ export class TreeviewService {
     }
   }
 
-  getCheckedLayers(nodes: TreeNode[]): string[] {
-    let checkedLayers: string[] = [];
+  getCheckedLayers(nodes: TreeNode[]): any[] {
+    let checkedLayers: any[] = [];
     nodes.forEach(n => {
       if (n.checked && n.resource) {
-        checkedLayers.push(n.resource);
+        checkedLayers.push({
+          resource: n.resource,
+          action: n.action
+        });
       }
       if (n.children && n.children.length > 0) {
         checkedLayers = checkedLayers.concat(this.getCheckedLayers(n.children));
@@ -88,7 +124,7 @@ export class TreeviewService {
 
   setCheckedLayers(nodes: TreeNode[], resources: string[]): void {
     nodes.forEach(node => {
-      if (node.resource && resources.includes(node.resource)) {
+      if (node.action && resources.includes(node.action)) {
         node.checked = true;
       }
   
@@ -96,7 +132,5 @@ export class TreeviewService {
         this.setCheckedLayers(node.children, resources);
       }
     });
-  } 
-
-
+  }
 }
