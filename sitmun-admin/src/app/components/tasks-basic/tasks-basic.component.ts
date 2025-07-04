@@ -1,125 +1,93 @@
-import {Component, OnInit} from '@angular/core';
-import {Task, TaskGroupService, TaskService} from '@app/domain';
-import {HalOptions, HalParam} from '@app/core/hal/rest/rest.service';
-import {UtilsService} from '@app/services/utils.service';
-import {Router} from '@angular/router';
-import {config} from '@config';
-import {firstValueFrom, Observable, Subject} from 'rxjs';
+import {Component} from '@angular/core';
+import {CodeListService, Task, TaskService, TranslationService,} from '@app/domain';
+import {TranslateService} from '@ngx-translate/core';
+import {ActivatedRoute, Router} from '@angular/router';
+import {firstValueFrom} from 'rxjs';
 import {MatDialog} from '@angular/material/dialog';
-import {DialogMessageComponent} from '@app/frontend-gui/src/lib/public_api';
+import {ErrorHandlerService} from '@app/services/error-handler.service';
+import {LoggerService} from '@app/services/logger.service';
+import {UtilsService} from '@app/services/utils.service';
+import {BaseListComponent} from "@app/components/base-list.component";
+import {EntityListConfig} from "@app/components/shared/entity-list";
+import {config} from '@config';
+import {HalOptions, HalParam} from '@app/core/hal'
 
 @Component({
-  selector: 'app-tasks',
+  selector: 'app-tasks-basic',
   templateUrl: './tasks-basic.component.html',
   styles: []
 })
-export class TasksBasicComponent implements OnInit {
-  saveAgGridStateEvent: Subject<boolean> = new Subject<boolean>();
+export class TasksBasicComponent extends BaseListComponent<Task> {
+  entityListConfig: EntityListConfig<Task> = {
+    entityLabel: 'entity.task.basic.label',
+    iconName: 'menu_tasques',
+    columnDefs: [],
+    dataFetchFn: () => {
+      const taskTypeID = config.tasksTypes.basic;
+      const params2: HalParam[] = [];
+      const param: HalParam = {key: 'type.id', value: taskTypeID};
+      params2.push(param);
+      const query: HalOptions = {params: params2};
+      return this.taskService.getAll(query, undefined, 'tasks');
+    },
+    defaultColumnSorting: ['name'],
+    gridOptions: {
+      globalSearch: true,
+      discardChangesButton: false,
+      redoButton: false,
+      undoButton: false,
+      applyChangesButton: false,
+      deleteButton: true,
+      newButton: true,
+      actionButton: true,
+      hideReplaceButton: true
+    }
+  };
 
-  dataUpdatedEvent: Subject<boolean> = new Subject<boolean>();
-
-  themeGrid: any = config.agGridTheme;
-
-  columnDefs: any[];
-
-  gridModified = false;
-
-  constructor(public dialog: MatDialog,
-              public tasksService: TaskService,
-              public taskGroupService: TaskGroupService,
-              private utils: UtilsService,
-              private router: Router
+  constructor(
+    protected override dialog: MatDialog,
+    protected override translateService: TranslateService,
+    protected override translationService: TranslationService,
+    protected override codeListService: CodeListService,
+    protected override loggerService: LoggerService,
+    protected override errorHandler: ErrorHandlerService,
+    protected override activatedRoute: ActivatedRoute,
+    protected override utils: UtilsService,
+    protected override router: Router,
+    public taskService: TaskService
   ) {
+    super(
+      dialog,
+      translateService,
+      translationService,
+      codeListService,
+      loggerService,
+      errorHandler,
+      activatedRoute,
+      utils,
+      router
+    );
   }
 
-
-  ngOnInit() {
-
-    const columnEditBtn = this.utils.getEditBtnColumnDef();
-    columnEditBtn['cellRendererParams'] = {
-      clicked: this.newData.bind(this)
-    };
-
-
-    this.columnDefs = [
-      columnEditBtn,
+  override async postFetchData(): Promise<void> {
+    // Set column definitions directly in the config
+    this.entityListConfig.columnDefs = [
       this.utils.getSelCheckboxColumnDef(),
-      this.utils.getIdColumnDef(),
-      this.utils.getEditableColumnDef('tasksEntity.task', 'name'),
+      this.utils.getRouterLinkColumnDef('common.form.name', 'name', `taskBasic/:id/${config.tasksTypes.basic}`, {id: 'id'}),
     ];
   }
 
-  async canDeactivate(): Promise<boolean | Observable<boolean>> {
-    if (this.gridModified) {
-      const result = await firstValueFrom(this.utils.showNavigationOutDialog());
-      return !(!result || result.event !== 'Accept');
-    } else {
-      return true;
-    }
+  override async newData() {
+    await this.router.navigate(['taskBasic', -1, config.tasksTypes.basic]);
   }
 
-  setGridModifiedValue(value) {
-    this.gridModified = value;
+  override async duplicateItem(id: number) {
+    await this.router.navigate(['taskBasic', -1, config.tasksTypes.basic, id]);
   }
 
-  getAllTasks = () => {
-    const taskTypeID = config.tasksTypes['basic'];
-    const params2: HalParam[] = [];
-    const param: HalParam = {key: 'type.id', value: taskTypeID};
-    params2.push(param);
-    const query: HalOptions = {params: params2};
-    return this.tasksService.getAll(query, undefined, 'tasks');
+  override dataFetchFn = () => this.taskService.getAll();
 
-  };
+  override dataUpdateFn = (data: Task) => firstValueFrom(this.taskService.update(data))
 
-  newData(id: any) {
-    this.saveAgGridStateEvent.next(true);
-    this.router.navigate(['taskBasic', id, config.tasksTypes.basic]);
-  }
-
-  applyChanges(data: Task[]) {
-    const promises: Promise<any>[] = [];
-    data.forEach(task => {
-      promises.push(new Promise((resolve,) => {
-        this.tasksService.update(task).subscribe(() => {
-          resolve(true);
-        });
-      }));
-      Promise.all(promises).then(() => {
-        this.dataUpdatedEvent.next(true);
-      });
-    });
-  }
-
-  add(data: Task[]) {
-    this.saveAgGridStateEvent.next(true);
-    this.router.navigate(['taskBasic', -1, config.tasksTypes.basic, data[0].id]);
-  }
-
-  removeData(data: Task[]) {
-
-    const dialogRef = this.dialog.open(DialogMessageComponent);
-    dialogRef.componentInstance.title = this.utils.getTranslate('caution');
-    dialogRef.componentInstance.message = this.utils.getTranslate('removeMessage');
-    dialogRef.afterClosed().subscribe(result => {
-      if (result) {
-        if (result.event === 'Accept') {
-          const promises: Promise<any>[] = [];
-          data.forEach(task => {
-            promises.push(new Promise((resolve,) => {
-              this.tasksService.delete(task).subscribe(() => {
-                resolve(true);
-              });
-            }))
-            ;
-            Promise.all(promises).then(() => {
-              this.dataUpdatedEvent.next(true);
-            });
-          });
-        }
-      }
-    });
-
-  }
-
+  override dataDeleteFn = (data: Task) => firstValueFrom(this.taskService.delete(data))
 }
