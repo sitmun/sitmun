@@ -22,19 +22,19 @@
     <div class="row section">
       <p class="text-center fs-4 text-dark">
         <ion-icon src="../../../assets/icon/persona.svg" style="color: #70889E;"></ion-icon>
-        {{'searchNearElements' | translate}}:
+        {{'nearme.searchNearElements' | translate}}:
       </p>
       <ion-segment [(ngModel)]="searchPoint">
         <ion-segment-button value="location">
-          <ion-label class="fs-6" style="text-transform: none !important;">{{'myPosition' | translate}}</ion-label>
+          <ion-label class="fs-6" style="text-transform: none !important;">{{'nearme.myPosition' | translate}}</ion-label>
         </ion-segment-button>
         <ion-segment-button value="center">
-          <ion-label class="fs-6" style="text-transform: none !important;">{{'mapCenter' | translate}}</ion-label>
+          <ion-label class="fs-6" style="text-transform: none !important;">{{'nearme.mapCenter' | translate}}</ion-label>
         </ion-segment-button>
       </ion-segment>
     </div>
     <div class="row section">
-      <p class="co-black">{{ metricSystem ? ('radiusMetric' | translate) : ('radiusNonMetric' | translate) }}:</p>      
+      <p class="co-black">{{ metricSystem ? ('nearme.radiusMetric' | translate) : ('nearme.radiusNonMetric' | translate) }}:</p>
       <ng-container *ngIf="metricSystem; else noMetric">
         <div class="col-4">
           <ion-input [(ngModel)]="distance" min="1000" max="15000" fill="outline" type="number" shape="round" class="text-center text-dark"></ion-input>
@@ -53,7 +53,7 @@
       </ng-template> 
     </div>
     <div class="row section">
-      <p class="co-black">{{'categories' | translate}} ({{selectedCategories.length}}/{{categories.length}} {{'selected' | translate}}):</p>
+      <p class="co-black">{{'nearme.categories' | translate}} ({{selectedCategories.length}}/{{categories.length}} {{'nearme.selected' | translate}}):</p>
     </div>
     <div class="row cat-container">
       <div class="co-black" *ngFor="let cat of categories">
@@ -61,7 +61,7 @@
       </div>
     </div>
     <div class="row section">
-      <ion-button (click)="search()" shape="round" style="--background: #70889E;">{{'apply' | translate}}</ion-button>
+      <ion-button (click)="search()" shape="round" style="--background: #70889E;">{{'nearme.apply' | translate}}</ion-button>
     </div>
   </div>
 
@@ -91,7 +91,7 @@
 
    <ion-toast
     [isOpen]="isToastOpen"
-    message="{{ 'selectCategory' | translate }}"
+    message="{{ 'nearme.selectCategory' | translate }}"
     [duration]="5000"
     (didDismiss)="isToastOpen = false"
   ></ion-toast>
@@ -119,7 +119,7 @@
     <ion-buttons slot="start">
         <div class="vertical-btn" (click)="startPage()">
           <ion-icon name="home" size="large"></ion-icon>
-          <ion-label class="ion-text-wrap text-dark">{{'home' | translate}}</ion-label>
+          <ion-label class="ion-text-wrap text-dark">{{'home.title' | translate}}</ion-label>
         </div>
     </ion-buttons>
     <ion-buttons slot="end">

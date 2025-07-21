@@ -13,6 +13,7 @@ const config: CapacitorConfig = {
     },
     Http: {
       allowCleartext: true,
+      disableIntercept: true,
     },
     CapacitorSQLite: {
       iosDatabaseLocation: 'Library/CapacitorDatabase',

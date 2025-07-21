@@ -25,19 +25,6 @@ export class RequestService {
     private databaseService: DatabaseService
   ) { }
 
-  setTaskUrl(task: any) {
-    let newUrl = task.url;
-    const instanceName = this.instancesService.instanceName;
-    if (instanceName === 'casa') {
-      newUrl = newUrl.replace('localhost', '192.168.1.140');
-    } else if (instanceName === 'oficina') {
-      newUrl = newUrl.replace('localhost', '192.168.60.173');
-    } else if (instanceName === 'eduardo') {
-      newUrl = newUrl.replace('localhost', '192.168.61.157');
-    }
-    task.url = newUrl;
-  }
-
   addParamsToUrlAndGetBody(task: any) {
     const params = task.parameters;
     const body: string[] = [];
@@ -63,7 +50,6 @@ export class RequestService {
   }
 
   async templateRequest(task: any, mapping: any, parentData: any = {}, params: any = {}) {
-    this.setTaskUrl(task);
     const requestData = this.addParamsToUrlAndGetBody(task);
     this.responseType = 'json';
     const uri = await this.generateUrlByTemplate(requestData.url, task.parameters, mapping, parentData, params);
@@ -94,13 +80,15 @@ export class RequestService {
     }
     const cache = await this.getCache(urlParts[0], JSON.stringify(params));
     if (cache) {
+      console.log('Usando cache');
       return cache;
     } else {
+      console.log('Realizando petición');
       return new Promise<any[]>((resolve, reject) => {
         Http.request(options).then(data => {
           const response = this.mappingResponse(data.data, mapping);
           this.addCache(urlParts[0], JSON.stringify(params), JSON.stringify(response)).then(() => {
-              resolve(response);
+            resolve(response);
           });
         }).catch(error => {
           reject(error);

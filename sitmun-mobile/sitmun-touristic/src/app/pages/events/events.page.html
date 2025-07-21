@@ -21,7 +21,7 @@
   <div class="container">
     <div class="row section">
       <div class="col-10">
-        <ion-input [placeholder]="'searchEvent' | translate" fill="outline" [(ngModel)]="filters['keyWord']">
+        <ion-input [placeholder]="'events.searchEvent' | translate" fill="outline" [(ngModel)]="filters['keyWord']">
           <ion-button fill="clear" slot="end" aria-label="Show/hide" (click)="filterEvents()">
             <ion-icon slot="icon-only" name="search" size="large"></ion-icon>
           </ion-button>
@@ -34,7 +34,7 @@
       </div>
     </div>
     <!--<div class="row section">
-      <h4 class="my-auto">{{'category' | translate}}</h4>
+      <h4 class="my-auto">{{'events.category' | translate}}</h4>
     </div>
     <div class="row">
       <div class="categories carrusel">
@@ -42,14 +42,14 @@
       </div>
     </div>-->
     <div class="row section">
-      <h4 class="my-auto text-dark">{{'nextActivities' | translate}} ({{events.length}})</h4>
+      <h4 class="my-auto text-dark">{{'events.nextActivities' | translate}} ({{events.length}})</h4>
     </div>
     <div class="row">
 
       @if (loaded) {        
         <div id="events-carrusel" class="carrusel">        
           <div class="co-black" *ngIf="noEvents">
-            {{'noEvents' | translate}}
+            {{'events.noEvents' | translate}}
           </div>
           <ion-card *ngFor="let evt of events" class="carr-elem">
             <div class="card-img-container">
@@ -74,7 +74,7 @@
             <ion-card-content>
               <p class="evt-content" [innerHTML]="evt.description"></p>
               <div class="footer">
-                <p><strong>Donde:</strong> {{evt.address}} ({{evt.muni}})</p>
+                <p><strong>{{ 'events.where' | translate }}</strong> {{evt.address}} ({{evt.muni}})</p>
                 <p class="dates"><ion-icon name="calendar"></ion-icon> {{dateFormat(evt.startdate)}} - {{dateFormat(evt.enddate)}}</p>
               </div>
             </ion-card-content>
@@ -109,7 +109,7 @@
     <ng-template>
       <ion-header>
         <ion-toolbar>
-          <ion-title>{{ 'filters' | translate }}</ion-title>
+          <ion-title>{{ 'events.filters' | translate }}</ion-title>
           <ion-buttons slot="start">
             <ion-button fill="clear" disabled style="opacity: 0; pointer-events: none;">
               <ion-icon name="close" size="large"></ion-icon>
@@ -126,39 +126,40 @@
         <div class="container">
           <div class="row" *ngIf="categories.length > 0">
             <ion-item>
-              <ion-select [(ngModel)]="filters['category']" label="{{'category' | translate}}" justify="space-between" interface="action-sheet">
-                <ion-select-option value="*">{{'anyFilter' | translate}}</ion-select-option>
+              <ion-select [(ngModel)]="filters['category']" label="{{'events.category' | translate}}" justify="space-between" 
+              interface="action-sheet" cancelText="{{ 'exit.cancel' | translate }}">
+                <ion-select-option value="*">{{'events.anyFilter' | translate}}</ion-select-option>
                 <ion-select-option *ngFor="let cat of categories" value="{{cat.name}}">{{cat.name}}</ion-select-option>
               </ion-select>
             </ion-item>
           </div>
           <div class="row" *ngIf="locations.length > 0">
             <ion-item>
-              <ion-select [(ngModel)]="filters['muni']" label="{{'muni' | translate}}" justify="space-between" interface="action-sheet">
-                <ion-select-option value="*">{{'anyFilter' | translate}}</ion-select-option>
+              <ion-select [(ngModel)]="filters['muni']" label="{{'events.muni' | translate}}" justify="space-between" interface="action-sheet">
+                <ion-select-option value="*">{{'events.anyFilter' | translate}}</ion-select-option>
                 <ion-select-option *ngFor="let loc of locations" value="{{loc.name}}">{{loc.name}}</ion-select-option>
               </ion-select>
             </ion-item>
           </div>
           <div class="row">
             <ion-item>
-              <ion-label>{{'startdate' | translate}}</ion-label>
+              <ion-label>{{'events.startdate' | translate}}</ion-label>
               <ion-datetime-button datetime="startdate"></ion-datetime-button>
             </ion-item>
           </div>
           <div class="row">
             <ion-item>
-              <ion-label>{{'enddate' | translate}}</ion-label>
+              <ion-label>{{'events.enddate' | translate}}</ion-label>
               <ion-datetime-button datetime="enddate"></ion-datetime-button>
             </ion-item>
           </div>
           <div class="row">
             <ion-item class="co-black">
-              <ion-checkbox [(ngModel)]="filters['near']">{{'nearme' | translate}}</ion-checkbox>
+              <ion-checkbox [(ngModel)]="filters['near']">{{'events.nearme' | translate}}</ion-checkbox>
             </ion-item>
           </div>
           <div class="row">
-            <ion-button class="access-btn" (click)="filterEvents()">{{'apply' | translate}}</ion-button>
+            <ion-button class="access-btn" (click)="filterEvents()">{{'events.apply' | translate}}</ion-button>
           </div>
         </div>
       </ion-content>
@@ -169,7 +170,7 @@
     <ng-template>
       <ion-datetime id="startdate" presentation="date"
       locale="es-ES" [firstDayOfWeek]="1" [(ngModel)]="filters['startdate']"
-      [showDefaultButtons]="true" [doneText]="'doneText' | translate" [cancelText]="'cancelText' | translate">
+      [showDefaultButtons]="true" [doneText]="'events.doneText' | translate" [cancelText]="'events.cancelText' | translate">
       </ion-datetime>
     </ng-template>
   </ion-modal>
@@ -177,7 +178,7 @@
     <ng-template>
       <ion-datetime id="enddate" presentation="date"
       locale="es-ES" [firstDayOfWeek]="1" [(ngModel)]="filters['enddate']"
-      [showDefaultButtons]="true" [doneText]="'doneText' | translate" [cancelText]="'cancelText' | translate">
+      [showDefaultButtons]="true" [doneText]="'events.doneText' | translate" [cancelText]="'events.cancelText' | translate">
       </ion-datetime>
     </ng-template>
   </ion-modal>
@@ -188,7 +189,7 @@
     <ion-buttons slot="start">
         <div class="vertical-btn" (click)="startPage()">
         <ion-icon name="home" size="large"></ion-icon>
-          <ion-label class="ion-text-wrap text-dark">{{'home' | translate}}</ion-label>
+          <ion-label class="ion-text-wrap text-dark">{{'home.title' | translate}}</ion-label>
         </div>
     </ion-buttons>
     <ion-buttons slot="end">

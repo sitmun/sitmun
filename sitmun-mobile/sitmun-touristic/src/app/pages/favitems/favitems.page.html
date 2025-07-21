@@ -60,28 +60,11 @@
 </ion-content>
 
 <ion-footer [translucent]="true">
-  <!-- <ion-toolbar>
-    <ion-buttons slot="start">
-      <ion-button (click)="nextPage('node/12771')">
-        <ion-icon name="map" size="large"></ion-icon>
-      </ion-button>
-    </ion-buttons>
-    <div>
-      <ion-button (click)="nextPage('node/12770')" style="--background: white; --box-shadow: none;">
-        <ion-icon src="../../../assets/icon/persona.svg" size="large"></ion-icon>
-      </ion-button>
-    </div>
-    <ion-buttons slot="end">
-      <ion-button (click)="nextPage('node/12769')">
-        <ion-icon name="list" size="large"></ion-icon>
-      </ion-button>
-    </ion-buttons>
-  </ion-toolbar> -->
   <ion-toolbar>
     <ion-buttons slot="start">
         <div class="vertical-btn" (click)="startPage()">
           <ion-icon name="home" size="large"></ion-icon>
-          <ion-label class="ion-text-wrap text-dark">{{'home' | translate}}</ion-label>
+          <ion-label class="ion-text-wrap text-dark">{{'home.title' | translate}}</ion-label>
         </div>
     </ion-buttons>
     <ion-buttons slot="end">

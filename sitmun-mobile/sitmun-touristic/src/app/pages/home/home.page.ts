@@ -8,6 +8,7 @@ import { DatabaseService } from 'src/app/services/database.service';
 import { Geolocation, PermissionStatus } from '@capacitor/geolocation';
 import { App } from '@capacitor/app';
 import { NativeSettings, AndroidSettings, IOSSettings } from 'capacitor-native-settings';
+import { firstValueFrom } from 'rxjs';
 
 
 const LABELS: Record<string, string> = {
@@ -80,7 +81,7 @@ export class HomePage implements OnInit, OnDestroy {
           this.access();
         }
       }).catch(error => {
-        this.showErrorAlert('Ha ocurrido un error al obtener los territorios disponibles');
+        this.showErrorAlert('home.territoriesError');
         console.error(error);
       });
     });
@@ -98,34 +99,9 @@ export class HomePage implements OnInit, OnDestroy {
   }
 
   async showAlert() {
-
-    const language = await this.languageService.getLanguage();
-    let header = '';
-    let message = '';
-    let settings = '';
-
-    switch (language) {
-      case 'ca':
-        header = 'Permís de Localització Denegat';
-        message = 'L\'aplicació pot no funcionar correctament en alguns casos';
-        settings = 'Canviar configuració';
-        break;
-      case 'es':
-        header = 'Permiso de Localización Denegado';
-        message = 'La aplicación puede no funcionar correctamente en algunos casos';
-        settings = 'Cambiar configuración';
-        break;
-      case 'fr':
-        header = "Permis de Localisation Refusé";
-        message = "L'application peut ne pas fonctionner correctement dans certains cas.";
-        settings = "Changer la configuration";
-        break;
-      default:
-        header = 'Location Permit Denied';
-        message = 'The application may not work properly in some cases.';
-        settings = 'Change settings';
-        break;
-    }
+    const header = await firstValueFrom(this.languageService.translateTag('home.header'));
+    const message = await firstValueFrom(this.languageService.translateTag('home.message'));
+    const settings = await firstValueFrom(this.languageService.translateTag('home.settings'));
 
     const alert = await this.alertController.create({
       header: header,
@@ -180,27 +156,27 @@ export class HomePage implements OnInit, OnDestroy {
                 this.routingService.addHistoric('/home', {});
                 this.routingService.redirect(data);
               }).catch(error => {
-                this.showErrorAlert('Ha ocurrido un error al guardar la configuración');
+                this.showErrorAlert('home.saveConfError');
                 console.error(error);
                 this.hideLoading();
               });
             }).catch(error => {
-              this.showErrorAlert('Ha ocurrido un error al obtener la configuración');
+              this.showErrorAlert('home.getConfError');
               console.error(error);
               this.hideLoading();
             });
           }).catch(error => {
-            this.showErrorAlert('Ha ocurrido un error al obtener el territorio de la app');
+            this.showErrorAlert('home.territoryError');
             console.error(error);
             this.hideLoading();
           });
         }).catch(error => {
-          this.showErrorAlert('Ha ocurrido un error al obtener la app turística');
+          this.showErrorAlert('home.appError');
           console.error(error);
           this.hideLoading();
         });
       }).catch(error => {
-        this.showErrorAlert('Ha ocurrido un error al inicializar la base de datos');
+        this.showErrorAlert('home.databaseError');
         console.error(error);
         this.hideLoading();
       });
@@ -218,9 +194,12 @@ export class HomePage implements OnInit, OnDestroy {
   }
 
   async showErrorAlert(msg: string) {
+    const message = await firstValueFrom(this.languageService.translateTag(msg));
+    const header = await firstValueFrom(this.languageService.translateTag('home.headerError'));
+
     const alert = await this.alertController.create({
-      header: 'Error de comunicación',
-      message: msg,
+      header: header,
+      message: message,
       buttons: ['Ok'],
     });
 
@@ -228,20 +207,24 @@ export class HomePage implements OnInit, OnDestroy {
   }
 
   async showExitMessage() {
+    const exit = await firstValueFrom(this.languageService.translateTag("exit.title"));
+    const message = await firstValueFrom(this.languageService.translateTag("exit.message"));
+    const cont = await firstValueFrom(this.languageService.translateTag("exit.continue"));
+
     const alert = await this.alertController.create({
       cssClass: 'my-custom-class',
-      header: 'Salir',
-      message: '¿Quiere salir de la aplicación?',
+      header: exit,
+      message: message,
       buttons: [
         {
-          text: 'Salir',
+          text: exit,
           cssClass: 'secondary',
           handler: (blah) => {
             console.log('exit app');
             App.exitApp();
           }
         }, {
-          text: 'Continuar',
+          text: cont,
           cssClass: 'secondary',
           handler: () => {
             console.log('Continue');

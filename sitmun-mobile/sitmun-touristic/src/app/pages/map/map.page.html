@@ -5,7 +5,7 @@
         <ion-icon name="arrow-back" size="large"></ion-icon>
       </ion-button>
     </ion-buttons>
-    <ion-title>{{'map' | translate}}</ion-title>
+    <ion-title>{{'map.title' | translate}}</ion-title>
     <ion-buttons slot="end">
       <ion-select [(ngModel)]="selectedLanguage" (ionChange)="setLanguage($event.detail.value)"
                   interface="popover">
@@ -23,6 +23,11 @@
       <ion-icon name="search"></ion-icon>
     </ion-fab-button>
   </ion-fab>
+  <ion-fab slot="fixed" vertical="top" horizontal="end" style="margin-top: 50px;">
+    <ion-fab-button *ngIf="bgTreeData.length > 0" (click)="openBgModal()" size="small" style="margin-right: 0;">
+      <ion-icon name="grid"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
 
   <div #map id="map"></div>
 
@@ -30,7 +35,7 @@
     <ng-template>
       <ion-header>
         <ion-toolbar>
-          <ion-title>Busqueda</ion-title>
+          <ion-title>{{'map.search' | translate}}</ion-title>
           <ion-buttons slot="end">
             <ion-button (click)="closeSearchModal()">
               <ion-icon name="close" size="large"></ion-icon>
@@ -41,7 +46,7 @@
       <ion-content class="ion-padding">
         <div class="container">
           <div class="row">
-            <ion-searchbar (ionInput)="onSearchInput($event)" [placeholder]="'searchMap' | translate"></ion-searchbar>
+            <ion-searchbar (ionInput)="onSearchInput($event)" [placeholder]="'map.searchMap' | translate"></ion-searchbar>
           </div>
           <div class="row">
             <ng-container *ngIf="searchKeys.length > 0">
@@ -61,6 +66,40 @@
       </ion-content>
     </ng-template>
   </ion-modal>
+
+  <ion-modal #modal [isOpen]="isBgModalOpen">
+    <ng-template>
+      <ion-header>
+        <ion-toolbar>
+          <ion-title> {{ 'map.backgroundMap' | translate }}</ion-title>
+          <ion-buttons slot="end">
+            <ion-button (click)="closeBgModal()">
+              <ion-icon name="close" size="large"></ion-icon>
+            </ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-header>
+      <ion-content class="ion-padding">
+        <div class="tree-container">
+            <ng-container *ngFor="let node of bgTreeData">
+              <div class="row align-items-center layer-row">
+                <div class="col-4 my-auto">
+                  <ion-img class="img-background img-cover" src="{{node.image || '../../assets/icon/no-image.jpg'}}"></ion-img>
+                </div>
+                <div class="col-7">
+                  <div class="text-dark">           
+                    {{ node.name }}                    
+                  </div>
+                </div>
+                <div class="col-1">
+                  <input type="checkbox" class="form-check-input bg-check" [(ngModel)]="node.checked" (change)="toggleBgCheck(node, $event)" />
+                </div>
+              </div>
+            </ng-container>
+        </div>
+      </ion-content>
+    </ng-template>
+  </ion-modal>
 </ion-content>
 
 <ion-footer [translucent]="true">
@@ -68,7 +107,7 @@
     <ion-buttons slot="start">
         <div class="vertical-btn" (click)="startPage()">
         <ion-icon name="home" size="large"></ion-icon>
-          <ion-label class="ion-text-wrap text-dark">{{'home' | translate}}</ion-label>
+          <ion-label class="ion-text-wrap text-dark">{{'home.title' | translate}}</ion-label>
         </div>
     </ion-buttons>
     <ion-buttons slot="end">

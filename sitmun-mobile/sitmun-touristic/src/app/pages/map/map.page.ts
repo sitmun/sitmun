@@ -7,6 +7,8 @@ import { RoutingService } from 'src/app/services/routing.service';
 import { RequestService } from 'src/app/services/request.service';
 import { Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged, filter } from 'rxjs/operators';
+import { DatabaseService } from 'src/app/services/database.service';
+import { TreeNode, TreeviewService } from 'src/app/services/treeview.service';
 
 declare var M: any;
 declare var ol: any;
@@ -29,13 +31,16 @@ export class MapPage implements OnInit {
   searchResults: Record<string, any[]> = {};
   searchKeys: string[] = [];
   isSearchModalOpen = false;
+  isBgModalOpen = false;
+  bgTreeData: TreeNode[] = [];
   private _mapa: any;
   private layer: any;
   
   constructor(private router: Router, private route: ActivatedRoute,
     private languageService: LanguageService, private mapaService: MapaService,
     private authorizationService: AuthorizationService, private routingService: RoutingService,
-    private requestService: RequestService) {
+    private requestService: RequestService, private databaseService: DatabaseService,
+    private treeviewService: TreeviewService) {
       this.route.queryParams.subscribe(params => {
       let navigation = this.router.getCurrentNavigation();
       if (navigation) {
@@ -77,6 +82,12 @@ export class MapPage implements OnInit {
     const mFeatures: any[] = [];
     this.features.forEach(f => mFeatures.push(this.mapaService.createFeature(f, mapProj)));
     this.addFeaturesToLayer(mFeatures);
+    const profileBg = await this.getBackgroundProfile();
+    this.bgTreeData = this.treeviewService.createBackgroundsTreeData(profileBg);
+    const bgNode = this.bgTreeData.find(n => n.checked);
+    if (bgNode) {
+      this.toggleBgCheck(bgNode, null);
+    }
   }
 
   addFeaturesToLayer(mFeatures: any[], clear: boolean = false) {
@@ -150,6 +161,42 @@ export class MapPage implements OnInit {
 
   closeSearchModal() {
     this.isSearchModalOpen = false;
+  }
+
+  openBgModal() {
+    this.isBgModalOpen = true;
+  }
+
+  closeBgModal() {
+    this.isBgModalOpen = false;
+  }
+  
+  async toggleBgCheck(node: TreeNode, event: any) {
+    const checked = node.checked;
+    let baseLayer: any = 'OSM'; // Si ninguna capa de fondo seleccionada, se aplicará la por defecto
+    if (checked) {
+      this.bgTreeData.forEach(tn => tn.checked = false);
+      if (event) {
+        const inputs = document.querySelectorAll<HTMLInputElement>('.bg-check');
+        inputs.forEach(i => i.checked = false);
+        event.target.checked = checked;
+      }
+      node.checked = checked;
+      const profile = await this.getBackgroundProfile();
+      baseLayer = this.mapaService.getBaseLayer(profile, node.resource || '', node.name);
+    } 
+    this._mapa.removeLayers(this._mapa.getBaseLayers());
+    this._mapa.addLayers(baseLayer);
+  }
+
+  async getBackgroundProfile() {
+    const profile = {
+      backgrounds: JSON.parse((await this.databaseService.getProfileData('backgrounds'))[0].json),
+      groups: JSON.parse((await this.databaseService.getProfileData('groups'))[0].json),
+      layers: JSON.parse((await this.databaseService.getProfileData('layers'))[0].json),
+      services: JSON.parse((await this.databaseService.getProfileData('services'))[0].json)
+    };
+    return profile;
   }
 
   onSearchInput(event: any): void {

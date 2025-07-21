@@ -77,4 +77,8 @@ export class LanguageService {
   getLanguageOptions() {
     return this.languages.options;
   }
+
+  translateTag(tag: string) {
+    return this.translate.get(tag);
+  }
 }

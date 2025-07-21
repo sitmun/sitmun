@@ -49,12 +49,12 @@ export class MapaService {
   }
 
   private async applyMapBackgroundsAndLayers(mapa: any, activeLayer: string) {
-    const backgrounds: any[] = JSON.parse((await this.databaseService.getProfileData('backgrounds'))[0].json);
-    const groups: any[] = JSON.parse((await this.databaseService.getProfileData('groups'))[0].json);
+    //const backgrounds: any[] = JSON.parse((await this.databaseService.getProfileData('backgrounds'))[0].json);
+    //const groups: any[] = JSON.parse((await this.databaseService.getProfileData('groups'))[0].json);
     const layers: any[] = JSON.parse((await this.databaseService.getProfileData('layers'))[0].json);
     const services: any[] = JSON.parse((await this.databaseService.getProfileData('services'))[0].json);
     const trees: any[] = JSON.parse((await this.databaseService.getProfileData('trees'))[0].json);
-    this.applyMapBackgrounds(mapa, backgrounds, groups, layers, services);
+    //this.applyMapBackgrounds(mapa, backgrounds, groups, layers, services);
     this.applyMapLayers(mapa, trees, layers, services, activeLayer);
   }
 
@@ -169,7 +169,25 @@ export class MapaService {
   private createMapBackground(group: any, layers: any[], services: any[]) {
     const bg: any = {};
     bg.title = group.title;
-    bg.id = group.id.split('/')[1];
+    bg.id = group.id.split('/')[1];    
+    const bgLayers = this.createBackgroundLayers(group, layers, services);
+    bg.layers = bgLayers;
+    return bg;
+  }
+
+  getBaseLayer(profile: any, idGroup: string, title: string) {
+    const group = profile.groups.find((g: any) => g.id = idGroup);
+    const bgLayers = this.createBackgroundLayers(group, profile.layers, profile.services);
+    const groupOpts = {
+      name: title,
+      legend: title,
+      layers: bgLayers,
+      isBase: true,
+    };
+    return new M.layer.LayerGroup(groupOpts);
+  }
+
+  private createBackgroundLayers(group: any, layers: any[], services: any[]) {
     const bgLayers = [];
     const filteredLayers = layers.filter(l => group.layers.includes(l.id));
     for(let l of filteredLayers) {
@@ -177,8 +195,7 @@ export class MapaService {
       const bgLayer = this.createLayer(serviceData, l, true);
       bgLayers.push(bgLayer);
     }
-    bg.layers = bgLayers;
-    return bg;
+    return bgLayers;
   }
 
   createLayer(service: any, layer: any, base: boolean = false) {
@@ -270,49 +287,22 @@ export class MapaService {
     return position;
   }
 
-  private async errorLocationToast(typeError: string) {
-    const language = await this.languageService.getLanguage();
-    let permissions = '';
-    let location = '';
-    let error = '';
-
-    switch (language) {
-      case 'ca':
-        permissions = 'No es tenen permisos per obtenir la ubicació';
-        location = 'La ubicació està desactivada';
-        error = 'Error en obtenir la ubicació';
-        break;
-      case 'es':
-        permissions = 'No se tienen permisos para obtener la ubicación';
-        location = 'La ubicación está desactivada';
-        error = 'Error al obtener la ubicación';
-        break;
-      case 'fr':
-        permissions = "Aucune autorisation pour obtenir l'emplacement";
-        location = "L'emplacement est désactivé";
-        error = "Erreur lors de l'obtention de l'emplacement";
-        break;
-      default:
-        permissions = 'No permissions to obtain the location';
-        location = 'Location is disabled';
-        error = 'Error obtaining location';
-        break;
-    }
-
-    let text = '';
+  private errorLocationToast(typeError: string) {
     if (typeError === 'permissionError') {
-      text = permissions;
+      this.languageService.translateTag('map.locationPermissionError').subscribe((text: string) => this.createToast(text, 'warning', 'bottom'));
     } else if (typeError === 'locationError') {
-      text = location;
+      this.languageService.translateTag('map.locationDisabled').subscribe((text: string) => this.createToast(text, 'warning', 'bottom'));
     }else{
-      text = error;
+      this.languageService.translateTag('map.locationError').subscribe((text: string) => this.createToast(text, 'warning', 'bottom'));
     }
+  }
 
+  async createToast(msg: string, type: string, pos: "top" | "bottom" | "middle" | undefined) {
     const toast = await this.toastController.create({
-      message: text,
+      message: msg,
       duration: 3000,
-      color: 'warning',
-      position: 'bottom'
+      color: type,
+      position: pos
     });
     await toast.present();
   }

@@ -57,19 +57,23 @@ export class EventsPage implements OnInit {
   }
 
   ngOnInit() {
+   this.getInitialData();
+  }
+
+  private async getInitialData(){
     console.log("Obteniendo categorias y eventos");
-    this.taskNodes.forEach(node => {
+    for (const node of this.taskNodes) {
       const t = this.tasks.find(t => t.id === node.action);
       if (node.viewMode === 'evt') {
         this.eventsTask = t;
         this.eventsNode = node;
-        this.filterEvents();
+        await this.filterEvents();
       } else if (node.viewMode === 'evtcat') {
-        this.getCategories(t, node);
+        await this.getCategories(t, node);
       } else if (node.viewMode === 'evtloc') {
-        this.getLocations(t, node);
+        await this.getLocations(t, node);
       }
-    });    
+    };  
   }
 
   ionViewWillEnter() {
@@ -108,18 +112,14 @@ export class EventsPage implements OnInit {
     return `${dia}/${mes}/${anio}`;
   }
 
-  getCategories(task: any, node: any) {
-    this.requestService.templateRequest(task, node.mapping).then(results => {
-      this.categories = results;
-      console.log("Categorias obtenidas");
-    });
+  async getCategories(task: any, node: any) {
+    this.categories = await this.requestService.templateRequest(task, node.mapping);
+    console.log("Categorias obtenidas");
   }
 
-  getLocations(task: any, node: any) {
-    this.requestService.templateRequest(task, node.mapping).then(results => {
-      this.locations = results;
-      console.log("Localizaciones obtenidas");
-    });
+  async getLocations(task: any, node: any) {
+    this.locations = await this.requestService.templateRequest(task, node.mapping);
+    console.log("Localizaciones obtenidas");
   }
 
   filterByCategory(event: any, catName: string) {
@@ -132,15 +132,15 @@ export class EventsPage implements OnInit {
     this.showLoading();
     console.log(this.filters);
     const filterParams = await this.createFiltersParams();
-    this.requestService.templateRequest(this.eventsTask, this.eventsNode.mapping, {}, filterParams).then(results => {
-      this.events = results.sort((a: any, b: any) => a.startdate.localeCompare(b.startdate));
-      this.setFavorites();
-      this.noEvents = this.events.length === 0;
-      this.resetCarruselScroll();
-      this.hideLoading();
-      console.log("Eventos obtenidos");
-      this.loaded = true;
-    });
+
+    const requestResult = await this.requestService.templateRequest(this.eventsTask, this.eventsNode.mapping, {}, filterParams);
+    this.events = requestResult.sort((a: any, b: any) => a.startdate.localeCompare(b.startdate));
+    await this.setFavorites();
+    this.noEvents = this.events.length === 0;
+    this.resetCarruselScroll();
+    this.hideLoading();
+    console.log("Eventos obtenidos");
+    this.loaded = true;    
   }
 
   async createFiltersParams() {

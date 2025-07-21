@@ -59,7 +59,7 @@ export class DatabaseService {
 
   async initDatabase() {
     this.dbName = this.instanceService.instanceName + '.db';
-    if (!this.checkPlugin()) {
+    if (this.sqlite.getPlatform() !== 'web' && !this.checkPlugin()) {
       return;
     }
     try {
@@ -126,7 +126,7 @@ export class DatabaseService {
         url TEXT,
         params TEXT,
         response TEXT,
-        request_date DATETIME,
+        request_date NUMERIC,
         PRIMARY KEY (url, params)
       );
     `;
@@ -222,8 +222,8 @@ export class DatabaseService {
 
   async insertCacheData(url: string, params: string, response: string) {
     await this.loadConnection();
-    const statement = `INSERT OR REPLACE INTO cache (url, params, response, request_date) VALUES (?, ?, ?, strftime('%s', 'now'))`;
-    const values = [url, params, response];
+    const statement = `INSERT OR REPLACE INTO cache (url, params, response, request_date) VALUES (?, ?, ?, ?)`;
+    const values = [url, params, response, new Date().getTime()];
 
     try {
       if (this.db) {

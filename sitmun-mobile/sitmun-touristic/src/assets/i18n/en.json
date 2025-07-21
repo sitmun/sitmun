@@ -1,45 +1,80 @@
 {
+  "home": {
+    "title": "Home",
     "access": "Access",
-    "instanceSelection": "Select the territory you wish to visit",
+    "instanceSelection": "Select the territory you want to visit",
     "sitmunInstance": "Territory",
-    "moreInfo": "More information",
-    "price": "Price",
-    "schedule": "Schedule",
-    "filters": "Filters",
+    "header": "Location Permit Denied",
+    "message": "The application may not work properly in some cases.",
+    "settings": "Change settings",
+     "territoriesError": "An error occurred while obtaining available territories.",
+    "saveConfError": "An error occurred while saving the configuration.",
+    "getConfError": "An error occurred while getting the configuration",
+    "territoryError": "An error occurred while getting the app territory.",
+    "appError": "An error occurred while retrieving the tourist app.",
+    "databaseError": "An error occurred while initializing the database.",
+    "headerError": "Communication error" 
+  },
+  "events": {
+    "searchEvent": "Gastronomy, theater, music...",
     "category": "Category",
     "nextActivities": "Upcoming activities",
+    "noEvents": "No events available with the current filter.",
+    "filters": "Filters",
+    "anyFilter": "Any",
     "muni": "Town",
     "startdate": "From",
     "enddate": "To",
-    "searchEvent": "Gastronomy, theater, music...",
-    "searchMap": "Search...",
-    "noEvents": "No events available with the current filter.",
-    "anyFilter": "Any",
     "nearme": "Near me",
     "apply": "Apply",
     "doneText": "Done",
     "cancelText": "Cancel",
-    "map": "Map",
-    "destination": "Destination",
-    "searchNearElements": "Search for nearby elements to",
+    "location": "Where:"
+  },
+  "moreInfo": "More information",
+  "map": {
+    "title": "Map",
+    "backgroundMap": "Background layers",
+    "locationPermissionError": "Location permissions not granted",
+    "locationDisabled": "Location is disabled",
+    "locationError": "Error retrieving location",
+    "searchMap": "Search...",
+    "search": "Search"
+  },
+  "nearme": {
+    "title": "Near me",
+    "searchNearElements": "Search for elements near",
     "myPosition": "My location",
     "mapCenter": "Map center",
     "radiusMetric": "Within a radius of (meters)",
     "radiusNonMetric": "Within a radius of (miles)",
     "categories": "Categories",
     "selected": "selected",
-    "selectCategory": "Select at least one category",
-    "alertLocation": {
-        "header": "Location not available",
-        "message": "Could not obtain current location. Defaulting to map center.",
-        "settings": "Change settings"
-    },
-    "exit": {
-        "title": "Exit",
-        "message": "Exit the application?",
-        "exit": "Exit",
-        "continue": "Continue",
-        "cancel": "Cancel"
-    },
-    "home": "Start"
+    "selectCategory": "Please select at least one category",
+    "apply": "Apply"
+  },
+  "schedule": {
+    "destination": "Destination"
+  },
+  "alertLocation": {
+    "header": "Location unavailable",
+    "message": "Current location could not be retrieved. Default map center will be used.",
+    "settings": "Change settings"
+  },
+  "exit": {
+    "title": "Exit",
+    "message": "Exit the application?",
+    "exit": "Exit",
+    "continue": "Continue",
+    "cancel": "Cancel"
+  },
+  "btnLabel": {
+    "price": "Price",
+    "schedule": "Schedule",
+    "call": "Call",
+    "pois": "Point of interest",
+    "link": "Open link",
+    "mailto": "Send email",
+    "extraInfo": "Additional information"
+  }
 }

@@ -7,5 +7,5 @@ export const environment = {
       urlBackend: 'https://sitmun-app-publico.desarrollo.guadaltel.es/backend'
     }
   },
-  cacheExpirationTime: 2 // tiempo de caducidad de la cache en minutos
+  cacheExpirationTime: 2// expiración de la cache en minutos
 };

@@ -167,11 +167,11 @@ export class DetailedlistPage implements OnInit {
     return '';
   }
 
-  openExtraInfo(elem: any, key: string) {
+  openExtraInfo(elem: any, key: string, keyLabel: string) {
     if (this.taskNode.children) {
       this.nextPage(this.taskNode.id, elem);
     } else if (elem[key]) {
-      this.openExtraInfoModal('Extra info', elem[key]);
+      this.openExtraInfoModal(elem[keyLabel], elem[key]);
     }
   }
 

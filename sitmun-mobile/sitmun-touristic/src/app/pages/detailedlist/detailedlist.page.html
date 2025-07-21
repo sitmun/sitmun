@@ -63,11 +63,11 @@
                         <div *ngIf="elem.leftbtn || taskNode.children">
                           <ion-button class="access-btn w-100" shape="round" *ngIf="isValidHref(elem.leftbtn)"
                             (click)="openLink(elem.leftbtn)">
-                            {{ getBtnText(elem.leftbtn) | translate }}
+                            {{elem.leftbtnLabel | translate}}
                           </ion-button>
                           <ion-button class="access-btn w-100" shape="round" *ngIf="!isValidHref(elem.leftbtn)"
-                            (click)="openExtraInfo(elem, 'leftbtn')">
-                            {{'schedule' | translate}}
+                            (click)="openExtraInfo(elem, 'leftbtn', 'leftbtnLabel')">
+                            {{elem.leftbtnLabel | translate}}
                           </ion-button>
                         </div>
                       </div>
@@ -75,11 +75,11 @@
                         <div *ngIf="elem.rightbtn || (taskNode.children && elem.leftbtn)">
                           <ion-button class="access-btn w-100" shape="round" *ngIf="isValidHref(elem.rightbtn)"
                             (click)="openLink(elem.rightbtn)">
-                            {{ getBtnText(elem.rightbtn) | translate }}
+                            {{elem.rightbtnLabel | translate}}
                           </ion-button>
                           <ion-button class="access-btn w-100" shape="round" *ngIf="!isValidHref(elem.rightbtn)"
-                            (click)="openExtraInfo(elem, 'rightbtn')">
-                            {{'price' | translate}}
+                            (click)="openExtraInfo(elem, 'rightbtn', 'rightbtnLabel')">
+                            {{elem.rightbtnLabel | translate}}
                           </ion-button>
                         </div>
                       </div>
@@ -150,7 +150,7 @@
     <ion-buttons slot="start">
         <div class="vertical-btn" (click)="startPage()">
         <ion-icon name="home" size="large"></ion-icon>
-          <ion-label class="ion-text-wrap text-dark">{{'home' | translate}}</ion-label>
+          <ion-label class="ion-text-wrap text-dark">{{'home.title' | translate}}</ion-label>
         </div>
     </ion-buttons>
     <ion-buttons slot="end">

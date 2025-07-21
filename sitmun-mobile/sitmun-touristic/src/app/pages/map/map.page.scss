@@ -16,6 +16,10 @@ ion-fab-button {
   border-radius: 50%;
 }
 
+ion-content:has(.m-panel.m-plugin-layerswitcher.opened) ion-fab {
+  display: none;
+}
+
 ion-item, ion-item-divider {
   --background: white;
   --color: black;
@@ -24,4 +28,23 @@ ion-item, ion-item-divider {
 ion-item-divider {
   font-size: 1.15rem;
   font-weight: bold;
+}
+
+.layer-row{
+  background-color: white;
+  padding: 0.5em;
+}
+
+.pos-end {
+    position: absolute;
+    right: 0;
+}
+
+.form-check-input{
+    border: 1px solid black !important;
+}
+
+.img-background{
+  height: 20vw;
+  width: 20vw;
 }
