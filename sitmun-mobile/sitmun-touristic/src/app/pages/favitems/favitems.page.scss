@@ -1,0 +1,45 @@
+ion-content{
+    --background: white;
+}
+
+.container {
+    padding-top: 2rem;
+    padding-bottom: 3rem;
+}
+
+#list-grid>ion-row{
+    height: 15vh;
+}
+
+.item-data {
+    color: black;
+    margin-left: 0.8rem;
+}
+
+.item-data>h6 {
+    font-weight: bold;
+}
+
+.item-data>p {
+    font-size: 0.8rem;
+}
+
+.forward-col {
+    vertical-align: middle;
+}
+
+.forward-col>ion-icon {
+    color: black;
+    margin-top: calc(7.5vh - 16px);
+}
+
+.grid-container {
+    height: calc(75vh - 56px);
+    overflow: auto;
+}
+
+.locate-bottom{
+    background-color:white; 
+    bottom: 6vh;
+    padding: 2vh;
+}

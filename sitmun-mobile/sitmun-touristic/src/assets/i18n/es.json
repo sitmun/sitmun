@@ -1,0 +1,80 @@
+{
+    "home":{
+        "title": "Inicio",
+        "access": "Acceder",
+        "instanceSelection": "Selecciona el territorio que deseas visitar",
+        "sitmunInstance": "Territorio",
+        "header": "Permiso de Localización Denegado",
+        "message": "La aplicación puede no funcionar correctamente en algunos casos.",
+        "settings": "Cambiar configuración",
+        "territoriesError": "Ha ocurrido un error al obtener los territorios disponibles",
+        "saveConfError": "Ha ocurrido un error al guardar la configuración",
+        "getConfError": "Ha ocurrido un error al obtener la configuración",
+        "territoryError": "Ha ocurrido un error al obtener el territorio de la app",
+        "appError": "Ha ocurrido un error al obtener la app turística",
+        "databaseError": "Ha ocurrido un error al inicializar la base de datos",
+        "headerError": "Error de comunicación" 
+    },   
+    "events": {   
+        "searchEvent": "Gastronomía, teatro, música...",
+        "category": "Categoría",
+        "nextActivities": "Próximas actividades",
+        "noEvents": "No hay eventos disponibles con el filtro actual.",
+        "filters": "Filtros",
+        "anyFilter": "Cualquiera",
+        "muni": "Municipio",
+        "startdate": "Desde",
+        "enddate": "Hasta",
+        "nearme": "Cerca de mí",
+        "apply": "Aplicar",
+        "doneText": "Hecho",
+        "cancelText": "Cancelar", 
+        "location": "Donde:"
+    },
+    "moreInfo": "Más información",
+     "map": {
+        "title": "Mapa",
+        "backgroundMap": "Capas de fondo",
+        "locationPermissionError": "No se tienen permisos para obtener la ubicación",
+        "locationDisabled": "La ubicación está desactivada",
+        "locationError": "Error al obtener la ubicación",
+        "search": "Búsqueda",
+        "searchMap": "Buscar..."
+    },
+    "nearme": {
+        "title": "Cerca de mí",
+        "searchNearElements": "Buscar elementos cercanos a",
+        "myPosition": "Mi ubicación",
+        "mapCenter": "Centro del mapa",
+        "radiusMetric": "En un radio de (metros)",
+        "radiusNonMetric": "En un radio de (millas)",
+        "categories": "Categorias",
+        "selected": "seleccionadas",
+        "selectCategory": "Seleccione al menos una categoría",
+        "apply": "Aplicar"
+    },
+    "schedule":{
+        "destination": "Destino"
+    },    
+    "alertLocation": {
+        "header": "Ubicación no disponible",
+        "message": "No se ha podido obtener la ubicación actual. Se utilizará centro del mapa por defecto.",
+        "settings": "Cambiar configuración"
+    },
+    "exit": {
+        "title": "Salir",
+        "message": "¿Salir de la aplicación?",
+        "exit": "Salir",
+        "continue": "Continuar",
+        "cancel": "Cancelar"
+    }, 
+    "btnLabel": {
+        "price": "Precio",
+        "schedule": "Horario", 
+        "call": "Llamar",
+        "pois": "Puntos de interés",
+        "link": "Abrir enlace",
+        "mailto": "Enviar email",
+        "extraInfo": "Información extra"
+    }
+}

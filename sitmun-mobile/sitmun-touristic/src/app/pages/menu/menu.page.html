@@ -1,0 +1,56 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <!--<ion-buttons slot="start">
+      <ion-button (click)="backPage()">
+        <ion-icon name="arrow-back" size="large"></ion-icon>
+      </ion-button>
+    </ion-buttons>-->
+    <ion-buttons slot="start">
+      <img [src]="imgLogo" alt="Logo" style="height: 2em;" />
+    </ion-buttons>
+    <ion-buttons slot="end">
+      <ion-select [(ngModel)]="selectedLanguage" (ionChange)="setLanguage($event.detail.value)"
+                  interface="popover">
+        <ion-select-option *ngFor="let lang of languageOptions" [value]="lang.code">
+          {{ lang.emoji }} {{ lang.name }}
+        </ion-select-option>
+      </ion-select>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <div id="full-container" style="height: 100vh;">
+    <div class="mb-3 sticky-top" style="height: 30vh;">
+      <ion-img src="{{rootNode['image']}}" class="img-fluid w-100 h-100 object-fit-cover"></ion-img>
+    </div>
+    <div class="container">
+      <div class="row row-cols-3 g-2">
+        <div *ngFor="let node of nodes" (click)="nextPage(node['id'])">
+          <div class="card menu-item mx-auto">
+            <img src="{{node['image']}}" class="mx-auto d-block">
+            <div class="card-body">
+              <p class="card-title menu-text">{{node.title}}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</ion-content>
+
+<ion-footer [translucent]="true">
+  <ion-toolbar>
+    <!--<ion-buttons slot="start">
+      <ion-button (click)="startPage()">
+        <ion-icon name="home" size="large"></ion-icon>
+      </ion-button>
+    </ion-buttons>-->
+    <ion-buttons slot="end">
+      <div class="vertical-btn">
+        <ion-icon [routerLink]="['/']" name="exit-outline" size="large"></ion-icon>
+        <ion-label class="ion-text-wrap text-dark"> {{ 'exit.exit' | translate }} </ion-label>
+      </div>
+    </ion-buttons>    
+  </ion-toolbar>
+</ion-footer>

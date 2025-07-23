@@ -1,0 +1,80 @@
+{
+  "home": {
+    "title": "Inici",
+    "access": "Accedir",
+    "instanceSelection": "Selecciona el territori que vols visitar",
+    "sitmunInstance": "Territori",
+    "header": "Permís de Localització Denegat",
+    "message": "L'aplicació pot no funcionar correctament en alguns casos.",
+    "settings": "Canviar configuració",
+     "territoriesError": "S'ha produït un error en obtenir els territoris disponibles",
+    "saveConfError": "S'ha produït un error en desar la configuració",
+    "getConfError": "S'ha produït un error en obtenir la configuració",
+    "territoryError": "S'ha produït un error en obtenir el territori de l'app",
+    "appError": "S'ha produït un error en obtenir l'app turística",
+    "databaseError": "S'ha produït un error en inicialitzar la base de dades",
+    "headerError": "Error de comunicació" 
+  },
+  "events": {
+    "searchEvent": "Gastronomia, teatre, música...",
+    "category": "Categoria",
+    "nextActivities": "Properes activitats",
+    "noEvents": "No hi ha esdeveniments disponibles amb el filtre actual.",
+    "filters": "Filtres",
+    "anyFilter": "Qualsevol",
+    "muni": "Municipi",
+    "startdate": "Des de",
+    "enddate": "Fins a",
+    "nearme": "A prop meu",
+    "apply": "Aplicar",
+    "doneText": "Fet",
+    "cancelText": "Cancel·lar",
+    "location": "On:"
+  },
+  "moreInfo": "Més informació",
+  "map": {
+    "title": "Mapa",
+    "backgroundMap": "Capes de fons",
+    "locationPermissionError": "No es tenen permisos per obtenir la ubicació",
+    "locationDisabled": "La ubicació està desactivada",
+    "locationError": "Error en obtenir la ubicació",
+    "search": "Cerca",
+    "searchMap": "Cercar..."
+  },
+  "nearme": {
+    "title": "A prop meu",
+    "searchNearElements": "Cercar elements propers a",
+    "myPosition": "La meva ubicació",
+    "mapCenter": "Centre del mapa",
+    "radiusMetric": "En un radi de (metres)",
+    "radiusNonMetric": "En un radi de (milles)",
+    "categories": "Categories",
+    "selected": "seleccionades",
+    "selectCategory": "Seleccioneu almenys una categoria",
+    "apply": "Aplicar"
+  },
+  "schedule": {
+    "destination": "Destinació"
+  },
+  "alertLocation": {
+    "header": "Ubicació no disponible",
+    "message": "No s'ha pogut obtenir la ubicació actual. Es farà servir el centre del mapa per defecte.",
+    "settings": "Canviar la configuració"
+  },
+  "exit": {
+    "title": "Sortir",
+    "message": "Sortir de l'aplicació?",
+    "exit": "Sortir",
+    "continue": "Continuar",
+    "cancel": "Cancel·lar"
+  },
+  "btnLabel": {
+    "price": "Preu",
+    "schedule": "Horari",
+    "call": "Trucar",
+    "pois": "Punt d'interès",
+    "link": "Obrir enllaç",
+    "mailto": "Enviar correu electrònic",
+    "extraInfo": "Informació extra"
+  }
+}

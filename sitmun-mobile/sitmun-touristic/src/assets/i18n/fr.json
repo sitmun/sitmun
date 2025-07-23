@@ -1,0 +1,80 @@
+{
+  "home": {
+    "title": "Commencer",
+    "access": "Accéder",
+    "instanceSelection": "Sélectionnez le territoire que vous souhaitez visiter",
+    "sitmunInstance": "Territoire",
+    "header": "Permis de Localisation Refusé",
+    "message": "L'application peut ne pas fonctionner correctement dans certains cas.",
+    "settings": "Changer la configuration",
+    "territoriesError": "Une erreur s'est produite lors de l'obtention des territoires disponibles.",
+    "saveConfError": "Une erreur s'est produite lors de l'enregistrement de la configuration.",
+    "getConfError": "Une erreur s'est produite lors de l'obtention de la configuration",
+    "territoryError": "Une erreur s'est produite lors de l'obtention du territoire de l'application.",
+    "appError": "Une erreur s'est produite lors de la récupération de l'application touristique.",
+    "databaseError": "Une erreur s'est produite lors de l'initialisation de la base de données.",
+    "headerError": "Erreur de communication" 
+  },
+  "events": {
+    "searchEvent": "Gastronomie, théâtre, musique...",
+    "category": "Catégorie",
+    "nextActivities": "Prochaines activités",
+    "noEvents": "Aucun événement disponible avec le filtre actuel.",
+    "filters": "Filtres",
+    "anyFilter": "N'importe lequel",
+    "muni": "Commune",
+    "startdate": "Depuis",
+    "enddate": "Jusqu'à",
+    "nearme": "Près de moi",
+    "apply": "Appliquer",
+    "doneText": "Terminé",
+    "cancelText": "Annuler",
+    "location": "Où:"
+  },
+  "moreInfo": "Plus d'informations",
+  "map": {
+    "title": "Carte",
+    "backgroundMap": "Calques d'arrière-plan",
+    "locationPermissionError": "Les autorisations de localisation sont absentes",
+    "locationDisabled": "La localisation est désactivée",
+    "locationError": "Erreur lors de l'obtention de la localisation",
+    "search": "Recherche",
+    "searchMap": "Rechercher..."
+  },
+  "nearme": {
+    "title": "Près de moi",
+    "searchNearElements": "Rechercher des éléments proches de",
+    "myPosition": "Ma position",
+    "mapCenter": "Centre de la carte",
+    "radiusMetric": "Dans un rayon de (mètres)",
+    "radiusNonMetric": "Dans un rayon de (miles)",
+    "categories": "Catégories",
+    "selected": "sélectionnées",
+    "selectCategory": "Veuillez sélectionner au moins une catégorie",
+    "apply": "Appliquer"
+  },
+  "schedule": {
+    "destination": "Destination"
+  },
+  "alertLocation": {
+    "header": "Localisation indisponible",
+    "message": "Impossible d'obtenir la localisation actuelle. Le centre de la carte par défaut sera utilisé.",
+    "settings": "Changer les paramètres"
+  },
+  "exit": {
+    "title": "Quitter",
+    "message": "Quitter l'application ?",
+    "exit": "Quitter",
+    "continue": "Continuer",
+    "cancel": "Annuler"
+  },
+  "btnLabel": {
+    "price": "Prix",
+    "schedule": "Horaire",
+    "call": "Appeler",
+    "pois": "Point d'intérêt",
+    "link": "Ouvrir le lien",
+    "mailto": "Envoyer un e-mailEnvoyer un e-mail",
+    "extraInfo": "Informations supplémentaires"
+  }
+}

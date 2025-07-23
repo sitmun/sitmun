@@ -1,0 +1,101 @@
+ion-input {
+    --background: white;
+    color: black;
+
+    ion-icon{
+        color: #70889E;
+    }
+}
+
+.carrusel {
+    display: flex;
+    flex-direction: row;
+    overflow-x: auto;
+    padding: 0.5rem;
+    -webkit-overflow-scrolling: touch;
+}
+
+.carrusel>.carr-elem {
+    flex: 0 0 auto;
+    border-radius: 1rem;
+}
+
+ion-card {
+    height: 65vh;
+    width: 85vw;
+    background-color: white;
+    color: black;
+
+    ion-card-title{
+    color: black;
+    font-weight: bold;
+    }
+}
+
+.categories.carrusel ion-button {
+    --background: gray;
+}
+
+.categories.carrusel ion-button.active {
+    --background: #70889E;;
+}
+
+.card-img-container {
+    height: 25vh;
+    overflow: hidden;
+}
+
+.dates {
+    font-weight: bold;
+}
+
+.footer {
+    position: fixed;
+    bottom: 0;
+}
+
+.dates>ion-icon {
+    color: #70889E;;
+}
+
+.section {
+    margin-top: 1.2rem
+}
+
+.btns-container {
+    position: fixed;
+    top: calc(25vh - 24px);
+    right: 0;
+}
+
+.cat-container {
+    position: fixed;
+    top: 2%;
+    right: 2%;
+    background-color: white;
+    color: black;
+    padding: 0.2rem;
+    border-radius: 0.4rem;
+}
+
+.location-btn, .favorite-btn {
+    margin-right: 1vw;
+    //border: 2px solid white;
+}
+
+.evt-content {
+    max-height: 20vh;
+    overflow: auto;
+}
+
+#filtersModal ion-item {
+    --background: white;
+    color: black;
+    margin-bottom: 2rem;
+}
+
+ion-checkbox {
+    --border-color: black;
+    --checkbox-background: white;
+    --checkbox-background-checked: #70889E;;
+}

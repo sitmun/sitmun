@@ -1,0 +1,65 @@
+ion-segment-button {
+    --indicator-color: #70889E;
+    --color: black;
+    --color-checked: black;
+}
+
+ion-range {
+    --knob-size: 1.5rem;
+    --bar-height: 0.4rem;
+    --bar-border-radius: 0.2rem;
+    --bar-background: white;
+    --bar-background-active: #70889E;
+}
+
+ion-input{
+    --background: white;
+}
+
+ion-modal {
+    --width: fit-content;
+    --min-width: 75vw;
+    --height: fit-content;
+    --border-radius: 6px;
+    --box-shadow: 0 28px 48px rgba(0, 0, 0, 0.4);
+    --background: white;
+    
+    #content{
+      padding: 2rem;
+    }
+
+    ion-button {
+        --background: #70889E;
+        --color: white;
+        --border-radius: 6px;
+        --box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+}
+
+.container{
+    background-color: white;
+}
+
+.section {
+    margin-top: 1.5rem;
+}
+
+
+.category {
+    --background: white;
+    --border-color: #70889E;
+    --border-style: solid;
+    --border-width: 1px;
+    --color: #70889E;
+    text-transform: none !important;
+}
+
+.category.selected {
+    --background: #70889E;
+    --color: white;
+}
+
+.cat-container {
+    max-height: 35vh;
+    overflow: auto;
+}
