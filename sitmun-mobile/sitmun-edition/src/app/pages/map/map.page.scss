@@ -1,0 +1,47 @@
+ion-content {
+    --background: white;
+    height: 100%;
+}
+
+#map{
+    height: 100%;
+    width: 100%;
+}
+
+ion-fab-button {
+    --background: orange;
+    --color: white;
+    margin-bottom: 0.8rem;
+}
+
+.attr-container {
+    max-height: calc(100vh - 130px);
+    overflow: auto;
+}
+
+.attr-container ion-item {
+    --background: white;
+    color: black;
+    margin-bottom: 2rem;
+}
+
+.feature-attr {
+    margin-top: 1.5rem;
+}
+
+.eye.visible {
+    color: green;
+}
+
+.eye {
+    color: red;
+}
+
+.pos-end {
+    position: absolute;
+    right: 0;
+}
+
+.form-check-input{
+    border: 1px solid black !important;
+}

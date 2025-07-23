@@ -1,0 +1,53 @@
+{
+    "home":{
+        "access": "Acceder",
+        "instanceSelection": "Introduzca url de instancia",
+        "registerInstance": "Registrar",
+        "user": "Usuario",
+        "password": "Contraseña"
+    },
+    "applist": {
+        "title": "Aplicaciones",
+        "selectTer": "Seleccionar territorio",
+        "openMap": "Abrir mapa",
+        "openDownload": "Abrir descarga",
+        "cancel": "Cancelar"
+    },
+    "download": {
+        "title": "Descargar",
+        "downloadZone": "Definir zona a descargar",
+        "scope": "Ámbito",
+        "zoomLevel": "Nivel de zoom",
+        "selectData": "Seleccionar datos a descargar",
+        "update": "Actualizar",
+        "minx": "Min x",
+        "miny": "Min y",
+        "maxx": "Max x",
+        "maxy": "Max y",
+        "selectProj": "Proyección",
+        "toast": "Descarga con éxito"
+    },
+    "map": {
+        "title": "Mapa",
+        "addPoint": "Añadir punto",
+        "editPoint": "Editar punto",
+        "selector": "Campo",
+        "imageFormatError": "Formato de imagen incorrecto",
+        "imagePermissionError": "Permiso de cámara no concedido",
+        "locationPermissionError": "No se tienen permisos para obtener la ubicación",
+        "locationDisabled": "La ubicación está desactivada",
+        "locationError": "Error al obtener la ubicación",
+        "doneText": "Hecho",
+        "cancelText": "Cancelar",
+        "editGeometryError": "Se debe guardar antes de editar la geometría",
+        "noEditLayerSelected": "Se debe seleccionar la capa a editar previamente",
+        "invalidFeatureForm": "Hay campos obligatorios sin rellenar"
+    },
+    "exit": {
+        "title": "Salir",
+        "message": "¿Salir de la aplicación?",
+        "exit": "Salir",
+        "continue": "Continuar"
+    },
+    "offline": "Sin conexión"
+}

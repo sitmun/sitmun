@@ -1,0 +1,53 @@
+{
+    "home":{
+        "access": "Accéder",
+        "instanceSelection": "Entrez l’URL de l’instance",
+        "registerInstance": "Enregistrer",
+        "user": "Utilisateur",
+        "password": "Mot de passe"
+    },
+    "applist": {
+        "title": "Applications",
+        "selectTer": "Sélectionner un territoire",
+        "openMap": "Ouvrir la carte",
+        "openDownload": "Abrir descarga",
+        "cancel": "Annuler"
+    },
+    "download": {
+        "title": "Télécharger",
+        "downloadZone": "Définir la zone à télécharger",
+        "scope": "Portée",
+        "zoomLevel": "Niveau de zoom",
+        "selectData": "Sélectionner les données à télécharger",
+        "update": "Mettre à jour",
+        "minx": "Min x",
+        "miny": "Min y",
+        "maxx": "Max x",
+        "maxy": "Max y",
+        "selectProj": "Projection",
+        "toast": "Télécharger avec succès"
+    },
+    "map": {
+        "title": "Carte",
+        "addPoint": "Ajouter un point",
+        "editPoint": "Éditer un point",
+        "selector": "Champ",
+        "imageFormatError": "Format d'image incorrect",
+        "imagePermissionError": "L'autorisation de la caméra n'a pas été accordée",
+        "locationPermissionError": "Aucune autorisation pour obtenir l'emplacement",
+        "locationDisabled": "L'emplacement est désactivé",
+        "locationError": "Erreur lors de l'obtention de l'emplacement",
+        "doneText": "Terminé",
+        "cancelText": "Annuler",
+        "editGeometryError": "Il faut enregistrer avant de modifier la géométrie",
+        "noEditLayerSelected": "Il faut d’abord sélectionner la couche à modifier",
+        "invalidFeatureForm": "Des champs obligatoires ne sont pas remplis"
+    },
+    "exit": {
+        "title": "Quitter",
+        "message": "Quitter l'application?",
+        "exit": "Quitter",
+        "continue": "Continuer"
+    },
+    "offline": "Hors ligne"
+}

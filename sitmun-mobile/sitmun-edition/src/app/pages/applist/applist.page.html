@@ -1,0 +1,78 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-title>{{ 'applist.title' | translate }}</ion-title>
+    <ion-buttons slot="end">
+      <ion-select [(ngModel)]="selectedLanguage" (ionChange)="setLanguage($event.detail.value)"
+                  interface="popover">
+        <ion-select-option *ngFor="let lang of languageOptions" [value]="lang.code">
+          {{ lang.name }}
+        </ion-select-option>
+      </ion-select>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <div class="container">
+    <div class="row" *ngFor="let app of applications">
+      <div class="col-4">
+        <div class="list-img-container mx-auto">
+          <ion-img class="list-img img-cover" src="{{app['logo'] || '../../assets/icon/no-image.jpg'}}"></ion-img>
+        </div>
+      </div>
+      <div class="col-5 item-data my-auto" (click)="mapPage(app)">
+        <h6>{{app['title']}}</h6>
+      </div>
+      <div class="col-1 my-auto">
+        <div class="dl-btn mx-auto icono-dwl" *ngIf="app['layersSizeBytes'] > 0">
+          <ion-icon name="layers" size="small"></ion-icon>
+          <span class="text-dark">{{ app.layersSizeMBytes }}MB</span>
+        </div>
+      </div>
+      <div class="col-2 my-auto">
+        <ion-button shape="round" class="dl-btn mx-auto" (click)="downloadPage(app)" *ngIf="networkConnected">
+          <ion-icon slot="icon-only" name="download"></ion-icon>
+        </ion-button>
+      </div>
+    </div>
+  </div>
+
+  <ion-modal id="territories-modal" #modal [isOpen]="isModalOpen" (ionModalDidDismiss)="closeTerritoryModal(false)">
+    <ng-template>
+      <div class="wrapper container">
+        <div class="row">
+          <h1>{{ 'applist.selectTer' | translate }}</h1>
+        </div>
+        <div class="row">
+          <ion-select id="terrSelector" class="mx-auto" [(ngModel)]="selectedTerritoryId" interface="popover">
+            <ion-select-option *ngFor="let terr of territories" [value]="terr.id">
+              {{ terr.name }}
+            </ion-select-option>
+          </ion-select>
+        </div>
+        <div class="row">
+          <div class="col">
+            <ion-button *ngIf="nextPage === 'map'" expand="block" (click)="closeTerritoryModal(true)">{{ 'applist.openMap' | translate }}</ion-button>
+            <ion-button *ngIf="nextPage === 'download'" expand="block" (click)="closeTerritoryModal(true)">{{ 'applist.openDownload' | translate }}</ion-button>
+          </div>
+          <div class="col">
+            <ion-button expand="block" (click)="closeTerritoryModal(false)">{{ 'applist.cancel' | translate }}</ion-button>
+          </div>
+        </div>
+      </div>
+    </ng-template>
+  </ion-modal>
+</ion-content>
+<ion-footer [translucent]="true">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button *ngIf="!networkConnected" class="offlineButton">
+        <ion-icon name="cloud-offline-outline" slot="start"></ion-icon>
+        {{'offline' | translate}}
+      </ion-button>
+    </ion-buttons>
+    <ion-buttons slot="end">
+      <ion-icon [routerLink]="['/']" name="exit-outline" size="large"></ion-icon>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-footer>

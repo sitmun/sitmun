@@ -1,0 +1,86 @@
+ion-content {
+    --background: white;
+    height: 100%;
+}
+
+ion-button {
+    --background: orange;
+    color: white;
+}
+
+ion-range {
+    --bar-background-active: orange;
+    --knob-background: orange;
+    --knob-size: 1.5rem;
+    --bar-height: 0.4rem;
+    --bar-border-radius: 0.2rem;
+}
+
+ion-input.has-focus {
+    --border-color: orange !important;
+}
+
+.sc-ion-input-md-h {
+    --highlight-color-focused: black;
+}
+
+.input-disabled.sc-ion-input-md-h {
+    opacity: 1;
+}
+
+h4, ion-input, ion-range {
+    color: black;
+}
+
+.row {
+    margin-top: 1rem;
+}
+
+.full-input {
+    width: 70vw;
+}
+
+.container {
+    height: calc(100vh - 56px);
+}
+
+.tree-container {
+    overflow-y: auto;
+    flex: 1;
+}
+
+.tree-row {
+    flex-direction: column;
+}
+
+.tree-container li {
+    border: none;
+}
+
+.form-check-input{
+    border: 1px solid black !important;
+}
+
+ion-select{
+    color: black;
+    --background: white;
+    --border-radius: 9999px;
+    --padding-end: 1.5em;
+    --padding-start: 1.5em;
+}
+
+.icono-dwl {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    ion-icon {
+        font-size: 2rem; 
+        color: orange;
+      }
+
+    span{
+        font-size: 0.6rem;
+    }
+
+  }

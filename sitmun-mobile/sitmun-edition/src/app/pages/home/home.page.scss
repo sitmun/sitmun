@@ -1,0 +1,130 @@
+ion-toolbar {
+  --background: black;
+}
+
+ion-content {
+  --background: orange;
+}
+
+.container {
+  text-align: center;
+  left: 0;
+  right: 0;
+  height: 100%;
+  background-color: orange;
+}
+
+.container strong {
+  font-size: 20px;
+  line-height: 26px;
+  display: block;
+}
+
+.container p {
+  font-size: 16px;
+  line-height: 22px;
+  color: #8c8c8c;
+  margin: 0;
+}
+
+.container a {
+  text-decoration: none;
+}
+
+.instance-content {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 100%;
+}
+
+.login-input {
+  width: 70vw;
+  color: black;
+  background-color: white;
+  border-radius: 26px;
+}
+
+::ng-deep .login-input input {
+  padding: 0 50px !important;
+}
+
+#instance-selector::part(icon) {
+  position: absolute;
+  right: 0;
+  left: auto;
+}
+
+ion-modal {
+  --width: fit-content;
+  --min-width: 75vw;
+  --height: fit-content;
+  --border-radius: 6px;
+  --box-shadow: 0 28px 48px rgba(0, 0, 0, 0.4);
+  --background: orange;
+
+  ion-input{     
+    --background: white; 
+    --highlight-color-focused:rgb(137, 194, 225);
+  }
+
+  #content{
+    padding: 2rem;
+  }
+}
+
+.logo-content>ion-img {
+  width: 46vw;
+  height: 33vh;
+}
+
+ion-grid {
+  padding-top: 5vh;
+}
+
+.center {
+  align-content: center;
+}
+
+.access-btn {
+  --background: coral;
+  width: 50vw;
+}
+
+.instanceBtn {
+  --background: white;
+  --color: coral;
+}
+
+.instanceModal {
+  --background: navajowhite;
+}
+
+.instanceModal ion-button {
+  --background: coral;
+}
+
+.login-icon-left {
+  color: orange;
+  position: absolute;
+  left: 10px;
+}
+
+.login-icon-right {
+  color: orange;
+  position: absolute;
+  right: 10px;
+}
+
+.row {
+  margin-bottom: 1rem;
+}
+
+.error-text {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.error {
+  color: red;
+}

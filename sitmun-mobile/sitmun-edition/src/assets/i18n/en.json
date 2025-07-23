@@ -1,0 +1,53 @@
+{
+    "home":{
+        "access": "Access",
+        "instanceSelection": "Enter instance URL",
+        "registerInstance": "Register",
+        "user": "User",
+        "password": "Password"
+    },
+    "applist": {
+        "title": "Applications",
+        "selectTer": "Select territory",
+        "openMap": "Open map",
+        "openDownload": "Open download",
+        "cancel": "Cancel"
+    },
+    "download": {
+        "title": "Download",
+        "downloadZone": "Define area to download",
+        "scope": "Scope",
+        "zoomLevel": "Zoom level",
+        "selectData": "Select data to download",
+        "update": "Update",
+        "minx": "Min x",
+        "miny": "Min y",
+        "maxx": "Max x",
+        "maxy": "Max y",
+        "selectProj": "Projection",
+        "toast": "Download successfully"
+    },
+    "map": {
+        "title": "Map",
+        "addPoint": "Add point",
+        "editPoint": "Edit point",
+        "selector": "Field",
+        "imageFormatError": "Incorrect image format",
+        "imagePermissionError": "Camera permission not granted",
+        "locationPermissionError": "No permissions to obtain the location",
+        "locationDisabled": "Location is disabled",
+        "locationError": "Error obtaining location",
+        "doneText": "Done",
+        "cancelText": "Cancel",
+        "editGeometryError": "You must save before editing the geometry",
+        "noEditLayerSelected": "You must select the layer to edit first",
+        "invalidFeatureForm": "There are required fields that are not filled in"
+    },
+    "exit": {
+        "title": "Exit",
+        "message": "Exit the application?",
+        "exit": "Exit",
+        "continue": "Continue"
+    },
+    "offline": "Offline"
+}
