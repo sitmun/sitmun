@@ -37,11 +37,13 @@ export class TaskQueryParameter {
    * @param label The label of the parameter
    * @param type The type of the parameter - must be either template or query
    * @param required Whether the parameter is required - only used when type is query
+   * @param value default value
    */
-  constructor(name?: string, label?: string, type?: TaskParameterType, required?: boolean) {
+  constructor(name?: string, label?: string, type?: TaskParameterType, required?: boolean, value?: string) {
     this.name = name;
     this.label = label;
     this.type = type;
+    this.value = value;
     if (type === TaskParameterType.QUERY) {
       this.required = required;
     }
@@ -56,7 +58,7 @@ export class TaskQueryParameter {
     const parameter = new TaskQueryParameter();
     // Define the properties to copy
     const propertiesToCopy = [
-      'name', 'label', 'type'
+      'name', 'label', 'type', 'value'
     ];
     // Copy only defined properties that exist in our class
     propertiesToCopy.forEach(prop => {
