@@ -8,6 +8,7 @@ import { ApplistPageRoutingModule } from './applist-routing.module';
 
 import { ApplistPage } from './applist.page';
 import { TranslateModule } from '@ngx-translate/core';
+import { ProfileModalComponent } from 'src/app/components/profile-modal/profile-modal.component';
 
 @NgModule({
   imports: [
@@ -16,6 +17,7 @@ import { TranslateModule } from '@ngx-translate/core';
     IonicModule,
     ApplistPageRoutingModule,
     TranslateModule,
+    ProfileModalComponent
   ],
   declarations: [ApplistPage]
 })

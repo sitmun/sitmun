@@ -14,6 +14,16 @@ ion-fab-button {
     margin-bottom: 0.8rem;
 }
 
+ion-range {
+    --knob-size: 1.5rem;
+    --bar-height: 0.3rem;
+    --bar-border-radius: 0.2rem;
+    --bar-background: rgb(190, 190, 190);
+    --bar-background-active: orange;
+    --pin-background: orange;
+    height: 1.5rem;
+}
+
 .attr-container {
     max-height: calc(100vh - 130px);
     overflow: auto;
@@ -37,6 +47,35 @@ ion-fab-button {
     color: red;
 }
 
+.layer-row{
+  background-color: white;
+  padding: 0.5em;
+}
+
+.save-btn{
+    --background: orange;
+    --border-radius: 25% !important;
+    --color: white;
+}
+
+.saveOff-btn{
+    --background: rgb(174, 171, 171) !important;
+    --border-radius: 25% !important;
+    color: white;
+}
+
+.edit-btn{
+    --background: rgb(174, 171, 171);
+    --border-radius: 25% !important;
+    color: white;
+}
+
+.active{
+   --background: red;
+    --border-radius: 25% !important; 
+    color: white;
+}
+
 .pos-end {
     position: absolute;
     right: 0;
@@ -44,4 +83,9 @@ ion-fab-button {
 
 .form-check-input{
     border: 1px solid black !important;
+}
+
+.img-background{
+  height: 20vw;
+  width: 20vw;
 }

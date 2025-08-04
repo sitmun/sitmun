@@ -27,6 +27,7 @@ export class WfsService {
     };
     if (extent) {
       options.params['maxExtent'] = extent;
+      options.params['bbox'] = extent;
     }
     if (mapProj !== '') {
       options.params['srsName'] = mapProj;

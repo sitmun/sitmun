@@ -4,7 +4,9 @@
         "instanceSelection": "Introduzca url de instancia",
         "registerInstance": "Registrar",
         "user": "Usuario",
-        "password": "Contraseña"
+        "password": "Contraseña",
+        "selectUser": "Selecciona usuario",
+        "cancel": "Cancelar"
     },
     "applist": {
         "title": "Aplicaciones",
@@ -25,7 +27,24 @@
         "maxx": "Max x",
         "maxy": "Max y",
         "selectProj": "Proyección",
-        "toast": "Descarga con éxito"
+        "toast": "Descarga con éxito",
+        "storagePermissionError": "No se tienen permisos para almacenar ficheros en el dispositvo",
+        "noBgLayerSelected": "No se ha seleccionado ninguna capa de fondo",
+        "noLayerSelected": "No se ha seleccionado ninguna capa",
+        "remove": "Eliminar descarga",
+        "accept": "Aceptar",
+        "cancel": "Cancelar",
+        "dwl-modal-title": "Descarga de mapa",
+        "dwl-modal-message": "El peso estimado de la descarga va a ser de ",
+        "progress-file": "Descargando fichero",
+        "progress-request": "Procesando petición",
+        "delete-modal-title": "Eliminar descarga previa",
+        "delete-modal-message": "¿Está seguro de que desea eliminar la descarga previa?",
+        "no-freespace": "No hay espacio suficiente en el dispositivo para realizar la descarga.",
+        "storageData": "Datos almacenados",
+        "bgLayer": "Capas base",
+        "editLayer": "Capas editables"
+
     },
     "map": {
         "title": "Mapa",
@@ -41,13 +60,23 @@
         "cancelText": "Cancelar",
         "editGeometryError": "Se debe guardar antes de editar la geometría",
         "noEditLayerSelected": "Se debe seleccionar la capa a editar previamente",
-        "invalidFeatureForm": "Hay campos obligatorios sin rellenar"
+        "invalidFeatureForm": "Hay campos obligatorios sin rellenar",
+        "prompt": {
+            "header": "Seleccionar imagen",
+            "gallery": "Abrir galería",
+            "picture": "Tomar foto"
+        },
+        "downloadLayers": "Capas descargadas" 
     },
     "exit": {
         "title": "Salir",
         "message": "¿Salir de la aplicación?",
         "exit": "Salir",
         "continue": "Continuar"
+    },
+    "menu":{
+        "title": "Perfil",
+        "exit": "Cerrar sesión"
     },
     "offline": "Sin conexión"
 }

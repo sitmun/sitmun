@@ -7,17 +7,17 @@
     </ion-buttons>
     <ion-title>{{ 'download.title' | translate }}</ion-title>
     <ion-buttons slot="end">
-      <ion-select [(ngModel)]="selectedLanguage" (ionChange)="setLanguage($event.detail.value)"
-                  interface="popover">
-        <ion-select-option *ngFor="let lang of languageOptions" [value]="lang.code">
-          {{ lang.name }}
-        </ion-select-option>
-      </ion-select>
+      <ion-button *ngIf="!networkConnected" class="offlineButton">
+        <ion-icon name="cloud-offline-outline" slot="start"></ion-icon>
+      </ion-button>
+        <ion-button (click)="openMenu()">
+          <ion-icon slot="icon-only" name="person"></ion-icon>
+        </ion-button>
     </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
-<ion-content [fullscreen]="true">
+<ion-content [fullscreen]="true" id="dwnld-content">
   <div class="container">
     <div class="row">
       <h4 class="text-center">{{ 'download.downloadZone' | translate }}</h4>
@@ -57,18 +57,43 @@
       </div>
     </div>
     <div class="row split">
-      <div class="col">
+      <div class="col">                    
         <div class="row">
           <h4 class="text-center">{{ 'download.selectData' | translate }}</h4>
-            <div class="dl-btn mx-auto icono-dwl" *ngIf="layersSizeBytes > 0">
+        </div>
+        <div class="row" *ngIf="layersSizeBytes > 0">
+          <div class="d-flex align-items-center gap-2 my-4">
+          <h5>{{ 'download.storageData' | translate }}</h5>
+          <div class="icono-dwl">
               <ion-icon name="layers"></ion-icon>
-              <span class="text-dark text-sm">{{ layersSizeMBytes }}MB</span>
-            </div>
+              <span class="text-dark">{{ layersSizeMBytes }}MB</span>
+          </div>
+        </div> 
+        </div>        
+        <div class="row" *ngIf="bgTreeData.length > 0">
+          <h5 class="co-black">{{ 'download.bgLayer' | translate }}</h5>
+        </div>
+        <div class="row tree-row" *ngIf="bgTreeData.length > 0">
+          <div class="tree-container">
+            <ul class="list-group">
+              <ng-container *ngFor="let node of bgTreeData">
+                <li class="list-group-item">
+                  <div class="d-flex align-items-center">
+                    <input type="checkbox" class="form-check-input me-2 bg-check" [(ngModel)]="node.checked" (change)="toggleBgCheck(node, $event)" />
+                    {{ node.name }}
+                  </div>
+                </li>
+              </ng-container>
+            </ul>
+          </div>
+        </div>
+        <div class="row">
+          <h5 class="co-black">{{ 'download.editLayer' | translate }}</h5>
         </div>
         <div class="row tree-row">
           <div class="tree-container">
             <ul class="list-group">
-              <ng-container *ngFor="let node of treeData">
+              <ng-container *ngFor="let node of layersTreeData">
                 <li class="list-group-item">
                   <div class="d-flex align-items-center">
                     <input type="checkbox" class="form-check-input me-2" [(ngModel)]="node.checked" (change)="toggleCheck(node)" />
@@ -104,30 +129,80 @@
         </div>
       </div>
     </div>
-    <div class="row">
-      <ion-button expand="block" shape="round" (click)="downloadLayers()">{{ 'download.title' | translate }}</ion-button>
-      <ion-toast
+    <div class="row" *ngIf="layersSizeBytes == 0">
+      <ion-button expand="block" class="dwld-btn" shape="round" (click)="openDownloadModal()">{{ 'download.title' | translate }}</ion-button>
+    </div>
+    <div class="row" *ngIf="layersSizeBytes > 0">
+      <ion-button expand="block" class="dwld-btn" shape="round" (click)="openDownloadModal()">{{ 'download.update' | translate }}</ion-button>
+    </div>
+    <div class="row" *ngIf="layersSizeBytes > 0">
+      <ion-button class="del-btn" expand="block" shape="round" (click)="openDeleteModal()">{{ 'download.remove' | translate }}</ion-button>
+    </div>   
+  </div>
+  
+
+  <ion-modal class="centered-modal" [isOpen]="alertModalOpen" (ionModalDidDismiss)="closeDownloadModal()">
+    <ng-template>
+      <div class="wrapper">
+        <div class="row">
+          <h1 class="text-dark">{{ 'download.dwl-modal-title' | translate }}</h1>
+        </div>
+        <div class="row">
+          <p class="text-dark">{{ 'download.dwl-modal-message' | translate }} <strong>{{ estimatedSize | number: '1.1-1' }}</strong> MB.</p>
+        </div>
+        <div class="row" *ngIf="freeSpaceMB < estimatedSize">
+          <p class="text-danger">{{ 'download.no-freespace' | translate }}</p>
+        </div>
+        <div class="row">
+          <div class="col">
+            <ion-button [disabled]="freeSpaceMB < estimatedSize" expand="block" (click)="downloadLayers()">{{ 'download.accept' | translate }}</ion-button>
+          </div>
+          <div class="col">
+            <ion-button expand="block" (click)="closeDownloadModal()">{{ 'download.cancel' | translate }}</ion-button>
+          </div>
+        </div>
+      </div>
+    </ng-template>
+  </ion-modal>     
+
+  <ion-modal class="centered-modal" [isOpen]="downloadProgress.value > 0" [canDismiss]="downloadProgress.value === 0">
+    <ng-template>
+      <div class="wrapper">
+        <div class="row">
+           <p class="text-dark">{{ downloadProgress.type | translate }}: {{ (downloadProgress.value * 100) | number: '1.0-0' }}%</p>
+           <ion-progress-bar [value]="downloadProgress.value" color="primary"></ion-progress-bar>
+        </div>
+      </div>
+    </ng-template>
+  </ion-modal>
+
+  <ion-modal class="centered-modal" [isOpen]="deleteModalOpen" (ionModalDidDismiss)="closeDeleteModal()">
+    <ng-template>
+      <div class="wrapper">
+        <div class="row">
+          <h1 class="text-dark">{{ 'download.delete-modal-title' | translate }}</h1>
+        </div>
+        <div class="row">
+          <p class="text-dark">{{ 'download.delete-modal-message' | translate }} </p>
+        </div>
+        <div class="row">
+          <div class="col">
+            <ion-button expand="block" (click)="removeDownload()">{{ 'download.accept' | translate }}</ion-button>
+          </div>
+          <div class="col">
+            <ion-button expand="block" (click)="closeDeleteModal()">{{ 'download.cancel' | translate }}</ion-button>
+          </div>
+        </div>
+      </div>
+    </ng-template>
+  </ion-modal>
+
+  <app-profile-modal #profileModal></app-profile-modal>
+
+   <ion-toast
         [isOpen]="openToast"
         message="{{ 'download.toast' | translate }}"
         [duration]="5000"
         (didDismiss)="closeToast()"
       ></ion-toast>
-    </div>
-    <div class="row">
-      <ion-button expand="block" shape="round" (click)="updateLayers()">{{ 'download.update' | translate }}</ion-button>
-    </div>
-  </div>
 </ion-content>
-<ion-footer [translucent]="true">
-  <ion-toolbar>
-    <ion-buttons slot="start">
-      <ion-button *ngIf="!networkConnected" class="offlineButton">
-        <ion-icon name="cloud-offline-outline" slot="start"></ion-icon>
-        {{'offline' | translate}}
-      </ion-button>
-    </ion-buttons>
-    <ion-buttons slot="end">
-      <ion-icon [routerLink]="['/']" name="exit-outline" size="large"></ion-icon>
-    </ion-buttons>
-  </ion-toolbar>
-</ion-footer>

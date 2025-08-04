@@ -36,14 +36,20 @@
 /* @import "@ionic/angular/css/palettes/dark.class.css"; */
 @import "@ionic/angular/css/palettes/dark.system.css";
 
-ion-header ion-toolbar {
-    --background: orange;
-    text-align: center;
+ion-header ion-toolbar,
+ion-footer ion-toolbar,
+ion-menu ion-toolbar {
+  --background: orange;
+  text-align: center;
 }
 
-ion-footer ion-toolbar {
-    --background: orange;
-    text-align: center;
+ion-header ion-title {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  text-align: center;
 }
 
 .list-img-container {
@@ -66,6 +72,11 @@ ion-footer ion-toolbar {
     --border-radius: 50%;
 }
 
+.disabled-btn{
+    --background: grey !important;
+    color: white;
+}
+
 .row.split {
     border-top: 0.1rem solid grey;
 }
@@ -77,4 +88,29 @@ ion-footer ion-toolbar {
 
 .offlineButton {
     color: red !important;
+}
+
+ion-modal.profile-modal {
+    ion-content {
+        --background: white;
+    }
+    ion-list{
+        background-color: white !important;    
+
+        ion-icon{
+            color: orange;
+        }        
+
+        ion-item, ion-select{
+            --background: white;
+            color: black;
+        }
+
+    }
+
+    .menu-btn{
+        --background: orange;
+        color: white;
+        width: auto;
+    }
 }

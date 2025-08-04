@@ -3,11 +3,6 @@ ion-content {
     height: 100%;
 }
 
-ion-button {
-    --background: orange;
-    color: white;
-}
-
 ion-range {
     --bar-background-active: orange;
     --knob-background: orange;
@@ -61,6 +56,16 @@ h4, ion-input, ion-range {
     border: 1px solid black !important;
 }
 
+.dwld-btn{
+    --background: orange;
+    color: white;
+}
+
+.del-btn{
+    --background: rgb(218, 16, 16);
+    color: white;
+}
+
 ion-select{
     color: black;
     --background: white;
@@ -71,7 +76,7 @@ ion-select{
 
 .icono-dwl {
     display: flex;
-    flex-direction: column;
+    /*flex-direction: column;*/
     align-items: center;
 
     ion-icon {
@@ -80,7 +85,28 @@ ion-select{
       }
 
     span{
-        font-size: 0.6rem;
+        font-size: 0.8rem;
     }
 
   }
+
+ion-modal.centered-modal {
+    --width: fit-content;
+    --min-width: 75vw;
+    --max-width: 85vw;
+    --height: fit-content;
+    --border-radius: 6px;
+    --box-shadow: 0 28px 48px rgba(0, 0, 0, 0.4);
+    --background: white;
+}
+
+ion-modal.centered-modal ion-button {
+    --background: orange;
+    color: white;
+}
+
+ion-modal.centered-modal .wrapper {
+    margin-bottom: 10px;
+    padding: 1em;
+    text-align: center;
+}

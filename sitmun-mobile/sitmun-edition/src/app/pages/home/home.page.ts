@@ -60,10 +60,9 @@ export class HomePage implements OnInit, OnDestroy {
     this.loginForm.patchValue({
       instance: this.instanceDB
     });
-    this.updateNetworkStatus(await this.networkService.getStatus());
-    this.networkService.addListener(this.updateNetworkStatus.bind(this));
-    if (!this.networkConnected) {
-      await this.getCachedUsers();
+    if (this.dbinit) {
+      this.updateNetworkStatus(await this.networkService.getStatus());
+      this.networkService.addListener(this.updateNetworkStatus.bind(this));
     }
   }
 
@@ -100,6 +99,8 @@ export class HomePage implements OnInit, OnDestroy {
         instance: this.instanceDB
       });
     }
+    this.updateNetworkStatus(await this.networkService.getStatus());
+    this.networkService.addListener(this.updateNetworkStatus.bind(this));
   }
 
   ngOnDestroy(): void {
@@ -177,6 +178,7 @@ export class HomePage implements OnInit, OnDestroy {
   }
 
   updateNetworkStatus(connected: boolean) {
+    console.log('Network status updated:', connected);
     this.networkConnected = connected;
     if (!connected) {
       this.getCachedUsers();
@@ -184,6 +186,7 @@ export class HomePage implements OnInit, OnDestroy {
   }
 
   async getCachedUsers() {
+    console.log('Network disconnected, fetching cached users');
     this.loginusers = await this.databaseService.getLoginUsers();
     this.refreshOfflineUsers();
   }

@@ -4,7 +4,9 @@
         "instanceSelection": "Enter instance URL",
         "registerInstance": "Register",
         "user": "User",
-        "password": "Password"
+        "password": "Password",
+        "selectUser": "Select user",
+        "cancel": "Cancel"
     },
     "applist": {
         "title": "Applications",
@@ -25,7 +27,23 @@
         "maxx": "Max x",
         "maxy": "Max y",
         "selectProj": "Projection",
-        "toast": "Download successfully"
+        "toast": "Download successfully",
+        "storagePermissionError": "No permissions to store files on the device",
+        "noBgLayerSelected": "No background layer selected",
+        "noLayerSelected": "No layer selected",
+        "remove": "Remove download",
+        "accept": "Accept",
+        "cancel": "Cancel",
+        "dwl-modal-title": "Map Download",
+        "dwl-modal-message": "The estimated size of the download will be ",
+        "progress-file": "Downloading file",
+        "progress-request": "Processing request",
+        "delete-modal-title": "Delete previous download",
+        "delete-modal-message": "Are you sure you want to delete the previous download?",
+        "no-freespace": "No free space available on the device to perform the download.",
+        "storageData": "Stored data",
+        "bgLayer": "Base layers",
+        "editLayer": "Editable layers"
     },
     "map": {
         "title": "Map",
@@ -41,13 +59,23 @@
         "cancelText": "Cancel",
         "editGeometryError": "You must save before editing the geometry",
         "noEditLayerSelected": "You must select the layer to edit first",
-        "invalidFeatureForm": "There are required fields that are not filled in"
+        "invalidFeatureForm": "There are required fields that are not filled in",
+         "prompt": {
+            "header": "Select image",
+            "gallery": "Open gallery",
+            "picture": "Take picture"
+        },
+        "downloadLayers": "Downloaded layers" 
     },
     "exit": {
         "title": "Exit",
         "message": "Exit the application?",
         "exit": "Exit",
         "continue": "Continue"
+    },
+    "menu":{
+        "title": "Profile",
+        "exit": "Log out"
     },
     "offline": "Offline"
 }

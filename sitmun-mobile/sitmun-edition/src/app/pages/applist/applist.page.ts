@@ -1,9 +1,12 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { NavigationExtras, Router } from '@angular/router';
 import { AuthorizationService } from 'src/app/services/authorization.service';
 import { DatabaseService } from 'src/app/services/database.service';
 import { LanguageService } from 'src/app/services/language.service';
 import { NetworkService } from 'src/app/services/network.service';
+import { Filesystem, Directory } from '@capacitor/filesystem';
+import { AnimationController } from '@ionic/angular';
+import { ProfileModalComponent } from 'src/app/components/profile-modal/profile-modal.component';
 
 @Component({
   selector: 'app-applist',
@@ -13,8 +16,6 @@ import { NetworkService } from 'src/app/services/network.service';
 export class ApplistPage implements OnInit {
 
   messages_: any = {}
-  selectedLanguage: string | null = null;
-  languageOptions: any[] = [];
   applications: any[] = [];
   territories: any[] = [];
   selectedTerritory: any = {};
@@ -23,16 +24,15 @@ export class ApplistPage implements OnInit {
   isModalOpen = false;
   nextPage = 'map';
   networkConnected = true;
+  @ViewChild('profileModal') profileModal!: ProfileModalComponent;
 
   constructor(private languageService: LanguageService, private router: Router,
     private authorizationService: AuthorizationService, private networkService: NetworkService,
-    private databaseService: DatabaseService) {
+    private databaseService: DatabaseService, private animationCtrl: AnimationController) {
 
   }
 
   async ionViewWillEnter() {
-    this.selectedLanguage = this.languageService.getLanguage();
-    this.languageOptions = this.languageService.getLanguageOptions();
     this.updateNetworkStatus(await this.networkService.getStatus());
     this.networkService.addListener(this.updateNetworkStatus.bind(this));
     this.refreshApplications();
@@ -46,25 +46,19 @@ export class ApplistPage implements OnInit {
     if (this.networkConnected) {
       await this.getApplications();
     } else {
-      this.getOfflineApplications();
+      await this.getOfflineApplications();
+    }
+    for (const app of this.applications) {
+        //this.layers[app.id] = await this.databaseService.getLayersByApp(app.id);
+        const { layersSizeBytes, layersSizeMBytes } = await this.getDatabaseWeight(app.id);
+        app.layersSizeBytes = layersSizeBytes;
+        app.layersSizeMBytes = layersSizeMBytes;
     }
   }
 
   async getApplications() {
     try{
       const resp = await this.authorizationService.getApplications();
-
-      for (const app of resp) {
-        //this.layers[app.id] = await this.databaseService.getLayersByApp(app.id);
-        const layers = await this.databaseService.getLayersByApp(app.id);
-
-        const geojsonTotal: string[] = [];
-        layers.forEach(layer => {
-          geojsonTotal.push(layer.geojson);
-        });
-        app.layersSizeBytes = new Blob(geojsonTotal).size; 
-        app.layersSizeMBytes = Math.round(app.layersSizeBytes / (1024 * 1024) * 10) / 10;
-      }
       this.applications = resp;
     }catch(error) {
       console.log('Error obteniendo las aplicaciones disponibles:', error);
@@ -81,6 +75,35 @@ export class ApplistPage implements OnInit {
     } else {
       this.territories = await this.databaseService.getTerritoriesByApp(idApp);
     }
+  }
+
+  private async getDatabaseWeight(appId: number): Promise<Record<string, number>> {
+    const size = {layersSizeBytes: 0, layersSizeMBytes: 0};
+    const layers = await this.databaseService.getLayersByApp(appId);
+    const json = JSON.stringify(layers);
+    const blob = new Blob([json], { type: 'application/json' });
+    size.layersSizeBytes = blob.size;
+
+    const territories = await this.databaseService.getTerritoriesByApp(appId);
+    for (const ter of territories) {
+      const id = appId + '_' + ter.id; 
+      const fileName = `bgMapa_${id}.mbtiles`;
+
+      try {
+        const info = await Filesystem.stat({
+          path: fileName,
+          directory: Directory.Data
+        });
+        size.layersSizeBytes += info.size;
+        const bgMapSizeMB = Math.round(info.size / (1024 * 1024) * 10) / 10;
+        console.log(`Archivo MBTiles encontrado para app ${appId} y territorio ${ter.id}, tamaño: ${bgMapSizeMB} MB`);
+      } catch (error) {
+        console.log(`Archivo no existe en app ${appId} y territorio ${ter.id}, no es necesario calcular su peso: ${error}`);
+      }      
+    }
+    size.layersSizeMBytes = Math.round(size.layersSizeBytes/ (1024 * 1024) * 10) / 10;
+    console.log(`Tamaño total de app ${appId}: ${size.layersSizeMBytes} MB`);
+    return size;
   }
 
   async mapPage(app: any) {
@@ -110,6 +133,10 @@ export class ApplistPage implements OnInit {
         setTimeout(this.openDownload.bind(this), 500);
       }
     }
+  }
+
+  openMenu() {
+    this.profileModal.openProfileModal();
   }
 
   openMap() {
@@ -150,15 +177,10 @@ export class ApplistPage implements OnInit {
     this.router.navigate([path], navigationExtras);
   }
 
-  setLanguage(langCode: string) {
-    this.selectedLanguage = langCode;
-    this.languageService.setLanguage(langCode);
-  }
-
   updateNetworkStatus(connected: boolean) {
     if (this.networkConnected !== connected) {
       this.networkConnected = connected;
       this.refreshApplications();
     }
-  }
+  }  
 }

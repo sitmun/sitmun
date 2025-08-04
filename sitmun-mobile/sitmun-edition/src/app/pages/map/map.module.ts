@@ -8,6 +8,7 @@ import { MapPageRoutingModule } from './map-routing.module';
 
 import { MapPage } from './map.page';
 import { TranslateModule } from '@ngx-translate/core';
+import { ProfileModalComponent } from 'src/app/components/profile-modal/profile-modal.component';
 
 @NgModule({
   imports: [
@@ -17,6 +18,7 @@ import { TranslateModule } from '@ngx-translate/core';
     ReactiveFormsModule,
     MapPageRoutingModule,
     TranslateModule,
+    ProfileModalComponent
   ],
   declarations: [MapPage]
 })

@@ -49,9 +49,13 @@ ion-content {
   padding: 0 50px !important;
 }
 
+#instance-selector {
+  --padding-start: 1em;
+}
+
 #instance-selector::part(icon) {
   position: absolute;
-  right: 0;
+  right: 1em;
   left: auto;
 }
 
