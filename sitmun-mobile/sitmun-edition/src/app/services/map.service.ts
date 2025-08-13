@@ -33,7 +33,7 @@ export class MapService {
     const mapa = new M.map({
       container,
       projection: 'EPSG:3857*m',
-      bbox: [411307.6492025334, 4836400.090687951, 491184.3437605426, 4883026.677941912],
+      layers: ['OSM'],
     });
     if (profile) {
       await this.applyMapDataFromProfile(mapa, profile.application, downloadZoom, downloadExtent, selectedProj);
@@ -267,9 +267,11 @@ export class MapService {
     let result;
     if (layerId || taskId) { // Nodo hoja
       const layer = layers.find(l => l.id === layerId);
-      const service = services.find(s => s.id === layer.service);
+      let service = null;
+      if (layer) {
+        service = services.find(s => s.id === layer.service);
+      }
       const task = tasks.find(t => t.id === taskId);
-      layer.title = 'Capa de referencia';
       const groupLayers = [];
       if (layer && service) {
         groupLayers.push(this.createLayer(service, layer));
@@ -320,7 +322,6 @@ export class MapService {
     let layerOptions = {
       url: task.url,
       name: task.parameters.typename.value,
-      legend: 'Capa editable',
       isBase: false,
       displayInLayerSwitcher: true,
       visible: true

@@ -30,6 +30,7 @@ export class MapPage implements OnInit {
   isFeatureModalOpen = false;
   isTocModalOpen = false;
   isBgModalOpen = false;
+  isSaveModalOpen = false;
   layerEdit: any = null;
   activeEdition = false;
   attrData: any[] = [];
@@ -40,6 +41,7 @@ export class MapPage implements OnInit {
   layersTreeData: TreeNode[] = [];
   bgTreeData: TreeNode[] = [];
   featureEditions: Record<string, { inserts: any[]; deletes: any[]; updates: any[] }> = {};
+  saveErrors: string[] = [];
   imageValue: string | null = null;
   errorImg: string[] = [];
   imageAttr: string = '';
@@ -248,6 +250,19 @@ export class MapPage implements OnInit {
     this.networkService.addListener(this.updateNetworkStatus.bind(this));
   }
 
+  ionViewWillLeave() {
+    if (this.mapa) {
+      this.mapa.destroy();
+      this.mapa = null;
+    }
+    this.feature = null;
+    this.layerEdit = null;
+    this.activeEdition = false;
+    this.featureAttr = {};
+    this.featureAttrForm.reset();
+    this.featureEditions = {};
+  }
+
   backPage() {
     this._location.back();
   }
@@ -287,36 +302,18 @@ export class MapPage implements OnInit {
     this.isBgModalOpen = false;
   }
 
+  closeSaveModal() {
+    this.isSaveModalOpen = false;
+  }
+
   createNewFeature() {
     if (this.layerEdit) {
       this.feature = null;
       this.imageAttr = '';
       this.imageValue = null;
       const baseFeat = this.layerEdit.getFeatures()[0];
-      //this.attrKeys = Object.keys(baseFeat.getAttributes()).filter(k => k !== 'vendor.mapea.click');
       this.featureAttr = {};
       this.setAttrData();
-      /*const formControls: any = {};
-      this.attrData.forEach(ad => {
-        let value;
-        switch (ad.type) {
-          case 'text':
-          case 'listbox':
-          case 'date':
-          case 'image':
-            value = ad.defaultValue || '';
-            break;
-          case 'number':
-            value = ad.defaultValue || 0;
-            break;
-        }
-        if (ad.required) {
-          formControls[ad.key] = [value, Validators.required];
-        } else {
-          formControls[ad.key] = [value, Validators.required];
-        }
-      });
-      this.featureAttrForm = this.formBuilder.group(formControls);*/
       this.openFeatureModal(true);
     } else {
       this.languageService.translateTag('map.noEditLayerSelected').subscribe(text => this.mapService.createToast(text, 'warning', 'top'));
@@ -328,7 +325,6 @@ export class MapPage implements OnInit {
     this.imageAttr = '';
     this.imageValue = null;
     this.featureAttr = this.feature.getAttributes();
-    //this.attrKeys = Object.keys(this.featureAttr).filter(k => k !== 'vendor.mapea.click');
     this.setAttrData();
     this.openFeatureModal(false);
     this.cdr.detectChanges();
@@ -446,11 +442,45 @@ export class MapPage implements OnInit {
     if (!this.featureEditions[layer]) {
       this.featureEditions[layer] = { inserts: [], deletes: [], updates: [] };
     }
-    this.featureEditions[layer][operation].push(this.feature);
-    console.log(`Edición de feature añadido a ${operation}. Layer: ${layer}`);
+    //comprobar ediciones anteriores no guardadas
+    if (operation === 'updates') {
+      let index = this.featureEditions[layer].inserts.findIndex(edition => edition === this.feature); 
+      //modificar nuevo elemento creado
+      if (index !== -1) {
+        this.featureEditions[layer].inserts[index] = this.feature;
+      }else{
+        //modificar otra vez
+        index = this.featureEditions[layer].updates.findIndex(edition => edition === this.feature);
+        index !== -1 ? this.featureEditions[layer].updates[index] = this.feature : this.featureEditions[layer].updates.push(this.feature);
+      }     
+    }else if(operation === 'deletes'){
+      let index = this.featureEditions[layer].inserts.findIndex(edition => edition === this.feature); 
+      //eliminar un nuevo elemento creado
+      if (index !== -1) {
+        this.featureEditions[layer].inserts.splice(index, 1);
+      }else{
+        //eliminar elemento modificado
+        index = this.featureEditions[layer].updates.findIndex(edition => edition === this.feature);
+        index !== -1 ? this.featureEditions[layer].updates.splice(index, 1) : this.featureEditions[layer].deletes.push(this.feature);
+      }      
+    }else{
+      this.featureEditions[layer].inserts.push(this.feature);
+    }    
+    console.log(`Edición de feature realizado. Layer: ${layer}`);
+    console.log(this.featureEditions[layer]);
+    
     //añadir todas las ediciones realizadas a bbdd 
-    const simpleEditionFeatures = this.serializeEditions(this.featureEditions[layer]);
-    await this.databaseService.insertEdition(this.app.id, this.ter.id, layer, JSON.stringify(simpleEditionFeatures));  
+    if (
+      this.featureEditions[layer].inserts.length === 0 &&
+      this.featureEditions[layer].deletes.length === 0 &&
+      this.featureEditions[layer].updates.length === 0
+    ) {
+      delete this.featureEditions[layer];
+      await this.databaseService.deleteEditionsByLayer(this.app.id, this.ter.id, layer);
+    }else{
+      const simpleEditionFeatures = this.serializeEditions(this.featureEditions[layer]);
+      await this.databaseService.insertEdition(this.app.id, this.ter.id, layer, JSON.stringify(simpleEditionFeatures));  
+    }
   }
 
   //algunas propiedades de featureEditions dan problemas para serializar y guardar en la bbdd, necesario simplificar
@@ -537,30 +567,32 @@ export class MapPage implements OnInit {
   }
 
   async saveAllFeatures() {
+    this.saveErrors = [];
     const layers = this.mapa.getImpl().getAllLayerInGroup();
     //recorre cada capa y comprueba si se realizaron ediciones
     for (const layer of layers){
-      try {      
-        if (this.featureEditions[layer.idLayer]) {
-          console.log(`Guardado de capa con ID ${layer.idLayer}`);
-          await this.wfsService.saveFeatures(layer.url, layer.name, this.featureEditions[layer.idLayer], this.mapa.getProjection().code);
-          await this.databaseService.deleteEditionsByLayer(this.app.id, this.ter.id, layer.idLayer);
-          delete this.featureEditions[layer.idLayer];
-        }
-      } catch (error) {
-        console.error(`Error procesando la capa con ID ${layer.idLayer}:`, error);
-      }
+      await this.saveFeaturesByLayer(layer);
     }
   }
 
-  async saveFeaturesByLayer(layerId: string) {
+  async saveFeaturesByLayerId(layerId: string) {
+    this.saveErrors = [];
     console.log(`Guardando capa con ID ${layerId}`);
     const layer = this.mapa.getImpl().getAllLayerInGroup().find((l:any) => l.idLayer === layerId);
+    await this.saveFeaturesByLayer(layer);
+  }
+
+  async saveFeaturesByLayer(layer: any) {
     try {      
       if (this.featureEditions[layer.idLayer]) {
-        await this.wfsService.saveFeatures(layer.url, layer.name, this.featureEditions[layer.idLayer], this.mapa.getProjection().code);
-        await this.databaseService.deleteEditionsByLayer(this.app.id, this.ter.id, layer.idLayer);
-        delete this.featureEditions[layer.idLayer];
+        const result = await this.wfsService.saveFeatures(layer, this.featureEditions[layer.idLayer], this.mapa.getProjection().code);
+        if (result === '200') {
+          await this.databaseService.deleteEditionsByLayer(this.app.id, this.ter.id, layer.idLayer);
+          delete this.featureEditions[layer.idLayer];
+        } else {
+          this.saveErrors.push(result);
+          this.isSaveModalOpen = true;
+        }
       }
     } catch (error) {
       console.error(`Error procesando la capa con ID ${layer.idLayer}:`, error);

@@ -59,7 +59,7 @@ export class ApplistPage implements OnInit {
   async getApplications() {
     try{
       const resp = await this.authorizationService.getApplications();
-      this.applications = resp;
+      this.applications = resp.filter((app: any) => !app.isUnavailable);
     }catch(error) {
       console.log('Error obteniendo las aplicaciones disponibles:', error);
     };

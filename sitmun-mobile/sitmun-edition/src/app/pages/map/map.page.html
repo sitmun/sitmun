@@ -92,7 +92,7 @@
                       <!-- <input  type="checkbox" class="form-check-input me-2 pos-end" [(ngModel)]="child.checked" (change)="toggleCheck(child)" /> -->
                         <ion-buttons class="d-flex justify-content-end">
                           <ion-button *ngIf="featureEditions[child.action]" 
-                            [disabled]="offlineMap" size="small" fill="solid" class="save-btn" (click)="saveFeaturesByLayer(child.action)">
+                            [disabled]="offlineMap" size="small" fill="solid" class="save-btn" (click)="saveFeaturesByLayerId(child.action)">
                             <ion-icon name="cloud-upload"></ion-icon>
                           </ion-button>
                           <ion-button size="small" class="edit-btn" fill="solid" [ngClass]="{'active' : child.checked}" (click)="toggleCheck(child)">
@@ -253,5 +253,31 @@
       </ng-template>
     </ion-modal>
   </ng-container>
+
+  <ion-modal #modal [isOpen]="isSaveModalOpen">
+    <ng-template>
+      <ion-header>
+        <ion-toolbar>
+          <ion-title>Errores en guardado</ion-title>
+          <ion-buttons slot="end">
+            <ion-button (click)="closeSaveModal()">
+              <ion-icon name="close" size="large"></ion-icon>
+            </ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-header>
+      <ion-content class="ion-padding">
+        <div class="container">
+          <div class="row">
+            <div class="col-12">
+              <ion-text color="danger" *ngIf="saveErrors.length > 0">
+                <p *ngFor="let error of saveErrors" class="ion-padding-start"> {{ error }} </p>
+              </ion-text>
+            </div>
+          </div>
+        </div>
+      </ion-content>
+    </ng-template>
+  </ion-modal>
 </ion-content>
 
