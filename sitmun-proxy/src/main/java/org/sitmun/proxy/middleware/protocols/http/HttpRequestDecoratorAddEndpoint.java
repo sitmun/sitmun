@@ -10,7 +10,7 @@ public class HttpRequestDecoratorAddEndpoint implements RequestDecorator {
   @Override
   public boolean accept(Object target, Context context) {
     if (context instanceof HttpContext httpContext) {
-      return httpContext.getParameters() != null && !httpContext.getParameters().isEmpty();
+      return httpContext.getUri() != null && !httpContext.getUri().isEmpty();
     } else {
       return false;
     }
