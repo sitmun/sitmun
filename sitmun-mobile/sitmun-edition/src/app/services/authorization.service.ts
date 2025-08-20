@@ -10,6 +10,7 @@ export class AuthorizationService {
 
   private filter: Function = (obj: any) => { return true;};
   authorizationUrl = '';
+  private profileData: any;
 
   constructor(private loginService: LoginService, private instancesServices: InstancesService) { }
 
@@ -59,7 +60,16 @@ export class AuthorizationService {
       },
       params: {}
     };
-    return this.request(options, this.basicCallback);
+    return this.request(options, this.profileCallback.bind(this));
+  }
+
+  getProfileData() {
+    return this.profileData;
+  }
+
+  private profileCallback(resp: any) {
+    this.profileData = resp.data;
+    return resp.data;
   }
 
   private basicCallback(resp: any) {

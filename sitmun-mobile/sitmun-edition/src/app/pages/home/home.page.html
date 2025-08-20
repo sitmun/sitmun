@@ -8,7 +8,7 @@
     </ion-buttons>
     <ion-buttons slot="end">
       <ion-select [(ngModel)]="selectedLanguage" (ionChange)="setLanguage($event.detail.value)"
-                  interface="popover">
+                  interface="popover" class="text-white">
         <ion-select-option *ngFor="let lang of languageOptions" [value]="lang.code">
           {{ lang.name }}
         </ion-select-option>
@@ -56,7 +56,8 @@
           <div class="row" *ngIf="!networkConnected">
             <div class="col">
               <ion-select id="instance-selector" class="login-input mx-auto text-center" [placeholder]="'home.user' | translate"
-              [attr.aria-label]="'home.user' | translate" interface="action-sheet" formControlName="user">
+              [attr.aria-label]="'home.user' | translate" interface="action-sheet" formControlName="user"
+              cancelText="{{ 'home.cancel' | translate }}" [interfaceOptions]="{ header: 'home.selectUser' | translate }">
                 <ion-select-option *ngFor="let user of offline.users" value="{{user}}">{{user}}</ion-select-option>
               </ion-select>
             </div>

@@ -1,0 +1,44 @@
+<ion-modal class="profile-modal" (ionModalWillPresent)="onModalOpen()" 
+[isOpen]="isProfileOpen" 
+[enterAnimation]="enterAnimation" 
+[leaveAnimation]="leaveAnimation">
+  <ng-template>
+    <ion-header>
+      <ion-toolbar>
+        <ion-title>{{ 'menu.title' | translate }}</ion-title>
+        <ion-buttons slot="end">
+          <ion-button (click)="closeProfileModal(false)">
+            <ion-icon name="close" size="large"></ion-icon>
+          </ion-button>
+        </ion-buttons>
+      </ion-toolbar>
+    </ion-header>
+    <ion-content class="ion-padding">
+      <ion-list class="mb-4">
+        <ion-item>
+          <ion-icon aria-hidden="true" name="person" slot="start"></ion-icon>
+          <ion-label>{{ userName }}</ion-label>
+        </ion-item>
+        <ion-item>
+          <ion-icon aria-hidden="true" name="language" slot="start"></ion-icon>
+          <ion-select [(ngModel)]="selectedLanguage" (ionChange)="setLanguage($event.detail.value)"
+                    interface="popover">
+            <ion-select-option *ngFor="let lang of languageOptions" [value]="lang.code">
+              {{ lang.name }}
+            </ion-select-option>
+          </ion-select>
+        </ion-item>
+        <ion-item>
+          <ion-icon aria-hidden="true" name="cog" slot="start"></ion-icon>
+          <ion-label>{{ instanceDB }}</ion-label>
+        </ion-item>
+      </ion-list>
+      <div class="row">         
+        <ion-button class="menu-btn mx-auto" (click)="closeProfileModal(true)">
+          <ion-icon name="exit-outline" size="large"></ion-icon>
+          {{ 'menu.exit' | translate }}
+        </ion-button>
+      </div> 
+    </ion-content>
+  </ng-template>
+</ion-modal>

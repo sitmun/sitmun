@@ -87,6 +87,8 @@ export class DatabaseService {
     await this.createAppsTable();
     await this.createTerritoryTable();
     await this.createLayersTable();
+    await this.createbgLayersTable();
+    await this.createFeatureEditionsTable();
     //await this.createAppTerLayerTable();
   }
 
@@ -189,6 +191,7 @@ export class DatabaseService {
         id_ter INTEGER,
         id_layer TEXT,
         name TEXT,
+        fieldsjson TEXT,
         geojson TEXT,
         extension TEXT,
         zoom INTEGER,
@@ -207,6 +210,54 @@ export class DatabaseService {
       }
     } catch (error) {
       console.error('Error creando tabla layers:', error);
+    }
+  }
+
+  private async createbgLayersTable() {
+    const createTableQuery = `
+      CREATE TABLE IF NOT EXISTS bgLayers (
+        id_app INTEGER,
+        id_ter INTEGER,
+        title TEXT,
+        path TEXT,      
+        PRIMARY KEY(id_app, id_ter)
+      );
+    `;
+
+    try {
+      if(this.db) {
+        console.log("Creando tabla bglayers...");
+        const changes = await this.db.execute(createTableQuery);
+        console.log('Tabla bglayers creada correctamente');
+      } else {
+        console.log("Conexion nula (bglayers)");
+      }
+    } catch (error) {
+      console.error('Error creando tabla bglayers:', error);
+    }
+  }
+
+   private async createFeatureEditionsTable() {
+    const createTableQuery = `
+      CREATE TABLE IF NOT EXISTS featureEditions (
+        id_app INTEGER,
+        id_ter INTEGER,
+        id_layer TEXT,
+        editionjson TEXT, 
+        PRIMARY KEY(id_app, id_ter, id_layer)
+      );
+    `;
+
+    try {
+      if(this.db) {
+        console.log("Creando tabla ediciones...");
+        const changes = await this.db.execute(createTableQuery);
+        console.log('Tabla Ediciones creada correctamente');
+      } else {
+        console.log("Conexion nula (ediciones)");
+      }
+    } catch (error) {
+      console.error('Error creando tabla Ediciones:', error);
     }
   }
 /*
@@ -282,10 +333,10 @@ export class DatabaseService {
   }
 */
   async insertLayer(idApp: number, idTer: number, idLayer: string, 
-    name: string, geojson: string, extension: string, zoom: number, proj: string) {
+    name: string, fields: string, geojson: string, extension: string, zoom: number, proj: string) {
     await this.loadConnection(this.dbUser);
-    const statement = `INSERT OR REPLACE INTO layers (id_app, id_ter, id_layer, name, geojson, extension, zoom, proj) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
-    const values = [idApp, idTer, idLayer, name, geojson, extension, zoom, proj];
+    const statement = `INSERT OR REPLACE INTO layers (id_app, id_ter, id_layer, name, fieldsjson, geojson, extension, zoom, proj) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+    const values = [idApp, idTer, idLayer, name, fields, geojson, extension, zoom, proj];
 
     try {
       if (this.db) {
@@ -294,6 +345,38 @@ export class DatabaseService {
       }
     } catch (error) {
       console.error('Error al insertar el layer', error);
+    }
+    await this.closeConnection(this.dbUser);
+  }
+
+  async insertbgLayer(idApp: number, idTer: number, title: string, path: string) {
+    await this.loadConnection(this.dbUser);
+    const statement = `INSERT OR REPLACE INTO bgLayers (id_app, id_ter, title, path) VALUES (?, ?, ?, ?)`;
+    const values = [idApp, idTer, title, path];
+
+    try {
+      if (this.db) {
+        await this.db.run(statement, values);
+        console.log(`bgLayer agregado`);
+      }
+    } catch (error) {
+      console.error('Error al insertar el bglayer', error);
+    }
+    await this.closeConnection(this.dbUser);
+  }
+
+  async insertEdition(idApp: number, idTer: number, idLayer: string, edition: string) {
+    await this.loadConnection(this.dbUser);
+    const statement = `INSERT OR REPLACE INTO featureEditions (id_app, id_ter, id_layer, editionjson) VALUES (?, ?, ?, ?)`;
+    const values = [idApp, idTer, idLayer, edition];
+
+    try {
+      if (this.db) {
+        await this.db.run(statement, values);
+        console.log(`Edición agregada`);
+      }
+    } catch (error) {
+      console.error('Error al insertar la edición', error);
     }
     await this.closeConnection(this.dbUser);
   }
@@ -361,7 +444,7 @@ export class DatabaseService {
 
   async getLoginUsers() {
     await this.loadConnection(this.dbPublic);
-    const statement = `SELECT instance, name, logged, datetime(last_login, 'unixepoch') as last_login FROM userlogin`;
+    const statement = `SELECT name, logged, datetime(last_login, 'unixepoch') as last_login FROM userlogin ORDER BY last_login DESC`;
 
     try {
       if (this.db) {
@@ -491,6 +574,121 @@ export class DatabaseService {
       return [];
     } finally {
       await this.closeConnection(this.dbUser);
+    }
+  }
+
+   async getbgLayerByAppAndTer(idApp: Number, idTer: number) {
+    await this.loadConnection(this.dbUser);
+    const statement = 'SELECT * FROM bgLayers WHERE id_app = ? AND id_ter = ?';
+    const values = [idApp, idTer];
+
+    try {
+      if (this.db) {
+        const results = (await this.db.query(statement, values)).values;
+        if (results) {
+          return results;
+        } else {
+          return [];
+        }
+      }
+      return [];
+    } catch (error) {
+      console.error('Error obteniendo las bgLayers:', error);
+      return [];
+    } finally {
+      await this.closeConnection(this.dbUser);
+    }
+  }
+
+  async getEditionsByAppAndTer(idApp: Number, idTer: number) {
+    await this.loadConnection(this.dbUser);
+    const statement = 'SELECT * FROM featureEditions WHERE id_app = ? AND id_ter = ?';
+    const values = [idApp, idTer];
+
+    try {
+      if (this.db) {
+        const results = (await this.db.query(statement, values)).values;
+        if (results) {
+          return results;
+        } else {
+          return [];
+        }
+      }
+      return [];
+    } catch (error) {
+      console.error('Error obteniendo las editions:', error);
+      return [];
+    } finally {
+      await this.closeConnection(this.dbUser);
+    }
+  }
+
+  async deleteAllEditions(idApp: Number, idTer: number) {
+    await this.loadConnection(this.dbUser);
+    const statement = 'DELETE FROM featureEditions WHERE id_app = ? AND id_ter = ?';
+    const values = [idApp, idTer];
+
+    try {
+      if (this.db) {
+        await this.db.run(statement, values);
+        console.log('Ediciones eliminadas');
+      }
+    } catch (error) {
+      console.error('Error al eliminar ediciones:', error);
+    } finally {
+      await this.sqlite.closeConnection(this.dbUser);
+    }
+  }
+
+  async deleteEditionsByLayer(idApp: Number, idTer: number, layerId: string) {
+    await this.loadConnection(this.dbUser);
+    const statement = 'DELETE FROM featureEditions WHERE id_app = ? AND id_ter = ? AND id_layer = ?';
+    const values = [idApp, idTer, layerId];
+
+    try {
+      if (this.db) {
+        await this.db.run(statement, values);
+        console.log('Ediciones eliminadas');
+      }
+    } catch (error) {
+      console.error('Error al eliminar ediciones:', error);
+    } finally {
+      await this.sqlite.closeConnection(this.dbUser);
+    }
+  }
+
+  //elimina app si no hay territorios asociados
+  async deleteApp(idApp: number) {
+    await this.loadConnection(this.dbUser);
+    const statement = 'DELETE FROM apps WHERE id = ? AND id NOT IN (SELECT id_app FROM territory)';
+    const values = [idApp];
+
+    try {
+      if (this.db) {
+        await this.db.run(statement, values);
+        console.log('App eliminado si no tiene otros territorios descargados');
+      }
+    } catch (error) {
+      console.error('Error al eliminar la app:', error);
+    } finally {
+      await this.sqlite.closeConnection(this.dbUser);
+    }
+  }
+
+  async deleteTer(idTer: number) {
+    await this.loadConnection(this.dbUser);
+    const statement = 'DELETE FROM territory WHERE id = ?';
+    const values = [idTer];
+
+    try {
+      if (this.db) {
+        await this.db.run(statement, values);
+        console.log('Territorio eliminado');
+      }
+    } catch (error) {
+      console.error('Error al eliminar territorio:', error);
+    } finally {
+      await this.sqlite.closeConnection(this.dbUser);
     }
   }
 

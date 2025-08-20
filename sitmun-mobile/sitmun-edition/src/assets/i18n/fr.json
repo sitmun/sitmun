@@ -4,7 +4,9 @@
         "instanceSelection": "Entrez l’URL de l’instance",
         "registerInstance": "Enregistrer",
         "user": "Utilisateur",
-        "password": "Mot de passe"
+        "password": "Mot de passe",
+        "selectUser": "Sélectionner l'utilisateur",
+        "cancel": "Annuler"
     },
     "applist": {
         "title": "Applications",
@@ -25,7 +27,23 @@
         "maxx": "Max x",
         "maxy": "Max y",
         "selectProj": "Projection",
-        "toast": "Télécharger avec succès"
+        "toast": "Télécharger avec succès",
+        "storagePermissionError": "Aucun droit d'accès pour stocker des fichiers sur l'appareil",
+        "noBgLayerSelected": "Aucune couche de fond sélectionnée",
+        "noLayerSelected": "Aucune couche sélectionnée",
+        "remove": "Supprimer le téléchargement",
+        "accept": "Accepter",
+        "cancel": "Annuler",
+        "dwl-modal-title": "Téléchargement de carte",
+        "dwl-modal-message": "Le poids estimé du téléchargement va être de ",
+        "progress-file": "Téléchargement de fichier",
+        "progress-request": "Traitement de la demande",
+        "delete-modal-title": "Supprimer le téléchargement précédent",
+        "delete-modal-message": "Êtes-vous sûr de vouloir supprimer le téléchargement précédent?",
+        "no-freespace": "Pas assez d'espace sur l'appareil pour effectuer le téléchargement.",
+        "storageData": "Données stockées",
+        "bgLayer": "Calques de base",
+        "editLayer": "Calques modifiables"
     },
     "map": {
         "title": "Carte",
@@ -41,13 +59,24 @@
         "cancelText": "Annuler",
         "editGeometryError": "Il faut enregistrer avant de modifier la géométrie",
         "noEditLayerSelected": "Il faut d’abord sélectionner la couche à modifier",
-        "invalidFeatureForm": "Des champs obligatoires ne sont pas remplis"
+        "invalidFeatureForm": "Des champs obligatoires ne sont pas remplis",
+        "prompt": {
+            "header": "Sélectionner une image",
+            "gallery": "Ouvrir la galerie",
+            "picture": "Prendre une photo"
+        },
+        "downloadLayers": "Couches téléchargées" 
     },
     "exit": {
         "title": "Quitter",
         "message": "Quitter l'application?",
         "exit": "Quitter",
         "continue": "Continuer"
+    },
+
+    "menu":{
+        "title": "Profil",
+        "exit": "Se déconnecter"
     },
     "offline": "Hors ligne"
 }

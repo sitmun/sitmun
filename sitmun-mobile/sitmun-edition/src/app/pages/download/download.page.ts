@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, ViewChild } from '@angular/core';
 import { Location } from '@angular/common';
 import { LanguageService } from 'src/app/services/language.service';
 import { Router, ActivatedRoute, NavigationExtras } from '@angular/router';
@@ -7,7 +7,13 @@ import { WfsService } from 'src/app/services/wfs.service';
 import { TreeNode, TreeviewService } from 'src/app/services/treeview.service';
 import { NetworkService } from 'src/app/services/network.service';
 import { DatabaseService } from 'src/app/services/database.service';
-import { LoadingController } from '@ionic/angular';
+import { LoadingController, ToastController } from '@ionic/angular';
+import { ProxyService } from 'src/app/services/proxy.service';
+import { Filesystem, Directory } from '@capacitor/filesystem';
+import { InstancesService } from 'src/app/services/instances.service';
+import { MapService } from 'src/app/services/map.service';
+import { Device } from '@capacitor/device';
+import { ProfileModalComponent } from 'src/app/components/profile-modal/profile-modal.component';
 
 declare var ol: any;
 
@@ -18,9 +24,7 @@ declare var ol: any;
 })
 export class DownloadPage implements OnInit {
 
-  messages_: any = {}
-  selectedLanguage: string | null = null;
-  languageOptions: any[] = [];
+  messages_: any = {};
   networkConnected = true;
   extent = {
     minX: '',
@@ -28,23 +32,32 @@ export class DownloadPage implements OnInit {
     maxX: '',     
     maxY: ''
   };
-  zoomValue = 9;
+  zoomValue = 7;
   app: any = {};
   ter: any = {};
-  treeData: TreeNode[] = [];
+  layersTreeData: TreeNode[] = [];
+  bgTreeData: TreeNode[] = [];
   profile: any = {};
   layersSizeBytes: number = 0;
   layersSizeMBytes: number = 0;
+  freeSpaceMB: number = 0;
+  estimatedSize: number = 0;
   mapProj: string[] = ['EPSG:3857', 'EPSG:4326', 'EPSG:25831', 'EPSG:25830'];
-  mapProjSelected: string = 'EPSG:3857';
-  mapProjSelectedPrev: string = 'EPSG:3857';
+  mapProjSelected: string = '';
+  mapProjSelectedPrev: string = '';
   mapPage: boolean = false;
   openToast = false;
+  alertModalOpen = false;
+  deleteModalOpen = false;
+  downloadProgress = { type: '', value: 0 };
+  @ViewChild('profileModal') profileModal!: ProfileModalComponent; 
 
   constructor(private languageService: LanguageService, private location: Location, private wfsService: WfsService,
     private router: Router, private route: ActivatedRoute, private authorizationService: AuthorizationService,
     private treeviewService: TreeviewService, private networkService: NetworkService, private databaseService: DatabaseService,
-    private loadingCtrl: LoadingController) {
+    private loadingCtrl: LoadingController, private proxyService: ProxyService, private cdr: ChangeDetectorRef,
+    private toastController: ToastController, private instancesService: InstancesService, private mapService: MapService) {
+    
     this.route.queryParams.subscribe(params => {
         const navigation = this.router.getCurrentNavigation();
         if (navigation) {
@@ -78,107 +91,351 @@ export class DownloadPage implements OnInit {
   }
 
   private async initPage(){
-    this.profile = await this.authorizationService.getProfile(this.app.id, this.ter.id);
-    this.treeData = await this.treeviewService.createTreeData(this.profile);
-    console.log("treedata");
-    console.log(this.treeData);
-
-    await this.getLayersData();
+    //datos mapa
+    this.profile = await this.authorizationService.getProfile(this.app.id, this.ter.id);    
+    this.layersTreeData = this.treeviewService.createLayersTreeData(this.profile);
+    this.bgTreeData = this.treeviewService.createBackgroundsTreeData(this.profile);
+    await this.getData();
   }
 
   async ionViewWillEnter() {
-    this.selectedLanguage = this.languageService.getLanguage();
-    this.languageOptions = this.languageService.getLanguageOptions();
     this.updateNetworkStatus(await this.networkService.getStatus());
     this.networkService.addListener(this.updateNetworkStatus.bind(this));
     if (this.mapPage) {
-        this.getCoords(this.profile.application.srs, this.mapProjSelected); //convertir coordenadas desde mapa
+        this.getCoords(this.mapService.mapProj, this.mapProjSelected); //convertir coordenadas desde mapa
     }
   }
 
+  async openDownloadModal() {
+    const permission = await Filesystem.requestPermissions();
+    if(permission.publicStorage != 'granted') {
+      console.log('No se tienen permisos para almacenar en el storage');
+      await this.errorStorageToast();
+    }else{
+      const bgMapServices = this.getmapServices();
+      if (bgMapServices.length === 0) {
+        this.languageService.translateTag('download.noBgLayerSelected').subscribe((text: string) => this.createToast(text, 'warning', 'bottom'));
+        return;
+      }      
+      const checkedLayers = this.treeviewService.getCheckedLayers(this.layersTreeData);
+      if (checkedLayers.length === 0) {
+        this.languageService.translateTag('download.noLayerSelected').subscribe((text: string) => this.createToast(text, 'warning', 'bottom'));
+        return;
+      }
+      let extent = '';
+      if (this.extent.minX && this.extent.minY && this.extent.maxX && this.extent.maxY) {
+        extent = `${this.extent.minX},${this.extent.minY},${this.extent.maxX},${this.extent.maxY}`;
+      }
+      //estimar tamaño de descarga
+      const layers = [];
+      for (const cl of checkedLayers) { //capas seleccionadas
+        if (cl.action) {
+          const task = this.profile.tasks.find((t: any) => t.id === cl.action);
+          const layerName = task.parameters.typename.value;
+          const resp = await this.wfsService.getFeatures(task.url, layerName, extent, this.mapProjSelected);
+          const layer = {
+            id: this.app.id,
+            territory: this.ter.id,
+            id_layer: task.id,
+            layer_name: layerName,
+            fields: cl.fields,
+            geojson: resp.data,
+            extent: extent,
+            zoom: this.zoomValue,
+            proj: this.mapProjSelected
+          }
+          layers.push(layer);
+        }
+      }
+      const encoder = new TextEncoder();
+      const encoded = encoder.encode(JSON.stringify(layers));
+      this.estimatedSize = Math.round(encoded.length / (1024 * 1024) * 10) / 10;  //peso capas
+
+      //capa base
+      const resp = await this.proxyService.getbgLayerFileWeight(bgMapServices, this.extent, this.zoomValue, this.mapProjSelected);
+      this.estimatedSize += Math.round(resp.data.estimatedMbtilesSizeMb * 10) /10; //peso capa base
+
+      //comprobar espacio disponible
+      const info = await Device.getInfo();
+      if (info.realDiskFree) {
+        this.freeSpaceMB = Math.round(info.realDiskFree/ (1024 * 1024) * 10) / 10;  //espacio libre en MB
+        console.log('Espacio libre en disco:', this.freeSpaceMB);
+      }else{
+        console.log('No se pudo obtener información del disco');
+      }
+      this.alertModalOpen = true; //abre modal de descarga
+    }    
+  }
+
+  closeDownloadModal(){
+    this.alertModalOpen = false;
+  }
+
+  openDeleteModal() {
+    this.deleteModalOpen = true;
+  }
+
+  closeDeleteModal(){
+    this.deleteModalOpen = false;
+  }
+
   async downloadLayers() {
-    this.showLoading();
-    const checkedLayers = this.treeviewService.getCheckedLayers(this.treeData);
+    this.alertModalOpen = false;
+    //envio http capa base    
+    const instanceUrl = await this.instancesService.getInstanceUrl();    
+    const bgMapServices = this.getmapServices();        
+    const jobId = await this.proxyService.sendbgLayerServices(bgMapServices, this.extent, this.zoomValue, this.mapProjSelected, instanceUrl);
+    this.downloadProgress.type = 'download.progress-request';
+    this.downloadProgress.value = 0.01; //inicia progreso de petición
+    if (jobId.data !== '') {
+      await new Promise<void>((resolve) => {
+        const checkStatus = async () => {
+          const resp = await this.proxyService.checkbgServices(jobId.data, instanceUrl);
+          console.log(`Procesando petición para capas base: `, resp);
+          if (resp.data.processedTiles) {
+            this.downloadProgress.value = resp.data.processedTiles / resp.data.totalTiles; //progreso de petición
+          }          
+          if (resp.data.status === "COMPLETED") {
+            this.downloadProgress.value = 1; //finaliza progreso de petición
+            await this.storagebgLayer(jobId.data, instanceUrl);            
+            resolve();
+          } else {
+            setTimeout(checkStatus, 3000);
+          }
+        };
+        checkStatus();
+      });
+    }
+
+    //almacena en base de datos
+    const base64 = await this.convertImageToBase64(this.app.logo);
+    await this.databaseService.insertApp(this.app.id, this.app.title, base64);
+    await this.databaseService.insertTerritory(this.ter.id, this.app.id, this.ter.name);
+  
+    await this.databaseService.deleteLayersByAppAndTer(this.app.id, this.ter.id); //eliminar capas previas
     let extent = '';
     if (this.extent.minX && this.extent.minY && this.extent.maxX && this.extent.maxY) {
       extent = `${this.extent.minX},${this.extent.minY},${this.extent.maxX},${this.extent.maxY}`;
     }
-    await this.databaseService.insertApp(this.app.id, this.app.title, this.app.logo);
-    await this.databaseService.insertTerritory(this.ter.id, this.app.id, this.ter.name);
-   
-    await this.databaseService.deleteLayersByAppAndTer(this.app.id, this.ter.id); //eliminar capas previas
-
+    const checkedLayers = this.treeviewService.getCheckedLayers(this.layersTreeData);
     for (const cl of checkedLayers) {
       if (cl.action) {
-        await this.loadFeaturesByTask(cl.action, extent, this.mapProjSelected, this.zoomValue);
+        await this.loadFeaturesByTask(cl.action, cl.fields, extent, this.mapProjSelected, this.zoomValue);
       }
+    }    
+      
+    await this.getDatabaseWeight();
+    this.downloadProgress.value = 0; // reinicia progreso
+    this.openToast = true; // descarga completada
+  }
+
+
+  async removeDownload() {
+    const id = this.app.id + '_' + this.ter.id; 
+    const fileName = `bgMapa_${id}.mbtiles`;
+    //borra fichero previo si existe
+    try {
+      await Filesystem.deleteFile({
+        path: fileName,
+        directory: Directory.Data,
+      });
+    } catch (err) {
+        console.log(`Archivo no existe, no es necesario eliminarlo: ${err}`);
     }
-    
-    await this.getLayersData();
-    this.hideLoading();
-    this.openToast = true; //descarga completada
-    console.log(checkedLayers);
+    await this.databaseService.deleteTer(this.ter.id);
+    await this.databaseService.deleteLayersByAppAndTer(this.app.id, this.ter.id);
+    await this.databaseService.deleteApp(this.app.id);
+    await this.getData();
+    this.closeDeleteModal();
   }
 
-  updateLayers() {
-    const checkedLayers = this.treeviewService.getCheckedLayers(this.treeData);
-    console.log(checkedLayers);
-  }
-
-  async loadFeaturesByLayer(layerId: string, extent: string, mapProj: string, zoom: number) {
+  async loadFeaturesByLayer(layerId: string, fields: any, extent: string, mapProj: string, zoom: number) {
     const layer = this.profile.layers.find((l: any) => l.id === layerId);
     const service = this.profile.services.find((s: any) => s.id === layer.service);
     const resp = await this.wfsService.getFeatures(service.url, layer.layers[0], extent, mapProj);
     console.log(resp.data);
-    await this.databaseService.insertLayer(this.app.id, this.ter.id, layerId, layer.title, JSON.stringify(resp.data), extent, zoom, mapProj);
+    await this.databaseService.insertLayer(this.app.id, this.ter.id, layerId, layer.title, JSON.stringify(fields), JSON.stringify(resp.data), extent, zoom, mapProj);
   }
 
-  async loadFeaturesByTask(taskId: string, extent: string, mapProj: string, zoom: number) {
+  async loadFeaturesByTask(taskId: string, fields: any, extent: string, mapProj: string, zoom: number) {
     const task = this.profile.tasks.find((t: any) => t.id === taskId);
-    const layerName = task.parameters.typename.value;
-    const resp = await this.wfsService.getFeatures(task.url, layerName, extent, mapProj);
+    const valueName = task.parameters.typename.value;    
+    const resp = await this.wfsService.getFeatures(task.url, valueName, extent, mapProj);
     console.log(resp.data);
-    await this.databaseService.insertLayer(this.app.id, this.ter.id, taskId, layerName, JSON.stringify(resp.data), extent, zoom, mapProj);
-  }
-
-  private getLayersData(){
-    //obtener capas descargadas
-    this.databaseService.getLayersByAppAndTer(this.app.id, this.ter.id).then(layers => {
-      const geojsonTotal: string[] = [];
-      const layerLoadIds: string[] = [];
-      layers.forEach(l => {
-        layerLoadIds.push(l.id_layer);
-        geojsonTotal.push(l.geojson);
-      });
-      
-      this.treeviewService.setCheckedLayers(this.treeData, layerLoadIds); //check capas recursivo
-
-      this.layersSizeBytes = new Blob(geojsonTotal).size;  
-      this.layersSizeMBytes = Math.round(this.layersSizeBytes / (1024 * 1024) * 10) / 10;  //peso capas
-
-      //zoom, extent y proyeccion. igual en todas capas
-      if (layers[0]) {
-        this.zoomValue = layers[0].zoom;
-        this.mapProjSelected = layers[0].proj;
-        this.mapProjSelectedPrev = layers[0].proj;
-        if (layers[0].extension !== '') {
-          const coords = layers[0].extension.split(",");
-          this.extent.minX = coords[0];
-          this.extent.minY = coords[1];
-          this.extent.maxX = coords[2];
-          this.extent.maxY = coords[3];
+    
+    let layer: any = null;
+    for (const root of this.layersTreeData) {
+      layer = findLayerByAction(root, taskId);
+      if (layer) break; 
+    }
+   function findLayerByAction(layer: any, id: string): any | null {
+      if (layer.action && layer.action === id) {
+        return layer;
+      }      
+      for (const child of layer.children) {
+        const layer = findLayerByAction(child, id);
+        if (layer) {
+          return layer;
         }
       }
+      return null;
+    }
+
+    await this.databaseService.insertLayer(this.app.id, this.ter.id, taskId, layer.name, JSON.stringify(fields), JSON.stringify(resp.data), extent, zoom, mapProj);
+  }
+
+  private async errorStorageToast() {
+    this.languageService.translateTag('download.storagePermissionError').subscribe((text: string) => this.createToast(text, 'warning', 'bottom'));
+  }
+
+  async createToast(msg: string, type: string, pos: "top" | "bottom" | "middle" | undefined) {
+    const toast = await this.toastController.create({
+      message: msg,
+      duration: 3000,
+      color: type,
+      position: pos
     });
+    await toast.present();
+  }
+
+  private async getData(){
+    //obtener capas descargadas
+    const layers = await this.databaseService.getLayersByAppAndTer(this.app.id, this.ter.id);
+    const layerLoadIds: string[] = []; 
+    this.layersSizeBytes = 0;
+    this.layersSizeMBytes = 0;  
+    
+    if (layers[0]) {
+      layers.forEach(l => {
+        layerLoadIds.push(l.id_layer);
+      });    
+      this.treeviewService.setCheckedLayers(this.layersTreeData, layerLoadIds); //check capas recursivo
+      
+      await this.getDatabaseWeight(); //peso capas
+      this.zoomValue = layers[0].zoom;
+      this.mapProjSelected = layers[0].proj;
+      this.mapProjSelectedPrev = layers[0].proj;
+      if (layers[0].extension !== '') {
+        const coords = layers[0].extension.split(",");
+        this.extent.minX = coords[0];
+        this.extent.minY = coords[1];
+        this.extent.maxX = coords[2];
+        this.extent.maxY = coords[3];
+      }
+    } else {
+      this.treeviewService.setCheckedLayers(this.layersTreeData, layerLoadIds); //check capas recursivo
+      this.mapProjSelected = this.profile.application.srs;
+      this.mapProjSelectedPrev = this.profile.application.srs;
+      this.zoomValue = this.profile.application.defaultZoomLevel;
+      this.extent.minX = this.profile.application.initialExtent[0];
+      this.extent.minY = this.profile.application.initialExtent[1];
+      this.extent.maxX = this.profile.application.initialExtent[2];
+      this.extent.maxY = this.profile.application.initialExtent[3];
+    }
+  }
+
+  private async getDatabaseWeight() {
+    const layers = await this.databaseService.getLayersByAppAndTer(this.app.id, this.ter.id);
+    const json = JSON.stringify(layers);
+    const blob = new Blob([json], { type: 'application/json' });
+    this.layersSizeBytes = blob.size;
+
+    const id = this.app.id + '_' + this.ter.id; 
+    const fileName = `bgMapa_${id}.mbtiles`;
+
+    try {
+      const info = await Filesystem.stat({
+        path: fileName,
+        directory: Directory.Data
+      });
+      this.layersSizeBytes += info.size; 
+      const bgMapSizeMB = Math.round(info.size / (1024 * 1024) * 10) / 10;
+      console.log(`Archivo MBTiles encontrado, tamaño: ${bgMapSizeMB} MB`);
+    } catch (error) {
+      console.log(`Archivo no existe, no es necesario calcular su peso: ${error}`);
+    }
+    this.layersSizeMBytes = Math.round(this.layersSizeBytes / (1024 * 1024) * 10) / 10;
+    console.log(`Tamaño total: ${this.layersSizeMBytes} MB`);
+  }
+
+  private async storagebgLayer(jobId: string, instanceUrl: string) {
+    this.downloadProgress.type = 'download.progress-file';
+    this.downloadProgress.value = 0.01; //inicia progreso de descarga
+    const id = this.app.id + '_' + this.ter.id; 
+    const fileName = `bgMapa_${id}.mbtiles`;
+    //borra fichero previo si existe
+    try {
+      await Filesystem.deleteFile({
+        path: fileName,
+        directory: Directory.Data,
+      });
+    } catch (err) {
+        console.log(`Archivo no existe, no es necesario eliminarlo: ${err}`);
+    }
+    const url = instanceUrl.replace("backend", "middleware").concat(`/proxy/mbtiles/${jobId}/file`);
+    console.log(url);
+
+    Filesystem.addListener('progress', (progress) => {
+      this.downloadProgress.value = progress.bytes / progress.contentLength; //progreso de descarga
+      console.log(`Descargado ${progress.bytes} de ${progress.contentLength}`);
+      this.cdr.detectChanges(); //fuerza actualizacion de la vista      
+    });
+
+    await Filesystem.downloadFile({
+      url: url,
+      path: fileName,
+      directory: Directory.Data,
+      recursive: true,
+      progress: true,
+    });    
+    
+    console.log(`Fichero ${fileName} almacenado correctamente.`);
+    const bg = this.bgTreeData.find((bg: TreeNode) => bg.checked);
+    if (bg) {
+      await this.databaseService.insertbgLayer(this.app.id, this.ter.id, bg.name, fileName);
+    }
+  }
+
+  private getmapServices(): any[]{ 
+    interface MapService {
+      url: string;
+      layers: string[];
+      type: string;
+    }
+    const mapServices: MapService[] = [];
+    let mapService: MapService = {
+        url: "",
+        layers: [],
+        type: "",
+      };  
+
+    const bg = this.bgTreeData.find((bg: TreeNode) => bg.checked);
+    if (bg) {      
+      const groupLayer = this.profile.groups.find((group: any) => group.id === bg.resource);
+      const bgLayers = this.profile.layers.filter((layer: any) => groupLayer.layers.includes(layer.id));      
+      bgLayers.map((layer: any) =>{
+        mapService.layers = layer.layers;
+        const service = this.profile.services.find((service: any) => service.id === layer.service);
+        mapService.url = service.url;
+        mapService.type = service.type;
+
+        const repeatedMapService = mapServices.some(s => {
+          s.url === mapService.url &&
+          s.type === mapService.type &&
+          JSON.stringify(s.layers) === JSON.stringify(mapService.layers)
+        });
+        if (!repeatedMapService) {
+          mapServices.push(mapService);
+        }
+      });
+    }else{
+      console.log("No se ha seleccionado capa base");
+    }
+    return mapServices;
   }
 
   backPage() {
     this.location.back();
-  }
-
-  setLanguage(langCode: string) {
-    this.selectedLanguage = langCode;
-    this.languageService.setLanguage(langCode);
   }
 
   updateNetworkStatus(connected: boolean) {
@@ -198,9 +455,22 @@ export class DownloadPage implements OnInit {
     this.treeviewService.toggleCheck(node);
   }
 
+  toggleBgCheck(node: TreeNode, event: any) {
+    const checked = node.checked;
+    if (checked) {
+      this.bgTreeData.forEach(tn => this.treeviewService.toggleCheck(tn));
+      if (event) {
+        const inputs = document.querySelectorAll<HTMLInputElement>('.bg-check');
+        inputs.forEach(i => i.checked = false);
+        event.target.checked = checked;
+      }
+      node.checked = checked;
+    }
+  }
+
 
   openMap() {
-    const checkedLayers = this.treeviewService.getCheckedLayers(this.treeData);
+    const checkedLayers = this.treeviewService.getCheckedLayers(this.layersTreeData);
 
     const navigationExtras: NavigationExtras = {
       state: {
@@ -256,9 +526,30 @@ export class DownloadPage implements OnInit {
     this.openToast = false;
   }
 
+  private convertImageToBase64(url: string): Promise<string> {
+  return fetch(url)
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('No se pudo obtener la imagen');
+      }
+      return response.blob();
+    })
+    .then(blob => new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        resolve(reader.result as string); 
+      };
+      reader.onerror = error => reject(error);
+      reader.readAsDataURL(blob);
+    }));
+  }
+
+  openMenu() {
+    this.profileModal.openProfileModal();
+  }
+
   async showLoading() {
     const loading = await this.loadingCtrl.create({});
-
     loading.present();
   }
 

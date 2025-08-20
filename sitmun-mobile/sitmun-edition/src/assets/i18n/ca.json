@@ -4,14 +4,16 @@
         "instanceSelection": "Introdueix l’URL de la instància",
         "registerInstance": "Registrar",
         "user": "Usuari",
-        "password": "Contrasenya"
+        "password": "Contrasenya",
+        "selectUser": "Selecciona usuari",
+        "cancel": "Cancel·lar"
     },
     "applist": {
         "title": "Aplicacions",
         "selectTer": "Seleccionar territori",
         "openMap": "Obrir mapa",
         "openDownload": "Abrir descarga",
-        "cancel": "Cancelar"
+        "cancel": "Cancel·lar"
     },
     "download": {
         "title": "Descarregar",
@@ -25,7 +27,23 @@
         "maxx": "Max x",
         "maxy": "Max y", 
         "selectProj": "Projecció",
-        "toast": "Descàrrega amb èxit"
+        "toast": "Descàrrega amb èxit",
+        "storagePermissionError": "No es tenen permisos per emmagatzemar fitxers al dispositiu",
+        "noBgLayerSelected": "No s'ha seleccionat cap capa de fons",
+        "noLayerSelected": "No s'ha seleccionat cap capa",
+        "remove": "Eliminar descàrrega",
+        "accept": "Acceptar",
+        "cancel": "Cancel·lar",
+        "dwl-modal-title": "Descàrrega de mapa",
+        "dwl-modal-message": "El pes estimat de la descàrrega serà de ",
+        "progress-file": "Descarregant fitxer", 
+        "progress-request": "Processant petició",
+        "delete-modal-title": "Eliminar descàrrega prèvia",
+        "delete-modal-message": "¿Està segur de que vol eliminar la descàrrega prèvia?",
+        "no-freespace": "No hi ha espai suficient al dispositiu per realitzar la descàrrega.",
+        "storageData": "Dades emmagatzemades",
+        "bgLayer": "Capes base",
+        "editLayer": "Capes editables"
     },
     "map": {
         "title": "Mapa",
@@ -38,16 +56,26 @@
         "locationDisabled": "La ubicació està desactivada",
         "locationError": "Error en obtenir la ubicació",
         "doneText": "Fet",
-        "cancelText": "Cancelar",
+        "cancelText": "Cancel·lar",
         "editGeometryError": "Cal desar abans d’editar la geometria",
         "noEditLayerSelected": "Cal seleccionar prèviament la capa a editar",
-        "invalidFeatureForm": "Hi ha camps obligatoris sense emplenar"
+        "invalidFeatureForm": "Hi ha camps obligatoris sense emplenar",
+        "prompt": {
+            "header": "Seleccionar imatge",
+            "gallery": "Obrir galeria",
+            "picture": "Fer foto"
+        },
+        "downloadLayers": "Capes descarregades" 
     },
     "exit": {
         "title": "Sortir",
         "message": "Sortir de l'aplicació?",
         "exit": "Sortir",
         "continue": "Continuar"
+    },    
+    "menu":{
+        "title": "Perfil",
+        "exit": "Tancar sessió"
     },
     "offline": "Sense connexió"
 }

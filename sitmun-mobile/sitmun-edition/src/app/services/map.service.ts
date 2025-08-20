@@ -2,9 +2,12 @@ import { Injectable } from '@angular/core';
 import { Geolocation } from '@capacitor/geolocation';
 import { ToastController } from '@ionic/angular';
 import { LanguageService } from './language.service';
+import { Filesystem, Directory } from '@capacitor/filesystem';
 
 declare var M: any;
 declare var ol: any;
+declare var cordova: any;
+
 
 @Injectable({
   providedIn: 'root'
@@ -14,54 +17,155 @@ export class MapService {
   editableLayers: any[] = [];
   move: any = null;
   private mapProfileApplication: any;
+  mapProj = 'EPSG:3857';
+  centerMapTransformed: number[] = [] 
 
-  constructor(private toastController: ToastController, private languageService: LanguageService) { }
-
-  async initMap(container: string, profile: any, zoom: number = 9, extent: number[] = [], mapProj: string ) {
+  constructor(private toastController: ToastController, private languageService: LanguageService) { 
+    M.config('SQL_WASM_URL', '/assets/external/api-cnig/');
+  }
+  //downloadZoom, downloadExtent y selectedProj vendrán con algún valor cuando el método se utilice al iniciar
+  //el mapa entrando desde download
+  async initMap(container: string, profile: any, downloadZoom: number = 9, downloadExtent: number[] = [], selectedProj: string ) {
     this.editableLayers = [];
     this.mapProfileApplication = profile.application;
     M.proxy(false);
+
     const mapa = new M.map({
       container,
       projection: 'EPSG:3857*m',
-      bbox: [411307.6492025334, 4836400.090687951, 491184.3437605426, 4883026.677941912],
+      layers: ['OSM'],
     });
     if (profile) {
-      await this.applyMapDataFromProfile(mapa, profile.application, zoom, extent, mapProj);
+      await this.applyMapDataFromProfile(mapa, profile.application, downloadZoom, downloadExtent, selectedProj);
       await this.applyMapBackgroundsAndLayers(mapa, profile);
     }
     return mapa;
   }
 
-  addClickFunctionToEditableLayers(clickFn: Function) {
-    this.editableLayers.forEach(l => {
-      l.on(M.evt.LOAD, (features: any[]) => {
-        features.forEach((f:any) => f.setAttribute('vendor.mapea.click', clickFn));
+  async initMapOffline(container: string, zoom: number, extent: number[], selectedProj: string, bgLayer: any, databaseLayers: any[]) {
+    this.editableLayers = [];
+    M.proxy(false);
+
+    const fileName = bgLayer.path;
+    const fileInfo = await Filesystem.getUri({
+      path: fileName,
+      directory: Directory.Data,
+    });
+
+    const localUrl = fileInfo.uri; 
+    const folderPath = localUrl.replace(`/${fileName}`, '').replace('file://', '');
+
+    try {
+      const baseUrl = await this.startLocalServer(folderPath);
+      const fileUrl = baseUrl + fileName;
+
+      const mbtile = new M.layer.MBTiles({
+        name: bgLayer.title,
+        legend: bgLayer.title,
+        url: fileUrl,
+        isBase: true
+      });
+
+      let center = [(extent[0] + extent[2])/2, (extent[1] + extent[3])/2];
+      center = ol.proj.transform(center, selectedProj, this.mapProj);
+      this.centerMapTransformed = center;
+      const bboxMin = ol.proj.transform([extent[0], extent[1]], selectedProj, this.mapProj);
+      const bboxMax = ol.proj.transform([extent[2], extent[3]], selectedProj, this.mapProj);
+      const bbox = bboxMin.concat(bboxMax);
+      
+
+      const mapa = new M.map({
+        container,
+        projection: 'EPSG:3857*m',
+        center: { x: center[0], y: center[1] },
+        bbox,
+        zoom,
+        layers: [mbtile], //capa base offline
+      });
+
+      databaseLayers.forEach((l: any) => {
+         const layer = new M.layer.GeoJSON({
+          name: l.name,
+          legend: l.name,
+          source: JSON.parse(l.geojson),
+         });
+         layer.idLayer = l.id_layer; 
+         this.editableLayers.push(layer);
+      });
+      /*
+      cordova.plugins.CorHttpd.stopServer(() => {
+        console.log('Servidor detenido');
+      });
+      */
+      const groupOpts = {
+        name: "Capas descargadas",
+        legend: "Capas descargadas",
+        layers: this.editableLayers
+      };
+      mapa.addLayers(new M.layer.LayerGroup(groupOpts));
+      return mapa;
+    } catch (error) {
+      console.error('No se pudo iniciar el mapa', error);
+    }    
+  }
+
+  private async startLocalServer(localFolder: string): Promise<string> {
+    return new Promise((resolve, reject) => {
+      cordova.plugins.CorHttpd.getURL((url: string) => {
+        if (url && url.length > 0) {
+          console.log('Servidor ya en ejecución en:', url);
+          resolve(url + '/');
+        } else {
+          cordova.plugins.CorHttpd.startServer({
+            www_root: localFolder, 
+            port: 8080,
+            localhost_only: true,
+          }, (url: string) => {
+            if (url && url.startsWith('http')) {
+              console.log('Servidor HTTP iniciado en:', url);
+              resolve(url + '/');
+            } else {
+              reject('Error al iniciar el servidor HTTP');
+            }
+          });
+        }
       });
     });
   }
 
-  private async applyMapDataFromProfile(mapa: any, application: any, zoom: number, extent: number[], mapProj: string) {
-    let srs = application.srs;
-    console.log(`SRS del mapa: ${srs}`);
-    let center = [application.pointOfInterest.x, application.pointOfInterest.y];
-    let bbox = application.initialExtent;
+  addClickFunctionToEditableLayers(clickFn: Function) {
+    this.editableLayers.forEach(l => {
+      l.on(M.evt.LOAD, (features: any[]) => {
+        if (Array.isArray(features)) { //si la capa no tiene features, el objeto obtenido en el evento no es array
+          features.forEach((f:any) => f.setAttribute('vendor.mapea.click', clickFn));
+        }
+      });
+    });
+  }
+
+  private async applyMapDataFromProfile(mapa: any, application: any, zoom: number, downloadExtent: number[], selectedProj: string) {
+    let srs = '';
+    let center = [];
+    let bbox = [];
     //origen descraga mapa se define extent    
-    if (extent && extent.length === 4) {
-      bbox = extent;
+    if (downloadExtent && downloadExtent.length === 4) {
+      bbox = downloadExtent;
       center = [(bbox[0] + bbox[2])/2, (bbox[1] + bbox[3])/2];
       //si se selecciona tipo de proyección, hay que transformar las coordenadas
-      if (mapProj !== '') {
-        center = ol.proj.transform(center, mapProj, srs);
-        const bboxMin = ol.proj.transform([bbox[0], bbox[1]], mapProj, srs);
-        const bboxMax = ol.proj.transform([bbox[2], bbox[3]], mapProj, srs);
+      if (selectedProj !== '' && selectedProj !== srs) {
+        center = ol.proj.transform(center, selectedProj, this.mapProj);
+        const bboxMin = ol.proj.transform([bbox[0], bbox[1]], selectedProj, this.mapProj);
+        const bboxMax = ol.proj.transform([bbox[2], bbox[3]], selectedProj, this.mapProj);
         bbox = bboxMin.concat(bboxMax);
       }    
     }else{
+      srs = application.srs;
+      center = [application.pointOfInterest.x, application.pointOfInterest.y];
+      bbox = application.initialExtent;
     //let zoom = application.defaultZoomLevel;
-      center = ol.proj.transform(center, srs, 'EPSG:3857');
-      const bboxMin = ol.proj.transform([bbox[0], bbox[1]], srs, 'EPSG:3857');
-      const bboxMax = ol.proj.transform([bbox[2], bbox[3]], srs, 'EPSG:3857');
+      center = ol.proj.transform(center, srs, this.mapProj);
+      const bboxMin = ol.proj.transform([bbox[0], bbox[1]], srs, this.mapProj);
+      const bboxMax = ol.proj.transform([bbox[2], bbox[3]], srs, this.mapProj);
       bbox = bboxMin.concat(bboxMax);
     }
     console.log(`Estableciendo bbox: ${bbox}`);
@@ -70,10 +174,11 @@ export class MapService {
     mapa.setZoom(zoom);
     console.log(`Estableciendo centro: ${center}`);
     mapa.setCenter(center);
+    this.centerMapTransformed = center;
   }
 
   private async applyMapBackgroundsAndLayers(mapa: any, profile: any) {
-    this.applyMapBackgrounds(mapa, profile);
+    //this.applyMapBackgrounds(mapa, profile);
     this.applyMapLayers(mapa, profile);
   }
 
@@ -128,17 +233,32 @@ export class MapService {
     const bg: any = {};
     bg.title = group.title;
     bg.id = group.id.split('/')[1];
+    const bgLayers = this.createBackgroundLayers(group, layers, services);
+    bg.layers = bgLayers;
+    return bg;
+  }
+
+  getBaseLayer(profile: any, idGroup: string, title: string) {
+    const group = profile.groups.find((g: any) => g.id = idGroup);
+    const bgLayers = this.createBackgroundLayers(group, profile.layers, profile.services);
+    const groupOpts = {
+      name: title,
+      legend: title,
+      layers: bgLayers,
+      isBase: true,
+    };
+    return new M.layer.LayerGroup(groupOpts);
+  }
+
+  private createBackgroundLayers(group: any, layers: any[], services: any[]) {
     const bgLayers = [];
-    console.log(layers.length);
     const filteredLayers = layers.filter(l => group.layers.includes(l.id));
-    console.log(`Capas filtradas: ${filteredLayers.length}`);
     for(let l of filteredLayers) {
       let serviceData = services.find(s => s.id === l.service);
       const bgLayer = this.createLayer(serviceData, l, true);
       bgLayers.push(bgLayer);
     }
-    bg.layers = bgLayers;
-    return bg;
+    return bgLayers;
   }
 
   private processCartographyNode(node: any, treeNodes: any, layers: any[], services: any[], tasks: any[]) {
@@ -147,9 +267,11 @@ export class MapService {
     let result;
     if (layerId || taskId) { // Nodo hoja
       const layer = layers.find(l => l.id === layerId);
-      const service = services.find(s => s.id === layer.service);
+      let service = null;
+      if (layer) {
+        service = services.find(s => s.id === layer.service);
+      }
       const task = tasks.find(t => t.id === taskId);
-      layer.title = 'Capa de referencia';
       const groupLayers = [];
       if (layer && service) {
         groupLayers.push(this.createLayer(service, layer));
@@ -200,7 +322,6 @@ export class MapService {
     let layerOptions = {
       url: task.url,
       name: task.parameters.typename.value,
-      legend: 'Capa editable',
       isBase: false,
       displayInLayerSwitcher: true,
       visible: true
@@ -286,7 +407,7 @@ export class MapService {
       } else {        
         console.log('No se tienen permisos para obtener la ubicación, obteniendo de la configuración del mapa');
         await this.errorLocationToast("permissionError");
-        position = this.getLocationByProfile();
+        position = this.getDefaultLocation();
       }
     } catch (error) {
       console.error('Error obteniendo ubicación:', error);
@@ -296,18 +417,18 @@ export class MapService {
         await this.errorLocationToast("error");
       }   
 
-      position = this.getLocationByProfile();
+      position = this.getDefaultLocation();
     }
     return position;
   }
 
   private async errorLocationToast(typeError: string) {
     if (typeError === 'permissionError') {
-      this.languageService.translateTag('map.locationPermissionError').subscribe(text => this.createToast(text, 'warning', 'bottom'));
+      this.languageService.translateTag('map.locationPermissionError').subscribe((text: string) => this.createToast(text, 'warning', 'bottom'));
     } else if (typeError === 'locationError') {
-      this.languageService.translateTag('map.locationDisabled').subscribe(text => this.createToast(text, 'warning', 'bottom'));
+      this.languageService.translateTag('map.locationDisabled').subscribe((text: string) => this.createToast(text, 'warning', 'bottom'));
     }else{
-      this.languageService.translateTag('map.locationError').subscribe(text => this.createToast(text, 'warning', 'bottom'));
+      this.languageService.translateTag('map.locationError').subscribe((text: string) => this.createToast(text, 'warning', 'bottom'));
     }
   }
 
@@ -322,16 +443,13 @@ export class MapService {
   }
   
 
-  getLocationByProfile() {
+  getDefaultLocation() {
     let position = {
       x: 4,
       y: 40
     }
-    const application = this.mapProfileApplication;
-    const center = application.pointOfInterest;
-    const proj = application.srs;
-    if (center && center.x && center.y && proj) {
-      const coords = this.transformCoords([center.x, center.y], proj, 'EPSG:4326');
+    if (this.centerMapTransformed && this.mapProj) {
+      const coords = this.transformCoords(this.centerMapTransformed, this.mapProj, 'EPSG:4326');
       position = {
         x: coords[0],
         y: coords[1]
