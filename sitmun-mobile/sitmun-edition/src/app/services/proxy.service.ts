@@ -21,11 +21,10 @@ export class ProxyService {
     });
   }
 
-  async sendbgLayerServices(mapServices: any[], extent: any, zoom: number, projection: string, instance: string) {
-    const url = instance.replace("backend", "middleware").concat('/proxy/mbtiles');
-    console.log(url);
+  async sendbgLayerServices(mapServices: any[], extent: any, zoom: number, projection: string, mbtilesUrl: string) {
+    //const url = instance.replace("backend", "").concat('/mbtiles');
     const options = {
-      url,
+      url: mbtilesUrl,
       method: 'POST',
       headers: {
         'Accept': 'text/plain',
@@ -71,8 +70,8 @@ export class ProxyService {
     return this.request(options);
   }
 
-  async checkbgServices(jobId: string, instance: string) {
-    const url = instance.replace("backend", "middleware").concat(`/proxy/mbtiles/${jobId}`);
+  async checkbgServices(jobId: string, mbtilesUrl: string) {
+    const url = mbtilesUrl.concat(`/${jobId}`);
     console.log(url);
     const options: any = {
       url,

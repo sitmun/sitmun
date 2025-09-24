@@ -464,6 +464,28 @@ export class DatabaseService {
     }
   }
 
+  async getLoggedUser() {
+    await this.loadConnection(this.dbPublic);
+    const statement = `SELECT name, logged, datetime(last_login, 'unixepoch') as last_login FROM userlogin WHERE logged = TRUE`;
+
+    try {
+      if (this.db) {
+        const results = (await this.db.query(statement)).values;
+        if (results) {
+          return results;
+        } else {
+          return [];
+        }
+      }
+      return [];
+    } catch (error) {
+      console.error('Error obteniendo el usuario logueado:', error);
+      return [];
+    } finally {
+      await this.closeConnection(this.dbPublic);
+    }
+  }
+
   async getInstances() {
     await this.loadConnection(this.dbPublic);
     const statement = `SELECT * FROM instances`;

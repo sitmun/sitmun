@@ -30,7 +30,7 @@ export class ProfileModalComponent  implements OnInit {
     this.selectedLanguage = this.languageService.getLanguage();
     this.languageOptions = this.languageService.getLanguageOptions();
 
-    this.databaseService.getLoginUsers().then((users: any[]) => {
+    this.databaseService.getLoggedUser().then((users: any[]) => {
       this.userName = users?.[0]?.name ?? '';
 
       this.databaseService.getInstances().then((instances: any[]) => {

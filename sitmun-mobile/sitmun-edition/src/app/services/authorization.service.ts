@@ -15,7 +15,6 @@ export class AuthorizationService {
   constructor(private loginService: LoginService, private instancesServices: InstancesService) { }
 
   async getApplications() {
-    //const url = this.authorizationUrl.concat('/api/config/client/application');
     const url = (await this.instancesServices.getInstanceUrl()).concat('/api/config/client/application');
     console.log(url);
     const options = {
@@ -32,7 +31,6 @@ export class AuthorizationService {
   }
 
   async getTerritoriesByApp(idApp: Number) {
-    //const url = this.authorizationUrl.concat(`/api/config/client/application/${idApp}/territories`);
     const url = (await this.instancesServices.getInstanceUrl()).concat(`/api/config/client/application/${idApp}/territories`);
     console.log(url);
     const options = {
