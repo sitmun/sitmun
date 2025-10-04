@@ -211,26 +211,28 @@
             <div class="row feature-attr">
               <form [formGroup]="featureAttrForm">
                 <ng-container *ngFor="let ad of attrData">
-                  <ion-item *ngIf="ad.type === 'text'">
-                    <ion-input label="{{ad.label}}" [formControlName]="ad.key" [required]="ad.required" labelPlacement="stacked" class="mx-auto co-black"></ion-input>
-                  </ion-item>
-                  <ion-item *ngIf="ad.type === 'number'">
-                    <ion-input type="number" label="{{ad.label}}" [formControlName]="ad.key" [required]="ad.required" labelPlacement="stacked" class="mx-auto co-black"></ion-input>
-                  </ion-item>
-                  <ion-item *ngIf="ad.type === 'image'">
-                    <ion-input type="text" label="{{ad.label}}" [formControlName]="ad.key" [required]="ad.required" labelPlacement="stacked" class="mx-auto co-black" aria-disabled></ion-input>
-                  </ion-item>
-                  <ion-item *ngIf="ad.type === 'listbox'">
-                    <ion-select class="text-dark" label="{{ad.label}}" [formControlName]="ad.key" [required]="ad.required" labelPlacement="stacked" interface="popover">
-                      <ng-container *ngFor="let lv of ad.listValues">
-                        <ion-select-option value="{{lv.id}}">{{lv.text}}</ion-select-option>
-                      </ng-container>
-                    </ion-select>
-                  </ion-item>
-                  <ion-item  *ngIf="ad.type === 'date'">
-                    <ion-label>{{ad.label}}</ion-label>
-                    <ion-datetime-button [datetime]="ad.key + 'dt'"></ion-datetime-button>
-                  </ion-item>
+                  <ng-container *ngIf="ad.editable">
+                    <ion-item *ngIf="ad.type === 'text'">
+                      <ion-input label="{{ad.label}}" [formControlName]="ad.key" [required]="ad.required" labelPlacement="stacked" class="mx-auto co-black"></ion-input>
+                    </ion-item>
+                    <ion-item *ngIf="ad.type === 'number'">
+                      <ion-input type="number" label="{{ad.label}}" [formControlName]="ad.key" [required]="ad.required" labelPlacement="stacked" class="mx-auto co-black"></ion-input>
+                    </ion-item>
+                    <ion-item *ngIf="ad.type === 'image'">
+                      <ion-input type="text" label="{{ad.label}}" [formControlName]="ad.key" [required]="ad.required" labelPlacement="stacked" class="mx-auto co-black" aria-disabled></ion-input>
+                    </ion-item>
+                    <ion-item *ngIf="ad.type === 'listbox'">
+                      <ion-select class="text-dark" label="{{ad.label}}" [formControlName]="ad.key" [required]="ad.required" labelPlacement="stacked" interface="popover">
+                        <ng-container *ngFor="let lv of ad.listValues">
+                          <ion-select-option value="{{lv.id}}">{{lv.text}}</ion-select-option>
+                        </ng-container>
+                      </ion-select>
+                    </ion-item>
+                    <ion-item  *ngIf="ad.type === 'date'">
+                      <ion-label>{{ad.label}}</ion-label>
+                      <ion-datetime-button [datetime]="ad.key + 'dt'"></ion-datetime-button>
+                    </ion-item>
+                  </ng-container>
                 </ng-container>
               </form>
             </div>

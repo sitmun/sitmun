@@ -181,23 +181,23 @@ export class DownloadPage implements OnInit {
 
   async downloadLayers() {
     this.alertModalOpen = false;
-    //envio http capa base    
-    const instanceUrl = await this.instancesService.getInstanceUrl();    
+    //envio http capa base
+    const mbtilesUrl = this.app.config.mbtilesUrl;
     const bgMapServices = this.getmapServices();        
-    const jobId = await this.proxyService.sendbgLayerServices(bgMapServices, this.extent, this.zoomValue, this.mapProjSelected, instanceUrl);
+    const jobId = await this.proxyService.sendbgLayerServices(bgMapServices, this.extent, this.zoomValue, this.mapProjSelected, mbtilesUrl);
     this.downloadProgress.type = 'download.progress-request';
     this.downloadProgress.value = 0.01; //inicia progreso de petición
     if (jobId.data !== '') {
       await new Promise<void>((resolve) => {
         const checkStatus = async () => {
-          const resp = await this.proxyService.checkbgServices(jobId.data, instanceUrl);
+          const resp = await this.proxyService.checkbgServices(jobId.data, mbtilesUrl);
           console.log(`Procesando petición para capas base: `, resp);
           if (resp.data.processedTiles) {
             this.downloadProgress.value = resp.data.processedTiles / resp.data.totalTiles; //progreso de petición
           }          
           if (resp.data.status === "COMPLETED") {
             this.downloadProgress.value = 1; //finaliza progreso de petición
-            await this.storagebgLayer(jobId.data, instanceUrl);            
+            await this.storagebgLayer(jobId.data, mbtilesUrl);            
             resolve();
           } else {
             setTimeout(checkStatus, 3000);
@@ -358,7 +358,7 @@ export class DownloadPage implements OnInit {
     console.log(`Tamaño total: ${this.layersSizeMBytes} MB`);
   }
 
-  private async storagebgLayer(jobId: string, instanceUrl: string) {
+  private async storagebgLayer(jobId: string, mbtilesUrl: string) {
     this.downloadProgress.type = 'download.progress-file';
     this.downloadProgress.value = 0.01; //inicia progreso de descarga
     const id = this.app.id + '_' + this.ter.id; 
@@ -372,7 +372,7 @@ export class DownloadPage implements OnInit {
     } catch (err) {
         console.log(`Archivo no existe, no es necesario eliminarlo: ${err}`);
     }
-    const url = instanceUrl.replace("backend", "middleware").concat(`/proxy/mbtiles/${jobId}/file`);
+    const url = mbtilesUrl.concat(`/${jobId}/file`);
     console.log(url);
 
     Filesystem.addListener('progress', (progress) => {

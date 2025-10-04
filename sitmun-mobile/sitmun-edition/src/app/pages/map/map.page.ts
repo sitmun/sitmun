@@ -306,41 +306,43 @@ export class MapPage implements OnInit {
     this.isSaveModalOpen = false;
   }
 
-  createNewFeature() {
+  async createNewFeature() {
     if (this.layerEdit) {
       this.feature = null;
       this.imageAttr = '';
       this.imageValue = null;
-      const baseFeat = this.layerEdit.getFeatures()[0];
       this.featureAttr = {};
-      this.setAttrData();
+      await this.setAttrData();
       this.openFeatureModal(true);
     } else {
       this.languageService.translateTag('map.noEditLayerSelected').subscribe(text => this.mapService.createToast(text, 'warning', 'top'));
     }
   }
 
-  featureClickHandler(evt: any, feature: any) {
+  async featureClickHandler(evt: any, feature: any) {
     this.feature = feature;
     this.imageAttr = '';
     this.imageValue = null;
     this.featureAttr = this.feature.getAttributes();
-    this.setAttrData();
+    await this.setAttrData();
     this.openFeatureModal(false);
     this.cdr.detectChanges();
   }
 
-  setAttrData() {
+  async setAttrData() {
     const fieldsKeys = Object.keys(this.currentEditionTask.fields);
     const formControls: any = {};
-    this.attrData = fieldsKeys.filter((f: any) => this.currentEditionTask.fields[f].editable).map((fk: any) => {
+    this.attrData = [];
+    const fieldsKeysFiltered = fieldsKeys.filter((f: any) => this.currentEditionTask.fields[f].editable || this.currentEditionTask.fields[f].required);
+    for (let fk of fieldsKeysFiltered) {
       const field = this.currentEditionTask.fields[fk];
       const data: Record<string, any> = {
         key: fk,
         label: field.label,
         type: field.type,
-        defaultValue: this.featureAttr[fk] || field.value,
-        required: field.required
+        defaultValue: this.featureAttr[fk] || await this.calculateFieldValue(field.value),
+        required: field.required,
+        editable: field.editable
       };
       if (field.listValues) {
         data['listValues'] = field.listValues;
@@ -349,9 +351,25 @@ export class MapPage implements OnInit {
         this.imageAttr = fk;
       }
       this.addFeatureFormControl(data, formControls);
-      return data;
-    });
+      this.attrData.push(data);
+    }
     this.featureAttrForm = this.formBuilder.group(formControls);
+  }
+
+  async calculateFieldValue(value: any) {
+    const regex = /^\$\{[^}]+\}$/; //${...}
+    if (regex.test(value)) {
+      const fieldName = value.slice(2, -1);
+      switch (fieldName) {
+        case 'AUDIT_USER':
+          return (await this.databaseService.getLoggedUser())[0].name;
+        case 'AUDIT_DATE':
+          return new Date().toISOString();
+        default:
+          return '';
+      }
+    }
+    return value;
   }
 
   addFeatureFormControl(attrData: any, formControls: any) {
