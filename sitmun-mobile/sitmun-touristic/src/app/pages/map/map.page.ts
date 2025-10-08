@@ -9,6 +9,8 @@ import { Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged, filter } from 'rxjs/operators';
 import { DatabaseService } from 'src/app/services/database.service';
 import { TreeNode, TreeviewService } from 'src/app/services/treeview.service';
+import { LoadingController } from '@ionic/angular';
+//import { HttpClient } from '@angular/common/http';
 
 declare var M: any;
 declare var ol: any;
@@ -21,7 +23,6 @@ declare var ol: any;
 export class MapPage implements OnInit {
 
   selectedLanguage: string | null = null;
-  selectedFlag: string | null = null;
   languageOptions: any[] = [];
   private features: any[] = [];
   private activeLayer = '*';
@@ -33,6 +34,7 @@ export class MapPage implements OnInit {
   isSearchModalOpen = false;
   isBgModalOpen = false;
   bgTreeData: TreeNode[] = [];
+  html: string = '';
   private _mapa: any;
   private layer: any;
   
@@ -40,7 +42,7 @@ export class MapPage implements OnInit {
     private languageService: LanguageService, private mapaService: MapaService,
     private authorizationService: AuthorizationService, private routingService: RoutingService,
     private requestService: RequestService, private databaseService: DatabaseService,
-    private treeviewService: TreeviewService) {
+    private treeviewService: TreeviewService, private loadingCtrl: LoadingController) {
       this.route.queryParams.subscribe(params => {
       let navigation = this.router.getCurrentNavigation();
       if (navigation) {
@@ -65,7 +67,7 @@ export class MapPage implements OnInit {
     });
   }
 
-  ngOnInit() {
+  ngOnInit() { 
     this.createMap();
     if (this.searchNodes && this.searchNodes.length > 0) {
       this.searchSubj.pipe(
@@ -77,7 +79,8 @@ export class MapPage implements OnInit {
   }
 
   async createMap() {
-    this._mapa = await this.mapaService.initMap('map', this.features.length > 0, this.activeLayer);
+    this.selectedLanguage = this.languageService.getLanguage();
+    this._mapa = await this.mapaService.initMap('map', this.features.length > 0, this.activeLayer, this.selectedLanguage);
     const mapProj = this._mapa.getProjection().code;
     const mFeatures: any[] = [];
     this.features.forEach(f => mFeatures.push(this.mapaService.createFeature(f, mapProj)));
@@ -91,7 +94,7 @@ export class MapPage implements OnInit {
   }
 
   addFeaturesToLayer(mFeatures: any[], clear: boolean = false) {
-    if (mFeatures && mFeatures.length > 0) {
+    if (mFeatures && mFeatures.length > 0) {  
       if (!this.layer) {
         this.layer = new M.layer.Vector({name: 'pois'}, {displayInLayerSwitcher: false});
         //this.layer.setVisible(false);  
@@ -151,7 +154,6 @@ export class MapPage implements OnInit {
 
   ionViewWillEnter() {
     this.selectedLanguage = this.languageService.getLanguage();
-    this.selectedFlag = this.languageService.getFlag();
     this.languageOptions = this.languageService.getLanguageOptions();
   }
 
@@ -208,7 +210,7 @@ export class MapPage implements OnInit {
     if (this.searchTasks) {
       this.searchKeys = [];
       this.searchResults = {};
-      this.searchNodes.forEach(node => {
+      for (const node of this.searchNodes) {
         const t = this.searchTasks.find(t => t.id === node.action);
         const filterParams: Record<string, any> = {
           keyWord: query
@@ -217,23 +219,25 @@ export class MapPage implements OnInit {
         if (propertyKey) {
           filterParams['propertyname'] = node.mapping.input[propertyKey].value.split(',');
         }
-        this.searchRequest(node, t, filterParams);
-      });
+        await this.searchRequest(node, t, filterParams);
+      } 
     }
   }
 
   async searchRequest(node: Node, task: any, filterParams: any) {
-    this.searchPromise(task, node.mapping, {}, filterParams).then(results => {
-      if (results && results.length > 0) {
+    const results = await this.searchPromise(task, node.mapping, {}, filterParams);
+    if (results && results.length > 0) {      
+      if (node.children && node.children.length > 0) {
+        results.forEach((r: any) => r.childNode = node.children[0]);
+      }
+      const resultsWithoutDupes = this.removeDuplicateSearchResults(results);
+      if (resultsWithoutDupes.length > 0) {
         if (!this.searchKeys.includes(node.title)) {
           this.searchKeys.push(node.title);
         }
-        if (node.children && node.children.length > 0) {
-          results.forEach((r: any) => r.childNode = node.children[0]);
-        }
-        this.searchResults[node.title] = this.removeDuplicateSearchResults(results);
+        this.searchResults[node.title] = resultsWithoutDupes;
       }
-    });
+    }
   }
 
   async searchPromise( task: any, mapping: any, parentData: any, filterParams: any) {
@@ -242,7 +246,11 @@ export class MapPage implements OnInit {
 
   removeDuplicateSearchResults(results: any[]) {
     const distinctMap: any = {};
-    results.forEach(r => distinctMap[r.id] = r);
+    results.forEach((r) => {
+      if (r.name) {
+        distinctMap[r.id] = r;
+      }
+    });
     return Object.values(distinctMap);
   }
 
@@ -284,12 +292,27 @@ export class MapPage implements OnInit {
   }
 
   setLanguage(langCode: string) {
+    this.showLoading();
     this.selectedLanguage = langCode;
     this.languageService.setLanguage(langCode);
-    this.updateFlag(langCode);
+    this.refreshProfile(); // Refresh profile to ensure language is updated
   }
 
-  updateFlag(langCode: string) {
-    this.selectedFlag = this.languageService.updateFlag(langCode);
+  async refreshProfile() {
+    const profile = await this.authorizationService.getProfile();
+    await this.databaseService.addProfile(profile);
+    await this._mapa?.destroy();   
+    this.createMap();
+    this.hideLoading();
+  }
+
+  async showLoading() {
+    const loading = await this.loadingCtrl.create({});
+
+    loading.present();
+  }
+
+  hideLoading() {
+    this.loadingCtrl.dismiss();
   }
 }

@@ -34,6 +34,7 @@
   "moreInfo": "Plus d'informations",
   "map": {
     "title": "Carte",
+    "info-title": "Information",
     "backgroundMap": "Calques d'arrière-plan",
     "locationPermissionError": "Les autorisations de localisation sont absentes",
     "locationDisabled": "La localisation est désactivée",
@@ -72,9 +73,22 @@
     "price": "Prix",
     "schedule": "Horaire",
     "call": "Appeler",
-    "pois": "Point d'intérêt",
+    "point": "Point d'intérêt",
     "link": "Ouvrir le lien",
     "mailto": "Envoyer un e-mailEnvoyer un e-mail",
     "extraInfo": "Informations supplémentaires"
+  },
+  "routes": {
+    "notsuitable": "Non adapté",
+    "unclassified": "Non classé",
+    "easy": "Facile",
+    "medium": "Modéré",
+    "hard": "Difficile",
+    "circular": "Circulaire",
+    "start": "Début",
+    "end": "Fin"
+  },
+  "gallery": {
+      "noImages": "Aucune image disponible."
   }
 }

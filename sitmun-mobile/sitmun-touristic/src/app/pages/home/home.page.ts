@@ -37,7 +37,6 @@ export class HomePage implements OnInit, OnDestroy {
   selectedInstance: string = '';
   messages_: any = {};
   selectedLanguage: string | null = null;
-  selectedFlag: string | null = null;
   languageOptions: any[] = [];
 
   constructor(private platform: Platform, private instancesService: InstancesService, private authorizationService: AuthorizationService,
@@ -47,7 +46,6 @@ export class HomePage implements OnInit, OnDestroy {
 
   ionViewWillEnter() {
     this.selectedLanguage = this.languageService.getLanguage();
-    this.selectedFlag = this.languageService.getFlag();
     this.languageOptions = this.languageService.getLanguageOptions();
   }
 
@@ -242,10 +240,5 @@ export class HomePage implements OnInit, OnDestroy {
   setLanguage(langCode: string) {
     this.selectedLanguage = langCode;
     this.languageService.setLanguage(langCode);
-    this.updateFlag(langCode);
-  }
-
-  updateFlag(langCode: string) {
-    this.selectedFlag = this.languageService.updateFlag(langCode);
   }
 }

@@ -4,6 +4,7 @@ import { RoutingService } from 'src/app/services/routing.service';
 import { LanguageService } from 'src/app/services/language.service';
 import { RequestService } from 'src/app/services/request.service';
 import { DatabaseService } from 'src/app/services/database.service';
+import { LoadingController } from '@ionic/angular';
 
 @Component({
   selector: 'app-detailedlist',
@@ -13,7 +14,6 @@ import { DatabaseService } from 'src/app/services/database.service';
 export class DetailedlistPage implements OnInit {
 
   selectedLanguage: string | null = null;
-  selectedFlag: string | null = null;
   languageOptions: any[] = [];
   rootNode: Node|any = {};
   taskNode: Node|any = {};
@@ -28,7 +28,8 @@ export class DetailedlistPage implements OnInit {
   arraySkeleton: any[] = new Array(3);
   
   constructor(private authorizationService: AuthorizationService, private routingService: RoutingService,
-    private languageService: LanguageService, private requestService: RequestService, private databaseService: DatabaseService) {
+    private languageService: LanguageService, private requestService: RequestService,
+    private databaseService: DatabaseService, private loadingCtrl: LoadingController) {
   }
 
   ngOnInit(): void {
@@ -39,7 +40,6 @@ export class DetailedlistPage implements OnInit {
   ionViewWillEnter() {
     this.loaded = false;
     this.selectedLanguage = this.languageService.getLanguage();
-    this.selectedFlag = this.languageService.getFlag();
     this.languageOptions = this.languageService.getLanguageOptions();
     this.getParams();
     this.getData();
@@ -60,14 +60,14 @@ export class DetailedlistPage implements OnInit {
     }
   }
 
-  getData() {
+  async getData() {
     console.log("Obteniendo elementos");
-    this.requestService.templateRequest(this.task, this.taskNode.mapping, this.parentData).then(results => {
-      this.elements = results;
-      console.log("Elementos obtenidos");
-      this.setFavorites();
-      this.loaded = true;
-    });
+    const results = await this.requestService.templateRequest(this.task, this.taskNode.mapping, this.parentData);
+    this.elements = results;
+    console.log("Elementos obtenidos");
+    console.log(this.elements);
+    await this.setFavorites();
+    this.loaded = true;
   }
 
   async setFavorites() {
@@ -78,7 +78,6 @@ export class DetailedlistPage implements OnInit {
     const idTask = Number(this.task.id.split('/')[1]);
     for (let e of this.elements){
       e['isFav'] = favorites.findIndex(fav => fav.id_node === idNode && fav.id_task === idTask && fav.id_category === idCat && fav.id_element === e.id) >= 0
-      //e['isFav'] = this.isFavorite(e);
     }
     console.log("Favoritos comprobados");
   }
@@ -87,10 +86,6 @@ export class DetailedlistPage implements OnInit {
     const idCat = Number(this.rootNode.id.split('/')[1]);
     const favorites = await this.databaseService.getFavorites(idCat);
     return favorites;
-  }
-
-  isFavorite(elem: any) {
-    return elem.id % 2 !== 0;
   }
 
   toggleFavorite(event: any, elem: any) {
@@ -141,9 +136,31 @@ export class DetailedlistPage implements OnInit {
     this.routingService.navigateBack();
   }
 
-  setLanguage(langCode: string) {
+  async setLanguage(langCode: string) {
+    this.showLoading();
     this.selectedLanguage = langCode;
     this.languageService.setLanguage(langCode);
+    await this.getData(); // Reload data with the new language
+    this.refreshProfile(); // Refresh profile to ensure language is updated
+  }
+
+  refreshProfile() {
+    this.authorizationService.getProfile().then(profile => {
+      this.databaseService.addProfile(profile);
+      const data = this.authorizationService.getPagesByProfile(profile, this.rootNode.id);
+      this.rootNode = data.rootNode;
+      this.hideLoading();
+    });
+  }
+
+  async showLoading() {
+    const loading = await this.loadingCtrl.create({});
+
+    loading.present();
+  }
+
+  hideLoading() {
+    this.loadingCtrl.dismiss();
   }
 
   isValidHref(href: String): boolean {    
@@ -154,17 +171,6 @@ export class DetailedlistPage implements OnInit {
       href.startsWith('http://') ||
       href.startsWith('https://'))
     );
-  }
-
-  getBtnText(href: String): string {
-    if (href.startsWith('tel:')) {
-      return 'Llamar';
-    } else if (href.startsWith('mailto:')) {
-      return 'Enviar Email';
-    } else if (href.startsWith('http://') || href.startsWith('https://')) {
-      return 'Abrir Sitio Web';
-    }
-    return '';
   }
 
   openExtraInfo(elem: any, key: string, keyLabel: string) {

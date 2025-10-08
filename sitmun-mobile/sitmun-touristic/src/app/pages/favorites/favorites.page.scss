@@ -41,3 +41,27 @@ ion-content{
     bottom: 6vh;
     padding: 2vh;
 }
+
+.floating-container {
+    background-color:white; 
+    position: fixed;
+    bottom: 56px;
+    left: 0;
+    width: 100%;
+    z-index: 100;
+    display: flex;
+    justify-content: center;
+  }
+
+.locate-btn {
+    --border-radius: 50%;
+    --padding-start: 0.4em;
+    --padding-end: 0.4em;
+    --padding-bottom: 0.5em;
+    --padding-top: 0.5em;
+}
+  
+.floating-container.element-ios{
+    bottom: calc(65px + env(safe-area-inset-bottom, 0px));
+}
+  

@@ -18,7 +18,7 @@
 
 .language-selector {
   position: absolute;
-  top: 1rem;
+  top: calc(env(safe-area-inset-top, 0px) + 1rem);
   right: 1rem;
   z-index: 1000;
 

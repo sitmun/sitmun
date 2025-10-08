@@ -44,11 +44,13 @@ export const constants = {
         nm: '/nearme',
         task: {
             dl: '/detailedlist',
+            rt: '/routes',
             ne: '/nearelements',
             sch: '/schedule',
             evt: '/events',
             evtcat: '/events',
-            evtloc: '/events'
+            evtloc: '/events',
+            gallery: '/gallery'
         }
     }
 }

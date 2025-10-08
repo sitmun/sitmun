@@ -34,6 +34,7 @@
   "moreInfo": "Més informació",
   "map": {
     "title": "Mapa",
+    "info-title": "Informatio",
     "backgroundMap": "Capes de fons",
     "locationPermissionError": "No es tenen permisos per obtenir la ubicació",
     "locationDisabled": "La ubicació està desactivada",
@@ -72,9 +73,22 @@
     "price": "Preu",
     "schedule": "Horari",
     "call": "Trucar",
-    "pois": "Punt d'interès",
+    "point": "Punt d'interès",
     "link": "Obrir enllaç",
     "mailto": "Enviar correu electrònic",
     "extraInfo": "Informació extra"
+  },
+  "routes": {
+    "notsuitable": "No apte",
+    "unclassified": "Sense classificar",
+    "easy": "Fàcil", 
+    "medium": "Moderat", 
+    "hard": "Difícil", 
+    "circular": "Circular", 
+    "start": "Inici", 
+    "end": "Fi" 
+  },
+  "gallery": {
+      "noImages": "No hi ha imatges disponibles."
   }
 }

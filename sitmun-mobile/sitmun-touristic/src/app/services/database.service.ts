@@ -126,6 +126,7 @@ export class DatabaseService {
         url TEXT,
         params TEXT,
         response TEXT,
+        response_format TEXT,
         request_date NUMERIC,
         PRIMARY KEY (url, params)
       );
@@ -220,10 +221,10 @@ export class DatabaseService {
     }
   }
 
-  async insertCacheData(url: string, params: string, response: string) {
+  async insertCacheData(url: string, params: string, response: string, responseFormat: string) {
     await this.loadConnection();
-    const statement = `INSERT OR REPLACE INTO cache (url, params, response, request_date) VALUES (?, ?, ?, ?)`;
-    const values = [url, params, response, new Date().getTime()];
+    const statement = `INSERT OR REPLACE INTO cache (url, params, response, response_format, request_date) VALUES (?, ?, ?, ?)`;
+    const values = [url, params, response, responseFormat, new Date().getTime()];
 
     try {
       if (this.db) {
@@ -403,7 +404,7 @@ export class DatabaseService {
 
   async getCacheData(url: string, params: string): Promise<any[]> {
     await this.loadConnection();
-    const statement = `SELECT response, request_date as request_date FROM cache WHERE url = ? and params = ?`;
+    const statement = `SELECT response, response_format, request_date FROM cache WHERE url = ? and params = ?`;
     const values = [url, params];
     try {
       if (this.db) {

@@ -8,6 +8,7 @@ import { constants } from 'src/environments/constants';
 import { Device } from '@capacitor/device';
 import { MapaService } from 'src/app/services/mapa.service';
 import { NativeSettings, AndroidSettings, IOSSettings } from 'capacitor-native-settings';
+import { LoadingController } from '@ionic/angular';
 
 @Component({
   selector: 'app-nearme',
@@ -17,7 +18,6 @@ import { NativeSettings, AndroidSettings, IOSSettings } from 'capacitor-native-s
 export class NearmePage implements OnInit {
 
   selectedLanguage: string | null = null;
-  selectedFlag: string | null = null;
   languageOptions: any[] = [];
   rootNode: Node|any = {};
   taskNodes: Node[] = [];
@@ -33,7 +33,7 @@ export class NearmePage implements OnInit {
 
   constructor(private router: Router, private route: ActivatedRoute, private authorizationService: AuthorizationService,
     private routingService: RoutingService, private languageService: LanguageService,
-    private databaseService: DatabaseService, private mapService: MapaService) {
+    private databaseService: DatabaseService, private mapService: MapaService, private loadingCtrl: LoadingController) {
       this.route.queryParams.subscribe(params => {
         let navigation = this.router.getCurrentNavigation();
         if (navigation) {
@@ -81,7 +81,6 @@ export class NearmePage implements OnInit {
 
   ionViewWillEnter() {
     this.selectedLanguage = this.languageService.getLanguage();
-    this.selectedFlag = this.languageService.getFlag();
     this.languageOptions = this.languageService.getLanguageOptions();
 
     this.getLanguageSystem();
@@ -104,8 +103,31 @@ export class NearmePage implements OnInit {
   }
 
   setLanguage(langCode: string) {
+    this.showLoading();
     this.selectedLanguage = langCode;
     this.languageService.setLanguage(langCode);
+    this.refreshProfile(); // Refresh profile to ensure language is updated
+  }
+
+  refreshProfile() {
+    this.authorizationService.getProfile().then(profile => {
+      this.databaseService.addProfile(profile);
+      const data = this.authorizationService.getPagesByProfile(profile, this.rootNode.id);
+      this.rootNode = data.rootNode;
+      this.taskNodes = data.nodes;
+      this.getCategoriesNodes();
+      this.hideLoading();
+    });
+  }
+
+  async showLoading() {
+    const loading = await this.loadingCtrl.create({});
+
+    loading.present();
+  }
+
+  hideLoading() {
+    this.loadingCtrl.dismiss();
   }
 
   //obtiene el idioma del sistema y modifica valores distancia

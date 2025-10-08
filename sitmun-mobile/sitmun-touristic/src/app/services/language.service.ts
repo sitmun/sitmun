@@ -9,13 +9,12 @@ export class LanguageService {
 
   private languageSubscribed: any = null;
   languages = {
-    default: 'es',
-    defaultFlag: '',
+    default: 'ca',
     options: [
-        { code: 'es', name: 'Cas', emoji: '' },
-        { code: 'en', name: 'En', emoji: '' },
-        { code: 'fr', name: 'Fr', emoji: '' },
-        { code: 'ca', name: 'Cat', emoji: '' },
+        { code: 'ca', name: 'Cat', value: 'cat' },
+        { code: 'es', name: 'Cas', value: 'cast' },
+        { code: 'en', name: 'En', value: 'angl' },
+        { code: 'fr', name: 'Fr', value: 'fran' },
     ]
   };
 
@@ -28,7 +27,6 @@ export class LanguageService {
     Preferences.get({key: 'language'}).then(storageLanguage => {
       if (storageLanguage.value) {
         this.setLanguage(storageLanguage.value);
-        this.updateFlag(storageLanguage.value);
       } else {
         this.setLanguage(this.languages.default);
       }
@@ -64,14 +62,13 @@ export class LanguageService {
     return this.languages.default;
   }
 
-  updateFlag(langCode: string) {
-    const lang = this.languages.options.find(l => l.code === langCode);
-    this.languages.defaultFlag = lang ? lang.emoji : this.languages.defaultFlag;
-    return this.getFlag();
+  getLanguageValue() {
+    const languageOption = this.languages.options.find(lang => lang.code === this.languages.default);
+    return languageOption ? languageOption.value : null;
   }
 
-  getFlag() {
-    return this.languages.defaultFlag;
+  getLocale() {
+    return `${this.languages.default}-${this.languages.default.toUpperCase()}`;
   }
 
   getLanguageOptions() {

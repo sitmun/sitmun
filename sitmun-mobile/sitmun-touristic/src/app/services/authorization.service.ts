@@ -83,8 +83,10 @@ export class AuthorizationService {
 
   async getProfile() {
     const url = this.instancesService.authorizationUrl.concat(this.instancesService.initPageUrl);
+    const lang = `?lang=${this.languageService.getLanguage()}`;
+    this.lastUrl = url;
     const options = {
-      url,
+      url: url.concat(lang),
       method: 'GET',
       headers: {
         'Accept': 'application/json'
@@ -95,7 +97,6 @@ export class AuthorizationService {
   }
 
   async getPageNodes(serviceUrl: string = this.instancesService.initPageUrl, addProfile: boolean = false) {
-    serviceUrl = serviceUrl.replace('localhost', '192.168.61.157');
     const url = serviceUrl.startsWith('http') ? serviceUrl : this.instancesService.authorizationUrl.concat(serviceUrl);
     this.addProfile = addProfile;
     return this.requestPages(url);
@@ -129,8 +130,8 @@ export class AuthorizationService {
 
   getPagesByProfile(profile: Profile, idParentNode: string = 'root') {
     const touristicTree = profile.trees?.find((t: Tree) => t.type === constants.codeValue.treeType.touristicTree);
-    this.setTouristicTreeRootNode(touristicTree, idParentNode);
-    return this.transformData(profile);
+    //this.setTouristicTreeRootNode(touristicTree, idParentNode);
+    return this.transformData(profile, idParentNode);
   }
 
   setTouristicTreeRootNode(touristicTree: any, idNode: string) {
@@ -147,7 +148,7 @@ export class AuthorizationService {
 
   requestPages(url: string) {
     this.lastUrl = url;
-    const lang = `&lang=${this.languageService.getLanguage()}`;
+    const lang = `?lang=${this.languageService.getLanguage()}`;
     console.log(url.concat(lang));
     const options = {
       url: url.concat(lang),
@@ -161,6 +162,7 @@ export class AuthorizationService {
   }
 
   private request(options: any, callback: Function) {
+    console.log('Requesting: ', options.url);
     return new Promise<any>((resolve, reject) => {
       Http.request(options).then((resp) => {
         resolve(callback(resp));
@@ -189,13 +191,14 @@ export class AuthorizationService {
     return profile;
   }
 
-  private transformData(profile: Profile) {
+  private transformData(profile: Profile, idParentNode: string = 'root') {
     let params: any = {};
     if (profile.trees && profile.trees.length > 0) {
       const touristicTree = profile.trees.find(t => t.type === constants.codeValue.treeType.touristicTree);
       if (touristicTree) {
-        const rootNode: Node = touristicTree.nodes[touristicTree.rootNode];
-        rootNode.id = touristicTree.rootNode;
+        const rootNodeId = idParentNode === 'root' ? touristicTree.rootNode : idParentNode;
+        const rootNode: Node = touristicTree.nodes[rootNodeId];
+        rootNode.id = rootNodeId;
         if ((rootNode.type === constants.codeValue.treenodeLeafType.task || rootNode.type === constants.codeValue.treenodeFolderType.map)
           && profile.tasks) {
           const taskNodes: Node[] = [];
@@ -211,7 +214,7 @@ export class AuthorizationService {
           }
           params = this.transformTask(profile.tasks, rootNode, taskNodes);
         } else {
-          const nodeIds = touristicTree.nodes[touristicTree.rootNode]['children'];
+          const nodeIds = rootNode['children'];
           let nodes: Node[] = [];
           if (nodeIds) {
             nodeIds.forEach(k => {

@@ -1,4 +1,4 @@
-<ion-header [translucent]="true">
+<ion-header [translucent]="true" mode="md">
   <ion-toolbar>
     <ion-buttons slot="start">
       <ion-button (click)="backPage()">
@@ -10,7 +10,7 @@
       <ion-select [(ngModel)]="selectedLanguage" (ionChange)="setLanguage($event.detail.value)"
                   interface="popover">
         <ion-select-option *ngFor="let lang of languageOptions" [value]="lang.code">
-          {{ lang.emoji }} {{ lang.name }}
+           {{ lang.name }}
         </ion-select-option>
       </ion-select>
     </ion-buttons>
@@ -71,6 +71,11 @@
     <ng-template>
       <ion-header>
         <ion-toolbar>
+          <ion-buttons slot="start">
+            <ion-button style="opacity: 0; pointer-events: none;">
+              <ion-icon name="close" size="large"></ion-icon>
+            </ion-button>
+          </ion-buttons>
           <ion-title> {{ 'map.backgroundMap' | translate }}</ion-title>
           <ion-buttons slot="end">
             <ion-button (click)="closeBgModal()">

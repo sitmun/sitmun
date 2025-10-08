@@ -1,4 +1,4 @@
-<ion-header [translucent]="true">
+<ion-header [translucent]="true" mode="md">
   <ion-toolbar>
     <ion-buttons slot="start">
       <ion-button (click)="backPage()">
@@ -10,7 +10,7 @@
       <ion-select [(ngModel)]="selectedLanguage" (ionChange)="setLanguage($event.detail.value)"
                   interface="popover">
         <ion-select-option *ngFor="let lang of languageOptions" [value]="lang.code">
-          {{ lang.emoji }} {{ lang.name }}
+           {{ lang.name }}
         </ion-select-option>
       </ion-select>
     </ion-buttons>
@@ -37,16 +37,16 @@
           </ion-button>
         </div>
     </div>
-    <div class="row fixed-bottom py-2 locate-bottom">
-      <div class="d-flex justify-content-center">
-        <ion-button shape="round" class="access-btn dl-btn" (click)="locateAllElements()">
-          <ion-icon slot="icon-only" name="map"></ion-icon>
-        </ion-button>
-      </div> 
-    </div> 
-  </div> 
-  
+  </div>   
 </ion-content>
+
+<div slot="fixed" class="floating-container">
+  <div class="row py-2 d-flex justify-content-center">
+    <ion-button class="access-btn locate-btn" (click)="locateAllElements()">
+      <ion-icon slot="icon-only" name="map"></ion-icon>
+    </ion-button>
+  </div>
+</div>
 
 <ion-footer [translucent]="true">
   <!-- <ion-toolbar>
