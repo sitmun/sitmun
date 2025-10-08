@@ -15,32 +15,6 @@
     color: #333;      
 }
 
-/*
-#list-grid>ion-row{
-    height: 15vh;
-}
-
-.item-data {
-    color: black;
-}
-
-.item-data>h6 {
-    font-weight: bold;
-}
-
-.item-data>p {
-    font-size: 0.8rem;
-}
-
-.forward-col {
-    vertical-align: middle;
-}
-
-.forward-col>ion-icon {
-    color: black;
-    margin-top: calc(7.5vh - 16px);
-}
-*/
 .container:has(.root-img-container)>.grid-container {
     height: calc(75vh - 112px);
 }
@@ -96,3 +70,9 @@ ion-accordion ion-item {
     font-weight: 700; 
     color: #333;   
 }
+
+@media screen and (orientation: landscape) {
+    .root-img-container {
+        display: none;         
+    }
+  }

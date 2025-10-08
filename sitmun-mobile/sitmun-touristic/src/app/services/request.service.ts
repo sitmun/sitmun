@@ -1,6 +1,5 @@
 import { Injectable } from '@angular/core';
 import { Http, HttpOptions } from '@capacitor-community/http';
-import { InstancesService } from './instances.service';
 import * as uriTemplate from 'uri-templates';
 import * as jp from 'jsonpath';
 import * as xpath from 'xpath';
@@ -10,6 +9,7 @@ import { create } from 'xmlbuilder2';
 import { XMLBuilder } from 'xmlbuilder2/lib/interfaces';
 import { DatabaseService } from './database.service';
 import { environment } from 'src/environments/environment';
+import { LanguageService } from './language.service';
 
 @Injectable({
   providedIn: 'root'
@@ -21,7 +21,7 @@ export class RequestService {
   posLength = 1;
   cacheExpirationTime = environment.cacheExpirationTime * 60000;
 
-  constructor(private instancesService: InstancesService, private mapaService: MapaService,
+  constructor(private languageService: LanguageService, private mapaService: MapaService,
     private databaseService: DatabaseService
   ) { }
 
@@ -81,14 +81,28 @@ export class RequestService {
     const cache = await this.getCache(urlParts[0], JSON.stringify(params));
     if (cache) {
       console.log('Usando cache');
-      return cache;
+      return this.mappingResponse(cache, mapping);
     } else {
-      console.log('Realizando petición');
+      console.log('Realizando petición: ', options.url);
       return new Promise<any[]>((resolve, reject) => {
         Http.request(options).then(data => {
-          const response = this.mappingResponse(data.data, mapping);
-          this.addCache(urlParts[0], JSON.stringify(params), JSON.stringify(response)).then(() => {
-            resolve(response);
+          let response = data.data;
+          let saveCache = response;
+          let responseFormat = 'xml';
+          try {
+            if (typeof response !== 'string') {
+              saveCache = JSON.stringify(response);
+              responseFormat = 'json';
+            } else if (JSON.parse(response)) {
+              saveCache = response;
+              response = JSON.parse(response);
+              responseFormat = 'json';
+            }
+          } catch (error) {
+            
+          }
+          this.addCache(urlParts[0], JSON.stringify(params), saveCache, responseFormat).then(() => {
+            resolve(this.mappingResponse(response, mapping));
           });
         }).catch(error => {
           reject(error);
@@ -100,15 +114,15 @@ export class RequestService {
   private async getCache(url: string, params: string) {
     let response: any | null = null;
     const cache = await this.databaseService.getCacheData(url, params);
-    if (cache.length > 0 && (cache[0].request_date + this.cacheExpirationTime) <= new Date().getTime()) {
-      response = JSON.parse(cache[0].response);
+    if (cache.length > 0 && (cache[0].request_date + this.cacheExpirationTime) >= new Date().getTime()) {
+      response = cache[0].request_format === 'xml' ? cache[0].response : JSON.parse(cache[0].response);
     }
     return response;
   }
 
-  private async addCache(url: string, params: string, response: string) {
+  private async addCache(url: string, params: string, response: string, responseFormat: string) {
     await this.databaseService.removeCache(url, params);
-    await this.databaseService.insertCacheData(url, params, response);
+    await this.databaseService.insertCacheData(url, params, response, responseFormat);
   }
 
   private async generateUrlByTemplate(template: string, params: any, mapping: any, parentData: any, urlParams: any) {
@@ -179,6 +193,8 @@ export class RequestService {
         return urlParams.keyWord ? this.buildWfsFilter(urlParams) : '';
       case 'WFSUNITARYFILTER':
         return this.buildWfsUnitaryFilter(mapping, parentData);
+      case 'LANGUAGE':
+        return this.languageService.getLanguage();
       default:
         return param;
     }
@@ -283,10 +299,11 @@ export class RequestService {
     if(mapping && mapping.output) {
       const mapKeys = Object.keys(mapping.output);
       mapKeys.forEach(k => {
+        const multilang = mapping.output[k].multilanguage || false;
         if (mapping.output[k].calculated) {
-          result[k] = this.calculateOutput(obj, mapping.output[k].value, mapping.namespaces);
+          result[k] = this.calculateOutput(obj, mapping.output[k].value, mapping.namespaces, multilang);
         } else {
-          result[k] = this.getPathValue(obj, mapping.output[k].value, mapping.namespaces);
+          result[k] = this.getPathValue(obj, mapping.output[k].value, mapping.namespaces, multilang);
         }
         
       });
@@ -296,12 +313,12 @@ export class RequestService {
     return result;
   }
 
-  private calculateOutput(obj: any, expresion: string, namespaces: any) {
+  private calculateOutput(obj: any, expresion: string, namespaces: any, multilanguage: boolean) {
     let result = expresion;
     const matches = this.getMatches(expresion);
 
     matches.forEach(r => {
-      result = result.replace(r[0], this.getPathValue(obj, r[1], namespaces));
+      result = result.replace(r[0], this.getPathValue(obj, r[1], namespaces, multilanguage));
     });
     return result;
   }
@@ -317,8 +334,11 @@ export class RequestService {
     return matches;
   }
 
-  private getPathValue(obj: any, path: string, namespaces: any) {
+  private getPathValue(obj: any, path: string, namespaces: any, multilanguage: boolean) {
     let result = null;
+    if (multilanguage) {
+      path = this.applyLanguageToProperty(path);
+    }
     if (this.responseType === 'json') {
       result = this.getJsonPathValue(obj, path);
     } else {
@@ -360,6 +380,19 @@ export class RequestService {
       result = this.getSelectionValue(selection);
     }
     return result;
+  }
+
+  private applyLanguageToProperty(path: string) {
+    let newPath = path;
+    const lang = this.languageService.getLanguage();
+    if (path.endsWith(`']`)) {
+      newPath = path.substring(0, path.length - 2).concat(`_${lang}']`);
+    } else if (path.endsWith(`"]`)) {
+      newPath = path.substring(0, path.length - 2).concat(`_${lang}"]`);
+    } else {
+      newPath = path.concat(`_${lang}`);
+    }
+    return newPath;
   }
 
   private getSelectionValue(selection: any) {

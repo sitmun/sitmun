@@ -1,4 +1,4 @@
-<ion-header [translucent]="true">
+<ion-header [translucent]="true" mode="md">
   <ion-toolbar>
     <ion-buttons slot="start">
       <ion-button (click)="backPage()">
@@ -9,7 +9,7 @@
       <ion-select [(ngModel)]="selectedLanguage" (ionChange)="setLanguage($event.detail.value)"
                   interface="popover">
         <ion-select-option *ngFor="let lang of languageOptions" [value]="lang.code">
-          {{ lang.emoji }} {{ lang.name }}
+           {{ lang.name }}
         </ion-select-option>
       </ion-select>
     </ion-buttons>
@@ -18,8 +18,8 @@
 
 <ion-content [fullscreen]="true">
   <div class="d-flex align-items-center justify-content-center" style="width: fit-content; margin: 2rem auto;">
-    <ion-icon slot="icon-only" name="bus" size="large" style="color: #70889E;"></ion-icon>
-    <ion-title class="text-dark">{{parentData['name']}} (Nº {{parentData['id']}})</ion-title>
+    <ion-icon slot="icon-only" name="bus" size="large" style="color: #70889E;" class="me-3"></ion-icon>
+    <h5 class="text-dark">{{parentData['name']}} (Nº {{parentData['id']}})</h5>
   </div>
   <table class="table table-striped text-center">
     <thead>

@@ -1,23 +1,42 @@
 import { Injectable } from '@angular/core';
+import { AuthorizationService } from './authorization.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class HistoricService {
 
-  private historic: { url: string; state: any }[] = [];
+  private historic: { url: string; state: any, lang: string }[] = [];
 
-  constructor() { }
+  constructor(private authorizationService: AuthorizationService) { }
 
-  push(url: string, state: any) {
-    this.historic.push({ url, state });
+  push(url: string, state: any, lang: string) {
+    this.historic.push({ url, state, lang });
     console.log('Historial creado');
   }
 
-  pop(): { url: string; state: any } | null {
+  async pop(lang: string): Promise<{ url: string; state: any } | null> {
     this.historic.pop(); // quitar el actual
     console.log('Historial obtenido');
-    return this.historic.length > 0 ? this.historic[this.historic.length - 1] : null;
+    const previous = this.historic.length > 0 ? this.historic[this.historic.length - 1] : null;
+    if (previous && previous.lang !== lang) {
+      const data = await this.authorizationService.getPagesNodesBD(previous.state.rootNode.id);
+      data['parentData'] = previous.state.parentData;
+      previous.state = data;
+      previous.lang = lang;
+      this.updateLast(previous);
+    }
+    return previous;
+  }
+
+  updateLast(register: { url: string; state: any, lang: string }) {
+    if (this.historic.length > 0) {
+      this.historic[this.historic.length - 1] = register;
+      console.log('Historial actualizado');
+    } else {
+      console.error('No hay historial para actualizar');
+    }
+
   }
 
   clear() {

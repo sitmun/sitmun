@@ -4,6 +4,8 @@ import { AuthorizationService, Node } from 'src/app/services/authorization.servi
 import { RoutingService } from 'src/app/services/routing.service';
 import { LanguageService } from 'src/app/services/language.service';
 import { RequestService } from 'src/app/services/request.service';
+import { DatabaseService } from 'src/app/services/database.service';
+import { LoadingController } from '@ionic/angular';
 
 @Component({
   selector: 'app-schedule',
@@ -13,7 +15,6 @@ import { RequestService } from 'src/app/services/request.service';
 export class SchedulePage implements OnInit {
 
   selectedLanguage: string | null = null;
-  selectedFlag: string | null = null;
   languageOptions: any[] = [];
   rootNode: Node|any = {};
   taskNode: Node|any = {};
@@ -25,7 +26,8 @@ export class SchedulePage implements OnInit {
   arraySkeleton: any[] = new Array(6);
   
   constructor(private router: Router, private route: ActivatedRoute, private authorizationService: AuthorizationService,
-    private routingService: RoutingService, private languageService: LanguageService, private requestService: RequestService) {
+    private routingService: RoutingService, private languageService: LanguageService, private requestService: RequestService,
+    private databaseService: DatabaseService, private loadingCtrl: LoadingController) {
       this.route.queryParams.subscribe(params => {
       let navigation = this.router.getCurrentNavigation();
       if (navigation) {
@@ -48,7 +50,6 @@ export class SchedulePage implements OnInit {
   ionViewWillEnter() {
     this.loaded = false;
     this.selectedLanguage = this.languageService.getLanguage();
-    this.selectedFlag = this.languageService.getFlag();
     this.languageOptions = this.languageService.getLanguageOptions();
     this.startPolling();
   }
@@ -94,13 +95,28 @@ export class SchedulePage implements OnInit {
   }
 
   setLanguage(langCode: string) {
+    this.showLoading();
     this.selectedLanguage = langCode;
     this.languageService.setLanguage(langCode);
-    this.updateFlag(langCode);
+    this.getSchedule(); // Reload data with the new language
+    this.refreshProfile(); // Refresh profile to ensure language is updated
   }
 
-  updateFlag(langCode: string) {
-    this.selectedFlag = this.languageService.updateFlag(langCode);
+  refreshProfile() {
+    this.authorizationService.getProfile().then(profile => {
+      this.databaseService.addProfile(profile);
+      this.hideLoading();
+    });
+  }
+
+  async showLoading() {
+    const loading = await this.loadingCtrl.create({});
+
+    loading.present();
+  }
+
+  hideLoading() {
+    this.loadingCtrl.dismiss();
   }
 
 }

@@ -34,6 +34,7 @@
   "moreInfo": "More information",
   "map": {
     "title": "Map",
+    "info-title": "Information",
     "backgroundMap": "Background layers",
     "locationPermissionError": "Location permissions not granted",
     "locationDisabled": "Location is disabled",
@@ -72,9 +73,22 @@
     "price": "Price",
     "schedule": "Schedule",
     "call": "Call",
-    "pois": "Point of interest",
+    "point": "Point of interest",
     "link": "Open link",
     "mailto": "Send email",
     "extraInfo": "Additional information"
+  },
+  "routes": {
+    "notsuitable": "Not suitable",
+    "unclassified": "Unclassified",
+    "easy": "Easy",
+    "medium": "Medium",
+    "hard": "Hard",
+    "circular": "Circular",
+    "start": "Start",
+    "end": "End"
+  },
+  "gallery": {
+      "noImages": "No images available."
   }
 }

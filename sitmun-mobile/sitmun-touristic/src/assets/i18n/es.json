@@ -32,8 +32,9 @@
         "location": "Donde:"
     },
     "moreInfo": "Más información",
-     "map": {
+    "map": {
         "title": "Mapa",
+        "info-title": "Información",
         "backgroundMap": "Capas de fondo",
         "locationPermissionError": "No se tienen permisos para obtener la ubicación",
         "locationDisabled": "La ubicación está desactivada",
@@ -72,9 +73,22 @@
         "price": "Precio",
         "schedule": "Horario", 
         "call": "Llamar",
-        "pois": "Puntos de interés",
+        "point": "Puntos de interés",
         "link": "Abrir enlace",
         "mailto": "Enviar email",
         "extraInfo": "Información extra"
+    },
+    "routes": {
+        "notsuitable": "No apta",
+        "unclassified": "Sin clasificar",
+        "easy": "Fácil",
+        "medium": "Moderado",
+        "hard": "Difícil",
+        "circular": "Circular",
+        "start": "Inicio",
+        "end": "Fin"
+    },
+    "gallery": {
+        "noImages": "No hay imágenes disponibles."
     }
 }

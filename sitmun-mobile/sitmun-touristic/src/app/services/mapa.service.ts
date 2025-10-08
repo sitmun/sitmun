@@ -4,6 +4,7 @@ import { DatabaseService } from './database.service';
 import { constants } from 'src/environments/constants';
 import { ToastController } from '@ionic/angular';
 import { LanguageService } from './language.service';
+import { FeatureInfoService } from './feature-info.service';
 
 declare var M: any;
 declare var ol: any;
@@ -13,9 +14,13 @@ declare var ol: any;
 })
 export class MapaService {
 
-  constructor(private databaseService: DatabaseService, private toastController: ToastController, private languageService: LanguageService) { }
+  constructor(private databaseService: DatabaseService, private toastController: ToastController, private languageService: LanguageService,
+    private featureInfoService: FeatureInfoService
+  ) { }
 
-  async initMap(container: string, hasFeatures: boolean = true, activeLayer: string) {
+  async initMap(container: string, hasFeatures: boolean = true, activeLayer: string, selectedLanguage: string) {
+    this.addMapLanguages(); //añade idiomas cat y fr no inlcuidos por defecto en la API-CNIG
+    M.language.setLang(selectedLanguage); 
     M.proxy(false);
     const mapa = new M.map({
       container,
@@ -98,7 +103,7 @@ export class MapaService {
     if (layerId) { // Capa
       const layer = layers.find(l => l.id === layerId);
       const service = services.find(s => s.id === layer.service);
-      result = this.createLayer(service, layer);
+      result = this.createLayer(service, layer, node);
       if (activeLayer !== '*' && activeLayer !== layer.id) {
         result.setVisible(false);
       }
@@ -158,11 +163,12 @@ export class MapaService {
   private createInformationPlugin(mapa: any) {
     const infoPlugin = new M.plugin.Information({
       position: 'TL',
-      format: 'application/json'
+      format: 'text/html'
     });
     mapa.addPlugin(infoPlugin);
     setTimeout(() => {
       infoPlugin.controls_[0].activate();
+      this.featureInfoService.init(mapa);
     }, 500);    
   }
 
@@ -198,19 +204,20 @@ export class MapaService {
     return bgLayers;
   }
 
-  createLayer(service: any, layer: any, base: boolean = false) {
+  createLayer(service: any, layer: any, node: any, base: boolean = false) {
     let layerOptions = {
       url: service.url,
       name: layer.layers[0],
-      legend: layer.title,
+      legend: node.title,
       isBase: base,
       displayInLayerSwitcher: !base,
       visible: true
     };
-    const result = this.buildLayerByType(service.type, layerOptions, service.parameters);
-    result.idLayer = layer.id;
-    console.log(`Creado layer: ${layerOptions}`);
-    return result;
+    const buildLayer = this.buildLayerByType(service.type, layerOptions, service.parameters);
+    buildLayer.idLayer = layer.id;
+    console.log(`Creado layer: ` + service.type);
+    console.log(layerOptions)
+    return buildLayer;
   }
 
   private buildLayerByType(type: string, options: any, extraOptions: any) {
@@ -341,5 +348,24 @@ export class MapaService {
     const dist = [buffer, buffer];
     const dif = ol.proj.transform(dist, 'EPSG:3857', projection);
     return dif;
+  }
+
+  private addMapLanguages(){
+    M.language.addTranslation('fr', {
+      layerswitcher: {
+        layers: 'Couches',
+      },
+      information: {
+        title: 'Information',
+      }
+    });
+    M.language.addTranslation('ca', {
+      layerswitcher: {
+        layers: 'Capes',
+      },
+      information: {
+        title: 'Informació',
+      }
+    });
   }
 }

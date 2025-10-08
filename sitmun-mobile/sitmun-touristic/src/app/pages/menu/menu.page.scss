@@ -44,3 +44,25 @@
 .col {
     padding: 0 !important;
 }
+
+@media screen and (orientation: landscape) {
+    #full-container>.sticky-top {
+        display: none;         
+    }
+
+    .menu-item{
+        width: 20vw;
+        height: 20vw;
+        padding: 3.5vw 2vw; 
+
+        img{
+            width: 8vw;
+            height: 8vw; 
+        }
+    }
+
+    .menu-text {
+        font-size: 2vw;
+    }
+
+  }

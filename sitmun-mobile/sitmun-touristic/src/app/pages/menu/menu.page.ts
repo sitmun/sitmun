@@ -5,6 +5,7 @@ import { RoutingService } from 'src/app/services/routing.service';
 import { LanguageService } from 'src/app/services/language.service';
 import { DatabaseService } from 'src/app/services/database.service';
 import { constants } from 'src/environments/constants';
+import { LoadingController } from '@ionic/angular';
 
 @Component({
   selector: 'app-menu',
@@ -14,14 +15,14 @@ import { constants } from 'src/environments/constants';
 export class MenuPage {
 
   selectedLanguage: string | null = null;
-  selectedFlag: string | null = null;
   languageOptions: any[] = [];
   rootNode: Node|any = {};
   nodes: Node[] = [];
   imgLogo: string = '';
 
   constructor(private router: Router, private route: ActivatedRoute, private authorizationService: AuthorizationService,
-    private routingService: RoutingService, private languageService: LanguageService, private databaseService: DatabaseService) {
+    private routingService: RoutingService, private languageService: LanguageService, private databaseService: DatabaseService,
+    private loadingCtrl: LoadingController) {
       
       this.route.queryParams.subscribe(params => {
       let navigation = this.router.getCurrentNavigation();
@@ -37,7 +38,6 @@ export class MenuPage {
 
   ionViewWillEnter() {
     this.selectedLanguage = this.languageService.getLanguage();
-    this.selectedFlag = this.languageService.getFlag();
     this.languageOptions = this.languageService.getLanguageOptions();
 
     this.databaseService.getProfileData("trees").then(data => {
@@ -48,9 +48,12 @@ export class MenuPage {
   }
 
   refreshPage() {
-    this.authorizationService.getLastPageNodes().then(data => {
+    this.authorizationService.getProfile().then(profile => {
+      this.databaseService.addProfile(profile);
+      const data = this.authorizationService.getPagesByProfile(profile, this.rootNode.id);
       this.rootNode = data.rootNode;
       this.nodes = data.nodes;
+      this.hideLoading();
     });
   }
 
@@ -71,14 +74,20 @@ export class MenuPage {
   }
 
   setLanguage(langCode: string) {
+    this.showLoading();
     this.selectedLanguage = langCode;
     this.languageService.setLanguage(langCode);
-    this.updateFlag(langCode);
     this.refreshPage();
   }
 
-  updateFlag(langCode: string) {
-    this.selectedFlag = this.languageService.updateFlag(langCode);
+  async showLoading() {
+    const loading = await this.loadingCtrl.create({});
+
+    loading.present();
+  }
+
+  hideLoading() {
+    this.loadingCtrl.dismiss();
   }
 
 }

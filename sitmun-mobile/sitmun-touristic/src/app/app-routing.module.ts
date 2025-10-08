@@ -56,6 +56,14 @@ const routes: Routes = [
     path: 'nearme',
     loadChildren: () => import('./pages/nearme/nearme.module').then( m => m.NearmePageModule)
   },
+  {
+    path: 'routes',
+    loadChildren: () => import('./pages/routes/routes.module').then( m => m.RoutesPageModule)
+  },
+  {
+    path: 'gallery',
+    loadChildren: () => import('./pages/gallery/gallery.module').then( m => m.GalleryPageModule)
+  },
 ];
 
 @NgModule({

@@ -1,4 +1,4 @@
-<ion-header [translucent]="true">
+<ion-header [translucent]="true" mode="md">
   <ion-toolbar>
     <ion-buttons slot="start">
       <ion-button (click)="backPage()">
@@ -74,7 +74,7 @@
             <ion-card-content>
               <p class="evt-content" [innerHTML]="evt.description"></p>
               <div class="footer">
-                <p><strong>{{ 'events.where' | translate }}</strong> {{evt.address}} ({{evt.muni}})</p>
+                <p><strong>{{ 'events.location' | translate }}</strong> {{evt.address}} ({{evt.muni}})</p>
                 <p class="dates"><ion-icon name="calendar"></ion-icon> {{dateFormat(evt.startdate)}} - {{dateFormat(evt.enddate)}}</p>
               </div>
             </ion-card-content>
@@ -169,7 +169,7 @@
   <ion-modal [keepContentsMounted]="true">
     <ng-template>
       <ion-datetime id="startdate" presentation="date"
-      locale="es-ES" [firstDayOfWeek]="1" [(ngModel)]="filters['startdate']"
+      [locale]="locale" [firstDayOfWeek]="1" [(ngModel)]="filters['startdate']"
       [showDefaultButtons]="true" [doneText]="'events.doneText' | translate" [cancelText]="'events.cancelText' | translate">
       </ion-datetime>
     </ng-template>
@@ -177,7 +177,7 @@
   <ion-modal [keepContentsMounted]="true">
     <ng-template>
       <ion-datetime id="enddate" presentation="date"
-      locale="es-ES" [firstDayOfWeek]="1" [(ngModel)]="filters['enddate']"
+      [locale]="locale" [firstDayOfWeek]="1" [(ngModel)]="filters['enddate']"
       [showDefaultButtons]="true" [doneText]="'events.doneText' | translate" [cancelText]="'events.cancelText' | translate">
       </ion-datetime>
     </ng-template>

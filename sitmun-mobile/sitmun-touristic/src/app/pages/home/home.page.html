@@ -6,7 +6,7 @@
     <div class="language-selector">
       <ion-select [(ngModel)]="selectedLanguage" (ionChange)="setLanguage($event.detail.value)" interface="popover">
         <ion-select-option *ngFor="let lang of languageOptions" [value]="lang.code">
-          {{ lang.emoji }} {{ lang.name }}
+           {{ lang.name }}
         </ion-select-option>
       </ion-select>
     </div>

@@ -16,6 +16,7 @@ import { LoadingController } from '@ionic/angular';
 export class EventsPage implements OnInit {
 
   selectedLanguage: string | null = null;
+  locale: string | null = null;
   languageOptions: any[] = [];
   rootNode: Node|any = {};
   taskNodes: Node[]|any[] = [];
@@ -36,6 +37,7 @@ export class EventsPage implements OnInit {
     near: false
   };
   loaded = false;
+  resetCarrusel = true;
 
   constructor(private router: Router, private route: ActivatedRoute, private authorizationService: AuthorizationService,
     private routingService: RoutingService, private languageService: LanguageService, private requestService: RequestService,
@@ -43,17 +45,18 @@ export class EventsPage implements OnInit {
     private loadingCtrl: LoadingController) {
       this.filters['startdate'] = this.getToday();
       this.filters['enddate'] = this.getNext15();
+      this.locale = this.languageService.getLocale();
       this.route.queryParams.subscribe(params => {
-      let navigation = this.router.getCurrentNavigation();
-      if (navigation) {
-        let tempState = navigation.extras.state;        
-        if (tempState) {
-          this.rootNode = tempState['rootNode'];
-          this.taskNodes = tempState['taskNodes'];
-          this.tasks = tempState['tasks'];
+        let navigation = this.router.getCurrentNavigation();
+        if (navigation) {
+          let tempState = navigation.extras.state;        
+          if (tempState) {
+            this.rootNode = tempState['rootNode'];
+            this.taskNodes = tempState['taskNodes'];
+            this.tasks = tempState['tasks'];
+          }
         }
-      }
-    });
+      });
   }
 
   ngOnInit() {
@@ -78,6 +81,7 @@ export class EventsPage implements OnInit {
 
   ionViewWillEnter() {
     this.selectedLanguage = this.languageService.getLanguage();
+    this.locale = this.languageService.getLocale();
     this.languageOptions = this.languageService.getLanguageOptions();
   }
 
@@ -97,9 +101,23 @@ export class EventsPage implements OnInit {
     this.routingService.navigateBack();
   }
 
-  setLanguage(langCode: string) {
+  async setLanguage(langCode: string) {
     this.selectedLanguage = langCode;
     this.languageService.setLanguage(langCode);
+    this.locale = this.languageService.getLocale();
+    this.resetCarrusel = false;
+    await this.getInitialData(); // Reload data with the new language
+    this.refreshProfile(); // Refresh profile to ensure language is updated
+  }
+
+  refreshProfile() {
+    this.authorizationService.getProfile().then(profile => {
+      this.databaseService.addProfile(profile);
+      const data = this.authorizationService.getPagesByProfile(profile, this.rootNode.id);
+      this.rootNode = data.rootNode;
+      this.taskNodes = data.taskNodes;
+      this.tasks = data.tasks;
+    });
   }
 
   dateFormat(dateStr: string) {
@@ -182,10 +200,13 @@ export class EventsPage implements OnInit {
   }
 
   resetCarruselScroll() {
-    const carrusel = document.querySelector('#events-carrusel');
-    if (carrusel) {
-      carrusel.scrollTo({left: 0, behavior: 'smooth'});
+    if (this.resetCarrusel) {
+      const carrusel = document.querySelector('#events-carrusel');
+      if (carrusel) {
+        carrusel.scrollTo({left: 0, behavior: 'smooth'});
+      }
     }
+    this.resetCarrusel = true;
   }
 
   toggleActiveBtn(btn: any) {

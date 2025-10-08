@@ -1,4 +1,4 @@
-<ion-header [translucent]="true">
+<ion-header [translucent]="true" mode="md">
   <ion-toolbar>
     <ion-buttons slot="start">
       <ion-button (click)="backPage()">
@@ -10,7 +10,7 @@
       <ion-select [(ngModel)]="selectedLanguage" (ionChange)="setLanguage($event.detail.value)"
                   interface="popover">
         <ion-select-option *ngFor="let lang of languageOptions" [value]="lang.code">
-          {{ lang.emoji }} {{ lang.name }}
+           {{ lang.name }}
         </ion-select-option>
       </ion-select>
     </ion-buttons>
@@ -22,8 +22,8 @@
     <div class="row mb-4" *ngFor="let fav of favorites">
       <div class="row">
         <div class="col-3">
-          <div class="list-img-container my-auto" (click)="openModal($event, fav.element['image'])">
-            <ion-img class="list-img img-cover" src="{{fav.element['image'] || '../../assets/icon/no-image.jpg'}}"></ion-img>
+          <div class="list-img-container-sm my-auto" (click)="openModal($event, fav.element['image'])">
+            <ion-img class="list-img-sm img-cover" src="{{fav.element['image'] || '../../assets/icon/no-image.jpg'}}"></ion-img>
           </div>
         </div>
         <div class="col item-data">
@@ -37,18 +37,11 @@
           </ion-button>          
           <ion-button shape="round" class="visit-btn dl-btn" [ngClass]="{'active' : fav.visited}" (click)="toggleVisited($event, fav)">
             <ion-icon slot="icon-only" name="flag"></ion-icon>
-          </ion-button>
+          </ion-button> 
           <ion-button shape="round" class="delete-btn dl-btn" (click)="deleteFavorite(fav)">
             <ion-icon slot="icon-only" name="trash"></ion-icon>
-          </ion-button>
+          </ion-button> 
       </div>
-    </div>
-    <div class="row fixed-bottom py-2 locate-bottom">
-      <div class="d-flex justify-content-center">
-        <ion-button shape="round" class="access-btn dl-btn" (click)="locateAllElements()">
-          <ion-icon slot="icon-only" name="map"></ion-icon>
-        </ion-button>
-      </div> 
     </div>
   </div>
 
@@ -58,6 +51,14 @@
     </ng-template>
   </ion-modal>
 </ion-content>
+
+<div slot="fixed" class="floating-container">
+  <div class="row py-2 d-flex justify-content-center">
+    <ion-button class="access-btn locate-btn" (click)="locateAllElements()">
+      <ion-icon slot="icon-only" name="map"></ion-icon>
+    </ion-button>
+  </div>
+</div>
 
 <ion-footer [translucent]="true">
   <ion-toolbar>
