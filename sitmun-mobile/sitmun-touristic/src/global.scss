@@ -42,12 +42,13 @@ ion-content {
 
 ion-toolbar {
     --background: rgb(241, 243, 244);
-    padding: 0 5vw;
+    padding: 0;
     text-align: center;
     color: #70889E;
     
     ion-title{
-        font-weight: 700; 
+        font-weight: 700;
+        padding: 0 5px;
     }
 
     ion-button{
@@ -57,9 +58,9 @@ ion-toolbar {
     ion-select{
         color: black;
         --background: white;
-        --border-radius: 9999px;
-        --padding-end: 1.5em;
-        --padding-start: 1.5em;
+        --border-radius: 20px;
+        --padding-end: 0.5em;
+        --padding-start: 0.5em;
     }
 }
 
@@ -150,7 +151,6 @@ ion-accordion {
 
 @media only screen and (max-width: 768px) {
     .m-popup.m-collapsed {
-        //top: calc(100vh - 112px) !important;
         top: calc(100vh - 112px - env(safe-area-inset-bottom, 0px)) !important;
     }
     .m-popup.m-full {
