@@ -28,13 +28,13 @@
         </div>
         <div class="col item-data">
           <h6>{{fav.element['name']}}</h6>
-          <p [innerHTML]="fav.element['description'].substring(0, 50) + '...'"></p>
+          <p *ngIf="fav.element['description']" [innerHTML]="fav.element['description'].substring(0, 50) + '...'"></p>
         </div>
       </div>
       <div class="d-flex justify-content-center align-items-center gap-2">
           <ion-button shape="round" class="access-btn dl-btn" (click)="locateElement(fav.element)">
             <ion-icon slot="icon-only" name="location"></ion-icon>
-          </ion-button>          
+          </ion-button>
           <ion-button shape="round" class="visit-btn dl-btn" [ngClass]="{'active' : fav.visited}" (click)="toggleVisited($event, fav)">
             <ion-icon slot="icon-only" name="flag"></ion-icon>
           </ion-button> 

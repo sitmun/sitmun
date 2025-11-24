@@ -42,7 +42,6 @@ export class FavoritesPage implements OnInit {
         element.classList.add('element-ios');
       }
     }
-    this.getCategories();
   }
 
   getCategories() {
@@ -54,6 +53,7 @@ export class FavoritesPage implements OnInit {
   ionViewWillEnter() {
     this.selectedLanguage = this.languageService.getLanguage();
     this.languageOptions = this.languageService.getLanguageOptions();
+    this.getCategories();
   }
 
   async startPage() {
