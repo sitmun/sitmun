@@ -1,5 +1,5 @@
 {
-  "genericPrivateHeader.hi": "Hola",
+  "genericPrivateHeader.hi": "Hola, {{username}}!",
   "loginPage.logoutText": "Desconnexió",
   "loginPage.title": "Iniciar sessió",
   "loginPage.publicDashboardButton": "Accés públic",
@@ -116,7 +116,8 @@
   "menu.login": "Accedir",
   "menu.hi": "Hola, ",
   "menu.logout": "Tancar sessió",
-  "menu.changeApplication": "Canviar aplicació",
+  "menu.dashboard": "Aplicacions",
+  "menu.changeApplication": "Canviar",
   "menu.changeTerritory": "Canviar territori",
   "menu.continue": "Continuar",
   "paginate.previous": "Anterior",
