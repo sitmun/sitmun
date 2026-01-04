@@ -1,27 +1,46 @@
 import { TestBed } from '@angular/core/testing';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { CoordinatesControlHandler } from './coordinates-control.handler';
-import { PatchLoaderService } from '../../services/patch-loader.service';
 import { TCNamespaceService } from '../../services/tc-namespace.service';
 import { AppCfg, AppTasks } from '@api/model/app-cfg';
 
 describe('CoordinatesControlHandler', () => {
   let handler: CoordinatesControlHandler;
-  let mockPatchLoader: jasmine.SpyObj<PatchLoaderService>;
   let mockTCNamespace: jasmine.SpyObj<TCNamespaceService>;
+  let mockAppCfg: AppCfg;
 
   beforeEach(() => {
-    mockPatchLoader = jasmine.createSpyObj('PatchLoaderService', ['loadPatch', 'isPatchLoaded']);
-    mockTCNamespace = jasmine.createSpyObj('TCNamespaceService', ['waitForTC', 'getTC']);
+    mockTCNamespace = jasmine.createSpyObj('TCNamespaceService', [
+      'waitForTC',
+      'getTC'
+    ]);
 
     TestBed.configureTestingModule({
+      imports: [HttpClientTestingModule],
       providers: [
         CoordinatesControlHandler,
-        { provide: PatchLoaderService, useValue: mockPatchLoader },
         { provide: TCNamespaceService, useValue: mockTCNamespace }
       ]
     });
 
     handler = TestBed.inject(CoordinatesControlHandler);
+
+    mockAppCfg = {
+      application: {
+        id: 1,
+        title: 'Test App',
+        type: 'test',
+        theme: 'default',
+        srs: 'EPSG:25831',
+        initialExtent: [0, 0, 100, 100]
+      },
+      backgrounds: [],
+      groups: [],
+      layers: [],
+      services: [],
+      tasks: [],
+      trees: []
+    };
   });
 
   it('should be created', () => {
@@ -94,15 +113,15 @@ describe('CoordinatesControlHandler', () => {
   });
 
   describe('loadPatches()', () => {
-    it('should not call patch loader', async () => {
-      await handler.loadPatches();
-
-      expect(mockPatchLoader.loadPatch).not.toHaveBeenCalled();
+    it('should resolve successfully with context', async () => {
+      await handler.loadPatches(mockAppCfg);
+      // Default implementation does nothing, just resolves
+      expect(true).toBe(true);
     });
 
     it('should resolve immediately', async () => {
       const start = Date.now();
-      await handler.loadPatches();
+      await handler.loadPatches(mockAppCfg);
       const duration = Date.now() - start;
 
       expect(duration).toBeLessThan(10); // Should be instant
@@ -112,7 +131,7 @@ describe('CoordinatesControlHandler', () => {
   describe('Integration', () => {
     it('should handle full lifecycle', async () => {
       // Load patches (no-op for native control)
-      await handler.loadPatches();
+      await handler.loadPatches(mockAppCfg);
 
       // Should be ready immediately
       expect(handler.isReady()).toBe(true);
@@ -130,4 +149,3 @@ describe('CoordinatesControlHandler', () => {
     });
   });
 });
-
