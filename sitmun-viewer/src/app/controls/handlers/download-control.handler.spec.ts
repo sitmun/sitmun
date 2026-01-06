@@ -176,7 +176,7 @@ describe('DownloadControlHandler', () => {
       const config = handler.buildConfiguration(task, context);
       expect(config).toBeDefined();
       expect(config?.div).toBe('download');
-      expect(config?.deselectableTab).toBe(true);
+      expect(config?.['deselectableTab']).toBe(true);
       expect(mockUIStateService.enableToolsButton).toHaveBeenCalled();
     });
   });
