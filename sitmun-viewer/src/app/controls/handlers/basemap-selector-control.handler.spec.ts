@@ -28,7 +28,9 @@ describe('BasemapSelectorControlHandler', () => {
     } as Partial<
       jest.Mocked<AppConfigService>
     > as jest.Mocked<AppConfigService>;
-    mockAppConfigService.getControlDefault.mockReturnValue({ div: 'bms' });
+    mockAppConfigService.getControlDefault.mockReturnValue({
+      div: 'tc-slot-bms'
+    });
 
     TestBed.configureTestingModule({
       imports: [HttpClientTestingModule],
@@ -85,7 +87,7 @@ describe('BasemapSelectorControlHandler', () => {
 
       const config = handler.buildConfiguration(task, context);
 
-      expect(config).toEqual({ div: 'bms' });
+      expect(config).toEqual({ div: 'tc-slot-bms' });
     });
 
     it('should merge task parameters', () => {
@@ -101,7 +103,7 @@ describe('BasemapSelectorControlHandler', () => {
       const config = handler.buildConfiguration(task, context);
 
       expect(config).toEqual({
-        div: 'bms',
+        div: 'tc-slot-bms',
         position: 'top-right',
         collapsed: true
       });
@@ -161,7 +163,7 @@ describe('BasemapSelectorControlHandler', () => {
 
       const config = handler.buildConfiguration(task, context);
       expect(config).toBeDefined();
-      expect(config?.div).toBe('bms');
+      expect(config?.div).toBe('tc-slot-bms');
     });
   });
 });

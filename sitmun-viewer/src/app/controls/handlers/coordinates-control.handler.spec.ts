@@ -23,7 +23,7 @@ describe('CoordinatesControlHandler', () => {
 
     const mockAppConfigService = {
       getControlDefault: jest.fn().mockReturnValue({
-        div: 'coordinates',
+        div: 'tc-slot-coordinates',
         position: 'bottom-right',
         showElevation: true
       })
@@ -87,7 +87,7 @@ describe('CoordinatesControlHandler', () => {
       const config = handler.buildConfiguration(task, context);
 
       expect(config).toEqual({
-        div: 'coordinates',
+        div: 'tc-slot-coordinates',
         position: 'bottom-right',
         showElevation: true
       });
@@ -106,7 +106,7 @@ describe('CoordinatesControlHandler', () => {
       const config = handler.buildConfiguration(task, context);
 
       expect(config).toEqual({
-        div: 'coordinates',
+        div: 'tc-slot-coordinates',
         position: 'bottom-right',
         showElevation: true
       });
@@ -156,7 +156,7 @@ describe('CoordinatesControlHandler', () => {
 
       const config = handler.buildConfiguration(task, context);
       expect(config).toBeDefined();
-      expect(config?.div).toBe('coordinates');
+      expect(config?.div).toBe('tc-slot-coordinates');
     });
   });
 });
