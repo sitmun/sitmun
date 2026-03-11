@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.2.5] - 2026-03-11
+
+### Changed
+
+- Release alignment to `1.2.5` across build metadata, API docs versions, and documentation badges.
+
 ## [1.2.4] - 2026-03-04
 
 ### Added
@@ -213,7 +219,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 - Various bug fixes and improvements from development phase
 
-[Unreleased]: https://github.com/sitmun/sitmun-backend-core/compare/sitmun-backend-core/1.2.4...HEAD
+[Unreleased]: https://github.com/sitmun/sitmun-backend-core/compare/sitmun-backend-core/1.2.5...HEAD
+[1.2.5]: https://github.com/sitmun/sitmun-backend-core/compare/sitmun-backend-core/1.2.4...sitmun-backend-core/1.2.5
 [1.2.4]: https://github.com/sitmun/sitmun-backend-core/compare/sitmun-backend-core/1.2.3...sitmun-backend-core/1.2.4
 [1.2.3]: https://github.com/sitmun/sitmun-backend-core/compare/sitmun-backend-core/1.2.2...sitmun-backend-core/1.2.3
 [1.2.2]: https://github.com/sitmun/sitmun-backend-core/compare/sitmun-backend-core/1.2.1...sitmun-backend-core/1.2.2
