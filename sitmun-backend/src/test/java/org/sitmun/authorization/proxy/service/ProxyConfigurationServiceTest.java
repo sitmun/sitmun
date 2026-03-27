@@ -262,10 +262,20 @@ class ProxyConfigurationServiceTest {
             .parameters(new HashMap<>())
             .build();
 
-    ServiceParameter fixedParam = mock(ServiceParameter.class);
-    when(fixedParam.getType()).thenReturn("FIXED");
-    when(fixedParam.getName()).thenReturn("env");
-    when(fixedParam.getValue()).thenReturn("munine:#{TERR_ID}");
+    ServiceParameter fixedParam1 = mock(ServiceParameter.class);
+    when(fixedParam1.getType()).thenReturn("FIXED");
+    when(fixedParam1.getName()).thenReturn("env1");
+    when(fixedParam1.getValue()).thenReturn("munine:#{TERR_ID}");
+
+    ServiceParameter fixedParam2 = mock(ServiceParameter.class);
+    when(fixedParam2.getType()).thenReturn("FIXED");
+    when(fixedParam2.getName()).thenReturn("env2");
+    when(fixedParam2.getValue()).thenReturn("#{TERR_ID}");
+
+    ServiceParameter fixedParam3 = mock(ServiceParameter.class);
+    when(fixedParam3.getType()).thenReturn("FIXED");
+    when(fixedParam3.getName()).thenReturn("env3");
+    when(fixedParam3.getValue()).thenReturn("TERR_ID");
 
     ServiceParameter varyParam = mock(ServiceParameter.class);
     when(varyParam.getType()).thenReturn("VARY");
@@ -274,8 +284,9 @@ class ProxyConfigurationServiceTest {
     Service mockService = mock(Service.class);
     when(mockService.getType()).thenReturn(TYPE_WMS);
     when(mockService.getPasswordSet()).thenReturn(false);
-    when(mockService.getServiceURL()).thenReturn("https://example.com/wms?ter=#{TERR_ID}");
-    when(mockService.getParameters()).thenReturn(new HashSet<>(Arrays.asList(fixedParam, varyParam)));
+    when(mockService.getServiceURL()).thenReturn("https://example.com/wms/#{TERR_ID}");
+    when(mockService.getParameters())
+        .thenReturn(new HashSet<>(Arrays.asList(fixedParam1, fixedParam2, fixedParam3, varyParam)));
 
     when(serviceRepository.findById(1)).thenReturn(Optional.of(mockService));
 
@@ -287,8 +298,10 @@ class ProxyConfigurationServiceTest {
     assertInstanceOf(WmsPayloadDto.class, result.getPayload());
 
     WmsPayloadDto payload = (WmsPayloadDto) result.getPayload();
-    assertEquals("https://example.com/wms?ter=99", payload.getUri());
-    assertEquals("munine:99", payload.getParameters().get("env"));
+    assertEquals("https://example.com/wms/99", payload.getUri());
+    assertEquals("munine:99", payload.getParameters().get("env1"));
+    assertEquals("99", payload.getParameters().get("env2"));
+    assertEquals("TERR_ID", payload.getParameters().get("env3"));
     assertEquals(List.of("layers"), payload.getVary());
   }
 
