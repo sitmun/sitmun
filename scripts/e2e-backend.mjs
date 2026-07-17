@@ -40,6 +40,7 @@ const springArgs = [
   '--spring.datasource.username=sa',
   '--spring.datasource.password=',
   '--server.forward-headers-strategy=framework',
+  '--sitmun.proxy-middleware.url=http://localhost:4400/middleware',
 ].join(' ');
 
 const gradleArgs = ['bootRun', '--no-daemon', `--args=${springArgs}`];
