@@ -5,6 +5,7 @@ import { constants } from 'src/environments/constants';
 import { ToastController } from '@ionic/angular';
 import { LanguageService } from './language.service';
 import { FeatureInfoService } from './feature-info.service';
+import { readDeviceLocation } from './location-permission.util';
 
 declare var M: any;
 declare var ol: any;
@@ -265,23 +266,17 @@ export class MapaService {
   async getLocation() {
     let position = {x: 4, y: 40, permission: false};
     try {
-      const permission = await Geolocation.requestPermissions();
-      if(permission.location === 'granted') {
-        const currentPos = await Geolocation.getCurrentPosition();
-        position = {
-          x: currentPos.coords.longitude,
-          y: currentPos.coords.latitude,
-          permission: true
-        };
-        console.log('Ubicacion: ', position);
-      } else {
-        console.log('No se tienen permisos para obtener la ubicación, obteniendo de la configuración del mapa');
-        await this.errorLocationToast("permissionError");
-        const pos = await this.getLocationByConfig();
-        position.x = pos.x;
-        position.y = pos.y;
-        position.permission = false;
+      const device = await readDeviceLocation(Geolocation);
+      if (device.permission) {
+        console.log('Ubicacion: ', device);
+        return device;
       }
+      console.log('No se tienen permisos para obtener la ubicación, obteniendo de la configuración del mapa');
+      await this.errorLocationToast("permissionError");
+      const pos = await this.getLocationByConfig();
+      position.x = pos.x;
+      position.y = pos.y;
+      position.permission = false;
     } catch (error) {
       console.error('Error obteniendo ubicación:', error);      
       if ((error as Error).message?.toLowerCase().includes('location services')) {

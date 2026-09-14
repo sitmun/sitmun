@@ -22,7 +22,8 @@ const config: CapacitorConfig = {
         enabled: true
       },
       androidIsEncryption: false
-    }
+    },
+    Geolocation: {}
   }
 };
 

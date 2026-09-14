@@ -7,7 +7,8 @@ import { RoutingService } from 'src/app/services/routing.service';
 import { constants } from 'src/environments/constants';
 import { Device } from '@capacitor/device';
 import { MapaService } from 'src/app/services/mapa.service';
-import { NativeSettings, AndroidSettings, IOSSettings } from 'capacitor-native-settings';
+import { NativeSettings } from 'capacitor-native-settings';
+import { nativeLocationSettings } from 'src/app/services/location-permission.util';
 import { LoadingController } from '@ionic/angular';
 
 @Component({
@@ -192,10 +193,7 @@ export class NearmePage implements OnInit {
   async openSettings(){
     this.isModalOpen = false;
 
-    await NativeSettings.open({
-      optionAndroid: AndroidSettings.ApplicationDetails,
-      optionIOS: IOSSettings.App,
-    });
+    await NativeSettings.open(nativeLocationSettings());
   }
 
   continueModal() {

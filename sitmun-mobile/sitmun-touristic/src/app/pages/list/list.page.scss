@@ -13,8 +13,19 @@
 .card-title {
     font-weight: 700; 
     font-size: 1.25rem; 
-    color: #333;      
-  }
+    color: #333;
+    overflow-wrap: anywhere;
+    white-space: normal;
+}
+
+.card-text {
+    overflow-wrap: anywhere;
+    white-space: normal;
+    display: -webkit-box;
+    -webkit-line-clamp: 4;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
 /*
 #list-grid>ion-row{
     height: 15vh;

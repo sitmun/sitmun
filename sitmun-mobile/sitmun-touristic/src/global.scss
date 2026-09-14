@@ -49,6 +49,10 @@ ion-toolbar {
     ion-title{
         font-weight: 700;
         padding: 0 5px;
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
     }
 
     ion-button{
@@ -61,6 +65,7 @@ ion-toolbar {
         --border-radius: 20px;
         --padding-end: 0.5em;
         --padding-start: 0.5em;
+        max-width: min(40vw, 11rem);
     }
 }
 

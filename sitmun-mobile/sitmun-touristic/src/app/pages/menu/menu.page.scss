@@ -26,6 +26,8 @@
     width: 12vw;
     height: 12vw;
     margin: 0;
+    object-fit: contain;
+    display: block;
 }
 
 .card-body {
@@ -51,18 +53,22 @@
     }
 
     .menu-item{
-        width: 20vw;
-        height: 20vw;
-        padding: 3.5vw 2vw; 
+        width: min(20vw, 11rem);
+        height: min(20vw, 11rem);
+        padding: min(3.5vw, 1.25rem) min(2vw, 0.75rem);
+        overflow: hidden;
 
         img{
-            width: 8vw;
-            height: 8vw; 
+            width: min(8vw, 4.5rem);
+            height: min(8vw, 4.5rem); 
+            object-fit: contain;
         }
     }
 
     .menu-text {
-        font-size: 2vw;
+        font-size: clamp(0.7rem, 2vw, 1rem);
+        overflow-wrap: anywhere;
+        line-height: 1.15;
     }
 
   }
