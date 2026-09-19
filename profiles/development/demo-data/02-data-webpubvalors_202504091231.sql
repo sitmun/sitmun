@@ -23008,26 +23008,26 @@ Inscripci&oacute;n previa en la Biblioteca (Casa de Cultura).','','Free activity
 Pre-registration at the Library (Casa de Cultura).','','','','','','',''),
 	 (13612,12336,11,'&nbsp;','','&nbsp;','','&nbsp;','','','','','','',''),
 	 (13613,12336,12,'','','','','','','','','','','',''),
-	 (13614,NULL,1,'A la recerca dels fòssils de Ferreries','','En busca de los fósiles de Ferreries','','A la recerca dels fòssils de Ferreries','','','','','','','');
+	 (13614,12345,1,'A la recerca dels fòssils de Ferreries','','En busca de los fósiles de Ferreries','','A la recerca dels fòssils de Ferreries','','','','','','','');
 INSERT INTO silme.webpubvalors (id,idpublicacio,nparam,valort1,valorf1,valort2,valorf2,valort3,valorf3,valort4,valorf4,valort5,valorf5,valort6,valorf6) VALUES
-	 (13615,NULL,2,'Activitats per a infants i joves','','Actividades infantiles y para jóvenes','','Activities for children and young adults','','','','','','',''),
-	 (13616,NULL,3,'Gimcana familiar condu&iuml;da per Sa Xaranga pels carrers de Ferreries a la recerca dels f&ograve;ssils.&nbsp;','','Gincana familiar conducida por Sa Xaranga por las calles de Ferreries en busca de los f&oacute;siles.','','Family gymkhana led by Sa Xaranga through the streets of Ferreries looking for fossils.','','','','','','',''),
-	 (13617,NULL,4,'\\10.15.1.37\Web\AgendaMenorca\Documents\12344doc14.jpg','','10.15.1.37WebAgendaMenorcaDocuments12344doc14.jpg','','10.15.1.37WebAgendaMenorcaDocuments12344doc14.jpg','','','','','','',''),
-	 (13618,NULL,5,'Centre de Geologia de Menorca, Ferreries ','','Centro de Geologia de Menorca, Ferreries ','','Geology center of Menorca, Ferreries','','','','','','',''),
-	 (13619,NULL,6,'06/10/2018','','06/10/2018','','06/10/2018','','','','','','',''),
-	 (13620,NULL,7,'971374505','','971374505','','971374505','','','','','','',''),
-	 (13621,NULL,8,'www.geologiamenorca.com','','www.geologiamenorca.com','','www.geologiamenorca.com','','','','','','',''),
-	 (13622,NULL,9,'','','','','','','','','','','',''),
-	 (13623,NULL,10,'Hora: 11h.&nbsp;<br />
+	 (13615,12345,2,'Activitats per a infants i joves','','Actividades infantiles y para jóvenes','','Activities for children and young adults','','','','','','',''),
+	 (13616,12345,3,'Gimcana familiar condu&iuml;da per Sa Xaranga pels carrers de Ferreries a la recerca dels f&ograve;ssils.&nbsp;','','Gincana familiar conducida por Sa Xaranga por las calles de Ferreries en busca de los f&oacute;siles.','','Family gymkhana led by Sa Xaranga through the streets of Ferreries looking for fossils.','','','','','','',''),
+	 (13617,12345,4,'\\10.15.1.37\Web\AgendaMenorca\Documents\12344doc14.jpg','','10.15.1.37WebAgendaMenorcaDocuments12344doc14.jpg','','10.15.1.37WebAgendaMenorcaDocuments12344doc14.jpg','','','','','','',''),
+	 (13618,12345,5,'Centre de Geologia de Menorca, Ferreries ','','Centro de Geologia de Menorca, Ferreries ','','Geology center of Menorca, Ferreries','','','','','','',''),
+	 (13619,12345,6,'06/10/2018','','06/10/2018','','06/10/2018','','','','','','',''),
+	 (13620,12345,7,'971374505','','971374505','','971374505','','','','','','',''),
+	 (13621,12345,8,'www.geologiamenorca.com','','www.geologiamenorca.com','','www.geologiamenorca.com','','','','','','',''),
+	 (13622,12345,9,'','','','','','','','','','','',''),
+	 (13623,12345,10,'Hora: 11h.&nbsp;<br />
 <br />
 Els nens han d''anar acompanyats i han de portar el carnet ge&ograve;leg si el tenen.&nbsp;<br />','','Hora: 11h.<br />
 <br />
 Los ni&ntilde;os deben ir acompa&ntilde;ados y deben llevar el carnet ge&oacute;logo si lo tienen.<br />','','Time: 11h.<br />
 <br />
 Children must be accompanied and they must carry the geological card if they have one.<br />','','','','','','',''),
-	 (13624,NULL,11,'&nbsp;','','&nbsp;','','&nbsp;','','','','','','','');
+	 (13624,12345,11,'&nbsp;','','&nbsp;','','&nbsp;','','','','','','','');
 INSERT INTO silme.webpubvalors (id,idpublicacio,nparam,valort1,valorf1,valort2,valorf2,valort3,valorf3,valort4,valorf4,valort5,valorf5,valort6,valorf6) VALUES
-	 (13625,NULL,12,'','','','','','','','','','','',''),
+	 (13625,12345,12,'','','','','','','','','','','',''),
 	 (13626,12348,1,'Cruz y Ortiz. El nuevo Rijksmuseum ','','Cruz y Ortiz. El nuevo Rijksmuseum ','','Cruz y Ortiz. El nuevo Rijksmuseum ','','','','','','',''),
 	 (13627,12348,2,'Cinema i audiovisuals','','Cine y audiovisuales','','Cinema and audiovisual','','','','','','',''),
 	 (13628,12348,3,'Documental que recull les dificultats de la transformaci&oacute; radical del Rijksmuseum d''Amsterdam, llar d''obres de pintors tant importants com Rembrandt, Vermeer, Hals i Van Gogh.&nbsp;','','Documental que recoge las dificultades de la transformaci&oacute;n radical del Rijksmuseum de Amsterdam, hogar de obras de pintores tan importantes como Rembrandt, Vermeer, Hals y Van Gogh.','','Documentary that gathers the difficulties of the radical transformation of the Amsterdam Rijksmuseum, home of works by such important painters as Rembrandt, Vermeer, Hals and Van Gogh.','','','','','','',''),
