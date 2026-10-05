@@ -1,0 +1,27 @@
+plugins {
+    id 'java-library'
+    id 'maven-publish'
+    alias(libs.plugins.spring.dependency.management)
+}
+
+dependencyManagement {
+    imports {
+        mavenBom "org.springframework.boot:spring-boot-dependencies:${libs.versions.spring.boot.get()}"
+    }
+}
+
+dependencies {
+    api project(':sitmun-spring-upstream')
+    api 'com.fasterxml.jackson.core:jackson-annotations'
+
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            from components.java
+        }
+    }
+}
