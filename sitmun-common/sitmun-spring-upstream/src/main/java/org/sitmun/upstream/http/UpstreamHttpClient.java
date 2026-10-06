@@ -1,6 +1,8 @@
 package org.sitmun.upstream.http;
 
 import java.io.IOException;
+import java.security.SecureRandom;
+import java.security.cert.X509Certificate;
 import java.time.Duration;
 import java.util.List;
 import javax.net.ssl.SSLContext;
@@ -70,20 +72,20 @@ public final class UpstreamHttpClient {
             new X509TrustManager() {
               @Override
               public void checkClientTrusted(
-                  java.security.cert.X509Certificate[] chain, String authType) {}
+                  X509Certificate[] chain, String authType) {}
 
               @Override
               public void checkServerTrusted(
-                  java.security.cert.X509Certificate[] chain, String authType) {}
+                  X509Certificate[] chain, String authType) {}
 
               @Override
-              public java.security.cert.X509Certificate[] getAcceptedIssuers() {
-                return new java.security.cert.X509Certificate[] {};
+              public X509Certificate[] getAcceptedIssuers() {
+                return new X509Certificate[] {};
               }
             }
           };
       final SSLContext sslContext = SSLContext.getInstance("SSL");
-      sslContext.init(null, trustAllCerts, new java.security.SecureRandom());
+      sslContext.init(null, trustAllCerts, new SecureRandom());
       final SSLSocketFactory sslSocketFactory = sslContext.getSocketFactory();
       builder.sslSocketFactory(sslSocketFactory, (X509TrustManager) trustAllCerts[0]);
       builder.hostnameVerifier((hostname, session) -> true);
