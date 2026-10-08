@@ -185,12 +185,6 @@ export class AuthorizationService {
     return this.transformData(profile);
   }
 
-  private profileCallback(resp: any) {
-    const profile: Profile = resp.data;
-    this.databaseService.addProfile(profile);
-    return profile;
-  }
-
   private transformData(profile: Profile, idParentNode: string = 'root') {
     let params: any = {};
     if (profile.trees && profile.trees.length > 0) {
