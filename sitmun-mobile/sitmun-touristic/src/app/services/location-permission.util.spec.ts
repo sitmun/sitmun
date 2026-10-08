@@ -31,7 +31,7 @@ describe('location-permission.util', () => {
     expect(geolocation.getCurrentPosition).not.toHaveBeenCalled();
   });
 
-  it('opens Android Location settings so GPS can be enabled', () => {
+  it('returns Android Location and iOS App settings options', () => {
     expect(nativeLocationSettings()).toEqual({
       optionAndroid: AndroidSettings.Location,
       optionIOS: IOSSettings.App
