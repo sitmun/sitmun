@@ -109,8 +109,8 @@ export class NearelementsPage implements OnInit {
     this.showLoading();
     this.selectedLanguage = langCode;
     this.languageService.setLanguage(langCode);
-    this.getData(); // Reload data with the new language
-    this.refreshProfile(); // Refresh profile to ensure language is updated
+    this.getData();
+    this.refreshProfile();
   }
 
   async showLoading() {

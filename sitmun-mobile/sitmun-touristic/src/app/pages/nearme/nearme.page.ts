@@ -107,7 +107,7 @@ export class NearmePage implements OnInit {
     this.showLoading();
     this.selectedLanguage = langCode;
     this.languageService.setLanguage(langCode);
-    this.refreshProfile(); // Refresh profile to ensure language is updated
+    this.refreshProfile();
   }
 
   refreshProfile() {
