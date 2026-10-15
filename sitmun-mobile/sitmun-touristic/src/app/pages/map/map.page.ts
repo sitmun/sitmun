@@ -225,7 +225,7 @@ export class MapPage implements OnInit {
   }
 
   async searchRequest(node: Node, task: any, filterParams: any) {
-    const results = await this.searchPromise(task, node.mapping, {}, filterParams);
+    const results = await this.requestService.templateRequest(task, node.mapping, {}, filterParams);
     if (results && results.length > 0) {      
       if (node.children && node.children.length > 0) {
         results.forEach((r: any) => r.childNode = node.children[0]);
@@ -238,10 +238,6 @@ export class MapPage implements OnInit {
         this.searchResults[node.title] = resultsWithoutDupes;
       }
     }
-  }
-
-  async searchPromise( task: any, mapping: any, parentData: any, filterParams: any) {
-    return await this.requestService.templateRequest(task, mapping, parentData, filterParams);
   }
 
   removeDuplicateSearchResults(results: any[]) {
@@ -260,7 +256,7 @@ export class MapPage implements OnInit {
       this.addFeaturesToLayer([mFeature], clear);
     } else if (elem.childNode) {
       const data = await this.authorizationService.getPagesNodesBD(elem.childNode);
-      const results = await this.searchPromise(data.tasks[0], data.taskNodes[0].mapping, elem, {});
+      const results = await this.requestService.templateRequest(data.tasks[0], data.taskNodes[0].mapping, elem, {});
       //results.forEach(r => this.locateElement(r, false));
       this.locateElements(results);
     }
