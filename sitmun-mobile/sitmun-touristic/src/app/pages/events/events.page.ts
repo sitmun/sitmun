@@ -106,8 +106,8 @@ export class EventsPage implements OnInit {
     this.languageService.setLanguage(langCode);
     this.locale = this.languageService.getLocale();
     this.resetCarrusel = false;
-    await this.getInitialData(); // Reload data with the new language
-    this.refreshProfile(); // Refresh profile to ensure language is updated
+    await this.getInitialData();
+    this.refreshProfile();
   }
 
   refreshProfile() {

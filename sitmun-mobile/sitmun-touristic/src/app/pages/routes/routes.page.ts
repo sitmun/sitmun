@@ -137,8 +137,8 @@ export class RoutesPage implements OnInit {
     this.showLoading();
     this.selectedLanguage = langCode;
     this.languageService.setLanguage(langCode);
-    await this.getData(); // Reload data with the new language
-    this.refreshProfile(); // Refresh profile to ensure language is updated
+    await this.getData();
+    this.refreshProfile();
   }
 
   refreshProfile() {

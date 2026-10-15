@@ -98,8 +98,8 @@ export class SchedulePage implements OnInit {
     this.showLoading();
     this.selectedLanguage = langCode;
     this.languageService.setLanguage(langCode);
-    this.getSchedule(); // Reload data with the new language
-    this.refreshProfile(); // Refresh profile to ensure language is updated
+    this.getSchedule();
+    this.refreshProfile();
   }
 
   refreshProfile() {
