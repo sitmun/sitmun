@@ -27,24 +27,29 @@ public final class OgcExceptionCapture implements SignalCapture {
   @Override
   public CaptureResult capture(RequestContext context, ExchangeSignals signals) {
     String text = signals.ogcExceptionText();
-    if (text == null || text.isBlank()) {
+    String code = signals.ogcExceptionCode();
+    boolean hasText = text != null && !text.isBlank();
+    boolean hasCode = code != null && !code.isBlank();
+    if (!hasText && !hasCode) {
       return new CaptureResult.Undecided();
     }
     StringBuilder evidence = new StringBuilder();
     if (signals.httpStatus() != null) {
       evidence.append("HTTP ").append(signals.httpStatus());
     }
-    String code = signals.ogcExceptionCode();
-    if (code != null && !code.isBlank()) {
-      if (!evidence.isEmpty()) {
-        evidence.append(", ");
-      }
-      evidence.append(code);
+    if (hasCode) {
+      append(evidence, code);
     }
+    if (hasText) {
+      append(evidence, text);
+    }
+    return new CaptureResult.Definitive(ServiceStatuses.OGC_EXCEPTION, evidence.toString());
+  }
+
+  private static void append(StringBuilder evidence, String value) {
     if (!evidence.isEmpty()) {
       evidence.append(", ");
     }
-    evidence.append(text);
-    return new CaptureResult.Definitive(ServiceStatuses.OGC_EXCEPTION, evidence.toString());
+    evidence.append(value);
   }
 }

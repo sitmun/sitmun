@@ -2,6 +2,11 @@ package org.sitmun.upstream.signal;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.IdentityHashMap;
+import java.util.List;
+import java.util.Set;
 import org.sitmun.upstream.ogc.OgcExceptionScan;
 import org.sitmun.upstream.ogc.OgcExceptionScanner;
 
@@ -18,8 +23,21 @@ public record ExchangeSignals(
   }
 
   public static ExchangeSignals transport(Throwable error) {
+    return transport(error, 200);
+  }
+
+  public static ExchangeSignals transport(Throwable error, int maxLength) {
+    List<Throwable> links = chain(error);
+    int selected = 0;
+    for (int i = 0; i < links.size(); i++) {
+      if (TransportError.parse(links.get(i).getClass().getSimpleName()) != TransportError.OTHER) {
+        selected = i;
+        break;
+      }
+    }
+    Throwable kept = links.get(selected);
     return new ExchangeSignals(
-        error.getClass().getSimpleName(), firstSentence(error.getMessage()), null, null, "");
+        kept.getClass().getSimpleName(), message(links, selected, maxLength), null, null, "");
   }
 
   public ExchangeSignals scan(InputStream body, int maxBytes, int textMaxLength) {
@@ -41,11 +59,40 @@ public record ExchangeSignals(
     if (carriage >= 0 && carriage < lineEnd) {
       lineEnd = carriage;
     }
-    String line = message.substring(0, lineEnd);
-    int dot = line.indexOf('.');
-    if (dot >= 0) {
-      line = line.substring(0, dot);
+    return message.substring(0, lineEnd).strip();
+  }
+
+  private static List<Throwable> chain(Throwable error) {
+    List<Throwable> links = new ArrayList<>();
+    Set<Throwable> seen = Collections.newSetFromMap(new IdentityHashMap<>());
+    Throwable current = error;
+    while (current != null && links.size() < 8 && seen.add(current)) {
+      links.add(current);
+      current = current.getCause();
     }
-    return line.strip();
+    return links;
+  }
+
+  private static String message(List<Throwable> links, int selected, int maxLength) {
+    StringBuilder text = new StringBuilder();
+    for (int i = 0; i < links.size(); i++) {
+      Throwable link = links.get(i);
+      String line = firstSentence(link.getMessage());
+      if (!text.isEmpty() && text.toString().contains(line) && !line.isEmpty()) {
+        continue;
+      }
+      String piece = i == selected ? line : link.getClass().getSimpleName() + ": " + line;
+      if (piece.isBlank()) {
+        continue;
+      }
+      if (!text.isEmpty()) {
+        text.append(" <- ");
+      }
+      text.append(piece);
+    }
+    if (maxLength <= 0 || text.length() <= maxLength) {
+      return text.toString();
+    }
+    return text.substring(0, maxLength);
   }
 }

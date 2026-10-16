@@ -34,6 +34,85 @@ class OgcExceptionScannerTest {
   }
 
   @Test
+  void indentedServiceExceptionCollapsesWhitespace() {
+    String xml =
+        "<ServiceExceptionReport><ServiceException code=\"LayerNotDefined\">missing\n"
+            + "    second</ServiceException></ServiceExceptionReport>";
+
+    OgcExceptionScan scan = scan(xml, xml.length(), 40);
+
+    assertThat(scan.code()).isEqualTo("LayerNotDefined");
+    assertThat(scan.text()).isEqualTo("missing second");
+  }
+
+  @Test
+  void serviceExceptionReportReadsCodeAndText() {
+    String xml =
+        "<ServiceExceptionReport><ServiceException code=\"LayerNotDefined\">missing</ServiceException></ServiceExceptionReport>";
+
+    OgcExceptionScan scan = scan(xml, xml.length(), 40);
+
+    assertThat(scan.code()).isEqualTo("LayerNotDefined");
+    assertThat(scan.text()).isEqualTo("missing");
+  }
+
+  @Test
+  void owsExceptionReportReadsCodeAndText() {
+    String xml =
+        "<ows:ExceptionReport xmlns:ows=\"http://www.opengis.net/ows/1.1\">"
+            + "<ows:Exception exceptionCode=\"NoApplicableCode\">"
+            + "<ows:ExceptionText>missing</ows:ExceptionText>"
+            + "</ows:Exception>"
+            + "</ows:ExceptionReport>";
+
+    OgcExceptionScan scan = scan(xml, xml.length(), 40);
+
+    assertThat(scan.code()).isEqualTo("NoApplicableCode");
+    assertThat(scan.text()).isEqualTo("missing");
+  }
+
+  @Test
+  void serviceExceptionRootReadsCodeAndText() {
+    String xml = "<ServiceException code=\"LayerNotDefined\">missing</ServiceException>";
+
+    OgcExceptionScan scan = scan(xml, xml.length(), 40);
+
+    assertThat(scan.code()).isEqualTo("LayerNotDefined");
+    assertThat(scan.text()).isEqualTo("missing");
+  }
+
+  @Test
+  void capabilitiesDocumentIsNotAnException() {
+    String xml =
+        "<WMS_Capabilities><Service><Name>WMS</Name></Service>"
+            + "<ServiceException code=\"LayerNotDefined\">missing</ServiceException>"
+            + "</WMS_Capabilities>";
+
+    OgcExceptionScan scan = scan(xml, xml.length(), 40);
+
+    assertThat(scan).isEqualTo(OgcExceptionScan.none());
+  }
+
+  @Test
+  void exceptionRootIsNotAnOgcError() {
+    String xml = "<Exception><Format>XML</Format></Exception>";
+
+    OgcExceptionScan scan = scan(xml, xml.length(), 40);
+
+    assertThat(scan).isEqualTo(OgcExceptionScan.none());
+  }
+
+  @Test
+  void partialScanKeepsACodeAlreadyRead() {
+    String xml = "<ServiceExceptionReport><ServiceException code=\"LayerNotDefined\">missing";
+
+    OgcExceptionScan scan = scan(xml, xml.length(), 40);
+
+    assertThat(scan.code()).isEqualTo("LayerNotDefined");
+    assertThat(scan.text()).isEmpty();
+  }
+
+  @Test
   void nonXmlBytesAreNotAnException() {
     OgcExceptionScan scan =
         OgcExceptionScanner.scan(new ByteArrayInputStream(new byte[] {1, 2, 3, 4}), 4, 8);

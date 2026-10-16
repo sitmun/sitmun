@@ -12,4 +12,18 @@ public record DatasourcePayload(
     String driver,
     String sql,
     List<String> parameters)
-    implements Payload {}
+    implements Payload {
+
+  @Override
+  public String toString() {
+    return "DatasourcePayload[vary="
+        + vary
+        + ", uri="
+        + uri
+        + ", driver="
+        + driver
+        + ", parameterCount="
+        + (parameters == null ? 0 : parameters.size())
+        + "]";
+  }
+}

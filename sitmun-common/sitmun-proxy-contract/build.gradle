@@ -6,16 +6,18 @@ plugins {
 
 dependencyManagement {
     imports {
-        mavenBom "org.springframework.boot:spring-boot-dependencies:${libs.versions.spring.boot.get()}"
+        mavenBom libs.spring.boot.dependencies.get().toString()
     }
 }
 
 dependencies {
     api project(':sitmun-spring-upstream')
-    api 'com.fasterxml.jackson.core:jackson-annotations'
+    api libs.jackson.annotations
+    api libs.jakarta.validation.api
 
-    testImplementation 'org.springframework.boot:spring-boot-starter-test'
-    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    testImplementation libs.spring.boot.starter.test
+    testImplementation libs.jackson.databind
+    testRuntimeOnly libs.junit.platform.launcher
 }
 
 publishing {

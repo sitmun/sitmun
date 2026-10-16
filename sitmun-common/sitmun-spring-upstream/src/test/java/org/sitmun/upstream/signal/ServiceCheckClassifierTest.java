@@ -3,11 +3,22 @@ package org.sitmun.upstream.signal;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InterruptedIOException;
+import java.io.UncheckedIOException;
+import java.net.ConnectException;
+import java.net.SocketException;
+import java.nio.channels.ClosedByInterruptException;
 import java.nio.charset.StandardCharsets;
+import java.security.cert.CertificateException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
+import javax.net.ssl.SSLHandshakeException;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.sitmun.upstream.signal.capture.AuthFailedCapture;
 import org.sitmun.upstream.signal.capture.ClientErrorCapture;
 import org.sitmun.upstream.signal.capture.ConnectCapture;
@@ -35,7 +46,8 @@ class ServiceCheckClassifierTest {
   @Test
   void aims200IsReached() {
     ExchangeSignals signals =
-        ExchangeSignals.http(200).scan(xml(serviceException("LayerNotDefined", "missing")), SCAN_BYTES, TEXT_CUT);
+        ExchangeSignals.http(200)
+            .scan(xml(serviceException("LayerNotDefined", "missing")), SCAN_BYTES, TEXT_CUT);
 
     assertThat(classify(probe("AIMS"), signals))
         .contains(new Classification(ServiceStatuses.REACHED, ""));
@@ -44,7 +56,8 @@ class ServiceCheckClassifierTest {
   @Test
   void status401IsAuthFailed() {
     ExchangeSignals signals =
-        ExchangeSignals.http(401).scan(xml(serviceException("NotAuthorized", "no")), SCAN_BYTES, TEXT_CUT);
+        ExchangeSignals.http(401)
+            .scan(xml(serviceException("NotAuthorized", "no")), SCAN_BYTES, TEXT_CUT);
 
     assertThat(classify(probe("WMS"), signals))
         .contains(new Classification(ServiceStatuses.AUTH_FAILED, "HTTP 401"));
@@ -57,31 +70,48 @@ class ServiceCheckClassifierTest {
             .scan(xml(serviceException("LayerNotDefined", "missing")), SCAN_BYTES, TEXT_CUT);
 
     assertThat(classify(probe("WMS"), signals))
-        .contains(new Classification(ServiceStatuses.OGC_EXCEPTION, "HTTP 200, LayerNotDefined, missing"));
+        .contains(
+            new Classification(
+                ServiceStatuses.OGC_EXCEPTION, "HTTP 200, LayerNotDefined, missing"));
   }
 
   @Test
   void exceptionReport500IsOgcException() {
     ExchangeSignals signals =
-        ExchangeSignals.http(500).scan(xml(exceptionReport("NoApplicableCode", "boom")), SCAN_BYTES, TEXT_CUT);
+        ExchangeSignals.http(500)
+            .scan(xml(exceptionReport("NoApplicableCode", "boom")), SCAN_BYTES, TEXT_CUT);
 
     assertThat(classify(probe("WMS"), signals))
-        .contains(new Classification(ServiceStatuses.OGC_EXCEPTION, "HTTP 500, NoApplicableCode, boom"));
+        .contains(
+            new Classification(ServiceStatuses.OGC_EXCEPTION, "HTTP 500, NoApplicableCode, boom"));
+  }
+
+  @Test
+  void status200WithCodeAndBlankTextIsOgcException() {
+    String xml =
+        "<ServiceExceptionReport><ServiceException code=\"InvalidFormat\"></ServiceException></ServiceExceptionReport>";
+    ExchangeSignals signals = ExchangeSignals.http(200).scan(xml(xml), SCAN_BYTES, TEXT_CUT);
+
+    assertThat(classify(probe("WMS"), signals))
+        .contains(new Classification(ServiceStatuses.OGC_EXCEPTION, "HTTP 200, InvalidFormat"));
   }
 
   @Test
   void exceptionReport400OnProbeIsOgcException() {
     ExchangeSignals signals =
-        ExchangeSignals.http(400).scan(xml(exceptionReport("InvalidParameter", "bad")), SCAN_BYTES, TEXT_CUT);
+        ExchangeSignals.http(400)
+            .scan(xml(exceptionReport("InvalidParameter", "bad")), SCAN_BYTES, TEXT_CUT);
 
     assertThat(classify(probe("WMTS"), signals))
-        .contains(new Classification(ServiceStatuses.OGC_EXCEPTION, "HTTP 400, InvalidParameter, bad"));
+        .contains(
+            new Classification(ServiceStatuses.OGC_EXCEPTION, "HTTP 400, InvalidParameter, bad"));
   }
 
   @Test
   void viewerGetMap400WithExceptionReportIsEmpty() {
     ExchangeSignals signals =
-        ExchangeSignals.http(400).scan(xml(exceptionReport("InvalidParameter", "bad")), SCAN_BYTES, TEXT_CUT);
+        ExchangeSignals.http(400)
+            .scan(xml(exceptionReport("InvalidParameter", "bad")), SCAN_BYTES, TEXT_CUT);
 
     assertThat(signals.ogcExceptionText()).isEqualTo("bad");
     assertThat(classify(forward("WMS", "GetMap"), signals)).isEmpty();
@@ -130,6 +160,92 @@ class ServiceCheckClassifierTest {
     assertThat(connect.evidence()).isEqualTo("ConnectException b.example");
   }
 
+  @ParameterizedTest
+  @MethodSource("knownTransportNames")
+  void knownTransportErrorIsNotGeneric(String simpleName) {
+    ExchangeSignals signals = new ExchangeSignals(simpleName, "", null, null, "");
+
+    assertThat(classify(probe("WMS"), signals).orElseThrow().status().code())
+        .isNotEqualTo(ServiceStatuses.TRANSPORT_ERROR.code());
+  }
+
+  @Test
+  void handshakeKeepsTlsStatusWhenTheCauseIsACertificateFailure() {
+    SSLHandshakeException error =
+        new SSLHandshakeException(
+            "PKIX path building failed: sun.security.provider.certpath.SunCertPathBuilderException: unable");
+    error.initCause(new CertificateException("unable to find valid certification path"));
+    ExchangeSignals signals = ExchangeSignals.transport(error, 200);
+
+    assertThat(signals.transportError()).isEqualTo("SSLHandshakeException");
+    assertThat(signals.transportMessage()).contains("sun.security.provider.certpath");
+    assertThat(classify(probe("WMS"), signals).orElseThrow().status())
+        .isEqualTo(ServiceStatuses.TLS_ERROR);
+  }
+
+  @Test
+  void wrappedConnectExceptionIsUnreachableAndNamesBothTypes() {
+    ConnectException connect = new ConnectException("Connection refused");
+    UncheckedIOException wrapper = new UncheckedIOException(connect);
+    ExchangeSignals signals = ExchangeSignals.transport(wrapper, 200);
+
+    assertThat(signals.transportError()).isEqualTo("ConnectException");
+    assertThat(signals.transportMessage()).contains("ConnectException", "UncheckedIOException");
+    assertThat(classify(probe("WMS"), signals).orElseThrow().status())
+        .isEqualTo(ServiceStatuses.UNREACHABLE);
+  }
+
+  @Test
+  void socketExceptionInsideIoExceptionStaysTransportError() {
+    IOException error = new IOException("reset", new SocketException("Connection reset"));
+    ExchangeSignals signals = ExchangeSignals.transport(error, 200);
+
+    assertThat(signals.transportError()).isEqualTo("IOException");
+    assertThat(classify(probe("WMS"), signals).orElseThrow().status())
+        .isEqualTo(ServiceStatuses.TRANSPORT_ERROR);
+  }
+
+  @Test
+  void closedByInterruptStaysTimeout() {
+    ExchangeSignals signals = ExchangeSignals.transport(new ClosedByInterruptException(), 200);
+
+    assertThat(classify(probe("WMS"), signals).orElseThrow().status())
+        .isEqualTo(ServiceStatuses.TIMEOUT);
+  }
+
+  @Test
+  void causeCycleAndLongChainTerminate() {
+    Exception outer = new Exception("outer");
+    Exception inner = new Exception("inner");
+    outer.initCause(inner);
+    inner.initCause(outer);
+    assertThat(ExchangeSignals.transport(outer, 200).transportError()).isEqualTo("Exception");
+
+    Exception current = new Exception("end");
+    for (int i = 0; i < 9; i++) {
+      Exception next = new Exception("link " + i);
+      next.initCause(current);
+      current = next;
+    }
+    assertThat(ExchangeSignals.transport(current, 200).transportError()).isEqualTo("Exception");
+  }
+
+  @Test
+  void wrapperThatAlreadyContainsTheCauseLineDoesNotRepeatIt() {
+    ConnectException connect = new ConnectException("Connection refused");
+    IOException wrapper = new IOException(connect.toString(), connect);
+    ExchangeSignals signals = ExchangeSignals.transport(wrapper, 200);
+
+    assertThat(signals.transportMessage().split("Connection refused", -1)).hasSize(2);
+  }
+
+  @Test
+  void interruptedReadStillUsesThatClassName() {
+    ExchangeSignals signals = ExchangeSignals.transport(new InterruptedIOException("read"), 200);
+
+    assertThat(signals.transportError()).isEqualTo("InterruptedIOException");
+  }
+
   @Test
   void sslHandshakeIsTlsError() {
     ExchangeSignals signals =
@@ -151,7 +267,10 @@ class ServiceCheckClassifierTest {
 
   @Test
   void extraCaptureMaintenanceIsTheWalkResult() {
-    assertThat(classify(probe("WMS"), ExchangeSignals.http(200), new MaintenanceCapture()).orElseThrow().status())
+    assertThat(
+            classify(probe("WMS"), ExchangeSignals.http(200), new MaintenanceCapture())
+                .orElseThrow()
+                .status())
         .isEqualTo(new ServiceStatus("maintenance", 55));
   }
 
@@ -166,11 +285,16 @@ class ServiceCheckClassifierTest {
 
   @Test
   void protocolSuccessDoesNotReadExceptionText() {
-    ExchangeSignals signals =
-        new ExchangeSignals(null, "", 200, "LayerNotDefined", "missing");
+    ExchangeSignals signals = new ExchangeSignals(null, "", 200, "LayerNotDefined", "missing");
     CaptureResult result = new ProtocolSuccessCapture().capture(probe("WMS"), signals);
 
     assertThat(result).isEqualTo(new CaptureResult.Provisional(ServiceStatuses.UP, ""));
+  }
+
+  private static Stream<String> knownTransportNames() {
+    return Stream.of(TransportError.values())
+        .filter(error -> error != TransportError.OTHER)
+        .map(TransportError::simpleName);
   }
 
   private static Optional<Classification> classify(

@@ -31,11 +31,15 @@ public final class UpstreamHttpClient {
       List<Interceptor> interceptors) {
     this.unsafeAllowedHosts = List.copyOf(unsafeAllowedHosts);
     this.safeClient = base(connectTimeout, readTimeout, interceptors).build();
-    this.unsafeClient = ignoreCertificate(base(connectTimeout, readTimeout, interceptors)).build();
+    this.unsafeClient =
+        ignoreCertificate(base(connectTimeout, readTimeout, interceptors))
+            .followRedirects(false)
+            .followSslRedirects(false)
+            .build();
   }
 
   public Response execute(Request request) throws IOException {
-    return clientFor(request.url().host()).newCall(request).execute();
+    return ManualRedirects.execute(request, this::clientFor);
   }
 
   public OkHttpClient clientFor(String host) {
@@ -71,12 +75,10 @@ public final class UpstreamHttpClient {
           new TrustManager[] {
             new X509TrustManager() {
               @Override
-              public void checkClientTrusted(
-                  X509Certificate[] chain, String authType) {}
+              public void checkClientTrusted(X509Certificate[] chain, String authType) {}
 
               @Override
-              public void checkServerTrusted(
-                  X509Certificate[] chain, String authType) {}
+              public void checkServerTrusted(X509Certificate[] chain, String authType) {}
 
               @Override
               public X509Certificate[] getAcceptedIssuers() {
