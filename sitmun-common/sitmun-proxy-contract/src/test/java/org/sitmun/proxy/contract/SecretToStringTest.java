@@ -2,11 +2,11 @@ package org.sitmun.proxy.contract;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 class SecretToStringTest {
 
@@ -45,7 +45,7 @@ class SecretToStringTest {
   }
 
   @Test
-  void jacksonStillWritesThePassword() throws JsonProcessingException {
+  void jacksonStillWritesThePassword() throws JacksonException {
     HttpSecurityDto security =
         new HttpSecurityDto("basic", "Bearer", "alice", "s3cret", Map.of(), Map.of());
     DatasourcePayload payload =
