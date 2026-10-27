@@ -10,7 +10,7 @@ axion-release = "1.19.0"
 
 # Dependency versions
 h2 = "2.2.224"
-json = "20240303"
+json = "20260814"
 jjwt = "0.12.6"
 okhttp3 = "5.5.0"
 mime4j = "0.8.12"
