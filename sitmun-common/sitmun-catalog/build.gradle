@@ -1,0 +1,18 @@
+plugins {
+    id 'version-catalog'
+    id 'maven-publish'
+}
+
+catalog {
+    versionCatalog {
+        from(files('../gradle/libs.versions.toml'))
+    }
+}
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            from components.versionCatalog
+        }
+    }
+}

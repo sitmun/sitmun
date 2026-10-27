@@ -1,0 +1,27 @@
+[versions]
+spring-boot = "3.5.4"
+spring-dependency-management = "1.1.7"
+spotless = "7.2.0"
+jjwt = "0.12.6"
+handy-uri-templates = "2.1.8"
+okhttp = "5.1.0"
+json = "20250517"
+lombok = "8.6"
+axion-release = "1.19.0"
+
+[libraries]
+spring-boot-dependencies = { module = "org.springframework.boot:spring-boot-dependencies", version.ref = "spring-boot" }
+okhttp-bom = { module = "com.squareup.okhttp3:okhttp-bom", version.ref = "okhttp" }
+okhttp = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp" }
+json = { module = "org.json:json", version.ref = "json" }
+jjwt-api = { module = "io.jsonwebtoken:jjwt-api", version.ref = "jjwt" }
+jjwt-impl = { module = "io.jsonwebtoken:jjwt-impl", version.ref = "jjwt" }
+jjwt-jackson = { module = "io.jsonwebtoken:jjwt-jackson", version.ref = "jjwt" }
+handy-uri-templates = { module = "com.damnhandy:handy-uri-templates", version.ref = "handy-uri-templates" }
+
+[plugins]
+spring-boot = { id = "org.springframework.boot", version.ref = "spring-boot" }
+spring-dependency-management = { id = "io.spring.dependency-management", version.ref = "spring-dependency-management" }
+spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }
+lombok = { id = "io.freefair.lombok", version.ref = "lombok" }
+axion-release = { id = "pl.allegro.tech.build.axion-release", version.ref = "axion-release" }
