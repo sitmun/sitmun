@@ -18,8 +18,8 @@
 set -uo pipefail
 
 REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
-TAG_127=sitmun-application-stack/1.2.7
-TAG_128=sitmun-application-stack/1.2.8
+TAG_127=legacy/sitmun-application-stack/sitmun-application-stack/1.2.7
+TAG_128=legacy/sitmun-application-stack/sitmun-application-stack/1.2.8
 TARGET="${1:-both}"
 
 # Issue #74: set SITMUN_ORACLE_IMAGE=gvenzl/oracle-xe:21-slim to run an upgrade
@@ -82,7 +82,7 @@ print_lb_errors() {
 }
 
 stack_tag() {
-  echo "sitmun-application-stack/$1"
+  echo "legacy/sitmun-application-stack/sitmun-application-stack/$1"
 }
 
 # True if $1 is strictly less than $2 using semantic version ordering (sort -V).

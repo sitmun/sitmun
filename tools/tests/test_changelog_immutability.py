@@ -42,7 +42,7 @@ def _write_xml_tree(root: Path) -> Path:
 
 
 def _write_yaml_tree(root: Path) -> Path:
-    liquibase = root / "back" / "backend" / "sitmun-backend-core" / "config" / "db" / "changelog"
+    liquibase = root / "sitmun-backend" / "config" / "db" / "changelog"
     liquibase.mkdir(parents=True)
     (liquibase / "01_schema.h2.sql").write_text("--changeset sitmun:1\n", encoding="utf-8")
     (liquibase / "22_align_nullability.yaml").write_text("id: 22\n", encoding="utf-8")
@@ -89,6 +89,10 @@ def _append_includes(liquibase: Path, names: tuple[str, ...]) -> None:
 
 
 class FixtureGateTest(unittest.TestCase):
+    def test_default_trees_exist_in_repository(self) -> None:
+        root = cci.repo_root_from_here()
+        missing = [tree for tree in cci.DEFAULT_TREES if not (root / tree).is_dir()]
+        self.assertEqual(missing, [])
     def test_editing_old_include_fails(self) -> None:
         with tempfile.TemporaryDirectory() as td:
             root = Path(td)
@@ -213,7 +217,7 @@ class FixtureGateTest(unittest.TestCase):
             violations = cci.check_tree(
                 liquibase,
                 [
-                    "back/backend/sitmun-backend-core/config/db/changelog/01_schema.h2.sql"
+                    "sitmun-backend/config/db/changelog/01_schema.h2.sql"
                 ],
                 repo_root=root,
             )
