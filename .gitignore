@@ -30,5 +30,6 @@ sitmun.github.io/
 node_modules/
 e2e/.auth/
 playwright-report/
-test-results/\n!**/gradle/wrapper/gradle-wrapper.properties
+test-results/
+!**/gradle/wrapper/gradle-wrapper.properties
 !**/gradle/wrapper/gradle-wrapper.jar
