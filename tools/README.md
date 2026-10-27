@@ -48,7 +48,6 @@ Paths by scenario:
 | **apply-seed-data.sh** | Generate seed files then apply the Liquibase changelog to a remote database. `--db-type postgres\|oracle`; `--baseline` selects i18n language. |
 | **validate-liquibase-changelogs.sh** | List changelogs by last modification (newest first). Not an immutability gate. Pass `[liquibase_dir]` as first argument (default: development). |
 | **compare-schema-drift.sh** | Apply development vs postgres/oracle Liquibase (Docker), report PROBLEM/INFO drift, write **draft fix YAML** under `tools/out/schema-drift/`. Optional `--against jpa`. Target `dev-dialects` compares development postgresql vs oracle. |
-| **checkout-latest-tags.sh** | Update all git submodules to their latest version tag. |
 | **bump-version.sh** | Propagate stack `VERSION` into coordinated submodule build metadata, OpenAPI docs, frontend env files, README badges, and lockfiles. See [Version and release](#version-and-release). |
 
 ```bash
@@ -93,9 +92,6 @@ bash tools/scripts/compare-schema-drift.sh postgres --fail-on none
 # then add the line from MASTER_INCLUDE.txt to profiles/postgres/liquibase/master.xml
 bash tools/scripts/compare-schema-drift.sh oracle --fail-on none
 bash tools/scripts/compare-schema-drift.sh postgres --against jpa --fail-on none
-
-# Move submodules to latest tags
-bash tools/scripts/checkout-latest-tags.sh
 ```
 
 Drafts are **not** auto-wired into `master.xml`. Do not rewrite `sitmun:1`; only add incremental changesets after review. Default draft prefix is `22_schema_drift_fix`. Java field defaults / Bean Validation are annotated as INFO via `extract_jpa_column_hints.py`. They do not invent SQL `DEFAULT` clauses.
