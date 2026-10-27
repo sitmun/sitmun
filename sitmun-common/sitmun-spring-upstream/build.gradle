@@ -1,0 +1,32 @@
+plugins {
+    id 'java-library'
+    id 'maven-publish'
+    alias(libs.plugins.spring.dependency.management)
+}
+
+dependencyManagement {
+    imports {
+        mavenBom libs.spring.boot.dependencies.get().toString()
+    }
+}
+
+dependencies {
+    api libs.okhttp
+    api libs.spring.core
+    api libs.spring.boot.autoconfigure
+    implementation libs.slf4j.api
+    api libs.jackson.annotations
+
+    testImplementation libs.spring.boot.starter.test
+    testImplementation libs.mockwebserver
+    testImplementation libs.okhttp.tls
+    testRuntimeOnly libs.junit.platform.launcher
+}
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            from components.java
+        }
+    }
+}

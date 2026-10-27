@@ -1,0 +1,29 @@
+plugins {
+    id 'java-library'
+    id 'maven-publish'
+    alias(libs.plugins.spring.dependency.management)
+}
+
+dependencyManagement {
+    imports {
+        mavenBom libs.spring.boot.dependencies.get().toString()
+    }
+}
+
+dependencies {
+    api project(':sitmun-spring-upstream')
+    api libs.jackson.annotations
+    api libs.jakarta.validation.api
+
+    testImplementation libs.spring.boot.starter.test
+    testImplementation libs.jackson.databind
+    testRuntimeOnly libs.junit.platform.launcher
+}
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            from components.java
+        }
+    }
+}
