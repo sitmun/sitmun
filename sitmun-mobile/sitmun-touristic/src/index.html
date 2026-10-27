@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <title>Ionic App</title>
+
+  <base href="/" />
+
+  <meta name="color-scheme" content="light dark" />
+  <meta name="viewport" content="viewport-fit=cover, width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="format-detection" content="telephone=no" />
+  <meta name="msapplication-tap-highlight" content="no" />
+  <meta http-equiv="Content-Security-Policy"
+  content="default-src * 'self' data: blob:;
+    style-src 'self' 'unsafe-inline' https:;
+    script-src 'self' 'unsafe-inline' 'unsafe-eval' https:;
+    img-src * data: blob:;
+    font-src 'self' https: data:;
+    connect-src *;">
+
+
+  <link rel="icon" type="image/png" href="assets/icon/favicon.png" />
+
+  <link type="text/css" rel="stylesheet" href="assets/external/api-cnig/apiign.ol.min.css">
+  <link type="text/css" rel="stylesheet" href="assets/external/api-cnig/plugins/backimglayer/backimglayer.ol.min.css">
+  <link type="text/css" rel="stylesheet" href="assets/external/api-cnig/plugins/layerswitcher/layerswitcher.ol.min.css">
+  <link type="text/css" rel="stylesheet" href="assets/external/api-cnig/plugins/information/information.ol.min.css">
+
+  <!-- add to homescreen for ios -->
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+</head>
+
+<body>
+  <jeep-sqlite></jeep-sqlite>
+  <app-root></app-root>
+
+  <!-- api-cnig js lib files -->
+  <script src="assets/external/api-cnig/apiign.ol.min.js"></script>
+  <script src="assets/external/api-cnig/configuration.js"></script>
+  <script src="assets/external/api-cnig/plugins/backimglayer/backimglayer.ol.min.js"></script>
+  <script src="assets/external/api-cnig/plugins/layerswitcher/layerswitcher.ol.min.js"></script>
+  <script src="assets/external/api-cnig/plugins/information/information.ol.min.js"></script>
+</body>
+
+</html>

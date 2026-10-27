@@ -1,0 +1,65 @@
+<ion-header [translucent]="true" mode="md">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button (click)="backPage()">
+        <ion-icon name="arrow-back" size="large"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title>{{rootNode['title']}}</ion-title>
+    <ion-buttons slot="end">
+      <ion-select [(ngModel)]="selectedLanguage" (ionChange)="setLanguage($event.detail.value)"
+                  interface="popover">
+        <ion-select-option *ngFor="let lang of languageOptions" [value]="lang.code">
+           {{ lang.name }}
+        </ion-select-option>
+      </ion-select>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <div class="grid-container">
+    <div class="container">
+    @if (loaded) {
+      @if (elements.length == 0) {
+        <div class="d-flex justify-content-center align-items-center" style="height: 100vh;">
+          <p>{{ 'gallery.noImages' | translate }}</p>
+        </div>
+      } @else {      
+        <div class="gallery-img-container">
+          <div class="img-container" *ngFor="let elem of elements" (click)="openModalImg($event, elem['image'])">
+            <ion-img class="img img-cover" [src]="elem['image'] || '../../assets/icon/no-image.jpg'"></ion-img>
+          </div>
+        </div>
+      }
+    } @else {
+      <div class="d-flex justify-content-center align-items-center" style="height: 100vh;">
+        <ion-skeleton-text [animated]="true"></ion-skeleton-text>
+      </div>
+    }    
+    </div>
+  </div>
+
+  <ion-modal class="modal-img" [isOpen]="isModalOpenImg" (ionModalDidDismiss)="closeModalImg()">
+    <ng-template>
+        <ion-img src="{{ imageModal || '../../assets/icon/no-image.jpg' }}"></ion-img>
+    </ng-template>
+  </ion-modal>
+</ion-content>
+
+<ion-footer [translucent]="true">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+        <div class="vertical-btn" (click)="startPage()">
+        <ion-icon name="home" size="large"></ion-icon>
+          <ion-label class="ion-text-wrap text-dark">{{'home.title' | translate}}</ion-label>
+        </div>
+    </ion-buttons>
+    <ion-buttons slot="end">
+      <div class="vertical-btn">
+      <ion-icon [routerLink]="['/']" name="exit-outline" size="large"></ion-icon>
+        <ion-label class="ion-text-wrap text-dark"> {{ 'exit.exit' | translate }} </ion-label>
+      </div>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-footer>
