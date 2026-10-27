@@ -6,12 +6,12 @@ import { attachChildLifecycle, fail, isWindows, spawnDetached } from './e2e-proc
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const stackRoot = resolve(__dirname, '..');
-const adminRoot = join(stackRoot, 'front', 'admin', 'sitmun-admin-app');
+const adminRoot = join(stackRoot, 'sitmun-admin');
 const prefix = 'e2e-admin';
 const npmCmd = isWindows ? 'npm.cmd' : 'npm';
 
 if (!existsSync(adminRoot)) {
-  fail(prefix, `Admin submodule missing at ${adminRoot}. Run: git submodule update --init --recursive`);
+  fail(prefix, `Admin module missing at ${adminRoot}`);
 }
 if (!existsSync(join(adminRoot, 'package.json'))) {
   fail(prefix, `Admin package.json missing at ${adminRoot}`);

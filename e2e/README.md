@@ -85,7 +85,7 @@ Shared H2 + admin + viewer + proxy + WMS stub. Do not run concurrently with admi
 
 ### Mobile Android (`npm run e2e:mobile:android`)
 
-- Builds debug APKs from temporary copies of pinned `apps/*` sources (does not commit Android projects); runs `cap add android` when the native project is absent
+- Builds debug APKs from temporary copies of pinned `sitmun-mobile/*` sources (does not commit Android projects); runs `cap add android` when the native project is absent
 - Requires `adb`, `ANDROID_HOME`/`ANDROID_SDK_ROOT`, Maestro CLI, and a connected API 34 emulator/device
 - Uses `adb reverse tcp:18081` and Maestro flows under `e2e/mobile/android/`
 - Records source SHA and APK SHA-256 under `test-results/mobile-android/`
@@ -102,9 +102,8 @@ Shared H2 + admin + viewer + proxy + WMS stub. Do not run concurrently with admi
 
 - Java 17
 - Node ≥ 24.22.0 (admin, viewer, and root web E2E). Mobile Android E2E needs Node 22.
-- Initialized submodules: `git submodule update --init --recursive`
-- Admin dependencies: `cd front/admin/sitmun-admin-app && npm ci`
-- Viewer dependencies: `cd front/viewer/sitmun-viewer-app && npm ci`
+- Admin dependencies: `cd sitmun-admin && npm ci`
+- Viewer dependencies: `cd sitmun-viewer && npm ci`
 - Root dependencies: `npm ci` (from stack root)
 - Chromium: `npm run e2e:install` (re-run after `@playwright/test` upgrades)
 
@@ -190,10 +189,10 @@ For covered behavior spanning a browser and multiple components:
 1. Add or extend the smallest spec that reproduces the expected behavior.
 2. Run its file or Playwright project and confirm the expected failure.
 3. Implement the minimum change and rerun the targeted test.
-4. Run focused tests in each changed submodule.
+4. Run focused tests in each changed module.
 5. Run the full affected root suite before handoff.
 
-Use submodule unit or slice tests for isolated logic and both layers when a
+Use module unit or slice tests for isolated logic and both layers when a
 cross-stack regression also has meaningful local contracts. Extend this
 harness or document the gap when the behavior is outside current coverage.
 

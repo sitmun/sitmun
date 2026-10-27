@@ -13,14 +13,14 @@ import {
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const stackRoot = resolve(__dirname, '..');
-const proxyRoot = join(stackRoot, 'back', 'proxy', 'sitmun-proxy-middleware');
+const proxyRoot = join(stackRoot, 'sitmun-proxy');
 const prefix = 'e2e-proxy';
 const gradlew = join(proxyRoot, isWindows ? 'gradlew.bat' : 'gradlew');
 const BACKEND_HEALTH_URL = 'http://localhost:18080/api/dashboard/health';
 const BACKEND_WAIT_MS = 180_000;
 
 if (!existsSync(proxyRoot)) {
-  fail(prefix, `Proxy submodule missing at ${proxyRoot}. Run: git submodule update --init --recursive`);
+  fail(prefix, `Proxy module missing at ${proxyRoot}`);
 }
 if (!existsSync(gradlew)) {
   fail(prefix, `Gradle wrapper missing at ${gradlew}`);

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * Android emulator + Maestro orchestration for edition/touristic mobile apps.
- * Builds APKs from temporary copies of the pinned submodule sources (does not
+ * Builds APKs from temporary copies of the pinned module sources (does not
  * commit generated Android projects). Requires adb, ANDROID_HOME, and Maestro.
  */
 import { createHash } from 'node:crypto';
@@ -22,8 +22,8 @@ import { fileURLToPath } from 'node:url';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const stackRoot = resolve(__dirname, '..');
 const artifactDir = join(stackRoot, 'test-results', 'mobile-android');
-const editionSrc = join(stackRoot, 'apps', 'edition-mobile-app');
-const touristicSrc = join(stackRoot, 'apps', 'touristic-mobile-app');
+const editionSrc = join(stackRoot, 'sitmun-mobile', 'sitmun-edition');
+const touristicSrc = join(stackRoot, 'sitmun-mobile', 'sitmun-touristic');
 
 const EDITION_APP_ID = 1;
 const EDITION_TERRITORY_ID = 1;
@@ -510,7 +510,7 @@ function patchTouristicEnvironment(touristicWork, backendUrl) {
 
 async function main() {
   if (!existsSync(editionSrc) || !existsSync(touristicSrc)) {
-    failEarly('Mobile app submodules missing under apps/');
+    failEarly('Mobile apps missing under sitmun-mobile/');
   }
 
   requireCmd('adb', 'Install Android platform-tools and ensure an emulator/device is connected.');
@@ -617,7 +617,7 @@ async function main() {
     for (const appDir of [editionWork, touristicWork]) {
       run('npm', ['ci'], { cwd: appDir });
       run('npx', ['ionic', 'build', '--configuration=development'], { cwd: appDir });
-      // Native projects are not committed in the mobile submodules; generate in the temp copy.
+      // Native projects are not committed in the mobile modules; generate in the temp copy.
       if (!existsSync(join(appDir, 'android'))) {
         run('npx', ['cap', 'add', 'android'], { cwd: appDir });
       }

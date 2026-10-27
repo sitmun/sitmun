@@ -7,7 +7,7 @@ import { attachChildLifecycle, fail, isWindows, spawnDetached } from './e2e-proc
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const stackRoot = resolve(__dirname, '..');
-const backendRoot = join(stackRoot, 'back', 'backend', 'sitmun-backend-core');
+const backendRoot = join(stackRoot, 'sitmun-backend');
 const changelogDir = join(backendRoot, 'config', 'db', 'changelog');
 const backendChangelog = join(changelogDir, 'db.changelog-master.yaml');
 const fixtureYaml = join(stackRoot, 'e2e', 'fixtures', 'ensure-document-export-task-type.yaml');
@@ -20,7 +20,7 @@ const prefix = 'e2e-backend';
 const gradlew = join(backendRoot, isWindows ? 'gradlew.bat' : 'gradlew');
 
 if (!existsSync(backendRoot)) {
-  fail(prefix, `Backend submodule missing at ${backendRoot}. Run: git submodule update --init --recursive`);
+  fail(prefix, `Backend module missing at ${backendRoot}`);
 }
 if (!existsSync(gradlew)) {
   fail(prefix, `Gradle wrapper missing at ${gradlew}`);

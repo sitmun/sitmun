@@ -6,13 +6,13 @@ import { attachChildLifecycle, fail, isWindows, spawnDetached } from './e2e-proc
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const stackRoot = resolve(__dirname, '..');
-const backendRoot = join(stackRoot, 'back', 'backend', 'sitmun-backend-core');
+const backendRoot = join(stackRoot, 'sitmun-backend');
 const changelog = join(backendRoot, 'config', 'db', 'changelog', 'db.changelog-master.yaml');
 const prefix = 'e2e-backend-mobile';
 const gradlew = join(backendRoot, isWindows ? 'gradlew.bat' : 'gradlew');
 
 if (!existsSync(backendRoot)) {
-  fail(prefix, `Backend submodule missing at ${backendRoot}`);
+  fail(prefix, `Backend module missing at ${backendRoot}`);
 }
 if (!existsSync(gradlew)) {
   fail(prefix, `Gradle wrapper missing at ${gradlew}`);
