@@ -1,0 +1,4 @@
+min_version = "2026.10.20"
+
+[tools]
+"pypi:git-filter-repo" = "2.47.0"
