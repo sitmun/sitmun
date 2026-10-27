@@ -1,0 +1,242 @@
+plugins {
+  id 'java'
+  id 'jacoco'
+  alias(libs.plugins.spring.boot)
+  alias(libs.plugins.spring.dependency.management)
+  alias(libs.plugins.lombok)
+  alias(libs.plugins.spotless)
+  alias(libs.plugins.axion.release)
+}
+
+group = 'org.sitmun'
+
+java {
+  toolchain {
+    languageVersion = JavaLanguageVersion.of(17)
+  }
+}
+repositories {
+  mavenLocal()
+  mavenCentral()
+}
+
+
+def packaging = (project.findProperty('packaging') ?: 'jar')
+
+if (packaging == 'war') {
+  apply plugin: 'war'
+}
+
+
+dependencies {
+
+  // If packaging as WAR, use provided Tomcat runtime
+  if (packaging == 'war') {
+    providedRuntime libs.spring.boot.starter.tomcat
+  }
+
+  // Spring Boot Starters
+  implementation libs.spring.boot.starter.webmvc
+  implementation libs.spring.boot.starter.restclient
+  implementation 'org.springframework.boot:spring-boot-starter-validation'
+  implementation libs.spring.boot.starter.jdbc
+  implementation libs.spring.boot.starter.actuator
+
+  // JSON and JWT
+  implementation libs.json
+  implementation libs.jjwt.api
+  implementation libs.jjwt.impl
+  implementation libs.jjwt.jackson
+
+  // HTTP Client
+  implementation libs.okhttp3
+  implementation libs.mime4j.core
+  implementation 'org.sitmun:sitmun-proxy-contract:1.2.9'
+
+  // URI Templates
+  implementation libs.handyUriTemplates
+
+  // Database Drivers
+  implementation libs.postgresql
+  implementation libs.oracle.jdbc
+  implementation libs.mssql.jdbc
+
+  // Development tools (excluded from production builds)
+  developmentOnly libs.spring.boot.devtools
+
+  // Test Dependencies
+  testImplementation(libs.spring.boot.starter.test) {
+    exclude group: 'com.vaadin.external.google', module: 'android-json'
+  }
+  testImplementation libs.spring.boot.starter.webmvc.test
+  testImplementation libs.spring.boot.starter.jdbc.test
+
+  testImplementation libs.h2
+}
+
+tasks.named('test', Test) {
+  useJUnitPlatform()
+  // Deployable config files require SITMUN_BACKEND_CONFIG_SECRET; supply a
+  // deterministic non-placeholder value so tests resolve without external env.
+  systemProperty 'sitmun.backend.config.secret', 'test-only-insecure-middleware-secret'
+}
+
+// Spotless configuration
+spotless {
+  java {
+    googleJavaFormat()
+  }
+}
+
+// JaCoCo configuration
+jacocoTestReport {
+  reports {
+    xml.required = true
+  }
+}
+
+// Axion Release Plugin Configuration
+scmVersion {
+  ignoreUncommittedChanges.set(true)
+  tag {
+    prefix = 'sitmun-proxy-middleware'
+    versionSeparator = '/'
+    initialVersion({config, position -> '1.0.0'})
+  }
+  versionIncrementer('incrementPatch')
+}
+
+project.version = '1.2.9'
+
+def resolveGitHooksDir = {
+  def gitMarker = new File(project.rootDir, '.git')
+  if (gitMarker.isFile()) {
+    def text = gitMarker.getText('UTF-8').trim()
+    def prefix = 'gitdir:'
+    if (text.startsWith(prefix)) {
+      def path = text.substring(prefix.length()).trim()
+      def gitDir = new File(path)
+      if (!gitDir.isAbsolute()) {
+        gitDir = new File(project.rootDir, path)
+      }
+      return new File(gitDir, 'hooks')
+    }
+  }
+  new File(gitMarker, 'hooks')
+}
+
+// Git hooks setup (opt-in: ./gradlew setupGitHooks)
+tasks.register('setupGitHooks') {
+  group = 'git hooks'
+  description = 'Install Git hooks for commit message validation and pre-commit checks'
+  def hookDir = resolveGitHooksDir()
+  def commitMsgHook = new File(hookDir, 'commit-msg')
+  def preCommitHook = new File(hookDir, 'pre-commit')
+
+  doLast {
+    hookDir.mkdirs()
+
+    // Pre-commit hook
+    preCommitHook.text = '''#!/bin/sh
+            echo "🔍 Running pre-commit checks..."
+            
+            # Code formatting check
+            echo "  📝 Checking code formatting..."
+            ./gradlew spotlessCheck
+            if [ $? -ne 0 ]; then
+                echo "❌ Code formatting check failed. Run './gradlew spotlessApply' to fix."
+                exit 1
+            fi
+            
+            # Tests
+            echo "  🧪 Running tests..."
+            ./gradlew test
+            if [ $? -ne 0 ]; then
+                echo "❌ Tests failed. Please fix the failing tests."
+                exit 1
+            fi
+            
+            # Code coverage check
+            echo "  📊 Checking code coverage..."
+            ./gradlew jacocoTestReport
+            if [ $? -ne 0 ]; then
+                echo "❌ Code coverage check failed."
+                exit 1
+            fi
+            
+            echo "✅ All pre-commit checks passed!"
+        '''.stripIndent()
+    preCommitHook.setExecutable(true)
+
+    // Commit message hook
+    commitMsgHook.text = '''#!/bin/sh
+            commit_msg=$(cat $1)
+            
+            # Conventional commit pattern for SITMUN Proxy Middleware
+            pattern="^(feat|fix|docs|style|refactor|test|chore|perf|ci|build)(\\(proxy\\))?: .+"
+            
+            if ! echo "$commit_msg" | grep -qE "$pattern"; then
+                echo "❌ Invalid commit message format."
+                echo ""
+                echo "Expected: <type>(proxy): <description>"
+                echo ""
+                echo "Types:"
+                echo "  feat     - New feature"
+                echo "  fix      - Bug fix"
+                echo "  docs     - Documentation changes"
+                echo "  style    - Code style changes"
+                echo "  refactor - Code refactoring"
+                echo "  test     - Test changes"
+                echo "  chore    - Maintenance tasks"
+                echo "  perf     - Performance improvements"
+                echo "  ci       - CI/CD changes"
+                echo "  build    - Build system changes"
+                echo ""
+                echo "Examples:"
+                echo "  feat(proxy): add request decorator functionality"
+                echo "  fix(proxy): resolve authentication token handling"
+                echo "  docs: update README with proxy configuration info"
+                echo "  test: add integration tests for proxy requests"
+                echo "  style: format code with Google Java Format"
+                echo "  refactor: improve request processing flow"
+                echo "  chore: update dependencies to latest versions"
+                echo "  perf: optimize proxy performance"
+                echo "  ci: add GitHub Actions workflow"
+                echo "  build: update Gradle configuration"
+                exit 1
+            fi
+            
+            echo "✅ Commit message format is valid!"
+        '''.stripIndent()
+    commitMsgHook.setExecutable(true)
+
+
+    println "✅ Git hooks installed successfully!"
+    println "📋 Pre-commit hook: Runs tests, formatting, and security checks"
+    println "📝 Commit-msg hook: Validates conventional commit message format"
+    println ""
+    println "💡 Usage examples:"
+    println "  git commit -m \"feat(proxy): add request decorator functionality\""
+    println "  git commit -m \"fix(proxy): resolve authentication token handling\""
+    println "  git commit -m \"docs: update README with proxy configuration\""
+    println "  git commit -m \"test: add integration tests for proxy requests\""
+  }
+}
+
+// Task to remove Git hooks
+tasks.register('removeGitHooks') {
+  group = 'git hooks'
+  description = 'Remove Git hooks'
+  def hookDir = resolveGitHooksDir()
+
+  doLast {
+    ['pre-commit', 'commit-msg'].each { hookName ->
+      def hookFile = new File(hookDir, hookName)
+      if (hookFile.exists()) {
+        hookFile.delete()
+        println "🗑️  Removed ${hookName} hook"
+      }
+    }
+    println "✅ Git hooks removed successfully!"
+  }
+}

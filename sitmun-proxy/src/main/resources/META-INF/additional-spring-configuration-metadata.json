@@ -1,0 +1,115 @@
+{
+  "properties": [
+    {
+      "name": "sitmun.client.unsafe-allowed-hosts",
+      "type": "java.util.List<java.lang.String>",
+      "description": "List of hostnames that are allowed to use unsafe SSL connections. Use '*' to allow all hosts.",
+      "defaultValue": ["*"]
+    },
+    {
+      "name": "sitmun.backend.config.url",
+      "type": "java.lang.String",
+      "description": "URL for the SITMUN backend configuration API endpoint. This is the URL where the proxy middleware will request configuration data.",
+      "sourceType": "org.sitmun.proxy.middleware.service.RequestConfigurationService"
+    },
+    {
+      "name": "sitmun.backend.config.secret",
+      "type": "java.lang.String",
+      "description": "Secret key for authenticating with the SITMUN backend configuration API. This secret is used in the X-SITMUN-Proxy-Key header.",
+      "sourceType": "org.sitmun.proxy.middleware.service.RequestConfigurationService"
+    },
+    {
+      "name": "sitmun.mbtiles.url",
+      "type": "java.lang.String",
+      "description": "Base URL of the MBTiles generation service. Owned by the middleware; never accepted from clients.",
+      "sourceType": "org.sitmun.proxy.middleware.mbtiles.MbtilesProperties"
+    },
+    {
+      "name": "sitmun.mbtiles.job-handle-secret",
+      "type": "java.lang.String",
+      "description": "HMAC secret for opaque MBTiles job handles. Rotating this key without multi-key support invalidates active jobs.",
+      "sourceType": "org.sitmun.proxy.middleware.mbtiles.MbtilesProperties"
+    },
+    {
+      "name": "sitmun.mbtiles.job-handle-ttl",
+      "type": "java.time.Duration",
+      "description": "Time-to-live for opaque MBTiles job handles.",
+      "defaultValue": "24h",
+      "sourceType": "org.sitmun.proxy.middleware.mbtiles.MbtilesProperties"
+    },
+    {
+      "name": "sitmun.mbtiles.max-json-bytes",
+      "type": "java.lang.Integer",
+      "description": "Maximum accepted JSON body size in bytes for MBTiles estimate/create requests.",
+      "defaultValue": 65536,
+      "sourceType": "org.sitmun.proxy.middleware.mbtiles.MbtilesProperties"
+    },
+    {
+      "name": "sitmun.mbtiles.max-zoom-span",
+      "type": "java.lang.Integer",
+      "description": "Maximum allowed (maxZoom - minZoom) for MBTiles estimate/create requests.",
+      "defaultValue": 12,
+      "sourceType": "org.sitmun.proxy.middleware.mbtiles.MbtilesProperties"
+    },
+    {
+      "name": "sitmun.mbtiles.allowed-srs",
+      "type": "java.util.List<java.lang.String>",
+      "description": "Allowed SRS values for MBTiles estimate/create requests.",
+      "sourceType": "org.sitmun.proxy.middleware.mbtiles.MbtilesProperties"
+    },
+    {
+      "name": "sitmun.mbtiles.connect-timeout",
+      "type": "java.time.Duration",
+      "description": "Connect timeout for upstream MBTiles HTTP calls.",
+      "defaultValue": "10s",
+      "sourceType": "org.sitmun.proxy.middleware.mbtiles.MbtilesProperties"
+    },
+    {
+      "name": "sitmun.proxy.service-check.enabled",
+      "type": "java.lang.Boolean",
+      "description": "When false, OGC forwards still complete and no service-check report is sent."
+    },
+    {
+      "name": "sitmun.proxy.service-check.debounce-count",
+      "type": "java.lang.Integer",
+      "description": "Identical classified statuses in a row before a proxy report is posted."
+    },
+    {
+      "name": "sitmun.proxy.service-check.debounce-window",
+      "type": "java.time.Duration",
+      "description": "How long one pending status waits before a proxy report is posted."
+    },
+    {
+      "name": "sitmun.proxy.service-check.scan-max-bytes",
+      "type": "java.lang.Integer",
+      "description": "Maximum bytes read by the shared StAX scan on an OGC forward."
+    },
+    {
+      "name": "sitmun.proxy.service-check.exception-text-max-length",
+      "type": "java.lang.Integer",
+      "description": "Maximum characters kept from an OGC exception text before classification."
+    },
+    {
+      "name": "sitmun.proxy.usage.enabled",
+      "type": "java.lang.Boolean",
+      "description": "When false, OGC forwards are not counted."
+    },
+    {
+      "name": "sitmun.proxy.usage.flush-interval",
+      "type": "java.time.Duration",
+      "description": "How often in-memory usage deltas are posted."
+    },
+    {
+      "name": "sitmun.proxy.usage.backlog",
+      "type": "java.time.Duration",
+      "description": "Unsent usage hours older than this are dropped, oldest first."
+    },
+    {
+      "name": "sitmun.mbtiles.read-timeout",
+      "type": "java.time.Duration",
+      "description": "Read timeout for upstream MBTiles HTTP calls.",
+      "defaultValue": "60s",
+      "sourceType": "org.sitmun.proxy.middleware.mbtiles.MbtilesProperties"
+    }
+  ]
+}

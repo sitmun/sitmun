@@ -1,0 +1,223 @@
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [Unreleased]
+
+### Fixed
+
+- **WFS**: Upstream `Content-Type` values pass through unchanged, including GeoServer `text/xml; subtype=gml/2.1.2`. Spring reads the standards-compliant part (`text/xml`, plus any parameter it can parse), so the slash in `subtype` is not a 500. The proxy sets a different type only when it replaces the body, such as `application/problem+json`.
+
+### Added
+
+- **Proxy**: `GET` and `POST /proxy/{appId}/{terId}/{type}/{typeId}/{cartographyId}` forward `cartographyId` on the backend config request. `POST` still accepts only `application/xml` ([sitmun-application-stack#90](https://github.com/sitmun/sitmun-application-stack/issues/90)).
+
+### Changed
+
+- **Build**: Spring Boot is 4.1.1 (`spring-boot-starter-webmvc` + `spring-boot-starter-restclient`).
+- **Build**: Gradle wrapper is 8.14.6.
+- **Build**: `setupGitHooks` is no longer a dependency of `build` (submodule-safe / opt-in via `./gradlew setupGitHooks`).
+- **HTTP**: OkHttp is 5.5.0. The unsafe client does not follow redirects itself. Each hop selects the client for the `Location` host.
+- **Service checks**: Transport text is capped at `exceptionTextMaxLength`.
+
+## [1.2.9] - 2026-09-18
+
+### Changed
+
+- Release alignment to `1.2.9` across build metadata and documentation badges.
+
+## [1.2.8] - 2026-07-25
+
+### Added
+
+- **MBTiles**: Authenticated estimate/create/status/file routes under `/proxy/{appId}/{terId}/mbtiles...` authorize via backend `POST /api/config/proxy/mbtiles` (Bearer + `X-SITMUN-Proxy-Key`), forward only backend-canonical tile JSON to `sitmun.mbtiles.url`, and return HMAC opaque job handles; config via `sitmun.mbtiles.*` (url, job-handle-secret, TTL, JSON/zoom/SRS limits, upstream timeouts).
+
+### Changed
+
+- **Security**: Proxy config handshake sends the client JWT as `Authorization: Bearer` (with `X-SITMUN-Proxy-Key`); `id_token` / token removed from `ConfigProxyRequestDto`; client Bearer is never forwarded to final upstream services.
+- **HTTP**: `HttpRequestExecutor` uses the request `Content-Type` for POST bodies (JSON supported; defaults to `text/xml`) and can stream upstream responses without `body.bytes()` buffering.
+- Release alignment to `1.2.8` across build metadata and documentation badges.
+
+### Fixed
+
+- **Config**: `sitmun.backend.config.url` reads `SITMUN_BACKEND_CONFIG_URL` (was a hardcoded placeholder that broke middleware→backend MBTiles authorization).
+
+### Security
+
+- **Security**: Validate Bearer headers without server errors; preserve sanitized backend 401/403 problem identity; map upstream authorization failures to non-session 502; omit credentials, URLs, SQL, exception details, and `WWW-Authenticate` from responses/logs. Require `SITMUN_BACKEND_CONFIG_SECRET` from the environment (min 32 chars); committed fallback removed.
+
+## [1.2.7] - 2026-06-05
+
+### Changed
+
+- Release alignment to `1.2.7` across build metadata and documentation badges.
+
+## [1.2.6] - 2026-05-08
+
+### Added
+
+- Microsoft SQL Server JDBC driver (`mssql-jdbc`) alongside PostgreSQL and Oracle for JDBC proxy connections.
+- `HttpRequestDecoratorAddQueryParamSecurity` to append `HttpContextSecurity#getQueryParams()` onto the outbound URL (OpenAPI-style API key in query).
+- `HttpSecurityDto#queryParams` and `HttpContextSecurity#getQueryParams()` for security query parameters alongside headers.
+- `HttpRequestExecutor#addParameter` to merge individual query parameters (used by the query-param security decorator).
+- `HttpRequestDecoratorAddHeaderSecurity` (replaces `HttpRequestDecoratorAddApiKeyHeader`) to forward the full security header map.
+- `HttpSecurityConstants` for shared OpenAPI-style security literals used by HTTP security DTOs and decorators.
+- `SensitiveDataMasking` for masked HTTP debug logging (e.g. OkHttp headers).
+- Unit tests: `HttpContextSecurityContractTest`, `HttpRequestDecoratorAddHeaderSecurityTest`, `HttpRequestDecoratorAddQueryParamSecurityTest`, and `HttpRequestExecutorTest` coverage for `addParameter`.
+
+### Changed
+
+- `HttpSecurityDto` implements `HttpContextSecurity`; supports custom header and query-param maps for API keys alongside Basic auth. `describeForLog()` includes sorted query parameter names (values never logged).
+- `HttpRequestExecutor` masks sensitive values in debug logs.
+- `HttpRequestDecoratorAddApiKeyHeaders` applies headers when `type` is `apiKey` (unchanged; complements header-map forwarding).
+- `HttpRequestDecoratorAddBasicSecurity` and related tests updated for the security contract.
+
+## [1.2.5] - 2026-03-11
+
+### Changed
+
+- Release alignment to `1.2.5` across build metadata and documentation badges.
+
+## [1.2.3] - 2026-02-26
+
+### Added
+
+- PreparedStatement execution support for parameterized SQL requests.
+- API key and URI template support for API Padro integrations.
+
+### Changed
+
+- Extended proxy DTO/decorator flow to support authenticated external API calls with headers and API keys.
+
+## [1.2.2] - 2026-02-16
+
+### Changed
+
+- Build configuration: override Axion SCM version with explicit `1.2.2` in `build.gradle`.
+- Documentation: update README version badge to `1.2.2`.
+
+## [1.2.0] - 2026-01-27
+
+### Added
+
+- Parametrizable build output: Support for building JAR or WAR packages via `-Ppackaging` property
+- ServletInitializer for WAR deployment to external servlet containers
+- RFC 9457 Problem Details for standardized HTTP error responses
+- ProblemDetail and ProblemTypes classes for structured error handling
+
+### Changed
+
+- Error responses now use RFC 9457 Problem Details format (`application/problem+json`)
+- Migrated from ErrorResponseDto to ProblemDetail across all error handlers
+- Updated test assertions to reflect external service changes
+
+### Notes
+
+- Docker builds only support JAR format (default)
+- WAR builds are intended for deployment to external application servers (Tomcat, WildFly, etc.)
+
+## [1.1.1] - 2025-08-28
+
+### Added
+
+- HTTP POST request support for proxy endpoints
+- Enhanced HTTP protocol interface with method and body accessor methods
+- Comprehensive test suite for HTTP protocol components with SSL/TLS testing
+- Extended test coverage for request configuration services
+
+### Changed
+
+- Refactored HTTP request body decorator to use generic context interface
+- Enhanced proxy controller with POST request handling capabilities
+- Improved HTTP request processing and execution
+- Updated request configuration DTOs for better request support
+
+### Removed
+
+- Apache HTTP Client 5.x dependency and related configuration
+
+### Fixed
+
+- Improved HTTP request body handling and processing
+- Enhanced request method detection and routing
+
+## [1.1.0] - 2025-08-03
+
+### Added
+
+- Protocol-specific request executors for HTTP, JDBC, and WMS services
+- Comprehensive code quality tools with Spotless and enhanced JaCoCo
+- Git hooks for automated code quality enforcement and conventional commit validation
+- Docker configuration with multi-stage builds using Amazon Corretto 17
+- External configuration mounting for containerized deployments (replaced basic docker-compose.yml)
+- Spring configuration metadata for better IDE support
+- Gradle Version Catalog for centralized dependency management
+- Axion Release plugin for automated version management
+
+### Changed
+
+- Migrated to Spring Boot 3.5.4 & Java 17
+- Migrated dependencies to Version Catalog
+- Reorganized codebase into protocol-based architecture (http, jdbc, wms)
+- Completely rewrote documentation with a detailed architecture guide
+- Improved test organization with protocol-specific test classes
+- Restructured Docker configuration with environment-specific configs
+
+### Fixed
+
+- Modernized SITMUN proxy middleware configuration and deployment structure
+- Improved request processing and error handling
+- Enhanced backward compatibility with existing APIs
+- Build system with quality gates and automated checks
+
+## [1.0.0] - 2024-11-12
+
+### Added
+
+- Initial stable release of SITMUN Proxy Middleware
+- Spring Boot 2.7.18 application with proxy functionality
+- Decorator pattern implementation for flexible request/response modification
+- JWT token handling and authentication support (JJWT 0.12.6)
+- REST API with proxy endpoint `/proxy/{appId}/{terId}/{type}/{typeId}`
+- Spring Boot Actuator for health monitoring and application metrics
+- Docker support with basic containerization (docker-compose.yml)
+- OkHttp 4.12.0-based HTTP client
+- Request sanitization and access control
+- Error handling with proper HTTP status codes
+- Comprehensive test suite with an H2 database for testing
+- Decorator-based architecture with HTTP and JDBC context support
+
+### Changed
+
+- Modernized from legacy proxy implementations
+- Implemented proper dependency management
+- Enhanced code quality and maintainability
+
+### Fixed
+
+- Various bug fixes and improvements from the development phase
+
+[Unreleased]: https://github.com/sitmun/sitmun-proxy-middleware/compare/sitmun-proxy-middleware/1.2.9...HEAD
+[1.2.9]: https://github.com/sitmun/sitmun-proxy-middleware/compare/sitmun-proxy-middleware/1.2.8...sitmun-proxy-middleware/1.2.9
+[1.2.8]: https://github.com/sitmun/sitmun-proxy-middleware/compare/sitmun-proxy-middleware/1.2.7...sitmun-proxy-middleware/1.2.8
+
+[1.2.7]: https://github.com/sitmun/sitmun-proxy-middleware/compare/sitmun-proxy-middleware/1.2.6...sitmun-proxy-middleware/1.2.7
+
+[1.2.6]: https://github.com/sitmun/sitmun-proxy-middleware/compare/sitmun-proxy-middleware/1.2.5...sitmun-proxy-middleware/1.2.6
+
+[1.2.5]: https://github.com/sitmun/sitmun-proxy-middleware/compare/sitmun-proxy-middleware/1.2.3...sitmun-proxy-middleware/1.2.5
+
+[1.2.3]: https://github.com/sitmun/sitmun-proxy-middleware/compare/sitmun-proxy-middleware/1.2.2...sitmun-proxy-middleware/1.2.3
+
+[1.2.2]: https://github.com/sitmun/sitmun-proxy-middleware/compare/sitmun-proxy-middleware/1.2.0...sitmun-proxy-middleware/1.2.2
+
+[1.2.0]: https://github.com/sitmun/sitmun-proxy-middleware/compare/sitmun-proxy-middleware/1.1.1...sitmun-proxy-middleware/1.2.0
+
+[1.1.1]: https://github.com/sitmun/sitmun-proxy-middleware/compare/sitmun-proxy-middleware/1.1.0...sitmun-proxy-middleware/1.1.1
+
+[1.1.0]: https://github.com/sitmun/sitmun-proxy-middleware/compare/sitmun-proxy-middleware/1.0.0...sitmun-proxy-middleware/1.1.0
+
+[1.0.0]: https://github.com/sitmun/sitmun-proxy-middleware/releases/tag/sitmun-proxy-middleware/1.0.0
