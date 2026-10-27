@@ -1,7 +1,7 @@
 [versions]
 spring-boot = "4.1.1"
 spring-dependency-management = "1.1.7"
-spotless = "7.2.0"
+spotless = "8.10.4"
 jjwt = "0.12.6"
 handy-uri-templates = "2.1.8"
 okhttp = "5.5.0"
