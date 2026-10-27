@@ -1,125 +1,30 @@
 name: E2E
 
 on:
-  pull_request:
-    branches: [dev]
-  push:
-    branches: [dev, main]
+  workflow_call:
+    inputs:
+      suite:
+        description: admin, viewer, contact, mia, mobile_web, mobile_android, or all
+        required: true
+        type: string
   workflow_dispatch:
+    inputs:
+      suite:
+        description: Suite to run
+        required: true
+        type: choice
+        options:
+          - admin
+          - viewer
+          - contact
+          - mia
+          - mobile_web
+          - mobile_android
+          - all
 
 jobs:
-  changes:
-    runs-on: ubuntu-latest
-    outputs:
-      admin: ${{ steps.filter.outputs.admin }}
-      viewer: ${{ steps.filter.outputs.viewer }}
-      contact: ${{ steps.filter.outputs.contact }}
-      mia: ${{ steps.filter.outputs.mia }}
-      mobile_web: ${{ steps.filter.outputs.mobile_web }}
-      mobile_android: ${{ steps.filter.outputs.mobile_android }}
-    steps:
-      - uses: actions/checkout@v5
-      - uses: dorny/paths-filter@v3
-        id: filter
-        with:
-          filters: |
-            admin:
-              - 'sitmun-admin/**'
-              - 'sitmun-backend/**'
-              - 'sitmun-common/**'
-              - 'e2e/admin/**'
-              - 'e2e/fixtures/**'
-              - 'scripts/e2e-admin.mjs'
-              - 'scripts/e2e-backend.mjs'
-              - 'scripts/e2e-process.mjs'
-              - 'playwright.config.ts'
-              - 'package.json'
-              - 'package-lock.json'
-              - '.github/workflows/e2e.yml'
-            viewer:
-              - 'sitmun-viewer/**'
-              - 'sitmun-backend/**'
-              - 'sitmun-proxy/**'
-              - 'sitmun-common/**'
-              - 'e2e/viewer/**'
-              - 'e2e/fixtures/**'
-              - 'scripts/e2e-viewer.mjs'
-              - 'scripts/e2e-backend.mjs'
-              - 'scripts/e2e-proxy.mjs'
-              - 'scripts/e2e-wms-stub.mjs'
-              - 'scripts/e2e-process.mjs'
-              - 'playwright.viewer.config.ts'
-              - 'package.json'
-              - 'package-lock.json'
-              - '.github/workflows/e2e.yml'
-            contact:
-              - 'sitmun-admin/**'
-              - 'sitmun-viewer/**'
-              - 'sitmun-backend/**'
-              - 'sitmun-common/**'
-              - 'e2e/application-contact/**'
-              - 'e2e/fixtures/**'
-              - 'scripts/e2e-admin.mjs'
-              - 'scripts/e2e-viewer.mjs'
-              - 'scripts/e2e-backend.mjs'
-              - 'scripts/e2e-process.mjs'
-              - 'playwright.application-contact.config.ts'
-              - 'package.json'
-              - 'package-lock.json'
-              - '.github/workflows/e2e.yml'
-            mia:
-              - 'sitmun-admin/**'
-              - 'sitmun-viewer/**'
-              - 'sitmun-backend/**'
-              - 'sitmun-proxy/**'
-              - 'sitmun-common/**'
-              - 'e2e/mia-cross/**'
-              - 'e2e/fixtures/**'
-              - 'scripts/e2e-admin.mjs'
-              - 'scripts/e2e-viewer.mjs'
-              - 'scripts/e2e-backend.mjs'
-              - 'scripts/e2e-proxy.mjs'
-              - 'scripts/e2e-wms-stub.mjs'
-              - 'scripts/e2e-process.mjs'
-              - 'playwright.mia-cross.config.ts'
-              - 'package.json'
-              - 'package-lock.json'
-              - '.github/workflows/e2e.yml'
-            mobile_web:
-              - 'sitmun-mobile/**'
-              - 'sitmun-backend/**'
-              - 'sitmun-proxy/**'
-              - 'sitmun-addons/**'
-              - 'sitmun-common/**'
-              - 'e2e/mobile/**'
-              - 'scripts/e2e-backend-mobile.mjs'
-              - 'scripts/e2e-proxy-mobile.mjs'
-              - 'scripts/e2e-mbtiles.mjs'
-              - 'scripts/e2e-process.mjs'
-              - 'playwright.mobile.config.ts'
-              - 'package.json'
-              - 'package-lock.json'
-              - '.github/workflows/e2e.yml'
-            mobile_android:
-              - 'sitmun-mobile/**'
-              - 'sitmun-backend/**'
-              - 'sitmun-proxy/**'
-              - 'sitmun-addons/**'
-              - 'sitmun-common/**'
-              - 'e2e/mobile/**'
-              - 'scripts/e2e-mobile-android.mjs'
-              - 'scripts/e2e-backend-mobile.mjs'
-              - 'scripts/e2e-proxy-mobile.mjs'
-              - 'scripts/e2e-mbtiles.mjs'
-              - 'scripts/e2e-process.mjs'
-              - 'playwright.mobile.config.ts'
-              - 'package.json'
-              - 'package-lock.json'
-              - '.github/workflows/e2e.yml'
-
   e2e-admin:
-    needs: changes
-    if: github.event_name != 'pull_request' || needs.changes.outputs.admin == 'true'
+    if: inputs.suite == 'admin' || inputs.suite == 'all'
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
@@ -173,8 +78,7 @@ jobs:
           retention-days: 7
 
   e2e-viewer:
-    needs: changes
-    if: github.event_name != 'pull_request' || needs.changes.outputs.viewer == 'true'
+    if: inputs.suite == 'viewer' || inputs.suite == 'all'
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
@@ -228,8 +132,7 @@ jobs:
           retention-days: 7
 
   e2e-application-contact:
-    needs: changes
-    if: github.event_name != 'pull_request' || needs.changes.outputs.contact == 'true'
+    if: inputs.suite == 'contact' || inputs.suite == 'all'
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
@@ -288,8 +191,7 @@ jobs:
           retention-days: 7
 
   e2e-mia-cross:
-    needs: changes
-    if: github.event_name != 'pull_request' || needs.changes.outputs.mia == 'true'
+    if: inputs.suite == 'mia' || inputs.suite == 'all'
     runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
@@ -348,8 +250,7 @@ jobs:
           retention-days: 7
 
   e2e-mobile-web:
-    needs: changes
-    if: github.event_name != 'pull_request' || needs.changes.outputs.mobile_web == 'true'
+    if: inputs.suite == 'mobile_web' || inputs.suite == 'all'
     runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
@@ -397,8 +298,7 @@ jobs:
           retention-days: 7
 
   e2e-mobile-android:
-    needs: changes
-    if: github.event_name != 'pull_request' || needs.changes.outputs.mobile_android == 'true'
+    if: inputs.suite == 'mobile_android' || inputs.suite == 'all'
     runs-on: ubuntu-latest
     timeout-minutes: 120
     steps:

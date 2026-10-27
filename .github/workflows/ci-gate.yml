@@ -15,6 +15,13 @@ jobs:
       proxy: ${{ steps.filter.outputs.proxy }}
       mbtiles: ${{ steps.filter.outputs.mbtiles }}
       shared: ${{ steps.filter.outputs.shared }}
+      docker: ${{ steps.filter.outputs.docker }}
+      e2e_admin: ${{ steps.filter.outputs.e2e_admin }}
+      e2e_viewer: ${{ steps.filter.outputs.e2e_viewer }}
+      e2e_contact: ${{ steps.filter.outputs.e2e_contact }}
+      e2e_mia: ${{ steps.filter.outputs.e2e_mia }}
+      e2e_mobile_web: ${{ steps.filter.outputs.e2e_mobile_web }}
+      e2e_mobile_android: ${{ steps.filter.outputs.e2e_mobile_android }}
     steps:
       - uses: actions/checkout@v5
       - uses: dorny/paths-filter@v3
@@ -33,6 +40,117 @@ jobs:
               - 'sitmun-addons/sitmun-mbtiles/**'
             shared:
               - 'sitmun-common/**'
+            docker:
+              - 'docker/**'
+              - 'compose.yaml'
+              - '.dockerignore'
+              - 'sitmun-admin/**'
+              - 'sitmun-viewer/**'
+              - 'sitmun-backend/**'
+              - 'sitmun-proxy/**'
+              - 'sitmun-common/**'
+              - 'sitmun-addons/**'
+              - '.github/workflows/ci-docker.yml'
+              - '.github/workflows/ci-gate.yml'
+            e2e_admin:
+              - 'sitmun-admin/**'
+              - 'sitmun-backend/**'
+              - 'sitmun-common/**'
+              - 'e2e/admin/**'
+              - 'e2e/fixtures/**'
+              - 'scripts/e2e-admin.mjs'
+              - 'scripts/e2e-backend.mjs'
+              - 'scripts/e2e-process.mjs'
+              - 'playwright.config.ts'
+              - 'package.json'
+              - 'package-lock.json'
+              - '.github/workflows/e2e.yml'
+              - '.github/workflows/ci-gate.yml'
+            e2e_viewer:
+              - 'sitmun-viewer/**'
+              - 'sitmun-backend/**'
+              - 'sitmun-proxy/**'
+              - 'sitmun-common/**'
+              - 'e2e/viewer/**'
+              - 'e2e/fixtures/**'
+              - 'scripts/e2e-viewer.mjs'
+              - 'scripts/e2e-backend.mjs'
+              - 'scripts/e2e-proxy.mjs'
+              - 'scripts/e2e-wms-stub.mjs'
+              - 'scripts/e2e-process.mjs'
+              - 'playwright.viewer.config.ts'
+              - 'package.json'
+              - 'package-lock.json'
+              - '.github/workflows/e2e.yml'
+              - '.github/workflows/ci-gate.yml'
+            e2e_contact:
+              - 'sitmun-admin/**'
+              - 'sitmun-viewer/**'
+              - 'sitmun-backend/**'
+              - 'sitmun-common/**'
+              - 'e2e/application-contact/**'
+              - 'e2e/fixtures/**'
+              - 'scripts/e2e-admin.mjs'
+              - 'scripts/e2e-viewer.mjs'
+              - 'scripts/e2e-backend.mjs'
+              - 'scripts/e2e-process.mjs'
+              - 'playwright.application-contact.config.ts'
+              - 'package.json'
+              - 'package-lock.json'
+              - '.github/workflows/e2e.yml'
+              - '.github/workflows/ci-gate.yml'
+            e2e_mia:
+              - 'sitmun-admin/**'
+              - 'sitmun-viewer/**'
+              - 'sitmun-backend/**'
+              - 'sitmun-proxy/**'
+              - 'sitmun-common/**'
+              - 'e2e/mia-cross/**'
+              - 'e2e/fixtures/**'
+              - 'scripts/e2e-admin.mjs'
+              - 'scripts/e2e-viewer.mjs'
+              - 'scripts/e2e-backend.mjs'
+              - 'scripts/e2e-proxy.mjs'
+              - 'scripts/e2e-wms-stub.mjs'
+              - 'scripts/e2e-process.mjs'
+              - 'playwright.mia-cross.config.ts'
+              - 'package.json'
+              - 'package-lock.json'
+              - '.github/workflows/e2e.yml'
+              - '.github/workflows/ci-gate.yml'
+            e2e_mobile_web:
+              - 'sitmun-mobile/**'
+              - 'sitmun-backend/**'
+              - 'sitmun-proxy/**'
+              - 'sitmun-addons/**'
+              - 'sitmun-common/**'
+              - 'e2e/mobile/**'
+              - 'scripts/e2e-backend-mobile.mjs'
+              - 'scripts/e2e-proxy-mobile.mjs'
+              - 'scripts/e2e-mbtiles.mjs'
+              - 'scripts/e2e-process.mjs'
+              - 'playwright.mobile.config.ts'
+              - 'package.json'
+              - 'package-lock.json'
+              - '.github/workflows/e2e.yml'
+              - '.github/workflows/ci-gate.yml'
+            e2e_mobile_android:
+              - 'sitmun-mobile/**'
+              - 'sitmun-backend/**'
+              - 'sitmun-proxy/**'
+              - 'sitmun-addons/**'
+              - 'sitmun-common/**'
+              - 'e2e/mobile/**'
+              - 'scripts/e2e-mobile-android.mjs'
+              - 'scripts/e2e-backend-mobile.mjs'
+              - 'scripts/e2e-proxy-mobile.mjs'
+              - 'scripts/e2e-mbtiles.mjs'
+              - 'scripts/e2e-process.mjs'
+              - 'playwright.mobile.config.ts'
+              - 'package.json'
+              - 'package-lock.json'
+              - '.github/workflows/e2e.yml'
+              - '.github/workflows/ci-gate.yml'
 
   admin:
     needs: changes
@@ -58,10 +176,50 @@ jobs:
     needs: changes
     if: github.event_name == 'push' || needs.changes.outputs.shared == 'true'
     uses: ./.github/workflows/ci-shared.yml
+  docker:
+    needs: changes
+    if: github.event_name == 'push' || needs.changes.outputs.docker == 'true'
+    uses: ./.github/workflows/ci-docker.yml
+  e2e-admin:
+    needs: changes
+    if: github.event_name == 'push' || needs.changes.outputs.e2e_admin == 'true'
+    uses: ./.github/workflows/e2e.yml
+    with:
+      suite: admin
+  e2e-viewer:
+    needs: changes
+    if: github.event_name == 'push' || needs.changes.outputs.e2e_viewer == 'true'
+    uses: ./.github/workflows/e2e.yml
+    with:
+      suite: viewer
+  e2e-contact:
+    needs: changes
+    if: github.event_name == 'push' || needs.changes.outputs.e2e_contact == 'true'
+    uses: ./.github/workflows/e2e.yml
+    with:
+      suite: contact
+  e2e-mia:
+    needs: changes
+    if: github.event_name == 'push' || needs.changes.outputs.e2e_mia == 'true'
+    uses: ./.github/workflows/e2e.yml
+    with:
+      suite: mia
+  e2e-mobile-web:
+    needs: changes
+    if: github.event_name == 'push' || needs.changes.outputs.e2e_mobile_web == 'true'
+    uses: ./.github/workflows/e2e.yml
+    with:
+      suite: mobile_web
+  e2e-mobile-android:
+    needs: changes
+    if: github.event_name == 'push' || needs.changes.outputs.e2e_mobile_android == 'true'
+    uses: ./.github/workflows/e2e.yml
+    with:
+      suite: mobile_android
 
   ci-gate:
     name: ci-gate
-    needs: [admin, viewer, backend, proxy, mbtiles, shared]
+    needs: [admin, viewer, backend, proxy, mbtiles, shared, docker, e2e-admin, e2e-viewer, e2e-contact, e2e-mia, e2e-mobile-web, e2e-mobile-android]
     if: always()
     runs-on: ubuntu-latest
     steps:
@@ -73,10 +231,22 @@ jobs:
           PROXY: ${{ needs.proxy.result }}
           MBTILES: ${{ needs.mbtiles.result }}
           SHARED: ${{ needs.shared.result }}
+          DOCKER: ${{ needs.docker.result }}
+          E2E_ADMIN: ${{ needs.e2e-admin.result }}
+          E2E_VIEWER: ${{ needs.e2e-viewer.result }}
+          E2E_CONTACT: ${{ needs.e2e-contact.result }}
+          E2E_MIA: ${{ needs.e2e-mia.result }}
+          E2E_MOBILE_WEB: ${{ needs.e2e-mobile-web.result }}
+          E2E_MOBILE_ANDROID: ${{ needs.e2e-mobile-android.result }}
         run: |
           python3 - << 'PY'
           import os, sys
-          bad = [name for name in ("ADMIN", "VIEWER", "BACKEND", "PROXY", "MBTILES", "SHARED") if os.environ[name] in ("failure", "cancelled")]
+          names = (
+              "ADMIN", "VIEWER", "BACKEND", "PROXY", "MBTILES", "SHARED", "DOCKER",
+              "E2E_ADMIN", "E2E_VIEWER", "E2E_CONTACT", "E2E_MIA",
+              "E2E_MOBILE_WEB", "E2E_MOBILE_ANDROID",
+          )
+          bad = [name for name in names if os.environ[name] in ("failure", "cancelled")]
           if bad:
               sys.exit("failed: " + ", ".join(bad))
           PY
