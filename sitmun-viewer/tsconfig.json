@@ -1,0 +1,44 @@
+/* To learn more about this file see: https://angular.io/config/tsconfig. */
+{
+  "compileOnSave": false,
+  "compilerOptions": {
+    "ignoreDeprecations": "6.0",
+    "baseUrl": "./",
+    "outDir": "./dist/out-tsc",
+    "forceConsistentCasingInFileNames": true,
+    "strict": true,
+    "noImplicitOverride": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "sourceMap": true,
+    "declaration": false,
+    "downlevelIteration": true,
+    "experimentalDecorators": true,
+    "moduleResolution": "bundler",
+    "importHelpers": true,
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "target": "ES2022",
+    "module": "es2020",
+    "types": ["node"],
+    "paths": {
+      "@auth/*": ["src/app/auth/*"],
+      "@config/*": ["src/app/config/*"],
+      "@api/*": ["src/app/api/*"],
+      "@sections/*": ["src/app/sections/*"],
+      "@shared/*": ["src/app/shared/*"],
+      "@ui/*": ["src/app/ui/*"]
+    },
+    "useDefineForClassFields": false,
+    "skipLibCheck": true,
+    "typeRoots": ["./src/app/api", "./node_modules/@types"]
+  },
+  "angularCompilerOptions": {
+    "enableI18nLegacyMessageIdFormat": false,
+    "strictInjectionParameters": true,
+    "strictInputAccessModifiers": true,
+    "strictTemplates": true
+  },
+  "exclude": ["node_modules", "**/*.spec.ts"]
+}

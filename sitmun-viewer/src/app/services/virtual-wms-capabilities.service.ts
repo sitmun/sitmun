@@ -1,0 +1,690 @@
+import { Injectable } from '@angular/core';
+
+import type {
+  AppCfg,
+  AppLayer,
+  AppNodeInfo,
+  AppService,
+  AppTree
+} from '@api/model/app-cfg';
+
+import { applyFolderCatalogInfo } from './folder-catalog-info';
+import { inferOgcLinkFormat } from './layer-info.service';
+import { isProfileLayerQueryable } from './profile-layer-queryable';
+import {
+  WMSCapabilities,
+  WMSCapability,
+  WMSService,
+  WMSLayer,
+  WmsOnlineResourceLink
+} from '../types/wms-capabilities';
+
+/**
+ * Type definition for real layer configuration returned by findRealLayerConfig.
+ * Ensures url and type are always strings, even if the API returns them as objects.
+ */
+export interface RealLayerConfig {
+  url: string;
+  type: string;
+  layerNames: string[];
+  /** AppCfg {@link AppService#id}; set when resolved from catalog so proxy/direct URLs can match scales. */
+  serviceId?: string;
+  /** AppLayer transparency 0..100 (0 = opaque); converted to SITNA opacity downstream. */
+  transparency?: number;
+  /**
+   * AppLayer order; applied as SITNA `zIndex` when the layer is added to the working layers via
+   * `LayerCatalog.addLayerToMap`. Higher values render above lower; absent/null is treated as
+   * `zIndex` 0. SITNA keeps raster layers below vector layers regardless of `order`, and runtime
+   * reorder via the WorkLayerManager control bypasses `zIndex` and is not persisted.
+   */
+  order?: number;
+  /** Profile geometry property name. Absent when the administrator has not chosen one. */
+  geometryName?: string;
+  /** Geometry kind of `geometryName`. Curve and surface kinds request GML 3.2. */
+  geometryKind?: string;
+  /** Preferred geometry id. Absent when DescribeFeatureType already names a specific type. */
+  preferredGeometryType?: string;
+}
+
+/**
+ * Type guard to ensure a value is a string (handles cases where API returns objects).
+ */
+function ensureString(value: unknown): string {
+  if (typeof value === 'string') {
+    return value;
+  }
+  if (value == null) {
+    return '';
+  }
+  return String(value);
+}
+
+/**
+ * Service for generating virtual WMS GetCapabilities responses from SITMUN AppCfg.
+ * Creates WMS capabilities documents that represent SITMUN tree structures as WMS layer hierarchies.
+ *
+ * This enables standard SITNA controls (like layerCatalog) to work with SITMUN's tree-based
+ * configuration.
+ */
+@Injectable({
+  providedIn: 'root'
+})
+export class VirtualWmsCapabilitiesService {
+  /**
+   * Base URL for virtual WMS services
+   */
+  private static readonly VIRTUAL_BASE_URL = 'virtual://sitmun-layer-catalog/';
+
+  /**
+   * Generate complete WMS GetCapabilities response for a specific SITMUN tree node.
+   * Creates a virtual WMS service that represents the subtree starting from the given node.
+   *
+   * @param nodeId - The node ID to generate capabilities for (e.g., "node/12338")
+   * @param apiConfig - The complete SITMUN AppCfg configuration
+   * @returns WMS GetCapabilities response representing the node's subtree
+   */
+  generateCapabilities(nodeId: string, apiConfig: AppCfg): WMSCapabilities {
+    const tree = this.findTreeContainingNode(nodeId, apiConfig);
+    if (!tree) {
+      console.error(
+        `[VirtualWmsCapabilities] No tree found containing node: ${nodeId}`
+      );
+      throw new Error(`Node ${nodeId} not found in any tree`);
+    }
+
+    const node = tree.nodes[nodeId];
+    if (!node) {
+      console.error(
+        `[VirtualWmsCapabilities] Node ${nodeId} not found in tree ${tree.id}`
+      );
+      throw new Error(`Node ${nodeId} not found`);
+    }
+
+    const defaultCRS = apiConfig.application.srs || 'EPSG:25831';
+
+    const rootLayer = this.buildLayerTree(
+      nodeId,
+      node,
+      tree,
+      apiConfig,
+      defaultCRS
+    );
+
+    const layerCount = this.countLayers(rootLayer);
+    if (layerCount === 0) {
+      console.error(
+        `[VirtualWmsCapabilities] Node ${nodeId} has no valid layers, cannot create capabilities`
+      );
+      throw new Error(
+        `Node ${nodeId} has no valid layers to include in capabilities`
+      );
+    }
+
+    const service: WMSService = this.createServiceMetadata(node, apiConfig);
+
+    const capability: WMSCapability = this.createCapability(nodeId, rootLayer);
+
+    const capabilities: WMSCapabilities = {
+      version: '1.3.0',
+      Service: service,
+      Capability: capability
+    };
+
+    return capabilities;
+  }
+
+  /**
+   * Check if a URL is a virtual WMS service URL
+   */
+  isVirtualServiceUrl(url: string): boolean {
+    return (
+      url?.startsWith(VirtualWmsCapabilitiesService.VIRTUAL_BASE_URL) || false
+    );
+  }
+
+  /**
+   * Extract node ID from virtual service URL.
+   * Handles both legacy (virtual://.../node/123) and lang-prefixed (virtual://.../en/node/123) URLs.
+   */
+  extractNodeIdFromUrl(url: string): string | null {
+    if (!this.isVirtualServiceUrl(url)) {
+      return null;
+    }
+    const afterBase = url.substring(
+      VirtualWmsCapabilitiesService.VIRTUAL_BASE_URL.length
+    );
+    const firstSlash = afterBase.indexOf('/');
+    if (firstSlash === -1) {
+      return afterBase || null;
+    }
+    const firstSegment = afterBase.slice(0, firstSlash);
+    const rest = afterBase.slice(firstSlash + 1);
+    if (rest && /^[a-z]{2}(-[a-zA-Z0-9]*)?$/i.test(firstSegment)) {
+      return rest;
+    }
+    return afterBase;
+  }
+
+  /**
+   * Generate a virtual WMS service URL for a given node ID.
+   * Including lang ensures a distinct URL per language so SITNA does not reuse cached GetCapabilities.
+   *
+   * @param nodeId - The node ID (e.g., "node/12338")
+   * @param lang - Optional language code (e.g. "en"); when set, included in URL path
+   * @returns Virtual URL (e.g. "virtual://sitmun-layer-catalog/en/node/12338" or "virtual://sitmun-layer-catalog/node/12338")
+   */
+  generateVirtualUrl(nodeId: string, lang?: string): string {
+    const base = VirtualWmsCapabilitiesService.VIRTUAL_BASE_URL;
+    return lang ? `${base}${lang}/${nodeId}` : `${base}${nodeId}`;
+  }
+
+  /**
+   * Check if a node can generate valid capabilities (has at least one valid layer).
+   * This is used to filter out nodes that would produce empty capabilities.
+   *
+   * @param nodeId - The node ID to check (e.g., "node/12338")
+   * @param apiConfig - The complete SITMUN AppCfg configuration
+   * @returns true if the node can generate valid capabilities, false otherwise
+   */
+  canGenerateCapabilities(nodeId: string, apiConfig: AppCfg): boolean {
+    try {
+      const tree = this.findTreeContainingNode(nodeId, apiConfig);
+      if (!tree) {
+        return false;
+      }
+
+      const node = tree.nodes[nodeId];
+      if (!node) {
+        return false;
+      }
+
+      const defaultCRS = apiConfig.application.srs;
+
+      const rootLayer = this.buildLayerTree(
+        nodeId,
+        node,
+        tree,
+        apiConfig,
+        defaultCRS
+      );
+
+      const layerCount = this.countLayers(rootLayer);
+      return layerCount > 0;
+    } catch {
+      // If any error occurs, the node cannot generate valid capabilities
+      return false;
+    }
+  }
+
+  /**
+   * Find the real layer configuration from AppCfg for a given node ID.
+   * Resolves a virtual layer node to its actual WMS service configuration.
+   *
+   * @param nodeId - The node ID to resolve (e.g., "node/12338")
+   * @param apiConfig - The complete SITMUN AppCfg configuration
+   * @returns Layer configuration with URL, type, and layer names, or null if not found
+   */
+  findRealLayerConfig(
+    nodeId: string,
+    apiConfig: AppCfg
+  ): RealLayerConfig | null {
+    for (const tree of apiConfig.trees) {
+      const node = tree.nodes[nodeId]; // Direct dictionary lookup
+
+      if (!node) {
+        continue; // Node not found in this tree, try next tree
+      }
+
+      const layerResourceId = node.resource;
+      if (!layerResourceId) {
+        continue;
+      }
+
+      const layer = apiConfig.layers.find((l) => l.id === layerResourceId);
+      if (!layer) {
+        continue;
+      }
+
+      const service = apiConfig.services.find((s) => s.id === layer.service);
+      if (!service) {
+        continue;
+      }
+
+      const layerUrl = ensureString(layer.url);
+      return {
+        url: layerUrl || ensureString(service.url),
+        type: ensureString(service.type),
+        layerNames: layer.layers, // Array of WMS layer names from the layer
+        serviceId: service.id,
+        transparency: layer.transparency,
+        order: layer.order,
+        ...(layer.geometryName ? { geometryName: layer.geometryName } : {}),
+        ...(layer.geometryKind ? { geometryKind: layer.geometryKind } : {}),
+        ...(layer.preferredGeometryType ? { preferredGeometryType: layer.preferredGeometryType } : {})
+      };
+    }
+
+    return null;
+  }
+
+  /**
+   * Reverse lookup: Find nodeId from layer properties (url, type, layerNames).
+   * This is the inverse of findRealLayerConfig.
+   *
+   * @param url - Service URL
+   * @param type - Service type (e.g., "WMS")
+   * @param layerNames - Array of layer names or comma-separated string
+   * @param apiConfig - The complete SITMUN AppCfg configuration
+   * @returns nodeId if found, null otherwise
+   */
+  findNodeIdFromLayerProperties(
+    url: string,
+    type: string,
+    layerNames: string | string[],
+    apiConfig: AppCfg
+  ): string | null {
+    const normalizedLayerNames = Array.isArray(layerNames)
+      ? layerNames
+      : layerNames
+          .split(',')
+          .map((s) => s.trim())
+          .filter((s) => s.length > 0);
+
+    if (normalizedLayerNames.length === 0) {
+      return null;
+    }
+
+    // Convert to Set for order-independent comparison
+    const layerNamesSet = new Set(normalizedLayerNames);
+
+    // Use type guard to ensure service.url and service.type are strings for comparison
+    const normalizedUrl = ensureString(url);
+    const normalizedType = ensureString(type);
+
+    const layer = apiConfig.layers.find((l) => {
+      const service = apiConfig.services.find((s) => s.id === l.service);
+      if (!service || ensureString(service.type) !== normalizedType) {
+        return false;
+      }
+      const effectiveUrl = ensureString(l.url) || ensureString(service.url);
+      if (effectiveUrl !== normalizedUrl) {
+        return false;
+      }
+
+      const layerLayersSet = new Set(l.layers);
+      if (layerLayersSet.size !== layerNamesSet.size) {
+        return false;
+      }
+
+      for (const name of layerNamesSet) {
+        if (!layerLayersSet.has(name)) {
+          return false;
+        }
+      }
+
+      return true;
+    });
+
+    if (!layer) {
+      return null;
+    }
+
+    for (const tree of apiConfig.trees) {
+      for (const [nodeId, node] of Object.entries(tree.nodes)) {
+        const nodeInfo = node as AppNodeInfo;
+        if (nodeInfo.resource === layer.id) {
+          return nodeId;
+        }
+      }
+    }
+
+    return null;
+  }
+
+  /**
+   * Find which tree contains the given node
+   */
+  private findTreeContainingNode(
+    nodeId: string,
+    apiConfig: AppCfg
+  ): AppTree | null {
+    for (const tree of apiConfig.trees) {
+      if (tree.nodes && tree.nodes[nodeId]) {
+        return tree;
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Create WMS Service metadata from node and application info
+   */
+  private createServiceMetadata(
+    node: AppNodeInfo,
+    _apiConfig: AppCfg
+  ): WMSService {
+    return {
+      Name: 'WMS',
+      Title: node.title || 'Virtual WMS Service',
+      Abstract: `Virtual WMS service generated from SITMUN tree structure for: ${node.title}`,
+      KeywordList: {
+        Keyword: ['SITMUN', 'Virtual', 'Generated']
+      },
+      OnlineResource: {
+        'xlink:href': 'virtual://sitmun-layer-catalog/'
+      },
+      Fees: 'none',
+      AccessConstraints: 'none'
+    };
+  }
+
+  /**
+   * Create WMS Capability section with standard WMS requests
+   */
+  private createCapability(nodeId: string, rootLayer: WMSLayer): WMSCapability {
+    const baseUrl = `${VirtualWmsCapabilitiesService.VIRTUAL_BASE_URL}${nodeId}`;
+
+    return {
+      Request: {
+        GetCapabilities: {
+          Format: ['text/xml'],
+          DCPType: [
+            {
+              HTTP: {
+                Get: {
+                  OnlineResource: {
+                    'xlink:href': baseUrl
+                  }
+                }
+              }
+            }
+          ]
+        },
+        GetMap: {
+          Format: ['image/png', 'image/jpeg', 'image/gif'],
+          DCPType: [
+            {
+              HTTP: {
+                Get: {
+                  OnlineResource: {
+                    'xlink:href': baseUrl
+                  }
+                }
+              }
+            }
+          ]
+        },
+        GetFeatureInfo: {
+          Format: ['text/html', 'text/plain', 'application/json'],
+          DCPType: [
+            {
+              HTTP: {
+                Get: {
+                  OnlineResource: {
+                    'xlink:href': baseUrl
+                  }
+                }
+              }
+            }
+          ]
+        }
+      },
+      Exception: {
+        Format: ['XML', 'INIMAGE', 'BLANK']
+      },
+      Layer: rootLayer
+    };
+  }
+
+  /**
+   * Build WMS Layer hierarchy from SITMUN node structure
+   */
+  private buildLayerTree(
+    nodeId: string,
+    node: AppNodeInfo,
+    tree: AppTree,
+    apiConfig: AppCfg,
+    defaultCRS: string
+  ): WMSLayer {
+    // Root container layer (no Name property)
+    // For leaf nodes without title, use 'Untitled Layer' instead of 'Root Layer'
+    const defaultTitle =
+      node.resource && !node.children?.length ? 'Untitled Layer' : 'Root Layer';
+    const rootLayer: WMSLayer = {
+      Title: node.title || defaultTitle,
+      CRS: [defaultCRS]
+    };
+
+    if (node.children && node.children.length > 0) {
+      rootLayer.Layer = this.buildChildLayers(
+        node.children,
+        tree,
+        apiConfig,
+        defaultCRS
+      );
+
+      if (rootLayer.Layer.length > 0) {
+        rootLayer.CRS = this.aggregateCRSFromChildren(rootLayer.Layer);
+      }
+      // This node is the catalog row. Nested folders are handled in convertNodeToLayer.
+      applyFolderCatalogInfo(rootLayer, node);
+    } else if (node.resource) {
+      const layer = this.convertNodeToLayer(
+        nodeId,
+        node,
+        apiConfig,
+        defaultCRS
+      );
+      if (layer) {
+        rootLayer.Layer = [layer];
+        rootLayer.CRS = layer.CRS;
+      }
+    }
+
+    return rootLayer;
+  }
+
+  /**
+   * Build array of child WMS layers from child node IDs
+   */
+  private buildChildLayers(
+    childIds: string[],
+    tree: AppTree,
+    apiConfig: AppCfg,
+    defaultCRS: string
+  ): WMSLayer[] {
+    const layers: WMSLayer[] = [];
+
+    for (const childId of childIds) {
+      const childNode = tree.nodes[childId];
+      if (!childNode) {
+        continue;
+      }
+
+      const layer = this.convertNodeToLayer(
+        childId,
+        childNode,
+        apiConfig,
+        defaultCRS
+      );
+      if (layer) {
+        layers.push(layer);
+      }
+    }
+
+    layers.sort((a, b) => {
+      const orderA = (a as WMSLayer & { _order?: number })._order ?? 999;
+      const orderB = (b as WMSLayer & { _order?: number })._order ?? 999;
+      return orderA - orderB;
+    });
+
+    layers.forEach((layer) => {
+      delete (layer as WMSLayer & { _order?: number })._order;
+    });
+
+    return layers;
+  }
+
+  /**
+   * Convert a SITMUN node to a WMS Layer definition
+   */
+  private convertNodeToLayer(
+    nodeId: string,
+    node: AppNodeInfo,
+    apiConfig: AppCfg,
+    defaultCRS: string
+  ): WMSLayer | null {
+    const layer: WMSLayer & { _order?: number } = {
+      Title: node.title || 'Untitled Layer',
+      _order: node.order ?? 999
+    };
+
+    // If node has children, it's a folder/group (not a leaf - no Name property)
+    if (node.children && node.children.length > 0) {
+      const tree = this.findTreeContainingNode(nodeId, apiConfig);
+      if (tree) {
+        layer.Layer = this.buildChildLayers(
+          node.children,
+          tree,
+          apiConfig,
+          defaultCRS
+        );
+
+        // If no children were included (all were excluded), exclude this folder too
+        if (layer.Layer.length === 0) {
+          return null;
+        }
+
+        layer.CRS = this.aggregateCRSFromChildren(layer.Layer);
+        applyFolderCatalogInfo(layer, node);
+      } else {
+        return null;
+      }
+    }
+    // If node has resource, it's a leaf layer (set Name only for leaf nodes)
+    else if (node.resource) {
+      // Only set Name for leaf nodes
+      layer.Name = nodeId;
+
+      const appLayer = apiConfig.layers.find((l) => l.id === node.resource);
+      if (appLayer) {
+        // Abstract will be enriched from WMS capabilities in patchRasterGetInfo
+        // For now, set to empty string - it will be populated from real WMS capabilities when available
+        layer.Abstract = '';
+        layer.queryable = isProfileLayerQueryable(appLayer);
+
+        const service = apiConfig.services.find(
+          (s) => s.id === appLayer.service
+        );
+        layer.CRS = this.getLayerCRS(appLayer, service, defaultCRS);
+        VirtualWmsCapabilitiesService.appendProfileOgcUrlsToLayer(
+          layer,
+          appLayer
+        );
+      } else {
+        return null;
+      }
+    } else {
+      return null;
+    }
+
+    return layer;
+  }
+
+  /**
+   * Applies profile {@link AppLayer#metadataURL} / {@link AppLayer#datasetURL} to OGC
+   * {@code MetadataURL} / {@code DataURL} on a synthetic layer (same semantics as
+   * real GetCapabilities post-processing: property present + non-empty replaces;
+   * present + empty removes; omitted leaves the layer unchanged for that field).
+   */
+  private static appendProfileOgcUrlsToLayer(
+    layer: WMSLayer,
+    appLayer: AppLayer
+  ): void {
+    if (Object.prototype.hasOwnProperty.call(appLayer, 'metadataURL')) {
+      const raw = appLayer.metadataURL;
+      const md =
+        raw == null
+          ? ''
+          : typeof raw === 'string'
+            ? raw.trim()
+            : String(raw).trim();
+      if (md) {
+        const entry: WmsOnlineResourceLink = {
+          Format: inferOgcLinkFormat('metadata', md),
+          OnlineResource: { 'xlink:href': md }
+        };
+        layer.MetadataURL = [entry];
+      } else {
+        delete layer.MetadataURL;
+      }
+    }
+    if (Object.prototype.hasOwnProperty.call(appLayer, 'datasetURL')) {
+      const raw = appLayer.datasetURL;
+      const du =
+        raw == null
+          ? ''
+          : typeof raw === 'string'
+            ? raw.trim()
+            : String(raw).trim();
+      if (du) {
+        const entry: WmsOnlineResourceLink = {
+          Format: inferOgcLinkFormat('download', du),
+          OnlineResource: { 'xlink:href': du }
+        };
+        layer.DataURL = [entry];
+      } else {
+        delete layer.DataURL;
+      }
+    }
+  }
+
+  /**
+   * Get CRS for a layer from its service or use default
+   */
+  private getLayerCRS(
+    layer: AppLayer,
+    service: AppService | undefined,
+    defaultCRS: string
+  ): string[] {
+    if (!service) {
+      return [defaultCRS];
+    }
+
+    if (service.parameters && service.parameters.SRS) {
+      return [service.parameters.SRS];
+    }
+
+    return [defaultCRS];
+  }
+
+  /**
+   * Aggregate CRS from multiple child layers (union of all CRS)
+   */
+  private aggregateCRSFromChildren(children: WMSLayer[]): string[] {
+    const crsSet = new Set<string>();
+
+    for (const child of children) {
+      if (child.CRS) {
+        child.CRS.forEach((crs: string) => crsSet.add(crs));
+      }
+    }
+
+    return Array.from(crsSet).sort();
+  }
+
+  /**
+   * Count total number of layers in a layer tree
+   */
+  private countLayers(layer: WMSLayer): number {
+    let count = layer.Name ? 1 : 0; // Count if it has a Name
+
+    if (layer.Layer) {
+      for (const child of layer.Layer) {
+        count += this.countLayers(child);
+      }
+    }
+
+    return count;
+  }
+}

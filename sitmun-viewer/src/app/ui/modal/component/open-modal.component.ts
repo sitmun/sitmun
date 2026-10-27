@@ -1,0 +1,55 @@
+import {
+  AfterViewInit,
+  ChangeDetectorRef,
+  Component,
+  ComponentRef,
+  OnDestroy,
+  Type,
+  ViewChild,
+  ChangeDetectionStrategy
+} from '@angular/core';
+
+import { InsertionDirective } from '@ui/modal/insertion-directive';
+import { Subject } from 'rxjs';
+
+@Component({
+  standalone: false,
+  changeDetection: ChangeDetectionStrategy.Eager,
+  template: '<div><ng-template appInsertion></ng-template></div>'
+})
+export class OpenModalComponent implements AfterViewInit, OnDestroy {
+  componentRef!: ComponentRef<any>;
+
+  @ViewChild(InsertionDirective)
+  insertionPoint!: InsertionDirective;
+
+  private readonly onCloseSubject = new Subject<any>();
+  public onClose = this.onCloseSubject.asObservable();
+
+  childComponentType!: Type<any>;
+
+  constructor(private cd: ChangeDetectorRef) {}
+
+  ngAfterViewInit() {
+    this.loadChildComponent(this.childComponentType);
+    this.cd.detectChanges();
+  }
+
+  loadChildComponent(componentType: Type<any>) {
+    const viewContainerRef = this.insertionPoint.viewContainerRef;
+    viewContainerRef.clear();
+
+    this.componentRef = viewContainerRef.createComponent(componentType);
+  }
+
+  ngOnDestroy() {
+    if (this.componentRef) {
+      this.componentRef.destroy();
+    }
+  }
+
+  close() {
+    // @ts-expect-error - onCloseSubject is a Subject that may not have next method in all contexts
+    this.onCloseSubject.next();
+  }
+}

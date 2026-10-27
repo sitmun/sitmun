@@ -1,0 +1,183 @@
+{
+  "attribution": "<a href=\"https://github.com/sitmun\" target=\"_blank\">SITMUN</a>",
+  "testConfigFile": null,
+  "dashboard": {
+    "allowedTypes": ["I", "E"],
+    "filteringEnabled": true,
+    "initialBatchSize": 12,
+    "batchIncrement": 6
+  },
+  "mapSwitcher": {
+    "allowedTypes": ["I"],
+    "filteringEnabled": true
+  },
+  "externalLinkTypes": ["E"],
+  "defaultLanguage": "es",
+  "languages": [
+    {
+      "name": "Español",
+      "shortname": "es",
+      "locale": "es-ES",
+      "icon": "assets/flags/spain.svg"
+    },
+    {
+      "name": "English",
+      "shortname": "en",
+      "locale": "en-US",
+      "icon": "assets/flags/united-kingdom.svg"
+    },
+    {
+      "name": "Français",
+      "shortname": "fr",
+      "locale": "fr-FR",
+      "icon": "assets/flags/france.svg"
+    },
+    {
+      "name": "Català",
+      "shortname": "ca",
+      "locale": "ca-ES",
+      "icon": "assets/flags/catalan.svg"
+    },
+    {
+      "name": "Aranés",
+      "shortname": "oc-aranes",
+      "locale": "oc-aranes-ES",
+      "icon": "assets/flags/val-aran.svg"
+    }
+  ],
+  "enabledByDefault": [
+    "sitna.loadingIndicator",
+    "sitna.helloWorld",
+    "sitmun.locator"
+  ],
+  "disabledControls": [
+    "sitna.WFSEdit",
+    "sitna.offlineMapMaker"
+  ],
+  "controlDefaults": {
+    "sitna.coordinates": {
+      "div": "tc-slot-coordinates"
+    },
+    "sitna.scale": {
+      "div": "tc-slot-scale"
+    },
+    "sitna.scaleBar": {
+      "div": "tc-slot-scale"
+    },
+    "sitna.scaleSelector": {
+      "div": "tc-slot-scale"
+    },
+    "sitna.workLayerManager": {
+      "div": "tc-slot-wlm"
+    },
+    "sitna.layerCatalog": {
+      "div": "tc-slot-toc",
+      "enableSearch": true
+    },
+    "sitna.basemapSelector": {
+      "div": "tc-slot-bms"
+    },
+    "sitna.legend": {
+      "div": "tc-slot-legend"
+    },
+    "sitna.dataLoader": {
+      "div": "tc-slot-xdata",
+      "enableDragAndDrop": true
+    },
+    "sitna.download": {
+      "div": "tc-slot-download",
+      "deselectableTabs": false
+    },
+    "sitna.drawMeasureModify": {
+      "div": "tc-slot-drawmeasuremodify",
+      "displayElevation": {
+        "resolution": 100
+      }
+    },
+    "sitna.fullScreen": {
+      "div": "tc-slot-fullscreen"
+    },
+    "sitna.geolocation": {
+      "div": "tc-slot-geolocation",
+      "displayElevation": true
+    },
+    "sitna.measure": {
+      "div": "tc-slot-measure",
+      "displayElevation": {
+        "resolution": 100
+      }
+    },
+    "sitna.featureInfo": {
+      "displayElevation": {
+        "resolution": 100
+      },
+      "persistentHighlights": false
+    },
+    "sitna.multiFeatureInfo": {
+      "div": "tc-slot-multifeatureinfo",
+      "displayElevation": {
+        "resolution": 100
+      },
+      "active": true,
+      "persistentHighlights": false,
+      "share": true,
+      "modes": {
+        "point": { "active": true },
+        "polyline": { "active": true },
+        "polygon": { "active": true }
+      }
+    },
+    "sitna.offlineMapMaker": {
+      "div": "tc-slot-offline"
+    },
+    "sitna.printMap": {
+      "div": "tc-slot-print",
+      "logo": "assets/logos/logo_orange.png",
+      "legend": {
+        "visible": true
+      }
+    },
+    "sitna.navBar": {
+      "div": "tc-slot-nav"
+    },
+    "sitna.overviewMap": {
+      "div": "tc-slot-ovmap"
+    },
+    "sitna.search": {
+      "div": "tc-slot-search"
+    },
+    "sitna.share": {
+      "div": "tc-slot-share"
+    },
+    "sitna.streetView": {
+      "div": "tc-slot-streetview"
+    },
+    "sitna.WFSEdit": {
+      "div": "tc-slot-wfsedit",
+      "downloadElevation": true
+    },
+    "sitna.WFSQuery": {
+      "div": "tc-slot-wfsquery"
+    },
+    "sitna.threed": {
+      "div": "tc-slot-threed",
+      "controls": [
+        "sitna.threed",
+        "sitna.navBar",
+        "sitna.navBarHome",
+        "sitna.basemapSelector",
+        "sitna.layerCatalog",
+        "sitna.scaleSelector",
+        "sitna.printMap",
+        "sitna.workLayerManager",
+        "sitna.legend"
+      ]
+    },
+    "sitna.helloWorld": {
+      "div": "tc-slot-hello-world"
+    },
+    "sitmun.locator": {
+      "div": "tc-slot-locator"
+    }
+  }
+}

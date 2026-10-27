@@ -1,0 +1,701 @@
+import { Location } from '@angular/common';
+import {
+  Directive,
+  ElementRef,
+  inject,
+  Injector,
+  OnDestroy,
+  OnInit,
+  Renderer2
+} from '@angular/core';
+import { MatDialog } from '@angular/material/dialog';
+import { ActivatedRoute, Router } from '@angular/router';
+
+import type { AppCfg, GeneralCfg } from '@api/model/app-cfg';
+import { CommonService } from '@api/services/common.service';
+import { TranslateService } from '@ngx-translate/core';
+import { ErrorModalComponent } from '@sections/common/modals/error-modal/error-modal.component';
+import SitnaMap from 'api-sitna';
+import { Subject } from 'rxjs';
+import {
+  debounceTime,
+  distinctUntilChanged,
+  filter,
+  map,
+  switchMap,
+  takeUntil,
+  tap
+} from 'rxjs/operators';
+import { MAP_CONTAINER_ID } from 'src/app/config/sitna.constants';
+import { LayerCatalogControlHandler } from 'src/app/controls/handlers/layer-catalog-control.handler';
+import { ShareControlHandler } from 'src/app/controls/handlers/share-control.handler';
+import { AppConfigService } from 'src/app/services/app-config.service';
+import { ConfigLookupService } from 'src/app/services/config-lookup.service';
+import { ControlRegistryService } from 'src/app/services/control-registry.service';
+import { MapConfigurationService } from 'src/app/services/map-configuration.service';
+import { MapInterfaceService } from 'src/app/services/map-interface.service';
+import { MapServiceWorkerService } from 'src/app/services/map-service-worker.service';
+import { MoreInfoAdvancedService } from 'src/app/services/more-info-advanced.service';
+import { SitnaApiService } from 'src/app/services/sitna-api.service';
+import { ToolsPanelSplitterService } from 'src/app/services/tools-panel-splitter.service';
+
+const MAP_LOAD_TIMEOUT_MS = 30_000;
+
+type LoadingState =
+  | 'idle'
+  | 'loading-config'
+  | 'processing-config'
+  | 'creating-map'
+  | 'loaded'
+  | 'error';
+
+@Directive()
+export abstract class AbstractMapComponent implements OnInit, OnDestroy {
+  private componentDestroyed = new Subject<void>();
+  private readonly isInEmbedded: boolean;
+  private currentGeneralCfg: GeneralCfg | undefined;
+  private currentAppCfg: AppCfg | undefined;
+  private map: any;
+  protected loadingState: LoadingState = 'idle';
+  private activeRequestId = 0;
+  private loadId = 0;
+  private readonly layerCatalogHandler = inject(LayerCatalogControlHandler);
+  private readonly shareControlHandler = inject(ShareControlHandler);
+  private readonly toolsPanelSplitter = inject(ToolsPanelSplitterService);
+  private readonly moreInfoAdvancedService = inject(MoreInfoAdvancedService);
+  applicationId!: number;
+  territoryId!: number;
+  locale: string | undefined;
+
+  protected constructor(
+    private translate: TranslateService,
+    private location: Location,
+    protected route: ActivatedRoute,
+    protected router: Router,
+    protected commonService: CommonService,
+    protected dialog: MatDialog,
+    protected injector: Injector,
+    private renderer: Renderer2,
+    private el: ElementRef,
+    private document: Document,
+    private controlRegistry: ControlRegistryService,
+    private configLookup: ConfigLookupService,
+    private mapConfig: MapConfigurationService,
+    private mapInterface: MapInterfaceService,
+    private mapServiceWorker: MapServiceWorkerService,
+    private appConfigService: AppConfigService,
+    private sitnaApi: SitnaApiService
+  ) {
+    const path = this.location.path();
+    this.isInEmbedded = path.includes('embedded');
+
+    const currentLang = this.translate.currentLang;
+    this.locale = this.parseLang(currentLang);
+  }
+
+  ngOnInit(): void {
+    this.route.params
+      .pipe(
+        tap(() => {
+          this.loadingState = 'loading-config';
+        }),
+        debounceTime(300),
+        distinctUntilChanged(
+          (a, b) =>
+            a['applicationId'] === b['applicationId'] &&
+            a['territoryId'] === b['territoryId']
+        ),
+        tap((params) => {
+          this.applicationId = Number(params['applicationId']);
+          this.territoryId = Number(params['territoryId']);
+          this.moreInfoAdvancedService.setMapContext(
+            this.applicationId,
+            this.territoryId
+          );
+          if (this.isInEmbedded) {
+            this.locale = this.parseLang(params['lang']);
+          }
+          this.clearMap();
+        }),
+        switchMap((params) => {
+          const requestId = ++this.activeRequestId;
+          return this.commonService
+            .fetchMapConfiguration(
+              Number(params['applicationId']),
+              Number(params['territoryId'])
+            )
+            .pipe(
+              tap((appCfg) => {
+                if (appCfg) {
+                  (appCfg as any).__requestId = requestId;
+                }
+              })
+            );
+        }),
+        takeUntil(this.componentDestroyed)
+      )
+      .subscribe({
+        next: async (appCfg) => {
+          if (appCfg) {
+            const requestId = (appCfg as any).__requestId;
+            if (requestId === this.activeRequestId) {
+              await this.loadConfig(appCfg, requestId);
+              // Restore component reference after map load so that catalog switching
+              // (and anything else using abstractMapObject) can trigger updateCatalog.
+              // Must run after loadConfig/loadMap because clearMap() sets it to undefined.
+              this.sitnaApi.setGlobal('abstractMapObject', this);
+              // There might be a new theme in the recently fetched appCfg
+              // We will share it with the rest of the app via
+              // the commonService.updateMessage()
+              this.commonService.updateMessage(appCfg.application.theme);
+            }
+          } else {
+            this.loadingState = 'error';
+            console.error(
+              '[AbstractMapComponent] Received null/undefined config'
+            );
+            this.dialog.open(ErrorModalComponent, {
+              data: { message: 'map.error.config.empty' },
+              role: 'alertdialog',
+              injector: this.injector
+            });
+          }
+        },
+        error: (error) => {
+          this.loadingState = 'error';
+          console.error(
+            '[AbstractMapComponent] Failed to fetch config:',
+            error
+          );
+
+          this.dialog.open(ErrorModalComponent, {
+            data: { message: 'map.error.config.fetch.failed' },
+            role: 'alertdialog',
+            injector: this.injector
+          });
+        }
+      });
+
+    if (!this.isInEmbedded) {
+      this.translate.onLangChange
+        .pipe(
+          filter(
+            () =>
+              this.applicationId != null &&
+              !isNaN(this.applicationId) &&
+              this.territoryId != null &&
+              !isNaN(this.territoryId)
+          ),
+          map(() => this.parseLang(this.translate.currentLang)),
+          filter((newLocale) => newLocale !== this.locale),
+          tap((newLocale) => {
+            this.locale = newLocale;
+            this.loadingState = 'loading-config';
+            this.clearMap();
+          }),
+          switchMap(() => {
+            const langForRequest = this.translate.currentLang;
+            const requestId = ++this.activeRequestId;
+            return this.commonService
+              .fetchMapConfiguration(
+                this.applicationId,
+                this.territoryId,
+                langForRequest
+              )
+              .pipe(
+                tap((appCfg) => {
+                  if (appCfg) {
+                    (appCfg as any).__requestId = requestId;
+                  }
+                })
+              );
+          }),
+          takeUntil(this.componentDestroyed)
+        )
+        .subscribe({
+          next: async (appCfg) => {
+            if (appCfg) {
+              const requestId = (appCfg as any).__requestId;
+              if (requestId === this.activeRequestId) {
+                await this.loadConfig(appCfg, requestId);
+                this.sitnaApi.setGlobal('abstractMapObject', this);
+                this.commonService.updateMessage(appCfg.application.theme);
+              }
+            } else {
+              this.loadingState = 'error';
+              console.error(
+                '[AbstractMapComponent] Received null/undefined config on lang change'
+              );
+              this.dialog.open(ErrorModalComponent, {
+                data: { message: 'map.error.config.empty' },
+                role: 'alertdialog',
+                injector: this.injector
+              });
+            }
+          },
+          error: (error) => {
+            this.loadingState = 'error';
+            console.error(
+              '[AbstractMapComponent] Failed to fetch config on lang change:',
+              error
+            );
+            this.dialog.open(ErrorModalComponent, {
+              data: { message: 'map.error.config.fetch.failed' },
+              role: 'alertdialog',
+              injector: this.injector
+            });
+          }
+        });
+    }
+
+    this.sitnaApi.setGlobal('abstractMapObject', this);
+  }
+
+  ngOnDestroy() {
+    this.componentDestroyed.next();
+    this.componentDestroyed.complete();
+
+    this.toolsPanelSplitter.unmount();
+
+    this.controlRegistry.cleanupAll();
+
+    this.clearMap();
+  }
+
+  removeSitnaDivs() {
+    const divs = this.document.querySelectorAll('.tc-modal');
+    divs.forEach((div) => {
+      const father = div.parentElement;
+      div.remove();
+      if (father && father.innerHTML.trim() === '') {
+        this.renderer.removeChild(this.document.body, father);
+      }
+    });
+  }
+
+  removeEmptyDivs() {
+    const divElements = this.document.body.querySelectorAll('div');
+    divElements.forEach((div: HTMLElement) => {
+      if (
+        !div.classList.length &&
+        !div.getAttribute('id') &&
+        div.innerHTML.trim() === ''
+      ) {
+        this.renderer.removeChild(document.body, div);
+      }
+    });
+  }
+
+  async loadConfig(appCfg: AppCfg, requestId: number) {
+    try {
+      this.loadingState = 'processing-config';
+      this.currentAppCfg = appCfg;
+      this.sitnaApi.setGlobal('currentAppCfg', appCfg);
+      this.sitnaApi.setGlobal(
+        'currentMapLang',
+        this.translate.currentLang || undefined
+      );
+
+      this.configLookup.initialize(appCfg);
+
+      const controls = await this.controlRegistry.processControls(
+        appCfg.tasks,
+        appCfg
+      );
+
+      const attribution = this.mapConfig.toAttribution();
+      const initialExtent = this.mapConfig.toInitialExtent(appCfg);
+      const defaultZoomLevel = this.mapConfig.toDefaultZoomLevel(appCfg);
+
+      const baseLayers = this.mapConfig.toBaseLayers(appCfg);
+      const defaultBaseLayer = this.mapConfig.toDefaultBaseLayer(baseLayers);
+
+      this.currentGeneralCfg = {
+        locale: this.locale,
+        crs: this.mapConfig.toCrs(appCfg),
+        initialExtent,
+        defaultZoomLevel,
+        attribution: attribution,
+        layout: this.mapConfig.toLayout(appCfg),
+        baseLayers,
+        ...(defaultBaseLayer ? { defaultBaseLayer } : {}),
+        controls: controls as any, // Handler system returns Partial<SitnaControls>
+        views: this.mapConfig.toViews(appCfg)
+      };
+
+      await this.mapServiceWorker.configureMiddleware(appCfg);
+
+      // We need to save the currentGeneralCfg and the currentAppCfg, so when the
+      // catalog change, the map can be loaded again with the same configuration
+
+      if (!this.currentGeneralCfg) {
+        this.loadingState = 'error';
+        return;
+      }
+
+      const cfgCheck = this.checkConfiguration(this.currentGeneralCfg);
+
+      if (!cfgCheck.ok) {
+        this.loadingState = 'error';
+        const ref = this.dialog.open(ErrorModalComponent, {
+          data: { message: cfgCheck.message || 'map.error.unknown' },
+          role: 'alertdialog',
+          injector: this.injector
+        });
+        ref.afterClosed().subscribe(() => {
+          this.navigateToDashboard();
+        });
+        return;
+      }
+
+      if (!this.currentAppCfg || !this.currentGeneralCfg) {
+        this.loadingState = 'error';
+        console.error(
+          '[AbstractMapComponent] Config is undefined, cannot load map'
+        );
+        return;
+      }
+
+      // Guard against stale results - only proceed if this is still the active request
+      this.loadingState = 'creating-map';
+      if (this.activeRequestId === requestId) {
+        await this.loadMap(this.currentGeneralCfg);
+      }
+    } catch (error) {
+      this.loadingState = 'error';
+      console.error('[AbstractMapComponent] Error processing config:', error);
+      this.dialog.open(ErrorModalComponent, {
+        data: { message: 'map.error.config.processing.failed' },
+        role: 'alertdialog',
+        injector: this.injector
+      });
+      throw error;
+    }
+  }
+
+  updateCatalog() {
+    if (
+      this.currentAppCfg === undefined ||
+      this.currentGeneralCfg === undefined
+    ) {
+      return; // This is a safeguard, but it should never happen
+    }
+
+    const layerCatalogsForModal = this.sitnaApi.getGlobal(
+      'layerCatalogsForModal'
+    );
+
+    if (layerCatalogsForModal) {
+      // Rebuild controls to pick up the new currentTreeId. Full map reload is required
+      // because the layer catalog is built at map init from config (no in-place refresh API).
+      this.controlRegistry
+        .processControls(this.currentAppCfg.tasks, this.currentAppCfg)
+        .then(async (controls) => {
+          if (!this.currentAppCfg || !this.currentGeneralCfg) {
+            return;
+          }
+          // Update stored config and pass a fresh object to loadMap so the new map gets the new controls
+          this.currentGeneralCfg.controls = controls as any;
+          const newCfg = {
+            ...this.currentGeneralCfg,
+            controls: this.currentGeneralCfg.controls
+          };
+          // Save catalog state built by processControls; clearMap will clear it
+          const savedCatalogState = this.sitnaApi.getGlobal(
+            'layerCatalogsForModal'
+          );
+          this.clearMap();
+          // Restore catalog state so injectCatalogSwitchingButton can find it during loadMap
+          if (savedCatalogState) {
+            this.sitnaApi.setGlobal('layerCatalogsForModal', savedCatalogState);
+          }
+          this.sitnaApi.setGlobal('currentAppCfg', this.currentAppCfg);
+          await this.loadMap(newCfg);
+          this.sitnaApi.setGlobal('abstractMapObject', this);
+        })
+        .catch((err) => {
+          console.error('[AbstractMapComponent] updateCatalog failed:', err);
+        });
+    }
+  }
+
+  clearMap() {
+    this.loadId++;
+    this.toolsPanelSplitter.unmount();
+    // Light handler teardown (MIA body overlay, LayerCatalog per-map state) — not cleanupAll.
+    this.controlRegistry.clearMapArtifacts(this.map);
+    this.sitnaApi.setGlobal('abstractMapObject', undefined);
+    this.sitnaApi.setGlobal('layerCatalogsForModal', undefined);
+    this.sitnaApi.setGlobal('currentAppCfg', undefined);
+    const mapFather = this.el.nativeElement.querySelector('.map-container');
+    const overview = this.el.nativeElement.querySelector(
+      '.tc-ctl-sv-view.tc-hidden'
+    );
+    if (this.map) {
+      this.renderer.removeChild(mapFather, this.map);
+      this.map = undefined;
+    }
+    if (overview) {
+      this.renderer.removeChild(mapFather, overview);
+    }
+
+    const oldMapDiv = mapFather.querySelector(`#${MAP_CONTAINER_ID}`);
+    const div = this.renderer.createElement('div');
+    this.renderer.setAttribute(div, 'id', MAP_CONTAINER_ID);
+
+    if (oldMapDiv) {
+      this.renderer.insertBefore(mapFather, div, oldMapDiv);
+      this.renderer.removeChild(mapFather, oldMapDiv);
+    } else {
+      this.renderer.appendChild(mapFather, div);
+    }
+
+    this.removeSitnaDivs();
+    this.removeEmptyDivs();
+  }
+
+  parseLang(lang: string): string {
+    return this.appConfigService.getLocaleForLanguage(lang);
+  }
+
+  checkConfiguration(cfg: GeneralCfg) {
+    if (!cfg.locale) {
+      return {
+        ok: false,
+        message: 'map.error.locale'
+      };
+    } else if (!cfg.crs) {
+      return {
+        ok: false,
+        message: 'map.error.crs'
+      };
+    } else if (!cfg.initialExtent) {
+      return {
+        ok: false,
+        message: 'map.error.initialExtent'
+      };
+    } else if (!cfg.baseLayers.length) {
+      return {
+        ok: false,
+        message: 'map.error.baseLayers'
+      };
+    }
+    return {
+      ok: true
+    };
+  }
+
+  /**
+   * Loads the map and waits for the SITNA loaded event or timeout.
+   * Resolves when the map has loaded or when an error was shown (modal).
+   * Callers should await it to sequence after map load. Timeout and constructor
+   * errors are handled inside (modal + loadingState); loadMap does not throw.
+   */
+  private async loadMap(cfg: GeneralCfg): Promise<void> {
+    const thisLoadId = ++this.loadId;
+    try {
+      this.loadingState = 'creating-map';
+      this.map = new SitnaMap(MAP_CONTAINER_ID, cfg);
+    } catch (error) {
+      this.loadingState = 'error';
+      console.error('[AbstractMapComponent] Failed to initialize map:', error);
+      this.dialog.open(ErrorModalComponent, {
+        data: { message: 'map.error.initialization.failed' },
+        role: 'alertdialog',
+        injector: this.injector
+      });
+      return;
+    }
+
+    const loadedPromise = new Promise<void>((resolve) => {
+      this.map.loaded(async () => {
+        if (thisLoadId !== this.loadId || this.componentDestroyed.closed) {
+          resolve();
+          return;
+        }
+        this.mapInterface.updateInterface();
+        const mapState = this.route.snapshot.queryParamMap.get('mapState');
+        if (!mapState) {
+          this.applyInitialViewAfterLoad(cfg);
+        }
+        try {
+          await this.layerCatalogHandler.applyDefaultWorkingLayers(
+            this.map,
+            this.currentAppCfg,
+            thisLoadId
+          );
+        } catch (error) {
+          console.error(
+            '[AbstractMapComponent] applyDefaultWorkingLayers failed',
+            error
+          );
+        }
+        if (
+          mapState &&
+          thisLoadId === this.loadId &&
+          !this.componentDestroyed.closed
+        ) {
+          await this.shareControlHandler.restore(
+            this.map,
+            mapState,
+            (profileLayerIds) =>
+              this.layerCatalogHandler.addProfileLayers(
+                this.map,
+                this.currentAppCfg,
+                profileLayerIds
+              )
+          );
+        }
+        this.toolsPanelSplitter.mount(this.document);
+        this.loadingState = 'loaded';
+        resolve();
+      });
+    });
+
+    const timeoutPromise = new Promise<never>((_, reject) =>
+      setTimeout(
+        () => reject(new Error('Map load timeout')),
+        MAP_LOAD_TIMEOUT_MS
+      )
+    );
+
+    try {
+      await Promise.race([loadedPromise, timeoutPromise]);
+    } catch {
+      if (thisLoadId === this.loadId && !this.componentDestroyed.closed) {
+        this.loadingState = 'error';
+        console.error('[AbstractMapComponent] Map load timeout');
+        this.dialog.open(ErrorModalComponent, {
+          data: { message: 'map.error.initialization.failed' },
+          role: 'alertdialog',
+          injector: this.injector
+        });
+      }
+    }
+  }
+
+  /**
+   * Applies initial view configuration after map is loaded.
+   * Sets extent first, then applies configured zoom level if present.
+   */
+  private applyInitialViewAfterLoad(cfg: GeneralCfg): void {
+    if (!cfg.initialExtent || typeof this.map?.setExtent !== 'function') {
+      return;
+    }
+
+    const requestedExtent = cfg.initialExtent;
+    const previousExtent =
+      typeof this.map.getExtent === 'function' ? this.map.getExtent() : undefined;
+
+    this.map.setExtent(
+      requestedExtent,
+      { animate: false },
+      (actualExtent: [number, number, number, number]) => {
+        console.info('[AbstractMapComponent] Applied SITNA initial extent', {
+          previousExtent: previousExtent,
+          requestedExtent: requestedExtent,
+          actualExtent: actualExtent,
+          delta: this.getExtentDelta(requestedExtent, actualExtent)
+        });
+
+        // Apply configured zoom level after extent, keeping the center
+        this.applyDefaultZoomLevel(cfg);
+      }
+    );
+  }
+
+  /**
+   * Applies territory defaultZoomLevel from GeneralCfg after initial extent.
+   * Prefers OpenLayers View.setZoom for a more natural zoom-level API; falls back
+   * to manual resolution conversion if setZoom is unavailable. Keeps the center
+   * from the extent fit and overrides zoom/resolution only.
+   */
+  private applyDefaultZoomLevel(cfg: GeneralCfg): void {
+    const level = cfg.defaultZoomLevel;
+    if (level == null) {
+      return; // No log for unset value (common case)
+    }
+
+    const olView = this.map.wrap?.map?.getView?.();
+    if (!olView) {
+      console.warn(
+        '[AbstractMapComponent] defaultZoomLevel configured but OpenLayers view is unavailable',
+        { defaultZoomLevel: level }
+      );
+      return;
+    }
+
+    // Capture previous state for logging
+    const previousZoom = typeof olView.getZoom === 'function' ? olView.getZoom() : undefined;
+    const previousResolution = olView.getResolution();
+
+    // Prefer setZoom when available (more natural for a zoom-level field)
+    if (typeof olView.setZoom === 'function') {
+      olView.setZoom(level);
+
+      const actualZoom = typeof olView.getZoom === 'function' ? olView.getZoom() : undefined;
+      const actualResolution = olView.getResolution();
+
+      console.info('[AbstractMapComponent] Applied defaultZoomLevel via OpenLayers view.setZoom', {
+        defaultZoomLevel: level,
+        previousZoom: previousZoom,
+        previousResolution: previousResolution,
+        actualZoom: actualZoom,
+        actualResolution: actualResolution
+      });
+      return;
+    }
+
+    // Fallback: manual resolution conversion via getResolutionForZoom + SITNA setResolution
+    if (
+      typeof olView.getResolutionForZoom !== 'function' ||
+      typeof this.map?.setResolution !== 'function'
+    ) {
+      console.warn(
+        '[AbstractMapComponent] defaultZoomLevel configured but fallback APIs (getResolutionForZoom or map.setResolution) are unavailable',
+        { defaultZoomLevel: level }
+      );
+      return;
+    }
+
+    const resolution = olView.getResolutionForZoom(level);
+    if (resolution == null || Number.isNaN(resolution)) {
+      console.warn(
+        '[AbstractMapComponent] Could not resolve defaultZoomLevel to a map resolution',
+        { defaultZoomLevel: level, resolution }
+      );
+      return;
+    }
+
+    this.map.setResolution(resolution);
+
+    const actualResolution =
+      typeof this.map.getResolution === 'function'
+        ? this.map.getResolution()
+        : olView.getResolution();
+
+    console.info(
+      '[AbstractMapComponent] Applied defaultZoomLevel via fallback (getResolutionForZoom + setResolution)',
+      {
+        defaultZoomLevel: level,
+        requestedResolution: resolution,
+        previousResolution: previousResolution,
+        actualResolution: actualResolution
+      }
+    );
+  }
+
+  private getExtentDelta(
+    requestedExtent: [number, number, number, number],
+    actualExtent: [number, number, number, number]
+  ): [number, number, number, number] {
+    return actualExtent.map((value, index) => value - requestedExtent[index]) as [
+      number,
+      number,
+      number,
+      number
+    ];
+  }
+
+  abstract navigateToDashboard(): any;
+}

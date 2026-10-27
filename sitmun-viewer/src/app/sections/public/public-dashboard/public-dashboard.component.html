@@ -1,0 +1,40 @@
+<div class="dashboard-container">
+  <h1>{{ 'dashboardPage.applicationsTitle' | translate }}</h1>
+
+  @if (loading) {
+    <p class="page-status" role="status">
+      {{ 'dashboardPage.loading' | translate }}
+    </p>
+  }
+  @if (loadError && !loading) {
+    <p class="page-status page-status--error" role="alert">
+      {{ 'dashboardPage.loadError' | translate }}
+    </p>
+  }
+
+  @if (!loadError && (allItems.length > 0 || searchKeyword.length >= 2)) {
+    <div id="research">
+      <app-dashboard-searchbox (keywords)="onKeywordsSearch($event)" />
+    </div>
+  }
+
+  @if (
+    !loadError &&
+    searchKeyword.length >= 2 &&
+    items.length === 0 &&
+    !loadingMore
+  ) {
+    <p class="page-status" role="status">
+      {{ 'dashboardPage.noSearchResults' | translate }}
+    </p>
+  }
+
+  @if (!loading && !loadError) {
+    <app-dashboard-items
+      [items]="items"
+      [hasMorePages]="hasMorePages"
+      [loadingMore]="loadingMore"
+      [loading]="loading"
+      (loadMore)="loadMoreItems()" />
+  }
+</div>

@@ -1,0 +1,9 @@
+<button
+  mat-stroked-button
+  class="return-button"
+  (click)="historyGoBack()"
+  [attr.aria-label]="labelKey | translate"
+  [matTooltip]="labelKey | translate">
+  <mat-icon>arrow_back</mat-icon>
+  <span>{{ labelKey | translate }}</span>
+</button>

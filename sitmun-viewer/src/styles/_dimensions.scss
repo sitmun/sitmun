@@ -1,0 +1,118 @@
+@use 'sass:math';
+
+// Base
+$base-border: 1px;
+$base-border-2: $base-border * 2;
+$base-border-3: $base-border * 3;
+
+$base-breakpoint-lg: 960px;
+
+$base-layout-breakpoint-small: 640px;
+
+$base-font-size-xs: 12px;
+$base-font-size-sm: 13px;
+$base-font-size: 14px;
+$base-font-size-lg: 16px;
+$base-font-size-xl: 22px;
+$base-font-size-xxl: 30px;
+
+$base-margin: 4px;
+$base-margin-1-5: $base-margin * 1.5;
+$base-margin-2: $base-margin * 2;
+$base-margin-3: $base-margin * 3;
+$base-margin-4: $base-margin * 4;
+$base-margin-5: $base-margin * 5;
+$base-margin-6: $base-margin * 6;
+$base-margin-7: $base-margin * 7;
+$base-margin-8: $base-margin * 8;
+
+$base-touchable-item-size: 48px;
+
+// Transparency
+$modal-transparency: 0.8;
+// Shadow
+$medium-shadow: 0 1px 5px 0 rgba(0, 0, 0, 0.3);
+
+// Common
+$common-application-bar-height: 56px;
+
+// Component-specific
+
+// Login page
+$login-page-button-font: 20px;
+$login-page-button-height: 48px;
+$login-page-button-radius: calc($login-page-button-height / 2);
+$login-page-button-width: 180px;
+$login-page-input-width: 432px;
+$login-page-input-height: 48px;
+$login-page-input-radius: calc($login-page-input-height / 2);
+$login-page-input-font-size: 20px;
+$login-page-height: 100vh;
+
+// Navigation bar
+$navigation-bar-height: 40px;
+$navigation-bar-logo-height: 30px;
+$navigation-bar-logo-width: 200px;
+$navigation-bar-logout-height: 48px;
+$navigation-bar-logout-width: 48px;
+$navigation-bar-logo-margin-left: $base-margin-8;
+$navigation-bar-logo-margin-top: $base-margin-2;
+$navigation-bar-lang-margin: $base-margin-8;
+$navigation-bar-lang-button-margin: $base-margin;
+$navigation-bar-lang-button-height: 48px;
+$navigation-bar-lang-button-width: 48px;
+$navigation-bar-lang-button-font-size: 20px;
+$navigation-bar-menu-width: 300px;
+$navigation-bar-menu-font-size: 18px;
+$navigation-bar-menu-padding: 20px;
+$navigation-bar-menu-border: 4px;
+$navigation-bar-menu-button-border: 3px;
+$navigation-bar-menu-button-margin: 10px;
+$navigation-bar-menu-button-padding: 5px;
+$navigation-bar-menu-button-border-radius: 5px;
+$navigation-bar-menu-hi-title-margin: 10px;
+$navigation-bar-menu-hi-title-font-size: 25px;
+$navigation-bar-menu-logged-options-margin-left: 10px;
+$navigation-bar-menu-logged-options-margin-bottom: 10px;
+$navigation-bar-menu-logout-title-margin-left: 10px;
+$navigation-bar-menu-logout-button-padding: 5px;
+$navigation-bar-menu-logout-button-border-radius: 10px;
+$navigation-bar-menu-logout-img-padding: 5px;
+
+// Card component
+$card-component-img-height: 96px;
+$card-component-img-width: 96px;
+$card-component-img-radius: 20px;
+
+// Detail pages (territory, application, …)
+$page-content-width: 93%;
+$page-inline-gutter: 20px;
+
+// Modals
+$modal-background-z-index: 10100;
+$modal-content-z-index: $modal-background-z-index + 1;
+$modal-border-radius: 20px;
+$modal-margin-top: $base-touchable-item-size;
+$modal-margin-top-sm: calc($base-touchable-item-size / 3);
+$modal-extra-small-width: 90vw;
+$modal-small-width: 420px;
+$modal-regular-width: 500px;
+$modal-large-width: 560px;
+$modal-extra-large-width: 860px;
+$modal-extra-extra-large-width: 1000px;
+$modal-narrow-width: $modal-regular-width - 100px;
+$modal-header-height: $base-touchable-item-size;
+$modal-header-height-xl: 64px;
+$modal-title-font-size: $base-font-size + 2px;
+$modal-padding-h: 20px;
+$modal-title-padding-h: $modal-padding-h;
+$modal-button-font-size: $base-font-size - 1px;
+$modal-button-margin-h: math.round($modal-padding-h * 0.5);
+$modal-button-margin-v: $modal-padding-h;
+$modal-body-padding-xs: math.round($modal-padding-h * 0.25);
+$modal-body-padding-sm: math.round($modal-padding-h * 1.25);
+$modal-body-padding: math.round($modal-padding-h * 2);
+$modal-body-max-height: calc(
+  100vh - #{($modal-margin-top * 2) + $modal-header-height}
+);
+$modal-body-min-height: 300px;

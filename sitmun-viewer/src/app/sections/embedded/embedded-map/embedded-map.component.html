@@ -1,0 +1,27 @@
+<div class="embedded-map">
+  <div class="map-container">
+    @if (
+      loadingState === 'loading-config' ||
+      loadingState === 'processing-config' ||
+      loadingState === 'creating-map'
+    ) {
+      <div class="map-loading-overlay">
+        <div class="map-loading-spinner"></div>
+        <div class="map-loading-text">
+          @switch (loadingState) {
+            @case ('loading-config') {
+              <span>{{ 'map.loading.config' | translate }}</span>
+            }
+            @case ('processing-config') {
+              <span>{{ 'map.loading.processing' | translate }}</span>
+            }
+            @default {
+              <span>{{ 'map.loading.creating' | translate }}</span>
+            }
+          }
+        </div>
+      </div>
+    }
+    <div id="mapa" class="mapa-div"></div>
+  </div>
+</div>

@@ -1,0 +1,82 @@
+// Base
+$transparent: #00000000;
+$black: #1a0e00;
+$white: white;
+$gray: gray;
+$light-gray: lightgray;
+
+// Orange
+$orange: #d79922;
+$primary-orange: #ff8c00;
+$secondary-orange: #ff6e00;
+$orange-light: #ffeed8;
+$orange-transp-60percent: #ff930099;
+$orange-transp-20percent: #ff930033;
+$orange-dark: darkorange;
+$light-orange: #ffb146;
+
+// Blue
+$blue-dark: #27187e;
+$blue: #758bfd;
+$blue-light: #ebf2fb;
+
+// Violet
+$violet: #3a455a;
+
+// Common
+$common-color-background: $white;
+$common-color-background-with-opacity: rgba($white, 0.6);
+$common-color-background-navbar: $orange;
+$common-color-background-navbar-with-opacity: rgba($orange, 0.6);
+$common-color-background-navbar-light: $light-orange;
+
+$common-color-font-button: $white;
+$common-color-font-primary: $blue-light;
+$common-color-font-secondary: $blue;
+$common-color-border-input: $gray;
+
+// component specific
+
+// Navigation bar
+$navigation-bar-font: $white;
+$navigation-bar-lang-button-background: $orange;
+$navigation-bar-menu-button-background: $transparent;
+$navigation-bar-button-logout-background: $orange;
+$navigation-bar-button-logout-hover: $orange-dark;
+$navigation-bar-menu-color: $light-orange;
+$navigation-bar-menu-border: $light-orange;
+$navigation-bar-menu-button-color: $light-orange;
+$navigation-bar-menu-button-border-color: $light-orange;
+$navigation-bar-menu-logout-button-background: $light-orange;
+
+// Login page
+$login-page-button-font: $white;
+$login-page-button-login-background: $primary-orange;
+$login-page-button-login-hover: $secondary-orange;
+$login-page-button-public-background: $blue-light;
+$login-page-button-public-hover: $blue;
+$login-page-input-font: $gray;
+$login-page-input-text: $primary-orange;
+$login-page-input-focus: $blue;
+
+// Card component
+$card-component-font: $black;
+$card-component-background: $white;
+$card-component-border: $blue;
+$card-component-border-hover: $blue-light;
+$card-component-img-hover: $blue-light;
+
+// Dashboard component
+$dashboard-component-button: $blue-light;
+$dashboard-component-button-background: $white;
+$dashboard-component-button-hover: $blue;
+$dashboard-component-button-focus: $blue;
+$dashboard-component-button-border: $blue-light;
+$dashboard-component-button-border-hover: $blue;
+$dashboard-component-button-border-focus: $blue;
+
+// Modals
+
+$modal-background-around-color: $orange;
+$modal-background-border-color: $blue;
+$modal-blue-color: $blue;

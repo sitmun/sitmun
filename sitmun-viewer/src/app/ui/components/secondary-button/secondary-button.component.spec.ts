@@ -1,0 +1,24 @@
+import { NgOptimizedImage } from '@angular/common';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+
+import { SecondaryButtonComponent } from './secondary-button.component';
+
+describe('MenuComponent', () => {
+  let component: SecondaryButtonComponent;
+  let fixture: ComponentFixture<SecondaryButtonComponent>;
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      declarations: [SecondaryButtonComponent],
+      imports: [NgOptimizedImage]
+    }).compileComponents();
+
+    fixture = TestBed.createComponent(SecondaryButtonComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  });
+
+  it('should create', () => {
+    expect(component).toBeTruthy();
+  });
+});

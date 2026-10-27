@@ -1,0 +1,84 @@
+<mat-menu #appMenu="matMenu" xPosition="before" panelClass="app-menu-panel">
+  <!-- Welcome header as disabled menu item -->
+  @if (isConnected) {
+    <button mat-menu-item class="menu-header">
+      <span>
+        {{ 'menu.greeting' | translate: { username: username } }}
+      </span>
+    </button>
+  }
+
+  @if (isConnected) {
+    <mat-divider></mat-divider>
+  }
+
+  <!-- Navigation Group -->
+  <!-- Dashboard button -->
+  @if (showDashboardButton) {
+    <button mat-menu-item (click)="sendDashboardEvent()">
+      <mat-icon>dashboard</mat-icon>
+      <span>{{ 'menu.dashboard' | translate }}</span>
+    </button>
+  }
+
+  <!-- Change app/territory button -->
+  @if (showChangeAppButton) {
+    <button mat-menu-item (click)="sendChangeAppEvent()">
+      <mat-icon>swap_horiz</mat-icon>
+      <span>{{ 'menu.changeAppOrTerritory' | translate }}</span>
+    </button>
+  }
+
+  @if (showDashboardButton || showChangeAppButton) {
+    <mat-divider></mat-divider>
+  }
+
+  <!-- System Info Group -->
+  <!-- About button -->
+  <button mat-menu-item (click)="openAboutDialog()">
+    <mat-icon>info</mat-icon>
+    <span>{{ 'systemInfo.about' | translate }}</span>
+  </button>
+
+  <!-- Recent Errors button (only in non-production) -->
+  @if (!environment.production) {
+    <button mat-menu-item (click)="openErrorSidebar()">
+      <mat-icon>bug_report</mat-icon>
+      <span>{{ 'systemInfo.recentErrors' | translate }}</span>
+      @if (unreviewedErrorCount > 0) {
+        <span class="badge">
+          {{ unreviewedErrorCount }}
+        </span>
+      }
+    </button>
+  }
+
+  @if (
+    (!isConnected && showLoginButton) ||
+    (isConnected && (showProfileButton || showLogoutButton))
+  ) {
+    <mat-divider></mat-divider>
+  }
+
+  <!-- Account Group -->
+  @if (!isConnected && showLoginButton) {
+    <button mat-menu-item (click)="sendLoginEvent()">
+      <mat-icon>login</mat-icon>
+      <span>{{ 'menu.login' | translate }}</span>
+    </button>
+  }
+
+  @if (isConnected && showProfileButton) {
+    <button mat-menu-item (click)="sendProfileEvent()">
+      <mat-icon>person</mat-icon>
+      <span>{{ 'profile.myAccount' | translate }}</span>
+    </button>
+  }
+
+  @if (isConnected && showLogoutButton) {
+    <button mat-menu-item (click)="sendLogoutEvent()">
+      <mat-icon>logout</mat-icon>
+      <span>{{ 'loginPage.logoutText' | translate }}</span>
+    </button>
+  }
+</mat-menu>

@@ -1,0 +1,36 @@
+import { Component, ChangeDetectionStrategy } from '@angular/core';
+
+import { BaseModal } from '@ui/modal/component/base-modal';
+import { OpenModalRef } from '@ui/modal/service/open-modal-ref';
+import { OpenModalConfig } from '@ui/modal/service/open-modal.config';
+
+@Component({
+  standalone: false,
+  selector: 'app-warning-modal',
+  templateUrl: './warning-modal.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
+  styleUrls: [
+    './warning-modal.component.scss',
+    '../../../../ui/modal/style/open-modal.component.scss'
+  ]
+})
+export class WarningModalComponent extends BaseModal {
+  message: string;
+  listTitle: string;
+  catalogs: [];
+
+  constructor(
+    private modalRef: OpenModalRef,
+    private modalCfg: OpenModalConfig
+  ) {
+    super();
+    this.message = this.modalCfg.data.message;
+    this.listTitle = this.modalCfg.data.listTitle;
+    this.catalogs = this.modalCfg.data.catalogs;
+  }
+
+  protected override onClose() {
+    super.onClose();
+    this.modalRef.close();
+  }
+}

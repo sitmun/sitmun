@@ -1,0 +1,92 @@
+<mat-card [class.embedded]="!showTitle && !showCloseButton">
+  @if (showTitle || showCloseButton) {
+    <mat-card-header>
+      @if (showTitle) {
+        <mat-card-title>
+          {{ title }}
+        </mat-card-title>
+      }
+      @if (showCloseButton) {
+        <button
+          mat-icon-button
+          class="card-close-button"
+          [attr.aria-label]="'common.button.close' | translate"
+          (click)="onClose()">
+          <mat-icon>close</mat-icon>
+        </button>
+      }
+    </mat-card-header>
+  }
+
+  <mat-card-content>
+    @if (showSearch) {
+      <mat-form-field class="search-field" appearance="outline">
+        <mat-icon matPrefix>search</mat-icon>
+        <input
+          matInput
+          [placeholder]="searchPlaceholder"
+          [ngModel]="searchValue"
+          (ngModelChange)="onSearchChange($event)"
+          autocomplete="off" />
+        @if (searchValue) {
+          <button matSuffix mat-icon-button (click)="clearSearch()">
+            <mat-icon>clear</mat-icon>
+          </button>
+        }
+        @if (selectedId && filterHint) {
+          <mat-hint class="filter-hint">
+            {{ filterHint | translate }}
+          </mat-hint>
+        }
+      </mat-form-field>
+    }
+
+    <mat-list>
+      @for (group of items; track group) {
+        @if (group.group) {
+          <div class="group-header">{{ group.group }}</div>
+        }
+        @for (item of group.items; track trackByItemId($index, item)) {
+          <mat-list-item
+            [id]="'item-' + item.id"
+            [class.selected]="isItemSelected(item.id)"
+            [class.unavailable]="isUnavailable(item.id)"
+            [attr.aria-disabled]="isUnavailable(item.id)"
+            (click)="onItemClick(item)"
+            [style.cursor]="isUnavailable(item.id) ? 'not-allowed' : 'pointer'">
+            @if (selectedId) {
+              <mat-icon
+                matListItemIcon
+                [style.visibility]="
+                  isItemSelected(item.id) ? 'visible' : 'hidden'
+                ">
+                check_circle
+              </mat-icon>
+            }
+            <span
+              matListItemTitle
+              [class.disabled-text]="isUnavailable(item.id)">
+              {{ getItemName(item) }}
+            </span>
+            @if (hasLogo(item)) {
+              <img
+                matListItemMeta
+                [ngSrc]="item[logoProperty]"
+                width="40"
+                height="40"
+                [alt]="getItemName(item)"
+                [class.disabled-image]="isUnavailable(item.id)" />
+            }
+            @if (!hasLogo(item)) {
+              <mat-icon
+                matListItemMeta
+                [class.disabled-icon]="isUnavailable(item.id)">
+                {{ defaultIcon }}
+              </mat-icon>
+            }
+          </mat-list-item>
+        }
+      }
+    </mat-list>
+  </mat-card-content>
+</mat-card>

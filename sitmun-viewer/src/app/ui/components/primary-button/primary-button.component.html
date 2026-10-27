@@ -1,0 +1,9 @@
+<button class="primary-button">
+  @if (img_src && !mat_icon) {
+    <img [ngSrc]="img_src" [alt]="button_text" width="20" height="20" />
+  }
+  @if (mat_icon) {
+    <mat-icon>{{ mat_icon }}</mat-icon>
+  }
+  {{ button_text }}
+</button>

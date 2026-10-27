@@ -1,0 +1,182 @@
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { TestBed } from '@angular/core/testing';
+
+import type { AppCfg, AppTasks } from '@api/model/app-cfg';
+
+import { DownloadControlHandler } from './download-control.handler';
+import { AppConfigService } from '../../services/app-config.service';
+import { SitnaApiService } from '../../services/sitna-api.service';
+import { UIStateService } from '../../services/ui-state.service';
+
+describe('DownloadControlHandler', () => {
+  let handler: DownloadControlHandler;
+  let mockSitnaApi: jest.Mocked<SitnaApiService>;
+  let mockUIStateService: jest.Mocked<UIStateService>;
+  let mockAppConfigService: jest.Mocked<AppConfigService>;
+  let mockAppCfg: AppCfg;
+
+  beforeEach(() => {
+    mockSitnaApi = {
+      getTC: jest.fn(),
+      getSITNA: jest.fn().mockReturnValue({} as any),
+      getTCProperty: jest.fn(),
+      isReady: jest.fn().mockReturnValue(true)
+    } as Partial<jest.Mocked<SitnaApiService>> as jest.Mocked<SitnaApiService>;
+
+    mockUIStateService = {
+      enableToolsButton: jest.fn()
+    } as Partial<jest.Mocked<UIStateService>> as jest.Mocked<UIStateService>;
+
+    mockAppConfigService = {
+      getControlDefault: jest.fn()
+    } as Partial<
+      jest.Mocked<AppConfigService>
+    > as jest.Mocked<AppConfigService>;
+    mockAppConfigService.getControlDefault.mockReturnValue({
+      div: 'tc-slot-download'
+    });
+
+    TestBed.configureTestingModule({
+            providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        DownloadControlHandler,
+        { provide: SitnaApiService, useValue: mockSitnaApi },
+        { provide: UIStateService, useValue: mockUIStateService },
+        { provide: AppConfigService, useValue: mockAppConfigService }
+      ]
+    });
+
+    handler = TestBed.inject(DownloadControlHandler);
+
+    mockAppCfg = {
+      application: {
+        id: 1,
+        title: 'Test App',
+        type: 'test',
+        theme: 'default',
+        srs: 'EPSG:25831',
+        initialExtent: [0, 0, 100, 100]
+      },
+      backgrounds: [],
+      groups: [],
+      layers: [],
+      services: [],
+      tasks: [],
+      trees: []
+    };
+  });
+
+  it('should be created', () => {
+    expect(handler).toBeTruthy();
+  });
+
+  describe('controlIdentifier', () => {
+    it('should have correct control identifier', () => {
+      expect(handler.controlIdentifier).toBe('sitna.download');
+    });
+  });
+
+  describe('requiredPatches', () => {
+    it('should have no required patches', () => {
+      expect(handler.requiredPatches).toBeUndefined();
+    });
+  });
+
+  describe('buildConfiguration()', () => {
+    it('should return configuration with default div', () => {
+      const task: AppTasks = {
+        'ui-control': 'sitna.download',
+        parameters: {}
+      } as any;
+      const context: AppCfg = {} as any;
+
+      const config = handler.buildConfiguration(task, context);
+
+      expect(config).toEqual({ div: 'tc-slot-download' });
+      expect(mockUIStateService.enableToolsButton).toHaveBeenCalled();
+    });
+
+    it('should merge task parameters', () => {
+      const task: AppTasks = {
+        'ui-control': 'sitna.download',
+        parameters: {
+          deselectableTab: true,
+          customOption: 'value'
+        }
+      } as any;
+      const context: AppCfg = {} as any;
+
+      const config = handler.buildConfiguration(task, context);
+
+      expect(config).toEqual({
+        div: 'tc-slot-download',
+        deselectableTab: true,
+        customOption: 'value'
+      });
+      expect(mockUIStateService.enableToolsButton).toHaveBeenCalled();
+    });
+
+    it('should allow parameters to override div', () => {
+      const task: AppTasks = {
+        'ui-control': 'sitna.download',
+        parameters: {
+          div: 'custom-download-div'
+        }
+      } as any;
+      const context: AppCfg = {} as any;
+
+      const config = handler.buildConfiguration(task, context);
+
+      expect(config?.div).toBe('custom-download-div');
+      expect(mockUIStateService.enableToolsButton).toHaveBeenCalled();
+    });
+
+    it('should always enable tools button', () => {
+      const task: AppTasks = {
+        'ui-control': 'sitna.download',
+        parameters: {}
+      } as any;
+      const context: AppCfg = {} as any;
+
+      handler.buildConfiguration(task, context);
+
+      expect(mockUIStateService.enableToolsButton).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('loadPatches()', () => {
+    it('should resolve successfully with context', async () => {
+      await expect(handler.loadPatches(mockAppCfg)).resolves.toBeUndefined();
+    });
+
+    it('should resolve immediately', async () => {
+      const start = Date.now();
+      await handler.loadPatches(mockAppCfg);
+      const duration = Date.now() - start;
+
+      expect(duration).toBeLessThan(10); // Should be instant
+    });
+  });
+
+  describe('Integration', () => {
+    it('should handle full lifecycle', async () => {
+      // Load patches (no-op for native control)
+      await handler.loadPatches(mockAppCfg);
+
+      // Build config
+      const task: AppTasks = {
+        'ui-control': 'sitna.download',
+        parameters: { deselectableTab: true }
+      } as any;
+      const context: AppCfg = {} as any;
+
+      const config = handler.buildConfiguration(task, context);
+      expect(config).toBeDefined();
+      expect(config?.div).toBe('tc-slot-download');
+      expect(config?.['deselectableTab']).toBe(true);
+      expect(mockUIStateService.enableToolsButton).toHaveBeenCalled();
+    });
+  });
+});
