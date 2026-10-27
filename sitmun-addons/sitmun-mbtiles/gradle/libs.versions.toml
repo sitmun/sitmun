@@ -10,7 +10,7 @@ axion-release = "1.19.0"
 
 # Dependency versions
 h2 = "2.2.224"
-jetbrains-annotations = "24.1.0"
+jetbrains-annotations = "26.1.0"
 mbtiles4j = "1.2.0"
 proj4j = "1.1.5"
 dom4j = "2.1.4"
