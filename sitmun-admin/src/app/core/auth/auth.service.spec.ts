@@ -1,0 +1,95 @@
+import { provideHttpClient } from '@angular/common/http';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+import { TestBed, inject } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
+
+import { AuthService } from './auth.service';
+import { LoginService } from './login.service';
+import { Principal } from './principal.service';
+import { ExternalConfigurationService } from '../config/external-configuration.service';
+import { ExternalService , HalModule , ResourceService } from '../hal';
+
+describe('AuthService', () => {
+  let httpMock: HttpTestingController;
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      imports: [
+        HalModule
+      ],
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        provideRouter([]),
+        AuthService,
+        LoginService,
+        Principal,
+        ResourceService,
+        ExternalService,
+        { provide: 'ExternalConfigurationService', useClass: ExternalConfigurationService }
+      ]
+    });
+
+    httpMock = TestBed.inject(HttpTestingController);
+  });
+
+  afterEach(() => {
+    httpMock.verify();
+  });
+
+  
+
+  it('should POST to authenticate/admin on login', inject([AuthService], (service: AuthService) => {
+    let completed = false;
+
+    service.login({ username: 'admin', password: 'admin' }).subscribe({
+      next: (ok) => {
+        expect(ok).toBe(true);
+        completed = true;
+      },
+    });
+
+    const req = httpMock.expectOne((request) => request.url.endsWith('/authenticate/admin'));
+    expect(req.request.method).toBe('POST');
+    expect(req.request.withCredentials).toBe(true);
+    req.flush(null, { status: 200, statusText: 'OK' });
+
+    expect(completed).toBe(true);
+  }));
+
+  it('should POST logout to authenticate/logout with credentials', inject([AuthService], (service: AuthService) => {
+    let completed = false;
+
+    service.logout().subscribe({
+      next: (response) => {
+        expect(response.status).toBe(200);
+        completed = true;
+      },
+    });
+
+    const req = httpMock.expectOne((request) => request.url.endsWith('/authenticate/logout'));
+    expect(req.request.method).toBe('POST');
+    expect(req.request.withCredentials).toBe(true);
+    req.flush(null, { status: 200, statusText: 'OK' });
+
+    expect(completed).toBe(true);
+  }));
+
+  it('should POST refresh to authenticate/refresh with credentials', inject([AuthService], (service: AuthService) => {
+    let completed = false;
+
+    service.refresh().subscribe({
+      next: (response) => {
+        expect(response.status).toBe(200);
+        completed = true;
+      },
+    });
+
+    const req = httpMock.expectOne((request) => request.url.endsWith('/authenticate/refresh'));
+    expect(req.request.method).toBe('POST');
+    expect(req.request.withCredentials).toBe(true);
+    req.flush(null, { status: 200, statusText: 'OK' });
+
+    expect(completed).toBe(true);
+  }));
+});

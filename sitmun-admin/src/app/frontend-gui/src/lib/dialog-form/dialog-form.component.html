@@ -1,0 +1,26 @@
+<h5 mat-dialog-title>{{ title | translate }}</h5>
+<mat-dialog-content class="mat-typography">
+  <mat-card appearance="outlined">
+    <mat-card-content>
+      <ng-container *ngTemplateOutlet="HTMLReceived">
+      </ng-container>
+    </mat-card-content>
+  </mat-card>
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button
+    matTooltip="{{ 'common.button.return' | translate }}"
+    mat-dialog-close
+    mat-mini-fab
+    color="primary"
+    (click)="closeDialog()">
+    <mat-icon fontSet="material-icons-round">arrow_back</mat-icon>
+  </button>
+  <button
+    matTooltip="{{ 'common.button.add' | translate }}"
+    mat-mini-fab class="add-half-gap"
+    color="primary"
+    (click)="doAdd()">
+    <mat-icon fontSet="material-icons-round">add_circle_outline</mat-icon>
+  </button>
+</mat-dialog-actions>

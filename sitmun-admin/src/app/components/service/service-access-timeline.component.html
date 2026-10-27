@@ -1,0 +1,19 @@
+<span class="service-access-trend" role="img">
+  @for (hour of slots; track trackHour($index); let i = $index) {
+    <i
+      class="service-access-hour"
+      [style.background-color]="color(hour)"
+      [attr.title]="title(i)"
+    [attr.aria-label]="title(i)"></i>
+  }
+</span>
+<div class="service-access-ticks">
+  @for (label of tickLabels; track $index) {
+    <span class="service-access-tick">{{ label }}</span>
+  }
+</div>
+<div class="service-access-legend">
+  <span><i class="service-access-legend-swatch" style="background-color: #2e7d32"></i>{{ 'entity.service.access.legend.ok' | translate }}</span>
+  <span><i class="service-access-legend-swatch" style="background-color: #c62828"></i>{{ 'entity.service.access.legend.down' | translate }}</span>
+  <span><i class="service-access-legend-swatch" style="background-color: #c4c4c4"></i>{{ 'entity.service.access.legend.none' | translate }}</span>
+</div>

@@ -1,0 +1,31 @@
+/* To learn more about this file see: https://angular.io/config/tsconfig. */
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "outDir": "./out-tsc/spec",
+    "types": [
+      "jest",
+      "node"
+    ],
+    "esModuleInterop": true,
+    "emitDecoratorMetadata": true,
+    "paths": {
+      "@app/*": ["src/app/*"],
+      "@app/domain": ["src/app/domain"],
+      "@app/domain/*": ["src/app/domain/*"],
+      "@config": ["src/config.ts"],
+      "@environments/*": ["src/environments/*"]
+    }
+  },
+  "files": [
+    "src/polyfills.ts"
+  ],
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.spec.ts",
+    "src/**/*.d.ts",
+    "jest/**/*.ts",
+    "jest.config.ts",
+    "jest.coverage.config.ts"
+  ]
+}

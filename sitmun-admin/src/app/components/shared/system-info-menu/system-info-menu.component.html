@@ -1,0 +1,117 @@
+<div class="toolbar-control">
+  <button
+    mat-button
+    [matMenuTriggerFor]="systemMenu"
+    class="toolbar-button"
+    [matTooltip]="'systemInfo.title' | translate"
+    [attr.aria-label]="'systemInfo.title' | translate"
+    [attr.aria-expanded]="false">
+    <mat-icon class="toolbar-icon">more_vert</mat-icon>
+  </button>
+
+  <mat-menu #systemMenu="matMenu" class="system-info-menu" (opened)="onMenuOpened()">
+    <!-- About -->
+    <button mat-menu-item (click)="openAboutDialog()">
+      <mat-icon>info</mat-icon>
+      <span>{{ 'systemInfo.about' | translate }}</span>
+    </button>
+
+    <mat-divider></mat-divider>
+
+    <!-- Non-production features: Log Level, Recent Errors -->
+    @if (!environment.production) {
+      <!-- Log Level -->
+      <button mat-menu-item [matMenuTriggerFor]="logLevelMenu">
+        <mat-icon>{{ getIconForLevel(currentLogLevel()) }}</mat-icon>
+        <span>{{ 'systemInfo.logLevel' | translate }}: {{ getLogLevelName(currentLogLevel()) }}</span>
+      </button>
+      <mat-menu #logLevelMenu="matMenu">
+        @for (level of logLevels; track level) {
+          <button mat-menu-item (click)="onLogLevelChange(level.value)">
+            <mat-icon>{{ getIconForLevel(level.value) }}</mat-icon>
+            <span>{{ level.name }}</span>
+            @if (level.value === currentLogLevel()) {
+              <mat-icon class="check-icon">check</mat-icon>
+            }
+          </button>
+        }
+      </mat-menu>
+      <!-- Recent Errors -->
+      <button mat-menu-item (click)="openErrorSidebar()">
+        <mat-icon>bug_report</mat-icon>
+        <span>{{ 'systemInfo.recentErrors' | translate }}</span>
+        @if ((unreviewedErrorCount() ?? 0) > 0) {
+          <span class="badge">{{ unreviewedErrorCount() }}</span>
+        }
+      </button>
+      <!-- Missing Translations -->
+      <button mat-menu-item (click)="openMissingTranslationsSidebar()">
+        <mat-icon>translate</mat-icon>
+        <span>{{ 'systemInfo.missingTranslations' | translate }}</span>
+        @if ((missingTranslationCount() ?? 0) > 0) {
+          <span class="badge">{{ missingTranslationCount() }}</span>
+        }
+      </button>
+      <!-- Debug: trigger test error -->
+      @if (shouldShowDebugFeatures()) {
+        <button mat-menu-item (click)="triggerTestError()">
+          <mat-icon>bug_report</mat-icon>
+          <span>{{ 'systemInfo.triggerTestError' | translate }}</span>
+        </button>
+      }
+      <!-- Feature Flags -->
+      @if (getCategories().length > 0) {
+        <button mat-menu-item [matMenuTriggerFor]="featureFlagsMenu">
+          <mat-icon>science</mat-icon>
+          <span>{{ 'systemInfo.featureFlags' | translate }}</span>
+        </button>
+      }
+      <mat-menu #featureFlagsMenu="matMenu" class="feature-flags-menu">
+        <!-- Dynamic category buttons -->
+        @for (category of getCategories(); track category) {
+          <button mat-menu-item
+            [matMenuTriggerFor]="categorySubmenu"
+            (mouseenter)="setCurrentCategory(category)"
+            (click)="setCurrentCategory(category)">
+            <span style="flex: 1;">{{ getCategoryName(category) }}</span>
+            <mat-icon class="submenu-icon">chevron_right</mat-icon>
+          </button>
+        }
+        <mat-divider></mat-divider>
+        <button mat-menu-item (click)="resetFeatureFlags()">
+          <mat-icon>refresh</mat-icon>
+          <span>{{ 'systemInfo.featureFlags.reset' | translate }}</span>
+        </button>
+      </mat-menu>
+      <!-- Single reusable category submenu -->
+      <mat-menu #categorySubmenu="matMenu" class="feature-flags-category-menu">
+        @for (flag of getFeaturesByCategory(currentCategory); track trackByFeatureKey($index, flag)) {
+          <button mat-menu-item
+            (click)="toggleFeatureFlag(flag.key, $event)"
+            class="feature-flag-item">
+            <mat-icon class="check-icon-left" [class.invisible]="!isFeatureEnabled(flag.key)">check</mat-icon>
+            <div class="feature-flag-content">
+              <span class="feature-flag-name">{{ flag.config.description | translate }}</span>
+            </div>
+          </button>
+        }
+      </mat-menu>
+      <mat-divider></mat-divider>
+    }
+
+    <!-- User Section -->
+    @if (currentUser()) {
+      <button mat-menu-item disabled class="user-info-item">
+        <mat-icon>person</mat-icon>
+        <span>{{ getUserFullName() }}</span>
+      </button>
+    }
+
+    <!-- Logout -->
+    <button mat-menu-item (click)="logout()">
+      <mat-icon>exit_to_app</mat-icon>
+      <span>{{ 'entity.login.closeSession' | translate }}</span>
+    </button>
+  </mat-menu>
+</div>
+

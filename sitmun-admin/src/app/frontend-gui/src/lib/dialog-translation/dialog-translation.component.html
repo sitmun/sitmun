@@ -1,0 +1,80 @@
+<h2 mat-dialog-title>{{ 'common.dialog.translation.title' | translate }}</h2>
+
+<form [formGroup]='translationForm' (ngSubmit)="doAccept()">
+  <mat-dialog-content>
+    <!-- Default Language (Read-only Reference) -->
+    @if (defaultLanguageValue) {
+      <mat-form-field appearance="outline" class="full">
+        <mat-label>{{ getDefaultLanguageName() }}</mat-label>
+        @if (useTextarea) {
+          <textarea
+            matInput
+            [value]="defaultLanguageValue"
+            readonly
+            cdkTextareaAutosize
+            cdkAutosizeMinRows="3"
+            cdkAutosizeMaxRows="10"
+            rows="3">
+          </textarea>
+        }
+        @if (!useTextarea) {
+          <input
+            matInput
+            type="text"
+            [value]="defaultLanguageValue"
+            readonly>
+        }
+        <mat-hint>{{ 'common.dialog.translation.sourceValueHint' | translate }}</mat-hint>
+      </mat-form-field>
+    }
+
+    <!-- Translation Fields (Editable) -->
+    @for (lang of availableLanguages; track lang) {
+      <mat-form-field appearance="outline" class="full">
+        <mat-label>{{ languageLabel(lang.shortname) }}</mat-label>
+        @if (useTextarea) {
+          <textarea
+            matInput
+            [formControlName]="getFormControlName(lang.shortname)"
+            [maxlength]="maxLength"
+            cdkTextareaAutosize
+            cdkAutosizeMinRows="3"
+            cdkAutosizeMaxRows="10"
+            rows="3">
+          </textarea>
+        }
+        @if (!useTextarea) {
+          <input
+            matInput
+            type="text"
+            [formControlName]="getFormControlName(lang.shortname)"
+            [maxlength]="maxLength">
+        }
+        <mat-hint align="end">{{ getFormControl(lang.shortname) | characterCount:maxLength }}</mat-hint>
+      </mat-form-field>
+    }
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button
+      matTooltip="{{ 'common.button.cancel' | translate }}"
+      mat-dialog-close
+      mat-mini-fab
+      color="primary"
+      type="button"
+      (click)="closeDialog()"
+      cdkFocusInitial>
+      <mat-icon fontSet="material-icons-round">cancel</mat-icon>
+    </button>
+    <button
+      matTooltip="{{ 'common.button.accept' | translate }}"
+      mat-mini-fab
+      color="primary"
+      class="add-half-gap"
+      type="submit"
+      [disabled]="!canAccept"
+      (click)="doAccept()">
+      <mat-icon fontSet="material-icons-round">check</mat-icon>
+    </button>
+  </mat-dialog-actions>
+</form>

@@ -1,0 +1,1091 @@
+import {Location} from '@angular/common';
+import {Component, Injectable, Injector, NgZone, ChangeDetectionStrategy} from '@angular/core';
+import {MatDialog} from '@angular/material/dialog';
+
+import {ICellRendererAngularComp} from '@ag-grid-community/angular';
+import {
+  ColDefField,
+  EditableCallback,
+  ValueGetterFunc,
+  ValueGetterParams,
+  ValueSetterFunc,
+  ValueSetterParams
+} from "@ag-grid-community/core";
+import {TranslateService} from '@ngx-translate/core';
+import {firstValueFrom, Subject} from 'rxjs';
+import {map} from 'rxjs/operators';
+
+import {HalOptions, HalParam} from '@app/core/hal/rest/rest.service';
+import {CodeList, CodeListService, Language, LanguageService, Translation, TranslationService} from '@app/domain';
+import {BtnCheckboxFilterComponent} from '@app/frontend-gui/src/lib/btn-checkbox-filter/btn-checkbox-filter.component';
+import {DialogMessageComponent, DialogTranslationComponent} from '@app/frontend-gui/src/lib/public_api';
+import {LoggerService} from '@app/services/logger.service';
+import {filterEnabledLanguages} from '@app/services/ui-language.resolver';
+import {config} from '@config';
+
+
+/**
+ * A utility service that provides common functionality across the application.
+ * This service includes methods for:
+ * - Loading state management
+ * - Navigation
+ * - Data formatting and manipulation
+ * - Dialog management
+ * - Grid column definitions
+ * - Translation management
+ */
+@Injectable({
+  providedIn: 'root',
+})
+export class UtilsService {
+  [x: string]: any;
+
+  private subjectLoading = new Subject<boolean>();
+
+  private translationService: TranslationService;
+
+  private codeListService: CodeListService;
+
+  private languageService: LanguageService;
+
+  constructor(
+    private readonly translate: TranslateService,
+    public dialog: MatDialog,
+    private readonly location: Location,
+    private readonly injector: Injector,
+    private loggerService: LoggerService,
+    private ngZone: NgZone
+  ) {
+    // Lazy load services to break circular dependency
+    // Use requestAnimationFrame to avoid setTimeout violations
+    this.ngZone.runOutsideAngular(() => {
+      requestAnimationFrame(() => {
+        this.ngZone.run(() => {
+          try {
+            this.translationService = this.injector.get(TranslationService);
+            this.codeListService = this.injector.get(CodeListService);
+            this.languageService = this.injector.get(LanguageService);
+          } catch {
+            // Injector may be destroyed (e.g. in tests after fixture destroy)
+          }
+        });
+      });
+    });
+  }
+
+  /**
+   * Translates a given message key using the translation service.
+   * @param msg - The message key to translate.
+   * @returns The translated string.
+   */
+  getTranslate(msg: string | string[]) {
+    return this.translate.instant(msg);
+  }
+
+  /**
+   * Enables the loading state of the application.
+   * Notifies subscribers that loading has started.
+   */
+  enableLoading() {
+    this.subjectLoading.next(true);
+  }
+
+  /**
+   * Disables the loading state of the application.
+   * Notifies subscribers that loading has finished.
+   */
+  disableLoading() {
+    this.subjectLoading.next(false);
+  }
+
+  /**
+   * Gets the loading state as an Observable.
+   * @returns An Observable that emits boolean values indicating loading state.
+   */
+  getLoadingAsObservable() {
+    return this.subjectLoading.asObservable();
+  }
+
+  /**
+   * Triggers the browser's print functionality.
+   */
+  print() {
+    window.print();
+  }
+
+  /**
+   * Navigates back to the previous page in the browser history.
+   */
+  navigateBack() {
+    this.location.back();
+  }
+
+  /**
+   * Retrieves code list values from the server.
+   * @param valueList - The name of the code list to retrieve.
+   * @param notTraduction - Optional flag to indicate if translation is not needed.
+   * @returns An Observable of the code list values.
+   */
+  getCodeListValues(valueList, notTraduction?) {
+    if (!this.codeListService) {
+      this.codeListService = this.injector.get(CodeListService);
+    }
+    const params2: HalParam[] = [];
+    let codelistLangValue = config.defaultLang;
+    if (localStorage.lang) {
+      codelistLangValue = localStorage.lang;
+    }
+    const param: HalParam = {key: 'codeListName', value: valueList};
+    params2.push(param);
+    if (!notTraduction) {
+      const param2: HalParam = {key: 'lang', value: codelistLangValue};
+      params2.push(param2);
+    }
+    const query: HalOptions = {params: params2};
+
+    return this.codeListService.fetchAllItems(query);
+  }
+
+  /**
+   * Formats a date object to a localized string.
+   * @param data - The date object to format.
+   * @returns A formatted date string or empty string if no date provided.
+   */
+  getDateFormated(data) {
+    return data.value ? new Date(data.value).toLocaleDateString() : '';
+  }
+
+  /**
+   * Gets date filter parameters for AG Grid date columns.
+   * @returns Object containing date filter configuration.
+   */
+  getDateFilterParams(options?: { minValidYear?: number | null }) {
+    const minValidYear =
+      options && 'minValidYear' in options ? options.minValidYear : 2000;
+    return {
+      comparator: function (filterLocalDateAtMidnight, cellValue) {
+        if (cellValue == null) {
+          return -1;
+        }
+        const cellDate = new Date(cellValue);
+        if (
+          filterLocalDateAtMidnight.getFullYear() === cellDate.getFullYear() &&
+          filterLocalDateAtMidnight.getMonth() === cellDate.getMonth() &&
+          filterLocalDateAtMidnight.getDate() === cellDate.getDate()
+        ) {
+          return 0;
+        }
+        if (cellDate < filterLocalDateAtMidnight) {
+          return -1;
+        }
+        if (cellDate > filterLocalDateAtMidnight) {
+          return 1;
+        }
+        return 0;
+      },
+      browserDatePicker: true,
+      ...(minValidYear == null ? {} : { minValidYear }),
+    };
+  }
+
+  /**
+   * Shows a dialog with a tree structure error message.
+   */
+  showTreeStructureError() {
+    const dialogRef = this.dialog.open(DialogMessageComponent);
+    dialogRef.componentInstance.title = this.getTranslate('common.atention');
+    dialogRef.componentInstance.message = this.getTranslate('entity.tree.treeStructureMessage');
+    dialogRef.componentInstance.hideCancelButton = true;
+    dialogRef.afterClosed().subscribe();
+  }
+
+  /**
+   * Shows a dialog with a required fields error message.
+   */
+  showRequiredFieldsError() {
+    const dialogRef = this.dialog.open(DialogMessageComponent);
+    dialogRef.componentInstance.title = this.getTranslate('common.atention');
+    dialogRef.componentInstance.message = this.getTranslate('common.requiredFieldMessage');
+    dialogRef.componentInstance.hideCancelButton = true;
+    dialogRef.afterClosed().subscribe();
+  }
+
+  /**
+   * Shows a dialog with a node type constraint error message.
+   */
+  showNodeTypeConstraintError() {
+    const dialogRef = this.dialog.open(DialogMessageComponent);
+    dialogRef.componentInstance.title = this.getTranslate('common.atention');
+    dialogRef.componentInstance.message = this.getTranslate('backend.error.tree-type-node-constraint');
+    dialogRef.componentInstance.hideCancelButton = true;
+    dialogRef.afterClosed().subscribe();
+  }
+
+  /**
+   * Shows a dialog with a turistic app tree error message.
+   */
+  showTuristicAppTreeError() {
+    const dialogRef = this.dialog.open(DialogMessageComponent);
+    dialogRef.componentInstance.title = this.getTranslate('common.atention');
+    dialogRef.componentInstance.message = this.getTranslate('entity.tree.turisticAppTreeMessage');
+    dialogRef.componentInstance.hideCancelButton = true;
+    dialogRef.afterClosed().subscribe();
+  }
+
+  /**
+   * Shows a dialog with a no turistic app tree error message.
+   */
+  showNoTuristicAppTreeError() {
+    const dialogRef = this.dialog.open(DialogMessageComponent);
+    dialogRef.componentInstance.title = this.getTranslate('common.atention');
+    dialogRef.componentInstance.message = this.getTranslate('entity.tree.noTuristicAppTreeMessage');
+    dialogRef.componentInstance.hideCancelButton = true;
+    dialogRef.afterClosed().subscribe();
+  }
+
+  /**
+   * Shows a dialog with a turistic tree app error message.
+   */
+  showTuristicTreeAppError() {
+    const dialogRef = this.dialog.open(DialogMessageComponent);
+    dialogRef.componentInstance.title = this.getTranslate('common.atention');
+    dialogRef.componentInstance.message = this.getTranslate('entity.tree.turisticTreeAppMessage');
+    dialogRef.componentInstance.hideCancelButton = true;
+    dialogRef.afterClosed().subscribe();
+  }
+
+  /**
+   * Shows a dialog with a no turistic tree app error message.
+   */
+  showNoTuristicTreeAppError() {
+    const dialogRef = this.dialog.open(DialogMessageComponent);
+    dialogRef.componentInstance.title = this.getTranslate('common.atention');
+    dialogRef.componentInstance.message = this.getTranslate('entity.tree.noTuristicTreeAppMessage');
+    dialogRef.componentInstance.hideCancelButton = true;
+    dialogRef.afterClosed().subscribe();
+  }
+
+
+  /**
+   * Gets the column definition for a checkbox selection column in AG Grid.
+   * @returns Column definition object for checkbox selection.
+   */
+  getSelCheckboxColumnDef() {
+    return {
+      headerName: '',
+      headerCheckboxSelection: true,
+      headerCheckboxSelectionFilteredOnly: true,
+      checkboxSelection: true,
+      filter: false,
+      floatingFilter: false,
+      editable: false,
+      headerClass: 'sitmun-selection-header',
+      cellClass: 'sitmun-centered-cell',
+      cellStyle: {padding: '0', display: 'flex', alignItems: 'center', justifyContent: 'center'},
+      lockPosition: true,
+      suppressMovable: true,
+      resizable: false,
+      width: 56,
+      minWidth: 56,
+      maxWidth: 56,
+      flex: 0,
+    };
+  }
+
+  /**
+   * Gets a row-only checkbox selection column for AG Grid row models
+   * that do not support header checkbox selection.
+   * @returns Column definition object for row checkbox selection.
+   */
+  getRowCheckboxColumnDef() {
+    return {
+      headerName: '',
+      field: '__loadingSelection',
+      valueGetter: () => '',
+      checkboxSelection: (params) => !!params.data,
+      headerClass: 'sitmun-selection-header',
+      cellClass: (params) => params.data ? 'sitmun-centered-cell' : 'sitmun-centered-cell sitmun-loading-checkbox-cell',
+      filter: false,
+      floatingFilter: false,
+      editable: false,
+      lockPosition: true,
+      suppressMovable: true,
+      resizable: false,
+      width: 56,
+      maxWidth: 56,
+      flex: 0,
+    };
+  }
+
+  /**
+   * Gets a value parser for array values in AG Grid.
+   * @returns Value parser configuration object.
+   */
+  getArrayValueParser() {
+    return {
+      valueParser: (params) => {
+        if (params.newValue === '') {
+          return [];
+        } else {
+          return Array.isArray(params.newValue)
+            ? params.newValue
+            : params.newValue.split(',');
+        }
+      },
+    };
+  }
+
+  /**
+   * Gets the column definition for an edit button column in AG Grid.
+   * @returns Column definition object for edit button.
+   */
+  getEditBtnColumnDef() {
+    return {
+      headerName: '',
+      field: 'id',
+      editable: false,
+      sortable: false,
+      filter: false,
+      floatingFilter: false,
+      lockPosition: true,
+      suppressMovable: true,
+      cellRenderer: 'btnEditRendererComponent',
+      maxWidth: 90,
+      minWidth: 90,
+    };
+  }
+
+  /**
+   * Gets the column definition for an ID column in AG Grid.
+   * @param customId - Optional custom ID field name.
+   * @returns Column definition object for ID column.
+   */
+  getIdColumnDef(customId?) {
+    return {
+      headerName: 'Id',
+      field: customId ?? 'id',
+      editable: false,
+      cellClass: 'read-only-cell',
+      lockPosition: true,
+      maxWidth: 90,
+      minWidth: 90,
+    };
+  }
+
+  /**
+   * Gets the column definition for a status column in AG Grid.
+   * @returns Column definition object for status column.
+   */
+  getStatusColumnDef(statusLabelKey?: (status: string) => string) {
+    const statusHeader = this.getTranslate('common.form.status');
+    const statusColors = {
+      pendingModify: '#ff9300',
+      pendingCreation: '#ff9300',
+      pendingRegistration: '#ff9300',
+      unregisteredLayer: '#ffe100',
+      pendingDelete: '#bf0000',
+      notAvailable: '#bf0000',
+    };
+    return {
+      maxWidth: 60,
+      minWidth: 60,
+      headerName: '',
+      headerTooltip: statusHeader,
+      field: 'status',
+      filter: false,
+      editable: false,
+      cellStyle: {display: 'flex', alignItems: 'center', justifyContent: 'center'},
+      cellRenderer: (params) => {
+        const key = params.value ?? 'statusOK';
+        if (key === 'statusOK') {
+          return '';
+        }
+        const span = document.createElement('span');
+        span.className = 'sitmun-status-dot';
+        const labelKey = statusLabelKey ? statusLabelKey(key) : 'common.status.' + key;
+        span.title = this.getTranslate(labelKey);
+        span.setAttribute('aria-label', span.title);
+        span.style.backgroundColor = statusColors[key] ?? statusColors.pendingModify;
+        return span;
+      },
+    };
+  }
+
+  /**
+   * Gets the column definition for a date column in AG Grid.
+   * @param alias - Translation key for column header.
+   * @param field - Field name in data object.
+   * @param editable - Optional flag to make column editable.
+   * @returns Column definition object for date column.
+   */
+  getDateColumnDef(
+    alias,
+    field,
+    editable?: boolean,
+    options?: {
+      minValidYear?: number | null;
+      emptyValueKey?: string;
+      headerTooltipKey?: string;
+    }
+  ) {
+    return {
+      headerName: this.getTranslate(alias),
+      field: field,
+      filter: 'agDateColumnFilter',
+      filterParams: this.getDateFilterParams(options),
+      editable: editable ?? false,
+      // HAL Instant ISO strings are not AG Grid dateString (YYYY-MM-DD). Leaving
+      // cellDataType on lets DataTypeModule infer "text", then
+      // agDateStringCellEditor crashes: getDateParserFunction is not a function.
+      cellDataType: false,
+      emptyValueKey: options?.emptyValueKey,
+      headerTooltip: options?.headerTooltipKey
+        ? this.getTranslate(options.headerTooltipKey)
+        : undefined,
+      cellRenderer: (data) => {
+        if (!data.value && options?.emptyValueKey) {
+          return this.getTranslate(options.emptyValueKey);
+        }
+        return this.getDateFormated(data);
+      },
+      // Native datePicker parses Instant via Date(); agDateStringCellEditor does not.
+      cellEditor: 'datePicker',
+      cellClass: (editable ?? false) ? null : 'read-only-cell'
+    };
+  }
+
+  getNonEditableDateColumnDef(alias, field) {
+    return this.getDateColumnDef(alias, field, false)
+  }
+
+
+  /**
+   * Gets the column definition for a select column in AG Grid.
+   * @param alias - Translation key for column header.
+   * @param field - Field name in data object.
+   * @param editable - Flag to make column editable.
+   * @param elements - Array of selectable options.
+   * @param formattedList
+   * @param valuesKeyField
+   * @param valuesKeyField
+   * @param valuesField
+   * @param valuesField
+   * @returns Column definition object for select column.
+   */
+  getSelectColumnDef<TData, TValue>(
+    alias: string,
+    field: ColDefField,
+    editable: boolean | EditableCallback<TData, TValue>,
+    elements: () => TValue[],
+    formattedList?: () => TData[],
+    valuesKeyField?: string,
+    valuesField?: string,
+  ) {
+    let columnDef;
+    const cellEditorParamsProvider = (_params) => {
+      return {
+        values: elements()
+      }
+    }
+    if (formattedList) {
+      columnDef = this.getFormattedColumnDef(alias, formattedList, field, valuesKeyField, valuesField);
+      columnDef.filter = 'agTextColumnFilter';
+      columnDef.editable = editable;
+      columnDef.field = field;
+      columnDef.cellEditorParams = cellEditorParamsProvider;
+      columnDef.cellEditor = 'agSelectCellEditor';
+    } else {
+      columnDef = {
+        headerName: this.getTranslate(alias),
+        field: field,
+        filter: 'agTextColumnFilter',
+        editable: editable,
+        cellEditorParams: cellEditorParamsProvider,
+        cellEditor: 'agSelectCellEditor',
+      };
+    }
+    return columnDef;
+  }
+
+  /**
+   * Helper method to extract values from an object using property paths.
+   * @param data - The data object to extract values from.
+   * @param field - The field or property path (e.g., "properties.scope").
+   * @returns The extracted value or empty string if path does not exist.
+   */
+  private getValueFromPropertyPath(data: any, field: string): any {
+    if (!data) return '';
+
+    // Handle property paths (e.g., "properties.scope")
+    if (field.includes('.')) {
+      const paths = field.split('.');
+      let value = data;
+
+      for (const path of paths) {
+        if (value === null || value === undefined) return '';
+        value = value[path];
+      }
+
+      return value;
+    }
+
+    // Handle regular fields
+    return data[field];
+  }
+
+  /**
+   * Generates a column definition object for an editable column in a data grid.
+   *
+   * @param alias - The alias used to get the translated header name.
+   * @param field - The field name in the data object that this column represents.
+   * @param minWidth
+   * @param maxWidth
+   * @param minWidth
+   * @param maxWidth
+   * @returns An object representing the column definition.
+   */
+  getEditableColumnDef(alias, field, minWidth: number = null, maxWidth: number = null) {
+    const options = {
+      headerName: this.getTranslate(alias),
+      field: field,
+      editable: true,
+      valueGetter: (params) => {
+        const value = this.getValueFromPropertyPath(params.data, field);
+        return Array.isArray(value) ? value.join(',') : value;
+      },
+    };
+    if (minWidth) {
+      options['minWidth'] = minWidth;
+    }
+    if (maxWidth) {
+      options['maxWidth'] = maxWidth;
+      options['wrapText'] = true;
+      options['autoHeight'] = true;
+    }
+    return options
+  }
+
+  isUrl = (value: string): boolean => {
+    if (!value || typeof value !== 'string') return false;
+    try {
+      const url = new URL(value);
+      return url.protocol === 'http:' || url.protocol === 'https:';
+    } catch {
+      return false;
+    }
+  };
+
+
+  /**
+   * Generates a column definition object for an editable column that renders as an external URL.
+   * The link is clickable but the text can also be edited.
+   *
+   * @param alias - The alias used to get the translated header name.
+   * @param field - The field name in the data object that this column represents.
+   * @param minWidth - Optional minimum width for the column.
+   * @param maxWidth - Optional maximum width for the column.
+   * @returns An object representing the column definition.
+   */
+  getEditableColumnWithLinkDef(alias, field, minWidth: number = null, maxWidth: number = null) {
+
+    const options = {
+      headerName: this.getTranslate(alias),
+      field: field,
+      editable: true,
+      cellRenderer: 'externalUrlRenderer',
+      cellRendererParams: {
+        editable: true,
+      },
+      valueGetter: (params) => {
+        const value = this.getValueFromPropertyPath(params.data, field);
+        return Array.isArray(value) ? value.join(',') : value;
+      },
+    };
+    if (minWidth) {
+      options['minWidth'] = minWidth;
+    }
+    if (maxWidth) {
+      options['maxWidth'] = maxWidth;
+      options['wrapText'] = true;
+      options['autoHeight'] = true;
+    }
+    return options;
+  }
+
+  /**
+   * Generates a non-editable column definition with a code list for value formatting.
+   *
+   * @param alias - The alias used for translation of the header name.
+   * @param field - The field name for the column.
+   * @param codeList - The list of code-value pairs used to format the column values.
+   * @returns An object representing the column definition.
+   */
+  getNonEditableColumnWithCodeListDef(alias, field, codeList: any) {
+    const getDescription = (value: string) => {
+      let item: CodeList;
+      if (Array.isArray(codeList)) {
+        item = (codeList as CodeList[]).find((x) => x.value === value);
+      } else {
+        item = (codeList as () => CodeList[])().find((x) => x.value === value);
+      }
+      return item ? item.description : value;
+    };
+
+    return {
+      headerName: this.getTranslate(alias),
+      field: field,
+      editable: false,
+      valueFormatter: (params) => {
+        const fieldValue = this.getValueFromPropertyPath(params.data, field);
+        if (fieldValue == null) {
+          return '';
+        }
+        return getDescription(fieldValue);
+      },
+      cellClass: 'read-only-cell'
+    };
+  }
+
+  /**
+   * Generates a non-editable column definition with a code list for value formatting.
+   *
+   * @param alias - The alias used for translation of the header name.
+   * @param field - The field name for the column.
+   * @param descriptionProvider
+   * @returns An object representing the column definition.
+   */
+  getNonEditableColumnWithProviderDef(alias, field, descriptionProvider: (any) => string ) {
+    return {
+      headerName: this.getTranslate(alias),
+      field: field,
+      editable: false,
+      valueFormatter: (params) => {
+        this.loggerService.debug('getNonEditableColumnWithProviderDef', params.data, field);
+        const fieldValue = this.getValueFromPropertyPath(params.data, field);
+        if (fieldValue == null) {
+          return '';
+        }
+        return this.getTranslate(descriptionProvider(fieldValue));
+      },
+      cellClass: 'read-only-cell'
+    };
+  }
+
+
+  /**
+   * Generates a non-editable column definition.
+   *
+   * @param alias - The alias used for translation of the header name.
+   * @param field - The field name for the column, which can be a property path.
+   * @param minWidth
+   * @param maxWidth
+   * @param minWidth
+   * @param maxWidth
+   * @returns An object representing the column definition.
+   */
+  getNonEditableColumnDef(alias, field, minWidth: number = null, maxWidth: number = null) {
+    const options = {
+      headerName: this.getTranslate(alias),
+      field: field,
+      editable: false,
+      cellClass: 'read-only-cell',
+      valueGetter: (params) => {
+        const value = this.getValueFromPropertyPath(params.data, field);
+        return Array.isArray(value) ? value.join(',') : value;
+      },
+    };
+    if (minWidth) {
+      options['minWidth'] = minWidth;
+    }
+    if (maxWidth) {
+      options['maxWidth'] = maxWidth;
+      options['wrapText'] = true;
+      options['autoHeight'] = true;
+    }
+    return options;
+  }
+
+  /**
+   * Generates a non-editable column definition that displays URLs as hyperlinks.
+   *
+   * @param alias - The alias used for translation of the header name.
+   * @param field - The field name for the column, which can be a property path.
+   * @param minWidth - Optional minimum width for the column.
+   * @param maxWidth - Optional maximum width for the column.
+   * @returns An object representing the column definition.
+   */
+  getNonEditableColumnWithLinkDef(alias, field, minWidth: number = null, maxWidth: number = null) {
+
+    const options = {
+      headerName: this.getTranslate(alias),
+      field: field,
+      editable: false,
+      cellClass: 'read-only-cell',
+      cellRenderer: 'externalUrlRenderer',
+      valueGetter: (params) => {
+        const value = this.getValueFromPropertyPath(params.data, field);
+        return Array.isArray(value) ? value.join(',') : value;
+      },
+    };
+    if (minWidth) {
+      options['minWidth'] = minWidth;
+    }
+    if (maxWidth) {
+      options['maxWidth'] = maxWidth;
+      options['wrapText'] = true;
+      options['autoHeight'] = true;
+    }
+    return options;
+  }
+
+  getBooleanColumnDef(alias, field, editable, minWidth: number = null, maxWidth: number = null, autoUnsetOthers = false) {
+    const options = {
+      headerName: this.getTranslate(alias),
+      field: field,
+      editable: editable,
+      cellClass: 'sitmun-centered-cell',
+      cellRenderer: 'btnCheckboxRendererComponent',
+      filter: 'agTextColumnFilter',
+      filterParams: {
+        filterOptions: ['equals'],
+        suppressAndOrCondition: true,
+      },
+      floatingFilterComponent: BtnCheckboxFilterComponent,
+      suppressHeaderFilterButton: true,
+      suppressHeaderMenuButton: true,
+      suppressMenu: true,
+      filterValueGetter: (params) => {
+        const value = this.getValueFromPropertyPath(params.data, field);
+        return value ? 'true' : 'false';
+      },
+      valueSetter: (params) => {
+        params.data[field] = params.newValue;
+        return true;
+      },
+      floatingFilterComponentParams: {suppressFilterButton: true},
+      onCellValueChanged: autoUnsetOthers ? (params) => {
+        if (params.newValue) {
+          // If setting to true, set all other rows to false
+          params.api.forEachNode((node) => {
+            if (node.id !== params.node.id) {
+              node.data[field] = false;
+            }
+          });
+          params.api.refreshCells({ force: true });
+        }
+      } : undefined
+    };
+    if (minWidth) {
+      options['minWidth'] = minWidth;
+    }
+    if (maxWidth) {
+      options['maxWidth'] = maxWidth;
+      options['wrapText'] = true;
+      options['autoHeight'] = true;
+    }
+    return options;
+  }
+
+  addConditionToColumnDef(options: any, condition: (params: any) => boolean) {
+    const originalCellRenderer = options.cellRenderer;
+    options.cellRendererSelector = (params) => {
+      if (condition(params)) {
+        return { component: originalCellRenderer, params: params }
+      }
+      return { component: EmptyRendererComponent, params: params };
+    };
+    return options;
+  }
+
+  getFormattedColumnDef<TData, TValue>(
+    headerName: string,
+    values: () => TData[],
+    keyField: string,
+    valuesKeyField?: string,
+    valuesField?: string
+  ) {
+    const valueGetterFn: ValueGetterFunc<TData, TValue> = (params: ValueGetterParams<TData, TValue>) => {
+      if (!params.data) {
+        return undefined;
+      }
+      const dataFieldValue = params.data[keyField]
+      const effectiveList = values();
+      const value = effectiveList.find(value => value[valuesKeyField] == dataFieldValue)
+      if (value === undefined) {
+        return dataFieldValue;
+      }
+      return value[valuesField];
+    }
+    const valueSetterFn: ValueSetterFunc<TData, TValue> = (params: ValueSetterParams<TData, TValue>) => {
+      const effectiveList = values();
+      const value = effectiveList.find(value => value[valuesField] == params.newValue)
+      if (value === undefined) {
+        return false;
+      } else {
+        params.data[keyField] = value[valuesKeyField]
+        return true;
+      }
+    }
+
+    return {
+      headerName: this.getTranslate(headerName),
+      editable: false,
+      valueGetter: valueGetterFn,
+      valueSetter: valueSetterFn,
+    };
+  }
+
+  /**
+   * Gets the column definition for a router link column in AG Grid.
+   * @param alias - Translation key for column header
+   * @param field - Field name in data object to display as link text
+   * @param route - Base route path with parameters (e.g. '/taskQuery/:id/:type')
+   * @param paramFields - Object mapping route parameters to data fields (e.g. {id: 'id', type: 'type'})
+   * @param minWidth - Optional minimum width for the column
+   * @param maxWidth - Optional maximum width for the column
+   * @returns Column definition object for router link column
+   */
+  getRouterLinkColumnDef(
+    alias: string,
+    field: string,
+    route: string,
+    paramFields: { [key: string]: string },
+    minWidth?: number,
+    maxWidth?: number
+  ) {
+    const options = {
+      headerName: this.getTranslate(alias),
+      field: field,
+      editable: false,
+      cellRenderer: 'routerLinkRenderer',
+      cellRendererParams: {
+        route: route,
+        paramFields: paramFields
+      },
+      valueGetter: (params) => {
+        return this.getValueFromPropertyPath(params.data, field);
+      }
+    };
+
+    if (minWidth) {
+      options['minWidth'] = minWidth;
+    }
+    if (maxWidth) {
+      options['maxWidth'] = maxWidth;
+      options['wrapText'] = true;
+      options['autoHeight'] = true;
+    }
+
+    return options;
+  }
+
+  //Translation
+
+  /**
+   * Creates a list of translations for a column.
+   * @param columnName - Name of the column to create translations for.
+   * @returns Map of language codes to Translation objects.
+   */
+  createTranslationsList(columnName: string): Map<string, Translation> {
+    const translationsList: Map<string, Translation> = new Map<
+      string,
+      Translation
+    >();
+
+    const languagesToUse = filterEnabledLanguages(
+      config.languagesToUse ?? JSON.parse(localStorage.getItem('languages') || '[]')
+    );
+    languagesToUse.forEach((language: Language) => {
+      const currentTranslation: Translation = new Translation();
+      currentTranslation.translation = null;
+      currentTranslation.column = columnName;
+      currentTranslation.language = language;
+      translationsList.set(language.shortname, currentTranslation);
+    });
+    return translationsList;
+  }
+
+  /**
+   * Opens a dialog for editing translations.
+   * @param translationsMap - Map of current translations.
+   * @param defaultLanguageValue - Optional: The current value in the default language (from form field).
+   *                               If not provided, will try to get from translationsMap for default language.
+   * @param maxLength - Maximum length for translation fields (default: 4000)
+   * @param useTextarea - Whether to use textarea (true) or input (false) (default: false)
+   * @returns Promise that resolves with updated translations or null if cancelled.
+   */
+  async openTranslationDialog(translationsMap: Map<string, Translation>, defaultLanguageValue?: string, maxLength?: number, useTextarea?: boolean) {
+    if (!this.languageService) {
+      this.languageService = this.injector.get(LanguageService);
+    }
+    const languagesAvailables = await firstValueFrom(this.languageService.refreshLanguagesToUse());
+    const dialogRef = this.dialog.open(DialogTranslationComponent, {
+      panelClass: 'translateDialogs',
+    });
+    dialogRef.componentInstance.translationsMap = translationsMap;
+    dialogRef.componentInstance.languageByDefault = config.defaultLang;
+    dialogRef.componentInstance.languagesAvailables = languagesAvailables;
+
+    // Get default language value from parameter or from translationsMap
+    let defaultValue = defaultLanguageValue;
+    if (!defaultValue && translationsMap.has(config.defaultLang)) {
+      const defaultTranslation = translationsMap.get(config.defaultLang);
+      defaultValue = defaultTranslation?.translation || '';
+    }
+    dialogRef.componentInstance.defaultLanguageValue = defaultValue || '';
+
+    // Set maxLength and useTextarea (with defaults if not provided)
+    dialogRef.componentInstance.maxLength = maxLength ?? 4000;
+    dialogRef.componentInstance.useTextarea = useTextarea ?? false;
+
+    return await firstValueFrom(dialogRef.afterClosed());
+  }
+
+  /**
+   * Updates a translations map with new translation values.
+   * @param translationsMap - Current translations map.
+   * @param translations - Array of new translations.
+   * @returns Updated translations map.
+   */
+  updateTranslations(
+    translationsMap: Map<string, Translation>,
+    translations: Translation[]
+  ) {
+    translations.forEach((translation) => {
+      translationsMap.set(translation.languageShortname, translation);
+    });
+    return translationsMap;
+  }
+
+  /**
+   * Saves translations to the server.
+   * @param id - Element ID associated with translations.
+   * @param translationMap - Map of translations to save.
+   * @param internationalValue - Default language value.
+   * @param modifications - Flag indicating if modifications were made.
+   * @returns Promise that resolves with updated translations map.
+   */
+  async saveTranslation(
+    id: number,
+    translationMap: Map<string, Translation>,
+    internationalValue: string,
+    modifications: boolean
+  ) {
+    const defaultLanguage = config.defaultLang;
+    const promises: Promise<any>[] = [];
+    if (translationMap) {
+      // Load existing translations for this element to get _links
+      const existingTranslations = await firstValueFrom(
+        this.translationService.fetchAllItems().pipe(
+          map((data: any[]) => data.filter(t => t.element === id))
+        )
+      );
+      this.loggerService.debug('UtilsService.saveTranslation - Loaded existing translations', {
+        elementId: id,
+        existingCount: existingTranslations.length,
+        existingTranslations: existingTranslations.map(t => ({
+          id: t.id,
+          column: t.column,
+          languageShortname: t.languageShortname || t.language?.shortname,
+          hasLinks: !!t._links
+        }))
+      });
+
+      translationMap.forEach((value: Translation, key: string) => {
+        if (key == defaultLanguage && internationalValue) {
+          value.element = id;
+          value.translation = internationalValue;
+          // If translation doesn't have _links, find existing one
+          if (!value._links && value.column) {
+            const existing = existingTranslations.find(t =>
+              t.column === value.column &&
+              (t.languageShortname === key || t.language?.shortname === key)
+            );
+            if (existing && existing._links) {
+              this.loggerService.debug('UtilsService.saveTranslation - Found existing translation, merging _links', {
+                elementId: id,
+                column: value.column,
+                language: key,
+                existingId: existing.id
+              });
+              value._links = existing._links;
+              value.id = existing.id;
+            } else {
+              this.loggerService.debug('UtilsService.saveTranslation - No existing translation found, will INSERT', {
+                elementId: id,
+                column: value.column,
+                language: key
+              });
+            }
+          } else if (value._links) {
+            this.loggerService.debug('UtilsService.saveTranslation - Translation has _links, will UPDATE', {
+              elementId: id,
+              column: value.column,
+              language: key,
+              translationId: value.id
+            });
+          }
+          promises.push(
+            (async () => {
+              try {
+                const result = await firstValueFrom(this.translationService.save(value));
+                translationMap.set(key, result);
+                return true;
+              } catch (error) {
+                this.loggerService.error('Error saving translation', error);
+                return false;
+              }
+            })()
+          );
+        } else if (modifications) {
+          if (value && value.translation) {
+            value.element = id;
+            // If translation doesn't have _links, find existing one
+            if (!value._links && value.column) {
+              const existing = existingTranslations.find(t =>
+                t.column === value.column &&
+                t.languageShortname === key
+              );
+              if (existing && existing._links) {
+                value._links = existing._links;
+                value.id = existing.id;
+              }
+            }
+            promises.push(
+              (async () => {
+                try {
+                  const result = await firstValueFrom(this.translationService.save(value));
+                  translationMap.set(key, result);
+                  return true;
+                } catch (error) {
+                  this.loggerService.error('Error saving translation', error);
+                  return false;
+                }
+              })()
+            );
+          }
+        }
+      });
+    }
+    await Promise.all(promises);
+    return translationMap;
+  }
+}
+
+@Component({
+  selector: 'app-empty-renderer',
+  standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
+  template: '<div></div>'
+})
+export class EmptyRendererComponent implements ICellRendererAngularComp {
+  public params: any;
+
+  agInit(params: any): void {
+    this.params = params;
+  }
+
+  refresh(_params: any): boolean {
+    return true;
+  }
+}

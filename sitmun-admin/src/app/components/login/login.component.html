@@ -1,0 +1,88 @@
+<mat-toolbar color="primary">
+  <mat-toolbar-row class="top-toolbar-row">
+    <div class="sitmun-logo-container">
+      <div class="sitmun-logo">
+        <img alt="logo" class="logo" height="48" ngSrc="assets/img/logos/logo_sitmun.svg" width="128">
+      </div>
+    </div>
+    <span class="toolbar-spacer"></span>
+    <button
+      mat-button
+      [matMenuTriggerFor]="languageMenu"
+      [attr.aria-label]="'entity.login.language' | translate"
+      class="language-toolbar-button">
+      <mat-icon>language</mat-icon>
+      <span>{{ isoCode(currentShortname) }}</span>
+    </button>
+    <mat-menu #languageMenu="matMenu">
+      @for (lang of languages; track lang) {
+        <button
+          mat-menu-item
+          (click)="changeLanguage(lang.shortname)">
+          {{ lang.name }}
+        </button>
+      }
+    </mat-menu>
+  </mat-toolbar-row>
+</mat-toolbar>
+<div class="login-container">
+  <mat-card>
+    <form [formGroup]="form" (ngSubmit)="login()">
+      <mat-card-header>
+        <mat-card-title>
+          <h4>{{'systemInfo.applicationName' | translate}}</h4>
+        </mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <mat-form-field appearance="outline" class="full">
+          <mat-label>{{'entity.login.username' | translate}}</mat-label>
+          <mat-icon matPrefix>person</mat-icon>
+          <input matInput type="text" formControlName="username">
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="full">
+          <mat-label>{{'entity.login.password' | translate}}</mat-label>
+          <mat-icon matPrefix>lock</mat-icon>
+          <input matInput type="password" formControlName="password">
+        </mat-form-field>
+        @if (badCredentials) {
+          <div class="alert alert-danger">
+            {{'entity.login.bad-credentials' | translate}}
+          </div>
+        }
+      </mat-card-content>
+      <mat-card-actions>
+        <button mat-raised-button color="primary" class="loginButton" type="submit" [disabled]="!form.valid">
+          {{'entity.login.login' | translate}}
+        </button>
+      </mat-card-actions>
+    </form>
+    @if (alternativeLoginMethods.length > 0) {
+      <div class="alt-login-divider">
+        <p class="alt-login-text">{{'entity.login.alternatives' | translate}}</p>
+      </div>
+      <mat-card-content [ngClass]="alternativeLoginMethods.length > 2 ? 'wrapContent' : 'verticallyListedContent'">
+        @for (provider of alternativeLoginMethods; track provider.providerName) {
+          <mat-card-actions>
+            <button
+              mat-raised-button color="primary"
+              class="alternativeLoginButton"
+              (click)="initAuth(provider.providerName)"
+              (keydown)="initAuth(provider.providerName)"
+              >
+              <span class="button-content">
+                @if (provider.imagePath) {
+                  <img
+                    [ngSrc]="provider.imagePath"
+                    alt="icon"
+                    width="35"
+                    height="35" />
+                }
+                <span>{{ provider.displayName }}</span>
+              </span>
+            </button>
+          </mat-card-actions>
+        }
+      </mat-card-content>
+    }
+  </mat-card>
+</div>

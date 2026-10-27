@@ -1,0 +1,30 @@
+import { HttpClient } from '@angular/common/http';
+import { Injectable } from '@angular/core';
+
+import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
+
+import { ResourceService } from '@app/core/hal';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class DashboardService {
+
+    /** API resource path */
+    public DASHBOARD_API = 'dashboard/info';
+    public DASHBOARD_EMBEDDED = 'dashboard';
+
+    constructor(
+      private http: HttpClient,
+      private resourceService: ResourceService
+    ) {}
+
+    /** get all kpi */
+    getAll(): Observable<any> {
+      return this.http.get(this.resourceService.getResourceUrl(this.DASHBOARD_API))
+        .pipe(
+          map(response => response[this.DASHBOARD_EMBEDDED])
+        );
+    }
+}

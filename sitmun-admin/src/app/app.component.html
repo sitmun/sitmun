@@ -1,0 +1,12 @@
+<!-- Render initialization error or main app without negating async -->
+@if (hasInitializationError$ | async) {
+  <div class="mat-app-background">
+    <app-error-page
+      [error]="initializationError$ | async"
+      errorType="initialization">
+    </app-error-page>
+  </div>
+} @else {
+  <router-outlet></router-outlet>
+}
+

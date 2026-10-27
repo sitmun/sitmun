@@ -1,0 +1,235 @@
+// Make the component host element fill the viewport with the orange gradient
+:host {
+  display: block;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  margin: 0;
+  padding: 0;
+  background: linear-gradient(135deg, rgba(255, 147, 0, 0.15) 0%, rgba(255, 147, 0, 0.08) 100%);
+  z-index: 0;
+}
+
+// Login container for centering the card
+.login-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  padding: 16px; // 2 × 8dp for mobile spacing
+  padding-top: calc(64px + 16px); // Add toolbar height + padding
+  box-sizing: border-box;
+
+  mat-card {
+    max-width: min(400px, 90vw); // Responsive: 400px max, 90vw on mobile
+    width: 100%;
+    padding: 24px; // 3 × 8dp Material Design standard card padding
+    box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.2), 0 4px 5px 0 rgba(0, 0, 0, 0.14), 0 1px 10px 0 rgba(0, 0, 0, 0.12); // Material elevation
+  }
+}
+
+// Full width form fields
+.full {
+  width: 100%;
+}
+
+// Mask password input using CSS instead of type="password" to prevent browser password managers
+.masked-password {
+  -webkit-text-security: disc;
+  text-security: disc;
+}
+
+// Material Design card actions - proper layout instead of absolute positioning
+::ng-deep .mat-mdc-card-actions {
+  display: flex;
+  justify-content: flex-end;
+  padding: 16px; // 2 × 8dp
+  margin: 0;
+}
+
+.loginButton {
+  height: 40px;
+  min-width: 88px; // Material Design minimum touch target
+}
+
+.wrapContent {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.verticallyListedContent {
+  display: block;
+  padding-bottom: 0;
+}
+
+.alternativeLoginButton {
+  width: 100%;
+  display: flex;
+
+  .button-content {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+
+    img {
+      object-fit: contain;
+    }
+
+    span {
+      white-space: nowrap;
+    }
+  }
+}
+
+.alt-login-divider {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 10px;
+}
+
+.alt-login-text {
+  color: #8f8f8f;
+  margin: 0;
+}
+
+.alt-login-divider::before,
+.alt-login-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: #8f8f8f;
+}
+
+// Toolbar styling - ensure it's above the login container with no borders
+mat-toolbar {
+  position: relative;
+  z-index: 1; // Above login container
+  padding: 0 !important;
+  margin: 0 !important;
+  border: none !important;
+  border-top: none !important;
+  border-bottom: none !important;
+  border-left: none !important;
+  border-right: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+// Target Material Design's toolbar-row element and all internal classes
+::ng-deep mat-toolbar-row,
+::ng-deep .mat-toolbar-row,
+::ng-deep .mdc-toolbar__row {
+  border: none !important;
+  border-top: none !important;
+  border-bottom: none !important;
+  border-left: none !important;
+  border-right: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.top-toolbar-row {
+  background-color: #FF9300 !important;
+  color: white !important;
+  padding: 0 16px !important; // Only horizontal padding for content spacing
+  margin: 0 !important;
+  border: none !important;
+  border-top: none !important;
+  border-bottom: none !important;
+  border-left: none !important;
+  border-right: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+
+  // Override any Material Design internal styles
+  &::before,
+  &::after {
+    display: none !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+}
+
+.toolbar-spacer {
+  flex: 1 1 auto !important;
+}
+
+// Logo container with flexbox alignment
+.sitmun-logo-container {
+  height: 100%;
+  display: flex;
+  align-items: center;
+}
+
+.sitmun-logo {
+  display: flex;
+  align-items: center;
+  margin: 0; // No margin - toolbar should be edge-to-edge
+}
+
+// Unused outline class - kept for potential future use
+.outline {
+  border-style: solid;
+  border-width: medium;
+}
+
+// Form field spacing following 8dp grid
+mat-form-field {
+  margin-bottom: 16px; // 2 × 8dp spacing between fields
+
+  &:last-of-type {
+    margin-bottom: 0;
+  }
+}
+
+// Card content spacing
+mat-card-content {
+  padding: 16px 0; // 2 × 8dp vertical padding
+}
+
+// Alert styling
+.alert {
+  margin-top: 16px; // 2 × 8dp
+}
+
+// Flag icon in dropdown option - Material Design: 24x24 icon
+.option-with-flag {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px; // 1 × 8dp
+}
+
+.flag-icon-in-option {
+  width: 24px !important;
+  height: 24px !important;
+  flex-shrink: 0;
+
+  ::ng-deep svg {
+    width: 24px !important;
+    height: 24px !important;
+    display: block;
+  }
+}
+
+// Flag icon as prefix - Material Design: 24x24 icon, Material handles spacing
+::ng-deep .mat-mdc-form-field-icon-prefix {
+  .flag-prefix-icon {
+    width: 24px !important;
+    height: 24px !important;
+    flex-shrink: 0;
+
+    svg {
+      width: 24px !important;
+      height: 24px !important;
+      display: block;
+    }
+  }
+}

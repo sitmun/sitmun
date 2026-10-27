@@ -1,0 +1,29 @@
+/* To learn more about this file see: https://angular.io/config/tsconfig. */
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "outDir": "./out-tsc/app",
+    "types": []
+  },
+  "exclude": [
+    "src/**/*.spec.ts",
+    "src/app/testing/**",
+    "src/app/components/trees/trees-form/testing/**",
+    "src/app/core/hal/services.ts",
+    "src/app/core/hal/config/index.ts",
+    "src/app/core/hal/resource/index.ts",
+    "src/app/core/hal/rest/index.ts",
+    "src/app/core/public-api.ts",
+    "src/app/core/config/base-configuration.component.ts",
+    "src/app/domain/task/models/task-relation.model.ts",
+    "src/app/models/problem-detail.model.ts"
+  ],
+  "angularCompilerOptions": {
+    "extendedDiagnostics": {
+      "checks": {
+        "nullishCoalescingNotNullable": "suppress",
+        "optionalChainNotNullable": "suppress"
+      }
+    }
+  }
+}

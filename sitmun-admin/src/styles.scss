@@ -1,0 +1,874 @@
+@use '@angular/material' as mat;
+@use "mat-form-field-rich-hint";
+@use "styles/entity-warnings-card";
+@include mat.elevation-classes();
+@include mat.app-background();
+
+/* You can add global styles to this file, and also import other style files */
+
+@import "@ag-grid-community/styles/ag-grid.css";
+@import "@ag-grid-community/styles/ag-theme-material.css";
+
+
+// CSS Reset, comment out if not required or using a different module
+
+// Custom Theming for Angular Material (uses @use at top)
+// For more information: https://material.angular.dev/guide/theming
+
+// Include the common styles for Angular Material. We include this here so that you only
+// have to load a single css file for Angular Material in your app.
+// Be sure that you only ever include this mixin once!
+
+// Define the palettes for your theme using the Material Design palettes available in palette.scss
+// (imported above). For each palette, you can optionally specify a default, lighter, and darker
+// hue. Available color palettes: https://material.io/design/color/
+
+// Define the palettes for your theme using the Material Design palettes available in palette.scss
+// (imported above). For each palette, you can optionally specify a default, lighter, and darker
+// hue. Available color palettes: https://material.io/design/color/
+$sitmun-primary: mat.m2-define-palette(mat.$m2-orange-palette);
+$sitmun-accent: mat.m2-define-palette(mat.$m2-teal-palette, A200, A100, A400);
+
+// The warn palette is optional (defaults to red).
+$sitmun-warn: mat.m2-define-palette(mat.$m2-red-palette);
+
+
+// Create the theme object (a Sass map containing all of the palettes).
+$sitmun-theme: mat.m2-define-light-theme((
+  color: (
+    primary: $sitmun-primary,
+    accent: $sitmun-accent,
+    warn: $sitmun-warn,
+  ),
+  typography: mat.m2-define-typography-config(),
+  density: 0
+));
+
+// Include theme styles for core and each component used in your app.
+// Alternatively, you can import and @include the theme mixins for each component
+// that you are using.
+@include mat.all-component-themes($sitmun-theme);
+
+$background-color: #f5f5f5;
+
+/* You can add global styles to this file, and also import other style files */
+
+body {
+  font-family: "Open Sans", sans-serif;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  margin: 0;
+  padding: 0;
+}
+
+//Button validate of forms
+
+#right-column {
+  margin-right: 0;
+}
+
+
+h5 {
+  display: inline-block;
+  font-weight: 400 !important;
+  font-size: 1.5rem !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+  line-height: 1.75rem !important;
+  margin-top: 1.75rem !important;
+  margin-bottom: 0 !important;
+}
+h2 {
+  width: calc(100% - 100px);
+  display: inline-block;
+}
+
+//.appDataGridDiv {
+//  height: calc(100% - 190px);
+//  margin: 50px;
+//}
+
+// .re-size-vertically{
+//   resize: vertical;
+//   overflow: hidden;
+// }
+
+// Very subtle alternating row background for trees and lists (global)
+.mat-tree-node:nth-of-type(odd) {
+  background-color: rgba(0, 0, 0, 0.02);
+}
+.mat-tree-node:nth-of-type(even) {
+  background-color: transparent;
+}
+// Material table (MDC and legacy)
+// AG Grid (data-grid / dialog-grid) – uses built-in .ag-row-odd and theme variable
+// Set globally so it applies regardless of load order
+:root {
+  --ag-odd-row-background-color: rgba(0, 0, 0, 0.02);
+  --ag-row-hover-color: rgba(0, 0, 0, 0.06);
+}
+.service-access-trend {
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
+  gap: 1px;
+  height: 100%;
+}
+
+.service-access-hour {
+  display: inline-block;
+  flex: 0 0 5px;
+  width: 5px;
+  min-width: 5px;
+  height: 16px;
+  border-radius: 1px;
+}
+
+.dashboard-failing-services-count {
+  font-weight: 600;
+  margin-right: 6px;
+}
+
+.dashboard-affected-use {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dashboard-affected-use i {
+  width: 10px;
+  height: 10px;
+  flex: 0 0 10px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.87);
+  box-sizing: border-box;
+}
+
+.dashboard-affected-use.cfg {
+  color: rgba(0, 0, 0, 0.6);
+}
+
+.dashboard-affected-use.cfg i {
+  background: transparent;
+  border: 2px solid #5c5c5c;
+}
+
+// AG Grid puts `ag-cell-value` on the cell itself when a renderer has no wrapper, and the
+// infinite data-grid sets ellipsis at `:host .sitmun-infinite-grid .ag-cell` (0,3,0).
+.ag-root .ag-row .ag-cell.sitmun-access-status-cell,
+.ag-root .ag-row .ag-cell.sitmun-access-trend-cell,
+.ag-root .ag-row .ag-cell.sitmun-usage-cell {
+  overflow: visible;
+  text-overflow: clip;
+}
+
+.service-usage-30 {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 8px;
+  height: 100%;
+}
+
+.service-usage-bars {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 1px;
+  height: 14px;
+  border-bottom: 1px solid #bdbdbd;
+}
+
+// The Estat header opens the health filter from one funnel that turns orange while filtering.
+.ag-header-cell.sitmun-access-status-header {
+  .ag-header-cell-menu-button {
+    opacity: 1;
+  }
+
+  .ag-filter-icon {
+    display: none;
+  }
+
+  &.ag-header-cell-filtered .ag-header-cell-menu-button .ag-icon {
+    color: #ff9800;
+  }
+}
+
+.service-usage-fail {
+  margin-left: 4px;
+  color: #c62828;
+  font-size: 12px;
+  font-weight: 400;
+  white-space: nowrap;
+}
+
+.service-access-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.service-access-status-dot {
+  width: 14px;
+  height: 14px;
+  flex: 0 0 14px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+// The renderer sets `color` to the status colour.
+.service-access-status-halo {
+  box-shadow: 0 0 0 4px color-mix(in srgb, currentColor 15%, transparent);
+}
+
+.service-usage-bar {
+  display: inline-block;
+  flex: 0 0 3px;
+  width: 3px;
+  background-color: #FF9300;
+  border-radius: 1px 1px 0 0;
+}
+
+.ag-theme-material {
+  --ag-odd-row-background-color: rgba(0, 0, 0, 0.02);
+  --ag-row-hover-color: rgba(0, 0, 0, 0.06);
+  // AG Grid 31 Material theme hardcodes Material Design defaults that don't match
+  // the SITMUN M2 orange theme:
+  //   --ag-material-primary-color: #3f51b5 (indigo) → focus borders, tab underlines
+  //   --ag-material-accent-color:  #ff4081 (pink)   → checkbox checked color
+  // Override both to SITMUN primary orange (M2 orange-500).
+  --ag-material-primary-color: #ff9800;
+  --ag-checkbox-checked-color: #ff9800;
+  --ag-checkbox-indeterminate-color: #ff9800;
+  --ag-selected-row-background-color: rgba(255, 152, 0, 0.12);
+
+  // The Material theme sizes the inline editor taller than the row
+  // (row-height + grid-size*3). With domLayout="autoHeight" rows are fixed
+  // height, so the editor overflows and overlaps the adjacent row. Constrain
+  // it to the row height so editing stays within its own row.
+  .ag-cell-inline-editing {
+    height: var(--ag-row-height);
+    padding: 0 var(--ag-grid-size);
+  }
+}
+
+// Apply gray background only to authenticated pages
+
+// Login page should use Material theme background (orange-tinted)
+app-login .mat-app-background {
+  background: transparent !important;
+}
+
+
+
+.basic-container {
+  padding: 0;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+}
+
+
+
+.gridDialogs {
+  max-width: min(900px, 90vw);
+  width: 100%;
+  max-height: 90vh;
+}
+
+.formDialogs {
+  min-width: min(640px, 90vw);
+  max-width: min(800px, 90vw);
+}
+
+.formDialogs mat-dialog-content {
+  max-height: min(80vh, 720px);
+  overflow-y: auto;
+}
+
+
+[hidden] {
+  display: none!important;
+}
+
+/* TODO(mdc-migration): The following rule targets internal classes of form-field that may no longer apply for the MDC version. */
+//.mat-mdc-form-field-appearance-outline .mat-mdc-form-field-infix {
+//  padding: 0.4em 0 0.4em 0 !important;
+//  top: -0.25em;
+//}
+
+
+/* TODO(mdc-migration): The following rule targets internal classes of select that may no longer apply for the MDC version. */
+//.mat-mdc-form-field-appearance-outline .mat-mdc-select-arrow-wrapper {
+//  transform: translateY(0%) !important;
+//}
+
+/* TODO(mdc-migration): The following rule targets internal classes of form-field that may no longer apply for the MDC version. */
+//.mat-mdc-form-field .mat-mdc-form-field-suffix {
+//  top: 2px !important;
+//  right: -5px;
+//}
+
+/* TODO(mdc-migration): The following rule targets internal classes of form-field that may no longer apply for the MDC version. */
+//.mat-mdc-form-field .mat-mdc-form-field-suffix .search {
+//  top: -2px !important;
+//  right: 0px;
+//}
+
+/* TODO(mdc-migration): The following rule targets internal classes of form-field that may no longer apply for the MDC version. */
+//.mat-mdc-form-field .mat-mdc-form-field-suffix .edit {
+//  top: -3px !important;
+//  right: 0px;
+//}
+
+.tableDiv .mat-expansion-panel-header.mat-expanded {
+  height: 50px;
+}
+
+.mat-mdc-list-item .list-text {
+  margin-right: auto;
+}
+
+
+/* TODO(mdc-migration): The following rule targets internal classes of chips that may no longer apply for the MDC version. */
+//.mat-chip-list-wrapper .mat-mdc-standard-chip, .mat-mdc-chip-action-label {
+//  margin: 2px !important;
+//  font-size: 13px !important;
+//}
+
+/* TODO(mdc-migration): The following rule targets internal classes of chips that may no longer apply for the MDC version. */
+//.mat-mdc-standard-chip.mat-chip-with-trailing-icon {
+//  padding-top: 11px !important;
+//  padding-bottom: 11px !important;
+//  padding-right: 8px !important;
+//  padding-left: 12px !important;
+//}
+
+/* TODO(mdc-migration): The following rule targets internal classes of tabs that may no longer apply for the MDC version. */
+//.mat-mdc-tab-body.mat-tab-body-active {
+//  animation: fade 0.5s;
+//}
+
+/* TODO(mdc-migration): The following rule targets internal classes of tabs that may no longer apply for the MDC version. */
+//.mat-tab-body-content {
+// display: flex;
+//  overflow: hidden !important;
+//}
+
+@keyframes fade {
+  0% {
+    opacity: 0;
+  }
+
+  100% {
+    opacity: 1;
+  }
+}
+
+/* TODO(mdc-migration): The following rule targets internal classes of tabs that may no longer apply for the MDC version. */
+//.mat-tab-label-active {
+//  box-shadow: inset 0px -4px 0px 0px #bf0000;
+//  opacity: 1 !important;
+//}
+
+/* TODO(mdc-migration): The following rule targets internal classes of tabs that may no longer apply for the MDC version. */
+//.mat-tab-label-active .mat-tab-label-content {
+//  font-weight: 700;
+//}
+
+/* TODO(mdc-migration): The following rule targets internal classes of tabs that may no longer apply for the MDC version. */
+//.mat-tab-label {
+//  font-size: 16px !important;
+//}
+
+
+@-webkit-keyframes color-change-2x {
+  0% {
+    background: #fdf8f0;
+  }
+  100% {
+    background: #f6e7ec;
+  }
+}
+
+@keyframes color-change-2x {
+  0% {
+    background: #fdf8f0;
+  }
+  100% {
+    background: #f6e7ec;
+  }
+}
+
+@-webkit-keyframes fade-in {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes fade-in {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+// Snackbar container overrides
+.mat-mdc-snack-bar-container {
+  .mdc-snackbar__surface {
+    background-color: transparent !important;
+    padding-right: 0 !important;
+  }
+
+  .mdc-snackbar__label {
+    padding: 0 !important;
+  }
+}
+// Ensure Material overlay container (snackbars, dialogs) is above app overlays
+
+// Snackbar container overrides
+.mat-mdc-snack-bar-container {
+  .mdc-snackbar__surface {
+    background-color: transparent !important;
+    padding-right: 0 !important;
+  }
+
+  .mdc-snackbar__label {
+    padding: 0 !important;
+  }
+}
+
+//Dialogs
+.dialog h1 {
+  font-size: 18px !important;
+  display: flex !important;
+  width: 100% !important;
+  border-bottom: 2px solid #ddd !important;
+  font-weight: 700 !important;
+  margin: 0 0 10px !important;
+  align-items: center !important;
+}
+
+@-webkit-keyframes rotating {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.dialog h1 mat-icon {
+  margin-left: 20px !important;
+}
+
+.dialog h1 mat-icon.loading {
+  -webkit-animation: rotating 1s linear infinite;
+  -moz-animation: rotating 1s linear infinite;
+  -o-animation: rotating 1s linear infinite;
+  animation: rotating 1s linear infinite;
+}
+
+//CUSTOM SCROLLBAR
+//::-webkit-scrollbar-track {
+//  padding: 2px 0;
+//}
+//
+//::-webkit-scrollbar {
+//  width: 10px;
+//  height: 10px;
+//
+//}
+//
+//::-webkit-scrollbar-thumb {
+//  border-radius: 10px;
+//  box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
+//  background-color: #737272;
+//}
+
+.requiredInput::after{
+  content: "*";
+  font-weight: bold;
+}
+
+// Relation-grid status column (getStatusColumnDef cellRenderer)
+.sitmun-status-dot {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+@media print {
+  app-toolbar,
+  mat-sidenav,
+  .mat-drawer-backdrop,
+  app-loading,
+  app-breadcrumbs,
+  .sidenav-container .mat-mdc-icon-button,
+  .sidenav-container .mat-mdc-unelevated-button,
+  .sidenav-container .paginator,
+  [no-print] {
+    display: none !important;
+  }
+
+  .sidenav-container {
+    position: absolute !important;
+    width: 100% !important;
+    top: 0 !important;
+    left: 0 !important;
+    margin-left: unset !important;
+    padding-left: unset !important;
+  }
+
+  .sidenav-content {
+    padding-left: unset !important;
+    margin-left: unset !important;
+  }
+}
+
+.iconTranslate{
+  cursor: pointer;
+}
+
+.mat-mdc-form-field-icon-suffix .iconTranslate.iconTranslateDisabled,
+.iconTranslate.iconTranslateDisabled,
+.iconTranslate:disabled {
+  cursor: default;
+  color: rgba(0, 0, 0, 0.26);
+  pointer-events: none;
+}
+
+.sitmun-i18n-cell {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  gap: 0.25rem;
+}
+
+.sitmun-i18n-cell-text {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sitmun-i18n-cell-translate {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  line-height: 1;
+
+  .material-icons {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+  }
+}
+
+.ag-cell.sitmun-format-options-cell {
+  .ag-cell-wrapper,
+  .ag-cell-value {
+    display: flex;
+    align-items: center;
+    height: 100%;
+    width: 100%;
+    min-width: 0;
+  }
+}
+
+.sitmun-format-options {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  min-width: 0;
+  height: 100%;
+}
+
+.sitmun-format-digits,
+.sitmun-format-date,
+.sitmun-format-image-limit {
+  box-sizing: border-box;
+  height: 22px;
+  margin: 0;
+  border: 1px solid rgba(0, 0, 0, 0.38);
+  border-radius: 4px;
+  padding: 0 0.35rem;
+  background: #fff;
+  color: inherit;
+  font: inherit;
+  font-size: 13px;
+  line-height: 20px;
+}
+
+.sitmun-format-digits {
+  width: 2.75rem;
+  min-width: 2.75rem;
+  max-width: 2.75rem;
+  flex: 0 0 2.75rem;
+  padding: 0 0.1rem 0 0.35rem;
+}
+
+.sitmun-format-image-limit {
+  width: 4.75rem;
+  min-width: 4.75rem;
+  max-width: 4.75rem;
+  flex: 0 0 4.75rem;
+}
+
+.sitmun-format-image-limit::placeholder {
+  color: rgba(0, 0, 0, 0.42);
+  opacity: 1;
+}
+
+.sitmun-format-pad,
+.sitmun-format-image-field {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin: 0;
+  white-space: nowrap;
+  font-size: 13px;
+}
+
+.sitmun-format-preview {
+  margin-left: auto;
+  color: rgba(0, 0, 0, 0.6);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+//
+// Headers
+//
+
+h4 {
+  font-weight: 400 !important;
+  font-size: 2.125rem !important;
+  letter-spacing: .015625rem !important;
+  text-transform: none !important;
+  line-height: 2.5rem !important;
+  margin-top: 1.75rem !important;
+  margin-bottom: 0 !important;
+}
+
+h4 > .mat-icon {
+  background-repeat: no-repeat !important;
+  fill: currentColor !important;
+  height: 30px !important;
+  width: 24px !important;
+}
+
+//
+// SITMUN custom styles
+//
+
+.sitmun-mat-card-margin {
+  margin-bottom: 10px;
+}
+
+.sitmun-mat-button-margin {
+  margin-bottom: 16px;
+}
+
+// Removed sitmun-get-info-button and sitmun-validate-button - use mat-raised-button color="primary" instead
+
+//
+// Flexbox tricks
+//
+
+.full {
+  width: 100%;
+}
+
+.half {
+  width: calc(50% - 1rem);
+}
+
+.quarter {
+  width: calc(25% - 1.5rem);
+}
+
+.add-gap {
+  margin-right: 2rem;
+}
+
+.add-half-gap {
+  margin-right: 5px;
+}
+
+.break {
+  flex-basis: 100%;
+  height: 0;
+}
+
+// Ag-Grid
+
+.ag-header-cell.sitmun-selection-header {
+  padding: 0 !important;
+  justify-content: center;
+
+  .ag-header-cell-comp-wrapper {
+    display: none;
+  }
+
+  .ag-header-select-all {
+    display: flex;
+    justify-content: center;
+    margin: 0;
+    width: 100%;
+  }
+}
+
+.ag-header-cell.sitmun-centered-header {
+  justify-content: center;
+
+  .ag-header-cell-label {
+    justify-content: center;
+  }
+}
+
+.ag-cell.sitmun-centered-cell {
+  .ag-cell-wrapper {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 100% !important;
+    margin: 0 !important;
+  }
+
+  .ag-selection-checkbox {
+    margin: 0 !important;
+  }
+
+  .ag-selection-checkbox + .ag-cell-value {
+    display: none !important;
+    width: 0 !important;
+    min-width: 0 !important;
+    flex: 0 0 0 !important;
+  }
+}
+
+.spacer {
+  flex: 1 1 auto;
+}
+
+.mat-tab-group{
+  height: 100%;
+}
+
+::ng-deep.mat-tab-body-wrapper {
+  flex-grow: 1;
+}
+
+.mat-tab-body {
+  display: flex !important;
+  flex-direction: column;
+}
+
+// Toolbar styles
+
+.toolbar-control {
+  display: inline-flex;
+  align-items: center;
+}
+.toolbar-button {
+  background-color: #FF9300;
+  color: white;
+  font-size: 0.8em;
+  padding: 0 8px;
+  height: 30px;
+  line-height: 30px;
+}
+.toolbar-icon {
+  font-size: 16px;
+  height: 16px;
+  width: 16px;
+  margin-right: 4px;
+}
+
+// Add spacing between form sections
+mat-card-content {
+  > * {
+    margin-bottom: 0.25rem; // 4px - Consistent spacing between form sections
+  }
+}
+
+.warning-icon {
+  vertical-align: middle;
+  margin-left: 4px;
+}
+
+// Reduce line-height for auto-height cells in AG Grid
+
+/* Style for modified form fields */
+.input-modified {
+  .mdc-text-field--outlined {
+    background: #E8F1DE !important;
+  }
+
+  .mdc-checkbox {
+    background: #E8F1DE !important;
+  }
+}
+
+.router-link {
+  color: #007bff;
+  font-size: inherit;
+  line-height: inherit;
+  text-decoration: none;
+}
+.router-link:hover {
+  text-decoration: underline;
+}
+
+.related-entity-open-link {
+  color: inherit;
+}
+
+.url-link {
+  color: #007bff;
+  font-size: inherit;
+  line-height: inherit;
+  text-decoration: none;
+  word-break: break-all;
+}
+
+.url-link:hover {
+  text-decoration: underline;
+  color: #0056b3;
+}
+
+.sitmun-toggle-row {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 100%;
+}
+
+.sitmun-toggle-hint {
+  margin: 4px 0 12px 52px;
+  font-size: 12px;
+  line-height: 1.4;
+  color: rgba(0, 0, 0, 0.6);
+  max-width: 56rem;
+}

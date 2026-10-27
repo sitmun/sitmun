@@ -1,0 +1,1265 @@
+import {AfterViewInit, ChangeDetectorRef, Component, OnDestroy, OnInit, QueryList, ViewChildren, DestroyRef, inject, ChangeDetectionStrategy} from "@angular/core";
+import {takeUntilDestroyed} from "@angular/core/rxjs-interop";
+import {FormControl, UntypedFormGroup} from "@angular/forms";
+import {MatDialog} from "@angular/material/dialog";
+import {ActivatedRoute, Params, Router} from "@angular/router";
+
+import {TranslateService} from "@ngx-translate/core";
+import {concatMap, filter, firstValueFrom, from, map, Observable, of, tap} from "rxjs";
+
+import {DataTablesRegistry} from "@app/components/data-tables.util";
+import {RelationGridComponent} from "@app/components/shared/relation-grid/relation-grid.component";
+import {HalOptions, HalParam, Resource} from "@app/core";
+import {CanComponentDeactivate} from '@app/core/guards/can-deactivate-guard.service';
+import {MessagesInterceptorStateService} from "@app/core/interceptors/messages.interceptor";
+import {CodeList, CodeListService, Language, LanguageService, Translation, TranslationService} from "@app/domain";
+import {DataGridComponent} from "@app/frontend-gui/src/lib/data-grid/data-grid.component";
+import {DialogTranslationComponent} from "@app/frontend-gui/src/lib/dialog-translation/dialog-translation.component";
+import {DIALOG_EVENTS, DialogMessageComponent} from '@app/frontend-gui/src/lib/public_api';
+import {ErrorHandlerService} from "@app/services/error-handler.service";
+import {LoadingOverlayService} from "@app/services/loading-overlay.service";
+import {LoggerService} from "@app/services/logger.service";
+import {filterEnabledLanguages} from "@app/services/ui-language.resolver";
+import { compareNullableString } from '@app/utils/compare-nullable-string';
+import {explainFormValidity} from "@app/utils/form.utils";
+import {config} from "@config";
+import {constants} from "@environments/constants";
+
+/**
+ * Base class for SITMUN components that handle resource entities.
+ * Provides common functionality for managing entity lifecycle, including creation,
+ * editing, and duplication of resources. This class serves as the foundation for
+ * components that need to handle CRUD operations on SITMUN resources.
+ *
+ * The class includes:
+ * - Entity state management (new/edit/duplicate modes)
+ * - Form handling with validation
+ * - Grid configuration
+ * - Utility methods for entity operations
+ * - Internationalization and translation management
+ *
+ * @template T Type of the resource entity being managed, must extend the Resource base class
+ */
+@Component({
+    template: '',
+    changeDetection: ChangeDetectionStrategy.Eager,
+    standalone: false
+})
+export class BaseFormComponent<T extends Resource> implements OnInit, AfterViewInit, OnDestroy, CanComponentDeactivate {
+
+  /**
+   * Query list of all data-grid components in the template.
+   * Automatically populated by Angular after view initialization.
+   */
+  @ViewChildren(DataGridComponent) dataGrids!: QueryList<DataGridComponent>;
+
+  /**
+   * Query list of all relation-grid wrapper components in the template.
+   * Automatically populated by Angular after view initialization.
+   */
+  @ViewChildren(RelationGridComponent) relationGrids!: QueryList<RelationGridComponent>;
+
+  /**
+   * Tracks registered DataGridComponent instances to prevent duplicate subscriptions.
+   */
+  private registeredGrids = new WeakSet<DataGridComponent>();
+
+  /**
+   * Tracks the ID of the entity currently being edited.
+   * A value of -1 indicates that no entity is currently in edit mode.
+   * This is used to determine the component's current operation mode.
+   */
+  entityID = -1;
+
+  /**
+   * Tracks the ID of the entity being duplicated.
+   * A value of -1 indicates that no entity is currently being duplicated.
+   * Used in conjunction with entityID to determine if we're in duplication mode.
+   */
+  duplicateID = -1;
+
+  /**
+   * The current entity instance being edited or duplicated.
+   * This property holds the working copy of the entity that reflects the current form state.
+   */
+  entityToEdit: T = null;
+
+  /**
+   * Registry for managing data tables within the component.
+   * Handles registration, saving, and cleanup of all data tables.
+   */
+  dataTables: DataTablesRegistry = new DataTablesRegistry()
+
+  /**
+   * Flag to track if any data table has unsaved changes.
+   * Updated by subscriptions to data grid modification events.
+   */
+  private dataTablesHaveChanges = false;
+
+  /**
+   * Configuration object for AG Grid theme styling.
+   * Contains theme-specific settings from the global configuration.
+   */
+  themeGrid: any = config.agGridTheme;
+
+  /**
+   * Application-wide constants for code values.
+   * Provides access to standardized codes used across the application.
+   */
+  codeValues = constants.codeValue;
+
+  /**
+   * Flag indicating whether all required data has been loaded.
+   * Used to control the rendering of form elements and prevent premature operations.
+   * Components should set this to true once all necessary data is available.
+   */
+  dataLoaded = false;
+
+  /**
+   * Monotonic epoch for in-flight {@link fetchData} calls.
+   * Route-param re-emissions can overlap; only the latest epoch may commit form state.
+   */
+  private fetchDataEpoch = 0;
+
+  /**
+   * The main form group for the entity.
+   * Handles form validation and provides access to form controls.
+   * Child classes should initialize this with appropriate form controls.
+   */
+  public entityForm: UntypedFormGroup = null;
+
+  /** Map of property names to their translations */
+  propertyTranslations: Map<string, PropertyTranslations> = new Map();
+
+  /** Map of code list names with their associated values */
+  private readonly codelists: Map<string, CodeList[]> = new Map();
+
+  /** Stores the initial values of form controls for comparison */
+  private initialFormValues: { [key: string]: any } = {};
+
+  /** Name of the entity being translated */
+  private propertyTranslationsEntity: string;
+
+  /** Default language code for i18n fields (live from config after Set-as-default). */
+  get defaultLang(): string {
+    return config.defaultLang;
+  }
+
+  /**
+   * UI language for HAL requests that need backend `@I18n` resolution (`lang` query param).
+   */
+  protected requestLang(): string {
+    if (localStorage.lang) {
+      return localStorage.lang;
+    }
+    return this.translateService.currentLang || config.defaultLang;
+  }
+
+  protected destroyRef = inject(DestroyRef);
+
+  private readonly changeDetectorRef = inject(ChangeDetectorRef);
+
+  /**
+   * Creates an instance of SitmunBaseComponent.
+   *
+   * @param {MatDialog} dialog - Angular Material dialog service for opening modal dialogs
+   * @param {TranslateService} translateService - Angular service for handling i18n translations
+   * @param {TranslationService} translationService - Service for managing entity translations
+   * @param {CodeListService} codeListService - Service for retrieving code lists
+   * @param loggerService
+   * @param {ErrorHandlerService} errorHandler - Service for handling and displaying errors
+   * @param {ActivatedRoute} activatedRoute - Angular service for accessing route parameters
+   * @param {Router} router - Angular service for navigation
+   * @param loadingService
+   * @param messagesInterceptorState
+   * @param loadingService
+   * @param messagesInterceptorState
+   */
+  protected readonly languageService = inject(LanguageService);
+
+  constructor(
+    protected dialog: MatDialog,
+    protected translateService: TranslateService,
+    protected translationService: TranslationService,
+    protected codeListService: CodeListService,
+    protected loggerService: LoggerService,
+    protected errorHandler: ErrorHandlerService,
+    protected activatedRoute: ActivatedRoute,
+    protected router: Router,
+    protected loadingService: LoadingOverlayService,
+    protected messagesInterceptorState: MessagesInterceptorStateService,
+  ) {
+  }
+
+  // ==================================================
+  //                    Common logic
+  // ==================================================
+
+  /**
+   * Determines if the component is in creation mode.
+   * Creation mode is active when neither editing nor duplicating an existing entity.
+   *
+   * @returns {boolean} true if creating a new entity (both entityID and duplicateID are -1),
+   *                    false if editing or duplicating
+   */
+  isNew(): boolean {
+    return this.entityID == -1 && this.duplicateID == -1
+  }
+
+  /**
+   * Determines if the entity is either new or being duplicated.
+   * This is useful for operations that should occur in both creation and duplication modes.
+   *
+   * @returns {boolean} true if the entity is new or being duplicated (entityID is -1),
+   *                    false if editing an existing entity
+   */
+  isNewOrDuplicated(): boolean {
+    return this.entityID == -1
+  }
+
+  /**
+   * Determines if the component is in edit mode.
+   * Edit mode is active when modifying an existing entity.
+   *
+   * @returns {boolean} true if editing an existing entity (entityID is not -1),
+   *                    false if creating or duplicating
+   */
+  isEdition(): boolean {
+    return this.entityID != -1
+  }
+
+  /**
+   * Determines if the component is in duplication mode.
+   * Duplication mode is active when creating a new entity based on an existing one.
+   *
+   * @returns {boolean} true if duplicating an entity (entityID is -1 and duplicateID is not -1),
+   *                    false otherwise
+   */
+  isDuplicated(): boolean {
+    return this.entityID == -1 && this.duplicateID != -1
+  }
+
+  /**
+   * Retrieves the value of a specified property from the entity form.
+   * Useful for displaying entity properties in templates.
+   *
+   * @param {string} propertyName - The name of the property to retrieve
+   * @returns {string} The value of the property or an empty string if not found
+   */
+  itemName(propertyName: string): string {
+    return this.entityForm?.get(propertyName)?.value ?? ''
+  }
+
+  /**
+   * Angular lifecycle hook that is called after the component is initialized.
+   * Initiates data fetching and setup for the component.
+   *
+   * @returns {void}
+   */
+  ngOnInit(): void {
+    this.activatedRoute.params.pipe(
+      map(params => ({params, epoch: ++this.fetchDataEpoch})),
+      tap(() => {
+        this.dataLoaded = false;
+      }),
+      concatMap(({params, epoch}) =>
+        epoch === this.fetchDataEpoch
+          ? from(this.fetchData(params, epoch))
+          : of(false)
+      ),
+      filter(committed => committed),
+      takeUntilDestroyed(this.destroyRef),
+    ).subscribe(() => this.afterFetch());
+  }
+
+  /**
+   * Lifecycle hook called after entity data is fetched.
+   * Sets up form change subscriptions to track modifications.
+   *
+   * @returns {void}
+   */
+  afterFetch(): void {
+    if (this.entityForm) {
+      this.subscribeToFormChanges(this.entityForm)
+    }
+  }
+
+  /**
+   * Angular lifecycle hook called after view and child views are initialized.
+   * Automatically registers all data-grid components for change tracking,
+   * including those wrapped by RelationGridComponent.
+   */
+  ngAfterViewInit(): void {
+    this.registerCurrentDataGrids();
+
+    // Re-register if grids are added dynamically
+    if (this.dataGrids) {
+      this.dataGrids.changes
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe(() => {
+          this.registerCurrentDataGrids();
+        });
+    }
+
+    if (this.relationGrids) {
+      this.relationGrids.changes
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe(() => {
+          this.registerCurrentDataGrids();
+        });
+    }
+  }
+
+  /**
+   * Registers all current data grids for change tracking.
+   * Includes both direct DataGridComponent instances and those wrapped by RelationGridComponent.
+   * @private
+   */
+  private registerCurrentDataGrids(): void {
+    // Register direct data grids
+    if (this.dataGrids) {
+      this.dataGrids.forEach(grid => this.registerDataGrid(grid));
+    }
+
+    // Register data grids wrapped by RelationGridComponent
+    if (this.relationGrids) {
+      this.relationGrids.forEach(relationGrid => {
+        if (relationGrid.dataGrid) {
+          this.registerDataGrid(relationGrid.dataGrid);
+        }
+      });
+    }
+  }
+
+  /**
+   * Lifecycle hook called after the entity is successfully saved.
+   * Resets the form to a clean state with the current values and clears change tracking.
+   */
+  afterSave() {
+    this.resetToFormModifiedState(this.entityForm);
+    if (this.entityForm) {
+      this.entityForm.markAsPristine();
+    }
+    this.dataTablesHaveChanges = false;
+  }
+
+  /**
+   * Fetches all necessary data for the component.
+   * This method coordinates the overall data loading process:
+   * 1. Process route parameters to determine operation mode
+   * 2. Run pre-fetch operations
+   * 3. Load the entity based on a mode (original, copy, or new)
+   * 4. Fetch related data if needed
+   * 5. Set up the form and complete initialization
+   *
+   * @param params - Route params for this load cycle
+   * @param epoch - Fetch epoch from {@link ngOnInit}; stale epochs abort before mutating form state
+   * @returns {Promise<boolean>} true when this epoch committed form state, false when superseded
+   */
+  async fetchData(
+    params: Params = this.activatedRoute.snapshot.params,
+    epoch = ++this.fetchDataEpoch,
+  ): Promise<boolean> {
+    try {
+      await this.processRouteParams(params);
+      if (epoch !== this.fetchDataEpoch) {
+        return false;
+      }
+      await this.preFetchData();
+      if (epoch !== this.fetchDataEpoch) {
+        return false;
+      }
+      if (!this.isNewOrDuplicated()) {
+        const entity = await this.fetchOriginal();
+        if (epoch !== this.fetchDataEpoch) {
+          return false;
+        }
+        this.entityToEdit = entity;
+        await this.fetchRelatedData();
+        if (epoch !== this.fetchDataEpoch) {
+          return false;
+        }
+      } else if (this.isDuplicated()) {
+        const entity = await this.fetchCopy();
+        if (epoch !== this.fetchDataEpoch) {
+          return false;
+        }
+        this.entityToEdit = entity;
+        await this.fetchRelatedData();
+        if (epoch !== this.fetchDataEpoch) {
+          return false;
+        }
+      } else {
+        this.entityToEdit = this.empty();
+      }
+      if (epoch !== this.fetchDataEpoch) {
+        return false;
+      }
+      this.postFetchData();
+      this.dataLoaded = true;
+      return true;
+    } catch (error) {
+      this.errorHandler.handleError(error, 'common.error.loadingFailed');
+      return false;
+    }
+  }
+
+  /**
+   * Processes route parameters to extract entity IDs.
+   * Sets the entityID and duplicateID properties based on the current route.
+   * Redirects to dashboard if route params are invalid (non-numeric).
+   *
+   * @param params - Route params for this load cycle (defaults to the current snapshot)
+   * @returns {Promise<void>} Promise that resolves when parameters are processed
+   * @throws {Error} Throws an error if route params are invalid to abort fetchData
+   */
+  async processRouteParams(params: Params = this.activatedRoute.snapshot.params): Promise<void> {
+    this.entityID = params.id != null ? Number(params.id) : -1;
+    this.duplicateID = params.idDuplicate != null ? Number(params.idDuplicate) : -1;
+
+    // Validate that route params are valid numbers (or -1 for new/no entity)
+    if (Number.isNaN(this.entityID) || Number.isNaN(this.duplicateID)) {
+      this.loggerService.warn('Invalid route parameters detected, redirecting to dashboard', {
+        entityID: this.entityID,
+        duplicateID: this.duplicateID,
+        params
+      });
+      await this.router.navigate(['/dashboard']);
+      throw new Error('Invalid route parameters');
+    }
+  }
+
+  /**
+   * Hook for performing operations before fetching the main entity.
+   * Can be overridden by child classes to initialize resources needed
+   * before the main entity is loaded.
+   *
+   * @returns {Promise<void>} Promise that resolves when pre-fetch operations complete
+   */
+  async preFetchData(): Promise<void> {
+    return Promise.resolve()
+  }
+
+  /**
+   * Hook for fetching data related to the main entity.
+   * Can be overridden by child classes to load additional data
+   * that depends on the main entity.
+   *
+   * @returns {Promise<void>} Promise that resolves when related data is loaded
+   */
+  async fetchRelatedData(): Promise<void> {
+    return Promise.resolve()
+  }
+
+  /**
+   * Fetches the original entity for editing.
+   * Should be overridden by child classes to load the entity from the appropriate service.
+   *
+   * @returns {Promise<T>} Promise that resolves with the loaded entity
+   */
+  async fetchOriginal(): Promise<T> {
+    return Promise.resolve(this.empty())
+  }
+
+  /**
+   * Fetches a copy of an existing entity for duplication.
+   * Should be overridden by child classes to create a proper copy of an entity.
+   *
+   * @returns {Promise<T>} Promise that resolves with the copied entity
+   */
+  async fetchCopy(): Promise<T> {
+    return Promise.resolve(this.empty())
+  }
+
+  /**
+   * Hook called after the entity is loaded but before the component is fully initialized.
+   * Should be overridden by child classes to set up the form and perform additional initialization.
+   *
+   * @returns {void}
+   */
+
+  postFetchData(): void {
+  }
+
+  /**
+   * Creates an empty entity instance with default values.
+   * Should be overridden by child classes to provide appropriate defaults for new entities.
+   *
+   * @returns {T} A new entity instance with default values
+   */
+  empty(): T {
+    return {} as T
+  }
+
+  /**
+   * Angular lifecycle hook that is called when the component is destroyed.
+   * Performs cleanup of resources, particularly data table subscriptions.
+   */
+  ngOnDestroy(): void {
+    this.dataTables.completeAll();
+  }
+
+  /**
+   * Whether the form, grids, or translations have unsaved changes.
+   * Duplicate mode counts as pending create even when the form is still pristine.
+   */
+  protected hasPendingChanges(): boolean {
+    return this.isDuplicated()
+      || (this.entityForm?.dirty ?? false)
+      || this.dataTablesHaveChanges
+      || this.hasTranslationChanges();
+  }
+
+  /**
+   * Prompts before leaving when there are unsaved changes.
+   */
+  async canDeactivate(): Promise<boolean> {
+    if (!this.hasPendingChanges()) {
+      return true;
+    }
+
+    const dialogRef = this.dialog.open(DialogMessageComponent, {
+      width: '400px',
+      data: {
+        title: 'common.unsavedChanges.title',
+        message: 'common.unsavedChanges.message',
+        acceptLabel: 'common.unsavedChanges.discard',
+        cancelLabel: 'common.unsavedChanges.keepEditing',
+        destructive: true,
+      },
+    });
+    const result = await firstValueFrom(dialogRef.afterClosed());
+    return result?.event === DIALOG_EVENTS.ACCEPT;
+  }
+
+  /**
+   * Handles the save button click event.
+   * Validates the form, saves the entity, updates related data, and navigates as needed.
+   *
+   * @returns {Promise<boolean>} Promise that resolves when the save operation completes
+   */
+  async onSaveButtonClicked(): Promise<boolean> {
+    this.loggerService.info('onSaveButtonClicked', this.explainFormValidity());
+    if (this.canSaveEntity) {
+      const duplicated = this.isDuplicated();
+      try {
+        await this.saveEntity();
+        await this.dataTables.saveAll();
+      } catch (error) {
+        this.loggerService.error('Save failed', error);
+        return Promise.resolve(false);
+      }
+      // Recover the original entity (includes properties that could have been updated by data tables)
+      this.entityToEdit = await this.fetchOriginal();
+      this.afterSave();
+      if (duplicated) {
+        // Fix the navigation to correctly build the relative path
+        const segments = this.activatedRoute.snapshot.url.map(segment => segment.path);
+        const parentRoute = segments.slice(0, -1)
+          .map(segment => segment === '-1' ? ':id' : segment)
+          .join('/');
+        return this.router.navigate(['/' + parentRoute, this.entityID], {skipLocationChange: true});
+      }
+    }
+    return Promise.resolve(false)
+  }
+
+  // ==================================================
+  //                     Utilities
+  // ==================================================
+
+  /**
+   * Determines if the entity can be saved.
+   * By default, checks if the form is valid.
+   * Can be overridden by child classes to add custom validation.
+   *
+   * @returns {boolean} true if the entity can be saved, false otherwise
+   */
+  canSave(): boolean {
+    return this.entityForm?.valid ?? false;
+  }
+
+  /**
+   * Computed property that determines if the save button should be enabled.
+   * Returns true when the form is valid AND there are unsaved changes.
+   *
+   * Checks for changes in:
+   * - Duplicate mode (pending create with suggested copy values)
+   * - Form fields (dirty state)
+   * - Data tables (via dataTablesHaveChanges flag)
+   * - Translations (modified flags)
+   *
+   * Child classes can override to add custom logic (e.g., TreesFormComponent for tree nodes).
+   *
+   * @returns {boolean} true if save button should be enabled, false otherwise
+   */
+  get canSaveEntity(): boolean {
+    const isFormValid = this.entityForm?.valid ?? false;
+    const hasFormChanges = this.entityForm?.dirty ?? false;
+    const hasTranslationChanges = this.hasTranslationChanges();
+
+    return isFormValid && (
+      this.isDuplicated()
+      || hasFormChanges
+      || this.dataTablesHaveChanges
+      || hasTranslationChanges
+    );
+  }
+
+  /**
+   * Gets the list of form control names that are invalid and have required errors.
+   * Used by form validation banner to display which required fields need attention.
+   *
+   * @returns {string[]} Array of form control names that are invalid with required errors
+   */
+  protected getInvalidRequiredFields(): string[] {
+    if (!this.entityForm) {
+      return [];
+    }
+
+    const invalidFields: string[] = [];
+    const formControls = this.entityForm.controls;
+
+    for (const controlName in formControls) {
+      if (Object.prototype.hasOwnProperty.call(formControls, controlName)) {
+        const control = formControls[controlName];
+        if (control.enabled && control.invalid && control.hasError('required')) {
+          invalidFields.push(controlName);
+        }
+      }
+    }
+
+    return invalidFields;
+  }
+
+  /**
+   * Checks if any translations have been modified.
+   *
+   * @returns {boolean} true if any property has modified translations, false otherwise
+   * @private
+   */
+  protected hasTranslationChanges(): boolean {
+    return Array.from(this.propertyTranslations.values()).some(pt => pt.modified);
+  }
+
+  /**
+   * Registers a data-grid component with change tracking.
+   * Subscribes to the grid's modification events to enable/disable the save button.
+   * Prevents duplicate subscriptions using a WeakSet.
+   *
+   * @param {DataGridComponent} grid - The data grid component to register
+   * @private
+   */
+  private registerDataGrid(grid: DataGridComponent): void {
+    if (grid && grid.gridModified && !this.registeredGrids.has(grid)) {
+      this.registeredGrids.add(grid);
+      grid.gridModified
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe((_hasChanges: boolean) => {
+          // Update flag if any grid has changes
+          this.updateDataTablesChangeFlag();
+        });
+    }
+  }
+
+  /**
+   * Updates the dataTablesHaveChanges flag by checking all registered grids.
+   * Sets to true if ANY grid has unsaved changes.
+   * Checks both direct DataGridComponent instances and those wrapped by RelationGridComponent.
+   *
+   * @private
+   */
+  private updateDataTablesChangeFlag(): void {
+    let hasChanges = false;
+
+    // Check direct data grids
+    if (this.dataGrids) {
+      hasChanges = this.dataGrids.some(grid =>
+        grid && (
+          grid.changeCounter > 0 ||
+          grid.someStatusHasChanged === true ||
+          grid.someStatusHasChangedToDelete === true
+        )
+      );
+    }
+
+    // Check wrapped data grids
+    if (!hasChanges && this.relationGrids) {
+      hasChanges = this.relationGrids.some(relationGrid => {
+        const grid = relationGrid.dataGrid;
+        return grid && (
+          grid.changeCounter > 0 ||
+          grid.someStatusHasChanged === true ||
+          grid.someStatusHasChangedToDelete === true
+        );
+      });
+    }
+
+    this.dataTablesHaveChanges = hasChanges;
+  }
+
+  /**
+   * Saves the entity and its related data.
+   * Coordinates the overall save process:
+   * 1. Create or update the main entity
+   * 2. Refresh the entity data
+   * 3. Update related data
+   *
+   * @returns {Promise<void>} Promise that resolves when the entity is saved
+   */
+  async saveEntity(): Promise<void> {
+    const isNewOrDuplicated = this.isNewOrDuplicated();
+    const isDuplicated = this.isDuplicated();
+    if (isNewOrDuplicated) {
+      this.entityID = await this.createEntity();
+    } else if (this.entityForm?.dirty) {
+      await this.updateEntity();
+    }
+    this.entityToEdit = await this.fetchOriginal()
+    await this.updateDataRelated(isDuplicated);
+
+  }
+
+  /**
+   * Creates a new entity.
+   * Should be overridden by child classes to implement entity creation.
+   *
+   * @returns {Promise<number>} Promise that resolves with the ID of the created entity
+   */
+
+  createEntity(): Promise<number> {
+    return Promise.resolve(null)
+  }
+
+  /**
+   * Updates an existing entity.
+   * Should be overridden by child classes to implement entity updates.
+   *
+   * @returns {Promise<void>} Promise that resolves when the entity is updated
+   */
+  updateEntity(): Promise<void> {
+    return Promise.resolve(null)
+  }
+
+  /**
+   * Updates data related to the main entity.
+   * Should be overridden by child classes to save relationships and related entities.
+   *
+   * @param {boolean} _isDuplicated - Whether the operation is a duplication
+   * @returns {Promise<void>} Promise that resolves when related data is updated
+   */
+
+  updateDataRelated(_isDuplicated: boolean): Promise<void> {
+    return Promise.resolve()
+  }
+
+  /**
+   * Retrieves all values for a specific code list.
+   *
+   * @param {string} code - The code list name to retrieve
+   * @returns {CodeList[]} Array of CodeList items for the specified code
+   */
+  codeList(code: string): CodeList[] {
+    if (!this.codelists.has(code)) {
+      this.loggerService.error(`Code list ${code} not initialized`);
+    }
+    return this.codelists.get(code) || [];
+  }
+
+  /**
+   * Gets the first item in a code list.
+   *
+   * @param {string} code - The code list name
+   * @returns {CodeList} The first CodeList item or undefined if the list is empty
+   */
+  firstInCodeList(code: string): CodeList {
+    return this.codeList(code)[0];
+  }
+
+  /**
+   * Gets the default value from a code list (where defaultCode = true) or null.
+   *
+   * @param {string} code - The code list name
+   * @returns {CodeList | null} The CodeList item with defaultCode = true, or null if not found
+   */
+  defaultValueOrNull(code: string): CodeList | null {
+    const list = this.codeList(code);
+    const defaultItem = list.find(c => c.defaultCode === true);
+    return defaultItem || null;
+  }
+
+  /**
+   * Finds a specific item in a code list by its value.
+   *
+   * @param {string} code - The code list name to search in
+   * @param {string} value - The value to find in the code list
+   * @returns {CodeList} The matching CodeList item or undefined if not found
+   */
+  findInCodeList(code: string, value: string): CodeList {
+    return this.codeList(code).find(c => c.value === value);
+  }
+
+  /**
+   * Initializes multiple code lists by fetching their values from the service.
+   * Stores the sorted results in the codelists map.
+   *
+   * @param {string[]} codeList - Array of code list names to initialize
+   * @returns {Promise<void[]>} Promise that resolves when all code lists are initialized
+   */
+  async initCodeLists(codeList: string[]): Promise<void[]> {
+    return Promise.all(codeList.map(async code => {
+      const list: CodeList[] = await firstValueFrom(this.getCodeListValues(code))
+      this.codelists.set(code, [...list].sort((a, b) => {
+        if (a.defaultCode && !b.defaultCode) return -1;
+        if (!a.defaultCode && b.defaultCode) return 1;
+        return compareNullableString(a.description, b.description);
+      }));
+    }));
+  }
+
+  /**
+   * Initializes form change detection by storing initial values and setting up change subscriptions.
+   * Adds visual indicators when form fields are modified.
+   *
+   * @param {UntypedFormGroup} form - The Angular form group to monitor for changes
+   */
+  public subscribeToFormChanges(form: UntypedFormGroup) {
+    // Store initial form values after data is loaded
+    for (const key in form.controls) {
+      this.initialFormValues[key] = form.get(key).value
+    }
+
+    // Subscribe to form changes
+    Object.keys(form.controls).forEach(key => {
+      const control = form.get(key);
+      if (control) {
+        control.valueChanges
+          .pipe(takeUntilDestroyed(this.destroyRef))
+          .subscribe(() => {
+            this.checkControlModified(form, key);
+            this.changeDetectorRef.markForCheck();
+          });
+      }
+    });
+  }
+
+  /**
+   * Resets the form's modification tracking state.
+   * Updates the stored initial values to the current form values and removes all modification indicators.
+   *
+   * @param {UntypedFormGroup} form - The form group to reset
+   */
+  public resetToFormModifiedState(form: UntypedFormGroup): void {
+    // Update initial form values to reset to a modified state
+    this.initialFormValues = form.getRawValue();
+
+    // Remove modified styling from all form fields (must mirror checkControlModified)
+    Object.keys(form.controls).forEach(key => {
+      let element = document.querySelector(`[formControlName="${key}"]`)?.closest('mat-form-field');
+      if (!element) {
+        element = document.querySelector(`[formControlName="${key}"]`);
+      }
+      if (element) {
+        element.classList.remove('input-modified');
+      }
+    });
+  }
+
+  /**
+   * Initializes translation maps for all translatable properties of an entity.
+   * Creates empty translation objects for each supported language.
+   *
+   * @param {string} entity - The name of the entity class being translated
+   * @param {string[]} translatedProperties - Array of property names that need translation
+   */
+  initTranslations(
+    entity: string,
+    translatedProperties: string[],
+  ): void {
+    if (!entity || entity.trim() === '') {
+      throw new Error('Entity name cannot be empty');
+    }
+    if (!translatedProperties || translatedProperties.length === 0) {
+      this.loggerService.warn(`No translatable properties provided for ${entity}`);
+      return;
+    }
+    this.propertyTranslationsEntity = entity;
+    translatedProperties.forEach(property => {
+      this.propertyTranslations.set(property, {
+        property: property,
+        map: this.createTranslationsList(`${this.propertyTranslationsEntity}.${property}`),
+        modified: false
+      });
+    });
+  }
+
+  /**
+   * Loads existing translations for an entity from the database.
+   * Uses the efficient byElement search endpoint to fetch only relevant translations.
+   *
+   * @param {Object} entity - The entity object containing an ID to load translations for
+   * @param {number} entity.id - The ID of the entity
+   * @returns {Promise<void>} Promise that resolves when translations are loaded
+   */
+  async loadTranslations(entity: { id: number }): Promise<void> {
+    const allTranslations = await firstValueFrom(
+      this.translationService.search('byElement', {
+        params: [
+          { key: 'element', value: entity.id.toString() },
+          { key: 'column', value: this.propertyTranslationsEntity }
+        ]
+      })
+    );
+    this.propertyTranslations.forEach((value: PropertyTranslations, property: string) => {
+      allTranslations.filter(t => t.column === `${this.propertyTranslationsEntity}.${property}`).forEach(t => value.map.set(t.languageShortname, t));
+      value.modified = false;
+    });
+    return Promise.resolve();
+  }
+
+  /**
+   * Persists all translations for an entity to the database.
+   * Saves each modified property's translations.
+   *
+   * @param {Object} entity - The entity object containing an ID to save translations for
+   * @param {number} entity.id - The ID of the entity
+   * @returns {Promise<void[]>} Promise resolving to an array of void promises, one for each saved translation
+   */
+  async saveTranslations(entity: { id: number }): Promise<void[]> {
+    return Promise.all(Array.from(this.propertyTranslations.values()).map(async (value: PropertyTranslations) => {
+      await this.saveTranslation(entity.id, value.map, entity[value.property], value.modified);
+      value.modified = false;
+    }));
+  }
+
+  /**
+   * Handles the translation event for a specific property.
+   * Opens a dialog for editing translations and marks the property as modified if changes are accepted.
+   *
+   * @param {string} property - The name of the property being translated
+   * @returns {Promise<void>} Promise that resolves when the translation dialog is closed
+   */
+  async onTranslated(property: string): Promise<void> {
+    const propertyTranslation = this.propertyTranslations.get(property);
+    if (!propertyTranslation) {
+      this.loggerService.error(`Translation not initialized for property: ${property}`);
+      return;
+    }
+    // Get the current form field value (default language value)
+    const defaultLanguageValue = this.entityForm?.get(property)?.value || '';
+    // Extract maxLength and useTextarea from the form control
+    const maxLength = this.getMaxLengthForProperty(property);
+    const useTextarea = this.getUseTextareaForProperty(property);
+    const before = new Map<string, string | null>();
+    propertyTranslation.map.forEach((translation, shortname) => {
+      before.set(shortname, translation?.translation ?? null);
+    });
+    const dialogResult = await this.openTranslationDialog(propertyTranslation.map, defaultLanguageValue, maxLength, useTextarea);
+    if (dialogResult && dialogResult.event == 'Accept') {
+      const changed = Array.from(propertyTranslation.map.entries()).some(([shortname, translation]) =>
+        (translation?.translation ?? null) !== (before.get(shortname) ?? null)
+      ) || Array.from(before.keys()).some((shortname) => !propertyTranslation.map.has(shortname));
+      if (changed) {
+        propertyTranslation.modified = true;
+        this.changeDetectorRef.markForCheck();
+      }
+    }
+  }
+
+  protected async translateElement(
+    entity: string,
+    property: string,
+    elementId: number,
+    defaultValue: string,
+    maxLength: number
+  ): Promise<void> {
+    const column = `${entity}.${property}`;
+    const translations = this.createTranslationsList(column);
+    const existing = await firstValueFrom(
+      this.translationService.search('byElement', {
+        params: [
+          { key: 'element', value: elementId.toString() },
+          { key: 'column', value: entity }
+        ]
+      })
+    );
+    existing
+      .filter((item) => item.column === column)
+      .forEach((item) => translations.set(item.languageShortname, item));
+    const dialogResult = await this.openTranslationDialog(translations, defaultValue, maxLength, false);
+    if (dialogResult && dialogResult.event == 'Accept') {
+      await this.saveTranslation(elementId, translations, defaultValue, true);
+    }
+  }
+
+  /**
+   * Provides a detailed explanation of form validity status
+   * Examines each control's validation status and error messages
+   *
+   * @returns A string with detailed validation information
+   */
+  explainFormValidity(): string {
+    return explainFormValidity(this.entityForm);
+  }
+
+  /**
+   * Checks if a form control's current value differs from its initial value.
+   * Handles both primitive values and arrays.
+   *
+   * @param {UntypedFormGroup} form - The form group containing the control
+   * @param {string} controlName - The name of the control to check
+   * @returns {boolean} True if the control value has been modified, false otherwise
+   * @private
+   */
+  protected isControlModified(form: UntypedFormGroup, controlName: string): boolean {
+    const control = form.get(controlName);
+    if (!control) return false;
+
+    const currentValue = control.value;
+    const initialValue = this.initialFormValues[controlName];
+
+    // Handle arrays (like supportedSRS)
+    if (Array.isArray(currentValue) && Array.isArray(initialValue)) {
+      return JSON.stringify(currentValue) !== JSON.stringify(initialValue);
+    }
+
+    return currentValue !== initialValue;
+  }
+
+  /**
+   * Fetches code list values from the service with appropriate parameters.
+   *
+   * @param {string} valueList - The name of the code list to fetch
+   * @param {boolean} [notTraduction] - Optional flag to skip language parameter
+   * @returns {Observable<CodeList[]>} Observable of CodeList array
+   * @private
+   */
+  private getCodeListValues(valueList: string, notTraduction?: boolean): Observable<CodeList[]> {
+    const query: HalOptions = {
+      params: [
+        { key: 'codeListName', value: valueList }
+      ]
+    };
+    if (!notTraduction) {
+      let codelistLangValue = config.defaultLang;
+      if (localStorage.lang) {
+        codelistLangValue = localStorage.lang;
+      }
+      const param: HalParam = { key: 'lang', value: codelistLangValue };
+      query.params.push(param);
+    }
+
+    return this.codeListService.fetchAllItems(query);
+  }
+
+  /**
+   * Updates the visual state of a form control to indicate modification.
+   * Adds or removes the 'input-modified' class based on whether the field has been modified.
+   * Works with both Material form fields and regular form controls.
+   *
+   * @param {UntypedFormGroup} form - The form group containing the control
+   * @param {string} controlName - The name of the control to update
+   * @private
+   */
+  private checkControlModified(form: UntypedFormGroup, controlName: string): void {
+    const isModified = this.isControlModified(form, controlName);
+    let element = document.querySelector(`[formControlName="${controlName}"]`)?.closest('mat-form-field');
+    if (!element) {
+      element = document.querySelector(`[formControlName="${controlName}"]`);
+    }
+
+    if (element) {
+      if (isModified) {
+        element.classList.add('input-modified');
+      } else {
+        element.classList.remove('input-modified');
+      }
+    }
+  }
+
+  /**
+   * Creates a map of empty translation objects for all supported languages.
+   * Uses either configured languages or languages stored in localStorage.
+   *
+   * @param {string} columnName - The column name for the translations
+   * @returns {Map<string, Translation>} Map of language codes to empty translation objects
+   * @private
+   */
+  private createTranslationsList(columnName: string): Map<string, Translation> {
+    const translationsList: Map<string, Translation> = new Map<
+      string,
+      Translation
+    >();
+
+    let languagesToUse = config.languagesToUse;
+    if (!languagesToUse) {
+      try {
+        const storedLanguages = localStorage.getItem('languages');
+        languagesToUse = storedLanguages ? JSON.parse(storedLanguages) : [];
+      } catch (error) {
+        this.loggerService.error('Failed to parse languages from localStorage', error);
+        languagesToUse = [];
+      }
+    }
+
+    languagesToUse = filterEnabledLanguages(languagesToUse ?? []);
+    if (!languagesToUse || languagesToUse.length === 0) {
+      this.loggerService.warn('No languages configured for translations');
+      return translationsList;
+    }
+
+    languagesToUse.forEach((language: Language) => {
+      const currentTranslation: Translation = new Translation();
+      currentTranslation.translation = null;
+      currentTranslation.column = columnName;
+      currentTranslation.language = language;
+      translationsList.set(language.shortname, currentTranslation);
+    });
+    return translationsList;
+  }
+
+  /**
+   * Saves translations for a specific property to the database.
+   * Handles special cases for default language and empty translations.
+   *
+   * @param {number} id - The entity ID
+   * @param {Map<string, Translation>} translationMap - Map of language codes to translation objects
+   * @param {string} internationalValue - The default value in the default language
+   * @param {boolean} modifications - Flag indicating if translations were modified
+   * @returns {Promise<Map<string, Translation>>} Promise resolving to the updated translation map
+   * @private
+   */
+  private async saveTranslation(
+    id: number,
+    translationMap: Map<string, Translation>,
+    internationalValue: string,
+    modifications: boolean
+  ): Promise<Map<string, Translation>> {
+    if (!translationMap) return Promise.resolve(new Map<string, Translation>());
+
+    const defaultLanguage = config.defaultLang;
+    const promises: Promise<any>[] = [];
+
+    translationMap.forEach((value: Translation, key: string) => {
+      if (key !== defaultLanguage && !modifications) {
+        this.loggerService.debug(`Skipping non-default language translation for ${key}: no modifications needed`);
+        return;
+      }
+
+      if (key !== defaultLanguage && !value?.translation) {
+        this.loggerService.debug(`Skipping non-default language translation for ${key}: no translation value`);
+        return;
+      }
+
+      if (key === defaultLanguage && !internationalValue) {
+        this.loggerService.debug(`Skipping default language translation for ${key}: no value provided`);
+        return;
+      }
+
+      value.element = id;
+
+      if (key === defaultLanguage) {
+        value.translation = internationalValue;
+      }
+
+      promises.push(firstValueFrom(
+        this.translationService.save(value).pipe(
+          tap(result => translationMap.set(key, result))
+        )
+      ));
+    });
+
+    await Promise.all(promises);
+    return translationMap;
+  }
+
+  /**
+   * Extracts the maxLength value from a form control's validator.
+   *
+   * @param property - The form control property name
+   * @returns The maxLength value, or 4000 as default fallback
+   * @private
+   */
+  private getMaxLengthForProperty(property: string): number {
+    const control = this.entityForm?.get(property);
+    if (!control) {
+      return 4000; // Default fallback
+    }
+
+    const validator = control.validator;
+    if (validator) {
+      const errors = validator(new FormControl({ length: Infinity }));
+      if (errors?.['maxlength']) {
+        return errors['maxlength']['requiredLength'];
+      }
+    }
+
+    return 4000; // Default fallback
+  }
+
+  /**
+   * Determines if a form field uses textarea or input by inspecting the DOM.
+   * This is a non-heuristic approach that checks the actual rendered element.
+   *
+   * @param property - The form control property name
+   * @returns true if the field uses textarea, false if it uses input (or not found)
+   * @private
+   */
+  private getUseTextareaForProperty(property: string): boolean {
+    // Query the DOM to find the actual form field element
+    const formFieldElement = document.querySelector(
+      `[formControlName="${property}"]`
+    )?.closest('mat-form-field');
+
+    if (!formFieldElement) {
+      return false; // Default to input if element not found
+    }
+
+    // Check if the element inside mat-form-field is a textarea
+    const inputElement = formFieldElement.querySelector('textarea, input');
+    return inputElement?.tagName === 'TEXTAREA';
+  }
+
+  /**
+   * Opens a dialog for editing translations.
+   * Configures the dialog with available languages and current translations.
+   *
+   * @param {Map<string, Translation>} translationsMap - Map of current translations to edit
+   * @param {string} defaultLanguageValue - The current value in the default language (from form field)
+   * @param {number} maxLength - Maximum length for translation fields
+   * @param {boolean} useTextarea - Whether to use textarea (true) or input (false)
+   * @returns {Promise<any>} Promise resolving to the dialog result
+   * @private
+   */
+  private async openTranslationDialog(translationsMap: Map<string, Translation>, defaultLanguageValue: string, maxLength: number, useTextarea: boolean): Promise<any> {
+    const languagesAvailables = await firstValueFrom(this.languageService.refreshLanguagesToUse());
+    const dialogRef = this.dialog.open(DialogTranslationComponent, {
+      panelClass: 'translateDialogs',
+    });
+    dialogRef.componentInstance.translationsMap = translationsMap;
+    dialogRef.componentInstance.languageByDefault = config.defaultLang;
+    dialogRef.componentInstance.languagesAvailables = languagesAvailables;
+    dialogRef.componentInstance.defaultLanguageValue = defaultLanguageValue;
+    dialogRef.componentInstance.maxLength = maxLength;
+    dialogRef.componentInstance.useTextarea = useTextarea;
+
+    const result = await firstValueFrom(dialogRef.afterClosed());
+    if (result) {
+      return result;
+    } else {
+      return null;
+    }
+  }
+}
+
+/**
+ * Type representing translations for a specific property of an entity.
+ */
+export type PropertyTranslations = {
+  /** The name of the property being translated */
+  property: string,
+  /** Map of language codes to their respective Translation objects */
+  map: Map<string, Translation>,
+  /** Indicates whether translations have been modified and need saving */
+  modified: boolean
+}

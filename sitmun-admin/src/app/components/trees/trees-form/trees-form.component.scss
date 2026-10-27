@@ -1,0 +1,61 @@
+// Material Design compatible styles only
+// Float-based layouts removed - using Material flexbox instead
+// Custom button styles removed - using Material button components instead
+
+.tree-container {
+  display: flex;
+  flex-direction: column;
+}
+
+// Ensure mat-card border matches tree-nodes outer card
+::ng-deep .mat-tab-body-content {
+  padding: 0 !important;
+}
+
+mat-card[appearance="outlined"] {
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 4px;
+}
+
+.tableDiv {
+  margin-top: 10px;
+}
+
+.fieldsConfigTree {
+  overflow: auto;
+  height: 45vh;
+  display: block;
+}
+
+.maping-form {
+  margin-top: 20px;
+}
+
+#fieldsConfigForm {
+  width: 80vw;
+}
+
+// Appearance panel - Material Design compliant structure
+.appearance-panel-content {
+  display: flex;
+  gap: 16px; // Material Design spacing (16dp)
+  flex-wrap: wrap;
+  align-items: flex-start;
+}
+
+.appearance-input-section {
+  flex: 2;
+  min-width: 400px;
+}
+
+.appearance-form-field {
+  width: 100%;
+}
+
+.appearance-actions {
+  display: flex;
+  gap: 8px; // Material Design spacing (8dp)
+  margin-top: 8px; // Material Design spacing (8dp)
+}
+
+// Image preview styles are now in ImagePreviewComponent

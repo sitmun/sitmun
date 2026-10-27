@@ -1,0 +1,98 @@
+@use "../../../variables" as *;
+
+.top-toolbar-row {
+	background-color: $primary-color;
+	color: $white;
+}
+
+.toggle-button{
+  
+}
+
+.toolbar-spacer {
+  flex: 1 1 auto;
+}
+
+.clickable-image
+{
+    cursor: pointer;
+}
+
+
+.sitmun-logo-container {
+	height: 100%;
+}
+
+.sitmun-logo {
+  line-height: 100px;
+	display: table-cell;
+    vertical-align: middle;
+    margin: auto 0 auto 0;
+    margin-bottom: 8px;
+}
+
+.lang-icon {
+	background: rgba(255, 255, 255, 0.3);
+    border-radius: 100%;
+    margin-left: 0.5em;
+    color: $white;
+    font-weight: normal;
+    display: inline;
+    float: left;
+    font-size: 0.95em;
+    height: 38px;
+    position: relative;
+    width: 38px;
+    text-align: center;
+    line-height: 38px;
+    text-decoration: none;
+    padding: 0px;
+}
+
+.lang-icon:hover {
+	background: rgba(255, 255, 255, 1.0);
+	color: rgba(0, 0, 0, 1.0);
+}
+
+.app-title {
+	font-size: $font-size-lg;
+}
+
+.toolbar-spacer {
+  flex: 1 1 auto;
+}
+
+.toolbar-user {
+  border-left: 1px solid $dark-gray;
+  color: $text-color;
+  font-size: $font-size-sm;
+  margin-left: $spacing-lg;
+  padding-left: $spacing-lg;
+  padding-right: $spacing-xs;
+  display: flex;
+  align-items: center;
+}
+
+.user {
+  padding-top: 3px;
+}
+
+.toolbar-icon{
+  color: $text-color;
+}
+
+.exit-icon{
+  color: $white;
+  background-color: $warn-color;
+  border-color: $warn-color;
+}
+
+.toolbar-toggle
+{
+  
+    margin-right: 29px;
+}
+
+button:focus {
+  outline: none !important;
+}

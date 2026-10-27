@@ -1,0 +1,75 @@
+import {Resource} from '@app/core/hal/resource/resource.model';
+
+import {ServiceParameter} from './service-parameter.model';
+import {Connection} from '../../connection/models/connection.model';
+
+
+/**
+ * Service model
+ */
+export class Service extends Resource {
+  public override id: number;
+  public name: string;
+
+  public type: string;
+
+  /** url*/
+  public serviceURL: string;
+
+  /** projections*/
+  public supportedSRS: string[];
+
+  /** legend*/
+  public legend: string;
+
+  /** infoUrl*/
+  public infoUrl: string;
+
+  /** system created date*/
+  public createdDate: any;
+
+  /** connection*/
+  public connection: Connection;
+
+  /** parameters*/
+  public parameters: ServiceParameter[];
+
+  /** whether service is blocked*/
+  public blocked: boolean;
+
+  /** whether service is proxied*/
+  public isProxied: boolean;
+
+  description: string;
+
+  getInformationURL: string;
+
+  user: string;
+
+  password: string;
+
+  authenticationMode: string;
+
+  /**
+   * Creates a new Service instance copying only the properties declared in Service and Resource classes
+   * @param source The source object to copy properties from
+   * @returns A new Service instance with copied properties
+   */
+  public static fromObject(source: any): Service {
+    const service = new Service();
+    const propertiesToCopy = [
+      'proxyUrl', 'rootUrl', '_links', '_subtypes',
+      // Service properties
+      'id', 'name', 'type', 'serviceURL', 'supportedSRS',
+      'legend', 'infoUrl', 'createdDate', 'connection',
+      'parameters', 'blocked', 'isProxied', 'description',
+      'getInformationURL', 'user', 'password', 'authenticationMode'
+    ];
+    propertiesToCopy.forEach(prop => {
+      if (source[prop] !== undefined) {
+        service[prop] = source[prop];
+      }
+    });
+    return service;
+  }
+}

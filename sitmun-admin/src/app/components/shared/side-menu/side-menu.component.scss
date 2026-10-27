@@ -1,0 +1,112 @@
+@use "../../../variables" as *;
+
+.sidenav-container {
+  position: absolute;
+  top: 65px;
+  bottom:1px;
+  left: 0px;
+  right: 0px;
+}
+
+.sidenav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 230px;
+  background-color: $light-gray;
+  border: 0px black;
+}
+
+.mat-expansion-panel{
+  width: 230px;
+  background-color: $light-gray;
+  border: 0px $light-gray;
+}
+
+.mat-expansion-panel-header{
+  font-size: 16px;
+  font-weight: normal;
+  padding: $spacing-sm $spacing-sm $spacing-sm 0px;
+}
+
+.sidenav ul {
+  padding-left: 0px;
+}
+
+.sidenav ul li{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sidenav ul li a{
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: $spacing-sm $spacing-sm $spacing-sm $spacing-md;
+  color: $black !important;
+}
+
+.sidenav ul li a .mat-icon{
+  color: $text-color !important;
+}
+
+.sidenav ul li a.active, .sidenav ul li a.active .mat-icon{
+  color: $accent-color !important;
+  font-weight: 700;
+}
+
+
+.sidenav ul li .mat-icon {
+  margin-right: $spacing-sm;
+}
+
+.sidenav-content {
+	padding-left: default;
+}
+
+.childrenOption{
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: $spacing-sm $spacing-sm $spacing-sm $spacing-md;
+}
+
+.sidenav-margin-div{
+	background-color: $white;
+	height: 30px;
+	width: 100%;
+	position: absolute;
+    bottom: 60px;
+}
+
+.side-nav-option {
+  list-style: none;
+  color: $black !important;
+}
+
+.side-nav-option a {
+  text-decoration: none !important;
+  color: $black !important;
+}
+
+.expandOptionChildren {
+  margin-left: -39px !important;
+}
+
+.altresMenus{
+  border-top: 1px solid $medium-gray;
+}
+
+.expandible-option {
+  padding: 0 $spacing-sm 0 0 !important;       // Same padding as other sidenav-options
+  height: 40px !important;              // Same height as other sidenav-options
+}
+
+.remove-mat-expansion-panel-padding {
+  ::ng-deep {
+    .mat-expansion-panel-body {
+      padding: 0 $spacing-sm 0 0 !important;   // Same padding as other sidenav-options
+    }
+  }
+}
