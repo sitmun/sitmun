@@ -43,7 +43,7 @@ docs/
 sitmun.github.io/
 
 # Generated configuration files
-front/config/default.conf
+docker/front/config/default.conf
 
 # Python (if any)
 __pycache__/
@@ -54,6 +54,12 @@ __pycache__/
 # Dependencies (exclude installed trees, keep package.json and package-lock.json)
 node_modules/
 **/node_modules/
+**/build/
+**/.gradle/
+
+# Not copied into any image
+sitmun-mobile/
+e2e/
 
 # Keep these files (DO NOT exclude):
 # package.json, package-lock.json (frontend)
@@ -61,4 +67,4 @@ node_modules/
 # gradlew, gradle/ (backend)
 # src/ (source code)
 # *.ts, *.js, *.java (source files)
-# docker-compose.yml, Dockerfile, .dockerignore
+# compose.yaml, Dockerfile, .dockerignore

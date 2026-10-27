@@ -4,12 +4,12 @@ ARG ALPINE_TAG=3.22
 
 # Stage 0, based on Amazon Corretto, to compile the shared library and the backend
 FROM amazoncorretto:${JDK_VERSION}.${JDK_TAG} AS build-backend-core
-COPY shared/sitmun-shared /usr/src/sitmun-shared
+COPY sitmun-common /usr/src/sitmun-shared
 WORKDIR /usr/src/sitmun-shared
 RUN --mount=type=cache,target=/root/.gradle-shared \
     GRADLE_USER_HOME=/root/.gradle-shared ./gradlew --no-daemon publishToMavenLocal -x test
 
-COPY backend/sitmun-backend-core /usr/src/sitmun-backend-core
+COPY sitmun-backend /usr/src/sitmun-backend-core
 WORKDIR /usr/src/sitmun-backend-core
 RUN --mount=type=cache,target=/root/.gradle-backend \
     GRADLE_USER_HOME=/root/.gradle-backend ./gradlew --no-daemon -i build \

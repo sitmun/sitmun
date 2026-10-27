@@ -283,7 +283,7 @@ else
 fi
 
 # ---------------------------------------------------------------------------
-# Development targets (root docker-compose.yml, ENVIRONMENT=development)
+# Development targets (root compose.yaml, ENVIRONMENT=development)
 # ---------------------------------------------------------------------------
 
 echo ""
@@ -328,7 +328,7 @@ if [[ "$SKIP_ORACLE" == "false" ]]; then
 fi
 
 # ---------------------------------------------------------------------------
-# Production targets (root docker-compose.yml, ENVIRONMENT=production)
+# Production targets (root compose.yaml, ENVIRONMENT=production)
 # ---------------------------------------------------------------------------
 
 echo ""

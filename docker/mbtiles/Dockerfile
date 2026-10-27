@@ -3,7 +3,7 @@ ARG JDK_TAG=0.17
 ARG ALPINE_TAG=3.22
 
 FROM amazoncorretto:${JDK_VERSION}.${JDK_TAG} AS build-mbtiles
-COPY sitmun-mbtiles /usr/src/sitmun-mbtiles
+COPY sitmun-addons/sitmun-mbtiles /usr/src/sitmun-mbtiles
 WORKDIR /usr/src/sitmun-mbtiles
 RUN --mount=type=cache,target=/root/.gradle-mbtiles \
     GRADLE_USER_HOME=/root/.gradle-mbtiles ./gradlew --no-daemon -i build \
