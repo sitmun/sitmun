@@ -1,0 +1,5 @@
+<select #filterSelect (change)='onChange(filterSelect.value)'>
+  <option value="">{{ "common.selectAll" | translate }}</option>
+  <option value="true">{{ "common.status.enabled" | translate }}</option>
+  <option value="false">{{ "common.status.disabled" | translate }}</option>
+</select>

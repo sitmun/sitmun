@@ -1,0 +1,614 @@
+/**
+ * Menu item interface defining the structure of a menu item
+ */
+export interface MenuItem {
+  id: string;
+
+  label: string;
+
+  icon: string;
+
+  font?: string;
+
+  children?: MenuItem[] | null;
+}
+
+/**
+ * Form configuration interface defining common properties for forms
+ */
+export interface FormConfiguration {
+  id: string;
+
+  labelPlural: string;
+
+  labelSingular: string;
+
+  icon: string;
+
+  font: string;
+
+  route: string;
+
+  formRoute: string;
+
+  duplicateRoute: string;
+
+  component: string;
+
+  formComponent: string;
+}
+
+/**
+ * SITMUN configuration class that defines common properties for each kind of form
+ * This class centralizes SITMUN form configuration, making it easier to maintain
+ * and extend the application's navigation structure.
+ */
+export class Configuration {
+  /**
+   * Dashboard configuration
+   */
+  static readonly DASHBOARD: FormConfiguration = {
+    id: 'dashboard',
+    labelSingular: 'dashboard.title',
+    labelPlural: 'dashboard.title',
+    icon: 'dashboard',
+    font: 'material-icons-round',
+    route: 'dashboard',
+    formRoute: '',
+    duplicateRoute: '',
+    component: 'DashboardComponent',
+    formComponent: ''
+  };
+
+  /**
+   * Connection configuration
+   */
+  static readonly CONNECTION: FormConfiguration = {
+    id: 'connection',
+    labelSingular: 'entity.connection.label',
+    labelPlural: 'entity.connection.label',
+    icon: 'database',
+    font: 'material-symbols-outlined',
+    route: 'connection',
+    formRoute: ':id/connectionForm',
+    duplicateRoute: ':id/connectionForm/:idDuplicate',
+    component: 'ConnectionComponent',
+    formComponent: 'ConnectionFormComponent'
+  };
+
+  /**
+   * Service configuration
+   */
+  static readonly SERVICE: FormConfiguration = {
+    id: 'service',
+    labelSingular: 'entity.service.label',
+    labelPlural: 'entity.service.label',
+    icon: 'api',
+    font: 'material-symbols-outlined',
+    route: 'service',
+    formRoute: ':id/serviceForm',
+    duplicateRoute: ':id/serviceForm/:idDuplicate',
+    component: 'ServiceComponent',
+    formComponent: 'ServiceFormComponent'
+  };
+
+  /**
+   * Layers configuration
+   */
+  static readonly LAYER: FormConfiguration = {
+    id: 'layers',
+    labelSingular: 'entity.layer.label',
+    labelPlural: 'entity.layer.label',
+    icon: 'stacks',
+    font: 'material-symbols-outlined',
+    route: 'layers',
+    formRoute: ':id/layersForm',
+    duplicateRoute: ':id/layersForm/:idDuplicate',
+    component: 'LayersComponent',
+    formComponent: 'LayersFormComponent'
+  };
+
+  /**
+   * Trees configuration
+   */
+  static readonly TREE: FormConfiguration = {
+    id: 'trees',
+    labelSingular: 'entity.tree.label',
+    labelPlural: 'entity.tree.label',
+    icon: 'lan',
+    font: 'material-icons-round',
+    route: 'trees',
+    formRoute: ':id/treesForm',
+    duplicateRoute: ':id/treesForm/:idDuplicate',
+    component: 'TreesComponent',
+    formComponent: 'TreesFormComponent'
+  };
+
+  /**
+   * Background layers configuration
+   */
+  static readonly BACKGROUND_LAYER: FormConfiguration = {
+    id: 'backgroundLayers',
+    labelSingular: 'entity.background.label',
+    labelPlural: 'entity.background.label',
+    icon: 'map',
+    font: 'material-symbols-outlined',
+    route: 'backgroundLayers',
+    formRoute: ':id/backgroundLayersForm',
+    duplicateRoute: ':id/backgroundLayersForm/:idDuplicate',
+    component: 'BackgroundLayersComponent',
+    formComponent: 'BackgroundLayersFormComponent'
+  };
+
+  /**
+   * Layers permits configuration
+   */
+  static readonly LAYERS_PERMIT: FormConfiguration = {
+    id: 'layersPermits',
+    labelSingular: 'entity.permissionGroup.label',
+    labelPlural: 'entity.permissionGroup.label',
+    icon: 'lock',
+    font: 'material-icons-round',
+    route: 'layersPermits',
+    formRoute: ':id/layersPermitsForm',
+    duplicateRoute: ':id/layersPermitsForm/:idDuplicate',
+    component: 'LayersPermitsComponent',
+    formComponent: 'LayersPermitsFormComponent'
+  };
+
+  /**
+   * Territory configuration
+   */
+  static readonly TERRITORY: FormConfiguration = {
+    id: 'territory',
+    labelSingular: 'entity.territory.plural',
+    labelPlural: 'entity.territory.plural',
+    icon: 'place',
+    font: 'material-icons-round',
+    route: 'territory',
+    formRoute: ':id/territoryForm',
+    duplicateRoute: ':id/territoryForm/:idDuplicate',
+    component: 'TerritoryComponent',
+    formComponent: 'TerritoryFormComponent'
+  };
+
+  /**
+   * Role configuration
+   */
+  static readonly ROLE: FormConfiguration = {
+    id: 'role',
+    labelSingular: 'entity.role.label',
+    labelPlural: 'entity.role.label',
+    icon: 'assignment_ind',
+    font: 'material-icons-round',
+    route: 'role',
+    formRoute: ':id/roleForm',
+    duplicateRoute: ':id/roleForm/:idDuplicate',
+    component: 'RoleComponent',
+    formComponent: 'RoleFormComponent'
+  };
+
+  /**
+   * User configuration
+   */
+  static readonly USER: FormConfiguration = {
+    id: 'user',
+    labelSingular: 'entity.user.label',
+    labelPlural: 'entity.user.label',
+    icon: 'person',
+    font: 'material-icons-round',
+    route: 'user',
+    formRoute: ':id/userForm',
+    duplicateRoute: ':id/userForm/:idDuplicate',
+    component: 'UserComponent',
+    formComponent: 'UserFormComponent'
+  };
+
+  /**
+   * Task group configuration
+   */
+  static readonly TASK_GROUP: FormConfiguration = {
+    id: 'taskGroup',
+    labelSingular: 'entity.taskGroup.label',
+    labelPlural: 'entity.taskGroup.label',
+    icon: 'list',
+    font: 'material-icons-round',
+    route: 'taskGroup',
+    formRoute: ':id/taskGroupForm',
+    duplicateRoute: ':id/taskGroupForm/:idDuplicate',
+    component: 'TaskGroupComponent',
+    formComponent: 'TaskGroupFormComponent'
+  };
+
+  /**
+   * Task UI configuration
+   */
+  static readonly TASK_UI: FormConfiguration = {
+    id: 'task-ui',
+    labelSingular: 'entity.taskUI.label',
+    labelPlural: 'entity.taskUI.plural',
+    icon: 'widgets',
+    font: 'material-icons-round',
+    route: 'task-ui',
+    formRoute: ':id/taskUIForm',
+    duplicateRoute: ':id/taskUIForm/:idDuplicate',
+    component: 'TaskUIComponent',
+    formComponent: 'TaskUIFormComponent'
+  };
+
+  /**
+   * Tasks configuration with sub-items
+   */
+  static readonly TASK: FormConfiguration = {
+    id: 'tasks',
+    labelSingular: 'entity.task.label',
+    labelPlural: 'entity.task.label',
+    icon: 'sync',
+    font: 'material-icons-round',
+    route: 'tasks',
+    formRoute: 'tasks/:id/:type',
+    duplicateRoute: '',
+    component: 'TasksComponent',
+    formComponent: ''
+  };
+
+  /**
+   * Basic tasks configuration
+   */
+  static readonly TASK_BASIC: FormConfiguration = {
+    id: 'tasksBasic',
+    labelSingular: 'entity.task.basic.label',
+    labelPlural: 'entity.task.basic.label',
+    icon: 'sync',
+    font: 'material-icons-round',
+    route: 'tasksBasic',
+    formRoute: 'taskBasic/:id/:type',
+    duplicateRoute: 'taskBasic/:id/:type/:idDuplicate',
+    component: 'TasksBasicComponent',
+    formComponent: 'TaskBasicFormComponent'
+  };
+
+  /**
+   * Query tasks configuration
+   */
+  static readonly TASK_QUERY: FormConfiguration = {
+    id: 'tasksQuery',
+    labelSingular: 'entity.task.query.label',
+    labelPlural: 'entity.task.query.label',
+    icon: 'sync',
+    font: 'material-icons-round',
+    route: 'tasksQuery',
+    formRoute: 'taskQuery/:id/:type',
+    duplicateRoute: 'taskQuery/:id/:type/:idDuplicate',
+    component: 'TasksQueryComponent',
+    formComponent: 'TaskQueryFormComponent'
+  };
+
+  /**
+   * Locator tasks configuration
+   */
+  static readonly TASK_LOCATOR: FormConfiguration = {
+    id: 'tasksLocator',
+    labelSingular: 'entity.task.locator.label',
+    labelPlural: 'entity.task.locator.label',
+    icon: 'search',
+    font: 'material-icons-round',
+    route: 'tasksLocator',
+    formRoute: 'tasksLocator/:id/:type',
+    duplicateRoute: 'tasksLocator/:id/:type/:idDuplicate',
+    component: 'TasksLocatorComponent',
+    formComponent: 'TaskLocatorFormComponent'
+  };
+
+  /**
+   * More Info tasks configuration
+   */
+  static readonly TASK_MORE_INFO: FormConfiguration = {
+    id: 'tasksMoreInfo',
+    labelSingular: 'entity.task.moreInfo.label',
+    labelPlural: 'entity.task.moreInfo.label',
+    icon: 'task',
+    font: 'material-icons-round',
+    route: 'tasksMoreInfo',
+    formRoute: 'tasksMoreInfo/:id/:type',
+    duplicateRoute: 'tasksMoreInfo/:id/:type/:idDuplicate',
+    component: 'TasksMoreInfoComponent',
+    formComponent: 'TaskMoreInfoFormComponent'
+  };
+
+  /**
+   * Template tasks configuration
+   */
+  static readonly TASK_TEMPLATE: FormConfiguration = {
+    id: 'tasksTemplate',
+    labelSingular: 'entity.task.template.label',
+    labelPlural: 'entity.task.template.label',
+    icon: 'description',
+    font: 'material-icons-round',
+    route: 'tasksTemplate',
+    formRoute: 'taskTemplate/:id/:type',
+    duplicateRoute: 'taskTemplate/:id/:type/:idDuplicate',
+    component: 'TasksTemplateComponent',
+    formComponent: 'TaskTemplateFormComponent'
+  };
+
+  static readonly TASK_MAP_IMAGE: FormConfiguration = {
+    id: 'tasksMapImage',
+    labelSingular: 'entity.task.mapImage.label',
+    labelPlural: 'entity.task.mapImage.label',
+    icon: 'map',
+    font: 'material-icons-round',
+    route: 'tasksMapImage',
+    formRoute: 'taskMapImage/:id/:type',
+    duplicateRoute: 'taskMapImage/:id/:type/:idDuplicate',
+    component: 'TasksMapImageComponent',
+    formComponent: 'TaskMapImageFormComponent'
+  };
+
+  static readonly TASK_DOCUMENT_EXPORT: FormConfiguration = {
+    id: 'tasksDocumentExport',
+    labelSingular: 'entity.task.documentExport.label',
+    labelPlural: 'entity.task.documentExport.label',
+    icon: 'picture_as_pdf',
+    font: 'material-icons-round',
+    route: 'tasksDocumentExport',
+    formRoute: 'taskDocumentExport/:id/:type',
+    duplicateRoute: 'taskDocumentExport/:id/:type/:idDuplicate',
+    component: 'TasksDocumentExportComponent',
+    formComponent: 'TaskDocumentExportFormComponent'
+  };
+
+  /**
+   * Advanced More Info tasks configuration
+   */
+  static readonly TASK_MORE_INFO_ADVANCED: FormConfiguration = {
+    id: 'tasksMoreInfoAdvanced',
+    labelSingular: 'entity.task.moreInfoAdvanced.label',
+    labelPlural: 'entity.task.moreInfoAdvanced.label',
+    icon: 'picture_as_pdf',
+    font: 'material-icons-round',
+    route: 'tasksMoreInfoAdvanced',
+    formRoute: 'tasksMoreInfoAdvanced/:id/:type',
+    duplicateRoute: 'tasksMoreInfoAdvanced/:id/:type/:idDuplicate',
+    component: 'TasksMoreInfoAdvancedComponent',
+    formComponent: 'TaskMoreInfoAdvancedFormComponent'
+  };
+
+  /**
+   * Edit tasks configuration
+   */
+  static readonly TASK_EDIT: FormConfiguration = {
+    id: 'tasksEdit',
+    labelSingular: 'entity.task.edit.label',
+    labelPlural: 'entity.task.edit.label',
+    icon: 'sync',
+    font: 'material-icons-round',
+    route: 'tasksEdit',
+    formRoute: 'taskEdit/:id/:type',
+    duplicateRoute: 'taskEdit/:id/:type/:idDuplicate',
+    component: 'TasksEditComponent',
+    formComponent: 'TaskEditFormComponent'
+  };
+
+  /**
+   * Application configuration
+   */
+  static readonly APPLICATION: FormConfiguration = {
+    id: 'application',
+    labelSingular: 'entity.application.label',
+    labelPlural: 'entity.application.label',
+    icon: 'apps',
+    font: 'material-icons-round',
+    route: 'application',
+    formRoute: ':id/applicationForm',
+    duplicateRoute: ':id/applicationForm/:idDuplicate',
+    component: 'ApplicationComponent',
+    formComponent: 'ApplicationFormComponent'
+  };
+
+  /**
+   * Language configuration
+   */
+  static readonly LANGUAGE: FormConfiguration = {
+    id: 'language',
+    labelSingular: 'entity.language.label',
+    labelPlural: 'entity.language.plural',
+    icon: 'language',
+    font: 'material-icons-round',
+    route: 'language',
+    formRoute: ':id/languageForm',
+    duplicateRoute: ':id/languageForm/:idDuplicate',
+    component: 'LanguageComponent',
+    formComponent: 'LanguageFormComponent'
+  };
+
+  /**
+   * Literal translations configuration
+   */
+  static readonly LITERAL_TRANSLATION: FormConfiguration = {
+    id: 'literalTranslations',
+    labelSingular: 'entity.literalTranslation.label',
+    labelPlural: 'entity.literalTranslation.plural',
+    icon: 'translate',
+    font: 'material-icons-round',
+    route: 'literalTranslations',
+    formRoute: '',
+    duplicateRoute: '',
+    component: 'LiteralTranslationsComponent',
+    formComponent: ''
+  };
+
+  /**
+   * Territory type configuration
+   */
+  static readonly TERRITORY_TYPE: FormConfiguration = {
+    id: 'territoryType',
+    labelSingular: 'entity.territoryType.label',
+    labelPlural: 'entity.territoryType.plural',
+    icon: 'category',
+    font: 'material-icons-round',
+    route: 'territoryType',
+    formRoute: ':id/territoryTypeForm',
+    duplicateRoute: ':id/territoryTypeForm/:idDuplicate',
+    component: 'TerritoryTypeComponent',
+    formComponent: 'TerritoryTypeFormComponent'
+  };
+
+  /**
+   * Task type configuration
+   */
+  static readonly TASK_TYPE: FormConfiguration = {
+    id: 'taskType',
+    labelSingular: 'entity.taskType.label',
+    labelPlural: 'entity.taskType.plural',
+    icon: 'label',
+    font: 'material-icons-round',
+    route: 'taskType',
+    formRoute: ':id/taskTypeForm',
+    duplicateRoute: '',
+    component: 'TaskTypeComponent',
+    formComponent: 'TaskTypeFormComponent'
+  };
+
+  /**
+   * Code List Value configuration
+   */
+  static readonly CODELIST_VALUE: FormConfiguration = {
+    id: 'codelistValue',
+    labelSingular: 'entity.codelistValue.label',
+    labelPlural: 'entity.codelistValue.plural',
+    icon: 'list_alt',
+    font: 'material-icons-round',
+    route: 'codelistValue',
+    formRoute: ':id/codelistValueForm',
+    duplicateRoute: ':id/codelistValueForm/:idDuplicate',
+    component: 'CodelistValueComponent',
+    formComponent: 'CodelistValueFormComponent'
+  };
+
+  /**
+   * Configuration Parameter configuration
+   */
+  static readonly CONFIGURATION_PARAMETER: FormConfiguration = {
+    id: 'configurationParameter',
+    labelSingular: 'entity.configurationParameter.label',
+    labelPlural: 'entity.configurationParameter.plural',
+    icon: 'settings',
+    font: 'material-icons-round',
+    route: 'configurationParameter',
+    formRoute: ':id/configurationParameterForm',
+    duplicateRoute: ':id/configurationParameterForm/:idDuplicate',
+    component: 'ConfigurationParameterComponent',
+    formComponent: 'ConfigurationParameterFormComponent'
+  };
+
+  /**
+   * Get all form configurations as an array
+   */
+  static getAllConfigurations(): FormConfiguration[] {
+    return [
+      Configuration.DASHBOARD,
+      Configuration.CONNECTION,
+      Configuration.SERVICE,
+      Configuration.LAYER,
+      Configuration.TREE,
+      Configuration.BACKGROUND_LAYER,
+      Configuration.LAYERS_PERMIT,
+      Configuration.TERRITORY,
+      Configuration.ROLE,
+      Configuration.USER,
+      Configuration.TASK_GROUP,
+      Configuration.TASK_UI,
+      Configuration.TASK,
+      Configuration.TASK_BASIC,
+      Configuration.TASK_QUERY,
+      Configuration.TASK_MAP_IMAGE,
+      Configuration.TASK_DOCUMENT_EXPORT,
+      Configuration.TASK_LOCATOR,
+      Configuration.TASK_MORE_INFO,
+      Configuration.TASK_TEMPLATE,
+      Configuration.TASK_MORE_INFO_ADVANCED,
+      Configuration.TASK_EDIT,
+      Configuration.APPLICATION,
+      Configuration.LANGUAGE,
+      Configuration.LITERAL_TRANSLATION,
+      Configuration.TERRITORY_TYPE,
+      Configuration.TASK_TYPE,
+      Configuration.CODELIST_VALUE,
+      Configuration.CONFIGURATION_PARAMETER
+    ];
+  }
+
+  /**
+   * Get configuration by ID
+   */
+  static getConfigurationById(id: string): FormConfiguration | undefined {
+    return this.getAllConfigurations().find(config => config.id === id);
+  }
+
+  /**
+   * Convert form configuration to menu item
+   */
+  static toMenuItem(config: FormConfiguration): MenuItem {
+    return {
+      id: config.id,
+      label: config.labelPlural,
+      icon: config.icon,
+      font: config.font,
+      children: null
+    };
+  }
+
+  /**
+   * Get menu structure as defined in the original constants
+   */
+  static getMenuStructure(): MenuItem[][] {
+    return [
+      [
+        Configuration.toMenuItem(Configuration.DASHBOARD)
+      ],
+      [
+        Configuration.toMenuItem(Configuration.CONNECTION),
+        Configuration.toMenuItem(Configuration.SERVICE),
+        Configuration.toMenuItem(Configuration.LAYER),
+        Configuration.toMenuItem(Configuration.TREE),
+        Configuration.toMenuItem(Configuration.BACKGROUND_LAYER)
+      ],
+      [
+        Configuration.toMenuItem(Configuration.LAYERS_PERMIT),
+        Configuration.toMenuItem(Configuration.TERRITORY),
+        Configuration.toMenuItem(Configuration.ROLE),
+        Configuration.toMenuItem(Configuration.USER)
+      ],
+      [
+        Configuration.toMenuItem(Configuration.TASK_GROUP),
+        {
+          ...Configuration.toMenuItem(Configuration.TASK),
+          children: [
+            Configuration.toMenuItem(Configuration.TASK_BASIC),
+            Configuration.toMenuItem(Configuration.TASK_QUERY),
+            Configuration.toMenuItem(Configuration.TASK_MAP_IMAGE),
+            Configuration.toMenuItem(Configuration.TASK_DOCUMENT_EXPORT),
+            Configuration.toMenuItem(Configuration.TASK_LOCATOR),
+            Configuration.toMenuItem(Configuration.TASK_TEMPLATE),
+            Configuration.toMenuItem(Configuration.TASK_EDIT),
+            Configuration.toMenuItem(Configuration.TASK_MORE_INFO),
+            Configuration.toMenuItem(Configuration.TASK_MORE_INFO_ADVANCED)
+          ]
+        }
+      ],
+      [
+        Configuration.toMenuItem(Configuration.APPLICATION)
+      ],
+      [
+        Configuration.toMenuItem(Configuration.TASK_UI),
+        Configuration.toMenuItem(Configuration.LANGUAGE),
+        Configuration.toMenuItem(Configuration.LITERAL_TRANSLATION),
+        Configuration.toMenuItem(Configuration.TERRITORY_TYPE),
+        Configuration.toMenuItem(Configuration.TASK_TYPE),
+        Configuration.toMenuItem(Configuration.CODELIST_VALUE),
+        Configuration.toMenuItem(Configuration.CONFIGURATION_PARAMETER)
+      ]
+    ];
+  }
+}

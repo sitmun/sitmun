@@ -1,0 +1,86 @@
+import { HttpClient, HttpHandler, provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { MatIconTestingModule } from '@angular/material/icon/testing';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { RouterModule } from '@angular/router';
+
+import { TranslateLoader, TranslateModule } from '@ngx-translate/core';
+import { of } from 'rxjs';
+
+import { Principal } from '@app/core/auth/principal.service';
+import { MaterialModule } from '@app/material-module';
+import { LoggerService } from '@app/services/logger.service';
+import { configureLoggerForTests } from '@app/testing/test-helpers';
+
+import { SideMenuComponent } from './side-menu.component';
+import { APP_ROUTES } from '../../../app-routes';
+
+describe('SideMenuComponent', () => {
+  let component: SideMenuComponent;
+  let fixture: ComponentFixture<SideMenuComponent>;
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      declarations: [ SideMenuComponent ],
+      imports: [MatIconTestingModule, MaterialModule, RouterModule.forRoot(APP_ROUTES, {}),
+         BrowserAnimationsModule, MatIconTestingModule, TranslateModule.forRoot({
+        loader: {
+          provide: TranslateLoader,
+          useFactory: () => ({
+            getTranslation: () => of({})
+          })
+        }
+      })],
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        HttpClient,
+        HttpHandler,
+        {
+          provide: Principal,
+          useValue: { identity: () => Promise.resolve({ username: 'user', administrator: false }) }
+        }
+      ]
+    })
+    .compileComponents();
+    
+    // Suppress debug logs in tests to reduce console noise
+    const loggerService = TestBed.inject(LoggerService);
+    configureLoggerForTests(loggerService);
+  });
+
+  beforeEach(() => {
+    fixture = TestBed.createComponent(SideMenuComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  });
+
+  it('should create', () => {
+    expect(component).toBeTruthy();
+  });
+
+  it('includes document export task entry inside tasks menu', async () => {
+    await fixture.whenStable();
+
+    const taskMenuGroup = component.menus.find((group: any[]) =>
+      group.some((item) => item.id === 'tasks')
+    );
+    const taskMenu = taskMenuGroup.find((item: any) => item.id === 'tasks');
+    const taskChildrenIds = taskMenu.children.map((item: any) => item.id);
+
+    expect(taskChildrenIds).toContain('tasksDocumentExport');
+  });
+
+  it('includes the template task entry only once', async () => {
+    await fixture.whenStable();
+
+    const taskMenuGroup = component.menus.find((group: any[]) =>
+      group.some((item) => item.id === 'tasks')
+    );
+    const taskMenu = taskMenuGroup.find((item: any) => item.id === 'tasks');
+    const templateEntries = taskMenu.children.filter((item: any) => item.id === 'tasksTemplate');
+
+    expect(templateEntries).toHaveLength(1);
+  });
+});

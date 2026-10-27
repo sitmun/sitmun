@@ -1,0 +1,469 @@
+:host {
+  --template-toolbar-control-size: 36px;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
+.template-editor-shell {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  gap: 0.35rem;
+}
+
+.template-editor-toolbar,
+.template-table-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  flex-shrink: 0;
+  gap: 0.35rem;
+  min-height: calc(var(--template-toolbar-control-size) + 0.2rem);
+  padding: 0.15rem 0;
+}
+
+.template-table-toolbar {
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  padding-top: 0.35rem;
+}
+
+.toolbar-cluster {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0;
+  min-height: var(--template-toolbar-control-size);
+  padding: 0;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 0.5rem;
+  background: rgba(255, 255, 255, 0.92);
+}
+
+.toolbar-cluster--styles {
+  gap: 0.15rem;
+  padding: 0 0.25rem;
+}
+
+.table-toolbar-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: var(--template-toolbar-control-size);
+  color: #475569;
+  margin-right: 0.1rem;
+  white-space: nowrap;
+}
+
+.toolbar-active {
+  background: #eff6ff !important;
+  color: #1d4ed8 !important;
+}
+
+.toolbar-glyph {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+
+  span {
+    line-height: 1;
+  }
+}
+
+:host ::ng-deep .template-editor-toolbar .mat-mdc-icon-button,
+:host ::ng-deep .template-table-toolbar .mat-mdc-icon-button {
+  --mdc-icon-button-state-layer-size: var(--template-toolbar-control-size);
+  width: var(--template-toolbar-control-size);
+  height: var(--template-toolbar-control-size);
+  padding: 0;
+}
+
+:host ::ng-deep .template-editor-toolbar .mat-mdc-icon-button .mat-icon,
+:host ::ng-deep .template-table-toolbar .mat-mdc-icon-button .mat-icon {
+  font-size: 1.25rem;
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+:host ::ng-deep .toolbar-toggles.mat-button-toggle-group {
+  height: var(--template-toolbar-control-size);
+  align-items: stretch;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 0.5rem;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.92);
+}
+
+:host ::ng-deep .toolbar-toggles .mat-button-toggle {
+  background: transparent;
+}
+
+:host ::ng-deep .toolbar-toggles .mat-button-toggle-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  min-height: var(--template-toolbar-control-size);
+  padding: 0 0.7rem;
+  font-size: 0.8125rem;
+  line-height: 1;
+}
+
+:host ::ng-deep .toolbar-toggles .mat-button-toggle-label-content {
+  display: inline-flex;
+  align-items: center;
+  line-height: 1;
+  padding: 0 !important;
+}
+
+.toolbar-color {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--template-toolbar-control-size);
+  height: var(--template-toolbar-control-size);
+  border-radius: 50%;
+  cursor: pointer;
+  color: #475569;
+  flex: 0 0 var(--template-toolbar-control-size);
+
+  mat-icon {
+    font-size: 1.25rem;
+    width: 1.25rem;
+    height: 1.25rem;
+  }
+
+  input[type='color'] {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    border: 0;
+    cursor: pointer;
+  }
+}
+
+.toolbar-control {
+  box-sizing: border-box;
+  height: calc(var(--template-toolbar-control-size) - 6px);
+  min-height: calc(var(--template-toolbar-control-size) - 6px);
+  margin: 0;
+  border: 1px solid rgba(0, 0, 0, 0.16);
+  border-radius: 0.4rem;
+  background: #fff;
+  color: #334155;
+  font: inherit;
+  font-size: 0.8125rem;
+  line-height: 1.2;
+
+  &:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+
+  &--select {
+    width: 6.5rem;
+    padding: 0 0.4rem;
+  }
+
+  &--alias {
+    width: 9.5rem;
+  }
+
+  &--number {
+    width: 3.25rem;
+    padding: 0 0.35rem;
+    text-align: center;
+  }
+
+  &--media-attr {
+    width: 8.5rem;
+    padding: 0 0.4rem;
+  }
+}
+
+.template-editor-visual-surface {
+  flex: 1 1 auto;
+  min-height: 12rem;
+  height: auto;
+}
+
+.template-editor-visual-surface--hidden {
+  display: none;
+}
+
+.template-editor-host {
+  height: 100%;
+  overflow: auto;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  background: #fff;
+  padding: 0.75rem;
+  box-sizing: border-box;
+}
+
+.template-editor-source {
+  flex: 1 1 auto;
+  min-height: 12rem;
+  width: 100%;
+  height: auto;
+  box-sizing: border-box;
+  padding: 1rem;
+  font-family: monospace;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  background: #fff;
+  max-width: 100%;
+  resize: none;
+}
+
+:host ::ng-deep .template-editor-visual-surface--inactive .selectedCell::after {
+  display: none;
+}
+
+:host ::ng-deep .template-editor-visual-surface--inactive .ProseMirror-selectednode {
+  outline: none;
+}
+
+:host ::ng-deep .ProseMirror {
+  min-height: 100%;
+  outline: none;
+}
+
+:host ::ng-deep .ProseMirror .sitmun-pdf-header,
+:host ::ng-deep .ProseMirror .sitmun-pdf-header-full-bleed {
+  outline: 2px dashed #2563eb;
+  outline-offset: 3px;
+}
+
+:host ::ng-deep .ProseMirror .sitmun-pdf-footer,
+:host ::ng-deep .ProseMirror .sitmun-pdf-footer-full-bleed {
+  outline: 2px dashed #059669;
+  outline-offset: 3px;
+}
+
+:host ::ng-deep .ProseMirror .sitmun-pdf-header-full-bleed,
+:host ::ng-deep .ProseMirror .sitmun-pdf-footer-full-bleed {
+  outline-style: solid;
+}
+
+:host ::ng-deep .ProseMirror img,
+:host ::ng-deep .ProseMirror iframe {
+  max-width: 100%;
+}
+
+:host ::ng-deep .sitmun-resizable-image {
+  position: relative;
+  display: inline-block;
+  line-height: 0;
+  max-width: 100%;
+}
+
+:host ::ng-deep .sitmun-resizable-image img {
+  display: block;
+}
+
+:host ::ng-deep .sitmun-resizable-image__handle {
+  position: absolute;
+  right: -6px;
+  bottom: -6px;
+  width: 12px;
+  height: 12px;
+  border: 1px solid #2563eb;
+  border-radius: 50%;
+  background: #fff;
+  cursor: nwse-resize;
+  opacity: 0;
+  pointer-events: none;
+  box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.15);
+}
+
+:host ::ng-deep .sitmun-resizable-image.ProseMirror-selectednode {
+  outline: 2px solid #93c5fd;
+  outline-offset: 2px;
+}
+
+:host ::ng-deep .sitmun-resizable-image.ProseMirror-selectednode .sitmun-resizable-image__handle {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+:host ::ng-deep .sitmun-mustache-media-placeholder {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  max-width: 100%;
+  min-height: 2.5rem;
+  padding: 0.5rem 0.75rem;
+  box-sizing: border-box;
+  border: 1px dashed #64748b;
+  border-radius: 4px;
+  background: #f8fafc;
+  color: #334155;
+  line-height: 1.3;
+}
+
+:host ::ng-deep .sitmun-mustache-media-placeholder__icon {
+  flex: 0 0 auto;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #64748b;
+}
+
+:host ::ng-deep .sitmun-mustache-media-placeholder__src {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.85rem;
+  word-break: break-all;
+}
+
+:host ::ng-deep .ProseMirror-selectednode.sitmun-mustache-media-placeholder,
+:host ::ng-deep .sitmun-resizable-image.ProseMirror-selectednode .sitmun-mustache-media-placeholder {
+  outline: 2px solid #93c5fd;
+  outline-offset: 2px;
+}
+
+:host ::ng-deep .template-editor-host table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+:host ::ng-deep .template-editor-host table[data-sitmun-each] {
+  position: relative;
+  margin-top: 1.75rem;
+}
+
+:host ::ng-deep .template-editor-host table[data-sitmun-each]::before {
+  content: "R " attr(data-sitmun-each-alias);
+  position: absolute;
+  top: -1.4rem;
+  left: 0;
+  display: inline-flex;
+  align-items: center;
+  padding: 0.15rem 0.45rem;
+  border: 1px solid #67e8f9;
+  background: #ecfeff;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #155e75;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+:host ::ng-deep .sitmun-handlebars-expression-node {
+  display: inline;
+  padding: 0.1rem 0.35rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 4px;
+  background: #f3f4f6;
+  color: #1e3a5f;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.9em;
+  white-space: nowrap;
+}
+
+:host ::ng-deep .sitmun-handlebars-system-variable-node {
+  display: inline;
+  padding: 0.1rem 0.35rem;
+  border: 1px solid #fbbf24;
+  border-radius: 4px;
+  background: #fffbeb;
+  color: #92400e;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.9em;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+:host ::ng-deep .template-editor-host td,
+:host ::ng-deep .template-editor-host th {
+  border: 1px solid rgba(0, 0, 0, 0.18);
+  min-width: 60px;
+  padding: 0.35rem;
+}
+
+:host ::ng-deep .template-editor-host iframe {
+  pointer-events: none;
+}
+
+:host ::ng-deep .sitmun-translation-literal-node {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding: 0.35rem 0.5rem;
+  border: 1px solid #67e8f9;
+  background: #ecfeff;
+  border-radius: 4px;
+  margin: 0 0.1rem;
+  vertical-align: middle;
+}
+
+:host ::ng-deep .sitmun-translation-literal-node__label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #155e75;
+}
+
+:host ::ng-deep .sitmun-translation-literal-node__preview {
+  display: inline-block;
+}
+
+:host ::ng-deep .sitmun-handlebars-block-node {
+  display: block;
+  margin: 0.25rem 0;
+  padding: 0.35rem 0.5rem;
+  border: 1px dashed #c084fc;
+  background: #faf5ff;
+  color: #6b21a8;
+  font-family: monospace;
+  border-radius: 4px;
+}
+
+:host ::ng-deep .sitmun-html-comment-node {
+  display: block;
+  margin: 0.25rem 0;
+  padding: 0.35rem 0.5rem;
+  border: 1px dashed #94a3b8;
+  background: #f8fafc;
+  color: #64748b;
+  font-family: monospace;
+  font-size: 0.8125rem;
+  border-radius: 4px;
+}
+
+.template-editor-errors {
+  flex-shrink: 0;
+  margin-top: 0.75rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid #fecaca;
+  background: #fef2f2;
+  color: #991b1b;
+}
+
+.template-editor-errors__title {
+  font-weight: 600;
+  margin-bottom: 0.35rem;
+}
+
+.template-editor-warnings {
+  margin-top: 0.75rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid #fcd34d;
+  background: #fffbeb;
+  color: #92400e;
+}
+
+.template-editor-warnings__title {
+  font-weight: 600;
+  margin-bottom: 0.35rem;
+}
+
+@media (max-width: 768px) {
+  .toolbar-control--select,
+  .toolbar-control--alias {
+    width: 100%;
+  }
+}

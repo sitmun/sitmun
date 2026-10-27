@@ -1,0 +1,1775 @@
+
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { MatDialog } from '@angular/material/dialog';
+import { By } from '@angular/platform-browser';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { RouterModule } from '@angular/router';
+
+import { TranslateLoader, TranslateModule } from '@ngx-translate/core';
+import { of } from 'rxjs';
+
+import {EntityFormAlertsComponent} from '@app/components/shared/entity-form-alerts/entity-form-alerts.component';
+import {FormToolbarComponent} from '@app/components/shared/form-toolbar/form-toolbar.component';
+import { ExternalConfigurationService } from '@app/core/config/external-configuration.service';
+import {ExternalService, ResourceService} from '@app/core/hal';
+import {
+  CartographyService,
+  CartographyStyleService,
+  CodeListService,
+  RoleService,
+  ServiceParameterService,
+  ServiceService,
+  TranslationService
+} from '@app/domain';
+import { SitmunFrontendGuiModule } from '@app/frontend-gui/src/lib/public_api';
+import { MaterialModule } from '@app/material-module';
+import { LoggerService } from '@app/services/logger.service';
+import { UtilsService } from '@app/services/utils.service';
+import { WMSCapabilitiesService, WMSServiceCapabilities } from '@app/services/wms-capabilities.service';
+import {configureLoggerForTests, provideErrorHandlerForTests} from '@app/testing/test-helpers';
+import { config } from '@config';
+
+import { ServiceFormComponent } from './service-form.component';
+
+describe('ServiceFormComponent', () => {
+  let component: ServiceFormComponent;
+  let fixture: ComponentFixture<ServiceFormComponent>;
+  let serviceService: ServiceService;
+  let cartographyService: CartographyService;
+  let cartographyStyleService: CartographyStyleService;
+  let codeListService: CodeListService;
+  let translationService: TranslationService;
+  let resourceService: ResourceService;
+  let externalService: ExternalService;
+  let _serviceParameterService: ServiceParameterService;
+  let _roleService: RoleService;
+  let _consoleErrorSpy: jest.SpyInstance;
+
+  beforeAll(async () => {
+     
+    await TestBed.configureTestingModule({
+      teardown: { destroyAfterEach: 0 as any },
+      declarations: [ ServiceFormComponent, FormToolbarComponent ],
+      imports: [FormsModule, ReactiveFormsModule, SitmunFrontendGuiModule, EntityFormAlertsComponent, RouterModule.forRoot([], {}), MaterialModule, TranslateModule.forRoot({
+          loader: {
+            provide: TranslateLoader,
+            useFactory: () => ({
+              getTranslation: () => of({})
+            })
+          }
+        }), BrowserAnimationsModule],
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        provideErrorHandlerForTests(),
+        ServiceService,
+        CartographyService,
+        CartographyStyleService,
+        CodeListService,
+        TranslationService,
+        ResourceService,
+        ExternalService,
+        ServiceParameterService,
+        RoleService,
+        UtilsService,
+        WMSCapabilitiesService,
+        LoggerService,
+        { provide: 'ExternalConfigurationService', useClass: ExternalConfigurationService }
+      ]
+    })
+    .compileComponents();
+  });
+
+  beforeEach(() => {
+    _consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
+    fixture = TestBed.createComponent(ServiceFormComponent);
+    component = fixture.componentInstance;
+    // Suppress debug logs in tests to reduce console noise
+    const loggerService = TestBed.inject(LoggerService);
+    configureLoggerForTests(loggerService);
+    serviceService = TestBed.inject(ServiceService);
+    cartographyService = TestBed.inject(CartographyService);
+    cartographyStyleService = TestBed.inject(CartographyStyleService);
+    codeListService = TestBed.inject(CodeListService);
+    translationService = TestBed.inject(TranslationService);
+    resourceService = TestBed.inject(ResourceService);
+    externalService = TestBed.inject(ExternalService);
+    _serviceParameterService = TestBed.inject(ServiceParameterService);
+    _roleService = TestBed.inject(RoleService);
+
+    // Initialize form if not already initialized
+    if (!component.entityForm) {
+      component.entityToEdit = component.empty();
+      component.postFetchData();
+    }
+    fixture.detectChanges();
+  });
+
+  afterEach(() => fixture?.destroy());
+  afterAll(() => TestBed.resetTestingModule());
+
+  it('should create', () => {
+    expect(component).toBeTruthy();
+  });
+
+  it('should instantiate serviceService', () => {
+    expect(serviceService).toBeTruthy();
+  });
+
+  it('should instantiate cartographyService', () => {
+    expect(cartographyService).toBeTruthy();
+  });
+
+  it('should instantiate cartographyStyleService', () => {
+    expect(cartographyStyleService).toBeTruthy();
+  });
+
+  it('should instantiate codeListService', () => {
+    expect(codeListService).toBeTruthy();
+  });
+
+  it('should instantiate translationService', () => {
+    expect(translationService).toBeTruthy();
+  });
+
+  it('should instantiate resourceService', () => {
+    expect(resourceService).toBeTruthy();
+  });
+
+  it('should instantiate externalService', () => {
+    expect(externalService).toBeTruthy();
+  });
+
+  it('form invalid when empty', () => {
+    expect(component.entityForm.valid).toBeFalsy();
+  });
+
+  it('form invalid when mid-empty', () => {
+    component.entityForm.patchValue({
+      user: 'user',
+      password: 'password',
+      authenticationMode: 1,
+      description: 'description',
+      type: 'WMS',
+      serviceURL: 'urltest',
+      proxyUrl: 'urltest',
+      supportedSRS: ['EPSG:2831'],
+      getInformationURL: 'urltest',
+      blocked: true,
+      isProxied: false
+    })
+    //Miss name (required field)
+    expect(component.entityForm.valid).toBeFalsy();
+  });
+
+  it('form valid', () => {
+    component.entityForm.patchValue({
+      name: 'test',
+      description: 'test',
+      type: 'WMS',
+      serviceURL: 'test',
+      authenticationMode: 1
+    })
+
+    fixture.detectChanges();
+
+    expect(component.entityForm.valid).toBeTruthy();
+  });
+
+  it('Service form fields', () => {
+    expect(component.entityForm.get('name')).toBeTruthy();
+    expect(component.entityForm.get('description')).toBeTruthy();
+    expect(component.entityForm.get('type')).toBeTruthy();
+    expect(component.entityForm.get('serviceURL')).toBeTruthy();
+    expect(component.entityForm.get('getInformationURL')).toBeTruthy();
+    expect(component.entityForm.get('authenticationMode')).toBeTruthy();
+    expect(component.entityForm.get('user')).toBeTruthy();
+    expect(component.entityForm.get('password')).toBeTruthy();
+    expect(component.entityForm.get('isProxied')).toBeTruthy();
+    expect(component.entityForm.get('blocked')).toBeTruthy();
+  });
+
+  it('Update data button unavailable with type different to WMS', () => {
+    component.entityForm.patchValue({
+      name: 'test',
+      type: 'WFS',
+      serviceURL: 'test',
+      authenticationMode: 1
+    })
+
+    fixture.detectChanges();
+
+    // The button might not exist in the DOM if type is not WMS
+    const button = fixture.debugElement.query(By.css('#capabilitiesButton'));
+    // If button doesn't exist, the test passes (button unavailable)
+    // If button exists but is disabled, that's also acceptable
+    expect(button === null || (button && button.nativeElement.disabled)).toBeTruthy();
+  });
+
+  /*
+  // The following tests have been commented out because they reference methods
+  // (changeServiceDataByCapabilities and serviceCapabilitiesData) that no longer exist
+  // in the refactored component.
+
+  it('Capabilities format invalid', () => {
+    //When we click on load button, data to be processed is stored on serviceCapabilitiesData
+    component.serviceCapabilitiesData = null;
+
+    expect(component.layersFromServiceCapabilities.length).toEqual(0);
+  });
+
+  it('Capabilities format valid with WMS_CAPABILITIES', () => {
+    //When we click on load button, data to be processed is stored on serviceCapabilitiesData
+    component.serviceCapabilitiesData = {
+      "WMS_Capabilities": {
+        "xmlns:inspire_common": "http://inspire.ec.europa.eu/schemas/common/1.0",
+        "xmlns:srv": "http://schemas.opengis.net/iso/19139/20060504/srv/srv.xsd",
+        "updateSequence": 1211,
+        "Capability": {
+          "inspire_vs:ExtendedCapabilities": {
+            "inspire_common:MetadataUrl": {
+              "inspire_common:MediaType": "application/vnd.ogc.csw.GetRecordByIdResponse_xml",
+              "xsi:type": "inspire_common:resourceLocatorType",
+              "inspire_common:URL": "http://ideadif.adif.es/catalog/srv/spa/csw-inspire?SERVICE=CSW"
+            },
+            "inspire_common:SupportedLanguages": {
+              "xsi:type": "inspire_common:supportedLanguagesType",
+              "inspire_common:DefaultLanguage": {
+                "inspire_common:Language": "spa"
+              },
+              "inspire_common:SupportedLanguage": {
+                "inspire_common:Language": "spa"
+              }
+            },
+            "inspire_common:ResponseLanguage": {
+              "inspire_common:Language": "spa"
+            }
+          },
+          "Request": {
+            "GetFeatureInfo": {
+              "DCPType": {
+                "HTTP": {
+                  "Get": {
+                    "OnlineResource": {
+                      "xlink:type": "simple",
+                      "xlink:href": "http://ideadif.adif.es:80/gservices/Tramificacion/ows?SERVICE=WMS&"
+                    }
+                  }
+                }
+              },
+              "Format": ["text/plain", "application/vnd.ogc.gml", "text/xml", "application/vnd.ogc.gml/3.1.1", "text/xml; subtype=gml/3.1.1", "text/html", "application/json"]
+            },
+            "GetCapabilities": {
+              "DCPType": {
+                "HTTP": {
+                  "Post": {
+                    "OnlineResource": {
+                      "xlink:type": "simple",
+                      "xlink:href": "http://ideadif.adif.es:80/gservices/Tramificacion/ows?SERVICE=WMS&"
+                    }
+                  },
+                  "Get": {
+                    "OnlineResource": {
+                      "xlink:type": "simple",
+                      "xlink:href": "http://ideadif.adif.es:80/gservices/Tramificacion/ows?SERVICE=WMS&"
+                    }
+                  }
+                }
+              },
+              "Format": "text/xml"
+            },
+            "GetMap": {
+              "DCPType": {
+                "HTTP": {
+                  "Get": {
+                    "OnlineResource": {
+                      "xlink:type": "simple",
+                      "xlink:href": "http://ideadif.adif.es:80/gservices/Tramificacion/ows?SERVICE=WMS&"
+                    }
+                  }
+                }
+              },
+              "Format": ["image/png", "application/atom+xml", "application/pdf", "application/rss+xml", "application/vnd.google-earth.kml+xml", "application/vnd.google-earth.kml+xml;mode=networklink", "application/vnd.google-earth.kmz", "image/geotiff", "image/geotiff8", "image/gif", "image/jpeg", "image/png; mode=8bit", "image/svg+xml", "image/tiff", "image/tiff8", "text/html; subtype=openlayers"]
+            }
+          },
+          "Layer": {
+            "CRS": ["AUTO:42001", "AUTO:42002", "AUTO:42003", "AUTO:42004", "EPSG:WGS84(DD)", "EPSG:2000", "EPSG:2001", "EPSG:2002", "EPSG:2003", "EPSG:42305", "EPSG:42304", "EPSG:42303", "EPSG:404000", "CRS:84"],
+            "Abstract": "A compliant implementation of WMS plus most of the SLD extension (dynamic styling). Can also generate PDF, SVG, KML, GeoRSS",
+            "EX_GeographicBoundingBox": {
+              "northBoundLatitude": 46.44896581305109,
+              "southBoundLatitude": 33.40424290324293,
+              "westBoundLongitude": -9.31296168027681,
+              "eastBoundLongitude": 3.731761229531348
+            },
+            "BoundingBox": {
+              "miny": 33.40424290324293,
+              "CRS": "CRS:84",
+              "minx": -9.31296168027681,
+              "maxy": 46.44896581305109,
+              "maxx": 3.731761229531348
+            },
+            "Title": "IDEADIF - GeoServer WMS",
+            "Layer": [{
+              "queryable": 1,
+              "CRS": "EPSG:25830",
+              "Abstract": "Layer-Group type layer: TramificacionComun",
+              "EX_GeographicBoundingBox": {
+                "northBoundLatitude": 43.84151042654228,
+                "southBoundLatitude": 36.01411970122112,
+                "westBoundLongitude": -8.872469825313877,
+                "eastBoundLongitude": 3.291076542431359
+              },
+              "BoundingBox": {
+                "miny": 4000184.9189999998,
+                "CRS": "EPSG:25830",
+                "minx": 26701.903500000015,
+                "maxy": 4854291.6436,
+                "maxx": 1007231.0502000004
+              },
+              "Title": "Tramificacion Comun",
+              "MetadataURL": [{
+                "OnlineResource": {
+                  "xlink:type": "simple",
+                  "xlink:href": "http://ideadif.adif.es/catalog/srv/spa/catalog.search#/metadata/7b6a0fdc-bcc4-40e9-a913-74fc6ef10914"
+                },
+                "Format": "text/plain",
+                "type": 19139
+              }, {
+                "OnlineResource": {
+                  "xlink:type": "simple",
+                  "xlink:href": "http://ideadif.adif.es/catalog/srv/spa/catalog.search#/metadata/8385b48c-2bac-42ea-a319-054d6755af12"
+                },
+                "Format": "text/plain",
+                "type": 19139
+              }],
+              "Name": "TramificacionComun"
+            }, {
+              "queryable": 1,
+              "opaque": 1,
+              "CRS": ["EPSG:25830", "CRS:84"],
+              "Abstract": "",
+              "EX_GeographicBoundingBox": {
+                "northBoundLatitude": 43.87073628057826,
+                "southBoundLatitude": 35.976683871739915,
+                "westBoundLongitude": -8.933871794285512,
+                "eastBoundLongitude": 3.3513063935021052
+              },
+              "BoundingBox": [{
+                "miny": 35.976683871739915,
+                "CRS": "CRS:84",
+                "minx": -8.933871794285512,
+                "maxy": 43.87073628057826,
+                "maxx": 3.3513063935021052
+              }, {
+                "miny": 3996282.0,
+                "CRS": "EPSG:25830",
+                "minx": 21960.076171875,
+                "maxy": 4857537.5,
+                "maxx": 1011867.125
+              }],
+              "KeywordList": {
+                "Keyword": ["features", "dependencias", "Adif", "IDEADIF", "Tramificación Común"]
+              },
+              "Title": "Dependencias",
+              "Style": [{
+                "Title": "IDEADIF Node Style",
+                "LegendURL": {
+                  "OnlineResource": {
+                    "xlink:type": "simple",
+                    "xmlns:xlink": "http://www.w3.org/1999/xlink",
+                    "xlink:href": "http://ideadif.adif.es:80/gservices/Tramificacion/ows?service=WMS&request=GetLegendGraphic&format=image%2Fpng&width=20&height=20&layer=Dependencias"
+                  },
+                  "Format": "image/png",
+                  "width": 20,
+                  "height": 20
+                },
+                "Name": "Tramificacion:IDEADIF Node"
+              }, {
+                "Title": "IDEADIF Node Style",
+                "LegendURL": {
+                  "OnlineResource": {
+                    "xlink:type": "simple",
+                    "xmlns:xlink": "http://www.w3.org/1999/xlink",
+                    "xlink:href": "http://ideadif.adif.es:80/gservices/Tramificacion/ows?service=WMS&request=GetLegendGraphic&format=image%2Fpng&width=20&height=20&layer=Dependencias&style=IDEADIF+Node"
+                  },
+                  "Format": "image/png",
+                  "width": 20,
+                  "height": 20
+                },
+                "Name": "Tramificacion:IDEADIF Node"
+              }],
+              "MetadataURL": [{
+                "OnlineResource": {
+                  "xlink:type": "simple",
+                  "xlink:href": "http://ideadif.adif.es/catalog/srv/spa/catalog.search#/metadata/8385b48c-2bac-42ea-a319-054d6755af12"
+                },
+                "Format": "text/plain",
+                "type": 19139
+              }, {
+                "OnlineResource": {
+                  "xlink:type": "simple",
+                  "xlink:href": "http://ideadif.adif.es/catalog/srv/spa/catalog.search#/metadata/7b6a0fdc-bcc4-40e9-a913-74fc6ef10914"
+                },
+                "Format": "text/plain",
+                "type": 19139
+              }],
+              "Name": "Dependencias"
+            }, {
+              "queryable": 1,
+              "opaque": 0,
+              "CRS": ["EPSG:25830", "CRS:84"],
+              "Abstract": "",
+              "EX_GeographicBoundingBox": {
+                "northBoundLatitude": 43.87774788312506,
+                "southBoundLatitude": 35.976282037081944,
+                "westBoundLongitude": -8.93544441522613,
+                "eastBoundLongitude": 3.3553277464618696
+              },
+              "BoundingBox": [{
+                "miny": 35.976282037081944,
+                "CRS": "CRS:84",
+                "minx": -8.93544441522613,
+                "maxy": 43.87774788312506,
+                "maxx": 3.3553277464618696
+              }, {
+                "miny": 3996252.75,
+                "CRS": "EPSG:25830",
+                "minx": 21888.685546875,
+                "maxy": 4858316.5,
+                "maxx": 1012133.25
+              }],
+              "KeywordList": {
+                "Keyword": ["features", "pks", "Tramificación Común", "Tramificación", "Pk", "Puntos kilométricos", "IDEADIF", "Adif"]
+              },
+              "Title": "Puntos kilometricos teoricos",
+              "Style": {
+                "Abstract": "A sample style that draws a point",
+                "Title": "Default Point",
+                "LegendURL": {
+                  "OnlineResource": {
+                    "xlink:type": "simple",
+                    "xmlns:xlink": "http://www.w3.org/1999/xlink",
+                    "xlink:href": "http://ideadif.adif.es:80/gservices/Tramificacion/ows?service=WMS&request=GetLegendGraphic&format=image%2Fpng&width=20&height=20&layer=PKTeoricos"
+                  },
+                  "Format": "image/png",
+                  "width": 20,
+                  "height": 20
+                },
+                "Name": "point"
+              },
+              "MetadataURL": [{
+                "OnlineResource": {
+                  "xlink:type": "simple",
+                  "xlink:href": "http://ideadif.adif.es/catalog/srv/spa/catalog.search#/metadata/8385b48c-2bac-42ea-a319-054d6755af12"
+                },
+                "Format": "text/plain",
+                "type": 19139
+              }, {
+                "OnlineResource": {
+                  "xlink:type": "simple",
+                  "xlink:href": "http://ideadif.adif.es/catalog/srv/spa/catalog.search#/metadata/7b6a0fdc-bcc4-40e9-a913-74fc6ef10914"
+                },
+                "Format": "text/plain",
+                "type": 19139
+              }],
+              "Name": "PKTeoricos"
+            }, {
+              "queryable": 1,
+              "opaque": 0,
+              "CRS": ["EPSG:25830", "CRS:84"],
+              "Abstract": "",
+              "EX_GeographicBoundingBox": {
+                "northBoundLatitude": 43.65437766927871,
+                "southBoundLatitude": 36.53235585913574,
+                "westBoundLongitude": -8.914655683594248,
+                "eastBoundLongitude": 3.3319200917149243
+              },
+              "BoundingBox": [{
+                "miny": 36.53235585913574,
+                "CRS": "CRS:84",
+                "minx": -8.914655683594248,
+                "maxy": 43.65437766927871,
+                "maxx": 3.3319200917149243
+              }, {
+                "miny": 4058239.25,
+                "CRS": "EPSG:25830",
+                "minx": 21799.255859375,
+                "maxy": 4833508.0,
+                "maxx": 1012133.6875
+              }],
+              "KeywordList": {
+                "Keyword": ["Fuera_Servicio", "features", "Tramos", "Fuera de servicio", "IDEADIF", "Adif", "Tramificación común", "Tramificación"]
+              },
+              "Title": "Tramos fuera de servicio",
+              "Style": {
+                "Title": "IDEADIF Link Style",
+                "LegendURL": {
+                  "OnlineResource": {
+                    "xlink:type": "simple",
+                    "xmlns:xlink": "http://www.w3.org/1999/xlink",
+                    "xlink:href": "http://ideadif.adif.es:80/gservices/Tramificacion/ows?service=WMS&request=GetLegendGraphic&format=image%2Fpng&width=20&height=20&layer=TramosFueraServicio"
+                  },
+                  "Format": "image/png",
+                  "width": 20,
+                  "height": 20
+                },
+                "Name": "Tramificacion:IDEADIF Link"
+              },
+              "MetadataURL": [{
+                "OnlineResource": {
+                  "xlink:type": "simple",
+                  "xlink:href": "http://ideadif.adif.es/catalog/srv/spa/catalog.search#/metadata/8385b48c-2bac-42ea-a319-054d6755af12"
+                },
+                "Format": "text/plain",
+                "type": 19139
+              }, {
+                "OnlineResource": {
+                  "xlink:type": "simple",
+                  "xlink:href": "http://ideadif.adif.es/catalog/srv/spa/catalog.search#/metadata/7b6a0fdc-bcc4-40e9-a913-74fc6ef10914"
+                },
+                "Format": "text/plain",
+                "type": 19139
+              }],
+              "Name": "TramosFueraServicio"
+            }, {
+              "queryable": 1,
+              "opaque": 0,
+              "CRS": ["EPSG:25830", "CRS:84"],
+              "Abstract": "",
+              "EX_GeographicBoundingBox": {
+                "northBoundLatitude": 46.44896581305109,
+                "southBoundLatitude": 33.40424290324293,
+                "westBoundLongitude": -9.31296168027681,
+                "eastBoundLongitude": 3.731761229531348
+              },
+              "BoundingBox": [{
+                "miny": 33.40424290324293,
+                "CRS": "CRS:84",
+                "minx": -9.31296168027681,
+                "maxy": 46.44896581305109,
+                "maxx": 3.731761229531348
+              }, {
+                "miny": 3995914.25,
+                "CRS": "EPSG:25830",
+                "minx": 21799.255859375,
+                "maxy": 4858562.5,
+                "maxx": 1012133.6875
+              }],
+              "KeywordList": {
+                "Keyword": ["Tramificacion", "features", "Tramos", "Tramos en servicio", "IDEADIF", "Adif"]
+              },
+              "Title": "Tramos en servicio",
+              "Style": {
+                "Title": "IDEADIF Link Style",
+                "LegendURL": {
+                  "OnlineResource": {
+                    "xlink:type": "simple",
+                    "xmlns:xlink": "http://www.w3.org/1999/xlink",
+                    "xlink:href": "http://ideadif.adif.es:80/gservices/Tramificacion/ows?service=WMS&request=GetLegendGraphic&format=image%2Fpng&width=20&height=20&layer=TramosServicio"
+                  },
+                  "Format": "image/png",
+                  "width": 20,
+                  "height": 20
+                },
+                "Name": "Tramificacion:IDEADIF Link"
+              },
+              "MetadataURL": [{
+                "OnlineResource": {
+                  "xlink:type": "simple",
+                  "xlink:href": "http://ideadif.adif.es/catalog/srv/spa/catalog.search#/metadata/8385b48c-2bac-42ea-a319-054d6755af12"
+                },
+                "Format": "text/plain",
+                "type": 19139
+              }, {
+                "OnlineResource": {
+                  "xlink:type": "simple",
+                  "xlink:href": "http://ideadif.adif.es/catalog/srv/spa/catalog.search#/metadata/7b6a0fdc-bcc4-40e9-a913-74fc6ef10914"
+                },
+                "Format": "text/plain",
+                "type": 19139
+              }],
+              "Name": "TramosServicio"
+            }]
+          },
+          "Exception": {
+            "Format": ["XML", "INIMAGE", "BLANK"]
+          }
+        },
+        "xsi:schemaLocation": "http://www.opengis.net/wms http://ideadif.adif.es:80/gservices/schemas/wms/1.3.0/capabilities_1_3_0.xsd http://inspire.ec.europa.eu/schemas/inspire_vs/1.0 http://ideadif.adif.es:80/gservices/www/inspire/inspire_vs.xsd",
+        "Service": {
+          "OnlineResource": {
+            "xlink:type": "simple",
+            "xlink:href": "http://geoserver.sourceforge.net/html/index.php"
+          },
+          "AccessConstraints": "NONE",
+          "Abstract": "A compliant implementation of WMS plus most of the SLD extension (dynamic styling). Can also generate PDF, SVG, KML, GeoRSS",
+          "KeywordList": {
+            "Keyword": ["WFS", "WMS", "GEOSERVER"]
+          },
+          "Title": "IDEADIF - GeoServer WMS",
+          "Fees": "NONE",
+          "ContactInformation": {
+            "ContactAddress": {
+              "Address": "C/Paseo de las Delicias, 61",
+              "StateOrProvince": "",
+              "Country": "España",
+              "City": "Madrid",
+              "AddressType": "Dirección de Sistemas y Tecnologías de la Información",
+              "PostCode": 28045
+            },
+            "ContactVoiceTelephone": "",
+            "ContactFacsimileTelephone": "",
+            "ContactPosition": "Responsable de SIG IDEADIF",
+            "ContactElectronicMailAddress": "ideadif@adif.es",
+            "ContactPersonPrimary": {
+              "ContactOrganization": "Adif",
+              "ContactPerson": "Adm."
+            }
+          },
+          "Name": "WMS"
+        },
+        "xmlns:xsi": "http://www.w3.org/2001/XMLSchema-instance",
+        "version": "1.3.0",
+        "xmlns:gco": "http://schemas.opengis.net/iso/19139/20060504/gco/gco.xsd",
+        "xmlns:inspire_vs": "http://inspire.ec.europa.eu/schemas/inspire_vs/1.0",
+        "xmlns:gml": "http://schemas.opengis.net/gml",
+        "xmlns": "http://www.opengis.net/wms",
+        "xmlns:xlink": "http://www.w3.org/1999/xlink",
+        "xmlns:gmd": "http://schemas.opengis.net/iso/19139/20060504/gmd/gmd.xsd"
+      }
+    };
+
+    component.changeServiceDataByCapabilities(true, false);
+
+    expect(component.layersFromServiceCapabilities.length).toEqual(0);
+  });
+  */
+
+  /* TODO Move to wms-capabilities.service.spec.ts
+  it('Capabilities format valid with WMT_MS_Capabilities', () => {
+    //When we click on load button, data to be processed is stored on serviceCapabilitiesData
+    component.serviceCapabilitiesData = {
+      "WMT_MS_Capabilities": {
+        "xmlns:inspire_common": "http://inspire.ec.europa.eu/schemas/common/1.0",
+        "xmlns:srv": "http://schemas.opengis.net/iso/19139/20060504/srv/srv.xsd",
+        "updateSequence": 1211,
+        "Capability": {
+          "inspire_vs:ExtendedCapabilities": {
+            "inspire_common:MetadataUrl": {
+              "inspire_common:MediaType": "application/vnd.ogc.csw.GetRecordByIdResponse_xml",
+              "xsi:type": "inspire_common:resourceLocatorType",
+              "inspire_common:URL": "http://ideadif.adif.es/catalog/srv/spa/csw-inspire?SERVICE=CSW"
+            },
+            "inspire_common:SupportedLanguages": {
+              "xsi:type": "inspire_common:supportedLanguagesType",
+              "inspire_common:DefaultLanguage": {
+                "inspire_common:Language": "spa"
+              },
+              "inspire_common:SupportedLanguage": {
+                "inspire_common:Language": "spa"
+              }
+            },
+            "inspire_common:ResponseLanguage": {
+              "inspire_common:Language": "spa"
+            }
+          },
+          "Request": {
+            "GetFeatureInfo": {
+              "DCPType": {
+                "HTTP": {
+                  "Get": {
+                    "OnlineResource": {
+                      "xlink:type": "simple",
+                      "xlink:href": "http://ideadif.adif.es:80/gservices/Tramificacion/ows?SERVICE=WMS&"
+                    }
+                  }
+                }
+              },
+              "Format": ["text/plain", "application/vnd.ogc.gml", "text/xml", "application/vnd.ogc.gml/3.1.1", "text/xml; subtype=gml/3.1.1", "text/html", "application/json"]
+            },
+            "GetCapabilities": {
+              "DCPType": {
+                "HTTP": {
+                  "Post": {
+                    "OnlineResource": {
+                      "xlink:type": "simple",
+                      "xlink:href": "http://ideadif.adif.es:80/gservices/Tramificacion/ows?SERVICE=WMS&"
+                    }
+                  },
+                  "Get": {
+                    "OnlineResource": {
+                      "xlink:type": "simple",
+                      "xlink:href": "http://ideadif.adif.es:80/gservices/Tramificacion/ows?SERVICE=WMS&"
+                    }
+                  }
+                }
+              },
+              "Format": "text/xml"
+            },
+            "GetMap": {
+              "DCPType": {
+                "HTTP": {
+                  "Get": {
+                    "OnlineResource": {
+                      "xlink:type": "simple",
+                      "xlink:href": "http://ideadif.adif.es:80/gservices/Tramificacion/ows?SERVICE=WMS&"
+                    }
+                  }
+                }
+              },
+              "Format": ["image/png", "application/atom+xml", "application/pdf", "application/rss+xml", "application/vnd.google-earth.kml+xml", "application/vnd.google-earth.kml+xml;mode=networklink", "application/vnd.google-earth.kmz", "image/geotiff", "image/geotiff8", "image/gif", "image/jpeg", "image/png; mode=8bit", "image/svg+xml", "image/tiff", "image/tiff8", "text/html; subtype=openlayers"]
+            }
+          },
+          "Layer": {
+            "CRS": ["AUTO:42001", "AUTO:42002", "AUTO:42003", "AUTO:42004", "EPSG:WGS84(DD)", "EPSG:2000", "EPSG:2001", "EPSG:2002", "EPSG:2003", "EPSG:42305", "EPSG:42304", "EPSG:42303", "EPSG:404000", "CRS:84"],
+            "Abstract": "A compliant implementation of WMS plus most of the SLD extension (dynamic styling). Can also generate PDF, SVG, KML, GeoRSS",
+            "EX_GeographicBoundingBox": {
+              "northBoundLatitude": 46.44896581305109,
+              "southBoundLatitude": 33.40424290324293,
+              "westBoundLongitude": -9.31296168027681,
+              "eastBoundLongitude": 3.731761229531348
+            },
+            "BoundingBox": {
+              "miny": 33.40424290324293,
+              "CRS": "CRS:84",
+              "minx": -9.31296168027681,
+              "maxy": 46.44896581305109,
+              "maxx": 3.731761229531348
+            },
+            "Title": "IDEADIF - GeoServer WMS",
+            "Layer": [{
+              "queryable": 1,
+              "CRS": "EPSG:25830",
+              "Abstract": "Layer-Group type layer: TramificacionComun",
+              "EX_GeographicBoundingBox": {
+                "northBoundLatitude": 43.84151042654228,
+                "southBoundLatitude": 36.01411970122112,
+                "westBoundLongitude": -8.872469825313877,
+                "eastBoundLongitude": 3.291076542431359
+              },
+              "BoundingBox": {
+                "miny": 4000184.9189999998,
+                "CRS": "EPSG:25830",
+                "minx": 26701.903500000015,
+                "maxy": 4854291.6436,
+                "maxx": 1007231.0502000004
+              },
+              "Title": "Tramificacion Comun",
+              "MetadataURL": [{
+                "OnlineResource": {
+                  "xlink:type": "simple",
+                  "xlink:href": "http://ideadif.adif.es/catalog/srv/spa/catalog.search#/metadata/7b6a0fdc-bcc4-40e9-a913-74fc6ef10914"
+                },
+                "Format": "text/plain",
+                "type": 19139
+              }, {
+                "OnlineResource": {
+                  "xlink:type": "simple",
+                  "xlink:href": "http://ideadif.adif.es/catalog/srv/spa/catalog.search#/metadata/8385b48c-2bac-42ea-a319-054d6755af12"
+                },
+                "Format": "text/plain",
+                "type": 19139
+              }],
+              "Name": "TramificacionComun"
+            }, {
+              "queryable": 1,
+              "opaque": 1,
+              "CRS": ["EPSG:25830", "CRS:84"],
+              "Abstract": "",
+              "EX_GeographicBoundingBox": {
+                "northBoundLatitude": 43.87073628057826,
+                "southBoundLatitude": 35.976683871739915,
+                "westBoundLongitude": -8.933871794285512,
+                "eastBoundLongitude": 3.3513063935021052
+              },
+              "BoundingBox": [{
+                "miny": 35.976683871739915,
+                "CRS": "CRS:84",
+                "minx": -8.933871794285512,
+                "maxy": 43.87073628057826,
+                "maxx": 3.3513063935021052
+              }, {
+                "miny": 3996282.0,
+                "CRS": "EPSG:25830",
+                "minx": 21960.076171875,
+                "maxy": 4857537.5,
+                "maxx": 1011867.125
+              }],
+              "KeywordList": {
+                "Keyword": ["features", "dependencias", "Adif", "IDEADIF", "Tramificación Común"]
+              },
+              "Title": "Dependencias",
+              "Style": [{
+                "Title": "IDEADIF Node Style",
+                "LegendURL": {
+                  "OnlineResource": {
+                    "xlink:type": "simple",
+                    "xmlns:xlink": "http://www.w3.org/1999/xlink",
+                    "xlink:href": "http://ideadif.adif.es:80/gservices/Tramificacion/ows?service=WMS&request=GetLegendGraphic&format=image%2Fpng&width=20&height=20&layer=Dependencias"
+                  },
+                  "Format": "image/png",
+                  "width": 20,
+                  "height": 20
+                },
+                "Name": "Tramificacion:IDEADIF Node"
+              }, {
+                "Title": "IDEADIF Node Style",
+                "LegendURL": {
+                  "OnlineResource": {
+                    "xlink:type": "simple",
+                    "xmlns:xlink": "http://www.w3.org/1999/xlink",
+                    "xlink:href": "http://ideadif.adif.es:80/gservices/Tramificacion/ows?service=WMS&request=GetLegendGraphic&format=image%2Fpng&width=20&height=20&layer=Dependencias&style=IDEADIF+Node"
+                  },
+                  "Format": "image/png",
+                  "width": 20,
+                  "height": 20
+                },
+                "Name": "Tramificacion:IDEADIF Node"
+              }],
+              "MetadataURL": [{
+                "OnlineResource": {
+                  "xlink:type": "simple",
+                  "xlink:href": "http://ideadif.adif.es/catalog/srv/spa/catalog.search#/metadata/8385b48c-2bac-42ea-a319-054d6755af12"
+                },
+                "Format": "text/plain",
+                "type": 19139
+              }, {
+                "OnlineResource": {
+                  "xlink:type": "simple",
+                  "xlink:href": "http://ideadif.adif.es/catalog/srv/spa/catalog.search#/metadata/7b6a0fdc-bcc4-40e9-a913-74fc6ef10914"
+                },
+                "Format": "text/plain",
+                "type": 19139
+              }],
+              "Name": "Dependencias"
+            }, {
+              "queryable": 1,
+              "opaque": 0,
+              "CRS": ["EPSG:25830", "CRS:84"],
+              "Abstract": "",
+              "EX_GeographicBoundingBox": {
+                "northBoundLatitude": 43.87774788312506,
+                "southBoundLatitude": 35.976282037081944,
+                "westBoundLongitude": -8.93544441522613,
+                "eastBoundLongitude": 3.3553277464618696
+              },
+              "BoundingBox": [{
+                "miny": 35.976282037081944,
+                "CRS": "CRS:84",
+                "minx": -8.93544441522613,
+                "maxy": 43.87774788312506,
+                "maxx": 3.3553277464618696
+              }, {
+                "miny": 3996252.75,
+                "CRS": "EPSG:25830",
+                "minx": 21888.685546875,
+                "maxy": 4858316.5,
+                "maxx": 1012133.25
+              }],
+              "KeywordList": {
+                "Keyword": ["features", "pks", "Tramificación Común", "Tramificación", "Pk", "Puntos kilométricos", "IDEADIF", "Adif"]
+              },
+              "Title": "Puntos kilometricos teoricos",
+              "Style": {
+                "Abstract": "A sample style that draws a point",
+                "Title": "Default Point",
+                "LegendURL": {
+                  "OnlineResource": {
+                    "xlink:type": "simple",
+                    "xmlns:xlink": "http://www.w3.org/1999/xlink",
+                    "xlink:href": "http://ideadif.adif.es:80/gservices/Tramificacion/ows?service=WMS&request=GetLegendGraphic&format=image%2Fpng&width=20&height=20&layer=PKTeoricos"
+                  },
+                  "Format": "image/png",
+                  "width": 20,
+                  "height": 20
+                },
+                "Name": "point"
+              },
+              "MetadataURL": [{
+                "OnlineResource": {
+                  "xlink:type": "simple",
+                  "xlink:href": "http://ideadif.adif.es/catalog/srv/spa/catalog.search#/metadata/8385b48c-2bac-42ea-a319-054d6755af12"
+                },
+                "Format": "text/plain",
+                "type": 19139
+              }, {
+                "OnlineResource": {
+                  "xlink:type": "simple",
+                  "xlink:href": "http://ideadif.adif.es/catalog/srv/spa/catalog.search#/metadata/7b6a0fdc-bcc4-40e9-a913-74fc6ef10914"
+                },
+                "Format": "text/plain",
+                "type": 19139
+              }],
+              "Name": "PKTeoricos"
+            }, {
+              "queryable": 1,
+              "opaque": 0,
+              "CRS": ["EPSG:25830", "CRS:84"],
+              "Abstract": "",
+              "EX_GeographicBoundingBox": {
+                "northBoundLatitude": 43.65437766927871,
+                "southBoundLatitude": 36.53235585913574,
+                "westBoundLongitude": -8.914655683594248,
+                "eastBoundLongitude": 3.3319200917149243
+              },
+              "BoundingBox": [{
+                "miny": 36.53235585913574,
+                "CRS": "CRS:84",
+                "minx": -8.914655683594248,
+                "maxy": 43.65437766927871,
+                "maxx": 3.3319200917149243
+              }, {
+                "miny": 4058239.25,
+                "CRS": "EPSG:25830",
+                "minx": 21799.255859375,
+                "maxy": 4833508.0,
+                "maxx": 1012133.6875
+              }],
+              "KeywordList": {
+                "Keyword": ["Fuera_Servicio", "features", "Tramos", "Fuera de servicio", "IDEADIF", "Adif", "Tramificación común", "Tramificación"]
+              },
+              "Title": "Tramos fuera de servicio",
+              "Style": {
+                "Title": "IDEADIF Link Style",
+                "LegendURL": {
+                  "OnlineResource": {
+                    "xlink:type": "simple",
+                    "xmlns:xlink": "http://www.w3.org/1999/xlink",
+                    "xlink:href": "http://ideadif.adif.es:80/gservices/Tramificacion/ows?service=WMS&request=GetLegendGraphic&format=image%2Fpng&width=20&height=20&layer=TramosFueraServicio"
+                  },
+                  "Format": "image/png",
+                  "width": 20,
+                  "height": 20
+                },
+                "Name": "Tramificacion:IDEADIF Link"
+              },
+              "MetadataURL": [{
+                "OnlineResource": {
+                  "xlink:type": "simple",
+                  "xlink:href": "http://ideadif.adif.es/catalog/srv/spa/catalog.search#/metadata/8385b48c-2bac-42ea-a319-054d6755af12"
+                },
+                "Format": "text/plain",
+                "type": 19139
+              }, {
+                "OnlineResource": {
+                  "xlink:type": "simple",
+                  "xlink:href": "http://ideadif.adif.es/catalog/srv/spa/catalog.search#/metadata/7b6a0fdc-bcc4-40e9-a913-74fc6ef10914"
+                },
+                "Format": "text/plain",
+                "type": 19139
+              }],
+              "Name": "TramosFueraServicio"
+            }, {
+              "queryable": 1,
+              "opaque": 0,
+              "CRS": ["EPSG:25830", "CRS:84"],
+              "Abstract": "",
+              "EX_GeographicBoundingBox": {
+                "northBoundLatitude": 46.44896581305109,
+                "southBoundLatitude": 33.40424290324293,
+                "westBoundLongitude": -9.31296168027681,
+                "eastBoundLongitude": 3.731761229531348
+              },
+              "BoundingBox": [{
+                "miny": 33.40424290324293,
+                "CRS": "CRS:84",
+                "minx": -9.31296168027681,
+                "maxy": 46.44896581305109,
+                "maxx": 3.731761229531348
+              }, {
+                "miny": 3995914.25,
+                "CRS": "EPSG:25830",
+                "minx": 21799.255859375,
+                "maxy": 4858562.5,
+                "maxx": 1012133.6875
+              }],
+              "KeywordList": {
+                "Keyword": ["Tramificacion", "features", "Tramos", "Tramos en servicio", "IDEADIF", "Adif"]
+              },
+              "Title": "Tramos en servicio",
+              "Style": {
+                "Title": "IDEADIF Link Style",
+                "LegendURL": {
+                  "OnlineResource": {
+                    "xlink:type": "simple",
+                    "xmlns:xlink": "http://www.w3.org/1999/xlink",
+                    "xlink:href": "http://ideadif.adif.es:80/gservices/Tramificacion/ows?service=WMS&request=GetLegendGraphic&format=image%2Fpng&width=20&height=20&layer=TramosServicio"
+                  },
+                  "Format": "image/png",
+                  "width": 20,
+                  "height": 20
+                },
+                "Name": "Tramificacion:IDEADIF Link"
+              },
+              "MetadataURL": [{
+                "OnlineResource": {
+                  "xlink:type": "simple",
+                  "xlink:href": "http://ideadif.adif.es/catalog/srv/spa/catalog.search#/metadata/8385b48c-2bac-42ea-a319-054d6755af12"
+                },
+                "Format": "text/plain",
+                "type": 19139
+              }, {
+                "OnlineResource": {
+                  "xlink:type": "simple",
+                  "xlink:href": "http://ideadif.adif.es/catalog/srv/spa/catalog.search#/metadata/7b6a0fdc-bcc4-40e9-a913-74fc6ef10914"
+                },
+                "Format": "text/plain",
+                "type": 19139
+              }],
+              "Name": "TramosServicio"
+            }]
+          },
+          "Exception": {
+            "Format": ["XML", "INIMAGE", "BLANK"]
+          }
+        },
+        "xsi:schemaLocation": "http://www.opengis.net/wms http://ideadif.adif.es:80/gservices/schemas/wms/1.3.0/capabilities_1_3_0.xsd http://inspire.ec.europa.eu/schemas/inspire_vs/1.0 http://ideadif.adif.es:80/gservices/www/inspire/inspire_vs.xsd",
+        "Service": {
+          "OnlineResource": {
+            "xlink:type": "simple",
+            "xlink:href": "http://geoserver.sourceforge.net/html/index.php"
+          },
+          "AccessConstraints": "NONE",
+          "Abstract": "A compliant implementation of WMS plus most of the SLD extension (dynamic styling). Can also generate PDF, SVG, KML, GeoRSS",
+          "KeywordList": {
+            "Keyword": ["WFS", "WMS", "GEOSERVER"]
+          },
+          "Title": "IDEADIF - GeoServer WMS",
+          "Fees": "NONE",
+          "ContactInformation": {
+            "ContactAddress": {
+              "Address": "C/Paseo de las Delicias, 61",
+              "StateOrProvince": "",
+              "Country": "España",
+              "City": "Madrid",
+              "AddressType": "Dirección de Sistemas y Tecnologías de la Información",
+              "PostCode": 28045
+            },
+            "ContactVoiceTelephone": "",
+            "ContactFacsimileTelephone": "",
+            "ContactPosition": "Responsable de SIG IDEADIF",
+            "ContactElectronicMailAddress": "ideadif@adif.es",
+            "ContactPersonPrimary": {
+              "ContactOrganization": "Adif",
+              "ContactPerson": "Adm."
+            }
+          },
+          "Name": "WMS"
+        },
+        "xmlns:xsi": "http://www.w3.org/2001/XMLSchema-instance",
+        "version": "1.3.0",
+        "xmlns:gco": "http://schemas.opengis.net/iso/19139/20060504/gco/gco.xsd",
+        "xmlns:inspire_vs": "http://inspire.ec.europa.eu/schemas/inspire_vs/1.0",
+        "xmlns:gml": "http://schemas.opengis.net/gml",
+        "xmlns": "http://www.opengis.net/wms",
+        "xmlns:xlink": "http://www.w3.org/1999/xlink",
+        "xmlns:gmd": "http://schemas.opengis.net/iso/19139/20060504/gmd/gmd.xsd"
+      }
+    };
+
+    component.changeServiceDataByCapabilities(true, false);
+
+    expect(component.layersFromServiceCapabilities.length).toEqual(5);
+  })
+
+  it('Capabilities format invalid with random name', () => {
+    //When we click on load button, data to be processed is stored on serviceCapabilitiesData
+    component.serviceCapabilitiesData = {
+      "randomName": {
+        "xmlns:inspire_common": "http://inspire.ec.europa.eu/schemas/common/1.0",
+        "xmlns:srv": "http://schemas.opengis.net/iso/19139/20060504/srv/srv.xsd",
+        "updateSequence": 1211,
+        "Capability": {
+          "inspire_vs:ExtendedCapabilities": {
+            "inspire_common:MetadataUrl": {
+              "inspire_common:MediaType": "application/vnd.ogc.csw.GetRecordByIdResponse_xml",
+              "xsi:type": "inspire_common:resourceLocatorType",
+              "inspire_common:URL": "http://ideadif.adif.es/catalog/srv/spa/csw-inspire?SERVICE=CSW"
+            },
+            "inspire_common:SupportedLanguages": {
+              "xsi:type": "inspire_common:supportedLanguagesType",
+              "inspire_common:DefaultLanguage": {
+                "inspire_common:Language": "spa"
+              },
+              "inspire_common:SupportedLanguage": {
+                "inspire_common:Language": "spa"
+              }
+            },
+            "inspire_common:ResponseLanguage": {
+              "inspire_common:Language": "spa"
+            }
+          },
+          "Request": {
+            "GetFeatureInfo": {
+              "DCPType": {
+                "HTTP": {
+                  "Get": {
+                    "OnlineResource": {
+                      "xlink:type": "simple",
+                      "xlink:href": "http://ideadif.adif.es:80/gservices/Tramificacion/ows?SERVICE=WMS&"
+                    }
+                  }
+                }
+              },
+              "Format": ["text/plain", "application/vnd.ogc.gml", "text/xml", "application/vnd.ogc.gml/3.1.1", "text/xml; subtype=gml/3.1.1", "text/html", "application/json"]
+            },
+            "GetCapabilities": {
+              "DCPType": {
+                "HTTP": {
+                  "Post": {
+                    "OnlineResource": {
+                      "xlink:type": "simple",
+                      "xlink:href": "http://ideadif.adif.es:80/gservices/Tramificacion/ows?SERVICE=WMS&"
+                    }
+                  },
+                  "Get": {
+                    "OnlineResource": {
+                      "xlink:type": "simple",
+                      "xlink:href": "http://ideadif.adif.es:80/gservices/Tramificacion/ows?SERVICE=WMS&"
+                    }
+                  }
+                }
+              },
+              "Format": "text/xml"
+            },
+            "GetMap": {
+              "DCPType": {
+                "HTTP": {
+                  "Get": {
+                    "OnlineResource": {
+                      "xlink:type": "simple",
+                      "xlink:href": "http://ideadif.adif.es:80/gservices/Tramificacion/ows?SERVICE=WMS&"
+                    }
+                  }
+                }
+              },
+              "Format": ["image/png", "application/atom+xml", "application/pdf", "application/rss+xml", "application/vnd.google-earth.kml+xml", "application/vnd.google-earth.kml+xml;mode=networklink", "application/vnd.google-earth.kmz", "image/geotiff", "image/geotiff8", "image/gif", "image/jpeg", "image/png; mode=8bit", "image/svg+xml", "image/tiff", "image/tiff8", "text/html; subtype=openlayers"]
+            }
+          },
+          "Layer": {
+            "CRS": ["AUTO:42001", "AUTO:42002", "AUTO:42003", "AUTO:42004", "EPSG:WGS84(DD)", "EPSG:2000", "EPSG:2001", "EPSG:2002", "EPSG:2003", "EPSG:42305", "EPSG:42304", "EPSG:42303", "EPSG:404000", "CRS:84"],
+            "Abstract": "A compliant implementation of WMS plus most of the SLD extension (dynamic styling). Can also generate PDF, SVG, KML, GeoRSS",
+            "EX_GeographicBoundingBox": {
+              "northBoundLatitude": 46.44896581305109,
+              "southBoundLatitude": 33.40424290324293,
+              "westBoundLongitude": -9.31296168027681,
+              "eastBoundLongitude": 3.731761229531348
+            },
+            "BoundingBox": {
+              "miny": 33.40424290324293,
+              "CRS": "CRS:84",
+              "minx": -9.31296168027681,
+              "maxy": 46.44896581305109,
+              "maxx": 3.731761229531348
+            },
+            "Title": "IDEADIF - GeoServer WMS",
+            "Layer": [{
+              "queryable": 1,
+              "CRS": "EPSG:25830",
+              "Abstract": "Layer-Group type layer: TramificacionComun",
+              "EX_GeographicBoundingBox": {
+                "northBoundLatitude": 43.84151042654228,
+                "southBoundLatitude": 36.01411970122112,
+                "westBoundLongitude": -8.872469825313877,
+                "eastBoundLongitude": 3.291076542431359
+              },
+              "BoundingBox": {
+                "miny": 4000184.9189999998,
+                "CRS": "EPSG:25830",
+                "minx": 26701.903500000015,
+                "maxy": 4854291.6436,
+                "maxx": 1007231.0502000004
+              },
+              "Title": "Tramificacion Comun",
+              "MetadataURL": [{
+                "OnlineResource": {
+                  "xlink:type": "simple",
+                  "xlink:href": "http://ideadif.adif.es/catalog/srv/spa/catalog.search#/metadata/7b6a0fdc-bcc4-40e9-a913-74fc6ef10914"
+                },
+                "Format": "text/plain",
+                "type": 19139
+              }, {
+                "OnlineResource": {
+                  "xlink:type": "simple",
+                  "xlink:href": "http://ideadif.adif.es/catalog/srv/spa/catalog.search#/metadata/8385b48c-2bac-42ea-a319-054d6755af12"
+                },
+                "Format": "text/plain",
+                "type": 19139
+              }],
+              "Name": "TramificacionComun"
+            }, {
+              "queryable": 1,
+              "opaque": 1,
+              "CRS": ["EPSG:25830", "CRS:84"],
+              "Abstract": "",
+              "EX_GeographicBoundingBox": {
+                "northBoundLatitude": 43.87073628057826,
+                "southBoundLatitude": 35.976683871739915,
+                "westBoundLongitude": -8.933871794285512,
+                "eastBoundLongitude": 3.3513063935021052
+              },
+              "BoundingBox": [{
+                "miny": 35.976683871739915,
+                "CRS": "CRS:84",
+                "minx": -8.933871794285512,
+                "maxy": 43.87073628057826,
+                "maxx": 3.3513063935021052
+              }, {
+                "miny": 3996282.0,
+                "CRS": "EPSG:25830",
+                "minx": 21960.076171875,
+                "maxy": 4857537.5,
+                "maxx": 1011867.125
+              }],
+              "KeywordList": {
+                "Keyword": ["features", "dependencias", "Adif", "IDEADIF", "Tramificación Común"]
+              },
+              "Title": "Dependencias",
+              "Style": [{
+                "Title": "IDEADIF Node Style",
+                "LegendURL": {
+                  "OnlineResource": {
+                    "xlink:type": "simple",
+                    "xmlns:xlink": "http://www.w3.org/1999/xlink",
+                    "xlink:href": "http://ideadif.adif.es:80/gservices/Tramificacion/ows?service=WMS&request=GetLegendGraphic&format=image%2Fpng&width=20&height=20&layer=Dependencias"
+                  },
+                  "Format": "image/png",
+                  "width": 20,
+                  "height": 20
+                },
+                "Name": "Tramificacion:IDEADIF Node"
+              }, {
+                "Title": "IDEADIF Node Style",
+                "LegendURL": {
+                  "OnlineResource": {
+                    "xlink:type": "simple",
+                    "xmlns:xlink": "http://www.w3.org/1999/xlink",
+                    "xlink:href": "http://ideadif.adif.es:80/gservices/Tramificacion/ows?service=WMS&request=GetLegendGraphic&format=image%2Fpng&width=20&height=20&layer=Dependencias&style=IDEADIF+Node"
+                  },
+                  "Format": "image/png",
+                  "width": 20,
+                  "height": 20
+                },
+                "Name": "Tramificacion:IDEADIF Node"
+              }],
+              "MetadataURL": [{
+                "OnlineResource": {
+                  "xlink:type": "simple",
+                  "xlink:href": "http://ideadif.adif.es/catalog/srv/spa/catalog.search#/metadata/8385b48c-2bac-42ea-a319-054d6755af12"
+                },
+                "Format": "text/plain",
+                "type": 19139
+              }, {
+                "OnlineResource": {
+                  "xlink:type": "simple",
+                  "xlink:href": "http://ideadif.adif.es/catalog/srv/spa/catalog.search#/metadata/7b6a0fdc-bcc4-40e9-a913-74fc6ef10914"
+                },
+                "Format": "text/plain",
+                "type": 19139
+              }],
+              "Name": "Dependencias"
+            }, {
+              "queryable": 1,
+              "opaque": 0,
+              "CRS": ["EPSG:25830", "CRS:84"],
+              "Abstract": "",
+              "EX_GeographicBoundingBox": {
+                "northBoundLatitude": 43.87774788312506,
+                "southBoundLatitude": 35.976282037081944,
+                "westBoundLongitude": -8.93544441522613,
+                "eastBoundLongitude": 3.3553277464618696
+              },
+              "BoundingBox": [{
+                "miny": 35.976282037081944,
+                "CRS": "CRS:84",
+                "minx": -8.93544441522613,
+                "maxy": 43.87774788312506,
+                "maxx": 3.3553277464618696
+              }, {
+                "miny": 3996252.75,
+                "CRS": "EPSG:25830",
+                "minx": 21888.685546875,
+                "maxy": 4858316.5,
+                "maxx": 1012133.25
+              }],
+              "KeywordList": {
+                "Keyword": ["features", "pks", "Tramificación Común", "Tramificación", "Pk", "Puntos kilométricos", "IDEADIF", "Adif"]
+              },
+              "Title": "Puntos kilometricos teoricos",
+              "Style": {
+                "Abstract": "A sample style that draws a point",
+                "Title": "Default Point",
+                "LegendURL": {
+                  "OnlineResource": {
+                    "xlink:type": "simple",
+                    "xmlns:xlink": "http://www.w3.org/1999/xlink",
+                    "xlink:href": "http://ideadif.adif.es:80/gservices/Tramificacion/ows?service=WMS&request=GetLegendGraphic&format=image%2Fpng&width=20&height=20&layer=PKTeoricos"
+                  },
+                  "Format": "image/png",
+                  "width": 20,
+                  "height": 20
+                },
+                "Name": "point"
+              },
+              "MetadataURL": [{
+                "OnlineResource": {
+                  "xlink:type": "simple",
+                  "xlink:href": "http://ideadif.adif.es/catalog/srv/spa/catalog.search#/metadata/8385b48c-2bac-42ea-a319-054d6755af12"
+                },
+                "Format": "text/plain",
+                "type": 19139
+              }, {
+                "OnlineResource": {
+                  "xlink:type": "simple",
+                  "xlink:href": "http://ideadif.adif.es/catalog/srv/spa/catalog.search#/metadata/7b6a0fdc-bcc4-40e9-a913-74fc6ef10914"
+                },
+                "Format": "text/plain",
+                "type": 19139
+              }],
+              "Name": "PKTeoricos"
+            }, {
+              "queryable": 1,
+              "opaque": 0,
+              "CRS": ["EPSG:25830", "CRS:84"],
+              "Abstract": "",
+              "EX_GeographicBoundingBox": {
+                "northBoundLatitude": 43.65437766927871,
+                "southBoundLatitude": 36.53235585913574,
+                "westBoundLongitude": -8.914655683594248,
+                "eastBoundLongitude": 3.3319200917149243
+              },
+              "BoundingBox": [{
+                "miny": 36.53235585913574,
+                "CRS": "CRS:84",
+                "minx": -8.914655683594248,
+                "maxy": 43.65437766927871,
+                "maxx": 3.3319200917149243
+              }, {
+                "miny": 4058239.25,
+                "CRS": "EPSG:25830",
+                "minx": 21799.255859375,
+                "maxy": 4833508.0,
+                "maxx": 1012133.6875
+              }],
+              "KeywordList": {
+                "Keyword": ["Fuera_Servicio", "features", "Tramos", "Fuera de servicio", "IDEADIF", "Adif", "Tramificación común", "Tramificación"]
+              },
+              "Title": "Tramos fuera de servicio",
+              "Style": {
+                "Title": "IDEADIF Link Style",
+                "LegendURL": {
+                  "OnlineResource": {
+                    "xlink:type": "simple",
+                    "xmlns:xlink": "http://www.w3.org/1999/xlink",
+                    "xlink:href": "http://ideadif.adif.es:80/gservices/Tramificacion/ows?service=WMS&request=GetLegendGraphic&format=image%2Fpng&width=20&height=20&layer=TramosFueraServicio"
+                  },
+                  "Format": "image/png",
+                  "width": 20,
+                  "height": 20
+                },
+                "Name": "Tramificacion:IDEADIF Link"
+              },
+              "MetadataURL": [{
+                "OnlineResource": {
+                  "xlink:type": "simple",
+                  "xlink:href": "http://ideadif.adif.es/catalog/srv/spa/catalog.search#/metadata/8385b48c-2bac-42ea-a319-054d6755af12"
+                },
+                "Format": "text/plain",
+                "type": 19139
+              }, {
+                "OnlineResource": {
+                  "xlink:type": "simple",
+                  "xlink:href": "http://ideadif.adif.es/catalog/srv/spa/catalog.search#/metadata/7b6a0fdc-bcc4-40e9-a913-74fc6ef10914"
+                },
+                "Format": "text/plain",
+                "type": 19139
+              }],
+              "Name": "TramosFueraServicio"
+            }, {
+              "queryable": 1,
+              "opaque": 0,
+              "CRS": ["EPSG:25830", "CRS:84"],
+              "Abstract": "",
+              "EX_GeographicBoundingBox": {
+                "northBoundLatitude": 46.44896581305109,
+                "southBoundLatitude": 33.40424290324293,
+                "westBoundLongitude": -9.31296168027681,
+                "eastBoundLongitude": 3.731761229531348
+              },
+              "BoundingBox": [{
+                "miny": 33.40424290324293,
+                "CRS": "CRS:84",
+                "minx": -9.31296168027681,
+                "maxy": 46.44896581305109,
+                "maxx": 3.731761229531348
+              }, {
+                "miny": 3995914.25,
+                "CRS": "EPSG:25830",
+                "minx": 21799.255859375,
+                "maxy": 4858562.5,
+                "maxx": 1012133.6875
+              }],
+              "KeywordList": {
+                "Keyword": ["Tramificacion", "features", "Tramos", "Tramos en servicio", "IDEADIF", "Adif"]
+              },
+              "Title": "Tramos en servicio",
+              "Style": {
+                "Title": "IDEADIF Link Style",
+                "LegendURL": {
+                  "OnlineResource": {
+                    "xlink:type": "simple",
+                    "xmlns:xlink": "http://www.w3.org/1999/xlink",
+                    "xlink:href": "http://ideadif.adif.es:80/gservices/Tramificacion/ows?service=WMS&request=GetLegendGraphic&format=image%2Fpng&width=20&height=20&layer=TramosServicio"
+                  },
+                  "Format": "image/png",
+                  "width": 20,
+                  "height": 20
+                },
+                "Name": "Tramificacion:IDEADIF Link"
+              },
+              "MetadataURL": [{
+                "OnlineResource": {
+                  "xlink:type": "simple",
+                  "xlink:href": "http://ideadif.adif.es/catalog/srv/spa/catalog.search#/metadata/8385b48c-2bac-42ea-a319-054d6755af12"
+                },
+                "Format": "text/plain",
+                "type": 19139
+              }, {
+                "OnlineResource": {
+                  "xlink:type": "simple",
+                  "xlink:href": "http://ideadif.adif.es/catalog/srv/spa/catalog.search#/metadata/7b6a0fdc-bcc4-40e9-a913-74fc6ef10914"
+                },
+                "Format": "text/plain",
+                "type": 19139
+              }],
+              "Name": "TramosServicio"
+            }]
+          },
+          "Exception": {
+            "Format": ["XML", "INIMAGE", "BLANK"]
+          }
+        },
+        "xsi:schemaLocation": "http://www.opengis.net/wms http://ideadif.adif.es:80/gservices/schemas/wms/1.3.0/capabilities_1_3_0.xsd http://inspire.ec.europa.eu/schemas/inspire_vs/1.0 http://ideadif.adif.es:80/gservices/www/inspire/inspire_vs.xsd",
+        "Service": {
+          "OnlineResource": {
+            "xlink:type": "simple",
+            "xlink:href": "http://geoserver.sourceforge.net/html/index.php"
+          },
+          "AccessConstraints": "NONE",
+          "Abstract": "A compliant implementation of WMS plus most of the SLD extension (dynamic styling). Can also generate PDF, SVG, KML, GeoRSS",
+          "KeywordList": {
+            "Keyword": ["WFS", "WMS", "GEOSERVER"]
+          },
+          "Title": "IDEADIF - GeoServer WMS",
+          "Fees": "NONE",
+          "ContactInformation": {
+            "ContactAddress": {
+              "Address": "C/Paseo de las Delicias, 61",
+              "StateOrProvince": "",
+              "Country": "España",
+              "City": "Madrid",
+              "AddressType": "Dirección de Sistemas y Tecnologías de la Información",
+              "PostCode": 28045
+            },
+            "ContactVoiceTelephone": "",
+            "ContactFacsimileTelephone": "",
+            "ContactPosition": "Responsable de SIG IDEADIF",
+            "ContactElectronicMailAddress": "ideadif@adif.es",
+            "ContactPersonPrimary": {
+              "ContactOrganization": "Adif",
+              "ContactPerson": "Adm."
+            }
+          },
+          "Name": "WMS"
+        },
+        "xmlns:xsi": "http://www.w3.org/2001/XMLSchema-instance",
+        "version": "1.3.0",
+        "xmlns:gco": "http://schemas.opengis.net/iso/19139/20060504/gco/gco.xsd",
+        "xmlns:inspire_vs": "http://inspire.ec.europa.eu/schemas/inspire_vs/1.0",
+        "xmlns:gml": "http://schemas.opengis.net/gml",
+        "xmlns": "http://www.opengis.net/wms",
+        "xmlns:xlink": "http://www.w3.org/1999/xlink",
+        "xmlns:gmd": "http://schemas.opengis.net/iso/19139/20060504/gmd/gmd.xsd"
+      }
+    };
+
+    component.changeServiceDataByCapabilities(true, false);
+
+    expect(component.layersFromServiceCapabilities.length).toEqual(0);
+  })
+
+  */
+  it('isWMS() should return true when type is WMS', () => {
+    component.entityForm.patchValue({
+      name: 'test',
+      type: 'WMS',
+      serviceURL: 'test',
+      authenticationMode: 1
+    });
+
+    fixture.detectChanges();
+
+    expect(component.isWMS()).toBeTruthy();
+  });
+
+  it('isWMS() should return false when type is not WMS', () => {
+    component.entityForm.patchValue({
+      name: 'test',
+      type: 'WFS',
+      serviceURL: 'test',
+      authenticationMode: 1
+    });
+
+    fixture.detectChanges();
+
+    expect(component.isWMS()).toBeFalsy();
+  });
+
+  describe('Grid capability classification', () => {
+    it('parametersTable should have template-dialog, updater, and status capabilities', () => {
+      const table = component['parametersTable'];
+      expect(table.hasTemplateDialogs()).toBe(true);
+      expect(table.hasRelationsUpdater()).toBe(true);
+      expect(table.hasStatusColumn()).toBe(true);
+      expect(table.supportsDuplicate()).toBe(false);
+      expect(table.hasPickerAdd()).toBe(false);
+    });
+
+    it('layersTable should have updater and status, no picker/template/duplicate', () => {
+      const table = component['layersTable'];
+      expect(table.hasRelationsUpdater()).toBe(true);
+      expect(table.hasStatusColumn()).toBe(true);
+      expect(table.hasPickerAdd()).toBe(false);
+      expect(table.hasTemplateDialogs()).toBe(false);
+      expect(table.supportsDuplicate()).toBe(false);
+    });
+
+    it('layersTable title links existing layers to the layer form and keeps unregistered rows editable', () => {
+      const table = component['layersTable'];
+      const titleColumn = table.relationsColumnsDefs.find((column: { field?: string }) => column.field === 'name');
+
+      expect(titleColumn).toBeTruthy();
+      expect(titleColumn.cellRenderer).toBe('routerLinkRenderer');
+      expect(titleColumn.cellRendererParams).toEqual({
+        route: '/layers/:id/layersForm',
+        paramFields: { id: 'id' },
+      });
+      expect(typeof titleColumn.editable).toBe('function');
+      expect(titleColumn.editable({ data: { id: 42 } })).toBe(false);
+      expect(titleColumn.editable({ data: { status: 'unregisteredLayer' } })).toBe(true);
+    });
+  });
+
+  describe('onUpdateServiceMetadata multilingual translations', () => {
+    let dialog: MatDialog;
+    let wmsCapabilitiesService: WMSCapabilitiesService;
+    const originalLanguagesToUse = config.languagesToUse;
+
+    beforeEach(() => {
+      config.languagesToUse = [
+        { shortname: 'ca', name: 'Catala' } as never,
+        { shortname: 'es', name: 'Castellano' } as never,
+        { shortname: 'en', name: 'English' } as never,
+      ];
+      component.initTranslations('Service', ['description', 'name']);
+
+      dialog = TestBed.inject(MatDialog);
+      wmsCapabilitiesService = TestBed.inject(WMSCapabilitiesService);
+
+      jest.spyOn(dialog, 'open').mockReturnValue({
+        componentInstance: {},
+        afterClosed: () => of({ event: 'Accept' }),
+      } as never);
+
+      component.entityForm.patchValue({
+        name: 'old name',
+        description: 'old description',
+        type: 'WMS',
+        serviceURL: 'https://example.org/wms',
+        authenticationMode: 1,
+      });
+    });
+
+    afterEach(() => {
+      config.languagesToUse = originalLanguagesToUse;
+    });
+
+    it('applies main values and translation rows from capabilities metadata', async () => {
+      jest.spyOn(wmsCapabilitiesService, 'processWMSServiceMetadata').mockResolvedValue(
+        new WMSServiceCapabilities(
+          {},
+          'Nom catala',
+          new Map([['es', 'Nombre castellano']]),
+          'Descripcio catalana',
+          new Map([['es', 'Descripcion castellana']]),
+          ['EPSG:25831'],
+        )
+      );
+
+      component.onUpdateServiceMetadata();
+      await fixture.whenStable();
+      await Promise.resolve();
+
+      expect(component.entityForm.value.name).toBe('Nom catala');
+      expect(component.entityForm.value.description).toBe('Descripcio catalana');
+      expect(component.propertyTranslations.get('name')?.map.get('es')?.translation).toBe('Nombre castellano');
+      expect(component.propertyTranslations.get('description')?.map.get('es')?.translation).toBe('Descripcion castellana');
+      expect(component.propertyTranslations.get('name')?.modified).toBe(true);
+      expect(component.propertyTranslations.get('description')?.modified).toBe(true);
+    });
+
+    it('applies case B main-language translation row when default lang is absent from capabilities', async () => {
+      jest.spyOn(wmsCapabilitiesService, 'processWMSServiceMetadata').mockResolvedValue(
+        new WMSServiceCapabilities(
+          {},
+          'Nom catala',
+          new Map([['ca', 'Nom catala'], ['es', 'Nombre castellano']]),
+          'Descripcio catalana',
+          new Map([['ca', 'Descripcio catalana'], ['es', 'Descripcion castellana']]),
+          ['EPSG:25831'],
+        )
+      );
+
+      component.onUpdateServiceMetadata();
+      await fixture.whenStable();
+      await Promise.resolve();
+
+      expect(component.propertyTranslations.get('description')?.map.get('ca')?.translation).toBe('Descripcio catalana');
+      expect(component.propertyTranslations.get('description')?.map.get('es')?.translation).toBe('Descripcion castellana');
+    });
+
+    it('ignores unsupported capability languages and does not mark property modified', async () => {
+      jest.spyOn(wmsCapabilitiesService, 'processWMSServiceMetadata').mockResolvedValue(
+        new WMSServiceCapabilities(
+          {},
+          'Nom catala',
+          new Map([['fr', 'Nom francais']]),
+          'Descripcio catalana',
+          new Map([['fr', 'Description francaise']]),
+          ['EPSG:25831'],
+        )
+      );
+
+      component.onUpdateServiceMetadata();
+      await fixture.whenStable();
+      await Promise.resolve();
+
+      expect(component.propertyTranslations.get('name')?.modified).toBe(false);
+      expect(component.propertyTranslations.get('description')?.modified).toBe(false);
+    });
+  });
+
+  describe('auth implies proxy', () => {
+    beforeEach(() => {
+      component.dataLoaded = true;
+      component.entityForm.patchValue({
+        name: 'test',
+        type: 'WMS',
+        serviceURL: 'https://example.com/wms',
+      });
+      fixture.detectChanges();
+    });
+
+    it('always shows the proxy and authentication card', () => {
+      component.entityForm.patchValue({isProxied: false});
+      fixture.detectChanges();
+
+      expect(fixture.debugElement.query(By.css('.sitmun-service-form-proxy-auth-card'))).not.toBeNull();
+    });
+
+    it('always shows authentication fields', () => {
+      component.entityForm.patchValue({isProxied: false});
+      fixture.detectChanges();
+
+      expect(fixture.debugElement.query(By.css('.sitmun-service-form-auth-fields'))).not.toBeNull();
+    });
+
+    it('keeps authentication fields enabled when proxy is disabled', () => {
+      component.entityForm.patchValue({isProxied: false, authenticationMode: 'None'});
+      fixture.detectChanges();
+
+      expect(component.isProxyEnabled()).toBe(false);
+      expect(component.entityForm.get('authenticationMode')?.disabled).toBe(false);
+      expect(component.entityForm.get('user')?.disabled).toBe(false);
+      expect(component.entityForm.get('password')?.disabled).toBe(false);
+    });
+
+    it('forces proxy on when authentication is not None', () => {
+      component.entityForm.patchValue({isProxied: false, authenticationMode: 'None'});
+      component.entityForm.patchValue({authenticationMode: 'HTTP Basic authentication'});
+      fixture.detectChanges();
+
+      expect(component.entityForm.get('isProxied')?.value).toBe(true);
+      expect(component.entityForm.get('authenticationMode')?.disabled).toBe(false);
+    });
+
+    it('snaps proxy back on if turned off while authentication is set', () => {
+      component.entityForm.patchValue({
+        isProxied: true,
+        authenticationMode: 'HTTP Basic authentication',
+        user: 'proxy-user',
+        password: 'proxy-pass',
+      });
+
+      component.entityForm.patchValue({isProxied: false});
+      fixture.detectChanges();
+
+      expect(component.entityForm.get('isProxied')?.value).toBe(true);
+      expect(component.entityForm.get('authenticationMode')?.value).toBe('HTTP Basic authentication');
+      expect(component.entityForm.get('user')?.value).toBe('proxy-user');
+      expect(component.entityForm.get('password')?.value).toBe('proxy-pass');
+    });
+
+    it('does not force proxy off when authentication is cleared to None', () => {
+      component.entityForm.patchValue({
+        isProxied: true,
+        authenticationMode: 'HTTP Basic authentication',
+      });
+      component.entityForm.patchValue({authenticationMode: 'None'});
+      fixture.detectChanges();
+
+      expect(component.entityForm.get('isProxied')?.value).toBe(true);
+    });
+
+    it('preserves authentication fields for proxied services on load', () => {
+      component.entityToEdit = Object.assign(component.empty(), {
+        name: 'proxied-service',
+        type: 'WMS',
+        serviceURL: 'https://example.com/wms',
+        isProxied: true,
+        authenticationMode: 'HTTP Basic authentication',
+        user: 'stored-user',
+        password: 'stored-pass',
+      });
+      component.postFetchData();
+      fixture.detectChanges();
+
+      expect(component.isProxyEnabled()).toBe(true);
+      expect(component.entityForm.get('authenticationMode')?.value).toBe('HTTP Basic authentication');
+      expect(component.entityForm.get('user')?.value).toBe('stored-user');
+      expect(component.entityForm.get('password')?.value).toBe('stored-pass');
+    });
+
+    it('forces proxy on for authenticated services on load', () => {
+      component.entityToEdit = Object.assign(component.empty(), {
+        name: 'authenticated-service',
+        type: 'WMS',
+        serviceURL: 'https://example.com/wms',
+        isProxied: false,
+        authenticationMode: 'HTTP Basic authentication',
+        user: 'stored-user',
+        password: 'stored-pass',
+      });
+      component.postFetchData();
+      fixture.detectChanges();
+
+      expect(component.entityForm.get('isProxied')?.value).toBe(true);
+      expect(component.entityForm.get('user')?.value).toBe('stored-user');
+      expect(component.entityForm.get('password')?.value).toBe('stored-pass');
+    });
+  });
+});
+

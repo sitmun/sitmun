@@ -1,0 +1,424 @@
+import {NgOptimizedImage} from "@angular/common";
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
+import {ErrorHandler, inject, LOCALE_ID, NgModule, provideAppInitializer} from '@angular/core';
+import {FormsModule, ReactiveFormsModule} from '@angular/forms';
+import {MAT_TABS_CONFIG} from '@angular/material/tabs';
+import {BrowserModule} from '@angular/platform-browser';
+import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
+import {RouterModule} from '@angular/router';
+
+import { provideMissingTranslationHandler, TranslateModule, TranslateService } from '@ngx-translate/core';
+import { provideTranslateHttpLoader } from '@ngx-translate/http-loader';
+import {firstValueFrom} from 'rxjs';
+
+import {ApplicationFormComponent} from '@app/components/application/application-form/application-form.component';
+import {ApplicationComponent} from '@app/components/application/application.component';
+import {
+  BackgroundLayersFormComponent
+} from '@app/components/background-layers/background-layers-form/background-layers-form.component';
+import {BackgroundLayersComponent} from '@app/components/background-layers/background-layers.component';
+import {BaseFormComponent} from "@app/components/base-form.component";
+import {CodelistValueFormComponent} from '@app/components/codelist-value/codelist-value-form/codelist-value-form.component';
+import {CodelistValueComponent} from '@app/components/codelist-value/codelist-value.component';
+import {ConfigurationParameterFormComponent} from '@app/components/configuration-parameter/configuration-parameter-form/configuration-parameter-form.component';
+import {ConfigurationParameterComponent} from '@app/components/configuration-parameter/configuration-parameter.component';
+import {ConnectionFormComponent} from '@app/components/connection/connection-form/connection-form.component';
+import {ConnectionComponent} from '@app/components/connection/connection.component';
+import {DashboardComponent} from '@app/components/dashboard/dashboard.component';
+import {DataTablesRegistry} from "@app/components/data-tables.util";
+import {ErrorPageComponent} from "@app/components/error-page/error-page.component";
+import {DefaultLanguageChangeDialogComponent} from '@app/components/language/default-language-change-dialog/default-language-change-dialog.component';
+import {LanguageFormComponent} from '@app/components/language/language-form/language-form.component';
+import {LanguageComponent} from '@app/components/language/language.component';
+import {LayersFormComponent} from '@app/components/layers/layers-form/layers-form.component';
+import {LayersComponent} from '@app/components/layers/layers.component';
+import {
+  LayersPermitsFormComponent
+} from '@app/components/layers-permits/layers-permits-form/layers-permits-form.component';
+import {LayersPermitsComponent} from '@app/components/layers-permits/layers-permits.component';
+import {LiteralTranslationCreateDialogComponent} from '@app/components/literal-translations/literal-translation-create-dialog/literal-translation-create-dialog.component';
+import {LiteralTranslationCsvDialogComponent} from '@app/components/literal-translations/literal-translation-csv-dialog/literal-translation-csv-dialog.component';
+import {LiteralTranslationsComponent} from '@app/components/literal-translations/literal-translations/literal-translations.component';
+import {LoginComponent} from '@app/components/login/login.component';
+import {RoleFormComponent} from '@app/components/role/role-form/role-form.component';
+import {RoleComponent} from '@app/components/role/role.component';
+import {ServiceFormComponent} from '@app/components/service/service-form/service-form.component';
+import {ServiceComponent} from '@app/components/service/service.component';
+import {AuthenticatedLayoutComponent} from '@app/components/shared/authenticated-layout/authenticated-layout.component';
+import {CardLeadComponent} from '@app/components/shared/card-lead/card-lead.component';
+import {EntityFormAlertsComponent} from '@app/components/shared/entity-form-alerts/entity-form-alerts.component';
+import {EntityListComponent} from '@app/components/shared/entity-list';
+import {ExternalUrlLinkComponent} from '@app/components/shared/external-url-link/external-url-link.component';
+import {FormToolbarComponent} from '@app/components/shared/form-toolbar/form-toolbar.component';
+import {NotificationComponent} from '@app/components/shared/notification/notification.component';
+import {RelationGridComponent} from '@app/components/shared/relation-grid/relation-grid.component';
+import {SafeHtmlPreviewComponent} from '@app/components/shared/safe-html-preview/safe-html-preview.component';
+import {SideMenuComponent} from '@app/components/shared/side-menu/side-menu.component';
+import {ToolbarComponent} from '@app/components/shared/toolbar/toolbar.component';
+import {WarningsPanelComponent} from '@app/components/shared/warnings-panel/warnings-panel.component';
+import {TaskGroupFormComponent} from '@app/components/task-group/task-group-form/task-group-form.component';
+import {TaskGroupComponent} from '@app/components/task-group/task-group.component';
+import {TaskTypeFormComponent} from '@app/components/task-type/task-type-form/task-type-form.component';
+import {TaskTypeComponent} from '@app/components/task-type/task-type.component';
+import {TaskUIFormComponent} from '@app/components/task-ui/task-ui-form/task-ui-form.component';
+import {TaskUIComponent} from '@app/components/task-ui/task-ui.component';
+import {TaskBasicFormComponent} from '@app/components/tasks-basic/task-form/task-basic-form.component';
+import {TasksBasicComponent} from '@app/components/tasks-basic/tasks-basic.component';
+import {TaskDocumentExportFormComponent} from '@app/components/tasks-document-export/task-form/task-document-export-form.component';
+import {TasksDocumentExportComponent} from '@app/components/tasks-document-export/tasks-document-export.component';
+import {TaskEditFormComponent} from '@app/components/tasks-edit/task-form/task-edit-form.component';
+import {TasksEditComponent} from '@app/components/tasks-edit/tasks-edit.component';
+import {TaskLocatorFormComponent} from '@app/components/tasks-locator/task-form/task-locator-form.component';
+import {TasksLocatorComponent} from '@app/components/tasks-locator/tasks-locator.component';
+import {TaskMapImageFormComponent} from '@app/components/tasks-map-image/task-form/task-map-image-form.component';
+import {TasksMapImageComponent} from '@app/components/tasks-map-image/tasks-map-image.component';
+import {TaskMoreInfoFormComponent} from "@app/components/tasks-more-info/task-form/task-more-info-form.component";
+import {TasksMoreInfoComponent} from "@app/components/tasks-more-info/tasks-more-info.component";
+import {TaskMoreInfoAdvancedFormComponent} from '@app/components/tasks-more-info-advanced/task-form/task-more-info-advanced-form.component';
+import {TasksMoreInfoAdvancedComponent} from '@app/components/tasks-more-info-advanced/tasks-more-info-advanced.component';
+import {TaskQueryFormComponent} from "@app/components/tasks-query/task-form/task-query-form.component";
+import {TasksQueryComponent} from "@app/components/tasks-query/tasks-query.component";
+import { QueryExecutionCardComponent } from '@app/components/tasks-template/query-execution-card/query-execution-card.component';
+import { TaskTemplateFormComponent } from '@app/components/tasks-template/task-form/task-template-form.component';
+import { TasksTemplateComponent } from '@app/components/tasks-template/tasks-template.component';
+import { TemplateEditorComponent } from '@app/components/tasks-template/template-editor/template-editor.component';
+import {TerritoryFormComponent} from '@app/components/territory/territory-form/territory-form.component';
+import {TerritoryComponent} from '@app/components/territory/territory.component';
+import {TerritoryTypeFormComponent} from '@app/components/territory-type/territory-type-form/territory-type-form.component';
+import {TerritoryTypeComponent} from '@app/components/territory-type/territory-type.component';
+import {TreeNodesComponent} from '@app/components/trees/trees-form/tree-nodes/tree-nodes.component';
+import {TreesFormComponent} from '@app/components/trees/trees-form/trees-form.component';
+import {TreesComponent} from '@app/components/trees/trees.component';
+import {UserFormComponent} from '@app/components/user/user-form/user-form.component';
+import {UserComponent} from '@app/components/user/user.component';
+import {CoreModule, MessagesInterceptorStateService} from '@app/core';
+import {ExternalConfigurationService} from '@app/core/config/external-configuration.service';
+import {ExternalService, HalModule, ResourceService} from '@app/core/hal';
+import {Resource} from "@app/core/hal/resource/resource.model";
+import { AppMissingTranslationHandler } from '@app/core/translate/missing-translation-handler';
+import {
+  ApplicationBackgroundService,
+  ApplicationParameterService,
+  ApplicationService,
+  ApplicationTreeService,
+  BackgroundService,
+  CapabilitiesService,
+  CartographyAvailabilityService,
+  CartographyFilterService,
+  CartographyGroupService,
+  CartographyParameterService,
+  CartographyService,
+  CartographySpatialSelectionParameterService,
+  CartographyStyleService,
+  CodeListService,
+  ConfigurationParametersService,
+  ConnectionService,
+  DashboardService,
+  DomainModule,
+  LanguageService,
+  RoleService,
+  ServiceParameterService,
+  ServiceService,
+  TaskAvailabilityService,
+  TaskGroupService,
+  TaskService,
+  TaskTypeService,
+  TaskUIService,
+  TerritoryService,
+  TerritoryTypeService,
+  TranslationService,
+  TreeNodeService,
+  TreeService,
+  UserConfigurationService,
+  UserPositionService,
+  UserService
+} from '@app/domain';
+import {DataGridComponent} from '@app/frontend-gui/src/lib/data-grid/data-grid.component';
+import {DialogGridComponent} from '@app/frontend-gui/src/lib/dialog-grid/dialog-grid.component';
+import {ImagePreviewComponent} from '@app/frontend-gui/src/lib/image-preview/image-preview.component';
+import {SitmunFrontendGuiModule} from '@app/frontend-gui/src/lib/public_api';
+import {config} from '@config';
+
+import {APP_ROUTING} from './app-routes';
+import {AppComponent} from './app.component';
+import {AboutDialogComponent} from './components/shared/about-dialog/about-dialog.component';
+import {ConfigurationParametersDialogComponent} from './components/shared/configuration-parameters-dialog/configuration-parameters-dialog.component';
+import {ErrorDetailsSidebarComponent} from './components/shared/error-details-sidebar/error-details-sidebar.component';
+import {MissingTranslationsSidebarComponent} from './components/shared/missing-translations-sidebar/missing-translations-sidebar.component';
+import {SystemInfoMenuComponent} from './components/shared/system-info-menu/system-info-menu.component';
+import {GlobalErrorHandler} from './core/global-error-handler';
+import {MaterialModule} from './material-module';
+import {AppConfigService, initializeAppConfig} from './services/app-config.service';
+import {AppStateService} from './services/app-state.service';
+import {IconsService, initializeIcons} from './services/icons.service';
+import {LoggerService} from './services/logger.service';
+import {ServicesModule} from './services/services.module';
+import {resolveUiLanguage} from './services/ui-language.resolver';
+
+
+// APP_INITIALIZER factory functions
+export function initializeLanguages(
+  languageService: LanguageService,
+  configurationService: ConfigurationParametersService,
+  translateService: TranslateService,
+  loggerService: LoggerService,
+  appStateService: AppStateService,
+  messagesInterceptorState: MessagesInterceptorStateService,
+  appConfigService: AppConfigService
+) {
+  return async () => {
+    messagesInterceptorState.disable();
+    DataTablesRegistry.setLoggerService(loggerService);
+    Resource.setLoggerService(loggerService);
+
+    try {
+      if (!config.defaultLang) {
+        try {
+          const configParams = await firstValueFrom(configurationService.fetchAllItems());
+          const defaultLangParam = configParams.find(element => element.name === 'language.default');
+          if (defaultLangParam?.value) {
+            config.defaultLang = defaultLangParam.value;
+          }
+        } catch {
+          // configuration may load in a parallel initializer; fall back below
+        }
+      }
+
+      const languages = languageService.applyLanguagesToUse(
+        await firstValueFrom(languageService.fetchAllItems())
+      );
+
+      const chosen = resolveUiLanguage({
+        stored: localStorage.getItem('lang'),
+        backendDefault: config.defaultLang,
+        availableShortnames: languages.map(l => l.shortname),
+        staticFallback: appConfigService.getDefaultLanguageFallback() || 'en',
+      });
+      translateService.setDefaultLang(chosen);
+      messagesInterceptorState.enable();
+      return await firstValueFrom(translateService.use(chosen));
+    } catch (error) {
+      const initError = {
+        message: 'Failed to initialize languages',
+        originalError: error,
+        source: 'languages',
+        timestamp: new Date().toISOString()
+      };
+      appStateService.setInitializationError(initError, 'languages');
+      messagesInterceptorState.enable();
+
+      const fallback =
+        config.defaultLang ||
+        appConfigService.getDefaultLanguageFallback() ||
+        'en';
+      translateService.setDefaultLang(fallback);
+      return await firstValueFrom(translateService.use(fallback));
+    }
+  };
+}
+
+export function initializeConfiguration(
+  configurationService: ConfigurationParametersService,
+  translateService: TranslateService,
+  loggerService: LoggerService,
+  appStateService: AppStateService,
+  messagesInterceptorState: MessagesInterceptorStateService
+) {
+  return async () => {
+    messagesInterceptorState.disable();
+    try {
+      const configParams = await firstValueFrom(configurationService.fetchAllItems());
+      const defaultLang = configParams.find(element => element.name === 'language.default');
+
+      if (defaultLang) {
+        config.defaultLang = defaultLang.value;
+      }
+
+      loggerService.debug(`Configuration initialized: ${configParams.length} parameters loaded`);
+      messagesInterceptorState.enable();
+    } catch (error) {
+      // Create a proper error object for initialization errors
+      const initError = {
+        message: 'Failed to initialize configuration',
+        originalError: error,
+        source: 'configuration',
+        timestamp: new Date().toISOString()
+      };
+      appStateService.setInitializationError(initError, 'configuration');
+      messagesInterceptorState.enable();
+    }
+  };
+}
+
+@NgModule({ declarations: [
+        BaseFormComponent,
+        AppComponent,
+        EntityListComponent,
+        ErrorPageComponent,
+        ConnectionComponent,
+        ServiceComponent,
+        LayersComponent,
+        TreesComponent,
+        BackgroundLayersComponent,
+        LayersPermitsComponent,
+        TerritoryComponent,
+        UserComponent,
+        ApplicationComponent,
+        SideMenuComponent,
+        RoleComponent,
+        ToolbarComponent,
+        AuthenticatedLayoutComponent,
+        TasksBasicComponent,
+        TaskBasicFormComponent,
+        TasksMapImageComponent,
+        TaskMapImageFormComponent,
+        TasksDocumentExportComponent,
+        TaskDocumentExportFormComponent,
+        TaskLocatorFormComponent,
+        TasksLocatorComponent,
+        TaskMoreInfoFormComponent,
+	      TasksMoreInfoComponent,
+        TaskMoreInfoAdvancedFormComponent,
+        TasksMoreInfoAdvancedComponent,
+        TemplateEditorComponent,
+        QueryExecutionCardComponent,
+        TaskTemplateFormComponent,
+        TasksTemplateComponent,
+        SafeHtmlPreviewComponent,
+        TasksQueryComponent,
+        TaskQueryFormComponent,
+        ConnectionFormComponent,
+        RoleFormComponent,
+        UserFormComponent,
+        TerritoryFormComponent,
+        ServiceFormComponent,
+        ApplicationFormComponent,
+        TreesFormComponent,
+        TreeNodesComponent,
+        BackgroundLayersFormComponent,
+        LayersPermitsFormComponent,
+        LayersFormComponent,
+        TaskGroupComponent,
+        TaskGroupFormComponent,
+        TaskUIComponent,
+        TaskUIFormComponent,
+        LoginComponent,
+        DashboardComponent,
+        FormToolbarComponent,
+        ExternalUrlLinkComponent,
+        SystemInfoMenuComponent,
+        ErrorDetailsSidebarComponent,
+        MissingTranslationsSidebarComponent,
+        AboutDialogComponent,
+        ConfigurationParametersDialogComponent,
+        TaskEditFormComponent,
+        TasksEditComponent,
+        NotificationComponent,
+        LanguageComponent,
+        LanguageFormComponent,
+        DefaultLanguageChangeDialogComponent,
+        TerritoryTypeComponent,
+        TerritoryTypeFormComponent,
+        TaskTypeComponent,
+        TaskTypeFormComponent,
+        CodelistValueComponent,
+        CodelistValueFormComponent,
+        ConfigurationParameterComponent,
+        ConfigurationParameterFormComponent
+    ],
+    bootstrap: [AppComponent], imports: [BrowserModule,
+        FormsModule,
+        ReactiveFormsModule,
+        CoreModule.forRoot(),
+        DomainModule.forRoot(),
+        ServicesModule,
+        SitmunFrontendGuiModule,
+        DataGridComponent,
+        RelationGridComponent,
+        DialogGridComponent,
+        MaterialModule,
+        RouterModule,
+        HalModule.forRoot(),
+        TranslateModule.forRoot({
+            loader: provideTranslateHttpLoader({ prefix: './assets/i18n/', suffix: '.json' }),
+            missingTranslationHandler: provideMissingTranslationHandler(AppMissingTranslationHandler)
+        }),
+        APP_ROUTING,
+        BrowserAnimationsModule,
+        NgOptimizedImage,
+        CardLeadComponent,
+        EntityFormAlertsComponent,
+        WarningsPanelComponent,
+        ImagePreviewComponent,
+        LiteralTranslationsComponent,
+        LiteralTranslationCreateDialogComponent,
+        LiteralTranslationCsvDialogComponent], providers: [
+        { provide: LOCALE_ID, useValue: 'es-ES' },
+        { provide: ErrorHandler, useClass: GlobalErrorHandler },
+        { provide: 'ExternalConfigurationService', useClass: ExternalConfigurationService },
+        { provide: MAT_TABS_CONFIG, useValue: { animationDuration: '0ms' } },
+        // APP_INITIALIZER providers
+        // AppConfigService must be initialized FIRST (before languages) so fallback is available
+        provideAppInitializer(() => initializeAppConfig(inject(AppConfigService))()),
+        provideAppInitializer(() => initializeIcons(inject(IconsService))()),
+        provideAppInitializer(() =>
+            initializeConfiguration(
+                inject(ConfigurationParametersService),
+                inject(TranslateService),
+                inject(LoggerService),
+                inject(AppStateService),
+                inject(MessagesInterceptorStateService)
+            )()
+        ),
+        provideAppInitializer(() =>
+            initializeLanguages(
+                inject(LanguageService),
+                inject(ConfigurationParametersService),
+                inject(TranslateService),
+                inject(LoggerService),
+                inject(AppStateService),
+                inject(MessagesInterceptorStateService),
+                inject(AppConfigService)
+            )()
+        ),
+        AppConfigService,
+        ResourceService,
+        ExternalService,
+        RoleService,
+        ConnectionService,
+        UserService,
+        TerritoryService,
+        ServiceService,
+        ApplicationService,
+        TreeService,
+        TranslationService,
+        TerritoryTypeService,
+        TaskAvailabilityService,
+        BackgroundService,
+        CartographyService,
+        CartographyGroupService,
+        TaskGroupService,
+        DashboardService,
+        TaskService,
+        UserConfigurationService,
+        CodeListService,
+        ConfigurationParametersService,
+        CartographyAvailabilityService,
+        ServiceParameterService,
+        ApplicationParameterService,
+        CartographyParameterService,
+        CartographySpatialSelectionParameterService,
+        CartographyStyleService,
+        CapabilitiesService,
+        TaskTypeService,
+        LanguageService,
+        CartographyFilterService,
+        TaskUIService,
+        ApplicationBackgroundService,
+        ApplicationTreeService,
+        TreeNodeService,
+        UserPositionService,
+        provideHttpClient(withInterceptorsFromDi())
+    ] })
+export class AppModule {
+}

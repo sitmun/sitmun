@@ -1,0 +1,121 @@
+import { provideHttpClient } from '@angular/common/http';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { MatIconTestingModule } from '@angular/material/icon/testing';
+import { provideRouter, RouterModule } from '@angular/router';
+
+import {TranslateLoader, TranslateModule} from '@ngx-translate/core';
+import {of} from 'rxjs';
+
+import {EntityListComponent} from '@app/components/shared/entity-list/entity-list.component';
+import { ExternalConfigurationService } from '@app/core/config/external-configuration.service';
+import {ExternalService, ResourceService} from '@app/core/hal';
+import { CodeListService, TaskService, TranslationService } from '@app/domain';
+import { SitmunFrontendGuiModule } from '@app/frontend-gui/src/lib/public_api';
+import { MaterialModule } from '@app/material-module';
+
+import { TasksQueryComponent } from './tasks-query.component';
+
+
+describe('TasksQueryComponent', () => {
+  let component: TasksQueryComponent;
+  let fixture: ComponentFixture<TasksQueryComponent>;
+  let taskService: TaskService;
+  let codeListService: CodeListService;
+  let translationService: TranslationService;
+  let resourceService: ResourceService;
+  let externalService: ExternalService;
+  let httpMock: HttpTestingController;
+
+  beforeAll(async () => {
+     
+    await TestBed.configureTestingModule({
+      teardown: { destroyAfterEach: 0 as any },
+      declarations: [ TasksQueryComponent, EntityListComponent ],
+      imports : [SitmunFrontendGuiModule, MaterialModule, RouterModule, MatIconTestingModule,
+        TranslateModule.forRoot({
+          loader: {
+            provide: TranslateLoader,
+            useFactory: () => ({
+              getTranslation: () => of({})
+            })
+          }
+        })],
+      providers: [
+        CodeListService,
+        TaskService,
+        TranslationService,
+        ResourceService,
+        ExternalService,
+        { provide: 'ExternalConfigurationService', useClass: ExternalConfigurationService },
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        provideRouter([]),
+      ],
+    })
+    .compileComponents();
+  });
+
+  beforeEach(async () => {
+    httpMock = TestBed.inject(HttpTestingController);
+    fixture = TestBed.createComponent(TasksQueryComponent);
+    component = fixture.componentInstance;
+    taskService = TestBed.inject(TaskService);
+    codeListService = TestBed.inject(CodeListService);
+    translationService = TestBed.inject(TranslationService);
+    resourceService = TestBed.inject(ResourceService);
+    externalService = TestBed.inject(ExternalService);
+    fixture.detectChanges();
+    await new Promise((r) => setTimeout(r, 0));
+    httpMock.match((req) => req.url.includes('codelist-values')).forEach((req) =>
+      req.flush({ _embedded: { 'codelist-values': [] } })
+    );
+    await fixture.whenStable();
+  });
+
+  afterEach(() => {
+    fixture?.destroy();
+    httpMock.verify();
+  });
+
+  afterAll(() => TestBed.resetTestingModule());
+
+  it('should create', () => {
+    expect(component).toBeTruthy();
+  });
+
+  it('should instantiate taskService', () => {
+    expect(taskService).toBeTruthy();
+  });
+
+  it('should instantiate codeListService', () => {
+    expect(codeListService).toBeTruthy();
+  });
+
+  it('should instantiate translationService', () => {
+    expect(translationService).toBeTruthy();
+  });
+
+  it('should instantiate resourceService', () => {
+    expect(resourceService).toBeTruthy();
+  });
+
+  it('should instantiate externalService', () => {
+    expect(externalService).toBeTruthy();
+  });
+
+  it('uses row-only checkbox selection in infinite mode', async () => {
+    await component.postFetchData();
+
+    const checkboxColumn = component.entityListConfig.columnDefs[0] as any;
+
+    expect(checkboxColumn).not.toHaveProperty('headerCheckboxSelection');
+    expect(checkboxColumn.valueGetter()).toBe('');
+    expect(checkboxColumn.checkboxSelection({data: undefined})).toBe(false);
+    expect(checkboxColumn.checkboxSelection({data: {id: 1}})).toBe(true);
+    expect(checkboxColumn.cellClass({data: undefined})).toBe(
+      'sitmun-centered-cell sitmun-loading-checkbox-cell'
+    );
+    expect(checkboxColumn.cellClass({data: {id: 1}})).toBe('sitmun-centered-cell');
+  });
+});

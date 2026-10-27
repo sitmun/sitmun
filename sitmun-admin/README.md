@@ -1,0 +1,638 @@
+# SITMUN Administration Application
+
+[![License: EUPL v1.2](https://img.shields.io/badge/License-EUPL%20v1.2-blue.svg)](LICENSE)
+![Version](https://img.shields.io/badge/version-1.2.9-blue.svg)
+
+The **SITMUN Administration Application** is the official web-based frontend for managing the SITMUN geospatial application platform. Built with TypeScript and Angular 19, it provides a comprehensive administrative interface for the [SITMUN Backend Core](https://github.com/sitmun/sitmun-backend-core) REST API.
+
+## Table of Contents
+
+- [About SITMUN](#about-sitmun)
+- [Features](#features)
+- [Quick Start](#quick-start)
+- [Installation](#installation)
+- [Configuration](#configuration)
+- [Development](#development)
+- [Testing](#testing)
+- [Deployment](#deployment)
+- [API Integration](#api-integration)
+- [Security](#security)
+- [Project Structure](#project-structure)
+- [Contributing](#contributing)
+- [Support](#support)
+- [License](#license)
+
+## About SITMUN
+
+SITMUN is a comprehensive geospatial information management system designed for organizations that need to manage territorial information, geographical services, and spatial applications. The Administration Application provides the control panel for:
+
+- **User and Role Management**: Complete user lifecycle and permission management
+- **Application Configuration**: Setup and configuration of geospatial applications
+- **Territory Management**: Administrative boundary and territorial data management
+- **Service Integration**: WMS, WFS, and other geospatial service configuration
+- **Layer Management**: Cartographic layer setup and background layer configuration
+- **Task Management**: Workflow and task configuration for spatial operations
+- **Connection Management**: Database and service connection administration
+
+This frontend integrates seamlessly with the [SITMUN Backend Core](https://github.com/sitmun/sitmun-backend-core), providing a modern, responsive interface for administrative operations.
+
+## Features
+
+### Core Administrative Features
+
+- 🔐 **Secure Authentication**: Cookie-based authentication with role-based access control
+- 👥 **User Management**: Complete user lifecycle, roles, and permissions
+- 🗺️ **Application Management**: Geospatial application configuration and deployment
+- 🌍 **Territory Administration**: Territorial boundaries and geographic area management
+- 🔌 **Service Integration**: WMS, WFS, JDBC, and custom service connections
+- 📊 **Layer Management**: Cartographic layers and background configuration
+- ⚙️ **Task Configuration**: Workflow setup for spatial operations
+- 🔍 **Advanced Search**: Global search across all administrative entities
+
+### Technical Features
+
+- 📱 **Responsive Design**: Mobile-first approach with Angular Material
+- 🌐 **Internationalization**: Support for multiple languages (CA, ES, EN, FR, OC)
+- 🎨 **Modern UI/UX**: Clean, intuitive interface following Material Design
+- 🚀 **Performance Optimized**: Lazy loading, efficient data grids, and optimized builds
+- 🔧 **Developer Tools**: Comprehensive development and debugging tools
+- 📈 **Monitoring**: Integration with SonarCloud for code quality and coverage
+
+## Quick Start
+
+### Prerequisites
+
+- **Node.js**: 20.19.0+ ([Download](https://nodejs.org/)); use `nvm use 20.19.0` if using nvm (see [.nvmrc](.nvmrc)). Build and tests verified with **Node.js v20.19.0+**.
+- **npm**: Version 8.x or higher (comes with Node.js)
+- **SITMUN Backend Core**: Running instance ([Setup Guide](https://github.com/sitmun/sitmun-backend-core))
+
+### Quick Setup
+
+```bash
+# Clone the repository
+git clone https://github.com/sitmun/sitmun-admin-app.git
+cd sitmun-admin-app
+
+# Install dependencies
+npm ci
+# (uses project .npmrc: legacy-peer-deps=true so npm 10 matches CI)
+
+# Start development server
+npm start
+
+# Open browser to http://localhost:4200
+```
+
+The application will connect to a local backend at `http://localhost:8080` by default.
+
+## Installation
+
+### Development Installation
+
+1. **Clone the Repository**
+   ```bash
+   git clone https://github.com/sitmun/sitmun-admin-app.git
+   cd sitmun-admin-app
+   ```
+
+2. **Install Dependencies**
+   ```bash
+   # Install all dependencies (recommended for CI/CD)
+   npm ci
+   
+   # Or install with package-lock.json update
+   npm install
+   ```
+
+3. **Verify Installation**
+   ```bash
+   # Check Angular CLI version
+   npx ng version
+   
+   # Run linting
+   npm run lint
+   
+   # Run tests
+   npm test
+   ```
+
+### Production Installation
+
+```bash
+# Install production dependencies only
+npm ci --only=production
+
+# Build for production
+npm run build -- --configuration=production
+
+# Serve built files (example with serve)
+npx serve -s dist/admin-app -l 4200
+```
+
+## Configuration
+
+### Environment Configuration
+
+The application supports three build configurations:
+
+| Configuration | Use Case | API URL | Source Maps | Production |
+|---------------|----------|---------|-------------|------------|
+| **development** | Local `ng serve` | `http://localhost:9000/backend` | Yes | false |
+| **docker-dev** | Docker debugging | Template-based (`${PUBLIC_BASE_PATH}backend`) | Yes | false |
+| **production** | Docker production | Template-based (`${PUBLIC_BASE_PATH}backend`) | No | true |
+
+#### Environment Files
+
+```
+src/environments/
+├── environment.ts        # Local development (default)
+└── environment.prod.ts   # Production/Docker builds
+```
+
+The `docker-dev` and `production` configurations both use `environment.prod.ts`, which is generated from `environment.prod.ts.template` during Docker builds via `envsubst`.
+
+### Environment Variables
+
+Configure the following variables in your environment files:
+
+```typescript
+export const environment = {
+  production: boolean,           // Production mode flag
+  apiBaseURL: string,           // Backend API base URL
+  logLevel: LogLevel,           // Application log level (Debug, Info, Error)
+  version: string,              // Application version string
+  buildTimestamp: string,       // Build time in ISO-8601 format
+  environmentName: string,      // Environment label (development, localtest, etc.)
+};
+```
+
+### Build Configuration
+
+Build for specific configurations:
+
+```bash
+# Local development (uses environment.ts)
+npm start
+# Or explicitly:
+npm run build -- --configuration=development
+
+# Docker debugging (uses environment.prod.ts, with source maps)
+npm run build -- --configuration=docker-dev
+
+# Production build (uses environment.prod.ts, optimized)
+npm run build -- --configuration=production
+
+# Production build with custom base href
+npm run build -- --configuration=production --base-href=/admin/
+```
+
+For Docker builds, use the parent stack's docker-compose:
+
+```bash
+# Production Docker build (default)
+docker compose build front
+
+# Docker build with source maps for debugging
+ENVIRONMENT=development docker compose build front
+```
+
+### Application Configuration
+
+Key configuration files:
+
+- **`src/config.ts`**: Application-specific settings (task types, languages, etc.)
+- **`angular.json`**: Angular workspace configuration
+- **`tsconfig.json`**: TypeScript compiler configuration
+- **`jest.config.ts`**: Testing framework configuration
+
+## Development
+
+### Development Server
+
+```bash
+# Start development server (uses environment.ts)
+npm start
+
+# Start with custom port
+ng serve --port 4300
+
+# Start with open browser
+ng serve --open
+```
+
+### Code Generation
+
+```bash
+# Generate new component
+ng generate component components/my-component
+
+# Generate new service
+ng generate service services/my-service
+
+# Generate new module
+ng generate module modules/my-module --routing
+```
+
+### Code Quality
+
+```bash
+# Run linting
+npm run lint
+
+# Fix linting issues automatically
+npm run lint -- --fix
+
+# Run SonarQube analysis
+npm run sonar
+```
+
+### Development Workflow
+
+1. **Feature Development**
+
+   ```bash
+   # Create feature branch
+   git checkout -b feature/my-feature
+   
+   # Make changes and test
+   npm test
+   npm run lint
+   
+   # Commit with conventional commits
+   git commit -m "feat(component): add new user management feature"
+   ```
+
+2. **Code Review**
+
+  - Ensure all tests pass
+  - Verify linting passes
+  - Check SonarCloud quality gate
+  - Review security implications
+
+3. **Integration**
+
+  - Test with backend integration
+  - Verify all environments work
+  - Update documentation as needed
+
+## Testing
+
+### Unit Testing
+
+```bash
+# Run unit tests (no coverage)
+npm test
+
+# Run tests in watch mode
+npm run test:watch
+
+# Run tests with coverage artifacts for SonarCloud
+npm run test:coverage
+
+# Run specific test file
+npm test -- --testNamePattern="UserComponent"
+```
+
+### End-to-End Testing
+
+```bash
+# E2E testing is available via conditional script for CI/CD
+# Check scripts/conditional-e2e.sh for implementation details
+./scripts/conditional-e2e.sh
+```
+
+**Note**: E2E testing is currently implemented as a conditional script that runs only when the test deployment backend is available.
+
+### Testing Strategy
+
+- **Unit Tests**: Component logic, services, and utilities (Jest)
+- **Integration Tests**: Component-service integration (Jest)
+- **E2E Tests**: Conditional testing script for CI/CD environments
+- **Coverage**: `npm run test:coverage` writes `coverage/admin-app/lcov.info` and `reports/ut_report.xml` for SonarCloud. Jest stubs AG Grid, echarts, and the Material barrels.
+
+## Deployment
+
+### Docker Deployment
+
+Example `Dockerfile` for a production build:
+
+```dockerfile
+# Multi-stage build
+FROM node:20-alpine AS builder
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci
+COPY . .
+RUN npm run build -- --configuration=production
+
+FROM nginx:alpine
+COPY --from=builder /app/dist/admin-app /usr/share/nginx/html
+EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]
+```
+
+### Static Hosting
+
+```bash
+# Build for production
+npm run build -- --configuration=production
+
+# Deploy to static hosting (example: netlify)
+npx netlify deploy --dir=dist/admin-app --prod
+
+# Deploy to GitHub Pages
+npx angular-cli-ghpages --dir=dist/admin-app
+```
+
+### Environment-Specific Deployment
+
+```bash
+# Deploy to development
+npm run build -- --configuration=development
+rsync -avz dist/admin-app/ user@dev-server:/var/www/sitmun-admin/
+
+# Deploy to production
+npm run build -- --configuration=production
+rsync -avz dist/admin-app/ user@prod-server:/var/www/sitmun-admin/
+```
+
+## Data grids: client-side vs infinite
+
+Entity lists use `app-data-grid` with two row models:
+
+| Mode | When to use | Data loading |
+|------|-------------|--------------|
+| `clientSide` (default) | Bounded lists, dialog pickers with `currentData`, inline edit with undo | `RestService.getAllPages()` via `dataFetchFn` |
+| `infinite` | Large read-mostly tables (e.g. task query list) | `infiniteBlockFetcher` → `RestService.getPage({ page, size, sort })` |
+
+Constants: `INFINITE_PAGE_SIZE_DEFAULT` (50), `INFINITE_PAGE_SIZE_TEST` (10). `cacheBlockSize` must equal `pageSize`.
+
+Infinite grids do not support client-side column filters or quick-search; use server `sortField` on column defs and optional paged `search` endpoints.
+
+Full-list callers must use `getAllPages()` / `getAllPagesEx()` / `getAllPagesProjection()` — not bare `getAll()`. Backend default page size is 10; `max-page-size` is 200.
+
+## API Integration
+
+### Backend Integration
+
+The application integrates with the [SITMUN Backend Core](https://github.com/sitmun/sitmun-backend-core) REST API:
+
+#### Authentication Endpoints
+
+```text
+# Login
+POST /api/authenticate
+{
+  "username": "admin",
+  "password": "password"
+}
+
+# Get current user account
+GET /api/account
+
+# Logout
+POST /api/authenticate/logout
+```
+
+#### Core API Endpoints
+
+```text
+# Applications
+GET /api/applications
+POST /api/applications
+PUT /api/applications/{id}
+DELETE /api/applications/{id}
+
+# Users and Roles
+GET /api/users
+GET /api/roles
+POST /api/users
+
+# Territories
+GET /api/territories
+POST /api/territories
+
+# Services and Connections
+GET /api/services
+GET /api/connections
+
+# Health Check
+GET /api/dashboard/health
+```
+
+#### API Client Configuration
+
+The admin uses the backend authentication cookie. `AuthInterceptor` sets
+`withCredentials: true`; it does not store or attach a bearer token.
+
+### Error Handling
+
+- A protected backend `401` starts one coalesced account probe.
+- Probe `200` preserves the session. Probe `401` clears only local principal state and redirects to login without posting logout.
+- Probe `403`, network, and `5xx` responses preserve the session and show one warning until a successful probe resets it.
+- Resource `403` responses never clear authentication.
+- Explicit `LoginService.logout()` is the only client flow that posts `/api/authenticate/logout`.
+
+## Security
+
+### Authentication and Authorization
+
+- **Authentication Cookie**: Credentialed backend requests without browser token storage
+- **Role-Based Access Control**: Fine-grained permissions
+- **Route Guards**: Protected routes based on user roles
+- **HTTP Interceptors**: Automatic token handling
+
+### Security Features
+
+```typescript
+// Route protection
+{
+  path: 'admin',
+    component
+:
+  AdminComponent,
+    canActivate
+:
+  [AuthGuard],
+    data
+:
+  {
+    roles: ['ADMIN']
+  }
+}
+
+// Permission checking
+@Directive({
+  selector: '[hasPermission]'
+})
+export class HasPermissionDirective {
+  @Input() hasPermission: string;
+
+  constructor(
+    private authService: AuthService,
+    private templateRef: TemplateRef<any>,
+    private viewContainer: ViewContainerRef
+  ) {
+  }
+
+  ngOnInit() {
+    if (this.authService.hasPermission(this.hasPermission)) {
+      this.viewContainer.createEmbeddedView(this.templateRef);
+    }
+  }
+}
+```
+
+### Security Best Practices
+
+- **Content Security Policy**: Strict CSP headers
+- **HTTPS Only**: Force HTTPS in production
+- **Token Expiration**: Automatic token refresh
+- **Input Validation**: Client-side validation with server verification
+- **XSS Protection**: Angular's built-in sanitization
+
+## Project Structure
+
+```
+src/
+├── app/
+│   ├── components/           # Feature components
+│   │   ├── application/      # Application management
+│   │   ├── user/             # User management
+│   │   ├── territory/        # Territory management
+│   │   ├── service/          # Service configuration
+│   │   ├── layers/           # Layer management
+│   │   ├── shared/           # Shared components
+│   │   └── ...
+│   ├── core/                 # Core functionality
+│   │   ├── auth/             # Authentication services
+│   │   ├── guards/           # Route guards
+│   │   ├── interceptors/     # HTTP interceptors
+│   │   └── hal/              # HAL REST client
+│   ├── domain/               # Domain models and services
+│   │   ├── application/      # Application domain
+│   │   ├── user/             # User domain
+│   │   ├── territory/        # Territory domain
+│   │   └── ...
+│   ├── services/             # Application services
+│   └── utils/                # Utility functions
+├── assets/                   # Static assets
+│   ├── i18n/                 # Translation files
+│   └── img/                  # Images and icons
+├── environments/             # Environment configurations
+└── docs/                     # Documentation
+```
+
+### Key Architecture Decisions
+
+- **Domain-Driven Design**: Clear separation of concerns
+- **HAL REST Client**: Hypermedia-driven API client
+- **Angular Material**: Consistent UI components
+- **Reactive Forms**: Type-safe form handling
+- **RxJS**: Reactive programming patterns
+
+## Contributing
+
+### Development Guidelines
+
+1. **Fork the repository** and create a feature branch
+2. **Follow Angular style guide** and project conventions
+3. **Write tests** for new functionality
+4. **Update documentation** as needed
+5. **Ensure quality checks pass**:
+   ```bash
+   npm run lint
+   npm test
+   npm run build -- --configuration=production
+   ```
+6. **Submit a pull request** with a clear description
+
+### Conventional Commits
+
+We use [Conventional Commits](https://conventionalcommits.org/) for commit messages:
+
+```bash
+# Examples
+git commit -m "feat(user): add user profile management"
+git commit -m "fix(auth): resolve token refresh issue"
+git commit -m "docs(readme): update installation instructions"
+git commit -m "test(components): add unit tests for user component"
+git commit -m "style(formatting): apply prettier formatting"
+```
+
+**Types:**
+
+- `feat`: New feature
+- `fix`: Bug fix
+- `docs`: Documentation changes
+- `style`: Code style changes (formatting, etc.)
+- `refactor`: Code refactoring
+- `test`: Adding or updating tests
+- `chore`: Maintenance tasks
+- `perf`: Performance improvements
+- `ci`: CI/CD changes
+- `build`: Build system changes
+
+### Code Review Process
+
+1. **Automated Checks**: All PRs must pass CI/CD pipeline
+2. **Code Review**: At least one maintainer review required
+3. **Quality Gate**: SonarCloud quality gate must pass
+4. **Testing**: All tests must pass with adequate coverage
+5. **Documentation**: Update docs for new features
+
+## Support
+
+### Getting Help
+
+- **Documentation**: Check the [docs](docs) directory
+- **Issues**: [GitHub Issues](https://github.com/sitmun/sitmun-admin-app/issues)
+- **Backend Issues**: [Backend Core Issues](https://github.com/sitmun/sitmun-backend-core/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/sitmun/sitmun-admin-app/discussions)
+
+### Reporting Issues
+
+When reporting issues, please include:
+
+1. **Environment**: OS, Node.js version, browser
+2. **Steps to reproduce**: Clear step-by-step instructions
+3. **Expected behavior**: What should happen
+4. **Actual behavior**: What actually happens
+5. **Screenshots**: If applicable
+6. **Console logs**: Browser console errors
+
+## License
+
+This project is licensed under the **European Union Public Licence V. 1.2** (EUPL-1.2).
+
+The EUPL is a copyleft open-source license compatible with major open-source licenses including GPL, AGPL, MPL, and others. See the [LICENSE](LICENSE) file for the full license text.
+
+### License Compatibility
+
+The EUPL v1.2 is compatible with:
+
+- GNU General Public License (GPL) v2, v3
+- GNU Affero General Public License (AGPL) v3
+- Mozilla Public License (MPL) v2
+- Eclipse Public License (EPL) v1.0
+- And many others
+
+---
+
+## About SITMUN
+
+SITMUN is an open-source platform for territorial information management, designed to help organizations manage geographical data, services, and applications effectively.
+
+**Related Projects:**
+
+- [SITMUN Backend Core](https://github.com/sitmun/sitmun-backend-core) - REST API and business logic
+- [SITMUN Proxy Middleware](https://github.com/sitmun/sitmun-proxy-middleware) - Proxy and security middleware
+- [SITMUN Map Viewer](https://github.com/sitmun/sitmun-map-viewer) - Map visualization frontend
+
+**Technology Stack:**
+
+- Frontend: Angular 19, TypeScript, Angular Material
+- Backend: Spring Boot 3, Java 17, PostgreSQL/Oracle
+- Infrastructure: Docker, GitHub Actions, SonarCloud
+
+For more information, visit the [SITMUN organization](https://github.com/sitmun) on GitHub.

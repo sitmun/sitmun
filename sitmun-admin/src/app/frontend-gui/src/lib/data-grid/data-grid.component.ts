@@ -1,0 +1,2518 @@
+import {CommonModule} from '@angular/common';
+import {
+  Component,
+  ElementRef,
+  EventEmitter,
+  Input,
+  OnChanges,
+  OnDestroy,
+  OnInit,
+  Output,
+  SimpleChanges,
+  ViewChild,
+  DestroyRef,
+  inject
+} from '@angular/core';
+import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
+import {FormsModule} from '@angular/forms';
+import {MatButtonModule} from '@angular/material/button';
+import {MatButtonToggleModule} from '@angular/material/button-toggle';
+import {MatCardModule} from '@angular/material/card';
+import {MatDialog, MatDialogModule} from '@angular/material/dialog';
+import {MatIconModule} from '@angular/material/icon';
+import {MatInputModule} from '@angular/material/input';
+import {MatMenuModule} from '@angular/material/menu';
+import {MatToolbarModule} from '@angular/material/toolbar';
+import {MatTooltipModule} from '@angular/material/tooltip';
+
+import {AgGridModule} from '@ag-grid-community/angular';
+import {ClientSideRowModelModule} from '@ag-grid-community/client-side-row-model';
+import {GridOptions, ModuleRegistry} from '@ag-grid-community/core';
+import {CsvExportModule} from '@ag-grid-community/csv-export';
+import {InfiniteRowModelModule} from '@ag-grid-community/infinite-row-model';
+import {TranslateModule, TranslateService} from '@ngx-translate/core';
+import {debounceTime, firstValueFrom, Observable, Subject, Subscription} from 'rxjs';
+
+import type {HalPage} from '@app/core/hal/hal-page';
+import type {InfiniteBlockRequest} from '@app/core/hal/infinite-block-request';
+import {createInfiniteDatasource} from '@app/core/hal/infinite-datasource';
+import {INFINITE_PAGE_SIZE_DEFAULT} from '@app/core/hal/infinite-page-size';
+import {ResourceHelper} from '@app/core/hal/resource/resource-helper';
+import {ErrorHandlerService} from '@app/services/error-handler.service';
+import {LoadingOverlayService} from '@app/services/loading-overlay.service';
+import {LoggerService} from '@app/services/logger.service';
+import {UtilsService} from '@app/services/utils.service';
+import {constants} from '@environments/constants';
+
+import {
+  applyDataBasedColumnWidths,
+  prepareClientSideColumnDefs,
+  prepareInfiniteColumnDefs,
+  resolveAutoSizeStrategy,
+  usesContentBasedColumnSizing,
+  usesFlexColumnLayout,
+} from './data-grid-column-layout';
+import {BtnCheckboxFilterComponent} from '../btn-checkbox-filter/btn-checkbox-filter.component';
+import {
+  BtnCheckboxRenderedComponent
+} from '../btn-checkbox-rendered/btn-checkbox-rendered.component';
+import {BtnEditRenderedComponent} from '../btn-edit-rendered/btn-edit-rendered.component';
+import {DialogMessageComponent} from '../dialog-message/dialog-message.component';
+import {EditableLinkRendererComponent} from '../editable-link-renderer/editable-link-renderer.component';
+import {RouterLinkRendererComponent} from '../router-link-renderer/router-link-renderer.component';
+
+// Removed jQuery dependency
+
+ModuleRegistry.registerModules([
+  ClientSideRowModelModule,
+  InfiniteRowModelModule,
+  CsvExportModule
+]);
+
+export type DataGridRowModelMode = 'clientSide' | 'infinite';
+
+/** Whether discard/undo/redo are shown for grid-owned pending changes. */
+export type GridChangeTrackingMode = 'auto' | 'enabled' | 'disabled';
+
+export type GridEventType = "save"
+
+type StatusType =
+  'notAvailable'
+  | 'statusOK'
+  | 'pendingCreation'
+  | 'pendingModify'
+  | 'pendingDelete'
+  | 'pendingRegistration'
+  | 'unregisteredLayer';
+
+export interface Status {
+  status: StatusType;
+
+  newItem: boolean;
+}
+
+export function isActive(item: Status): boolean {
+  return item.status === constants.entityStatus.statusOK ||
+         item.status === constants.entityStatus.pendingModify ||
+         item.status === constants.entityStatus.pendingCreation;
+}
+
+export function isRegistered(item: Status): boolean {
+  return item.status === constants.entityStatus.statusOK ||
+         item.status === constants.entityStatus.pendingModify ||
+         item.status === constants.entityStatus.pendingDelete;
+}
+
+export function canDelete(status: Status): boolean {
+  return status.status === constants.entityStatus.pendingDelete && !status.newItem;
+}
+
+export interface GridEvent<T> {
+  event: string
+
+  data: (T & Status)[]
+}
+
+export function isSave<T>(event: GridEvent<T>): boolean {
+  return event.event === 'save';
+}
+
+export function canUpdate(status: Status): boolean {
+  return status.status === constants.entityStatus.pendingModify
+}
+
+export function canKeepOrUpdate(status: Status): boolean {
+  return status.status !== constants.entityStatus.pendingDelete
+}
+
+export function canCreate(status: Status): boolean {
+  return status.status === constants.entityStatus.pendingCreation
+}
+
+export function canRegistry(status: Status): boolean {
+  return status.status === constants.entityStatus.pendingRegistration
+}
+
+export function notAvailable(status: Status): boolean {
+  return status.status === constants.entityStatus.notAvailable
+}
+
+export function onNotAvailable<T>(data: (T & Status)[]): Executor<T> {
+  return new Executor(data.filter(notAvailable))
+}
+
+
+export function onCreate<T>(data: (T & Status)[]): Executor<T> {
+  return new Executor(data.filter(canCreate))
+}
+
+export function onDelete<T>(data: (T & Status)[]): Executor<T> {
+  return new Executor(data.filter(canDelete))
+}
+
+export function onUpdate<T>(data: (T & Status)[]): Executor<T> {
+  return new Executor(data.filter(canUpdate))
+}
+
+export function onPendingRegistration<T>(data: (T & Status)[]): Executor<T> {
+  return new Executor(data.filter(canRegistry))
+}
+
+export function onUpdatedRelation<T>(data: (T & Status)[]): Executor<T> {
+  return new Executor(data.filter(canKeepOrUpdate))
+}
+
+export class Executor<T> {
+  constructor(public readonly data: T[]) {
+  }
+
+  async forAll<S>(func: (item: T[]) => Observable<S | Observable<never>>): Promise<S | Observable<never>> {
+    return firstValueFrom(func(this.data));
+  }
+
+  map<S>(func: (item: T) => S): Executor<S> {
+    return new Executor(this.data.map(func));
+  }
+
+  async forEach<S>(func: (item: T) => Observable<S | Observable<never>>): Promise<(S | Observable<never>)[]> {
+    const results: (Promise<Observable<never> | S>)[] = [];
+    for (const item of this.data) {
+      results.push(firstValueFrom(func(item)));
+    }
+    return Promise.all(results);
+  }
+}
+
+/**
+ * A feature-rich Angular wrapper around AG Grid providing advanced data grid functionality.
+ * Supports CRUD operations, state management, undo/redo, search/replace, and more.
+ *
+ * @example
+ * ```typescript
+ * <app-data-grid
+ *   [columnDefs]="columnDefinitions"
+ *   [getAll]="fetchDataFunction"
+ *   [undoButton]="true"
+ *   [redoButton]="true"
+ *   [globalSearch]="true"
+ *   (sendChanges)="onChangesSaved($event)"
+ *   (gridModified)="onGridModified($event)">
+ * </app-data-grid>
+ * ```
+ */
+@Component({
+    selector: 'app-data-grid',
+    templateUrl: './data-grid.component.html',
+    styles: [`
+      :host ::ng-deep .sitmun-infinite-grid .ag-cell,
+      :host ::ng-deep .sitmun-infinite-grid .ag-cell-value,
+      :host ::ng-deep .sitmun-infinite-grid .router-link {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      :host ::ng-deep .sitmun-infinite-grid .sitmun-loading-checkbox-cell {
+        position: relative;
+      }
+
+      :host ::ng-deep .sitmun-infinite-grid .sitmun-loading-checkbox-cell::before {
+        content: '';
+        width: 18px;
+        height: 18px;
+        border: 2px solid rgba(0, 0, 0, 0.16);
+        border-top-color: #ff9300;
+        border-radius: 50%;
+        box-sizing: border-box;
+        left: 50%;
+        position: absolute;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        animation: sitmun-loading-cell-spin 0.8s linear infinite;
+      }
+
+      @keyframes sitmun-loading-cell-spin {
+        to {
+          transform: translate(-50%, -50%) rotate(360deg);
+        }
+      }
+
+    `],
+  standalone: true,
+    imports: [
+        CommonModule,
+        MatButtonModule,
+        MatTooltipModule,
+        MatDialogModule,
+        MatToolbarModule,
+        MatMenuModule,
+        MatIconModule,
+        MatInputModule,
+        TranslateModule,
+        AgGridModule,
+        MatButtonToggleModule,
+        MatCardModule,
+        FormsModule,
+    ]
+})
+export class DataGridComponent implements OnInit, OnDestroy, OnChanges {
+  /** Tracks if this is the first time loading data */
+  isFirstLoad = true;
+
+  /** Subscription for data loading */
+  dataSubscription!: Subscription;
+
+  private destroyRef = inject(DestroyRef);
+
+  /** Subscription for grid refresh events */
+  _eventRefreshSubscription: any;
+
+  /** Subscription for getting selected rows */
+  _eventGetSelectedRowsSubscription: any;
+
+  /** Subscription for getting all rows */
+  _eventGetAllRowsSubscription: any;
+
+  /** Subscription for saving grid state */
+  _eventSaveAgGridStateSubscription: any;
+
+  /** Subscription for modifying status of selected cells */
+  _eventModifyStatusOfSelectedCells: any;
+
+  /** Current search value for quick search */
+  searchValue: string;
+
+  /** Subject for debounced search input */
+  private searchSubject = new Subject<string>();
+
+  /** Reference to AG Grid API */
+  gridApi: any;
+
+  /** Reference to AG Grid Column API */
+  gridColumnApi: any;
+
+  /** Flag indicating if status column is present */
+  statusColumn = false;
+
+  /** Flag indicating if any column is editable */
+  someColumnIsEditable = false;
+
+  /** Map tracking changes to cells */
+  changesMap: Map<string, Map<string, number>> = new Map<string, Map<string, number>>();
+
+  /** Pending row edits in infinite mode (keyed by stable row id) */
+  infiniteRowChanges: Map<string, any> = new Map<string, any>();
+
+  /** Generation counter to drop stale infinite block responses */
+  private infiniteDatasourceGeneration = 0;
+
+
+  /** Last parameters of the grid */
+  params: any;
+
+  /** Current row data */
+  rowData: any[];
+
+  /** Number of editions done above any cell */
+  changeCounter: number;
+
+  /** Number of editions done after the last modification */
+  previousChangeCounter: number;
+
+  /** Number of redo operations available */
+  redoCounter: number;
+
+  /** Flag indicating if a modification change occurred */
+  modificationChange = false;
+
+  /** Flag indicating if an undo has no modifications */
+  undoNoChanges = false;
+
+  /** Manual undo stack for checkbox edits and row adds (AG Grid undo stack ignores these). */
+  private manualUndoStack: Array<
+    | {type: 'boolean'; nodeId: string; field: string; oldValue: boolean; newValue: boolean}
+    | {type: 'rowAdd'; items: any[]}
+  > = [];
+
+  /** Manual redo stack for undone checkbox edits and row adds. */
+  private manualRedoStack: Array<
+    | {type: 'boolean'; nodeId: string; field: string; oldValue: boolean; newValue: boolean}
+    | {type: 'rowAdd'; items: any[]}
+  > = [];
+
+  /** AG Grid options configuration */
+  gridOptions: GridOptions;
+
+  /** Currently expanded column from the truncated-cell inspection shortcut */
+  private expandedColumnId?: string;
+
+  private headerInteractionCleanup?: () => void;
+
+  /** True when the grid has horizontally scrollable columns outside the visible card. */
+  hasHiddenColumns = false;
+
+  /** Flag indicating if any status has changed to delete */
+  someStatusHasChangedToDelete = false;
+
+  /** Flag indicating if any status has been manually changed (e.g., pendingRegistration) */
+  someStatusHasChanged = false;
+
+  /** Observable triggering grid refresh */
+  @Input() eventRefreshSubscription: Observable<boolean>;
+
+  /** Observable triggering selected rows emission */
+  @Input() eventGetSelectedRowsSubscription: Observable<boolean>;
+
+  /** Observable triggering all rows emission */
+  @Input() eventGetAllRowsSubscription: Observable<GridEventType>;
+
+  /** Observable triggering grid state save */
+  @Input() eventSaveAgGridStateSubscription: Observable<boolean>;
+
+  /** Observable triggering status modification of selected cells */
+  @Input() eventModifyStatusOfSelectedCells: Observable<string>;
+
+  /** Observable for adding new items */
+  @Input() eventAddItemsSubscription: Observable<any[]>;
+
+  /** Custom framework components */
+  @Input() frameworkComponents: any;
+
+  /** Grid components */
+  @Input() components: any;
+
+  /** Column definitions */
+  @Input() columnDefs: any[];
+
+  /** Function to fetch all data */
+  @Input() getAll: () => Observable<any>;
+
+  /** Row model: client-side full fetch (default) or infinite block loading */
+  @Input() rowModelMode: DataGridRowModelMode = 'clientSide';
+
+  /** Block fetcher for infinite mode */
+  @Input() infiniteBlockFetcher?: (request: InfiniteBlockRequest) => Observable<HalPage<any>>;
+
+  /** Rows per infinite block (must match cacheBlockSize) */
+  @Input() pageSize: number = INFINITE_PAGE_SIZE_DEFAULT;
+
+  /** Fixed height for infinite grid viewport */
+  @Input() infiniteGridHeight = '60vh';
+
+  /** Fixed row height for infinite virtual scrolling */
+  @Input() infiniteRowHeight = 48;
+
+  /** Enables local filtering that scans additional server pages in infinite mode */
+  @Input() progressiveLocalFilter = false;
+
+  /** Enables backend text search for infinite mode */
+  @Input() backendSearch = false;
+
+  /** Flag to show/hide discard changes button (undefined = semantic default). */
+  @Input() discardChangesButton?: boolean;
+
+  /** Flag to discard non-reverse status */
+  @Input() discardNonReverseStatus: boolean;
+
+  /** Grid identifier */
+  @Input() id: any;
+
+  /** Flag to show/hide undo button (undefined = semantic default). */
+  @Input() undoButton?: boolean;
+
+  /** Default column sorting configuration */
+  @Input() defaultColumnSorting: string[];
+
+  /** Flag to show/hide redo button (undefined = semantic default). */
+  @Input() redoButton?: boolean;
+
+  /** Flag to show/hide apply changes button */
+  @Input() applyChangesButton: boolean;
+
+  /** Flag to show/hide delete button */
+  @Input() deleteButton: boolean;
+
+  /** Flag to show/hide new button */
+  @Input() newButton: boolean;
+
+  /** Flag to show/hide action button */
+  @Input() actionButton: boolean;
+
+  /** Flag to show/hide add button */
+  @Input() addButton: boolean;
+
+  /** Flag to show/hide register button */
+  @Input() registerButton: boolean;
+
+  /** New status for registration */
+  @Input() newStatusRegister: string;
+
+  /** Flag to enable/disable global search */
+  @Input() globalSearch: boolean;
+
+  /** Flag to show/hide change height button */
+  @Input() changeHeightButton: boolean;
+
+  /** Default height configuration */
+  @Input() defaultHeight: any;
+
+  /** Flag for single selection mode */
+  @Input() singleSelection: boolean;
+
+  /** Flag for non-editable mode */
+  @Input() nonEditable: boolean;
+
+  /** Disables grid-owned mutation controls and cell editing. */
+  @Input() readOnly = false;
+
+  /** Controls whether discard/undo/redo are shown for grid-owned pending changes. */
+  @Input() changeTracking: GridChangeTrackingMode = 'auto';
+
+  /** Grid title */
+  @Input() title: string;
+
+  /** Flag to hide export button */
+  @Input() hideExportButton: boolean;
+
+  /** Flag to hide duplicate button */
+  @Input() hideDuplicateButton: boolean;
+
+  /** Flag to hide search/replace button */
+  @Input() hideSearchReplaceButton: boolean;
+
+  /** Flag to hide replace button */
+  @Input() hideReplaceButton = false;
+
+  /** Enables managed row drag and drop ordering */
+  @Input() rowDragManaged = false;
+
+  /** Field restriction configuration */
+  @Input() addFieldRestriction: any;
+
+  /** Configuration for all new elements */
+  @Input() allNewElements: any;
+
+  /** Current data array */
+  @Input() currentData: any[] = null;
+
+  /** Field restriction with different name */
+  @Input() fieldRestrictionWithDifferentName: string;
+
+  /** Event emitter for remove operation */
+  @Output() remove: EventEmitter<any[]>;
+
+  /** Event emitter for new operation */
+  @Output() new: EventEmitter<number>;
+
+  /** Event emitter for add operation */
+  @Output() add: EventEmitter<any[]>;
+
+  /** Event emitter for discard changes */
+  @Output() discardChanges: EventEmitter<any[]>;
+
+  /** Event emitter for sending changes */
+  @Output() sendChanges: EventEmitter<any[]>;
+
+  /** Event emitter for duplicate operation */
+  @Output() duplicate: EventEmitter<any[]>;
+
+  /** Event emitter for selected rows */
+  @Output() getSelectedRows: EventEmitter<any[]>;
+
+  /** Event emitter for all rows */
+  @Output() getAllRows: EventEmitter<{ data: any[], event: string }>;
+
+  /** Event emitter for grid modified state */
+  @Output() gridModified: EventEmitter<boolean>;
+
+  /** Event emitter for row order changes triggered by drag and drop */
+  @Output() rowOrderChanged: EventEmitter<any[]>;
+
+  /** Emits true/false whenever the selection state changes */
+  @Output() selectionChanged = new EventEmitter<boolean>();
+
+  /** Event emitter for visibility state */
+  @Output() visible = new EventEmitter<HTMLElement>();
+
+  /** Reference to the data grid element */
+  @ViewChild('dataGrid', {static: true}) dataGrid: ElementRef;
+
+  /** Intersection observer for grid visibility */
+  private observer: IntersectionObserver;
+
+  /** Current replace value for search/replace operation */
+  replaceValue = '';
+
+  constructor(public dialog: MatDialog,
+              public translate: TranslateService,
+              public utils: UtilsService,
+              private loggerService: LoggerService,
+              private errorHandler: ErrorHandlerService,
+              private loadingService: LoadingOverlayService,
+  ) {
+
+    this.remove = new EventEmitter();
+    this.new = new EventEmitter();
+    this.add = new EventEmitter();
+    this.discardChanges = new EventEmitter();
+    this.sendChanges = new EventEmitter();
+    this.getSelectedRows = new EventEmitter();
+    this.duplicate = new EventEmitter();
+    this.getAllRows = new EventEmitter();
+    this.gridModified = new EventEmitter();
+    this.rowOrderChanged = new EventEmitter();
+    this.changeCounter = 0;
+    this.previousChangeCounter = 0;
+    this.redoCounter = 0;
+    this.gridOptions = {
+      enableBrowserTooltips: true,
+      onGridReady: this.onGridReady.bind(this),
+      overlayLoadingTemplate: '<span></span>',
+      getLocaleText: (params) => {
+        const key = `agGrid.${params.key}`;
+        const translated = this.translate.instant(key);
+        return translated !== key ? translated : params.defaultValue;
+      },
+      autoSizeStrategy: {
+        type: 'fitCellContents'
+      },
+      onCellMouseOver: (params) => this.markTruncatedCell(params),
+      onCellMouseOut: (params) => this.unmarkTruncatedCell(params),
+      onCellClicked: (params) => this.expandTruncatedCellColumn(params),
+      onSelectionChanged: () => this.selectionChanged.emit(this.areRowsSelected()),
+      defaultColDef: {
+        filter: true,
+        sortable: true,
+        editable: !this.nonEditable && !this.readOnly,
+        resizable: true,
+        minWidth: 100,
+        cellStyle: (params) => {
+          if (params.value && params.colDef.editable) {
+            if (this.changesMap.has(params.node.id) && this.changesMap.get(params.node.id).has(params.colDef.field)) {
+              return {
+                'background-color': '#E8F1DE',
+              };
+            } else {
+              // Transparent background lets row alternating color show through
+              return {
+                'background-color': 'transparent',
+              };
+            }
+          } else {
+            // Transparent background lets row alternating color show through
+            return {
+              'background-color': 'transparent',
+            };
+          }
+        },
+      },
+      rowSelection: 'multiple',
+      rowDragManaged: this.rowDragManaged,
+      suppressHorizontalScroll: true,
+      // Add alternating row background
+      getRowStyle: (params) => {
+        if (params.node.rowIndex! % 2 === 0) {
+          return { background: 'rgba(0, 0, 0, 0.02)' };
+        }
+        return { background: 'transparent' };
+      },
+    }
+
+    this.translate = translate;
+
+    this.frameworkComponents = {
+      btnEditRendererComponent: BtnEditRenderedComponent,
+      btnCheckboxRendererComponent: BtnCheckboxRenderedComponent,
+      btnCheckboxFilterComponent: BtnCheckboxFilterComponent
+    };
+
+    this.components = {
+      datePicker: this.getDatePicker(),
+      btnEditRendererComponent: BtnEditRenderedComponent,
+      btnCheckboxRendererComponent: BtnCheckboxRenderedComponent,
+      btnCheckboxFilterComponent: BtnCheckboxFilterComponent,
+      routerLinkRenderer: RouterLinkRendererComponent,
+      editableLinkRenderer: EditableLinkRendererComponent
+    };
+  }
+
+  /**
+   * Handles component initialization
+   */
+  ngOnInit(): void {
+    this.configureAutoSizeStrategy();
+
+    // Set up debounced search (300ms delay)
+    this.searchSubject
+      .pipe(
+        debounceTime(300),
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe((searchValue) => {
+        this.searchValue = searchValue;
+        if (this.rowModelMode === 'infinite' && (this.progressiveLocalFilter || this.backendSearch)) {
+          this.infiniteDatasourceGeneration++;
+          if (this.gridApi && !this.gridApi.isDestroyed()) {
+            this.gridApi.ensureIndexVisible(0, 'top');
+            this.gridApi.purgeInfiniteCache();
+          }
+        } else if (this.gridApi && !this.gridApi.isDestroyed()) {
+          this.gridApi.setGridOption('quickFilterText', searchValue || '');
+          this.gridApi.onFilterChanged();
+          this.gridApi.onSortChanged();
+        }
+      });
+
+    // Ensure that the grid is visible before autosizing columns.
+    this.observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          // For infinite mode with flex columns, don't auto-size (flex handles distribution)
+          // Only auto-size for client-side mode where content-based sizing is expected
+          if (this.rowModelMode !== 'infinite') {
+            this.applyColumnSizing();
+          }
+        }
+      });
+    }, {threshold: 0.1});
+    this.observer.observe(this.dataGrid.nativeElement);
+
+    if (this.eventRefreshSubscription) {
+      this._eventRefreshSubscription = this.eventRefreshSubscription
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe(() => {
+          this.changesMap.clear();
+          this.infiniteRowChanges.clear();
+          this.someStatusHasChangedToDelete = false;
+          this.someStatusHasChanged = false;
+          this.changeCounter = 0;
+          this.previousChangeCounter = 0;
+          this.redoCounter = 0;
+          this.manualUndoStack.length = 0;
+          this.manualRedoStack.length = 0;
+          if (!this.gridApi || this.gridApi.isDestroyed()) {
+            return;
+          }
+          if (this.rowModelMode === 'infinite') {
+            this.infiniteDatasourceGeneration++;
+            this.gridApi.deselectAll();
+            this.setupInfiniteGrid();
+            this.gridApi.purgeInfiniteCache();
+            return;
+          }
+          if (!this.params?.api) {
+            return;
+          }
+          this.onGridReady(this.params);
+        });
+    }
+    if (this.eventGetSelectedRowsSubscription) {
+      this._eventGetSelectedRowsSubscription = this.eventGetSelectedRowsSubscription
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe(() => {
+          this.emitSelectedRows();
+        });
+    }
+    if (this.eventGetAllRowsSubscription) {
+      this._eventGetAllRowsSubscription = this.eventGetAllRowsSubscription
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe((event: GridEventType) => {
+          this.emitAllRows(event);
+        });
+    }
+
+    if (this.eventSaveAgGridStateSubscription) {
+      this._eventSaveAgGridStateSubscription = this.eventSaveAgGridStateSubscription
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe(() => {
+          this.saveAgGridState();
+        });
+    }
+
+    if (this.eventModifyStatusOfSelectedCells) {
+      this._eventModifyStatusOfSelectedCells = this.eventModifyStatusOfSelectedCells
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe((status: string) => {
+          this.modifyStatusSelected(status);
+        });
+    }
+
+    if (this.eventAddItemsSubscription) {
+      this.eventAddItemsSubscription
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe((items: any[]) => {
+          this.addItems(items);
+        });
+    }
+    if (this.rowModelMode !== 'infinite') {
+      this.loadData();
+    }
+  }
+
+  get isInfiniteMode(): boolean {
+    return this.rowModelMode === 'infinite';
+  }
+
+  /** True when the grid owns pending create/modify/delete or cell-edit undo state. */
+  get gridOwnsPendingChanges(): boolean {
+    if (this.changeTracking === 'enabled') {
+      return !this.readOnly && !this.isInfiniteMode;
+    }
+    if (this.changeTracking === 'disabled' || this.readOnly || this.isInfiniteMode) {
+      return false;
+    }
+    return this.statusColumn || this.someColumnIsEditable;
+  }
+
+  get showDiscardChangesButton(): boolean {
+    if (this.discardChangesButton !== undefined) {
+      return this.discardChangesButton && !this.readOnly && !this.isInfiniteMode;
+    }
+    return this.gridOwnsPendingChanges;
+  }
+
+  get showUndoButton(): boolean {
+    if (this.undoButton !== undefined) {
+      return this.undoButton && !this.readOnly && !this.isInfiniteMode;
+    }
+    return this.gridOwnsPendingChanges;
+  }
+
+  get showRedoButton(): boolean {
+    if (this.redoButton !== undefined) {
+      return this.redoButton && !this.readOnly && !this.isInfiniteMode;
+    }
+    return this.gridOwnsPendingChanges;
+  }
+
+  get showDeleteButton(): boolean {
+    return this.deleteButton && !this.readOnly;
+  }
+
+  get showNewButton(): boolean {
+    return this.newButton && !this.readOnly;
+  }
+
+  get showAddButton(): boolean {
+    return this.addButton && !this.readOnly;
+  }
+
+  get showRegisterButton(): boolean {
+    return this.registerButton && !this.readOnly;
+  }
+
+  get showReplaceControls(): boolean {
+    return !this.hideReplaceButton && !this.readOnly && !this.isInfiniteMode;
+  }
+
+  get showDuplicateButton(): boolean {
+    return !this.hideDuplicateButton && !this.readOnly;
+  }
+
+  private expandTruncatedCellColumn(params): void {
+    const cell = this.getEventCell(params);
+    const colId = params.column?.getColId?.() ?? params.column?.getId?.() ?? params.colDef?.colId ?? params.colDef?.field;
+    if (!cell || !colId || params.colDef?.checkboxSelection || !this.isElementTruncated(cell)) {
+      return;
+    }
+
+    params.event?.preventDefault();
+    params.event?.stopPropagation();
+
+    const currentWidth = params.column?.getActualWidth?.() ?? cell.clientWidth;
+    this.expandColumnToFitContent(colId, cell, currentWidth);
+    cell.classList.remove('sitmun-truncated-cell');
+  }
+
+  private expandTruncatedHeaderColumn(headerCell: HTMLElement, event: MouseEvent): void {
+    if ((event.target as HTMLElement).closest('.ag-header-cell-menu-button, .ag-sort-indicator-container')) {
+      return;
+    }
+
+    const colId = headerCell.getAttribute('col-id');
+    if (!colId || !this.gridApi) {
+      return;
+    }
+
+    const column = this.gridApi.getColumn(colId);
+    const colDef = column?.getColDef?.();
+    if (!column || colDef?.checkboxSelection) {
+      return;
+    }
+
+    const headerText = headerCell.querySelector('.ag-header-cell-text') as HTMLElement | null;
+    if (!headerText || !this.isElementTruncated(headerText)) {
+      return;
+    }
+
+    const currentWidth = column.getActualWidth() ?? headerCell.clientWidth;
+    this.expandColumnToFitContent(colId, headerText, currentWidth);
+    headerCell.classList.remove('sitmun-truncated-header');
+  }
+
+  private bindHeaderTruncationHandlers(): void {
+    this.unbindHeaderTruncationHandlers();
+    const gridElement = this.dataGrid?.nativeElement;
+    if (!gridElement) {
+      return;
+    }
+
+    const onMouseOver = (event: MouseEvent) => {
+      const headerCell = (event.target as HTMLElement).closest('.ag-header-cell') as HTMLElement | null;
+      if (!headerCell || !gridElement.contains(headerCell)) {
+        return;
+      }
+      const headerText = headerCell.querySelector('.ag-header-cell-text') as HTMLElement | null;
+      if (headerText && this.isElementTruncated(headerText)) {
+        headerCell.classList.add('sitmun-truncated-header');
+      }
+    };
+
+    const onMouseOut = (event: MouseEvent) => {
+      const headerCell = (event.target as HTMLElement).closest('.ag-header-cell') as HTMLElement | null;
+      headerCell?.classList.remove('sitmun-truncated-header');
+    };
+
+    const onClick = (event: MouseEvent) => {
+      const headerCell = (event.target as HTMLElement).closest('.ag-header-cell') as HTMLElement | null;
+      if (!headerCell || !gridElement.contains(headerCell)) {
+        return;
+      }
+      const headerText = headerCell.querySelector('.ag-header-cell-text') as HTMLElement | null;
+      if (!headerText || !this.isElementTruncated(headerText)) {
+        return;
+      }
+      event.preventDefault();
+      event.stopPropagation();
+      this.expandTruncatedHeaderColumn(headerCell, event);
+    };
+
+    gridElement.addEventListener('mouseover', onMouseOver);
+    gridElement.addEventListener('mouseout', onMouseOut);
+    gridElement.addEventListener('click', onClick, true);
+    this.headerInteractionCleanup = () => {
+      gridElement.removeEventListener('mouseover', onMouseOver);
+      gridElement.removeEventListener('mouseout', onMouseOut);
+      gridElement.removeEventListener('click', onClick, true);
+    };
+  }
+
+  private unbindHeaderTruncationHandlers(): void {
+    this.headerInteractionCleanup?.();
+    this.headerInteractionCleanup = undefined;
+  }
+
+  private expandColumnToFitContent(colId: string, measureEl: HTMLElement, currentWidth: number): void {
+    if (this.expandedColumnId && this.expandedColumnId !== colId) {
+      this.restoreExpandedColumn();
+    }
+
+    const targetWidth = Math.min(
+      this.getExpandedElementWidth(measureEl),
+      this.getMaxExpandedColumnWidth(colId, currentWidth)
+    );
+    if (targetWidth <= currentWidth + 1) {
+      return;
+    }
+
+    this.gridApi.applyColumnState({
+      state: [{colId, flex: null, width: targetWidth}],
+      applyOrder: false
+    });
+    this.expandedColumnId = colId;
+    if (usesFlexColumnLayout(this.columnDefs)) {
+      this.gridApi.setGridOption('suppressHorizontalScroll', false);
+    }
+  }
+
+  private restoreExpandedColumn(): void {
+    if (!this.expandedColumnId || !this.gridApi || this.gridApi.isDestroyed()) {
+      return;
+    }
+
+    const defaultState = this.getDefaultColumnState(this.expandedColumnId);
+    if (defaultState) {
+      this.gridApi.applyColumnState({
+        state: [defaultState],
+        applyOrder: false
+      });
+    }
+    this.expandedColumnId = undefined;
+  }
+
+  private getDefaultColumnState(colId: string): any | undefined {
+    const columnDef = this.columnDefs.find((col) => this.getColumnDefId(col) === colId);
+    if (!columnDef) {
+      return undefined;
+    }
+
+    if (columnDef.flex !== 0) {
+      return {
+        colId,
+        flex: columnDef.flex ?? 1
+      };
+    }
+
+    return {
+      colId,
+      flex: null,
+      width: columnDef.width ?? columnDef.minWidth ?? 100
+    };
+  }
+
+  private getColumnDefId(columnDef: any): string | undefined {
+    return columnDef.colId ?? columnDef.field;
+  }
+
+  private getMaxExpandedColumnWidth(colId: string, currentWidth: number): number {
+    const maxContentWidth = 720;
+    if (usesFlexColumnLayout(this.columnDefs)) {
+      return maxContentWidth;
+    }
+
+    const viewportWidth = this.getGridViewportWidth();
+    const displayedColumns = this.gridApi?.getAllDisplayedColumns?.() ?? [];
+    if (!viewportWidth || displayedColumns.length === 0) {
+      return currentWidth;
+    }
+
+    const otherColumnsWidth = displayedColumns
+      .filter((column: any) => column.getColId?.() !== colId)
+      .reduce((total: number, column: any) => total + this.getColumnFitFloorWidth(column), 0);
+
+    return Math.max(currentWidth, viewportWidth - otherColumnsWidth - 2);
+  }
+
+  private getGridViewportWidth(): number {
+    const gridElement = this.params?.eGridDiv as HTMLElement | undefined;
+    const gridWidth = gridElement?.querySelector<HTMLElement>('.ag-center-cols-viewport')?.clientWidth ??
+      gridElement?.clientWidth ??
+      this.dataGrid?.nativeElement?.clientWidth;
+
+    return Math.max(0, gridWidth ?? 0);
+  }
+
+  private getColumnFitFloorWidth(column: any): number {
+    const colDef = column.getColDef?.() ?? {};
+    const actualWidth = column.getActualWidth?.() ?? colDef.width ?? colDef.minWidth ?? 100;
+
+    if (colDef.flex === 0 || colDef.suppressSizeToFit) {
+      return actualWidth;
+    }
+
+    return colDef.minWidth ?? Math.min(actualWidth, 100);
+  }
+
+  private withoutCellTooltips(col: any): any {
+    if (col.field === 'status' && col.tooltipValueGetter) {
+      return col;
+    }
+    const processed = {...col};
+    delete processed.tooltipField;
+    delete processed.tooltipValueGetter;
+    return processed;
+  }
+
+  private markTruncatedCell(params): void {
+    const cell = this.getEventCell(params);
+    if (cell && !params.colDef?.checkboxSelection && this.isElementTruncated(cell)) {
+      cell.classList.add('sitmun-truncated-cell');
+    }
+  }
+
+  private unmarkTruncatedCell(params): void {
+    this.getEventCell(params)?.classList.remove('sitmun-truncated-cell');
+  }
+
+  private isElementTruncated(element: HTMLElement): boolean {
+    const candidates: HTMLElement[] = [
+      element,
+      ...Array.from(element.querySelectorAll('.ag-cell-value, .ag-cell-wrapper, a, span')) as HTMLElement[]
+    ];
+
+    return candidates.some((candidate) => candidate.scrollWidth > candidate.clientWidth + 1) ||
+      this.isCellTextWiderThanVisibleArea(element);
+  }
+
+  private getEventCell(params): HTMLElement | null {
+    const target = params.event?.target as HTMLElement | null;
+    return target?.closest?.('.ag-cell') as HTMLElement | null;
+  }
+
+  private isCellTextWiderThanVisibleArea(cell: HTMLElement): boolean {
+    const style = window.getComputedStyle(cell);
+    const horizontalPadding = Number.parseFloat(style.paddingLeft || '0') + Number.parseFloat(style.paddingRight || '0');
+    const visibleTextWidth = cell.clientWidth - horizontalPadding;
+    return this.getElementTextWidth(cell) > visibleTextWidth + 1;
+  }
+
+  private getExpandedElementWidth(element: HTMLElement): number {
+    const style = window.getComputedStyle(element);
+    const horizontalPadding = Number.parseFloat(style.paddingLeft || '0') + Number.parseFloat(style.paddingRight || '0');
+    const textWidth = this.getElementTextWidth(element);
+    const widthWithBreathingRoom = Math.ceil(textWidth + horizontalPadding + 32);
+    return Math.min(Math.max(widthWithBreathingRoom, element.clientWidth), 720);
+  }
+
+  private getElementTextWidth(element: HTMLElement): number {
+    const text = element.innerText?.trim();
+    if (!text) {
+      return 0;
+    }
+
+    const style = window.getComputedStyle(element);
+    const measurer = document.createElement('span');
+    measurer.textContent = text;
+    measurer.style.position = 'absolute';
+    measurer.style.visibility = 'hidden';
+    measurer.style.whiteSpace = 'nowrap';
+    measurer.style.font = style.font;
+    document.body.appendChild(measurer);
+    const textWidth = measurer.getBoundingClientRect().width;
+    measurer.remove();
+
+    return textWidth;
+  }
+
+  private configureAutoSizeStrategy(preparedColumnDefs = this.columnDefs): void {
+    const strategy = resolveAutoSizeStrategy(this.rowModelMode, preparedColumnDefs ?? []);
+    if (strategy) {
+      this.gridOptions.autoSizeStrategy = strategy;
+    } else {
+      delete this.gridOptions.autoSizeStrategy;
+    }
+  }
+
+  private syncAutoSizeStrategyToGrid(): void {
+    if (!this.gridApi || this.gridApi.isDestroyed()) {
+      return;
+    }
+    this.gridApi.setGridOption('autoSizeStrategy', this.gridOptions.autoSizeStrategy);
+  }
+
+  /**
+   * Loads data into the grid with anti-flicker loading overlay
+   */
+  loadData(): void {
+    if (this.rowModelMode === 'infinite') {
+      return;
+    }
+    // Clean up any existing subscription
+    if (this.dataSubscription) {
+      this.dataSubscription.unsubscribe();
+    }
+    // Note: dataSubscription is for one-time data loading, not a long-lived subscription
+
+    this.loadingService.wrapWithAntiFlicker(
+      async () => {
+        const data = await firstValueFrom(this.getAll());
+
+        const status = this.allNewElements ? 'pendingCreation' : 'statusOK';
+        const newItems = [];
+        const condition = (this.addFieldRestriction) ? this.addFieldRestriction : 'id';
+
+        data.forEach(element => {
+          if (this.statusColumn) {
+            if (isRegistered(element)) {
+              element.status = status;
+            }
+            if (this.allNewElements) {
+              element.status = 'pendingCreation'
+              element.newItem = true;
+            }
+          }
+          if (this.currentData) {
+            if (this.checkElementAllowedToAdd(condition, element, this.currentData)) {
+              newItems.push(element);
+            }
+          }
+        });
+
+        const nextRowData = this.currentData ? newItems : data;
+
+        if (this.gridApi && !this.gridApi.isDestroyed()) {
+          this.applyPreRenderColumnWidths(nextRowData);
+          this.rowData = nextRowData;
+
+          // Set the data
+          this.gridApi.setGridOption('rowData', this.rowData);
+
+          // Wait for next frame to ensure DOM is updated
+          requestAnimationFrame(() => {
+            if (this.gridApi && !this.gridApi.isDestroyed()) {
+              this.applyColumnSizing();
+            }
+          });
+        } else {
+          this.rowData = nextRowData;
+        }
+
+        this.isFirstLoad = false;
+        return data;
+      },
+      {
+        message: 'Loading data...',
+        showDelayMs: 150,
+        minDisplayMs: 400
+      }
+    ).catch((error) => {
+      this.loggerService.error('Error loading data:', error);
+      throw error;
+    });
+  }
+
+  /**
+   * Handles component destruction
+   * Cleans up subscriptions and observers
+   */
+  ngOnDestroy(): void {
+    // Event subscriptions are cleaned up by takeUntilDestroyed
+    if (this.dataSubscription) {
+      this.dataSubscription.unsubscribe();
+    }
+    if (this.observer) {
+      this.observer.disconnect();
+    }
+    this.unbindHeaderTruncationHandlers();
+    if (
+      this.gridApi
+      && typeof this.gridApi.isDestroyed === 'function'
+      && typeof this.gridApi.destroy === 'function'
+      && !this.gridApi.isDestroyed()
+    ) {
+      this.gridApi.destroy();
+    }
+  }
+
+  /**
+   * Handles first data rendered event
+   * Restores saved grid state if available
+   */
+  firstDataRendered(): void {
+    if (this.rowModelMode === 'infinite') {
+      return;
+    }
+    // First handle saved grid state if it exists
+    if (localStorage.agGridState != undefined) {
+      const agGridState = JSON.parse(localStorage.agGridState)
+      if (agGridState.idAgGrid != undefined && agGridState.idAgGrid == this.id) {
+        this.gridApi.setFilterModel(agGridState.filterState);
+        this.gridApi.applyColumnState({
+          state: agGridState.colState,
+          applyOrder: true
+        });
+        this.searchValue = agGridState.valueSearchGeneric;
+        this.removeAgGridState();
+      } else if (this.id != undefined) {
+        this.removeAgGridState();
+      }
+    }
+
+    // Ensure columns are sized properly after data is rendered
+    if (this.gridApi && !this.gridApi.isDestroyed()) {
+      this.applyColumnSizing();
+    }
+  }
+
+  private applyColumnSizing(): void {
+    if (!this.gridApi || this.gridApi.isDestroyed()) {
+      return;
+    }
+    if (usesContentBasedColumnSizing(this.rowModelMode, this.columnDefs)) {
+      this.safeSizeColumnsToFit();
+    } else if (usesFlexColumnLayout(this.columnDefs)) {
+      this.applyFlexColumnLayoutSizing();
+    } else {
+      this.gridApi.sizeColumnsToFit();
+    }
+  }
+
+  private applyFlexColumnLayoutSizing(): void {
+    const columns = this.gridApi?.getAllDisplayedColumns?.() ?? [];
+    if (columns.length === 0) {
+      this.hasHiddenColumns = false;
+      return;
+    }
+
+    const fixedFieldIds = (this.columnDefs ?? [])
+      .filter((col) => !col.checkboxSelection && col.flex === 0 && typeof col.field === 'string' && col.field)
+      .map((col) => col.field as string);
+    if (fixedFieldIds.length > 0 && typeof this.gridApi.autoSizeColumns === 'function') {
+      this.gridApi.autoSizeColumns(fixedFieldIds);
+    }
+
+    const displayedColumns = this.gridApi?.getAllDisplayedColumns?.() ?? [];
+    const viewportWidth = this.getGridViewportWidth();
+    const totalWidth = displayedColumns.reduce((total: number, column: any) => {
+      return total + (column.getActualWidth?.() ?? column.getColDef?.()?.minWidth ?? 100);
+    }, 0);
+    this.hasHiddenColumns = totalWidth > viewportWidth + 2;
+    this.gridApi.setGridOption('suppressHorizontalScroll', !this.hasHiddenColumns);
+    this.gridApi.setGridOption('alwaysShowHorizontalScroll', this.hasHiddenColumns);
+  }
+
+  private applyPreRenderColumnWidths(rows: any[]): void {
+    if (!this.gridApi || this.gridApi.isDestroyed() || !usesFlexColumnLayout(this.columnDefs)) {
+      return;
+    }
+
+    const columnDefs = applyDataBasedColumnWidths(
+      this.columnDefs,
+      rows,
+      this.getGridViewportWidth(),
+      (row, colDef) => this.getColumnValueForWidth(row, colDef),
+    );
+    this.columnDefs = columnDefs;
+    this.gridApi.updateGridOptions({columnDefs});
+  }
+
+  private getColumnValueForWidth(row: any, colDef: any): unknown {
+    if (typeof colDef.valueGetter === 'function') {
+      try {
+        return colDef.valueGetter({data: row, colDef});
+      } catch {
+        return '';
+      }
+    }
+
+    if (!colDef.field) {
+      return '';
+    }
+
+    return (colDef.field as string)
+      .split('.')
+      .reduce<unknown>((value, key) => {
+        if (value == null || typeof value !== 'object') {
+          return undefined;
+        }
+        return (value as Record<string, unknown>)[key];
+      }, row);
+  }
+
+  /**
+   * Handles grid ready event
+   * Initializes grid API and loads initial data
+   * @param params - Grid ready event parameters
+   */
+  onGridReady(params): void {
+    if (!params?.api) {
+      return;
+    }
+    this.params = params;
+    this.gridApi = params.api;
+    this.gridColumnApi = params.columnApi;
+
+    if (this.singleSelection) {
+      this.gridOptions.rowSelection = 'single'
+    }
+
+    this.gridOptions.rowDragManaged = this.rowDragManaged;
+    this.statusColumn = false;
+    this.someColumnIsEditable = false;
+
+    this.columnDefs = this.columnDefs.map((col) => this.withoutCellTooltips(col));
+
+    this.columnDefs = this.prepareColumnDefsForRowModel(this.columnDefs);
+    this.columnDefs = this.applyReadOnlyToColumnDefs(this.columnDefs);
+    this.detectGridCapabilities(this.columnDefs);
+
+    // Apply the updated column definitions
+    this.gridApi.updateGridOptions({columnDefs: this.columnDefs});
+
+    this.configureAutoSizeStrategy(this.columnDefs);
+    this.syncAutoSizeStrategyToGrid();
+
+    this.applyDefaultColumnSorting();
+
+    this.bindHeaderTruncationHandlers();
+
+    if (this.rowModelMode !== 'infinite') {
+      this.gridApi.addEventListener('undoEnded', (event: {operationPerformed: boolean}) => {
+        this.onUndoRedoEnded(event.operationPerformed, 'undo');
+      });
+      this.gridApi.addEventListener('redoEnded', (event: {operationPerformed: boolean}) => {
+        this.onUndoRedoEnded(event.operationPerformed, 'redo');
+      });
+    }
+
+    if (this.rowModelMode === 'infinite') {
+      this.setupInfiniteGrid();
+      return;
+    }
+
+    // Load data after grid is ready
+    this.loadData();
+  }
+
+  private prepareColumnDefsForRowModel(columnDefs: any[]): any[] {
+    if (this.rowModelMode === 'infinite') {
+      return prepareInfiniteColumnDefs(columnDefs);
+    }
+    return prepareClientSideColumnDefs(columnDefs);
+  }
+
+  private applyReadOnlyToColumnDefs(columnDefs: any[]): any[] {
+    if (!this.readOnly) {
+      return columnDefs;
+    }
+    return columnDefs.map((col) => ({...col, editable: false}));
+  }
+
+  private detectGridCapabilities(columnDefs: any[]): void {
+    this.statusColumn = columnDefs.some((col) => col.field === 'status');
+    const defaultColumnsAreEditable = !this.nonEditable && !this.readOnly;
+    this.someColumnIsEditable = columnDefs.some((col) => {
+      if (col.field === 'status' || col.checkboxSelection) {
+        return false;
+      }
+      if (col.editable === true) {
+        return true;
+      }
+      if (col.editable === false) {
+        return false;
+      }
+      return defaultColumnsAreEditable;
+    });
+  }
+
+  private applyDefaultColumnSorting(): void {
+    if (!this.defaultColumnSorting || !this.gridApi) {
+      return;
+    }
+    if (Array.isArray(this.defaultColumnSorting) && this.defaultColumnSorting.length === 0) {
+      return;
+    }
+    if (!Array.isArray(this.defaultColumnSorting)) {
+      const sortModel = [{colId: this.defaultColumnSorting, sort: 'asc' as const}];
+      this.gridApi.applyColumnState({state: sortModel, applyOrder: true});
+    } else {
+      const sortModel = this.defaultColumnSorting.map((element) => ({colId: element, sort: 'asc' as const}));
+      this.gridApi.applyColumnState({state: sortModel, applyOrder: true});
+    }
+  }
+
+  private setupInfiniteGrid(): void {
+    if (!this.infiniteBlockFetcher) {
+      this.loggerService.error('infiniteBlockFetcher is required when rowModelMode is infinite');
+      return;
+    }
+    const fetch = this.infiniteBlockFetcher.bind(this);
+    const datasource = createInfiniteDatasource(fetch, {
+      pageSize: this.pageSize,
+      columnDefs: this.columnDefs,
+      gridApi: this.gridApi,
+      getGeneration: () => this.infiniteDatasourceGeneration,
+      progressiveLocalFilter: {
+        enabled: this.progressiveLocalFilter && !this.backendSearch,
+        getSearchText: () => this.searchValue,
+      },
+      backendSearch: {
+        enabled: this.backendSearch,
+        getSearchText: () => this.searchValue,
+      },
+    });
+    this.gridApi.setGridOption('datasource', datasource);
+  }
+
+  getInfiniteRowId(params): string {
+    const data = params.data;
+    if (data?.id != null) {
+      return String(data.id);
+    }
+    return String(ResourceHelper.getSelfHref(data) ?? params.node.id);
+  }
+
+  onInfiniteSortChanged(): void {
+    if (this.rowModelMode !== 'infinite' || !this.gridApi || this.gridApi.isDestroyed()) {
+      return;
+    }
+    this.infiniteDatasourceGeneration++;
+    this.gridApi.purgeInfiniteCache();
+  }
+
+  onInfiniteFilterChanged(): void {
+    if (this.rowModelMode !== 'infinite' || !this.gridApi || this.gridApi.isDestroyed()) {
+      return;
+    }
+    this.infiniteDatasourceGeneration++;
+    this.gridApi.purgeInfiniteCache();
+  }
+
+  onFilterModified(): void {
+    if (this.rowModelMode === 'infinite') {
+      return;
+    }
+    this.deleteChanges();
+  }
+
+  /**
+   * Emits ordered rows after drag and drop operations
+   */
+  onRowDragEnd(): void {
+    this.changeCounter = Math.max(this.changeCounter, 1);
+    this.rowOrderChanged.emit(this.getAllCurrentData());
+    this.gridModified.emit(true);
+  }
+
+  /**
+   * Safely sizes columns to fit with proper checks for grid width
+   */
+  private safeSizeColumnsToFit(): void {
+    if (!this.gridApi || this.gridApi.isDestroyed()) {
+      return;
+    }
+
+    // Use requestAnimationFrame for better timing
+    requestAnimationFrame(() => {
+      if (this.gridApi && !this.gridApi.isDestroyed()) {
+        try {
+          // Only use autoSizeAllColumns to avoid the width warning
+          this.gridApi.autoSizeAllColumns();
+        } catch (error) {
+          // If autoSizeAllColumns fails, try again after a delay
+          setTimeout(() => {
+            if (this.gridApi && !this.gridApi.isDestroyed()) {
+              try {
+                this.gridApi.autoSizeAllColumns();
+              } catch (retryError) {
+                // Final fallback - do nothing if all else fails
+                console.warn(`AG Grid: Could not auto-size columns: first fail ${error}, next ${retryError}`);
+              }
+            }
+          }, 200);
+        }
+      }
+    });
+  }
+
+  /**
+   * Creates a date picker component for the grid
+   * @returns Date picker component instance
+   */
+  getDatePicker() {
+    function toInputDate(value: any): string {
+      if (!value) return '';
+      try {
+        const d = new Date(value);
+        if (Number.isNaN(d.getTime())) return '';
+        const yyyy = d.getFullYear();
+        const mm = String(d.getMonth() + 1).padStart(2, '0');
+        const dd = String(d.getDate()).padStart(2, '0');
+        return `${yyyy}-${mm}-${dd}`;
+      } catch {
+        return '';
+      }
+    }
+
+    // Simple native date input editor (no jQuery)
+
+    function NativeDatepicker(this: any) {
+    }
+
+    NativeDatepicker.prototype.init = function (params: any) {
+      this.eInput = document.createElement('input');
+      this.eInput.type = 'date';
+      this.eInput.classList.add('ag-input');
+      this.eInput.style.height = '100%';
+      this.eInput.value = toInputDate(params.value);
+    };
+
+    NativeDatepicker.prototype.getGui = function () {
+      return this.eInput;
+    };
+
+    NativeDatepicker.prototype.afterGuiAttached = function () {
+      this.eInput.focus();
+      this.eInput.select();
+    };
+
+    NativeDatepicker.prototype.getValue = function () {
+      return this.eInput.value;
+    };
+
+
+    NativeDatepicker.prototype.destroy = function () {
+    };
+
+    NativeDatepicker.prototype.isPopup = function () {
+      return false;
+    };
+
+    return NativeDatepicker;
+  }
+
+  /**
+   * Checks if rows are selected in the grid
+   * @returns True if any rows are selected, false otherwise
+   */
+  areRowsSelected(): boolean {
+    return (this.gridApi != null && this.gridApi?.getSelectedNodes().length > 0);
+    // if (this.gridApi != null && this.gridApi.getSelectedNodes().length > 0) {
+    //   return true
+    // } else {
+    //   return false
+    // }
+  }
+
+  /**
+   * Checks if rows are selected in the grid
+   * @returns True if any rows are selected, false otherwise
+   */
+  oneRowSelected(): boolean {
+    return (this.gridApi != null && this.gridApi?.getSelectedNodes().length == 1);
+  }
+
+
+  /**
+   * Emits currently selected rows
+   */
+  emitSelectedRows(): void {
+    const selectedNodes = this.gridApi.getSelectedNodes();
+    const selectedData = selectedNodes.map(node => node.data);
+    this.getSelectedRows.emit(selectedData);
+  }
+
+  /**
+   * Emits all rows with specified event type
+   * @param event - The grid event type
+   */
+  emitAllRows(event: GridEventType): void {
+    if (event === "save") {
+      this.applyChanges();
+    }
+    this.getAllRows.emit({data: this.getAllCurrentData(), event: event});
+  }
+
+  /**
+   * Gets all current data from the grid
+   * @returns Array of all current row data
+   */
+  getAllCurrentData(): any[] {
+    const rowData = [];
+    this.gridApi.forEachNode(node => rowData.push(node.data));
+    return rowData;
+  }
+
+  /**
+   * Modifies the status of selected cells
+   * @param status - Optional status to set
+   */
+  /**
+   * Modifies the status of selected rows
+   * @param status - Optional status to set, defaults to newStatusRegister
+   */
+  modifyStatusSelected(status?: string): void {
+    const newStatus = status ? status : this.newStatusRegister;
+    const selectedNodes = this.gridApi.getSelectedNodes();
+    if (selectedNodes.length > 0) {
+      selectedNodes.map(node => {
+        node.data.status = newStatus;
+        node.selected = false;
+      });
+      this.someStatusHasChanged = true;
+      this.gridModified.emit(true);
+      this.gridApi.redrawRows();
+    }
+  }
+
+  /**
+   * Saves the current grid state to localStorage
+   */
+  saveAgGridState(): void {
+    const agGridState = {
+      idAgGrid: this.id,
+      colState: this.gridApi.getColumnState(),
+      filterState: this.gridApi.getFilterModel(),
+      //sortState: this.gridApi.getSortModel(),
+      valueSearchGeneric: this.searchValue
+    };
+
+    localStorage.setItem("agGridState", JSON.stringify(agGridState));
+
+  }
+
+  /**
+   * Removes the saved grid state from localStorage
+   */
+  removeAgGridState(): void {
+    localStorage.removeItem("agGridState")
+  }
+
+  /**
+   * Gets column keys and headers
+   * @param columnkeys - Array to store column keys
+   * @returns Comma-separated string of headers
+   */
+  getColumnKeysAndHeaders(columnkeys: any[]): string {
+    const header: any[] = [];
+    if (this.columnDefs.length == 0) {
+      return ''
+    }
+
+    //let allColumnKeys = this.gridOptions.columnApi.getAllDisplayedColumns();
+    const allColumnKeys = this.gridApi.getAllDisplayedColumns()
+
+    allColumnKeys.forEach(element => {
+      if (element.userProvidedColDef.headerName !== '') {
+        columnkeys.push(element.userProvidedColDef.field);
+        header.push(element.userProvidedColDef.headerName);
+      }
+
+
+    });
+
+    return header.join(",");
+  }
+
+
+  /**
+   * Exports grid data to CSV
+   */
+  exportData(): void {
+    const columnkeys: any[] = [];
+    const customHeader = this.getColumnKeysAndHeaders(columnkeys)
+    const params = {
+      onlySelected: true,
+      columnKeys: columnkeys,
+      customHeader: customHeader,
+      skipHeader: true
+    };
+    this.gridApi.exportDataAsCsv(params);
+  }
+
+  /**
+   * Applies all pending changes in the grid
+   * Updates the grid state, saves changes, and refreshes the display
+   */
+  applyChanges(): void {
+    this.loggerService.debug('DataGridComponent applyChanges - Starting');
+
+    if (!this.gridApi) {
+      this.loggerService.warn('Grid API is not available');
+      return;
+    }
+
+    if (this.rowModelMode === 'infinite') {
+      this.gridApi.stopEditing(false);
+      const itemsChanged = Array.from(this.infiniteRowChanges.values());
+      this.sendChanges.emit(itemsChanged);
+      this.gridModified.emit(false);
+      this.infiniteRowChanges.clear();
+      this.changesMap.clear();
+      this.changeCounter = 0;
+      this.previousChangeCounter = 0;
+      this.redoCounter = 0;
+      this.someStatusHasChangedToDelete = false;
+      this.someStatusHasChanged = false;
+      this.gridApi.refreshInfiniteCache();
+      return;
+    }
+
+    // Store current grid state
+    const currentFilterModel = this.gridApi.getFilterModel();
+    const currentQuickFilter = this.searchValue;
+    const currentSortModel = this.gridApi.getColumnState();
+
+    this.loggerService.debug('Current grid state:', {
+      filterModel: currentFilterModel,
+      quickFilter: currentQuickFilter,
+      sortModel: currentSortModel
+    });
+
+    // Collect changed items
+    const itemsChanged: any[] = [];
+    this.gridApi.stopEditing(false);
+    for (const key of this.changesMap.keys()) {
+      itemsChanged.push(this.gridApi.getRowNode(key).data);
+    }
+
+    this.loggerService.debug('Items to be saved:', itemsChanged);
+
+    // Emit changes and reset change tracking
+    this.sendChanges.emit(itemsChanged);
+    this.gridModified.emit(false);
+    this.changesMap.clear();
+    this.changeCounter = 0;
+    this.previousChangeCounter = 0;
+    this.redoCounter = 0;
+    this.someStatusHasChangedToDelete = false;
+    this.someStatusHasChanged = false;
+
+    // Get current data
+    const currentData = this.getAllCurrentData();
+    this.loggerService.debug('Current data count:', currentData.length);
+
+    // Store reference to gridApi to ensure it's available in requestAnimationFrame
+    const api = this.gridApi;
+
+    // Update the grid data
+    api.setGridOption('rowData', currentData);
+
+    // Use requestAnimationFrame to ensure UI is updated properly
+    requestAnimationFrame(() => {
+      if (api && !api.isDestroyed()) {
+        // Restore grid state
+        if (currentQuickFilter) {
+          api.setGridOption('quickFilterText', currentQuickFilter);
+          this.searchValue = currentQuickFilter;
+        }
+
+        if (Object.keys(currentFilterModel).length > 0) {
+          api.setFilterModel(currentFilterModel);
+        }
+
+        if (currentSortModel) {
+          api.applyColumnState({
+            state: currentSortModel,
+            applyOrder: true
+          });
+        }
+
+        api.redrawRows();
+
+        this.loggerService.debug('Grid state after update:', {
+          rowCount: api.getDisplayedRowCount(),
+          filterModel: api.getFilterModel(),
+          quickFilter: this.searchValue,
+          sortModel: api.getColumnState()
+        });
+      } else {
+        this.loggerService.warn('Grid API was destroyed during update');
+      }
+    });
+  }
+
+  /**
+   * Performs quick search across all grid columns
+   * @param event - Keyboard event containing search input
+   */
+  quickSearch(event: KeyboardEvent): void {
+    const input = event.target as HTMLInputElement;
+    this.searchSubject.next(input.value);
+  }
+
+  /**
+   * Adds new items to the grid
+   * @param newItems - Array of items to add
+   */
+  addItems(newItems: any[]): void {
+
+    const itemsToAdd: any[] = [];
+    const condition = (this.addFieldRestriction) ? this.addFieldRestriction : 'id';
+
+
+    newItems.forEach(item => {
+
+      if (this.checkElementAllowedToAdd(condition, item, this.rowData)) {
+        if (this.statusColumn) {
+          item.status = 'pendingCreation'
+          item.newItem = true;
+        }
+        itemsToAdd.push(item);
+        this.rowData.push(item);
+      } else {
+        this.errorHandler.handleError({message: `Item already exists`}, 'common.error.itemExists');
+      }
+    });
+    if (!this.gridApi?.isDestroyed()) {
+      this.gridApi.applyTransaction({add: itemsToAdd});
+    }
+
+    // If items were added, mark grid as modified to enable save button
+    if (itemsToAdd.length > 0) {
+      this.manualUndoStack.push({type: 'rowAdd', items: [...itemsToAdd]});
+      this.manualRedoStack.length = 0;
+      this.changeCounter++;
+      this.previousChangeCounter++;
+      this.redoCounter = 0;
+      this.someStatusHasChanged = true;
+      this.gridModified.emit(true);
+    }
+  }
+
+  /**
+   * Checks if an element is allowed to be added based on specified conditions
+   * @param condition - The condition to check against
+   * @param item - The item to check
+   * @param data - The existing data to compare against
+   * @returns boolean indicating if the element can be added
+   * @private
+   */
+  private checkElementAllowedToAdd(condition, item, data) {
+
+    let finalAddition = true;
+
+    if (Array.isArray(condition)) {
+
+      for (const element of data) {
+        let canAdd = false;
+
+        for (const currentCondition of condition) {
+          if (element[currentCondition] != item[currentCondition]) {
+            canAdd = true;
+            break;
+          }
+        }
+        if (!canAdd) {
+          finalAddition = false;
+          break;
+        }
+      }
+      return finalAddition;
+
+    } else {
+      if (this.fieldRestrictionWithDifferentName) {
+        return (item[condition] == undefined || (data.find(element => element[this.fieldRestrictionWithDifferentName] == item[condition])) == undefined)
+      }
+      return (item[condition] == undefined || (data.find(element => element[condition] == item[condition])) == undefined)
+    }
+
+  }
+
+  /**
+   * Removes selected data from the grid
+   */
+  removeData(): void {
+    this.gridApi.stopEditing(false);
+    const selectedNodes = this.gridApi.getSelectedNodes();
+    const selectedData = selectedNodes.map(node => node.data);
+    this.remove.emit(selectedData);
+
+    if (this.statusColumn) {
+      const selectedRows = selectedNodes.map(node => node.id);
+      if (selectedRows.length > 0) {
+        this.someStatusHasChangedToDelete = true;
+        this.gridModified.emit(true);
+      }
+      for (const id of selectedRows) {
+        this.gridApi.getRowNode(id).data.status = 'pendingDelete';
+      }
+      this.gridApi.refreshCells();
+    }
+  }
+
+  /**
+   * Triggers creation of new data
+   */
+  newData(): void {
+    this.gridApi.stopEditing(false);
+    this.new.emit(-1);
+  }
+
+  /**
+   * Handles add button click event
+   */
+  onAddButtonClicked(): void {
+    this.gridApi.stopEditing(false);
+    this.add.emit(this.getAllCurrentData());
+  }
+
+  /**
+   * Handles duplicate button click event
+   * Shows confirmation dialog if there are pending changes
+   */
+  onDuplicateButtonClicked(): void {
+    this.gridApi.stopEditing(false);
+    if (this.changeCounter > 0) {
+      const dialogRef = this.dialog.open(DialogMessageComponent);
+      dialogRef.componentInstance.title = this.translate.instant('common.caution')
+      dialogRef.componentInstance.message = this.translate.instant('common.duplicateMessage')
+      dialogRef.afterClosed().subscribe(result => {
+        if (result) {
+          if (result.event === 'Accept') {
+            const selectedNodes = this.gridApi.getSelectedNodes();
+            const selectedData = selectedNodes.map(node => node.data);
+            this.duplicate.emit(selectedData);
+          }
+        }
+      });
+
+    } else {
+      const selectedNodes = this.gridApi.getSelectedNodes();
+      const selectedData = selectedNodes.map(node => node.data);
+      this.duplicate.emit(selectedData);
+      //this.gridOptions.api.deselectAll();
+      this.gridApi.deselectAll()
+    }
+  }
+
+
+  /**
+   * Deletes all pending changes and reverts the grid to its original state
+   */
+  deleteChanges(): void {
+    if (this.rowModelMode === 'infinite') {
+      this.infiniteRowChanges.clear();
+      this.changesMap.clear();
+      this.changeCounter = 0;
+      this.previousChangeCounter = 0;
+      this.redoCounter = 0;
+      this.infiniteDatasourceGeneration++;
+      this.gridApi?.purgeInfiniteCache();
+      this.gridModified.emit(false);
+      return;
+    }
+    this.gridApi.stopEditing(false);
+    const newElementsActived = this.allNewElements;
+
+    while (this.changeCounter > 0) {
+      this.undo();
+    }
+
+    this.changesMap.clear();
+    //this.previousChangeCounter = 0;
+    this.redoCounter = 0;
+    this.manualUndoStack.length = 0;
+    this.manualRedoStack.length = 0;
+
+    if (this.statusColumn && !this.discardNonReverseStatus) {
+      const rowsWithStatusModified = [];
+      const newRowsToRemove: any[] = [];
+      this.gridApi.forEachNode((node) => {
+        if (node.data?.newItem || node.data?.status === 'pendingCreation') {
+          newRowsToRemove.push(node.data);
+          return;
+        }
+        if (node.data.status === 'pendingModify' || node.data.status === 'pendingDelete') {
+          if (node.data.status === 'pendingDelete') {
+            rowsWithStatusModified.push(node.data);
+          }
+          if (node.data.newItem || newElementsActived) {
+            node.data.status = 'pendingCreation';
+          } else {
+            node.data.status = 'statusOK';
+          }
+        }
+      });
+      if (newRowsToRemove.length > 0) {
+        this.gridApi.applyTransaction({remove: newRowsToRemove});
+        newRowsToRemove.forEach((item) => {
+          const idx = this.rowData?.indexOf(item) ?? -1;
+          if (idx >= 0) {
+            this.rowData.splice(idx, 1);
+          }
+        });
+      }
+      this.someStatusHasChangedToDelete = false;
+      this.someStatusHasChanged = false;
+      this.previousChangeCounter = 0;
+      this.changeCounter = 0;
+      this.discardChanges.emit(rowsWithStatusModified);
+      this.gridModified.emit(false);
+    }
+    this.gridApi.redrawRows();
+
+    //this.params.colDef.cellStyle =  {backgroundColor: '#FFFFFF'};
+    //this.gridApi.redrawRows();
+  }
+
+
+  /**
+   * Performs undo operation on the last cell edit
+   */
+  undo(): void {
+    this.gridApi.stopEditing(false);
+    if (this.changeCounter > 0) {
+      this.changeCounter -= 1;
+    }
+    this.gridApi.undoCellEditing();
+    this.redoCounter += 1;
+  }
+
+  /**
+   * Performs redo operation on the last undone edit
+   */
+  redo(): void {
+    this.gridApi.stopEditing(false);
+    this.changeCounter += 1;
+    this.gridApi.redoCellEditing();
+    this.redoCounter -= 1;
+  }
+
+
+  /**
+   * Handles cell editing stopped event
+   * @param params - Cell editing parameters
+   */
+  onCellEditingStopped(params) {
+    if (this.modificationChange) {
+      this.changeCounter++;
+      if (this.changeCounter == 1) {
+        this.gridModified.emit(true)
+      }
+      this.redoCounter = 0;
+      this.onCellValueChanged(params);
+      this.modificationChange = false;
+    }
+  }
+
+
+  /**
+   * Handles cell value changed event
+   * Updates change tracking and cell styling
+   * @param params - Cell value change parameters
+   */
+  onCellValueChanged(params): void {
+    this.params = params;
+    const source = params.source as string | undefined;
+    if (this.rowModelMode === 'infinite') {
+      const rowId = params.node.id;
+      const existing = this.infiniteRowChanges.get(rowId) ?? {...params.data};
+      existing[params.colDef.field] = params.value;
+      if (this.statusColumn) {
+        existing.status = 'pendingModify';
+      }
+      this.infiniteRowChanges.set(rowId, existing);
+      this.changeCounter++;
+      this.gridModified.emit(true);
+      return;
+    }
+    const isUndo = source === 'undo' || this.changeCounter < this.previousChangeCounter;
+    const isRedo = source === 'redo';
+    if (isUndo) {
+      this.handleUndoCellValueChanged(params);
+      return;
+    }
+    if (this.changeCounter > this.previousChangeCounter || isRedo)
+      // True if we have edited some cell or we have done a redo
+    {
+
+      if (!this.cellValuesEqual(params.oldValue, params.value)) {
+
+        if (!this.changesMap.has(params.node.id)) // If it's first edit of a cell, we add it to the map and we paint it
+        {
+          const addMap: Map<string, number> = new Map<string, number>();
+          addMap.set(params.colDef.field, 1)
+          this.changesMap.set(params.node.id, addMap);
+          if (this.statusColumn) {
+            const rowData = this.gridApi.getRowNode(params.node.id).data;
+            if (rowData.status !== 'pendingCreation' && !rowData.newItem) {
+              rowData.status = 'pendingModify';
+            }
+          }
+        } else {
+          if (!this.changesMap.get(params.node.id).has(params.colDef.field)) {
+
+            this.changesMap.get(params.node.id).set(params.colDef.field, 1);
+          } else {
+            // We already had edited this cell, so we only increment number of changes of it on the map
+            const currentChanges = this.changesMap.get(params.node.id).get(params.colDef.field);
+            this.changesMap.get(params.node.id).set(params.colDef.field, (currentChanges + 1));
+          }
+
+        }
+        this.paintCells(params, this.changesMap); //We paint the row of the edited cell
+        this.previousChangeCounter++; //We match the current previousChangeCounter with changeCounter
+      }
+
+    } else { // Control of modifications without changes
+      if (!this.cellValuesEqual(params.oldValue, params.value)) {
+        this.modificationChange = true;
+        if (params.colDef.cellRenderer === 'btnCheckboxRendererComponent') {
+          this.pushBooleanUndoEntry(params);
+          this.onCellEditingStopped(params);
+        }
+      } else {
+        this.modificationWithoutChanges(params);
+      }
+    }
+  }
+
+  private onUndoRedoEnded(operationPerformed: boolean, kind: 'undo' | 'redo'): void {
+    if (!operationPerformed) {
+      if (kind === 'undo') {
+        this.applyManualUndo();
+      } else {
+        this.applyManualRedo();
+      }
+    } else {
+      this.refreshBooleanRendererCells();
+    }
+    this.emitGridModifiedIfNeeded();
+  }
+
+  private emitGridModifiedIfNeeded(): void {
+    const dirty = this.changeCounter > 0
+      || this.someStatusHasChanged
+      || this.someStatusHasChangedToDelete
+      || this.hasPendingNewRows();
+    this.gridModified.emit(dirty);
+  }
+
+  private hasPendingNewRows(): boolean {
+    if (!this.gridApi || this.gridApi.isDestroyed()) {
+      return false;
+    }
+    let pending = false;
+    this.gridApi.forEachNode((node) => {
+      if (node.data?.newItem || node.data?.status === 'pendingCreation') {
+        pending = true;
+      }
+    });
+    return pending;
+  }
+
+  private applyManualUndo(): boolean {
+    const entry = this.manualUndoStack.pop();
+    if (!entry) {
+      return false;
+    }
+    if (entry.type === 'boolean') {
+      return this.revertBooleanEntry(entry);
+    }
+    return this.revertRowAddBatch(entry.items);
+  }
+
+  private applyManualRedo(): boolean {
+    const entry = this.manualRedoStack.pop();
+    if (!entry) {
+      return false;
+    }
+    if (entry.type === 'boolean') {
+      return this.restoreBooleanEntry(entry);
+    }
+    return this.restoreRowAddBatch(entry.items);
+  }
+
+  private revertRowAddBatch(batch: any[]): boolean {
+    if (!batch?.length || !this.gridApi || this.gridApi.isDestroyed()) {
+      return false;
+    }
+    this.gridApi.applyTransaction({remove: batch});
+    batch.forEach((item) => {
+      const idx = this.rowData?.indexOf(item) ?? -1;
+      if (idx >= 0) {
+        this.rowData.splice(idx, 1);
+      }
+    });
+    this.manualRedoStack.push({type: 'rowAdd', items: batch});
+    if (this.previousChangeCounter > 0) {
+      this.previousChangeCounter--;
+    }
+    this.someStatusHasChanged = this.manualUndoStack.length > 0 || this.hasPendingNewRows();
+    return true;
+  }
+
+  private restoreRowAddBatch(batch: any[]): boolean {
+    if (!batch?.length || !this.gridApi || this.gridApi.isDestroyed()) {
+      return false;
+    }
+    batch.forEach((item) => {
+      item.status = 'pendingCreation';
+      item.newItem = true;
+    });
+    this.gridApi.applyTransaction({add: batch});
+    batch.forEach((item) => this.rowData.push(item));
+    this.manualUndoStack.push({type: 'rowAdd', items: batch});
+    this.previousChangeCounter++;
+    this.someStatusHasChanged = true;
+    return true;
+  }
+
+  private pushBooleanUndoEntry(params: any): void {
+    const entry = {
+      type: 'boolean' as const,
+      nodeId: params.node.id as string,
+      field: params.colDef.field as string,
+      oldValue: !!params.oldValue,
+      newValue: !!params.value,
+    };
+    const top = this.manualUndoStack[this.manualUndoStack.length - 1];
+    if (top?.type === 'boolean'
+      && top.nodeId === entry.nodeId
+      && top.field === entry.field
+      && top.oldValue === entry.oldValue
+      && top.newValue === entry.newValue) {
+      return;
+    }
+    this.manualUndoStack.push(entry);
+    this.manualRedoStack.length = 0;
+  }
+
+  private revertBooleanEntry(entry: {type: 'boolean'; nodeId: string; field: string; oldValue: boolean; newValue: boolean}): boolean {
+    if (!this.gridApi) {
+      this.manualUndoStack.push(entry);
+      return false;
+    }
+    const node = this.gridApi.getRowNode(entry.nodeId);
+    if (!node) {
+      this.manualUndoStack.push(entry);
+      return false;
+    }
+    node.data[entry.field] = entry.oldValue;
+    this.manualRedoStack.push(entry);
+    this.handleUndoCellValueChanged({
+      node,
+      rowIndex: node.rowIndex,
+      colDef: {field: entry.field, cellRenderer: 'btnCheckboxRendererComponent'},
+      data: node.data,
+      value: entry.oldValue,
+      oldValue: entry.newValue,
+      source: 'undo',
+    });
+    this.gridApi.refreshCells({rowNodes: [node], columns: [entry.field], force: true});
+    return true;
+  }
+
+  private restoreBooleanEntry(entry: {type: 'boolean'; nodeId: string; field: string; oldValue: boolean; newValue: boolean}): boolean {
+    if (!this.gridApi) {
+      this.manualRedoStack.push(entry);
+      return false;
+    }
+    const node = this.gridApi.getRowNode(entry.nodeId);
+    if (!node) {
+      this.manualRedoStack.push(entry);
+      return false;
+    }
+    node.data[entry.field] = entry.newValue;
+    this.manualUndoStack.push(entry);
+    this.onCellValueChanged({
+      source: 'redo',
+      node,
+      rowIndex: node.rowIndex,
+      colDef: {field: entry.field, cellRenderer: 'btnCheckboxRendererComponent'},
+      data: node.data,
+      value: entry.newValue,
+      oldValue: entry.oldValue,
+    });
+    this.gridApi.refreshCells({rowNodes: [node], columns: [entry.field], force: true});
+    return true;
+  }
+
+  /** Custom checkbox renderers do not refresh after undo/redo unless cells are explicitly refreshed. */
+  private refreshBooleanRendererCells(): void {
+    if (!this.gridApi || this.gridApi.isDestroyed()) {
+      return;
+    }
+    const booleanColumns = this.columnDefs
+      .filter((col) => col.cellRenderer === 'btnCheckboxRendererComponent' && col.field)
+      .map((col) => col.field);
+    if (booleanColumns.length > 0) {
+      this.gridApi.refreshCells({columns: booleanColumns, force: true});
+    }
+  }
+
+  private cellValuesEqual(oldValue: unknown, newValue: unknown): boolean {
+    if (oldValue == null && newValue === '') {
+      return true;
+    }
+    const oldBool = this.coerceBooleanLike(oldValue);
+    const newBool = this.coerceBooleanLike(newValue);
+    if (oldBool !== undefined || newBool !== undefined) {
+      return oldBool === newBool;
+    }
+    return oldValue === newValue;
+  }
+
+  private coerceBooleanLike(value: unknown): boolean | undefined {
+    if (typeof value === 'boolean') {
+      return value;
+    }
+    if (value === 'true') {
+      return true;
+    }
+    if (value === 'false') {
+      return false;
+    }
+    return undefined;
+  }
+
+  private handleUndoCellValueChanged(params: any): void {
+    let currentChanges = -1;
+    if (this.changesMap.has(params.node.id)) {
+      currentChanges = this.changesMap.get(params.node.id).get(params.colDef.field);
+    }
+    if (currentChanges === 1) {
+      this.changesMap.get(params.node.id).delete(params.colDef.field);
+      if (this.changesMap.get(params.node.id).size === 0) {
+        this.changesMap.delete(params.node.id);
+        const row = this.gridApi.getDisplayedRowAtIndex(params.rowIndex);
+        if (this.statusColumn) {
+          const rowData = this.gridApi.getRowNode(params.node.id).data;
+          if (rowData.newItem || rowData.status === 'pendingCreation') {
+            rowData.status = 'pendingCreation';
+          } else {
+            rowData.status = 'statusOK';
+          }
+        }
+        this.gridApi.redrawRows({rowNodes: [row]});
+      } else {
+        this.paintCells(params, this.changesMap);
+      }
+    } else if (currentChanges > 1) {
+      this.changesMap.get(params.node.id).set(params.colDef.field, currentChanges - 1);
+      this.paintCells(params, this.changesMap);
+    }
+    if (this.previousChangeCounter > 0) {
+      this.previousChangeCounter--;
+    }
+    if (params.colDef?.cellRenderer === 'btnCheckboxRendererComponent') {
+      this.gridApi.refreshCells({rowNodes: [params.node], columns: [params.colDef.field], force: true});
+    }
+  }
+
+  /**
+   * Handles modifications that don't result in actual changes
+   * @param params - Cell parameters
+   * @private
+   */
+  private modificationWithoutChanges(params: any) {
+
+    if (this.changesMap.has(params.node.id)) //Modification without changes in en edited cell
+    {
+      if (!this.undoNoChanges) {
+        this.gridApi.undoCellEditing(); // Undo to delete the change without changes internally
+        this.undoNoChanges = true;
+        this.paintCells(params, this.changesMap);  //The cell has modifications yet -> green background
+      } else {
+        this.undoNoChanges = false;
+      }
+
+
+    } else {
+      //With the internally undo will enter at this function, so we have to control when done the undo or not
+      if (!this.undoNoChanges) {
+        this.gridApi.undoCellEditing(); // Undo to delete the change internally
+        this.undoNoChanges = true;
+      } else {
+        this.undoNoChanges = false;
+      }
+    }
+
+  }
+
+  /**
+   * Updates cell styling based on changes
+   * @param params - Cell parameters
+   * @param changesMap - Map of changes to apply
+   */
+  paintCells(params: any, changesMap: Map<string, Map<string, number>>,) {
+    this.changesMap = changesMap;
+    const row = this.gridApi.getDisplayedRowAtIndex(params.rowIndex);
+
+    // this.changeCellStyleColumns(params, changesMap, '#E8F1DE');
+    this.gridApi.redrawRows({rowNodes: [row]});
+    // this.changeCellStyleColumns(params, changesMap, '#FFFFFF');
+    // We will define cellStyle white to future modifications (like filter)
+  }
+
+  // changeCellStyleColumns(params: any, changesMap: Map<number, Map<string, number>>, color: string) {
+
+  //   for (const key of changesMap.get(params.node.id).keys()) {
+  //     const columnNumber = this.getColumnIndexByColId(this.gridColumnApi, key);
+  //     this.gridColumnApi.columnController.gridColumns[columnNumber].colDef.cellStyle = { backgroundColor: color };
+  //   }
+
+
+  // }
+
+  @Input() redraw!: boolean;
+
+  @Input() eventReplaceAllItemsSubscription!: Observable<any>;
+
+  /**
+   * Handles changes to component inputs
+   * @param changes - SimpleChanges object containing changed properties
+   */
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes.rowModelMode) {
+      this.configureAutoSizeStrategy();
+    }
+    if (changes.rowData && !changes.rowData.firstChange) {
+      this.updateGridData(changes.rowData.currentValue);
+    }
+    if (changes.redraw?.currentValue && this.gridApi) {
+      this.gridApi.autoSizeAllColumns();
+      // this.gridApi.sizeColumnsToFit();
+    }
+  }
+
+  /**
+   * Updates the grid data
+   * @param newData - New data to display in the grid
+   */
+  updateGridData(newData: any[]): void {
+    if (this.gridApi && !this.gridApi.isDestroyed()) {
+      this.gridApi.setGridOption('rowData', newData);
+    }
+  }
+
+  /**
+   * Replaces text in selected rows
+   * Performs a global search and replace operation on all editable string fields
+   */
+  replaceSelected(): void {
+    this.loggerService.debug('Starting replace operation', {
+      searchValue: this.searchValue,
+      replaceValue: this.replaceValue
+    });
+
+    if (!this.gridApi || !this.replaceValue) {
+      this.loggerService.warn('Cannot replace: missing grid API or replace value');
+      return;
+    }
+
+    const selectedNodes = this.gridApi.getSelectedNodes();
+    if (!selectedNodes.length) {
+      this.loggerService.warn('No rows selected for replace operation');
+      return;
+    }
+
+    const searchValue = this.searchValue;
+    if (!searchValue) {
+      this.loggerService.warn('No search value provided for replace operation');
+      return;
+    }
+
+    let hasChanges = false;
+    selectedNodes.forEach(node => {
+      const row = node.data;
+      Object.keys(row).forEach(key => {
+        const column = this.gridApi.getColumn(key);
+        if (column && column.getColDef().editable !== false && typeof row[key] === 'string') {
+          const searchRegex = new RegExp(searchValue, 'gi');
+          const originalValue = row[key];
+
+          if (searchRegex.test(originalValue)) {
+            const newValue = originalValue.replace(searchRegex, this.replaceValue);
+
+            if (originalValue !== newValue) {
+              hasChanges = true;
+              row[key] = newValue;
+
+              if (this.statusColumn && row.status !== 'pendingDelete' && row.status !== 'pendingCreation') {
+                row.status = 'pendingModify';
+              }
+
+              if (!this.changesMap.has(node.id)) {
+                const addMap = new Map<string, number>();
+                addMap.set(key, 1);
+                this.changesMap.set(node.id, addMap);
+              } else if (!this.changesMap.get(node.id).has(key)) {
+                this.changesMap.get(node.id).set(key, 1);
+              } else {
+                const currentChanges = this.changesMap.get(node.id).get(key);
+                this.changesMap.get(node.id).set(key, currentChanges + 1);
+              }
+
+              this.changeCounter++;
+              if (this.changeCounter === 1) {
+                this.gridModified.emit(true);
+              }
+            }
+          }
+        }
+      });
+    });
+
+    if (hasChanges) {
+      this.loggerService.debug('Replace operation completed with changes');
+      this.gridApi.refreshCells({
+        force: true,
+        rowNodes: selectedNodes
+      });
+    } else {
+      this.loggerService.debug('Replace operation completed with no changes');
+    }
+  }
+}

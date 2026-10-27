@@ -1,0 +1,146 @@
+import {Resource} from '@app/core/hal/resource/resource.model';
+
+import {Tree} from './tree.model';
+import {Cartography} from '../../cartography/models/cartography.model';
+import {Task} from '../../task/models/task.model';
+
+/**
+ * Tree node model
+ */
+export class TreeNode extends Resource {
+  /** id */
+  public override id: number;
+  /** name */
+  public name: string;
+  /** type */
+  public type: string;
+  /** tooltip*/
+  public tooltip: string;
+  /** description*/
+  public description: string;
+  /** datasetURL*/
+  public datasetURL: string;
+  /** metadataURL*/
+  public metadataURL: string;
+  /** order*/
+  public order : number;
+  /** load-by-default in layer catalog (cartography leaf; requires visible) */
+  public active: boolean;
+  /** catalog visibility in the viewer */
+  public visible: boolean;
+  /** parent tree node */
+  public radio: boolean;
+  /** parent tree node */
+  public parent: TreeNode;
+  /** displayed cartography */
+  public cartography: Cartography;
+  /** tree */
+  public tree: Tree;
+  /** filterGetFeatureInfo */
+  public filterGetFeatureInfo: boolean;
+  /** filterGetMap */
+  public filterGetMap: boolean;
+  /** filterSelectable */
+  public filterSelectable: boolean;
+  /** style */
+  public style: string;
+
+  public loadData: boolean;
+  public queryableActive: boolean;
+  public image: string;
+  public imageName: string;
+  public task: Task;
+  public viewMode: string;
+  public filterable: boolean;
+  public mapping: Map<string, any>;
+
+  /**
+   * Creates a new TreeNode instance copying only the properties declared in TreeNode and Resource classes
+   * @param source The source object to copy properties from
+   * @returns A new TreeNode instance with copied properties
+   */
+  public static fromObject(source: any): TreeNode {
+    const node = new TreeNode();
+    // Define the properties to copy
+    const propertiesToCopy = [
+      // Resource properties
+      'proxyUrl', 'rootUrl', '_links', '_subtypes',
+      // TreeNode properties
+      'id', 'name', 'type', 'tooltip', 'description', 'datasetURL', 'metadataURL',
+      'order', 'active', 'visible', 'radio', 'parent', 'cartography', 'tree', 'filterGetFeatureInfo',
+      'filterGetMap', 'filterSelectable', 'style', 'loadData', 'queryableActive',
+      'image', 'imageName', 'task', 'viewMode', 'filterable', 'mapping'
+    ];
+    // Copy only defined properties that exist in our class
+    propertiesToCopy.forEach(prop => {
+      if (source[prop] !== undefined) {
+        node[prop] = source[prop];
+      }
+    });
+    return node;
+  }
+}
+
+export class TreeNodeProjection extends Resource {
+  public override id: number;
+  parent: number;
+  name: string;
+  description: string;
+  nodeType: string;
+  tooltip: string;
+  /** load-by-default in layer catalog (cartography leaf; requires visible) */
+  active: boolean;
+  /** catalog visibility in the viewer */
+  visible: boolean;
+  radio: boolean;
+  order: number;
+  metadataURL: string;
+  datasetURL: string;
+  filterGetMap: boolean;
+  filterGetFeatureInfo: boolean;
+  queryableActive: boolean;
+  filterSelectable: boolean;
+  /** @deprecated Frontend computes this from nodeType + treeType config. May still be sent by backend. */
+  isFolder: boolean;
+  cartographyName: string;
+  cartographyId: number;
+  taskName: string;
+  taskId: number;
+  treeId: number;
+  treeName: string;
+  style: string;
+  image: string;
+  imageName: string;
+  viewMode: string;
+  filterable: boolean;
+  mapping: Map<string, any>;
+  loadData: boolean;
+
+  /**
+   * Creates a new TreeNodeProjection instance copying only the properties declared in TreeNodeProjection and Resource classes
+   * @param source The source object to copy properties from
+   * @returns A new TreeNodeProjection instance with copied properties
+   */
+  public static fromObject(source: any): TreeNodeProjection {
+    const projection = new TreeNodeProjection();
+    // Define the properties to copy
+    const propertiesToCopy = [
+      // Resource properties
+      'proxyUrl', 'rootUrl', '_links', '_subtypes',
+      // TreeNodeProjection properties
+      'parent', 'id', 'name', 'description', 'nodeType', 'tooltip', 'active', 'visible',
+      'radio', 'order', 'metadataURL', 'datasetURL', 'filterGetMap',
+      'filterGetFeatureInfo', 'queryableActive', 'filterSelectable', 'isFolder',
+      'cartographyName', 'cartographyId', 'taskName', 'taskId', 'treeId',
+      'treeName', 'style', 'image', 'imageName', 'viewMode', 'filterable', 'mapping',
+      'loadData'
+    ];
+    // Copy only defined properties that exist in our class
+    propertiesToCopy.forEach(prop => {
+      if (source[prop] !== undefined) {
+        projection[prop] = source[prop];
+      }
+    });
+    return projection;
+  }
+}

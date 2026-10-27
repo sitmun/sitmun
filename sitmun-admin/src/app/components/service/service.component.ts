@@ -1,0 +1,121 @@
+import {Component} from '@angular/core';
+import {MatDialog} from '@angular/material/dialog';
+import {ActivatedRoute, Router} from '@angular/router';
+
+import {TranslateService} from '@ngx-translate/core';
+import {firstValueFrom, of} from 'rxjs';
+
+import {BaseListComponent} from "@app/components/base-list.component";
+import {EntityListConfig} from "@app/components/shared/entity-list";
+import {Configuration} from "@app/core/config/configuration";
+import {createPagedInfiniteFetcher} from "@app/core/hal";
+import {INFINITE_PAGE_SIZE_DEFAULT} from "@app/core/hal/infinite-page-size";
+import {CodeListService, Service, ServiceService, TranslationService,} from '@app/domain';
+import {ErrorHandlerService} from '@app/services/error-handler.service';
+import {LoadingOverlayService} from '@app/services/loading-overlay.service';
+import {LoggerService} from '@app/services/logger.service';
+import {UtilsService} from '@app/services/utils.service';
+
+@Component({
+    selector: 'app-service',
+    templateUrl: './service.component.html',
+    styles: [],
+    standalone: false
+})
+export class ServiceComponent extends BaseListComponent<Service> {
+  entityListConfig: EntityListConfig<Service> = {
+    entityLabel: Configuration.SERVICE.labelPlural,
+    iconName: Configuration.SERVICE.icon,
+    font: Configuration.SERVICE.font,
+    columnDefs: [],
+    dataFetchFn: () => of([]),
+    defaultColumnSorting: ['name'],
+    rowModelMode: 'infinite',
+    pageSize: INFINITE_PAGE_SIZE_DEFAULT,
+    infiniteBlockFetcher: createPagedInfiniteFetcher(this.serviceService),
+    progressiveLocalFilter: false,
+    backendSearch: true,
+    gridOptions: {
+      globalSearch: true,
+      discardChangesButton: false,
+      redoButton: false,
+      undoButton: false,
+      applyChangesButton: false,
+      deleteButton: true,
+      newButton: true,
+      actionButton: true,
+      hideReplaceButton: true
+    }
+  };
+
+  constructor(
+    protected override dialog: MatDialog,
+    protected override translateService: TranslateService,
+    protected override translationService: TranslationService,
+    protected override codeListService: CodeListService,
+    protected override loggerService: LoggerService,
+    protected override errorHandler: ErrorHandlerService,
+    protected override activatedRoute: ActivatedRoute,
+    protected override utils: UtilsService,
+    protected override router: Router,
+    protected override loadingOverlay: LoadingOverlayService,
+    public serviceService: ServiceService
+  ) {
+    super(
+      dialog,
+      translateService,
+      translationService,
+      codeListService,
+      loggerService,
+      errorHandler,
+      activatedRoute,
+      utils,
+      router,
+      loadingOverlay
+    );
+  }
+
+  override async preFetchData(): Promise<void> {
+    await this.initCodeLists(['databaseConnection.driver']);
+  }
+
+  override async postFetchData(): Promise<void> {
+    // Set column definitions directly in the config
+    const nameCol: any = this.utils.getRouterLinkColumnDef('common.form.name', 'name', 'service/:id/serviceForm', {id: 'id'}, 200);
+    nameCol.sortable = true;
+    nameCol.cellRendererParams = {...nameCol.cellRendererParams, sortField: 'name'};
+    nameCol.flex = 2;
+    nameCol.tooltipField = 'name';
+
+    const typeCol: any = this.utils.getNonEditableColumnDef('common.form.type', 'type', 140);
+    typeCol.sortable = true;
+    typeCol.cellRendererParams = {sortField: 'type'};
+    typeCol.flex = 1;
+
+    const endpointCol: any = this.utils.getNonEditableColumnWithLinkDef('entity.service.endpoint', 'serviceURL', 280);
+    endpointCol.flex = 4;
+    endpointCol.cellClass = 'read-only-cell sitmun-technical-cell';
+    endpointCol.tooltipField = 'serviceURL';
+
+    this.entityListConfig.columnDefs = [
+      this.utils.getRowCheckboxColumnDef(),
+      nameCol,
+      typeCol,
+      endpointCol,
+    ];
+  }
+
+  override async newData() {
+    await this.router.navigate(['service', -1, 'serviceForm']);
+  }
+
+  override async duplicateItem(id: number) {
+    await this.router.navigate(['service', -1, 'serviceForm', id]);
+  }
+
+  override dataFetchFn = () => this.serviceService.fetchAllItems();
+
+  override dataUpdateFn = (data: Service) => firstValueFrom(this.serviceService.update(data))
+
+  override dataDeleteFn = (data: Service) => firstValueFrom(this.serviceService.delete(data))
+}

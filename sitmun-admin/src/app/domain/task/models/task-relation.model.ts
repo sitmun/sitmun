@@ -1,0 +1,20 @@
+import {Resource} from '@app/core/hal/resource/resource.model';
+
+import {Task} from "./task.model";
+
+/**
+ * Task type model
+ */
+export class TaskRelation extends Resource {
+
+  public override id: number;
+
+  /** name*/
+  public task: Task;
+
+  public relationType: string;
+
+  public referenceAlias: string | null;
+
+  public relatedTask: Task;
+}

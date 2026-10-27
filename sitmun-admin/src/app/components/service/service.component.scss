@@ -1,0 +1,9 @@
+mat-cell:nth-child(1),
+.mat-mdc-header-cell:nth-child(1) {
+    flex: 0 0 30px;
+}
+
+.mat-mdc-cell:nth-child(2),
+.mat-mdc-header-cell:nth-child(2) {
+    flex: 0 0 60px;
+}

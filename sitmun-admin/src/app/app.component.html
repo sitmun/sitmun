@@ -1,0 +1,13 @@
+<!-- Render initialization error or main app without negating async -->
+<ng-container *ngIf="hasInitializationError$ | async; else appContent">
+  <div class="mat-app-background">
+    <app-error-page
+      [error]="initializationError$ | async"
+      errorType="initialization">
+    </app-error-page>
+  </div>
+</ng-container>
+
+<ng-template #appContent>
+  <router-outlet></router-outlet>
+</ng-template>

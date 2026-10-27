@@ -1,0 +1,1006 @@
+import {Component, TemplateRef, ViewChild} from '@angular/core';
+import {FormControl, FormGroup, UntypedFormControl, UntypedFormGroup, Validators} from '@angular/forms';
+import {MatDialog} from '@angular/material/dialog';
+import {ActivatedRoute, Router} from '@angular/router';
+
+import {TranslateService} from "@ngx-translate/core";
+import {firstValueFrom, Observable, of} from 'rxjs';
+import {map} from 'rxjs/operators';
+
+import {BaseFormComponent} from "@app/components/base-form.component";
+import {DataTableDefinition, TemplateDialog} from '@app/components/data-tables.util';
+import {RelationGridComponent} from '@app/components/shared/relation-grid/relation-grid.component';
+import {Configuration} from "@app/core/config/configuration";
+import {HalOptions} from '@app/core/hal/rest/rest.service';
+import {MessagesInterceptorStateService} from '@app/core/interceptors/messages.interceptor';
+import {
+  Application,
+  ApplicationBackground,
+  ApplicationBackgroundProjection,
+  ApplicationBackgroundService,
+  ApplicationParameter,
+  ApplicationParameterService,
+  ApplicationProjection,
+  ApplicationService,
+  ApplicationTree,
+  ApplicationTreeProjection,
+  ApplicationTreeService,
+  BackgroundProjection,
+  BackgroundService,
+  CartographyGroup,
+  CartographyGroupService,
+  CodeListService,
+  Role,
+  RoleService,
+  TranslationService,
+  Tree,
+  TreeService,
+  User,
+  UserService
+} from '@app/domain';
+import {ApplicationHeaderParameter} from '@app/domain/application/models/application-header-parameter.model';
+import {
+  isActive,
+  onCreate,
+  onDelete,
+  onUpdate,
+  onUpdatedRelation,
+  Status,
+} from '@app/frontend-gui/src/lib/public_api';
+import {ErrorHandlerService} from "@app/services/error-handler.service";
+import {LoadingOverlayService} from "@app/services/loading-overlay.service";
+import {LoggerService} from "@app/services/logger.service";
+import {UtilsService} from '@app/services/utils.service';
+import { compareNullableString } from '@app/utils/compare-nullable-string';
+import {optionalHttpOrHttpsUrlValidator} from '@app/validators/optional-http-url.validator';
+import {constants} from '@environments/constants';
+
+/**
+ * Angular component that provides a form interface for managing SITMUN applications.
+ * Supports creating, editing, and duplicating applications through a multi-tab interface.
+ *
+ * @extends BaseFormComponent<ApplicationProjection>
+ */
+@Component({
+    selector: 'app-application-form',
+    templateUrl: './application-form.component.html',
+    styleUrls: ['./application-form.component.scss'],
+    standalone: false
+})
+export class ApplicationFormComponent extends BaseFormComponent<ApplicationProjection> {
+  private static readonly WARNING_PRIVATE_APP_PUBLIC_USER =
+    'entity.application.warning.private-application-with-public-user';
+
+  private static readonly WARNING_POC_EMAIL_MISSING =
+    'entity.application.warning.point-of-contact-email-missing';
+
+  readonly config = Configuration.APPLICATION;
+
+  readonly pointOfContactInfoMessageKeys = [
+    ApplicationFormComponent.WARNING_POC_EMAIL_MISSING,
+  ];
+
+  readonly validationFieldLabelKeys: Record<string, string> = {
+    name: 'entity.application.name',
+    description: 'entity.application.description',
+    type: 'entity.application.type',
+    jspTemplate: 'entity.application.type.external.url',
+  };
+
+  /**
+   * Data table configuration for managing application parameters.
+   * Provides CRUD operations for parameters with validation and type management.
+   * Columns: checkbox, name (editable), value (editable), type (non-editable), status
+   */
+  readonly parametersTable: DataTableDefinition<ApplicationParameter, ApplicationParameter>
+
+  headerParamsSection: string[] = ['headerLeftSection', 'headerRightSection'];
+
+  /**
+   * Data table configuration for managing application roles.
+   * Handles role assignments and permissions with bulk operations support.
+   * Columns: checkbox, name (non-editable), description (non-editable), status
+   */
+  protected readonly rolesTable: DataTableDefinition<Role, Role>;
+
+  /**
+   * Data table configuration for managing application backgrounds.
+   * Handles map background configurations with ordering and visibility settings.
+   * Columns: checkbox, ID, name (non-editable), description (non-editable), order (editable), status
+   */
+  protected readonly applicationBackgroundsTable: DataTableDefinition<ApplicationBackgroundProjection, BackgroundProjection>;
+
+  headerParams = {
+    headerLeftSection: {
+      logoSitmun: {
+        visible: true
+      }
+    },
+    headerRightSection: {
+      switchApplication: {
+        visible: true
+      },
+      homeMenu: {
+        visible: true
+      },
+      switchLanguage: {
+        visible: true
+      },
+      profileButton: {
+        visible: true
+      },
+      logoutButton: {
+        visible: true
+      },
+    }
+  };
+
+  headerBaseLeft: any;
+
+  headerBaseRight: any;
+
+  /**
+   * List of users available for selection in the application form.
+   */
+  protected usersList: User[] = [];
+
+  /** Original creatorId loaded from the projection; used to skip unchanged relation updates. */
+  private originalCreatorId: string | number | null = null;
+
+  /**
+   * Data table configuration for managing application trees.
+   * Handles navigation tree associations with special validation for touristic applications.
+   * Columns: checkbox, name, type, order (editable), status
+   */
+  protected readonly treesTable: DataTableDefinition<ApplicationTreeProjection, Tree>;
+
+  protected readonly headerParamsTable: DataTableDefinition<ApplicationHeaderParameter, ApplicationHeaderParameter>
+
+  /**
+   * List of available situation maps for selection.
+   * Includes a default empty option and all cartography groups of the type location map.
+   */
+  protected situationMapList: CartographyGroup[] = [];
+
+  /**
+   * Stores the current application type.
+   * Used to control form behavior and validation rules based on an application type.
+   */
+  private currentAppType: string = null;
+
+  /**
+   * Reference to the dialog template used for creating new parameters.
+   * Used by the table of parameters for adding new application parameters.
+   */
+  @ViewChild('newParameterDialog', {static: true})
+  private readonly newParameterDialog: TemplateRef<any>;
+
+  /**
+   * Reference to the dialog template used for creating new parameters.
+   * Used by the table of parameters for adding new application parameters.
+   */
+  @ViewChild('newHeaderParamDialog', {static: true})
+  private readonly newHeaderParamDialog: TemplateRef<any>;
+
+  /**
+   * Reference to the data grid component that displays the navigation trees for the application.
+   * Used to access grid data for tree-specific validation rules.
+   */
+  @ViewChild('treesDataGrid')
+  private readonly treesDataGrid: RelationGridComponent;
+
+  /**
+   * Creates an instance of ApplicationFormComponent.
+   *
+   * @param dialog - Material dialog service for modal interactions
+   * @param translateService - Service for handling translations
+   * @param translationService - Service for managing entity translations
+   * @param codeListService - Service for managing code lists
+   * @param errorHandler - Service for handling errors
+   * @param activatedRoute - Angular route service
+   * @param router - Angular router for navigation
+   * @param loadingService
+   * @param messagesInterceptorState
+   * @param loadingService
+   * @param messagesInterceptorState
+   * @param applicationService - Service for application CRUD operations
+   * @param applicationParameterService - Service for parameter operations
+   * @param applicationBackgroundService - Service for background relations
+   * @param applicationTreeService - Service for tree relations
+   * @param cartographyGroupService - Service for cartography operations
+   * @param backgroundService - Service for background management
+   * @param roleService - Service for role management
+   * @param treeService - Service for tree management
+   * @param userService
+   * @param utils - Utility service for common operations
+   * @param loggerService - Service for logging
+   */
+  constructor(
+    dialog: MatDialog,
+    translateService: TranslateService,
+    translationService: TranslationService,
+    codeListService: CodeListService,
+    loggerService: LoggerService,
+    errorHandler: ErrorHandlerService,
+    activatedRoute: ActivatedRoute,
+    router: Router,
+    loadingService: LoadingOverlayService,
+    messagesInterceptorState: MessagesInterceptorStateService,
+    protected applicationService: ApplicationService,
+    protected applicationParameterService: ApplicationParameterService,
+    protected applicationBackgroundService: ApplicationBackgroundService,
+    protected applicationTreeService: ApplicationTreeService,
+    protected cartographyGroupService: CartographyGroupService,
+    protected backgroundService: BackgroundService,
+    protected roleService: RoleService,
+    protected treeService: TreeService,
+    protected userService: UserService,
+    protected utils: UtilsService,
+  ) {
+    super(dialog, translateService, translationService, codeListService, loggerService, errorHandler, activatedRoute, router, loadingService, messagesInterceptorState);
+    this.parametersTable = this.defineParametersTable();
+    this.treesTable = this.defineTreesTable();
+    this.rolesTable = this.defineRolesTable();
+    this.applicationBackgroundsTable = this.defineApplicationBackgroundsTable();
+    this.headerParamsTable = this.defineNewHeaderParamDialog();
+  }
+
+  /**
+   * Initializes component data before fetching.
+   * Sets up data tables, translations, and situation map list.
+   */
+  override async preFetchData() {
+    this.dataTables.register(this.parametersTable).register(this.treesTable).register(this.rolesTable).register(this.applicationBackgroundsTable).register(this.headerParamsTable);
+    this.initTranslations('Application', ['name', 'description', 'title', 'maintenanceInformation'])
+    await this.initCodeLists(['application.type', 'applicationParameter.type'])
+    const [situationMaps, users] = await Promise.all([
+      firstValueFrom(this.fetchSituationMapList()),
+      firstValueFrom(this.userService.fetchAllItems())
+      ]
+    )
+    situationMaps.sort((a, b) => compareNullableString(a.name, b.name));
+    users.sort((a, b) => compareNullableString(a.username, b.username));
+    this.situationMapList = situationMaps;
+    this.usersList = users;
+  }
+
+  /**
+   * Fetches the original entity by ID.
+   * @returns Promise of Application entity with projection
+   */
+  override fetchOriginal(): Promise<ApplicationProjection> {
+    return firstValueFrom(this.applicationService.fetchProjectionById(ApplicationProjection, this.entityID));
+  }
+
+  /**
+   * Creates a copy of an existing entity for duplication.
+   * @returns Promise of duplicated Application entity
+   */
+  override fetchCopy(): Promise<ApplicationProjection> {
+    return firstValueFrom(this.applicationService.fetchProjectionById(ApplicationProjection, this.duplicateID).pipe(map((copy: ApplicationProjection) => {
+      copy.name = this.translateService.instant("common.copyPrefix") + copy.name;
+      return copy;
+    })));
+  }
+
+  /**
+   * Creates an empty entity with default values.
+   * @returns New Application instance with default type and situation map
+   */
+  override empty(): ApplicationProjection {
+    const defaultType = this.defaultValueOrNull('application.type');
+    return Object.assign(new ApplicationProjection(), {
+      type: defaultType?.value || null,
+      situationMap: this.situationMapList[0]?.id ?? null,
+      appPrivate: false
+    })
+  }
+
+  /**
+   * Fetches related data for the entity.
+   * Loads translations for the current entity.
+   */
+  override async fetchRelatedData() {
+    return this.loadTranslations(this.entityToEdit);
+  }
+
+  /**
+   * Initializes form data after an entity is fetched.
+   * Sets up reactive form with entity values and validation rules.
+   * @throws Error if entity is undefined
+   */
+  override postFetchData() {
+    if (!this.entityToEdit) {
+      throw new Error('Cannot initialize form: entity is undefined');
+    }
+
+    this.currentAppType = this.entityToEdit.type;
+    this.originalCreatorId = this.entityToEdit.creatorId ?? null;
+    this.headerBaseLeft = Object.keys(this.headerParams.headerLeftSection);
+    this.headerBaseRight = Object.keys(this.headerParams.headerRightSection);
+    if (this.entityToEdit.headerParams != null)
+      this.headerParams = this.entityToEdit.headerParams;
+    this.entityToEdit.headerParams = this.headerParams;
+
+    this.entityForm = new UntypedFormGroup({
+      name: new UntypedFormControl(this.entityToEdit.name, [Validators.required,]),
+      description: new UntypedFormControl(this.entityToEdit.description, [Validators.required]),
+      type: new UntypedFormControl(this.entityToEdit.type, [Validators.required,]),
+      title: new UntypedFormControl(this.entityToEdit.title),
+      jspTemplate: new UntypedFormControl(this.entityToEdit.jspTemplate, [
+        Validators.maxLength(250),
+        optionalHttpOrHttpsUrlValidator,
+      ]),
+      theme: new UntypedFormControl(this.entityToEdit.theme),
+      situationMapId: new UntypedFormControl(this.entityToEdit.situationMapId, []),
+      srs: new UntypedFormControl(this.entityToEdit.srs),
+      scales: new UntypedFormControl(this.entityToEdit.scales?.join(',')),
+      treeAutoRefresh: new UntypedFormControl(this.entityToEdit.treeAutoRefresh),
+      accessParentTerritory: new UntypedFormControl(this.entityToEdit.accessParentTerritory),
+      accessChildrenTerritory: new UntypedFormControl(this.entityToEdit.accessChildrenTerritory),
+      homeMenu: new UntypedFormControl(this.entityToEdit.headerParams.headerRightSection.homeMenu.visible),
+      switchApplication: new UntypedFormControl(this.entityToEdit.headerParams.headerRightSection.switchApplication.visible),
+      logoSitmun: new UntypedFormControl(this.entityToEdit.headerParams.headerLeftSection.logoSitmun.visible),
+      logoutButton: new UntypedFormControl(this.entityToEdit.headerParams.headerRightSection.logoutButton.visible),
+      profileButton: new UntypedFormControl(this.entityToEdit.headerParams.headerRightSection.profileButton.visible),
+      switchLanguage: new UntypedFormControl(this.entityToEdit.headerParams.headerRightSection.switchLanguage.visible),
+      logo: new UntypedFormControl(this.entityToEdit.logo, [
+        Validators.maxLength(4000),
+        optionalHttpOrHttpsUrlValidator,
+      ]),
+      maintenanceInformation: new UntypedFormControl(this.entityToEdit.maintenanceInformation,[]),
+      responsibleInstitutionName: new UntypedFormControl(
+        this.entityToEdit.responsibleInstitutionName,
+        [Validators.maxLength(250)]
+      ),
+      creatorId: new UntypedFormControl(this.entityToEdit.creatorId,[]),
+      isUnavailable: new UntypedFormControl(this.entityToEdit.isUnavailable ?? false,[]),
+      appPrivate: new UntypedFormControl(this.entityToEdit.appPrivate, []),
+    });
+    if (this.currentAppType) {
+      this.onSelectionTypeAppChanged({ value: this.currentAppType });
+    }
+  }
+
+  /**
+   * Creates an Application object from the current form values.
+   *
+   * @param id - Optional ID for the new object, used when updating
+   * @returns New Application instance populated with form values
+   */
+  createObject(id: number = null): Application {
+    let safeToEdit = ApplicationProjection.fromObject(this.entityToEdit);
+    const formValues = this.entityForm.getRawValue();
+    this.headerParams.headerLeftSection.logoSitmun.visible = formValues.logoSitmun;
+    this.headerParams.headerRightSection.logoutButton.visible = formValues.logoutButton;
+    this.headerParams.headerRightSection.profileButton.visible = formValues.profileButton;
+    this.headerParams.headerRightSection.switchLanguage.visible = formValues.switchLanguage;
+    this.headerParams.headerRightSection.homeMenu.visible = formValues.homeMenu;
+    this.headerParams.headerRightSection.switchApplication.visible = formValues.switchApplication;
+
+    const institutionRaw = formValues.responsibleInstitutionName;
+    const responsibleInstitutionName =
+      institutionRaw == null || String(institutionRaw).trim() === ''
+        ? null
+        : String(institutionRaw).trim();
+
+    safeToEdit = Object.assign(safeToEdit,
+      formValues,
+      {
+        id: id,
+        scales: formValues.scales ? formValues.scales.toString().split(',') : null,
+        situationMap: formValues.situationMapId ? this.cartographyGroupService.createProxy(formValues.situationMapId) : null,
+        creator: formValues.creatorId ? this.userService.createProxy(formValues.creatorId) : null,
+        responsibleInstitutionName,
+        appPrivate: formValues.appPrivate,
+      }
+    );
+    safeToEdit.headerParams = this.headerParams;
+    return Application.fromObject(safeToEdit)
+  }
+
+  /**
+   * Creates a new entity or duplicates an existing one.
+   * @returns Promise of created entity ID
+   */
+  override async createEntity(): Promise<number> {
+    const entityToCreate = this.createObject();
+    const response = await firstValueFrom(this.applicationService.create(entityToCreate));
+    return response.id;
+  }
+
+  /**
+   * Updates an existing entity with form values.
+   */
+  override async updateEntity() {
+    const entityToUpdate = this.createObject(this.entityID);
+    await firstValueFrom(this.applicationService.update(entityToUpdate));
+  }
+
+  /**
+   * Updates related data after entity save.
+   * @param _isDuplicated - Whether this is a duplication operation
+   */
+  override async updateDataRelated(_isDuplicated: boolean) {
+    const entityToUpdate = this.createObject(this.entityID);
+    await this.saveTranslations(entityToUpdate);
+    await firstValueFrom(entityToUpdate.updateRelationEx("situationMap", entityToUpdate.situationMap));
+    const currentCreatorId = this.entityForm.get('creatorId')?.value ?? null;
+    const original = this.originalCreatorId ?? null;
+    const creatorChanged = String(currentCreatorId ?? '') !== String(original ?? '');
+    if (creatorChanged) {
+      await firstValueFrom(entityToUpdate.updateRelationEx("creator", entityToUpdate.creator));
+    }
+  }
+
+  override canSave(): boolean {
+    return this.canSaveEntity;
+  }
+
+  override get canSaveEntity(): boolean {
+    return super.canSaveEntity && !this.getApplicationTreeValidationError();
+  }
+
+  get applicationTreeValidationWarningMessage(): string {
+    if (!this.dataLoaded || !this.entityForm?.valid) {
+      return '';
+    }
+    const code = this.getApplicationTreeValidationError();
+    if (code === 'turistic') {
+      return this.translateService.instant('entity.tree.turisticAppTreeMessage');
+    }
+    if (code === 'noTuristic') {
+      return this.translateService.instant('entity.tree.noTuristicAppTreeMessage');
+    }
+    return '';
+  }
+
+  rolesTabHasWarning(): boolean {
+    return (this.entityToEdit?.warnings ?? []).includes(
+      ApplicationFormComponent.WARNING_PRIVATE_APP_PUBLIC_USER
+    );
+  }
+
+  detailsTabHasRequiredAlert(): boolean {
+    return this.getInvalidRequiredFields().length > 0;
+  }
+
+  private getApplicationTreeValidationError(): 'turistic' | 'noTuristic' | null {
+    const trees = this.treesDataGrid?.rowData ?? [];
+    const filterTrees = trees.filter(isActive);
+    if (!this.validTouristicAppTrees(filterTrees)) {
+      return 'turistic';
+    }
+    if (!this.validNoTouristicAppTrees(filterTrees)) {
+      return 'noTuristic';
+    }
+    return null;
+  }
+
+  /**
+   * Validates if the form is valid.
+   * @returns boolean indicating form validity
+   */
+  validForm(): boolean {
+    return this.entityForm.valid;
+  }
+
+  /**
+   * Ensures touristic apps have exactly one touristic tree.
+   * @param trees - Array of application-tree associations to validate
+   * @returns boolean indicating validation result
+   */
+  validTouristicAppTrees(trees: ApplicationTreeProjection[]): boolean {
+    if (this.currentAppType === constants.codeValue.applicationType.touristicApp) {
+      let valid = trees.length === 0;
+      if (!valid){
+        if (trees.length === 1) {
+          valid = trees[0].treeType === constants.codeValue.treeType.touristicTree;
+        } else if (trees.length === 2){
+          valid = trees.some(t => t.treeType === constants.codeValue.treeType.touristicTree)
+            && trees.some(t => t.treeType === constants.codeValue.treeType.cartography);
+        }
+      }
+      return valid;
+    }
+    return true;
+  }
+
+  /**
+   * Ensures non-touristic apps don't have touristic trees.
+   * @param trees - Array of application-tree associations to validate
+   * @returns boolean indicating validation result
+   */
+  validNoTouristicAppTrees(trees: ApplicationTreeProjection[]): boolean {
+    if (this.currentAppType !== constants.codeValue.applicationType.touristicApp) {
+      return !trees.some(tree => tree.treeType === constants.codeValue.treeType.touristicTree);
+    }
+    return true;
+  }
+
+  /**
+   * Enables/disables form controls based on the selected application type.
+   * @param value - The new application type value from selection event
+   */
+  onSelectionTypeAppChanged({value}): void {
+    this.currentAppType = value;
+    if (value === this.codeValues.applicationType.internalApp) {
+      this.enableInternalAppFields();
+      this.disableExternalAppFields();
+    } else if (value === this.codeValues.applicationType.externalApp) {
+      this.disableInternalAppFields();
+      this.enableExternalAppFields();
+    } else {
+      this.disableInternalAppFields();
+      this.disableExternalAppFields();
+    }
+  }
+
+  private enableInternalAppFields(): void {
+    this.entityForm.get('title').enable();
+    this.entityForm.get('scales').enable();
+    this.entityForm.get('situationMapId').enable();
+    this.entityForm.get('treeAutoRefresh').enable();
+    this.entityForm.get('theme').enable();
+    this.entityForm.get('accessParentTerritory').enable();
+    this.entityForm.get('accessChildrenTerritory').enable();
+    this.entityForm.get('srs').enable();
+  }
+
+  private disableInternalAppFields(): void {
+    this.entityForm.get('title').setValue(null);
+    this.entityForm.get('title').disable();
+    this.entityForm.get('scales').setValue(null);
+    this.entityForm.get('scales').disable();
+    this.entityForm.get('situationMapId').setValue(null);
+    this.entityForm.get('situationMapId').disable();
+    this.entityForm.get('treeAutoRefresh').setValue(null);
+    this.entityForm.get('treeAutoRefresh').disable();
+    this.entityForm.get('theme').setValue(null);
+    this.entityForm.get('theme').disable();
+    this.entityForm.get('accessParentTerritory').setValue(null);
+    this.entityForm.get('accessParentTerritory').disable();
+    this.entityForm.get('accessChildrenTerritory').setValue(null);
+    this.entityForm.get('accessChildrenTerritory').disable();
+    this.entityForm.get('srs').setValue(null);
+    this.entityForm.get('srs').disable();
+  }
+
+  private enableExternalAppFields(): void {
+    const control = this.entityForm.get('jspTemplate');
+    control.enable();
+    control.setValidators([
+      Validators.required,
+      Validators.maxLength(250),
+      optionalHttpOrHttpsUrlValidator,
+    ]);
+    control.updateValueAndValidity();
+  }
+
+  private disableExternalAppFields(): void {
+    const control = this.entityForm.get('jspTemplate');
+    control.setValue(null);
+    control.setValidators([Validators.maxLength(250), optionalHttpOrHttpsUrlValidator]);
+    control.disable();
+    control.updateValueAndValidity();
+  }
+
+  /**
+   * Defines the data table for application parameters.
+   * Configures columns, fetching, updating, and dialog template.
+   *
+   * @returns Configured data table definition for parameters
+   */
+  private defineParametersTable(): DataTableDefinition<ApplicationParameter, ApplicationParameter> {
+    return DataTableDefinition.builder<ApplicationParameter, ApplicationParameter>(this.dialog, this.errorHandler, this.loadingService)
+      .withRelationsColumns([
+        this.utils.getSelCheckboxColumnDef(),
+        Object.assign(this.utils.getEditableColumnDef('common.form.name', 'name'), {flex: 1, minWidth: 140}),
+        Object.assign(this.utils.getEditableColumnDef('common.form.value', 'value'), {flex: 2, minWidth: 160}),
+        Object.assign(this.utils.getNonEditableColumnDef('common.form.type', 'typeDescription'), {flex: 0, minWidth: 120}),
+        this.utils.getStatusColumnDef()
+      ])
+      .withRelationsOrder('name')
+      .withRelationsFetcher(() => {
+        if (this.isNew()) {
+          return of([]);
+        }
+        return this.entityToEdit.getRelationArrayEx(ApplicationParameter, 'parameters', {projection: 'view'})
+          .pipe(map((data: ApplicationParameter[]) => data.map(element => {
+            element.typeDescription = this.findInCodeList('applicationParameter.type', element.type)?.description;
+            return element;
+          })));
+      })
+      .withRelationsUpdater(async (applicationParameters: (ApplicationParameter & Status)[]) => {
+        await onCreate(applicationParameters).forEach(item => {
+          const newItem = ApplicationParameter.fromObject(item);
+          newItem.application = this.applicationService.createProxy(this.entityID);
+          return this.applicationParameterService.create(newItem);
+        })
+        await onUpdate(applicationParameters).forEach(item => this.applicationParameterService.update(item));
+        await onDelete(applicationParameters).forEach(item => this.applicationParameterService.delete(item));
+      })
+      .withTemplateDialog('newParameterDialog', () => TemplateDialog.builder()
+        .withReference(this.newParameterDialog)
+        .withTitle('entity.application.parameters.title')
+        .withForm(
+          new FormGroup({
+            name: new FormControl('', {
+              validators: [Validators.required],
+              nonNullable: true
+            }),
+            type: new FormControl('', {
+              validators: [Validators.required],
+              nonNullable: true
+            }),
+            value: new FormControl('', {
+              nonNullable: true
+            }),
+          })
+        ).withPreOpenFunction((form: FormGroup) => {
+          const defaultType = this.defaultValueOrNull('applicationParameter.type');
+          form.reset({type: defaultType?.value || null});
+        }).build())
+      .build();
+  }
+
+  private defineNewHeaderParamDialog(): DataTableDefinition<ApplicationHeaderParameter, ApplicationHeaderParameter> {
+    return DataTableDefinition.builder<ApplicationHeaderParameter, ApplicationHeaderParameter>(this.dialog, this.errorHandler, this.loadingService)
+      .withRelationsColumns([
+        this.utils.getSelCheckboxColumnDef(),
+        Object.assign(this.utils.getNonEditableColumnDef('entity.application.header.name', 'name'), {flex: 1, minWidth: 140}),
+        Object.assign(this.utils.getEditableColumnDef('entity.application.header.url', 'url'), {flex: 2, minWidth: 200}),
+        Object.assign(this.utils.getBooleanColumnDef('entity.application.header.visible', 'visible', true), {flex: 0, minWidth: 80, maxWidth: 80}),
+        Object.assign(this.utils.getSelectColumnDef('entity.application.header.section', 'section', true, () => this.headerParamsSection), {flex: 0, minWidth: 160}),
+        this.utils.getStatusColumnDef()])
+      .withRelationsOrder('name')
+      .withRelationsFetcher(() => {
+        if (this.isNew()) {
+          return of([]);
+        }
+        return this.getAllHeaderParams();
+      })
+      .withRelationsUpdater(async (applicationParameters: (ApplicationHeaderParameter & Status)[]) => {
+        this.entityToEdit.headerParams = this.entityToEdit.headerParams ?? this.headerParams;
+
+        await onCreate(applicationParameters).forEach(item => {
+          const object = { url: item.url, visible: item.visible };
+          if (item.section === 'headerLeftSection') {
+            this.entityToEdit.headerParams.headerLeftSection[item.name] = object;
+          } else if (item.section === 'headerRightSection') {
+            this.entityToEdit.headerParams.headerRightSection[item.name] = object;
+          }
+          return of(null);
+        });
+
+        await onUpdate(applicationParameters).forEach(item => {
+          const object = { url: item.url, visible: item.visible };
+          if (item.section === 'headerLeftSection') {
+            this.entityToEdit.headerParams.headerLeftSection[item.name] = object;
+            delete this.entityToEdit.headerParams.headerRightSection[item.name];
+          } else if (item.section === 'headerRightSection') {
+            this.entityToEdit.headerParams.headerRightSection[item.name] = object;
+            delete this.entityToEdit.headerParams.headerLeftSection[item.name];
+          }
+          return of(null);
+        });
+
+        await onDelete(applicationParameters).forEach(item => {
+          delete this.entityToEdit.headerParams.headerLeftSection[item.name];
+          delete this.entityToEdit.headerParams.headerRightSection[item.name];
+          return of(null);
+        });
+
+        const newItem = Application.fromObject(this.entityToEdit);
+        await firstValueFrom(this.applicationService.update(newItem));
+        this.headerParams = this.entityToEdit.headerParams;
+      })
+      .withTemplateDialog('newHeaderParamDialog', () => {
+        if (!this.newHeaderParamDialog) {
+          throw new Error('Template reference for newParameterDialog is undefined');
+        }
+        return TemplateDialog.builder()
+          .withReference(this.newHeaderParamDialog)
+          .withTitle('entity.application.header.title')
+          .withForm(
+            new FormGroup({
+              name: new FormControl('', {
+                validators: [Validators.required],
+                nonNullable: true
+              }),
+              url: new FormControl('', {
+                validators: [Validators.required],
+                nonNullable: true
+              }),
+              visible: new FormControl(false, {
+                nonNullable: true
+              }),
+              section: new FormControl('', {
+                nonNullable: true
+              })
+            })
+          ).withPreOpenFunction((form) => form.reset({ name: '', url: '', visible: false, section: '' }))
+          .build();
+      })
+      .withTargetsTitle('entity.application.header.title')
+      .withTargetsOrder('name')
+      .build();
+  }
+
+  /**
+   * Defines the data table for application trees.
+   * Configures columns, fetching, updating, and target selection.
+   *
+   * @returns Configured data table definition for trees
+   */
+  private defineTreesTable(): DataTableDefinition<ApplicationTreeProjection, Tree> {
+    return DataTableDefinition.builder<ApplicationTreeProjection, Tree>(this.dialog, this.errorHandler, this.loadingService)
+      .withRelationsColumns([
+        this.utils.getSelCheckboxColumnDef(),
+        Object.assign(this.utils.getRouterLinkColumnDef('common.form.name', 'treeName', '/trees/:id/treesForm', {id: 'treeId'}), {flex: 1, minWidth: 140}),
+        Object.assign(this.utils.getNonEditableColumnDef('common.form.type', 'treeType'), {flex: 1, minWidth: 120}),
+        Object.assign(this.utils.getEditableColumnDef('common.form.order', 'order'), {flex: 0, minWidth: 80, maxWidth: 100}),
+        this.utils.getStatusColumnDef(),
+      ])
+      .withRelationsOrder('order')
+      .withRelationsFetcher(() => {
+        if (this.isNew()) {
+          return of([]);
+        }
+        return this.entityToEdit.getRelationArrayEx<ApplicationTreeProjection>(ApplicationTreeProjection, 'trees', {projection: 'view'})
+      })
+      .withRelationsUpdater(async (applicationTrees: (ApplicationTreeProjection & Status)[]) => {
+        await onCreate(applicationTrees).forEach(item => {
+          const newItem = ApplicationTree.of(
+            this.applicationService.createProxy(this.entityID),
+            this.treeService.createProxy(item.treeId),
+            item.order);
+          return this.applicationTreeService.create(newItem)
+        });
+        await onUpdate(applicationTrees).forEach(item => {
+          const entity = this.applicationTreeService.createProxy(item.id)!;
+          entity.application = this.applicationService.createProxy(this.entityID)!;
+          entity.tree = this.treeService.createProxy(item.treeId)!;
+          entity.order = item.order;
+          return this.applicationTreeService.update(entity);
+        });
+        await onDelete(applicationTrees).forEach(item => {
+          const newItem = this.applicationTreeService.createProxy(item.id);
+          return this.applicationTreeService.delete(newItem)
+        });
+      })
+      .withTargetsColumns([
+        this.utils.getSelCheckboxColumnDef(),
+        this.utils.getNonEditableColumnDef('common.form.name', 'name'),
+        this.utils.getNonEditableColumnDef('common.form.type', 'type'),
+      ])
+      .withTargetsOrder('name')
+      .withTargetsFetcher(() => this.treeService.fetchAllItems())
+      .withTargetInclude((applicationTrees: ApplicationTreeProjection[]) => (item: Tree) => {
+        return !applicationTrees.some((applicationTree) => applicationTree.treeId === item.id);
+      })
+      .withTargetToRelation((items: Tree[]) => {
+        return items.map(item => ApplicationTreeProjection.of(this.entityToEdit, item, 0));
+      })
+      .withTargetsTitle('entity.application.trees.title')
+      .build();
+  }
+
+  /**
+   * Defines the data table for application roles.
+   * Configures columns, fetching, updating, and target selection.
+   *
+   * @returns Configured data table definition for roles
+   */
+  private defineRolesTable(): DataTableDefinition<Role, Role> {
+    return DataTableDefinition.builder<Role, Role>(this.dialog, this.errorHandler, this.loadingService)
+      .withRelationsColumns([
+        this.utils.getSelCheckboxColumnDef(),
+        this.utils.getRouterLinkColumnDef('common.form.name', 'name', '/role/:id/roleForm', {id: 'id'}),
+        this.utils.getNonEditableColumnDef('common.form.description', 'description'),
+        this.utils.getStatusColumnDef()
+      ])
+      .withRelationsOrder('name')
+      .withRelationsFetcher(() => {
+        if (this.isNew()) {
+          return of([]);
+        }
+        return this.entityToEdit.getRelationArrayEx(Role, 'availableRoles', {projection: 'view'})
+      })
+      .withRelationsUpdater(async (roles: (Role & Status)[]) => {
+        await onUpdatedRelation(roles).forAll(item => this.entityToEdit.substituteAllRelation('availableRoles', item));
+      })
+      .withTargetsColumns([
+        this.utils.getSelCheckboxColumnDef(),
+        this.utils.getNonEditableColumnDef('common.form.name', 'name'),
+        this.utils.getNonEditableColumnDef('common.form.description', 'description'),
+      ])
+      .withTargetsOrder('name')
+      .withTargetsFetcher(() => this.roleService.fetchAllItems())
+      .withTargetInclude((relations) => (target) =>
+        !relations.some((relation) => relation.id === target.id)
+      )
+      .withTargetToRelation((items) => items)
+      .withTargetsTitle('entity.application.roles.title')
+      .build();
+  }
+
+  /**
+   * Defines the data table for application backgrounds.
+   * Configures columns, fetching, updating, and target selection.
+   *
+   * @returns Configured data table definition for backgrounds
+   */
+  private defineApplicationBackgroundsTable(): DataTableDefinition<ApplicationBackgroundProjection, BackgroundProjection> {
+    return DataTableDefinition.builder<ApplicationBackgroundProjection, BackgroundProjection>(this.dialog, this.errorHandler, this.loadingService)
+      .withRelationsColumns([
+        this.utils.getSelCheckboxColumnDef(),
+        Object.assign(this.utils.getRouterLinkColumnDef('common.form.name', 'backgroundName', '/backgroundLayers/:id/backgroundLayersForm', {id: 'backgroundId'}), {flex: 1, minWidth: 140}),
+        Object.assign(this.utils.getNonEditableColumnDef('common.form.description', 'backgroundDescription'), {flex: 2, minWidth: 160}),
+        Object.assign(this.utils.getEditableColumnDef('common.form.order', 'order'), {flex: 0, minWidth: 80, maxWidth: 100}),
+        this.utils.getStatusColumnDef()
+      ])
+      .withRelationsOrder('order')
+      .withRelationsFetcher(() => {
+        if (this.isNew()) {
+          return of([]);
+        }
+        return this.entityToEdit.getRelationArrayEx<ApplicationBackgroundProjection>(ApplicationBackgroundProjection, 'backgrounds', {projection: 'view'})
+      })
+      .withRelationsUpdater(async (applicationBackgrounds: (ApplicationBackgroundProjection & Status)[]) => {
+        await onCreate(applicationBackgrounds).forEach(item => {
+          const newItem = ApplicationBackground.of(
+            this.applicationService.createProxy(this.entityID),
+            this.backgroundService.createProxy(item.backgroundId),
+            item.order);
+          return this.applicationBackgroundService.create(newItem)
+        });
+        await onUpdate(applicationBackgrounds).forEach(item => {
+          const entity = this.applicationBackgroundService.createProxy(item.id)!;
+          entity.application = this.applicationService.createProxy(this.entityID)!;
+          entity.background = this.backgroundService.createProxy(item.backgroundId)!;
+          entity.order = item.order;
+          return this.applicationBackgroundService.update(entity);
+        });
+        await onDelete(applicationBackgrounds).forEach(item => {
+          const newItem = this.applicationBackgroundService.createProxy(item.id);
+          return this.applicationBackgroundService.delete(newItem)
+        });
+      })
+      .withTargetsColumns([
+        this.utils.getSelCheckboxColumnDef(),
+        this.utils.getNonEditableColumnDef('common.form.name', 'name'),
+        this.utils.getNonEditableColumnDef('common.form.description', 'description'),
+      ])
+      .withTargetsOrder('name')
+      .withTargetsFetcher(() => this.backgroundService.fetchProjectionItems(BackgroundProjection))
+      .withTargetInclude((applicationBackgrounds: (ApplicationBackgroundProjection)[]) => (item: BackgroundProjection) => {
+        return !applicationBackgrounds.some((applicationBackground) => applicationBackground.backgroundId === item.id);
+      })
+      .withTargetToRelation((items: BackgroundProjection[]) => {
+        return items.map(item => ApplicationBackgroundProjection.of(this.entityToEdit, item, 0));
+      })
+      .withTargetsTitle('entity.application.background.title')
+      .withTargetsOrder('name')
+      .build();
+  }
+
+  /**
+   * Fetches the list of available situation maps.
+   * Filters cartography groups by location map type.
+   *
+   * @returns Observable of CartographyGroup array filtered by location map type
+   */
+  private fetchSituationMapList(): Observable<CartographyGroup[]> {
+    const query: HalOptions = {
+      params: [
+        {key: 'type', value: this.codeValues.cartographyPermissionType.locationMap}
+      ]
+    };
+    return this.cartographyGroupService.fetchAllItems(query);
+  }
+
+  /**
+   * Gets the name of a situation map by its ID
+   * @param id - The ID of the situation map to look up
+   * @returns The name of the situation map or empty string if not found
+   */
+  getSituationMapName(id: number): string {
+    const map = this.situationMapList?.find(map => map.id === id);
+    return map?.name || '';
+  }
+
+  /**
+   * Checks if the current application is an external application
+   * @returns boolean indicating if the application is external
+   */
+  isExternalApp(): boolean {
+    return this.entityForm?.getRawValue()?.type === this.codeValues.applicationType.externalApp;
+  }
+
+  /**
+   * Checks if the current application is an internal application
+   * @returns boolean indicating if the application is internal
+   */
+  isInternalApp(): boolean {
+    return this.entityForm?.getRawValue()?.type === this.codeValues.applicationType.internalApp;
+  }
+
+  /**
+   * Checks if the current application is not an external application
+   * @returns boolean indicating if the application is not external
+   * @deprecated Use isInternalApp() instead for fields specific to internal apps
+   */
+  isNotExternalApp(): boolean {
+    return this.entityForm?.getRawValue()?.type !== this.codeValues.applicationType.externalApp;
+  }
+
+  getUsername(creatorId: number): string {
+    return this.usersList.find(user => user.id === creatorId)?.username || '';
+  }
+
+  get eligibleUsersList(): User[] {
+    return this.usersList.filter(user => this.isEligiblePointOfContact(user));
+  }
+
+  get currentIneligibleCreator(): User | null {
+    const creatorId = this.entityForm?.get('creatorId')?.value ?? this.entityToEdit?.creatorId;
+    if (creatorId == null || creatorId === '') {
+      return null;
+    }
+    const user = this.usersList.find(
+      candidate => candidate.id === creatorId || String(candidate.id) === String(creatorId)
+    );
+    if (!user || this.isEligiblePointOfContact(user)) {
+      return null;
+    }
+    return user;
+  }
+
+  isEligiblePointOfContact(user: User | null | undefined): boolean {
+    if (!user) {
+      return false;
+    }
+    if (user.username === 'public' || user.username === 'admin') {
+      return false;
+    }
+    return user.blocked !== true;
+  }
+
+  private readonly getAllHeaderParams = (): Observable<ApplicationHeaderParameter[]> => {
+    const result: ApplicationHeaderParameter[] = [];
+    const headerLeft = Object.keys(this.headerParams.headerLeftSection)
+      .filter(key => !this.headerBaseLeft.includes(key))
+      .reduce((obj, key) => {
+        obj[key] = this.headerParams.headerLeftSection[key];
+        return obj;
+      }, {} as any);
+
+    const headerRight = Object.keys(this.headerParams.headerRightSection)
+      .filter(key => !this.headerBaseRight.includes(key))
+      .reduce((obj, key) => {
+        obj[key] = this.headerParams.headerRightSection[key];
+        return obj;
+      }, {} as any);
+
+    Object.entries(headerLeft).forEach(([key, value]: any) => {
+      const object = new ApplicationHeaderParameter();
+      object.url = value.url;
+      object.name = key;
+      object.visible = value.visible;
+      object.section = 'headerLeftSection';
+      result.push(object);
+    });
+
+    Object.entries(headerRight).forEach(([key, value]: any) => {
+      const object = new ApplicationHeaderParameter();
+      object.url = value.url;
+      object.name = key;
+      object.visible = value.visible;
+      object.section = 'headerRightSection';
+      result.push(object);
+    });
+
+    return of(result);
+  };
+}

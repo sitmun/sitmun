@@ -1,0 +1,454 @@
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { MatIconTestingModule } from '@angular/material/icon/testing';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { RouterModule } from '@angular/router';
+
+import { TranslateLoader, TranslateModule } from '@ngx-translate/core';
+import { of, firstValueFrom } from 'rxjs';
+
+import { EntityFormAlertsComponent } from '@app/components/shared/entity-form-alerts/entity-form-alerts.component';
+import { FormToolbarComponent } from '@app/components/shared/form-toolbar/form-toolbar.component';
+import { ExternalConfigurationService } from '@app/core/config/external-configuration.service';
+import { ExternalService, ResourceService } from '@app/core/hal';
+import {
+  ApplicationService,
+  CodeListService,
+  RoleService,
+  TerritoryService,
+  TranslationService,
+  UserConfigurationService,
+  UserPositionService,
+  UserService
+} from '@app/domain';
+import { SitmunFrontendGuiModule } from '@app/frontend-gui/src/lib/public_api';
+import { MaterialModule } from '@app/material-module';
+import { LoggerService } from '@app/services/logger.service';
+import { configureLoggerForTests, provideErrorHandlerForTests } from '@app/testing/test-helpers';
+
+import { UserFormComponent } from './user-form.component';
+
+function typePassword(component: UserFormComponent, value: string): void {
+  component.onPasswordFocus();
+  component.entityForm.get('newPassword')!.setValue(value);
+  component.onPasswordChange();
+  component.onPasswordBlur();
+}
+
+function refocusBlur(component: UserFormComponent): void {
+  component.onPasswordFocus();
+  component.onPasswordBlur();
+}
+
+describe('UserFormComponent', () => {
+  let component: UserFormComponent;
+  let fixture: ComponentFixture<UserFormComponent>;
+  let applicationService: ApplicationService;
+  let userPositionService: UserPositionService;
+
+  beforeAll(async () => {
+    await TestBed.configureTestingModule({
+      teardown: { destroyAfterEach: 0 as any },
+      declarations: [UserFormComponent, FormToolbarComponent],
+      imports: [
+        FormsModule,
+        ReactiveFormsModule,
+        RouterModule.forRoot([], {}),
+        SitmunFrontendGuiModule,
+        EntityFormAlertsComponent,
+        MaterialModule,
+        MatIconTestingModule,
+        BrowserAnimationsModule,
+        TranslateModule.forRoot({
+          loader: {
+            provide: TranslateLoader,
+            useFactory: () => ({
+              getTranslation: () => of({})
+            })
+          }
+        })
+      ],
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        provideErrorHandlerForTests(),
+        UserService,
+        UserConfigurationService,
+        UserPositionService,
+        RoleService,
+        TerritoryService,
+        ApplicationService,
+        CodeListService,
+        TranslationService,
+        ResourceService,
+        ExternalService,
+        { provide: 'ExternalConfigurationService', useClass: ExternalConfigurationService }
+      ]
+    }).compileComponents();
+  });
+
+  beforeEach(() => {
+    fixture = TestBed.createComponent(UserFormComponent);
+    component = fixture.componentInstance;
+    const loggerService = TestBed.inject(LoggerService);
+    configureLoggerForTests(loggerService);
+    applicationService = TestBed.inject(ApplicationService);
+    userPositionService = TestBed.inject(UserPositionService);
+    component.entityToEdit = component.empty();
+    component.postFetchData();
+    fixture.detectChanges();
+  });
+
+  afterEach(() => fixture?.destroy());
+  afterAll(() => TestBed.resetTestingModule());
+
+  it('should create', () => {
+    expect(component).toBeTruthy();
+  });
+
+  describe('password session (#260)', () => {
+    it('keeps typed password on create after refocus/blur', () => {
+      const typed = 'secret-create-260';
+      typePassword(component, typed);
+      refocusBlur(component);
+
+      expect(component.createObject().password).toBe(typed);
+    });
+
+    it('omits password on edit when focus/blur leaves persisted password unchanged', () => {
+      component.entityID = 42;
+      component.entityToEdit = Object.assign(component.empty(), {
+        id: 42,
+        username: 'alice',
+        passwordSet: true,
+      });
+      component.postFetchData();
+
+      component.onPasswordFocus();
+      component.onPasswordBlur();
+
+      expect(component.createObject(42).password).toBeUndefined();
+    });
+
+    it('keeps pending password change on edit after refocus/blur', () => {
+      component.entityID = 42;
+      component.entityToEdit = Object.assign(component.empty(), {
+        id: 42,
+        username: 'alice',
+        passwordSet: true,
+      });
+      component.postFetchData();
+
+      const typed = 'secret-edit-260';
+      typePassword(component, typed);
+      refocusBlur(component);
+
+      expect(component.createObject(42).password).toBe(typed);
+    });
+  });
+
+  describe('Grid capability classification', () => {
+    it('userConfigurationsTable should have picker, updater, and status capabilities (dual-target)', () => {
+      const table = component['userConfigurationsTable'];
+      expect(table.hasPickerAdd()).toBe(true);
+      expect(table.hasRelationsUpdater()).toBe(true);
+      expect(table.hasStatusColumn()).toBe(true);
+      expect(table.hasTemplateDialogs()).toBe(false);
+    });
+
+    it('userPositionsTable should have picker, updater, and status capabilities', () => {
+      const table = component['userPositionsTable'];
+      expect(table.hasPickerAdd()).toBe(true);
+      expect(table.hasRelationsUpdater()).toBe(true);
+      expect(table.hasStatusColumn()).toBe(true);
+      expect(table.hasTemplateDialogs()).toBe(false);
+    });
+
+    it('applicationsAsContactTable should be read-only display grid with no edit capabilities', () => {
+      const table = component['applicationsAsContactTable'];
+      expect(table.hasPickerAdd()).toBe(false);
+      expect(table.hasRelationsUpdater()).toBe(false);
+      expect(table.hasStatusColumn()).toBe(false);
+      expect(table.hasTemplateDialogs()).toBe(false);
+      expect(table.supportsDuplicate()).toBe(false);
+    });
+  });
+
+  describe('userPositionsTable column types', () => {
+    it('territoryName links to territory form via territoryId', () => {
+      const columns = component['userPositionsTable'].relationsColumnsDefs;
+      const col = columns.find((c: any) => c.field === 'territoryName');
+      expect(col?.cellRenderer).toBe('routerLinkRenderer');
+      expect(col?.cellRendererParams?.paramFields).toEqual({ id: 'territoryId' });
+    });
+  });
+
+  describe('applicationsAsContactTable fetcher', () => {
+    it('returns empty when not in edition mode', async () => {
+      jest.spyOn(component, 'isEdition').mockReturnValue(false);
+      const apps = await firstValueFrom(component['applicationsAsContactTable'].relationsFetchFn());
+      expect(apps).toEqual([]);
+    });
+
+    it('returns cached applications without a second findByCreatorId call', async () => {
+      component.entityID = 99;
+      component.entityToEdit = Object.assign(component.empty(), { id: 99, username: 'alice' });
+      component.isBuiltInAdmin = false;
+      component.isBuiltInPublic = false;
+      jest.spyOn(component, 'isEdition').mockReturnValue(true);
+      const expected = [{ id: 1, name: 'App A' }];
+      component.applicationsAsPointOfContact = expected as any;
+      const findSpy = jest.spyOn(applicationService, 'findByCreatorId');
+
+      const apps = await firstValueFrom(component['applicationsAsContactTable'].relationsFetchFn());
+
+      expect(findSpy).not.toHaveBeenCalled();
+      expect(apps).toEqual(expected);
+    });
+  });
+
+  describe('canShowApplicationsAsPointOfContact', () => {
+    it('shows tab for existing normal user', () => {
+      component.entityID = 5;
+      component.isBuiltInAdmin = false;
+      component.isBuiltInPublic = false;
+      expect(component.canShowApplicationsAsPointOfContact()).toBe(true);
+    });
+
+    it('shows tab for non-built-in administrator', () => {
+      component.entityID = 5;
+      component.isBuiltInAdmin = false;
+      component.isBuiltInPublic = false;
+      component.entityToEdit = Object.assign(component.empty(), {
+        username: 'ops-admin',
+        administrator: true,
+      });
+      expect(component.canShowApplicationsAsPointOfContact()).toBe(true);
+    });
+
+    it('hides tab for built-in public and admin', () => {
+      component.entityID = 5;
+      component.isBuiltInPublic = true;
+      component.isBuiltInAdmin = false;
+      expect(component.canShowApplicationsAsPointOfContact()).toBe(false);
+
+      component.isBuiltInPublic = false;
+      component.isBuiltInAdmin = true;
+      expect(component.canShowApplicationsAsPointOfContact()).toBe(false);
+    });
+
+    it('hides tab for new unsaved user', () => {
+      component.entityID = -1;
+      component.isBuiltInAdmin = false;
+      component.isBuiltInPublic = false;
+      expect(component.canShowApplicationsAsPointOfContact()).toBe(false);
+    });
+
+    it('fetcher skips findByCreatorId for built-in accounts', async () => {
+      component.entityID = 1;
+      component.isBuiltInAdmin = true;
+      component.isBuiltInPublic = false;
+      const findSpy = jest.spyOn(applicationService, 'findByCreatorId');
+      const apps = await firstValueFrom(component['applicationsAsContactTable'].relationsFetchFn());
+      expect(apps).toEqual([]);
+      expect(findSpy).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('point of contact impact warnings', () => {
+    let translateInstant: jest.SpyInstance;
+
+    beforeEach(() => {
+      component.entityID = 10;
+      component.entityToEdit = Object.assign(component.empty(), {
+        id: 10,
+        username: 'alice',
+        email: 'alice@example.com',
+        blocked: false,
+      });
+      component.postFetchData();
+      component.applicationsAsPointOfContact = [{ id: 1 }, { id: 2 }] as any;
+      translateInstant = jest
+        .spyOn(component['translateService'], 'instant')
+        .mockImplementation((key: string, params?: { count?: number }) =>
+          `${key}:${params?.count ?? ''}`
+        );
+    });
+
+    it('warns when assigned user is blocked with application count', () => {
+      component.entityForm.patchValue({ blocked: true });
+      const message = component.getPointOfContactImpactMessage();
+      expect(translateInstant).toHaveBeenCalledWith(
+        'entity.user.warning.point-of-contact-blocked-impact',
+        { count: 2 }
+      );
+      expect(message).toContain('2');
+    });
+
+    it('warns when assigned user email is cleared with application count', () => {
+      component.entityForm.patchValue({ email: '', blocked: false });
+      const message = component.getPointOfContactImpactMessage();
+      expect(translateInstant).toHaveBeenCalledWith(
+        'entity.user.warning.point-of-contact-email-missing-impact',
+        { count: 2 }
+      );
+      expect(message).toContain('2');
+    });
+
+    it('does not warn for emailed eligible user or user with no apps', () => {
+      component.entityForm.patchValue({ email: 'alice@example.com', blocked: false });
+      expect(component.getPointOfContactImpactMessage()).toBeNull();
+
+      component.applicationsAsPointOfContact = [];
+      component.entityForm.patchValue({ blocked: true });
+      expect(component.getPointOfContactImpactMessage()).toBeNull();
+    });
+
+    it('fetchRelatedData caches apps for normal users and skips built-ins', async () => {
+      const expected = [{ id: 3, name: 'App' }];
+      const findSpy = jest
+        .spyOn(applicationService, 'findByCreatorId')
+        .mockReturnValue(of(expected as any));
+
+      component.entityToEdit = Object.assign(component.empty(), { username: 'alice' });
+      component.entityID = 10;
+      await component.fetchRelatedData();
+      expect(findSpy).toHaveBeenCalledWith(10);
+      expect(component.applicationsAsPointOfContact).toEqual(expected);
+
+      findSpy.mockClear();
+      component.entityToEdit = Object.assign(component.empty(), { username: 'admin' });
+      jest.spyOn(component.entityToEdit, 'getRelationArrayEx').mockReturnValue(of([]));
+      await component.fetchRelatedData();
+      expect(findSpy).not.toHaveBeenCalled();
+      expect(component.applicationsAsPointOfContact).toEqual([]);
+    });
+  });
+
+  describe('positions surface', () => {
+    it('shows a full Positions tab for new users and ordinary accounts', () => {
+      component.entityID = -1;
+      component.entityToEdit = component.empty();
+      component.leftoverPositionCount = 0;
+      expect(component.canShowPositionsTab()).toBe(true);
+      expect(component.isPositionsRepair()).toBe(false);
+
+      component.entityID = 8;
+      component.entityToEdit = Object.assign(component.empty(), { username: 'alice' });
+      component.leftoverPositionCount = 0;
+      expect(component.canShowPositionsTab()).toBe(true);
+      expect(component.isPositionsRepair()).toBe(false);
+    });
+
+    it('hides Positions for public and empty admin; repairs leftover admin only', () => {
+      component.entityID = 1;
+      component.entityToEdit = Object.assign(component.empty(), { username: 'public' });
+      component.leftoverPositionCount = 3;
+      expect(component.canShowPositionsTab()).toBe(false);
+
+      component.entityToEdit = Object.assign(component.empty(), { username: 'admin' });
+      component.leftoverPositionCount = 0;
+      expect(component.canShowPositionsTab()).toBe(false);
+
+      component.leftoverPositionCount = 2;
+      expect(component.canShowPositionsTab()).toBe(true);
+      expect(component.isPositionsRepair()).toBe(true);
+    });
+
+    it('prefetch leftover positions for admin and skips apps', async () => {
+      const findSpy = jest.spyOn(applicationService, 'findByCreatorId');
+      component.entityID = 1;
+      component.entityToEdit = Object.assign(component.empty(), { username: 'admin' });
+      jest.spyOn(component.entityToEdit, 'getRelationArrayEx').mockReturnValue(of([{ id: 9 }, { id: 10 }] as any));
+
+      await component.fetchRelatedData();
+
+      expect(findSpy).not.toHaveBeenCalled();
+      expect(component.leftoverPositionCount).toBe(2);
+      expect(component.canShowPositionsTab()).toBe(true);
+      expect(component.isPositionsRepair()).toBe(true);
+    });
+
+    it('registers the positions table only while the tab is shown', () => {
+      const register = jest.spyOn(component.dataTables, 'register');
+      const unregister = jest.spyOn(component.dataTables, 'unregister');
+
+      component.entityID = 1;
+      component.entityToEdit = Object.assign(component.empty(), { username: 'public' });
+      component.leftoverPositionCount = 2;
+      component.postFetchData();
+      expect(unregister).toHaveBeenCalledWith(component['userPositionsTable']);
+
+      register.mockClear();
+      unregister.mockClear();
+      component.entityToEdit = Object.assign(component.empty(), { username: 'admin' });
+      component.leftoverPositionCount = 2;
+      component.postFetchData();
+      expect(register).toHaveBeenCalledWith(component['userPositionsTable']);
+    });
+
+    it('orders createdDate immediately before expirationDate and keeps createdDate editable without minValidYear 2000', () => {
+      const fields = component['userPositionsTable'].relationsColumnsDefs
+        .map((col: { field?: string }) => col.field)
+        .filter((field: string | undefined) => field && field !== 'status');
+      expect(fields).toEqual([
+        'territoryName',
+        'name',
+        'organization',
+        'createdDate',
+        'expirationDate',
+        'email',
+        'type'
+      ]);
+
+      const createdDate = component['userPositionsTable'].relationsColumnsDefs.find(
+        (col: { field?: string }) => col.field === 'createdDate'
+      );
+      const expirationDate = component['userPositionsTable'].relationsColumnsDefs.find(
+        (col: { field?: string }) => col.field === 'expirationDate'
+      );
+      expect(createdDate.editable).toBe(true);
+      expect(createdDate.emptyValueKey).toBe('entity.user.position.createdDate.placeholder');
+      expect(createdDate.headerTooltip).toBe('entity.user.position.createdDate.tooltip');
+      expect(expirationDate.headerTooltip).toBe('entity.user.position.expirationDate.tooltip');
+      expect(createdDate.filterParams.minValidYear).toBeUndefined();
+      expect(createdDate.cellRenderer({ value: null })).toBe('entity.user.position.createdDate.placeholder');
+      expect(expirationDate.emptyValueKey).toBe('entity.user.position.expirationDate.placeholder');
+      expect(expirationDate.filterParams.minValidYear).toBeUndefined();
+      expect(expirationDate.cellRenderer({ value: null })).toBe('entity.user.position.expirationDate.placeholder');
+    });
+
+    it('PUT of a null createdDate keeps createdDate null on the update payload', async () => {
+      const update = jest.spyOn(userPositionService, 'update').mockReturnValue(of({} as never));
+
+      await component['userPositionsTable'].handleSaveRelations({
+        event: 'save',
+        data: [
+          {
+            id: 11,
+            userId: 8,
+            territoryId: 4,
+            createdDate: null,
+            expirationDate: '2026-09-15T00:00:00.000Z',
+            status: 'pendingModify',
+            newItem: false
+          } as never
+        ]
+      });
+
+      expect(update).toHaveBeenCalledTimes(1);
+      expect(update.mock.calls[0][0].createdDate).toBeNull();
+    });
+
+    it('marks the Positions tab when the inverted-interval warning is present', () => {
+      component.entityID = 8;
+      component.entityToEdit = Object.assign(component.empty(), {
+        username: 'alice',
+        warnings: ['entity.user.warning.position-inverted-interval']
+      });
+      expect(component.positionsTabHasWarning()).toBe(true);
+    });
+  });
+});
