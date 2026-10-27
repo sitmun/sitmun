@@ -12,7 +12,7 @@ axion-release = "1.19.0"
 h2 = "2.2.224"
 jetbrains-annotations = "24.1.0"
 mbtiles4j = "1.2.0"
-proj4j = "1.1.5"
+proj4j = "1.4.3"
 dom4j = "2.1.4"
 
 [libraries]
