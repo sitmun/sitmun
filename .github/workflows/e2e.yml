@@ -1,10 +1,125 @@
 name: E2E
 
 on:
+  pull_request:
+    branches: [dev]
+  push:
+    branches: [dev, main]
   workflow_dispatch:
 
 jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      admin: ${{ steps.filter.outputs.admin }}
+      viewer: ${{ steps.filter.outputs.viewer }}
+      contact: ${{ steps.filter.outputs.contact }}
+      mia: ${{ steps.filter.outputs.mia }}
+      mobile_web: ${{ steps.filter.outputs.mobile_web }}
+      mobile_android: ${{ steps.filter.outputs.mobile_android }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            admin:
+              - 'sitmun-admin/**'
+              - 'sitmun-backend/**'
+              - 'sitmun-common/**'
+              - 'e2e/admin/**'
+              - 'e2e/fixtures/**'
+              - 'scripts/e2e-admin.mjs'
+              - 'scripts/e2e-backend.mjs'
+              - 'scripts/e2e-process.mjs'
+              - 'playwright.config.ts'
+              - 'package.json'
+              - 'package-lock.json'
+              - '.github/workflows/e2e.yml'
+            viewer:
+              - 'sitmun-viewer/**'
+              - 'sitmun-backend/**'
+              - 'sitmun-proxy/**'
+              - 'sitmun-common/**'
+              - 'e2e/viewer/**'
+              - 'e2e/fixtures/**'
+              - 'scripts/e2e-viewer.mjs'
+              - 'scripts/e2e-backend.mjs'
+              - 'scripts/e2e-proxy.mjs'
+              - 'scripts/e2e-wms-stub.mjs'
+              - 'scripts/e2e-process.mjs'
+              - 'playwright.viewer.config.ts'
+              - 'package.json'
+              - 'package-lock.json'
+              - '.github/workflows/e2e.yml'
+            contact:
+              - 'sitmun-admin/**'
+              - 'sitmun-viewer/**'
+              - 'sitmun-backend/**'
+              - 'sitmun-common/**'
+              - 'e2e/application-contact/**'
+              - 'e2e/fixtures/**'
+              - 'scripts/e2e-admin.mjs'
+              - 'scripts/e2e-viewer.mjs'
+              - 'scripts/e2e-backend.mjs'
+              - 'scripts/e2e-process.mjs'
+              - 'playwright.application-contact.config.ts'
+              - 'package.json'
+              - 'package-lock.json'
+              - '.github/workflows/e2e.yml'
+            mia:
+              - 'sitmun-admin/**'
+              - 'sitmun-viewer/**'
+              - 'sitmun-backend/**'
+              - 'sitmun-proxy/**'
+              - 'sitmun-common/**'
+              - 'e2e/mia-cross/**'
+              - 'e2e/fixtures/**'
+              - 'scripts/e2e-admin.mjs'
+              - 'scripts/e2e-viewer.mjs'
+              - 'scripts/e2e-backend.mjs'
+              - 'scripts/e2e-proxy.mjs'
+              - 'scripts/e2e-wms-stub.mjs'
+              - 'scripts/e2e-process.mjs'
+              - 'playwright.mia-cross.config.ts'
+              - 'package.json'
+              - 'package-lock.json'
+              - '.github/workflows/e2e.yml'
+            mobile_web:
+              - 'sitmun-mobile/**'
+              - 'sitmun-backend/**'
+              - 'sitmun-proxy/**'
+              - 'sitmun-addons/**'
+              - 'sitmun-common/**'
+              - 'e2e/mobile/**'
+              - 'scripts/e2e-backend-mobile.mjs'
+              - 'scripts/e2e-proxy-mobile.mjs'
+              - 'scripts/e2e-mbtiles.mjs'
+              - 'scripts/e2e-process.mjs'
+              - 'playwright.mobile.config.ts'
+              - 'package.json'
+              - 'package-lock.json'
+              - '.github/workflows/e2e.yml'
+            mobile_android:
+              - 'sitmun-mobile/**'
+              - 'sitmun-backend/**'
+              - 'sitmun-proxy/**'
+              - 'sitmun-addons/**'
+              - 'sitmun-common/**'
+              - 'e2e/mobile/**'
+              - 'scripts/e2e-mobile-android.mjs'
+              - 'scripts/e2e-backend-mobile.mjs'
+              - 'scripts/e2e-proxy-mobile.mjs'
+              - 'scripts/e2e-mbtiles.mjs'
+              - 'scripts/e2e-process.mjs'
+              - 'playwright.mobile.config.ts'
+              - 'package.json'
+              - 'package-lock.json'
+              - '.github/workflows/e2e.yml'
+
   e2e-admin:
+    needs: changes
+    if: github.event_name != 'pull_request' || needs.changes.outputs.admin == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
@@ -20,8 +135,8 @@ jobs:
 
       - name: Publish sitmun-shared to the local Maven repository
         run: |
-          chmod +x back/shared/sitmun-shared/gradlew
-          back/shared/sitmun-shared/gradlew -p back/shared/sitmun-shared publishToMavenLocal
+          chmod +x sitmun-common/gradlew
+          sitmun-common/gradlew -p sitmun-common publishToMavenLocal
 
       - name: Set up Node 24.22.0
         uses: actions/setup-node@v5
@@ -30,13 +145,13 @@ jobs:
           cache: npm
           cache-dependency-path: |
             package-lock.json
-            front/admin/sitmun-admin-app/package-lock.json
+            sitmun-admin/package-lock.json
 
       - name: Install root dependencies
         run: npm ci
 
       - name: Install admin dependencies
-        working-directory: front/admin/sitmun-admin-app
+        working-directory: sitmun-admin
         run: npm ci
 
       - name: Install Chromium
@@ -58,6 +173,8 @@ jobs:
           retention-days: 7
 
   e2e-viewer:
+    needs: changes
+    if: github.event_name != 'pull_request' || needs.changes.outputs.viewer == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
@@ -73,8 +190,8 @@ jobs:
 
       - name: Publish sitmun-shared to the local Maven repository
         run: |
-          chmod +x back/shared/sitmun-shared/gradlew
-          back/shared/sitmun-shared/gradlew -p back/shared/sitmun-shared publishToMavenLocal
+          chmod +x sitmun-common/gradlew
+          sitmun-common/gradlew -p sitmun-common publishToMavenLocal
 
       - name: Set up Node 24.22.0
         uses: actions/setup-node@v5
@@ -83,13 +200,13 @@ jobs:
           cache: npm
           cache-dependency-path: |
             package-lock.json
-            front/viewer/sitmun-viewer-app/package-lock.json
+            sitmun-viewer/package-lock.json
 
       - name: Install root dependencies
         run: npm ci
 
       - name: Install viewer dependencies
-        working-directory: front/viewer/sitmun-viewer-app
+        working-directory: sitmun-viewer
         run: npm ci
 
       - name: Install Chromium
@@ -100,7 +217,7 @@ jobs:
       - name: Read viewer .nvmrc
         id: viewer-nvmrc
         run: |
-          ver="$(tr -d '[:space:]' < front/viewer/sitmun-viewer-app/.nvmrc)"
+          ver="$(tr -d '[:space:]' < sitmun-viewer/.nvmrc)"
           echo "version=${ver#v}" >> "$GITHUB_OUTPUT"
       - name: Install viewer Node into nvm
         uses: dcodeIO/setup-node-nvm@v5
@@ -113,7 +230,7 @@ jobs:
           echo "NVM_DIR=${HOME}/mynvm" >> "$GITHUB_ENV"
           rm -rf "${HOME}/.nvm"
           ln -sfn "${HOME}/mynvm" "${HOME}/.nvm"
-          ver="$(tr -d '[:space:]' < front/viewer/sitmun-viewer-app/.nvmrc)"
+          ver="$(tr -d '[:space:]' < sitmun-viewer/.nvmrc)"
           ver="${ver#v}"
           test -x "${HOME}/.nvm/versions/node/v${ver}/bin/node"
 
@@ -133,6 +250,8 @@ jobs:
           retention-days: 7
 
   e2e-application-contact:
+    needs: changes
+    if: github.event_name != 'pull_request' || needs.changes.outputs.contact == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
@@ -148,8 +267,8 @@ jobs:
 
       - name: Publish sitmun-shared to the local Maven repository
         run: |
-          chmod +x back/shared/sitmun-shared/gradlew
-          back/shared/sitmun-shared/gradlew -p back/shared/sitmun-shared publishToMavenLocal
+          chmod +x sitmun-common/gradlew
+          sitmun-common/gradlew -p sitmun-common publishToMavenLocal
 
       - name: Set up Node 24.22.0
         uses: actions/setup-node@v5
@@ -158,18 +277,18 @@ jobs:
           cache: npm
           cache-dependency-path: |
             package-lock.json
-            front/admin/sitmun-admin-app/package-lock.json
-            front/viewer/sitmun-viewer-app/package-lock.json
+            sitmun-admin/package-lock.json
+            sitmun-viewer/package-lock.json
 
       - name: Install root dependencies
         run: npm ci
 
       - name: Install admin dependencies
-        working-directory: front/admin/sitmun-admin-app
+        working-directory: sitmun-admin
         run: npm ci
 
       - name: Install viewer dependencies
-        working-directory: front/viewer/sitmun-viewer-app
+        working-directory: sitmun-viewer
         run: npm ci
 
       - name: Install Chromium
@@ -180,7 +299,7 @@ jobs:
       - name: Read viewer .nvmrc
         id: viewer-nvmrc
         run: |
-          ver="$(tr -d '[:space:]' < front/viewer/sitmun-viewer-app/.nvmrc)"
+          ver="$(tr -d '[:space:]' < sitmun-viewer/.nvmrc)"
           echo "version=${ver#v}" >> "$GITHUB_OUTPUT"
       - name: Install viewer Node into nvm
         uses: dcodeIO/setup-node-nvm@v5
@@ -193,7 +312,7 @@ jobs:
           echo "NVM_DIR=${HOME}/mynvm" >> "$GITHUB_ENV"
           rm -rf "${HOME}/.nvm"
           ln -sfn "${HOME}/mynvm" "${HOME}/.nvm"
-          ver="$(tr -d '[:space:]' < front/viewer/sitmun-viewer-app/.nvmrc)"
+          ver="$(tr -d '[:space:]' < sitmun-viewer/.nvmrc)"
           ver="${ver#v}"
           test -x "${HOME}/.nvm/versions/node/v${ver}/bin/node"
 
@@ -213,6 +332,8 @@ jobs:
           retention-days: 7
 
   e2e-mia-cross:
+    needs: changes
+    if: github.event_name != 'pull_request' || needs.changes.outputs.mia == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
@@ -228,8 +349,8 @@ jobs:
 
       - name: Publish sitmun-shared to the local Maven repository
         run: |
-          chmod +x back/shared/sitmun-shared/gradlew
-          back/shared/sitmun-shared/gradlew -p back/shared/sitmun-shared publishToMavenLocal
+          chmod +x sitmun-common/gradlew
+          sitmun-common/gradlew -p sitmun-common publishToMavenLocal
 
       - name: Set up Node 24.22.0
         uses: actions/setup-node@v5
@@ -238,18 +359,18 @@ jobs:
           cache: npm
           cache-dependency-path: |
             package-lock.json
-            front/admin/sitmun-admin-app/package-lock.json
-            front/viewer/sitmun-viewer-app/package-lock.json
+            sitmun-admin/package-lock.json
+            sitmun-viewer/package-lock.json
 
       - name: Install root dependencies
         run: npm ci
 
       - name: Install admin dependencies
-        working-directory: front/admin/sitmun-admin-app
+        working-directory: sitmun-admin
         run: npm ci
 
       - name: Install viewer dependencies
-        working-directory: front/viewer/sitmun-viewer-app
+        working-directory: sitmun-viewer
         run: npm ci
 
       - name: Install Chromium
@@ -260,7 +381,7 @@ jobs:
       - name: Read viewer .nvmrc
         id: viewer-nvmrc
         run: |
-          ver="$(tr -d '[:space:]' < front/viewer/sitmun-viewer-app/.nvmrc)"
+          ver="$(tr -d '[:space:]' < sitmun-viewer/.nvmrc)"
           echo "version=${ver#v}" >> "$GITHUB_OUTPUT"
       - name: Install viewer Node into nvm
         uses: dcodeIO/setup-node-nvm@v5
@@ -273,7 +394,7 @@ jobs:
           echo "NVM_DIR=${HOME}/mynvm" >> "$GITHUB_ENV"
           rm -rf "${HOME}/.nvm"
           ln -sfn "${HOME}/mynvm" "${HOME}/.nvm"
-          ver="$(tr -d '[:space:]' < front/viewer/sitmun-viewer-app/.nvmrc)"
+          ver="$(tr -d '[:space:]' < sitmun-viewer/.nvmrc)"
           ver="${ver#v}"
           test -x "${HOME}/.nvm/versions/node/v${ver}/bin/node"
 
@@ -293,6 +414,8 @@ jobs:
           retention-days: 7
 
   e2e-mobile-web:
+    needs: changes
+    if: github.event_name != 'pull_request' || needs.changes.outputs.mobile_web == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
@@ -308,8 +431,8 @@ jobs:
 
       - name: Publish sitmun-shared to the local Maven repository
         run: |
-          chmod +x back/shared/sitmun-shared/gradlew
-          back/shared/sitmun-shared/gradlew -p back/shared/sitmun-shared publishToMavenLocal
+          chmod +x sitmun-common/gradlew
+          sitmun-common/gradlew -p sitmun-common publishToMavenLocal
 
       - name: Set up Node 24.22.0
         uses: actions/setup-node@v5
@@ -340,6 +463,8 @@ jobs:
           retention-days: 7
 
   e2e-mobile-android:
+    needs: changes
+    if: github.event_name != 'pull_request' || needs.changes.outputs.mobile_android == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 120
     steps:
@@ -355,8 +480,8 @@ jobs:
 
       - name: Publish sitmun-shared to the local Maven repository
         run: |
-          chmod +x back/shared/sitmun-shared/gradlew
-          back/shared/sitmun-shared/gradlew -p back/shared/sitmun-shared publishToMavenLocal
+          chmod +x sitmun-common/gradlew
+          sitmun-common/gradlew -p sitmun-common publishToMavenLocal
 
       - name: Set up Node 22
         uses: actions/setup-node@v5
@@ -365,8 +490,8 @@ jobs:
           cache: npm
           cache-dependency-path: |
             package-lock.json
-            apps/edition-mobile-app/package-lock.json
-            apps/touristic-mobile-app/package-lock.json
+            sitmun-mobile/sitmun-edition/package-lock.json
+            sitmun-mobile/sitmun-touristic/package-lock.json
 
       - name: Install root dependencies
         run: npm ci

@@ -7,12 +7,12 @@ import { attachChildLifecycle, fail, isWindows, spawnDetached } from './e2e-proc
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const stackRoot = resolve(__dirname, '..');
-const viewerRoot = join(stackRoot, 'front', 'viewer', 'sitmun-viewer-app');
+const viewerRoot = join(stackRoot, 'sitmun-viewer');
 const prefix = 'e2e-viewer';
 const npmCmd = isWindows ? 'npm.cmd' : 'npm';
 
 if (!existsSync(viewerRoot)) {
-  fail(prefix, `Viewer submodule missing at ${viewerRoot}. Run: git submodule update --init --recursive`);
+  fail(prefix, `Viewer module missing at ${viewerRoot}`);
 }
 if (!existsSync(join(viewerRoot, 'package.json'))) {
   fail(prefix, `Viewer package.json missing at ${viewerRoot}`);
