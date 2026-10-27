@@ -1,0 +1,15 @@
+<div class="form-section-input">
+  <p>{{ input_title }}</p>
+  <div>
+    <input
+      [type]="input_type"
+      [placeholder]="input_placeholder"
+      [name]="input_name"
+      [value]="input_model"
+      (input)="onInputChange($event)"
+      [attr.maxlength]="input_length" />
+    <button *ngIf="input_image" type="button" (click)="onButtonClicked()">
+      <img [ngSrc]="input_image" [alt]="input_title" width="25" height="25" />
+    </button>
+  </div>
+</div>

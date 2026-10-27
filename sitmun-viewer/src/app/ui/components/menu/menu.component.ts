@@ -1,0 +1,195 @@
+import {
+  Component,
+  OnInit,
+  OnDestroy,
+  Input,
+  Output,
+  EventEmitter,
+  ViewChild,
+  VERSION
+} from '@angular/core';
+import { MatDialog } from '@angular/material/dialog';
+import { MatMenu, MatMenuTrigger } from '@angular/material/menu';
+import { Router } from '@angular/router';
+
+import { CustomDetails } from '@api/services/user.service';
+import { AuthenticationService } from '@auth/services/authentication.service';
+import { TranslateService } from '@ngx-translate/core';
+import { Subscription } from 'rxjs';
+import {
+  LanguageDTO,
+  LanguageService
+} from 'src/app/services/language.service';
+
+import { environment } from '../../../../environments/environment';
+import { ErrorTrackingService } from '../../../services/error-tracking.service';
+import { SidebarManagerService } from '../../../services/sidebar-manager.service';
+import {
+  AboutDialogComponent,
+  AboutDialogData
+} from '../about-dialog/about-dialog.component';
+
+@Component({
+  standalone: false,
+  selector: 'app-menu',
+  templateUrl: './menu.component.html',
+  styleUrls: ['./menu.component.scss']
+})
+export class MenuComponent implements OnInit, OnDestroy {
+  @ViewChild(MatMenu, { static: true }) menu!: MatMenu;
+  @ViewChild('languageMenuTrigger') languageMenuTrigger?: MatMenuTrigger;
+
+  currentLang = '';
+  languages!: LanguageDTO[];
+  environment = environment;
+  angularVersion = VERSION.full;
+  unreviewedErrorCount = 0;
+
+  private errorsSubscription?: Subscription;
+  private preventAutoOpen = false;
+
+  @Input() username = '';
+  @Input() isConnected!: boolean;
+  @Input() showSwitchLanguageButton!: boolean;
+  @Input() showLogoutButton!: boolean;
+  @Input() showProfileButton!: boolean;
+  @Input() showLoginButton!: boolean;
+  @Input() showDashboardButton!: boolean;
+  @Input() showChangeAppButton!: boolean;
+
+  @Output() loginEvent = new EventEmitter();
+  @Output() profileEvent = new EventEmitter();
+  @Output() logoutEvent = new EventEmitter();
+  @Output() languageEvent = new EventEmitter<string>();
+  @Output() dashboardEvent = new EventEmitter();
+  @Output() changeAppEvent = new EventEmitter();
+
+  constructor(
+    private router: Router,
+    private authenticationService: AuthenticationService<CustomDetails>,
+    private languageService: LanguageService,
+    private dialog: MatDialog,
+    private errorTrackingService: ErrorTrackingService,
+    private sidebarManager: SidebarManagerService,
+    private translateService: TranslateService
+  ) {}
+
+  ngOnInit() {
+    this.currentLang = this.languageService.getCurrentLanguage();
+    this.updateErrorCount();
+
+    // Subscribe to error changes
+    this.errorsSubscription = this.errorTrackingService.errors$.subscribe(
+      () => {
+        this.updateErrorCount();
+      }
+    );
+  }
+
+  ngOnDestroy(): void {
+    this.errorsSubscription?.unsubscribe();
+  }
+
+  /** Closes all menu overlays including nested language submenu. */
+  closeAllMenus(): void {
+    // Set flag to prevent automatic reopen from hover
+    this.preventAutoOpen = true;
+
+    this.languageMenuTrigger?.closeMenu();
+
+    // Clear the flag after a short delay to allow normal hover behavior later
+    setTimeout(() => {
+      this.preventAutoOpen = false;
+    }, 500);
+  }
+
+  onLanguageButtonMouseEnter(): void {
+    // Block the menu from opening if we just closed it programmatically
+    if (this.preventAutoOpen && this.languageMenuTrigger) {
+      this.languageMenuTrigger.closeMenu();
+    }
+  }
+
+  private loadLanguages() {
+    this.languageService
+      .getLanguagesTranslatedSorted(this.currentLang)
+      .subscribe((langs: LanguageDTO[]) => {
+        this.languages = langs;
+      });
+  }
+
+  getCurrentLanguageName(): string {
+    return this.languageService.getLanguageName(
+      this.languages,
+      this.currentLang
+    );
+  }
+
+  getLanguageIcon(shortname: string): string {
+    return this.languageService.getLanguageIcon(shortname);
+  }
+
+  isImageIcon(shortname: string): boolean {
+    const icon = this.getLanguageIcon(shortname);
+    return icon.startsWith('assets/') || icon.startsWith('/');
+  }
+
+  selectLanguage(languageShortname: string) {
+    this.currentLang = languageShortname;
+    this.languageService.setLanguage(languageShortname).subscribe(() => {
+      // Reload languages with names in the new language
+      this.loadLanguages();
+      this.languageEvent.emit(languageShortname);
+    });
+  }
+
+  sendLoginEvent() {
+    this.loginEvent.emit();
+  }
+
+  sendProfileEvent() {
+    this.profileEvent.emit();
+  }
+
+  sendLogoutEvent() {
+    this.logoutEvent.emit();
+  }
+
+  sendDashboardEvent() {
+    this.dashboardEvent.emit();
+  }
+
+  sendChangeAppEvent() {
+    this.changeAppEvent.emit();
+  }
+
+  updateErrorCount(): void {
+    this.unreviewedErrorCount = this.errorTrackingService.getUnreviewedCount();
+  }
+
+  openErrorSidebar(): void {
+    this.sidebarManager.openSidebar('error');
+  }
+
+  openAboutDialog(): void {
+    // Get translated application name
+    const applicationName = this.translateService.instant(
+      'systemInfo.applicationName'
+    );
+
+    const dialogData: AboutDialogData = {
+      applicationName: applicationName,
+      version: this.environment.version || 'N/A',
+      environmentName: this.environment.environmentName || 'N/A',
+      angularVersion: this.angularVersion,
+      buildTimestamp: (this.environment as any).buildTimestamp,
+      sitnaVersion: this.environment.sitnaVersion
+    };
+
+    this.dialog.open(AboutDialogComponent, {
+      width: '500px',
+      maxWidth: '90vw',
+      data: dialogData
+    });
+  }
+}

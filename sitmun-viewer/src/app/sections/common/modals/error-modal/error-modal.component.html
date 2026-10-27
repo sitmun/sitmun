@@ -1,0 +1,11 @@
+<h2 mat-dialog-title>{{ 'map.error.title' | translate }}</h2>
+
+<mat-dialog-content>
+  <p>{{ message | translate }}</p>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="close()" color="primary">
+    {{ 'common.button.close' | translate }}
+  </button>
+</mat-dialog-actions>

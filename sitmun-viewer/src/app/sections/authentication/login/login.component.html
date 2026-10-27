@@ -1,0 +1,69 @@
+<div
+  class="login-page"
+  [style.background-image]="
+    displayBackgroundImage && backgroundImageUrl
+      ? 'url(' + backgroundImageUrl + ')'
+      : null
+  ">
+  <div class="container">
+    <div class="title-section">
+      <div class="logo-sitmun"></div>
+      <h1>{{ 'loginPage.title' | translate }}</h1>
+      <div class="public-dashboard">
+        <p>{{ 'loginPage.noConnexionDetails' | translate }}</p>
+        <app-primary-button
+          [button_text]="'loginPage.publicDashboardButton' | translate"
+          [mat_icon]="'public'"
+          (click)="publicDashboard()"
+          (keydown)="publicDashboard()"
+        />
+      </div>
+    </div>
+
+    <div class="form-section">
+      <form (submit)="$event.preventDefault(); login()">
+        <app-form-field-input
+          [input_type]="'text'"
+          [input_title]="'loginPage.usernameText' | translate"
+          [input_placeholder]="'loginPage.usernamePlaceholder' | translate"
+          [input_name]="'username'"
+          [input_model]="authenticationRequest.username"
+          (output_model)="authenticationRequest.username = $event" />
+        <app-form-field-input
+          [input_type]="displayPassword"
+          [input_title]="'loginPage.passwordText' | translate"
+          [input_placeholder]="'loginPage.passwordPlaceholder' | translate"
+          [input_name]="'password'"
+          [input_image]="passwordImage"
+          [input_model]="authenticationRequest.password"
+          (output_model)="authenticationRequest.password = $event"
+          (input_button_click)="showOrHidePassword()" />
+        <p>
+          <a href="auth/forgot-password">
+            {{ 'loginPage.passwordForgotten' | translate }}
+          </a>
+        </p>
+        <app-primary-button
+          class="login-button"
+          [button_text]="'loginPage.submit' | translate"
+          [mat_icon]="'login'" />
+      </form>
+      <app-secondary-button
+        [button_text]="'loginPage.DNIE' | translate"
+        *ngIf="displayDNIEButton" />
+    </div>
+
+    <div class="alternative-login-section" *ngIf="alternativeLoginMethods.length > 0">
+      <p>{{ 'loginPage.alternativeLoginMethods' | translate }}</p>
+      <div class="buttons">
+        <app-secondary-button
+          *ngFor="let authProvider of alternativeLoginMethods"
+          [button_text]="authProvider.displayName"
+          [button_img_url]="authProvider.imagePath"
+          (click)="initAuth(authProvider.providerName)"
+          (keydown)="initAuth(authProvider.providerName)"
+        />
+      </div>
+    </div>
+  </div>
+</div>
