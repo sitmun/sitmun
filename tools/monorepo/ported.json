@@ -1,0 +1,38 @@
+{
+  "sitmun-backend-core": {
+    "main": "6e1498f3de7117cd3c75a79b99c39368149f9adf",
+    "dev": "3188805c550d0015b2ecb9e51a72415d5470a122"
+  },
+  "sitmun-proxy-middleware": {
+    "main": "a95e8cc279e9a5c720614d79865e6ebbfd4b916d",
+    "dev": "d9e78ea1ab121061180caeea8feb8c3e7bdc6ec8"
+  },
+  "sitmun-admin-app": {
+    "main": "954ec5042bd002e4fe3cfd647df8e7277a1bddc6",
+    "dev": "aea2c15a8f2306e778ab0999e5303f9770de2c54"
+  },
+  "sitmun-viewer-app": {
+    "main": "32c7b08591bf7613c87e64143896c5db07b2a435",
+    "dev": "c284c17fdeebe375aff2d6d07580557fe7bbb636"
+  },
+  "sitmun-mbtiles": {
+    "main": "51b650cd6d74295a8eb66f2079fd2d204216ea0e",
+    "dev": "609a807e98bc8f0bec5148ef6defba1a4fb86f28"
+  },
+  "sitmun-shared": {
+    "main": "e6448254d33aecd76c618aa94f91f6ebcf0479e1",
+    "dev": "01565c8e82885d9f06f71be50abbb114d16fbaaf"
+  },
+  "edition-mobile-app": {
+    "main": "bc0cc2848f8b8dabd11de525be534b5572c88e3d",
+    "dev": "6f667841514d45b1b184777c250664f2e2c69233"
+  },
+  "touristic-mobile-app": {
+    "main": "d4c53386380d2f832d0eecbfdecdc14f52bc8e56",
+    "dev": "138bd1336401b1016aefcbe0055e328913ed0516"
+  },
+  "sitmun-application-stack": {
+    "main": "a27770010f85f459d54518b075889624e19187b8",
+    "dev": "8b1a6183d5d3cbc724eb673c9bdf445fbffcad25"
+  }
+}

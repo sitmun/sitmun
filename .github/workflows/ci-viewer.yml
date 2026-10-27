@@ -1,0 +1,28 @@
+name: CI viewer
+
+on:
+  workflow_call:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: sitmun-viewer
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "24.22.0"
+          cache: npm
+          cache-dependency-path: sitmun-viewer/package-lock.json
+      - run: npm set //npm.pkg.github.com/:_authToken ${{ secrets.TOKEN_FOR_WORKFLOWS }}
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run test:coverage
+      - run: npm run build -- --configuration=production --base-href=/sitmun-viewer-app/
+        env:
+          NODE_OPTIONS: "--max-old-space-size=8192"
+      - name: Validate build artifacts
+        run: test -d dist/viewer-app && test -n "$(ls -A dist/viewer-app)"

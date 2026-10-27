@@ -1,0 +1,82 @@
+name: ci-gate
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+
+jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      admin: ${{ steps.filter.outputs.admin }}
+      viewer: ${{ steps.filter.outputs.viewer }}
+      backend: ${{ steps.filter.outputs.backend }}
+      proxy: ${{ steps.filter.outputs.proxy }}
+      mbtiles: ${{ steps.filter.outputs.mbtiles }}
+      shared: ${{ steps.filter.outputs.shared }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            admin:
+              - 'sitmun-admin/**'
+            viewer:
+              - 'sitmun-viewer/**'
+            backend:
+              - 'sitmun-backend/**'
+            proxy:
+              - 'sitmun-proxy/**'
+            mbtiles:
+              - 'sitmun-addons/sitmun-mbtiles/**'
+            shared:
+              - 'sitmun-common/**'
+
+  admin:
+    needs: changes
+    if: github.event_name == 'push' || needs.changes.outputs.admin == 'true'
+    uses: ./.github/workflows/ci-admin.yml
+  viewer:
+    needs: changes
+    if: github.event_name == 'push' || needs.changes.outputs.viewer == 'true'
+    uses: ./.github/workflows/ci-viewer.yml
+  backend:
+    needs: changes
+    if: github.event_name == 'push' || needs.changes.outputs.backend == 'true'
+    uses: ./.github/workflows/ci-backend.yml
+  proxy:
+    needs: changes
+    if: github.event_name == 'push' || needs.changes.outputs.proxy == 'true'
+    uses: ./.github/workflows/ci-proxy.yml
+  mbtiles:
+    needs: changes
+    if: github.event_name == 'push' || needs.changes.outputs.mbtiles == 'true'
+    uses: ./.github/workflows/ci-mbtiles.yml
+  shared:
+    needs: changes
+    if: github.event_name == 'push' || needs.changes.outputs.shared == 'true'
+    uses: ./.github/workflows/ci-shared.yml
+
+  ci-gate:
+    name: ci-gate
+    needs: [admin, viewer, backend, proxy, mbtiles, shared]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require component results
+        env:
+          ADMIN: ${{ needs.admin.result }}
+          VIEWER: ${{ needs.viewer.result }}
+          BACKEND: ${{ needs.backend.result }}
+          PROXY: ${{ needs.proxy.result }}
+          MBTILES: ${{ needs.mbtiles.result }}
+          SHARED: ${{ needs.shared.result }}
+        run: |
+          python3 - << 'PY'
+          import os, sys
+          bad = [name for name in ("ADMIN", "VIEWER", "BACKEND", "PROXY", "MBTILES", "SHARED") if os.environ[name] in ("failure", "cancelled")]
+          if bad:
+              sys.exit("failed: " + ", ".join(bad))
+          PY
