@@ -9,7 +9,7 @@ spotless = "7.2.0"
 axion-release = "1.19.0"
 
 # Dependency versions
-h2 = "2.2.224"
+h2 = "2.5.252"
 json = "20240303"
 jjwt = "0.12.6"
 okhttp3 = "5.5.0"
