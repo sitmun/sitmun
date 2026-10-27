@@ -16,13 +16,13 @@ RUN mkdir -p /home/node/app/node_modules && chown -R node:node /home/node/app
 WORKDIR /home/node/app
 
 # Build admin app first (.npmrc enables legacy-peer-deps for npm ci with the current lockfile)
-COPY front/admin/sitmun-admin-app/package*.json ./
-COPY front/admin/sitmun-admin-app/.npmrc ./
+COPY sitmun-admin/package*.json ./
+COPY sitmun-admin/.npmrc ./
 RUN --mount=type=cache,target=/root/.npm \
     npm ci
-COPY --chown=node:node front/admin/sitmun-admin-app/*.json front/admin/sitmun-admin-app/*.js ./
-COPY --chown=node:node front/admin/sitmun-admin-app/src/ ./src/
-COPY --chown=node:node front/admin/environment.prod.ts.template ./src/environments/environment.prod.ts.template
+COPY --chown=node:node sitmun-admin/*.json sitmun-admin/*.js ./
+COPY --chown=node:node sitmun-admin/src/ ./src/
+COPY --chown=node:node docker/front/admin/environment.prod.ts.template ./src/environments/environment.prod.ts.template
 RUN export BUILD_TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%S.000Z") && \
     export APP_VERSION=$(node -p "require('./package.json').version") && \
     if [ "${ENVIRONMENT}" = "production" ]; then export FRONT_ENV=Production; export FRONT_PRODUCTION=true; else export FRONT_ENV=Development; export FRONT_PRODUCTION=false; fi && \
@@ -38,15 +38,15 @@ RUN rm -rf node_modules package*.json src
 RUN mkdir -p /home/node/app/node_modules && chown -R node:node /home/node/app
 
 # Build viewer app second
-COPY front/viewer/sitmun-viewer-app/package*.json ./
-COPY --chown=node:node front/viewer/sitmun-viewer-app/scripts/ ./scripts/
+COPY sitmun-viewer/package*.json ./
+COPY --chown=node:node sitmun-viewer/scripts/ ./scripts/
 RUN --mount=type=cache,target=/root/.npm \
     npm ci
-COPY --chown=node:node front/viewer/sitmun-viewer-app/*.json front/viewer/sitmun-viewer-app/*.js ./
-COPY --chown=node:node front/viewer/sitmun-viewer-app/src/ ./src/
-COPY --chown=node:node front/viewer/environment.prod.ts.template ./src/environments/environment.prod.ts.template
-COPY --chown=node:node front/viewer/index.html.template ./src/index.html.template
-COPY --chown=node:node front/viewer/webpack.config.js.template ./webpack.config.js.template
+COPY --chown=node:node sitmun-viewer/*.json sitmun-viewer/*.js ./
+COPY --chown=node:node sitmun-viewer/src/ ./src/
+COPY --chown=node:node docker/front/viewer/environment.prod.ts.template ./src/environments/environment.prod.ts.template
+COPY --chown=node:node docker/front/viewer/index.html.template ./src/index.html.template
+COPY --chown=node:node docker/front/viewer/webpack.config.js.template ./webpack.config.js.template
 # Cap the viewer webpack heap so the build works when Docker VM RAM < 8 GiB.
 # Local npm run build uses 8192 MiB (the script default) when NODE_OPTIONS is unset.
 ENV NODE_OPTIONS="--max-old-space-size=4096"

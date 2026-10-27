@@ -1,7 +1,7 @@
 # ===================================================================
 # SITMUN deployment overrides
 # Only properties that differ from the jar's internal defaults
-# or are not set via environment variables in docker-compose.yml
+# or are not set via environment variables in compose.yaml
 # ===================================================================
 
 sitmun:

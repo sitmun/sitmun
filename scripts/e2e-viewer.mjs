@@ -21,29 +21,36 @@ if (!existsSync(join(viewerRoot, 'node_modules'))) {
   fail(prefix, `Viewer dependencies missing. Run: cd ${viewerRoot} && npm ci`);
 }
 
-function envWithViewerNode(env = process.env) {
-  const nvmrcPath = join(viewerRoot, '.nvmrc');
-  if (!existsSync(nvmrcPath)) {
-    return { ...env };
-  }
-  const version = readFileSync(nvmrcPath, 'utf8').trim().replace(/^v/, '');
-  const nvmDir = env.NVM_DIR || join(homedir(), '.nvm');
-  const bin = join(nvmDir, 'versions', 'node', `v${version}`, 'bin');
-  if (!existsSync(join(bin, 'node'))) {
-    fail(
-      prefix,
-      `Node v${version} from ${nvmrcPath} not found at ${bin}. Run: nvm install ${version}`
-    );
-  }
+function withViewerMemory(env) {
   const prior = env.NODE_OPTIONS || '';
   const nodeOptions = prior.includes('max-old-space-size')
     ? prior
     : `${prior} --max-old-space-size=8192`.trim();
-  return {
+  return { ...env, NODE_OPTIONS: nodeOptions };
+}
+
+function envWithViewerNode(env = process.env) {
+  const nvmrcPath = join(viewerRoot, '.nvmrc');
+  if (!existsSync(nvmrcPath)) {
+    return withViewerMemory(env);
+  }
+  const version = readFileSync(nvmrcPath, 'utf8').trim().replace(/^v/, '');
+  const required = `v${version}`;
+  if (process.version === required) {
+    return withViewerMemory(env);
+  }
+  const nvmDir = env.NVM_DIR || join(homedir(), '.nvm');
+  const bin = join(nvmDir, 'versions', 'node', required, 'bin');
+  if (!existsSync(join(bin, 'node'))) {
+    fail(
+      prefix,
+      `Viewer requires Node ${required} (${nvmrcPath}). The running Node is ${process.version}.`,
+    );
+  }
+  return withViewerMemory({
     ...env,
     PATH: `${bin}${delimiter}${env.PATH || ''}`,
-    NODE_OPTIONS: nodeOptions,
-  };
+  });
 }
 
 const childEnv = envWithViewerNode(process.env);

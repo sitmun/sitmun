@@ -7,7 +7,7 @@ YELLOW='\033[0;33m'  # Yellow for warnings or process info
 NC='\033[0m'         # Reset color
 
 # Define the expected Git repository URL
-EXPECTED_REPO="https://github.com/sitmun/sitmun-application-stack.git"
+EXPECTED_REPO="https://github.com/sitmun/sitmun.git"
 
 # Display a banner
 display_banner() {
@@ -56,7 +56,6 @@ update_from_remote() {
 
     if [ "$LOCAL_COMMIT" = "$REMOTE_COMMIT" ]; then
         echo -e "${GREEN}Your $CURRENT_BRANCH branch is already up to date.${NC}"
-        git submodule update --recursive --remote
     else
         echo -e "${YELLOW}Pulling latest changes from remote...${NC}"
 
@@ -65,7 +64,7 @@ update_from_remote() {
             cp .env .env.backup
         fi
 
-        git pull --recurse-submodules origin "$CURRENT_BRANCH"
+        git pull origin "$CURRENT_BRANCH"
 
         if [ -f ".env.backup" ]; then
             echo -e "${YELLOW}Restoring .env file from backup...${NC}"
