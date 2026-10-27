@@ -1,0 +1,57 @@
+# Ignore Gradle files
+.gradle
+**/build/
+!src/**/build/
+
+# Ignore IntelliJ files
+.idea/
+out/
+*.iml
+*.iws
+*.ipr
+
+# Ignore Eclipse files
+.classpath
+.project
+.settings/
+bin/
+
+# Ignore some MacOS and Linux files
+.DS_Store
+.directory
+
+# Ignore jenv files
+.java-version
+
+# Other dirs
+/src.zip
+/update_db.sql
+/dist/
+.vscode/
+.cursor/
+/out-tsc/
+/authorization-service-ad.txt
+/todo.txt
+/docs-build
+node_modules
+swagger.json
+library/src/main/docker/backend
+create.sql
+docs/heroku.md
+docs/tasks.md
+library/src/main/resources/config/application-local.yml
+library/src/main/resources/config/application-oracle.yml
+library/src/main/resources/config/application-postgres.yml
+*.xlsx
+
+# Package Files #
+*.jar
+*.war
+*.nar
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# Other files
+.env
