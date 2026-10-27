@@ -1,0 +1,98 @@
+package org.sitmun.infrastructure.persistence.type.i18n;
+
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.util.Locale;
+import org.sitmun.infrastructure.web.config.RequestLocaleResolutionService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.context.i18n.LocaleContextHolder;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
+import org.springframework.stereotype.Component;
+import org.springframework.web.filter.OncePerRequestFilter;
+
+/**
+ * Global preload filter for request-scoped translation cache.
+ *
+ * <p>This runs for every HTTP request, independent from Spring MVC/Spring Data REST handler
+ * mappings.
+ */
+@Component
+@Order(Ordered.HIGHEST_PRECEDENCE + 200)
+public class TranslationCacheFilter extends OncePerRequestFilter {
+
+  private static final Logger log = LoggerFactory.getLogger(TranslationCacheFilter.class);
+
+  private final TranslationRepository translationRepository;
+  private final RequestLocaleResolutionService requestLocaleResolutionService;
+  private final DatabaseDefaultLanguageResolver databaseDefaultLanguageResolver;
+
+  public TranslationCacheFilter(
+      TranslationRepository translationRepository,
+      RequestLocaleResolutionService requestLocaleResolutionService,
+      DatabaseDefaultLanguageResolver databaseDefaultLanguageResolver) {
+    this.translationRepository = translationRepository;
+    this.requestLocaleResolutionService = requestLocaleResolutionService;
+    this.databaseDefaultLanguageResolver = databaseDefaultLanguageResolver;
+  }
+
+  @Override
+  protected void doFilterInternal(
+      HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+      throws ServletException, IOException {
+    boolean preload = shouldPreload(request);
+    log.debug(
+        "TranslationCacheFilter.before uri={} queryString={} shouldPreload={}",
+        request.getRequestURI(),
+        request.getQueryString(),
+        preload);
+
+    if (preload) {
+      String locale = requestLocaleResolutionService.resolveLanguage(request, response, this);
+      log.debug("TranslationCacheFilter.preload locale={}", locale);
+      if (locale != null && !locale.isBlank()) {
+        LocaleContextHolder.setLocale(Locale.forLanguageTag(locale));
+      }
+      // Resolve once before entity hydration; @PostLoad must not query STM_CONF again.
+      String defaultLanguageShortname =
+          databaseDefaultLanguageResolver.resolveShortnameFromDatabase();
+      var rows = translationRepository.findAllByLocaleRows(locale);
+      if (rows.isEmpty() && locale != null && locale.contains("-")) {
+        String base = locale.substring(0, locale.indexOf('-'));
+        log.debug("TranslationCacheFilter.preload full tag empty, fallback base locale={}", base);
+        rows = translationRepository.findAllByLocaleRows(base);
+      }
+      TranslationCache cache = new TranslationCache();
+      cache.setDefaultLanguageShortname(defaultLanguageShortname);
+      cache.populate(rows);
+      TranslationCache.setRequestAttribute(cache, request);
+    }
+
+    try {
+      filterChain.doFilter(request, response);
+    } finally {
+      if (preload) {
+        log.debug("TranslationCacheFilter.after uri={} clearing cache", request.getRequestURI());
+        TranslationCache.removeRequestAttribute(request);
+      }
+      LocaleContextHolder.resetLocaleContext();
+    }
+  }
+
+  private boolean shouldPreload(HttpServletRequest request) {
+    return shouldPreload(request.getRequestURI(), request.getParameter("lang"));
+  }
+
+  /** Client profile, proxy config, or an explicit {@code lang} query param. */
+  static boolean shouldPreload(String path, String langParam) {
+    if (langParam != null && !langParam.isEmpty()) {
+      return true;
+    }
+    return path != null
+        && (path.contains("/api/config/client") || path.contains("/api/config/proxy"));
+  }
+}

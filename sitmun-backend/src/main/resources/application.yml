@@ -1,0 +1,356 @@
+# =====================================================================================================================
+# Spring Boot configuration
+#
+# Full reference is available at:
+# http://docs.spring.io/spring-boot/docs/current/reference/html/common-application-properties.html
+# =====================================================================================================================
+
+# ===================================================================
+# Spring Configuration
+# ===================================================================
+spring:
+  application:
+    name: SITMUN
+  main:
+    allow-bean-definition-overriding: true
+  jackson:
+    serialization:
+      fail_on_empty_beans: false
+      indent-output: true
+  jmx:
+    enabled: false
+  liquibase:
+    change-log: file:./config/db/changelog/db.changelog-master.yaml
+  jpa:
+    hibernate:
+      ddl-auto: none
+    show-sql: false
+    properties:
+      # Disable auto-commit to allow lazy collection loading
+      hibernate.connection.provider_disables_autocommit: true
+      # Disable CLOB creation for better database compatibility
+      jdbc.lob.non_contextual_creation: true
+  data:
+    rest:
+      default-page-size: 100000
+      max-page-size: 100000
+
+# ===================================================================
+# Logging Configuration
+# ===================================================================
+logging:
+  level:
+    ROOT: INFO
+    org.springframework.beans.factory.support.DefaultListableBeanFactory: WARN
+
+# ===================================================================
+# Management and Monitoring
+# ===================================================================
+management:
+  metrics:
+    enable:
+      all: false
+      sitmun: true
+  endpoints:
+    web:
+      base-path: /api/dashboard
+      exposure:
+        include: health,info
+  health:
+    ldap:
+      enabled: false
+    mail:
+      enabled: false
+
+# ===================================================================
+# SITMUN specific properties
+# ===================================================================
+
+sitmun:
+  module: SITMUN 3 Backend Core
+  version: 1.2.9
+  language: en
+  user:
+    secret: ${SITMUN_USER_SECRET}
+    token-validity-in-milliseconds: 900000
+    cookie-max-age-in-seconds: 900
+    max-session-duration-milliseconds: 28800000
+  mobile:
+    token-validity-in-milliseconds: 3600000
+  proxy-middleware:
+    secret: ${SITMUN_PROXY_MIDDLEWARE_SECRET}
+    config-response-validity-in-seconds: 3600
+    token-validity-in-milliseconds: 900000
+    force: false
+    url: ${SITMUN_PROXY_MIDDLEWARE_URL:http://localhost:8080/middleware}
+  service-check:
+    enabled: true
+    interval: 15m
+    dispatch-interval: 1s
+    max-in-flight: 4
+    max-per-host: 1
+    timeout: 10s
+    connect-timeout: 10s
+    read-timeout: 10s
+    sample-retention: 24h
+    usage-retention: 400d
+    retention-interval: 1h
+    overdue-warn-factor: 2
+    viewer-flush-interval: 1m
+    detail-max-length: 500
+    exception-text-max-length: 200
+    scan-max-bytes: 65536
+  short-url:
+    provider: none
+    tinyurl-legacy:
+      endpoint: https://tinyurl.com/api-create.php
+  authentication:
+    http-only-cookie: true
+    same-site-cookie: Strict
+    oidc:
+      enabled: ${SITMUN_AUTH_OIDC_ENABLED:false}
+      providers: { }
+  ui:
+    image:
+      supportedFormats:
+        - png
+        - jpg
+        - jpeg
+        - svg
+      defaultWidth: 125
+      defaultHeight: 125
+      sizes:
+        - type: menu
+          width: 50
+          height: 50
+        - type: list
+          width: 350
+          height: 350
+  dashboard:
+    fetchMetrics: 60000
+    initialDelay: 60000
+    cartographies-by-created-date:  # count cartographies by created data
+      size: 30 # unused as a window; query has no :sinceDate
+      query: |
+        select year(c.createdDate) as y, month(c.createdDate) as m, day(c.createdDate) as d, count(c) 
+        from Cartography as c
+        group by year(c.createdDate), month(c.createdDate), day(c.createdDate)
+        order by y, m, d desc
+    users-by-created-date: # count users by created date
+      size: 30 # unused as a window; query has no :sinceDate
+      query: |
+        select year(u.createdDate) as y, month(u.createdDate) as m, day(u.createdDate) as d, count(u)
+        from User u
+        group by year(u.createdDate), month(u.createdDate), day(u.createdDate)
+        order by y, m, d desc
+    users-per-application:  # users who can open the application; same rules as ApplicationRepository.findByUser
+      size: 30 # unused as a window; query has no :sinceDate
+      query: |
+        select app.name, count(distinct uc.user)
+        from UserConfiguration uc, Application app
+        where uc.role member of app.availableRoles
+        and (uc.user.username in ('public', 'admin') or exists (
+          select 1 from UserPosition pos
+          where pos.user = uc.user and pos.territory = uc.territory
+            and (pos.createdDate is null or cast(pos.createdDate as date) <= current_date)
+            and (pos.expirationDate is null or current_date <= cast(pos.expirationDate as date))))
+        and (
+          uc.appliesToChildrenTerritories = false
+          or (uc.appliesToChildrenTerritories = true and app.accessParentTerritory = true)
+          or (uc.appliesToChildrenTerritories = true and app.accessChildrenTerritory = true
+            and uc.territory in (
+              select childTerritory from Territory childTerritory
+              where childTerritory member of uc.territory.members)))
+        group by app.name
+  startup:
+    built-in-users:
+      # Optional. Used only to create missing admin or restore an empty admin password.
+      # No default. Inject via SITMUN_BOOTSTRAP_ADMIN_PASSWORD; remove after health is UP.
+      admin-password: ${SITMUN_BOOTSTRAP_ADMIN_PASSWORD:}
+    code-lists:
+      check-on-startup: true
+      database-connection-drivers:
+        - driver-class: org.h2.Driver
+          description: H2 JDBC Driver
+        - driver-class: org.postgresql.Driver
+          description: PostgreSQL JDBC Driver
+        - driver-class: oracle.jdbc.OracleDriver
+          description: Oracle JDBC driver
+        - driver-class: com.microsoft.sqlserver.jdbc.SQLServerDriver
+          description: Microsoft SQL Server JDBC Driver
+      code-list-values:
+        - code-list-name: application.type
+          value: T
+          description: Tourist application
+        - code-list-name: application.type
+          value: ED
+          description: Edition application
+        - code-list-name: tree.type
+          value: touristic
+          description: Tourist application
+        - code-list-name: tree.type
+          value: cartography
+          description: Cartography tree
+        - code-list-name: tree.type
+          value: edition
+          description: Edition tree
+        - code-list-name: treenode.node.type
+          value: cartography
+          description: Cartography
+        - code-list-name: treenode.node.type
+          value: folder
+          description: Folder
+        - code-list-name: treenode.node.type
+          value: list
+          description: List
+        - code-list-name: treenode.node.type
+          value: menu
+          description: Menu
+        - code-list-name: treenode.node.type
+          value: task
+          description: Task
+        - code-list-name: treenode.node.type
+          value: fav
+          description: Favorites
+        - code-list-name: treenode.node.type
+          value: map
+          description: Map
+        - code-list-name: treenode.node.type
+          value: nm
+          description: Near me
+        - code-list-name: treenode.viewmode
+          value: dl
+          description: Detailed list
+        - code-list-name: treenode.viewmode
+          value: ne
+          description: Near elements
+        - code-list-name: treenode.viewmode
+          value: sch
+          description: Schedule
+        - code-list-name: treenode.viewmode
+          value: evtcat
+          description: Events categories
+        - code-list-name: treenode.viewmode
+          value: evt
+          description: Events
+        - code-list-name: treenode.viewmode
+          value: evtloc
+          description: Events locations
+        - code-list-name: treenode.viewmode
+          value: ms
+          description: Map search
+        - code-list-name: treenode.viewmode
+          value: rt
+          description: Routes list
+        - code-list-name: treenode.viewmode
+          value: gallery
+          description: Gallery
+        - code-list-name: taskEntity.jsonParamType
+          value: string
+          description: string
+        - code-list-name: taskEntity.jsonParamType
+          value: number
+          description: number
+        - code-list-name: taskEntity.jsonParamType
+          value: boolean
+          description: boolean
+        - code-list-name: taskEntity.jsonParamType
+          value: object
+          description: object
+        - code-list-name: taskEntity.jsonParamType
+          value: array
+          description: array
+        - code-list-name: taskEntity.jsonParamType
+          value: "null"
+          description: "null"
+        - code-list-name: queryTask.scope
+          value: sql-query
+          description: "SQL Query"
+        - code-list-name: queryTask.scope
+          value: web-api-query
+          description: "Web API Query"
+        - code-list-name: queryTask.scope
+          value: web-api-query-no-proxy
+          description: "Web API Query (No Proxy)"
+        - code-list-name: queryTask.scope
+          value: cartography-query
+          description: "Cartography Query"
+        - code-list-name: queryTask.parameterType
+          value: template
+          description: "Template parameter"
+        - code-list-name: queryTask.parameterType
+          value: query
+          description: "Query parameter"
+        - code-list-name: editTask.scope
+          value: feat-edit
+          description: "Features service edition (WFS)"
+        - code-list-name: editTask.scope
+          value: db-edit
+          description: "Database edition"
+        - code-list-name: editTask.fieldType
+          value: text
+          description: "Text"
+        - code-list-name: editTask.fieldType
+          value: date
+          description: "Date"
+        - code-list-name: editTask.fieldType
+          value: image
+          description: "Image"
+        - code-list-name: editTask.fieldType
+          value: number
+          description: "Number"
+        - code-list-name: editTask.fieldType
+          value: listbox
+          description: "ListBox"
+        - code-list-name: moreInfo.type
+          value: SQL
+          description: "SQL"
+        - code-list-name: moreInfo.type
+          value: API
+          description: "API"
+        - code-list-name: moreInfo.type
+          value: URL
+          description: "URL"
+  recover-password:
+    front:
+      url: "http://localhost:9080"
+      path: "/auth/forgot-password/"
+    mail:
+      from: "sitmun-test@localhost"
+    jwt:
+      token-recovery-password-validity-in-milliseconds: 3600000
+    code-otp:
+      max-attempt: 3
+  variables:
+    # System variables resolved by backend using SpEL expressions.
+    # Syntax in task properties: #{VARIABLE_NAME}
+    # Bound context: #user, #territory, #application, #now (Clock), #language (LocaleContextHolder).
+    # Names appear on GET /api/config/system/variables (admin autocomplete).
+    system:
+      USER_ID: "#{#user.id}"
+      USER_NAME: "#{#user.username}"
+      TERR_ID: "#{#territory.id}"
+      TERR_COD: "#{#territory.code}"
+      TERR_NAME: "#{#territory.name}"
+      APP_ID: "#{#application.id}"
+      APP_NAME: "#{#application.name}"
+      APP_CODIGO: "#{#application.id}"
+      TER_CODIGO: "#{#territory.id}"
+      USU_CODIGO: "#{#user.id}"
+      USUARIO: "#{#user.username}"
+      MUN_INE: "#{#territory.code}"
+      MUN_INES: "#{T(org.sitmun.infrastructure.variables.SystemVariableSupport).munInes(#application, #territory)}"
+      PROYECCION: "#{#application.srs}"
+      EXTENSION_MAX_X0: "#{#territory.extent.minX}"
+      EXTENSION_MAX_Y0: "#{#territory.extent.minY}"
+      EXTENSION_MAX_X1: "#{#territory.extent.maxX}"
+      EXTENSION_MAX_Y1: "#{#territory.extent.maxY}"
+      DATE: "#{#now.format(T(java.time.format.DateTimeFormatter).ofPattern('dd/MM/yyyy HH:mm:ss'))}"
+      LANG: "#{#language}"
+      LANGUAGE: "#{#language}"
+
+# ===================================================================
+# Server properties
+# ===================================================================
+server:
+  max-http-request-header-size: 16384

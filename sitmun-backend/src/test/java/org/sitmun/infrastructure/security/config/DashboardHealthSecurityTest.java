@@ -1,0 +1,90 @@
+package org.sitmun.infrastructure.security.config;
+
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import java.util.List;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.sitmun.infrastructure.startup.BuiltInUserStartupStatus;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.test.web.servlet.MockMvc;
+
+@SpringBootTest
+@AutoConfigureMockMvc
+@DisplayName("Dashboard Health Security Test")
+class DashboardHealthSecurityTest {
+
+  @Autowired private MockMvc mvc;
+  @Autowired private BuiltInUserStartupStatus builtInUserStartupStatus;
+
+  @AfterEach
+  void restoreReadyStatus() {
+    builtInUserStartupStatus.markReady();
+  }
+
+  @Test
+  @DisplayName("GET /api/dashboard/health returns 200 without authentication")
+  void dashboardHealthReturns200WithoutAuthentication() throws Exception {
+    builtInUserStartupStatus.markReady();
+    mvc.perform(get("/api/dashboard/health"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.status").exists());
+  }
+
+  @Test
+  @DisplayName("GET: /api/dashboard/startup is public and returns ready without reason")
+  void startupReadyIsPublic() throws Exception {
+    builtInUserStartupStatus.markReady();
+    mvc.perform(get("/api/dashboard/startup"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.state").value("ready"))
+        .andExpect(jsonPath("$.reason").doesNotExist())
+        .andExpect(jsonPath("$.warnings").doesNotExist());
+  }
+
+  @Test
+  @DisplayName("GET: /api/dashboard/startup ready with admin-has-positions warning stays ready")
+  void startupReadyExposesAdminPositionsWarning() throws Exception {
+    builtInUserStartupStatus.markReady(
+        List.of(BuiltInUserStartupStatus.WARNING_ADMIN_HAS_POSITIONS));
+    mvc.perform(get("/api/dashboard/startup"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.state").value("ready"))
+        .andExpect(jsonPath("$.reason").doesNotExist())
+        .andExpect(
+            jsonPath("$.warnings[0]").value(BuiltInUserStartupStatus.WARNING_ADMIN_HAS_POSITIONS));
+  }
+
+  @Test
+  @DisplayName("GET: /api/dashboard/startup returns blocked with stable reason only")
+  void startupBlockedExposesStableReason() throws Exception {
+    builtInUserStartupStatus.markBlocked(
+        BuiltInUserStartupStatus.REASON_ADMIN_MISSING_BOOTSTRAP_PASSWORD);
+
+    mvc.perform(get("/api/dashboard/startup"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.state").value("blocked"))
+        .andExpect(
+            jsonPath("$.reason")
+                .value(BuiltInUserStartupStatus.REASON_ADMIN_MISSING_BOOTSTRAP_PASSWORD));
+
+    mvc.perform(get("/api/dashboard/health"))
+        .andExpect(status().isServiceUnavailable())
+        .andExpect(jsonPath("$.status").value("DOWN"));
+  }
+
+  @Test
+  @DisplayName("GET: /api/dashboard/startup returns initializing without reason")
+  void startupInitializingIsPublic() throws Exception {
+    builtInUserStartupStatus.markInitializing();
+    mvc.perform(get("/api/dashboard/startup"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.state").value("initializing"))
+        .andExpect(jsonPath("$.reason").doesNotExist());
+  }
+}

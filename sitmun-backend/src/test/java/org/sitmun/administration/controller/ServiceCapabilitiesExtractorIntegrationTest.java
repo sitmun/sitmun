@@ -1,0 +1,138 @@
+package org.sitmun.administration.controller;
+
+import static org.hamcrest.Matchers.nullValue;
+import static org.hamcrest.Matchers.startsWith;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+
+import java.io.IOException;
+import org.json.JSONObject;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.sitmun.administration.service.extractor.LocalHtmlServer;
+import org.sitmun.test.BaseTest;
+import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.web.servlet.ResultActions;
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
+
+@DisplayName("Service Capabilities Extractor integration test")
+class ServiceCapabilitiesExtractorIntegrationTest extends BaseTest {
+
+  private static final String CAPABILITIES_URI = "/api/helpers/capabilities";
+  private static LocalHtmlServer html;
+
+  @BeforeAll
+  static void startHtml() throws IOException {
+    html = LocalHtmlServer.start();
+  }
+
+  @AfterAll
+  static void stopHtml() {
+    html.close();
+  }
+
+  @Test
+  @WithMockUser(roles = "ADMIN")
+  @DisplayName("GET /api/helpers/capabilities returns 405")
+  void getIsNotSupported() throws Exception {
+    mvc.perform(get(CAPABILITIES_URI).param("url", "https://example.com/wms"))
+        .andExpect(MockMvcResultMatchers.status().isMethodNotAllowed());
+  }
+
+  @Test
+  @WithMockUser(roles = "ADMIN")
+  @DisplayName("Non-WMS type fails before origin fetch")
+  void rejectNonWmsType() throws Exception {
+    postCapabilities(
+            new JSONObject().put("url", "https://example.com/wmts").put("type", "WMTS").toString())
+        .andExpect(MockMvcResultMatchers.status().isBadRequest())
+        .andExpect(jsonPath("$.success").value(false))
+        .andExpect(jsonPath("$.reason").value("Unsupported service type for capabilities: WMTS"));
+  }
+
+  @Test
+  @WithMockUser(roles = "ADMIN")
+  @DisplayName("WMS GetCapabilties: A request with a percent-encoded ampersand succeeds")
+  void usePercentEncodedAmpersand() throws Exception {
+    postCapabilities(body(html.url("/wms-130") + "?request=GetCapabilities%26service=WMS", "WMS"))
+        .andExpect(MockMvcResultMatchers.status().isOk())
+        .andExpect(jsonPath("$.success").value(true))
+        .andExpect(jsonPath("$.type").value("OGC:WMS 1.3.0"))
+        .andExpect(jsonPath("$.asText", startsWith("<?xml")))
+        .andExpect(jsonPath("$.asJson.WMS_Capabilities").isMap())
+        .andExpect(jsonPath("$.asJson.WMS_Capabilities").isNotEmpty());
+  }
+
+  @Test
+  @WithMockUser(roles = "ADMIN")
+  @DisplayName("WMS GetCapabilties: Extract from a GetCapabilities request to a WMS 1.3.0")
+  void extractKnownWMSService130() throws Exception {
+    postCapabilities(body(html.url("/wms-130") + "?request=GetCapabilities", "WMS"))
+        .andExpect(MockMvcResultMatchers.status().isOk())
+        .andExpect(jsonPath("$.success").value(true))
+        .andExpect(jsonPath("$.type").value("OGC:WMS 1.3.0"))
+        .andExpect(jsonPath("$.asText", startsWith("<?xml")))
+        .andExpect(jsonPath("$.asJson.WMS_Capabilities").exists());
+  }
+
+  @Test
+  @WithMockUser(roles = "ADMIN")
+  @DisplayName("WMS GetCapabilties: Extract from a GetCapabilities request to a WMS 1.1.1")
+  void extractKnownWMSService111() throws Exception {
+    postCapabilities(body(html.url("/wms-111") + "?request=GetCapabilities&version=1.1.1", "WMS"))
+        .andExpect(MockMvcResultMatchers.status().isOk())
+        .andExpect(jsonPath("$.success").value(true))
+        .andExpect(jsonPath("$.type").value("OGC:WMS 1.1.1"))
+        .andExpect(jsonPath("$.asText", startsWith("<?xml")))
+        .andExpect(jsonPath("$.asJson.WMT_MS_Capabilities").exists());
+  }
+
+  @Test
+  @WithMockUser(roles = "ADMIN")
+  @DisplayName("POST of an HTML page returns 400 and the non-capabilities reason")
+  void extractHtmlPage() throws Exception {
+    postCapabilities(body(html.url("/"), "WMS"))
+        .andExpect(MockMvcResultMatchers.status().isBadRequest())
+        .andExpect(jsonPath("$.success").value(false))
+        .andExpect(
+            jsonPath("$.reason").value("Not a standard OGC:WMS or OGC:WFS Capabilities response"))
+        .andExpect(jsonPath("$.asText", startsWith("<!DOCTYPE")));
+  }
+
+  @Test
+  @WithMockUser(roles = "ADMIN")
+  @DisplayName("HTML: a non-XML 404 reports the HTTP status")
+  void extract404Page() throws Exception {
+    postCapabilities(body(html.url("/not-found"), "WMS"))
+        .andExpect(MockMvcResultMatchers.status().isBadRequest())
+        .andExpect(jsonPath("$.success").value(false))
+        .andExpect(jsonPath("$.reason").value("HTTP 404"))
+        .andExpect(jsonPath("$.asText", startsWith("<html")))
+        .andExpect(jsonPath("$.asJson").value(nullValue()));
+  }
+
+  @Test
+  @WithMockUser(roles = "ADMIN")
+  @DisplayName("POST to an unknown host returns 400 and UnknownHostException")
+  void extractNonExistentDomain() throws Exception {
+    postCapabilities(body("https://fake", "WMS"))
+        .andExpect(MockMvcResultMatchers.status().isBadRequest())
+        .andExpect(jsonPath("$.success").value(false))
+        .andExpect(jsonPath("$.reason", startsWith("UnknownHostException: fake")))
+        .andExpect(jsonPath("$.asText").value(nullValue()))
+        .andExpect(jsonPath("$.asJson").value(nullValue()));
+  }
+
+  private ResultActions postCapabilities(String json) throws Exception {
+    return mvc.perform(
+        post(CAPABILITIES_URI).contentType(MediaType.APPLICATION_JSON).content(json));
+  }
+
+  private static String body(String url, String type) {
+    return new JSONObject().put("url", url).put("type", type).toString();
+  }
+}

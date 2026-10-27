@@ -1,0 +1,219 @@
+package org.sitmun.domain.user.position;
+
+import java.util.Date;
+import java.util.List;
+import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+import org.sitmun.domain.role.Role;
+import org.sitmun.domain.role.RoleRepository;
+import org.sitmun.domain.territory.Territory;
+import org.sitmun.domain.territory.TerritoryRepository;
+import org.sitmun.domain.territory.type.TerritoryType;
+import org.sitmun.domain.territory.type.TerritoryTypeRepository;
+import org.sitmun.domain.user.User;
+import org.sitmun.domain.user.UserRepository;
+import org.sitmun.domain.user.configuration.UserConfiguration;
+import org.sitmun.infrastructure.security.core.SecurityConstants;
+import org.sitmun.test.BaseTest;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
+
+/**
+ * Tests for UserPositionBusinessLogic. Positions for a user are updated (created) when
+ * UserConfiguration is saved (via UserConfigurationEventHandler), not when a user is retrieved with
+ * a projection; projections are read-only.
+ */
+@DisplayName("User Position Business Logic JPA Test")
+@Transactional
+class UserPositionBusinessLogicTest extends BaseTest {
+
+  @Autowired private UserPositionBusinessLogic userPositionBusinessLogic;
+
+  @Autowired private UserPositionRepository userPositionRepository;
+
+  @Autowired private UserRepository userRepository;
+
+  @Autowired private TerritoryRepository territoryRepository;
+
+  @Autowired private RoleRepository roleRepository;
+
+  @Autowired private TerritoryTypeRepository territoryTypeRepository;
+
+  private User user;
+  private Territory territory;
+  private Role role;
+  private UserConfiguration userConfiguration;
+  private long initialUserPositionCount;
+
+  @BeforeEach
+  void setUp() {
+    // Create and persist TerritoryType with all required fields
+    // Use timestamp to ensure unique name across test runs
+    TerritoryType type =
+        TerritoryType.builder()
+            .name("Test Type " + System.currentTimeMillis())
+            .official(false)
+            .topType(false)
+            .bottomType(false)
+            .build();
+    type = territoryTypeRepository.save(type);
+
+    // Create test user
+    user = new User();
+    user.setFirstName("Test");
+    user.setLastName("User");
+    user.setAdministrator(false);
+    user.setBlocked(false);
+    user.setPassword("password");
+    user.setUsername("testuser-position-" + System.currentTimeMillis());
+    user.setEmail("test@example.com");
+    user = userRepository.save(user);
+
+    // Create test territory with managed TerritoryType and all required fields (no code)
+    // Use timestamp to ensure unique name across test runs
+    territory =
+        Territory.builder()
+            .name("Test Territory " + System.currentTimeMillis())
+            .code("Test code " + System.currentTimeMillis())
+            .blocked(false)
+            .territorialAuthorityEmail("admin@example.com")
+            .createdDate(new Date())
+            .territorialAuthorityName("Test Authority")
+            .type(type)
+            .build();
+    territory = territoryRepository.save(territory);
+
+    // Create test role with unique name
+    role =
+        Role.builder()
+            .name("Test Role " + System.currentTimeMillis())
+            .description("Test role description")
+            .build();
+    role = roleRepository.save(role);
+
+    // Create test user configuration
+    userConfiguration =
+        UserConfiguration.builder()
+            .user(user)
+            .territory(territory)
+            .role(role)
+            .appliesToChildrenTerritories(false)
+            .build();
+    // Record initial UserPosition count
+    initialUserPositionCount = userPositionRepository.count();
+  }
+
+  @AfterEach
+  void tearDown() {
+    // Ensure database content is the same after each test
+    long finalUserPositionCount = userPositionRepository.count();
+    Assertions.assertThat(finalUserPositionCount).isEqualTo(initialUserPositionCount);
+  }
+
+  @ParameterizedTest
+  @ValueSource(
+      strings = {SecurityConstants.BUILT_IN_ADMIN_PRINCIPAL, SecurityConstants.PUBLIC_PRINCIPAL})
+  @DisplayName("Does not create user position for built-in principal")
+  void doesNotCreateUserPositionForBuiltInPrincipal(String username) {
+    User builtIn = userRepository.findByUsername(username).orElseThrow();
+    UserConfiguration config =
+        UserConfiguration.builder()
+            .user(builtIn)
+            .territory(territory)
+            .role(role)
+            .appliesToChildrenTerritories(false)
+            .build();
+    Assertions.assertThat(userPositionRepository.findByUserAndTerritory(builtIn, territory))
+        .isEmpty();
+
+    userPositionBusinessLogic.createUserPositionIfNotExists(config);
+
+    Assertions.assertThat(userPositionRepository.findByUserAndTerritory(builtIn, territory))
+        .isEmpty();
+  }
+
+  @Test
+  @DisplayName("Create user position when user configuration is provided")
+  void createUserPositionWithUserConfiguration() {
+    userPositionRepository.deleteAll(
+        userPositionRepository.findByUserAndTerritory(user, territory));
+    Assertions.assertThat(userPositionRepository.findByUserAndTerritory(user, territory)).isEmpty();
+
+    // Call the business logic method directly
+    userPositionBusinessLogic.createUserPositionIfNotExists(userConfiguration);
+
+    // Verify UserPosition was created
+    List<UserPosition> createdPosition =
+        userPositionRepository.findByUserAndTerritory(user, territory);
+    Assertions.assertThat(createdPosition).isNotEmpty();
+    UserPosition position = createdPosition.get(0);
+    Assertions.assertThat(position.getUser()).isEqualTo(user);
+    Assertions.assertThat(position.getTerritory()).isEqualTo(territory);
+    // Verify positions for user include the new one (updated list)
+    List<UserPosition> positionsForUser = userPositionRepository.findByUser(user);
+    Assertions.assertThat(positionsForUser).anyMatch(p -> p.getTerritory().equals(territory));
+    // Clean up
+    userPositionRepository.delete(position);
+  }
+
+  @Test
+  @DisplayName("Prevent duplicate user position creation")
+  void preventDuplicateUserPositionCreation() {
+    // Create a UserPosition manually first
+    UserPosition existingPosition =
+        UserPosition.builder()
+            .user(user)
+            .territory(territory)
+            .name("Existing Position")
+            .organization("Existing Organization")
+            .email("existing@example.com")
+            .createdDate(new Date())
+            .build();
+    existingPosition = userPositionRepository.save(existingPosition);
+
+    // Call the business logic method directly (should not create a second position)
+    userPositionBusinessLogic.createUserPositionIfNotExists(userConfiguration);
+
+    // Verify no duplicate was created: still exactly one position for (user, territory)
+    List<UserPosition> positions = userPositionRepository.findByUserAndTerritory(user, territory);
+    Assertions.assertThat(positions).hasSize(1);
+    Assertions.assertThat(userPositionRepository.count()).isEqualTo(initialUserPositionCount + 1);
+    // Clean up
+    userPositionRepository.delete(existingPosition);
+  }
+
+  @Test
+  @DisplayName("Null user does not throw")
+  void nullUserDoesNotThrow() {
+    UserConfiguration configWithNullUser =
+        UserConfiguration.builder()
+            .user(null)
+            .territory(territory)
+            .role(role)
+            .appliesToChildrenTerritories(false)
+            .build();
+    Assertions.assertThatCode(
+            () -> userPositionBusinessLogic.createUserPositionIfNotExists(configWithNullUser))
+        .doesNotThrowAnyException();
+  }
+
+  @Test
+  @DisplayName("Null territory does not throw")
+  void nullTerritoryDoesNotThrow() {
+    UserConfiguration configWithNullTerritory =
+        UserConfiguration.builder()
+            .user(user)
+            .territory(null)
+            .role(role)
+            .appliesToChildrenTerritories(false)
+            .build();
+    Assertions.assertThatCode(
+            () -> userPositionBusinessLogic.createUserPositionIfNotExists(configWithNullTerritory))
+        .doesNotThrowAnyException();
+  }
+}

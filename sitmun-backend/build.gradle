@@ -1,0 +1,506 @@
+import org.springframework.boot.gradle.plugin.SpringBootPlugin
+
+plugins {
+  id 'java'
+  
+  alias libs.plugins.spring.boot
+  alias libs.plugins.spring.dependency.management
+  
+  alias libs.plugins.lombok
+  alias libs.plugins.springdoc.openapi
+  alias libs.plugins.liquibase
+  
+  id 'jacoco'
+  alias libs.plugins.sonarqube
+  
+  alias libs.plugins.docker.compose
+
+  alias libs.plugins.spotless
+
+  alias libs.plugins.axion.release
+}
+
+group = 'org.sitmun'
+
+java {
+  toolchain {
+    languageVersion = JavaLanguageVersion.of(17)
+  }
+}
+
+repositories {
+  mavenLocal()
+  mavenCentral()
+}
+
+dependencyManagement {
+  imports {
+    mavenBom SpringBootPlugin.BOM_COORDINATES
+  }
+}
+
+def packaging = (project.findProperty('packaging') ?: 'jar')
+
+if (packaging == 'war') {
+  apply plugin: 'war'
+}
+
+dependencies {
+
+  // If packaging as WAR, use provided Tomcat runtime
+  if (packaging == 'war') {
+    providedRuntime libs.spring.boot.starter.tomcat
+  }
+
+  // Web + data persistence and REST API
+  implementation libs.spring.boot.starter.webmvc
+  implementation libs.spring.boot.starter.data.jpa
+  implementation libs.spring.boot.starter.data.rest
+  
+  // Security and validation
+  implementation libs.spring.boot.starter.security
+  implementation libs.spring.boot.starter.validation
+  
+  // Monitoring and templating
+  implementation libs.spring.boot.starter.actuator
+  implementation libs.spring.boot.starter.thymeleaf
+  
+  // Development and testing database
+  implementation libs.h2
+
+  developmentOnly libs.spring.boot.devtools
+  
+  // Production databases
+  implementation libs.postgresql
+  implementation libs.oracle.jdbc
+  implementation libs.mssql.jdbc
+
+  // Database migration
+  implementation libs.spring.boot.starter.liquibase
+  
+  // Query building
+  implementation variantOf(libs.querydsl.jpa) { classifier('jakarta') }
+  
+  // Object mapping
+  implementation libs.mapstruct
+
+  // Apache Commons utilities
+  implementation libs.commons.lang3
+  implementation libs.commons.io
+  implementation libs.opencsv
+  
+  // Google Guava utilities
+  implementation libs.guava
+
+  // OkHttp client with logging
+  implementation platform(libs.okhttp.bom)
+  implementation libs.okhttp
+  implementation libs.okhttp.logging
+  implementation 'org.sitmun:sitmun-spring-upstream:1.2.9'
+  implementation 'org.sitmun:sitmun-proxy-contract:1.2.9'
+  implementation 'io.github.resilience4j:resilience4j-timelimiter:2.3.0'
+
+  // JSON processing
+  implementation libs.json
+  
+  // JWT token handling
+  implementation libs.jjwt.api
+  implementation libs.jjwt.impl
+  implementation libs.jjwt.jackson
+
+  // OIDC support
+  implementation libs.spring.boot.starter.security.oauth2.client
+
+  // OpenAPI/Swagger documentation
+  implementation libs.springdoc.openapi.starter.webmvc.ui
+
+  // LDAP profile
+  implementation libs.spring.ldap.core
+  implementation libs.spring.security.ldap
+
+  // Mail profile
+  implementation libs.spring.boot.starter.mail
+
+  // Rate limiting
+  implementation libs.bucket4j.core
+
+  // HTML parsing (used by template export to convert HTML to W3C DOM)
+  implementation libs.jsoup
+
+  // PDF generation from HTML (template export)
+  implementation libs.openhtmltopdf.core
+  implementation libs.openhtmltopdf.pdfbox
+
+  // URI Templates
+  implementation libs.handyUriTemplates
+  implementation libs.handlebars
+
+  // Core annotation processing
+  annotationProcessor libs.jakarta.annotation.api
+  annotationProcessor libs.spring.boot.configuration.processor
+  annotationProcessor libs.jakarta.persistence.api
+  
+  // QueryDSL code generation
+  annotationProcessor variantOf(libs.querydsl.apt) { classifier('jakarta') }
+  
+  // MapStruct code generation
+  annotationProcessor libs.mapstruct.processor
+
+  // Development-time annotations
+  compileOnly libs.jetbrains.annotations
+
+  // Spring Boot test support
+  testImplementation(libs.spring.boot.starter.test) {
+    exclude group: 'com.vaadin.external.google', module: 'android-json'
+  }
+  testImplementation libs.spring.boot.starter.webmvc.test
+  testImplementation libs.spring.boot.starter.data.jpa.test
+  testImplementation libs.spring.boot.starter.jackson.test
+  testImplementation libs.spring.boot.starter.security.test
+  
+  // Security testing
+  testImplementation libs.spring.security.test
+  
+  // Testing utilities
+  testImplementation libs.hamcrest
+  
+  // LDAP testing (embedded LDAP server)
+  testImplementation libs.unboundid.ldapsdk
+  testImplementation 'com.squareup.okhttp3:mockwebserver'
+
+}
+
+// ============================================================================
+// TESTING AND QUALITY ASSURANCE CONFIGURATION
+// ============================================================================
+// 
+// Database Testing with Docker Compose Plugin
+// ------------------------------------------
+// The project uses the Gradle Docker Compose plugin for PostgreSQL testing.
+// This provides automatic container lifecycle management with health checks.
+// 
+// Available tasks:
+// - testPostgres: Run tests with PostgreSQL (automatically starts/stops container)
+// - startPostgresTest: Start PostgreSQL container manually
+// - stopPostgresTest: Stop PostgreSQL container manually  
+// - cleanPostgresTest: Clean up containers and volumes
+// 
+// Configuration: docker/test-postgres-compose.yml
+// ============================================================================
+
+// Shared Liquibase steps live under config/; copy non-divergent files onto the test
+// classpath so dialect masters can use relativeToChangelogFile consistently (no file:config).
+tasks.named('processTestResources', Copy).configure {
+  from('config/db/changelog') {
+    include '01_schema.*.sql'
+    include '09_application_responsible_institution.yaml'
+    include '10_application_tree_order.yaml'
+    include '11_language_order_enabled_and_labels.yaml'
+    include '12_task_relation_reference_alias.yaml'
+    include '13_literal_translations.yaml'
+    include '14_add_translation_sequences.sql'
+    include '15_literal_translation_source_language.yaml'
+    include '16_template_task_type.yaml'
+    include '17_more_info_advanced_e2e.yaml'
+    include '18_literal_translations_varchar.yaml'
+    include '19_mia_chrome_literals.yaml'
+    include '21_align_schema_dialects.yaml'
+    include '22_align_nullability.yaml'
+    include '23_feature_info_field_format.yaml'
+    include '24_add_tree_node_default.yaml'
+    include '25_service_check.yaml'
+    include '26_cartography_service_parameter.yaml'
+    include '27_parameter_operation_scope.yaml'
+    include '28_parameter_type_translations.yaml'
+    include '30_cartography_style_name_unique.yaml'
+    include '31_literal_translation_literal_unique.yaml'
+    include '30_geometry_code_lists.yaml'
+    into 'db/changelog'
+  }
+}
+
+// Test configuration
+tasks.withType(Test).configureEach {
+  useJUnitPlatform()
+  maxHeapSize = '1024m'
+  minHeapSize = '64m'
+  maxParallelForks = 1
+  forkEvery = 0
+
+  jvmArgs '-Xmx1024m', '-Xms64m', '-XX:+UseSerialGC'
+
+  // Set system properties for test JVM
+  systemProperty 'spring.profiles.active', 'test,h2'
+  systemProperty 'java.awt.headless', 'true'
+  systemProperty 'sitmun.user.secret', 'test-only-insecure-user-secret-32-bytes'
+  systemProperty 'sitmun.proxy-middleware.secret', 'test-only-insecure-middleware-secret'
+  // Forward opt-in Liquibase seed sequence canary (exact STM_SEQUENCE baselines)
+  systemProperty 'sitmun.seed-canary.sequences', System.getProperty('sitmun.seed-canary.sequences', '')
+
+  reports.junitXml.includeSystemOutLog = false
+  reports.junitXml.includeSystemErrLog = false
+
+  // Test logging
+  testLogging {
+    events "passed", "skipped", "failed"
+    exceptionFormat = 'full'
+  }
+}
+
+// H2 Database Tests (default)
+tasks.register('testH2', Test) {
+  group = 'verification'
+  description = 'Run tests with H2 in-memory database'
+  systemProperty 'spring.profiles.active', 'test,h2'
+  systemProperty 'sitmun.user.secret', 'test-only-insecure-user-secret-32-bytes'
+  systemProperty 'sitmun.proxy-middleware.secret', 'test-only-insecure-middleware-secret'
+  
+  testLogging {
+    events "passed", "skipped", "failed"
+    exceptionFormat = 'full'
+  }
+}
+
+// PostgreSQL Database Tests
+tasks.register('testPostgres', Test) {
+  group = 'verification'
+  description = 'Run tests with PostgreSQL database using Docker Compose'
+  systemProperty 'spring.profiles.active', 'postgres'
+  systemProperty 'sitmun.user.secret', 'test-only-insecure-user-secret-32-bytes'
+  systemProperty 'sitmun.proxy-middleware.secret', 'test-only-insecure-middleware-secret'
+  testLogging {
+    events "passed", "skipped", "failed"
+    exceptionFormat = 'full'
+  }
+}
+
+tasks.register('testOracle', Test) {
+  group = 'verification'
+  description = 'Run tests with OracleSQL database using Docker Compose'
+  systemProperty 'spring.profiles.active', 'oracle'
+  systemProperty 'sitmun.user.secret', 'test-only-insecure-user-secret-32-bytes'
+  systemProperty 'sitmun.proxy-middleware.secret', 'test-only-insecure-middleware-secret'
+  testLogging {
+    events "passed", "skipped", "failed"
+    exceptionFormat = 'full'
+  }
+  doFirst {
+    // Short stabilization delay after healthcheck passes
+    // Oracle may reject connections immediately after healthcheck succeeds
+    sleep(3000)
+  }
+}
+
+// Docker Compose configuration for PostgreSQL testing
+dockerCompose {
+  projectName = 'sitmun-backend-core'
+  postgres {
+    useComposeFiles = ['docker/postgres/test-docker-compose.yml']
+    isRequiredBy(project.tasks.testPostgres)
+  }
+  oracle {
+    useComposeFiles = ['docker/oracle/test-docker-compose.yml']
+    isRequiredBy(project.tasks.testOracle)
+    // Oracle needs up to 160s (60s start_period + 20 retries x 5s)
+    waitForHealthyStateTimeout = java.time.Duration.ofMinutes(5)
+    retainContainersOnStartupFailure = true
+  }
+}
+
+// All Database Tests
+tasks.register('testAll', Test) {
+  group = 'verification'
+  description = 'Run tests with both H2 and PostgreSQL databases'
+  
+  dependsOn testH2, testPostgres
+  
+  // This task will run both test suites
+  testLogging {
+    events "passed", "skipped", "failed"
+    exceptionFormat = 'full'
+  }
+}
+
+// Code coverage reporting
+jacocoTestReport {
+  reports {
+    xml.required.set(true)
+    html.required.set(true)
+  }
+}
+
+test.finalizedBy jacocoTestReport
+
+// SonarQube integration
+apply from: "$project.rootDir/sonar.gradle"
+
+rootProject.tasks.sonarqube {
+  dependsOn(tasks.jacocoTestReport)
+}
+
+// Spotless code formatting
+
+spotless {
+  java {
+    removeUnusedImports()
+    googleJavaFormat('1.28.0')
+    // importOrder 'java', 'javax', 'org', 'com'
+    target '**/*.java'
+    targetExclude '**/generated-sources/**'
+  }
+}
+
+// Axion Release Plugin Configuration
+scmVersion {
+  ignoreUncommittedChanges.set(true)
+  tag {
+    prefix.set('sitmun-backend-core')
+    versionSeparator.set('/')
+    initialVersion({config, position -> '1.0.0'})
+  }
+  versionIncrementer('incrementPatch')
+}
+
+project.version = '1.2.9'
+
+def resolveGitHooksDir = {
+  def gitMarker = new File(project.rootDir, '.git')
+  if (gitMarker.isFile()) {
+    def text = gitMarker.getText('UTF-8').trim()
+    def prefix = 'gitdir:'
+    if (text.startsWith(prefix)) {
+      def path = text.substring(prefix.length()).trim()
+      def gitDir = new File(path)
+      if (!gitDir.isAbsolute()) {
+        gitDir = new File(project.rootDir, path)
+      }
+      return new File(gitDir, 'hooks')
+    }
+  }
+  new File(gitMarker, 'hooks')
+}
+
+// Git hooks setup (opt-in: ./gradlew setupGitHooks)
+tasks.register('setupGitHooks') {
+  group = 'git hooks'
+  description = 'Install Git hooks for commit message validation and pre-commit checks'
+  def hookDir = resolveGitHooksDir()
+  def commitMsgHook = new File(hookDir, 'commit-msg')
+  def preCommitHook = new File(hookDir, 'pre-commit')
+
+  doLast {
+    hookDir.mkdirs()
+
+    // Pre-commit hook
+    preCommitHook.text = '''#!/bin/sh
+            echo "🔍 Running pre-commit checks..."
+            
+            # Code formatting check
+            echo "  📝 Checking code formatting..."
+            ./gradlew spotlessCheck
+            if [ $? -ne 0 ]; then
+                echo "❌ Code formatting check failed. Run './gradlew spotlessApply' to fix."
+                exit 1
+            fi
+            
+            # Tests
+            echo "  🧪 Running tests..."
+            ./gradlew test
+            if [ $? -ne 0 ]; then
+                echo "❌ Tests failed. Please fix the failing tests."
+                exit 1
+            fi
+            
+            # Code coverage check
+            echo "  📊 Checking code coverage..."
+            ./gradlew jacocoTestReport
+            if [ $? -ne 0 ]; then
+                echo "❌ Code coverage check failed."
+                exit 1
+            fi
+            
+            echo "✅ All pre-commit checks passed!"
+        '''.stripIndent()
+    preCommitHook.setExecutable(true)
+
+    // Commit message hook
+    commitMsgHook.text = '''#!/bin/sh
+            commit_msg=$(cat $1)
+            
+            # Conventional commit pattern for SITMUN Backend Core
+            pattern="^(feat|fix|docs|style|refactor|test|chore|perf|ci|build)(\\([a-z-]+\\))?: .+"
+            
+            if ! echo "$commit_msg" | grep -qE "$pattern"; then
+                echo "❌ Invalid commit message format."
+                echo ""
+                echo "Expected: <type>(<scope>): <description>"
+                echo ""
+                echo "Types:"
+                echo "  feat     - New feature"
+                echo "  fix      - Bug fix"
+                echo "  docs     - Documentation changes"
+                echo "  style    - Code style changes"
+                echo "  refactor - Code refactoring"
+                echo "  test     - Test changes"
+                echo "  chore    - Maintenance tasks"
+                echo "  perf     - Performance improvements"
+                echo "  ci       - CI/CD changes"
+                echo "  build    - Build system changes"
+                echo ""
+                echo "Scopes (optional):"
+                echo "  auth     - Authentication and authorization"
+                echo "  api      - API endpoints and controllers"
+                echo "  domain   - Domain entities and business logic"
+                echo "  security - Security configuration"
+                echo "  config   - Configuration and profiles"
+                echo "  test     - Testing framework"
+                echo "  build    - Build system and dependencies"
+                echo ""
+                echo "Examples:"
+                echo "  feat(auth): add LDAP authentication support"
+                echo "  fix(api): resolve JWT token validation issue"
+                echo "  docs: update README with deployment instructions"
+                echo "  test: add integration tests for user verification"
+                echo "  style: format code with Google Java Format"
+                echo "  refactor(domain): improve user entity design"
+                echo "  chore: update dependencies to latest versions"
+                echo "  perf(api): optimize authentication endpoint"
+                echo "  ci: add GitHub Actions workflow"
+                echo "  build: update Gradle configuration"
+                exit 1
+            fi
+            
+            echo "✅ Commit message format is valid!"
+        '''.stripIndent()
+    commitMsgHook.setExecutable(true)
+
+
+    println "✅ Git hooks installed successfully!"
+    println "📋 Pre-commit hook: Runs tests, formatting, and security checks"
+    println "📝 Commit-msg hook: Validates conventional commit message format"
+    println ""
+    println "💡 Usage examples:"
+    println "  git commit -m \"feat: add tile merging functionality\""
+    println "  git commit -m \"fix: resolve memory leak\""
+    println "  git commit -m \"docs: update README\""
+    println "  git commit -m \"test: add integration tests\""
+  }
+}
+
+// Task to remove Git hooks
+tasks.register('removeGitHooks') {
+  group = 'git hooks'
+  description = 'Remove Git hooks'
+  def hookDir = resolveGitHooksDir()
+
+  doLast {
+    ['pre-commit', 'commit-msg'].each { hookName ->
+      def hookFile = new File(hookDir, hookName)
+      if (hookFile.exists()) {
+        hookFile.delete()
+        println "🗑️  Removed ${hookName} hook"
+      }
+    }
+    println "✅ Git hooks removed successfully!"
+  }
+}

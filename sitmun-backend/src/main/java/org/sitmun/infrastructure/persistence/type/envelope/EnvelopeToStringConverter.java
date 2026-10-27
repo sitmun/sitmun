@@ -1,0 +1,70 @@
+package org.sitmun.infrastructure.persistence.type.envelope;
+
+import jakarta.persistence.AttributeConverter;
+import jakarta.persistence.Converter;
+import java.text.MessageFormat;
+import java.util.Locale;
+import lombok.extern.slf4j.Slf4j;
+
+/** Map a {@link Envelope} to a String. */
+@Converter
+@Slf4j
+public class EnvelopeToStringConverter implements AttributeConverter<Envelope, String> {
+
+  public static final String PRECISION = "######";
+
+  public static final String FORMAT =
+      "{0,number,#."
+          + PRECISION
+          + "} {1,number,#."
+          + PRECISION
+          + "} {2,number,#."
+          + PRECISION
+          + "} {3,number,#."
+          + PRECISION
+          + '}';
+
+  public static final Locale defaultLocale = Locale.US;
+
+  public MessageFormat formatInstance() {
+    return new MessageFormat(FORMAT, defaultLocale);
+  }
+
+  public Double extractDouble(Object obj) throws IllegalArgumentException {
+    if (obj instanceof Number number) {
+      return number.doubleValue();
+    }
+    throw new IllegalArgumentException("Value " + obj + " is not a Number");
+  }
+
+  @Override
+  public String convertToDatabaseColumn(Envelope envelope) {
+    if (envelope == null) {
+      return null;
+    }
+    return formatInstance()
+        .format(
+            new Object[] {
+              envelope.getMinX(), envelope.getMinY(), envelope.getMaxX(), envelope.getMaxY()
+            });
+  }
+
+  @Override
+  public Envelope convertToEntityAttribute(String dbData) {
+    if (dbData == null) {
+      return null;
+    }
+    try {
+      Object[] values = formatInstance().parse(dbData);
+      return Envelope.builder()
+          .minX(extractDouble(values[0]))
+          .minY(extractDouble(values[1]))
+          .maxX(extractDouble(values[2]))
+          .maxY(extractDouble(values[3]))
+          .build();
+    } catch (Exception e) {
+      log.error("[{}] cannot be parsed to Envelope", dbData, e);
+      return null;
+    }
+  }
+}

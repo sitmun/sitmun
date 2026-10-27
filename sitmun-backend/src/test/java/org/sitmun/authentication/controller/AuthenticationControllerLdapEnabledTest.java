@@ -1,0 +1,151 @@
+package org.sitmun.authentication.controller;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.doAnswer;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.cookie;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import com.unboundid.ldap.listener.InMemoryDirectoryServer;
+import com.unboundid.ldap.listener.InMemoryDirectoryServerConfig;
+import com.unboundid.ldap.listener.InMemoryListenerConfig;
+import com.unboundid.ldap.sdk.LDAPException;
+import java.net.URI;
+import java.util.concurrent.atomic.AtomicBoolean;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.sitmun.authentication.dto.UserPasswordAuthenticationRequest;
+import org.sitmun.infrastructure.config.Profiles;
+import org.sitmun.infrastructure.security.core.LdapUserAuthoritiesPopulator;
+import org.sitmun.infrastructure.security.core.userdetails.UserDetailsServiceImplementation;
+import org.sitmun.test.AdditiveActiveProfiles;
+import org.sitmun.test.TestUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.dao.DataAccessResourceFailureException;
+import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
+import org.springframework.test.web.servlet.MockMvc;
+
+@SpringBootTest
+@AutoConfigureMockMvc
+@AdditiveActiveProfiles(value = Profiles.LDAP)
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@DisplayName("Authentication Controller LDAP enabled tests")
+class AuthenticationControllerLdapEnabledTest {
+
+  @Value("${sitmun.authentication.ldap.url}")
+  private String url;
+
+  @Value("${sitmun.authentication.ldap.base-dn}")
+  private String baseDN;
+
+  @Value("${test.ldap.ldif}")
+  private String ldif;
+
+  @Value("${test.ldap.schema}")
+  private String schema;
+
+  @Autowired private MockMvc mvc;
+
+  @MockitoSpyBean private UserDetailsServiceImplementation userDetailsService;
+
+  private InMemoryDirectoryServer directoryServer;
+
+  @BeforeAll
+  void setupLdapServer() throws LDAPException {
+    InMemoryDirectoryServerConfig config = new InMemoryDirectoryServerConfig(baseDN);
+    int port = URI.create(url).getPort();
+    config.setListenerConfigs(InMemoryListenerConfig.createLDAPConfig("LDAP", port));
+    directoryServer = new InMemoryDirectoryServer(config);
+    directoryServer.applyChangesFromLDIF(schema);
+    directoryServer.importFromLDIF(false, ldif);
+    directoryServer.startListening();
+  }
+
+  @AfterAll
+  void shutdownLdapServer() {
+    directoryServer.shutDown(true);
+  }
+
+  @Test
+  @DisplayName("POST: A user that fails in LDAP and exists in SITMUN, must pass.")
+  void ldapFailureUserDetailsSuccessfulLogin() throws Exception {
+    UserPasswordAuthenticationRequest login = new UserPasswordAuthenticationRequest();
+    login.setUsername("admin");
+    login.setPassword("admin");
+
+    mvc.perform(
+            post("/api/authenticate")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(TestUtils.asJsonString(login)))
+        .andExpect(status().isOk())
+        .andExpect(cookie().exists(AuthenticationController.ACCESS_TOKEN_COOKIE_NAME));
+  }
+
+  @Test
+  @DisplayName("POST: A user that exists in LDAP and exists in SITMUN, must pass.")
+  void successfulLdapLogin() throws Exception {
+    UserPasswordAuthenticationRequest login = new UserPasswordAuthenticationRequest();
+    login.setUsername("internal");
+    login.setPassword("password12");
+
+    mvc.perform(
+            post("/api/authenticate")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(TestUtils.asJsonString(login)))
+        .andExpect(status().isOk())
+        .andExpect(cookie().exists(AuthenticationController.ACCESS_TOKEN_COOKIE_NAME));
+  }
+
+  @Test
+  @DisplayName("POST: A user that exists in LDAP and does not exist in SITMUN, must fail.")
+  void successfulLdapLoginNoExistsSitmun() throws Exception {
+    UserPasswordAuthenticationRequest login = new UserPasswordAuthenticationRequest();
+    login.setUsername("nositmunuser");
+    login.setPassword("nositmunpassword");
+
+    mvc.perform(
+            post("/api/authenticate")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(TestUtils.asJsonString(login)))
+        .andExpect(status().isUnauthorized());
+  }
+
+  @Test
+  @DisplayName("POST: role lookup failure for an LDAP user must not issue a session cookie")
+  void roleLookupDataAccessFailureReturnsUnauthorized() throws Exception {
+    AtomicBoolean populatorRejectedLookup = new AtomicBoolean();
+    doAnswer(
+            invocation -> {
+              for (StackTraceElement frame : Thread.currentThread().getStackTrace()) {
+                if (LdapUserAuthoritiesPopulator.class.getName().equals(frame.getClassName())) {
+                  populatorRejectedLookup.set(true);
+                  throw new DataAccessResourceFailureException("database unavailable");
+                }
+              }
+              return invocation.callRealMethod();
+            })
+        .when(userDetailsService)
+        .loadUserByUsername("internal");
+
+    UserPasswordAuthenticationRequest login = new UserPasswordAuthenticationRequest();
+    login.setUsername("internal");
+    login.setPassword("password12");
+
+    mvc.perform(
+            post("/api/authenticate")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(TestUtils.asJsonString(login)))
+        .andExpect(status().isUnauthorized())
+        .andExpect(cookie().doesNotExist(AuthenticationController.ACCESS_TOKEN_COOKIE_NAME));
+    assertThat(populatorRejectedLookup.get())
+        .as("role lookup must fail inside LdapUserAuthoritiesPopulator")
+        .isTrue();
+  }
+}

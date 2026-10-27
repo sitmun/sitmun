@@ -1,0 +1,80 @@
+package org.sitmun.domain.configuration;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonView;
+import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
+import java.util.List;
+import java.util.Objects;
+import lombok.*;
+import org.sitmun.authorization.client.dto.ClientConfigurationViews;
+import org.sitmun.domain.PersistenceConstants;
+
+/** Configuration parameter. */
+@Entity
+@Table(
+    name = "STM_CONF",
+    uniqueConstraints = @UniqueConstraint(name = "STM_CONF_NAME_UK", columnNames = "CNF_NAME"))
+@Builder
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
+public class ConfigurationParameter {
+
+  /** Unique identifier. */
+  @TableGenerator(
+      name = "STM_CONF_GEN",
+      table = "STM_SEQUENCE",
+      pkColumnName = "SEQ_NAME",
+      valueColumnName = "SEQ_COUNT",
+      pkColumnValue = "CNF_ID",
+      allocationSize = 1)
+  @Id
+  @GeneratedValue(strategy = GenerationType.TABLE, generator = "STM_CONF_GEN")
+  @Column(name = "CNF_ID")
+  private Integer id;
+
+  /** Parameter name. */
+  @Column(name = "CNF_NAME", length = PersistenceConstants.IDENTIFIER)
+  @NotBlank
+  @JsonView({
+    ClientConfigurationViews.Base.class,
+    ClientConfigurationViews.ApplicationTerritory.class
+  })
+  private String name;
+
+  /** Parameter value. */
+  @Column(name = "CNF_VALUE", length = PersistenceConstants.VALUE)
+  @JsonView({
+    ClientConfigurationViews.Base.class,
+    ClientConfigurationViews.ApplicationTerritory.class
+  })
+  private String value;
+
+  /**
+   * Transient save-time info keys (i18n). Set only when create/save coerces the stored value; not
+   * populated on read.
+   */
+  @Transient
+  @JsonInclude(JsonInclude.Include.NON_EMPTY)
+  private List<String> warnings;
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+
+    if (!(obj instanceof ConfigurationParameter other)) {
+      return false;
+    }
+
+    return Objects.equals(id, other.getId());
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(id);
+  }
+}

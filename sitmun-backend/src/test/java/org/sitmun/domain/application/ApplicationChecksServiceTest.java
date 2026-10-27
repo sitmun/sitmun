@@ -1,0 +1,217 @@
+package org.sitmun.domain.application;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.when;
+import static org.sitmun.test.Fixtures.createRoles;
+
+import java.util.List;
+import java.util.Set;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.sitmun.domain.user.User;
+import org.sitmun.domain.user.configuration.UserConfigurationRepository;
+import org.sitmun.infrastructure.security.core.SecurityConstants;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+
+@SpringBootTest
+@DisplayName("Application Checks Service Tests")
+class ApplicationChecksServiceTest {
+
+  @MockitoBean private UserConfigurationRepository userConfigurationRepository;
+
+  @Autowired private ApplicationChecksService applicationChecksService;
+
+  @Test
+  @DisplayName("Returns warning when private application has PUBLIC user")
+  @WithMockUser(roles = "ADMIN")
+  void returnsWarningWhenPrivateAppHasPublicUserRoles() {
+    // Given
+    Application app =
+        Application.builder()
+            .id(1)
+            .name("Private App")
+            .appPrivate(true)
+            .availableRoles(createRoles(1, 2))
+            .build();
+
+    when(userConfigurationRepository.existsByUserUsernameAndRoleIn(
+            eq(SecurityConstants.PUBLIC_PRINCIPAL), any(Set.class)))
+        .thenReturn(true);
+
+    // When
+    List<String> warnings = applicationChecksService.getWarnings(app);
+
+    // Then
+    assertThat(warnings).hasSize(1);
+    assertThat(warnings.get(0))
+        .contains("entity.application.warning.private-application-with-public-user");
+  }
+
+  @Test
+  @DisplayName("Returns no warnings when private application has no PUBLIC user")
+  @WithMockUser(roles = "ADMIN")
+  void returnsNoWarningsWhenPrivateAppHasNoPublicUserRoles() {
+    // Given
+    Application app =
+        Application.builder()
+            .id(1)
+            .name("Private App")
+            .appPrivate(true)
+            .availableRoles(createRoles(1, 2))
+            .build();
+
+    when(userConfigurationRepository.existsByUserUsernameAndRoleIn(
+            eq(SecurityConstants.PUBLIC_PRINCIPAL), any(Set.class)))
+        .thenReturn(false);
+
+    // When
+    List<String> warnings = applicationChecksService.getWarnings(app);
+
+    // Then
+    assertThat(warnings).isEmpty();
+  }
+
+  @Test
+  @DisplayName("Returns no warnings in public applications")
+  @WithMockUser(roles = "ADMIN")
+  void returnsNoWarningsWhenPublicAppHasPublicUserRoles() {
+    // Given
+    Application app =
+        Application.builder()
+            .id(1)
+            .name("Public App")
+            .appPrivate(false)
+            .availableRoles(createRoles(1, 2))
+            .build();
+
+    // When
+    List<String> warnings = applicationChecksService.getWarnings(app);
+
+    // Then
+    assertThat(warnings).isEmpty();
+  }
+
+  @Test
+  @DisplayName("Returns warning when external application has no URL")
+  @WithMockUser(roles = "ADMIN")
+  void returnsWarningWhenExternalAppHasNoUrl() {
+    Application app =
+        Application.builder().id(1).name("External App").type("E").jspTemplate(null).build();
+
+    List<String> warnings = applicationChecksService.getWarnings(app);
+
+    assertThat(warnings).contains("entity.application.warning.external-url-required");
+  }
+
+  @Test
+  @DisplayName("Warns when creator is built-in public (ineligible PoC)")
+  @WithMockUser(roles = "ADMIN")
+  void warnsWhenCreatorIsBuiltInPublic() {
+    User publicUser =
+        User.builder().id(1).username("public").blocked(false).administrator(false).build();
+    Application app =
+        Application.builder().id(1).name("App").appPrivate(false).creator(publicUser).build();
+
+    List<String> warnings = applicationChecksService.getWarnings(app);
+
+    assertThat(warnings).contains("entity.application.warning.invalid-point-of-contact");
+  }
+
+  @Test
+  @DisplayName("Warns when creator is blocked (ineligible PoC)")
+  @WithMockUser(roles = "ADMIN")
+  void warnsWhenCreatorIsBlocked() {
+    User blocked =
+        User.builder()
+            .id(5)
+            .username("alice")
+            .blocked(true)
+            .administrator(true)
+            .email("alice@example.com")
+            .build();
+    Application app =
+        Application.builder().id(1).name("App").appPrivate(false).creator(blocked).build();
+
+    List<String> warnings = applicationChecksService.getWarnings(app);
+
+    assertThat(warnings).contains("entity.application.warning.invalid-point-of-contact");
+  }
+
+  @Test
+  @DisplayName("Warns when eligible creator has no email")
+  @WithMockUser(roles = "ADMIN")
+  void warnsWhenEligibleCreatorHasNoEmail() {
+    User noEmail =
+        User.builder().id(5).username("alice").blocked(false).administrator(true).build();
+    Application app =
+        Application.builder().id(1).name("App").appPrivate(false).creator(noEmail).build();
+
+    List<String> warnings = applicationChecksService.getWarnings(app);
+
+    assertThat(warnings).contains("entity.application.warning.point-of-contact-email-missing");
+  }
+
+  @Test
+  @DisplayName("Does not warn about PoC when creator is null")
+  @WithMockUser(roles = "ADMIN")
+  void doesNotWarnAboutPocWhenCreatorIsNull() {
+    Application app = Application.builder().id(1).name("App").appPrivate(false).build();
+
+    List<String> warnings = applicationChecksService.getWarnings(app);
+
+    assertThat(warnings)
+        .doesNotContain("entity.application.warning.invalid-point-of-contact")
+        .doesNotContain("entity.application.warning.point-of-contact-email-missing");
+  }
+
+  @Test
+  @DisplayName("Does not warn about PoC when eligible creator has email")
+  @WithMockUser(roles = "ADMIN")
+  void doesNotWarnAboutPocWhenEligibleCreatorHasEmail() {
+    User user =
+        User.builder()
+            .id(5)
+            .username("alice")
+            .blocked(false)
+            .administrator(true)
+            .email("alice@example.com")
+            .build();
+    Application app =
+        Application.builder().id(1).name("App").appPrivate(false).creator(user).build();
+
+    List<String> warnings = applicationChecksService.getWarnings(app);
+
+    assertThat(warnings)
+        .doesNotContain("entity.application.warning.invalid-point-of-contact")
+        .doesNotContain("entity.application.warning.point-of-contact-email-missing");
+  }
+
+  @Test
+  @DisplayName("Non-admin getWarnings returns null")
+  @WithMockUser(roles = "USER")
+  void returnsNullWhenUserIsNotAdmin() {
+    // Given
+    Application app =
+        Application.builder()
+            .id(1)
+            .name("Private App")
+            .appPrivate(true)
+            .availableRoles(createRoles(1, 2))
+            .build();
+
+    when(userConfigurationRepository.existsByUserUsernameAndRoleIn(
+            eq(SecurityConstants.PUBLIC_PRINCIPAL), any(Set.class)))
+        .thenReturn(true);
+
+    // When
+    List<String> warnings = applicationChecksService.getWarnings(app);
+
+    // Then
+    assertThat(warnings).isNull();
+  }
+}

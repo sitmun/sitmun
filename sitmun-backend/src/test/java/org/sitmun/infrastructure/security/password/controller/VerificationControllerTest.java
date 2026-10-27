@@ -1,0 +1,213 @@
+package org.sitmun.infrastructure.security.password.controller;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.sitmun.domain.user.User;
+import org.sitmun.domain.user.UserRepository;
+import org.sitmun.infrastructure.security.password.dto.PasswordVerificationRequest;
+import org.sitmun.test.TestUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.transaction.annotation.Transactional;
+
+@SpringBootTest
+@AutoConfigureMockMvc
+@DisplayName("Verification Controller tests")
+@Transactional
+class VerificationControllerTest {
+
+  @Autowired private MockMvc mvc;
+
+  @Autowired private UserRepository userRepository;
+
+  @BeforeEach
+  void cleanUp() {
+    userRepository.findByUsername("admin").orElseThrow();
+    // Clean up test users with various usernames that might exist from previous test runs
+    userRepository.findByUsername("testuser").ifPresent(userRepository::delete);
+    userRepository.findByUsername("testuser-existing").ifPresent(userRepository::delete);
+    userRepository.findByUsername("testuser-case").ifPresent(userRepository::delete);
+  }
+
+  @AfterEach
+  void cleanupTestUsers() {
+    // Clean up test users created during this test run
+    userRepository.findByUsername("testuser").ifPresent(userRepository::delete);
+    userRepository.findByUsername("testuser-existing").ifPresent(userRepository::delete);
+    userRepository.findByUsername("testuser-case").ifPresent(userRepository::delete);
+  }
+
+  @Test
+  @DisplayName("POST: Verify password with valid credentials returns true")
+  @WithMockUser(username = "admin", roles = "USER")
+  void verifyPasswordWithValidCredentials() throws Exception {
+    checkPassword("admin", true);
+  }
+
+  @Test
+  @DisplayName("POST: Verify password with invalid credentials returns false")
+  @WithMockUser(username = "admin", roles = "USER")
+  void verifyPasswordWithInvalidCredentials() throws Exception {
+    checkPassword("wrongpassword", false);
+  }
+
+  @Test
+  @DisplayName("POST: Verify password with empty password returns false")
+  @WithMockUser(username = "admin", roles = "USER")
+  void verifyPasswordWithEmptyPassword() throws Exception {
+    checkPassword("", false);
+  }
+
+  void checkPassword(String password, boolean expectedResult) throws Exception {
+    PasswordVerificationRequest request = new PasswordVerificationRequest();
+    request.setPassword(password);
+
+    mvc.perform(
+            post("/api/user-verification/verify-password")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(TestUtils.asJsonString(request)))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$").value(expectedResult));
+  }
+
+  @Test
+  @DisplayName("POST: Verify password with null password returns bad request")
+  @WithMockUser(username = "admin", roles = "USER")
+  void verifyPasswordWithNullPassword() throws Exception {
+    PasswordVerificationRequest request = new PasswordVerificationRequest();
+    request.setPassword(null);
+
+    mvc.perform(
+            post("/api/user-verification/verify-password")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(TestUtils.asJsonString(request)))
+        .andExpect(status().isBadRequest());
+  }
+
+  @Test
+  @DisplayName("POST: Verify email with existing email returns true")
+  @WithMockUser(roles = "USER")
+  void verifyEmailWithExistingEmail() throws Exception {
+    // Unique email/username (≤50 chars) to avoid NonUniqueResultException when other tests leave
+    // users with same email
+    String uid = java.util.UUID.randomUUID().toString().substring(0, 8);
+    String uniqueEmail = "vrfy-ex-" + uid + "@example.com";
+    User testUser = new User();
+    testUser.setUsername("vrfy-ex-" + uid);
+    testUser.setEmail(uniqueEmail);
+    testUser.setPassword("password");
+    testUser.setAdministrator(false);
+    testUser.setBlocked(false);
+    userRepository.save(testUser);
+
+    assertThat(userRepository.findByEmail(uniqueEmail)).isPresent();
+
+    mvc.perform(
+            post("/api/user-verification/verify-email")
+                .contentType(MediaType.TEXT_PLAIN)
+                .content(uniqueEmail))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$").value(true));
+  }
+
+  @Test
+  @DisplayName("POST: Verify email with non-existing email returns false")
+  @WithMockUser(roles = "USER")
+  void verifyEmailWithNonExistingEmail() throws Exception {
+    String email = "nonexistent@example.com";
+
+    mvc.perform(
+            post("/api/user-verification/verify-email")
+                .contentType(MediaType.TEXT_PLAIN)
+                .content(email))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$").value(false));
+  }
+
+  @Test
+  @DisplayName("POST: Verify email with empty email returns false")
+  @WithMockUser(roles = "USER")
+  void verifyEmailWithEmptyEmail() throws Exception {
+    mvc.perform(
+            post("/api/user-verification/verify-email")
+                .contentType(MediaType.TEXT_PLAIN)
+                .content(""))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$").value(false));
+  }
+
+  @Test
+  @DisplayName("POST: Verify email with null email returns false")
+  @WithMockUser(roles = "USER")
+  void verifyEmailWithNullEmail() throws Exception {
+    mvc.perform(
+            post("/api/user-verification/verify-email")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("null"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$").value(false));
+  }
+
+  @Test
+  @DisplayName("POST: Verify email is case insensitive")
+  @WithMockUser(roles = "USER")
+  void verifyEmailCaseInsensitive() throws Exception {
+    // Unique email/username (≤50 chars) to avoid conflict with other tests
+    String uid = java.util.UUID.randomUUID().toString().substring(0, 8);
+    String emailLower = "vrfy-case-" + uid + "@example.com";
+    User testUser = new User();
+    testUser.setUsername("vrfy-case-" + uid);
+    testUser.setEmail(emailLower);
+    testUser.setPassword("password");
+    testUser.setAdministrator(false);
+    testUser.setBlocked(false);
+    userRepository.save(testUser);
+
+    mvc.perform(
+            post("/api/user-verification/verify-email")
+                .contentType(MediaType.TEXT_PLAIN)
+                .content(emailLower.toUpperCase()))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$").value(true));
+  }
+
+  @Test
+  @DisplayName("POST verify-password without credentials returns 401")
+  void unauthenticatedRequestsReturn401() throws Exception {
+    PasswordVerificationRequest request = new PasswordVerificationRequest();
+    request.setPassword("admin");
+
+    mvc.perform(
+            post("/api/user-verification/verify-password")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(TestUtils.asJsonString(request)))
+        .andExpect(status().isUnauthorized());
+  }
+
+  @Test
+  @DisplayName(
+      "POST: Verify password with BadCredentialsException should return false with OK status")
+  @WithMockUser(username = "admin", roles = "USER")
+  void verifyPasswordWithBadCredentialsExceptionReturnsFalseWithOkStatus() throws Exception {
+    PasswordVerificationRequest request = new PasswordVerificationRequest();
+    request.setPassword("wrongpassword");
+
+    mvc.perform(
+            post("/api/user-verification/verify-password")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(TestUtils.asJsonString(request)))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$").value(false));
+  }
+}

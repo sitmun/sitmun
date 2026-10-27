@@ -1,0 +1,42 @@
+package org.sitmun.infrastructure.persistence.type.i18n;
+
+import static org.hamcrest.Matchers.hasItem;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.sitmun.test.URIConstants;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.test.web.servlet.MockMvc;
+
+@SpringBootTest
+@AutoConfigureMockMvc
+@DisplayName("Locale Repository Data REST test")
+class LocaleRepositoryDataRestTest {
+
+  @Autowired private MockMvc mvc;
+
+  @Test
+  @DisplayName("GET: Obtain original version")
+  void obtainOriginalVersion() throws Exception {
+    mvc.perform(get(URIConstants.LANGUAGES_URI))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$._embedded.languages[?(@.shortname == 'en')].name").value("English"));
+  }
+
+  @Test
+  @DisplayName("GET: ?lang=es keeps endonym on name; locale label on translatedName")
+  void obtainTranslatedVersionSpa() throws Exception {
+    mvc.perform(get(URIConstants.LANGUAGES_URI + "?lang=es"))
+        .andExpect(status().isOk())
+        .andExpect(
+            jsonPath("$._embedded.languages[?(@.shortname == 'en')].name", hasItem("English")))
+        .andExpect(
+            jsonPath(
+                "$._embedded.languages[?(@.shortname == 'en')].translatedName", hasItem("Inglés")));
+  }
+}
