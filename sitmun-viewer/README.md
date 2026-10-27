@@ -3,7 +3,7 @@
 [![License: EUPL v1.2](https://img.shields.io/badge/License-EUPL%20v1.2-blue.svg)](LICENSE)
 ![Version](https://img.shields.io/badge/version-1.2.9-blue.svg)
 
-The **SITMUN Viewer Application** is the Angular 19 frontend for visualizing geospatial applications managed by the SITMUN platform. It integrates with the [SITMUN Backend Core](https://github.com/sitmun/sitmun-backend-core) REST API.
+The **SITMUN Viewer Application** is the Angular 22 frontend for visualizing geospatial applications managed by the SITMUN platform. It integrates with the SITMUN backend REST API in [sitmun/sitmun](https://github.com/sitmun/sitmun).
 
 ## Table of Contents
 
@@ -67,8 +67,8 @@ This frontend integrates with the [SITMUN Backend Core](https://github.com/sitmu
 
 ```bash
 # Clone the repository
-git clone https://github.com/sitmun/sitmun-application-stack.git
-cd sitmun-application-stack/front/viewer/sitmun-viewer-app
+git clone --branch dev https://github.com/sitmun/sitmun.git
+cd sitmun/sitmun-viewer
 
 # Install dependencies
 npm ci
@@ -88,8 +88,8 @@ The application will connect to a backend at `https://your-backend.example.com` 
 1. **Clone the Repository**
 
 ```bash
-git clone https://github.com/sitmun/sitmun-application-stack.git
-cd sitmun-application-stack/front/viewer/sitmun-viewer-app
+git clone --branch dev https://github.com/sitmun/sitmun.git
+cd sitmun/sitmun-viewer
 ```
 
 1. **Install Dependencies**
@@ -139,7 +139,7 @@ src/environments/
 └── environment.prod.ts   # Production file replacement
 ```
 
-`angular.json` gives `fileReplacements` to `production` (`environment.prod.ts`) and `e2e` (`environment.e2e.ts`). `development` and `docker-dev` have none, so both compile `environment.ts`. `front/Dockerfile` writes `environment.prod.ts` from `environment.prod.ts.template` with `envsubst`, then runs `--configuration=docker-dev` when `ENVIRONMENT=development` and `--configuration=production` otherwise. Only the production configuration compiles that generated file.
+`angular.json` gives `fileReplacements` to `production` (`environment.prod.ts`) and `e2e` (`environment.e2e.ts`). `development` and `docker-dev` have none, so both compile `environment.ts`. `docker/front/Dockerfile` writes `environment.prod.ts` from `docker/front/viewer/environment.prod.ts.template` with `envsubst`, then runs `--configuration=docker-dev` when `ENVIRONMENT=development` and `--configuration=production` otherwise. Only the production configuration compiles that generated file.
 
 ### Environment Variables
 
@@ -174,7 +174,7 @@ npm run build -- --configuration=production
 npm run build -- --configuration=production --base-href=/viewer/
 ```
 
-For Docker builds, use the parent stack's docker-compose:
+For Docker builds, use the root `compose.yaml` in [sitmun/sitmun](https://github.com/sitmun/sitmun):
 
 ```bash
 # Production Docker build (default)
@@ -660,9 +660,7 @@ git commit -m "style(formatting): apply prettier formatting"
 ### Getting Help
 
 - **Documentation**: Check this README and inline code documentation
-- **Issues**: [GitHub Issues](https://github.com/sitmun/sitmun-application-stack/issues)
-- **Backend Issues**: [Backend Core Issues](https://github.com/sitmun/sitmun-backend-core/issues)
-- **Admin App Issues**: [Admin App Issues](https://github.com/sitmun/sitmun-admin-app/issues)
+- **Issues**: [GitHub Issues](https://github.com/sitmun/sitmun/issues)
 
 ### Reporting Issues
 
