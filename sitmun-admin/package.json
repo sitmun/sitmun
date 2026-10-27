@@ -36,7 +36,7 @@
     "@angular/platform-browser-dynamic": "^22.2.3",
     "@angular/router": "^22.2.3",
     "@ngx-translate/core": "^17.0.0",
-    "@ngx-translate/http-loader": "^17.0.0",
+    "@ngx-translate/http-loader": "^18.0.0",
     "@tiptap/core": "^2.11.5",
     "@tiptap/extension-color": "^2.27.2",
     "@tiptap/extension-highlight": "^2.27.2",
