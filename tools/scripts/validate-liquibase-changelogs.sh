@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Lists each changelog's last modification date (newest first). Uses working tree only (uncommitted moves/changes are reflected).
-# Note: these changelogs were moved from back/backend/sitmun-backend-core/config/db/changelog (back/backend/config).
+# Note: the backend changelog lives at sitmun-backend/config/db/changelog.
 # Usage: ./tools/validate-liquibase-changelogs.sh [liquibase_dir]
 #   liquibase_dir: path from repo root (default: profiles/development/backend/liquibase), or absolute path.
 

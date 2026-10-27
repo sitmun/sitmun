@@ -76,7 +76,7 @@ def main(argv: list[str] | None = None) -> int:
         "--domain-root",
         type=Path,
         default=None,
-        help="Path to org/sitmun/domain (default: backend submodule)",
+        help="Path to org/sitmun/domain (default: sitmun-backend)",
     )
     p.add_argument("--out", type=Path, required=True)
     args = p.parse_args(argv)
@@ -84,7 +84,7 @@ def main(argv: list[str] | None = None) -> int:
     repo = Path(__file__).resolve().parents[2]
     domain = args.domain_root or (
         repo
-        / "back/backend/sitmun-backend-core/src/main/java/org/sitmun/domain"
+        / "sitmun-backend/src/main/java/org/sitmun/domain"
     )
     if not domain.is_dir():
         print(f"Domain root not found: {domain}", file=sys.stderr)

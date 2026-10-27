@@ -54,7 +54,7 @@ class Violation:
 class ChangelogChecker:
     """Checks Liquibase changelog integrity"""
     
-    def __init__(self, changelog_dir: str = "back/backend/sitmun-backend-core/config/db/changelog"):
+    def __init__(self, changelog_dir: str = "sitmun-backend/config/db/changelog"):
         self.changelog_dir = Path(changelog_dir)
         self.repo_root = self._resolve_repo_root()
 

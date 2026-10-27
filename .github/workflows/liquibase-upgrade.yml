@@ -1,7 +1,24 @@
 name: Liquibase upgrade
 
 on:
+  pull_request:
+    branches: [dev]
+    paths:
+      - 'profiles/postgres/liquibase/**'
+      - 'profiles/oracle/liquibase/**'
+      - 'profiles/development/backend/liquibase/**'
+      - 'sitmun-backend/config/db/**'
+      - 'tools/tests/test_liquibase_1.2.7_to_head_upgrade.sh'
+      - 'tools/tests/test_liquibase_codelist_auth_mode_swap.sh'
+      - 'tools/tests/test_prepare_extracted_liquibase.py'
+      - 'tools/bin/prepare_extracted_liquibase.py'
+      - '.github/workflows/liquibase-upgrade.yml'
   workflow_dispatch:
+    inputs:
+      source:
+        description: Optional X.Y.Z override for a single postgres-from run
+        required: false
+        default: ''
 
 jobs:
   prepare-extracted-unit:
@@ -26,8 +43,8 @@ jobs:
 
       - name: Fetch 1.2.7 and 1.2.8 tags
         run: |
-          git fetch --no-tags origin tag sitmun-application-stack/1.2.7
-          git fetch --no-tags origin tag sitmun-application-stack/1.2.8
+          git fetch --no-tags origin tag legacy/sitmun-application-stack/sitmun-application-stack/1.2.7
+          git fetch --no-tags origin tag legacy/sitmun-application-stack/sitmun-application-stack/1.2.8
 
       - name: Upgrade 1.2.7 then 1.2.8 fail then HEAD
         run: bash tools/tests/test_liquibase_1.2.7_to_head_upgrade.sh postgres
@@ -47,7 +64,7 @@ jobs:
           fetch-tags: true
 
       - name: Fetch source tag
-        run: git fetch --no-tags origin tag sitmun-application-stack/${{ matrix.source }}
+        run: git fetch --no-tags origin tag legacy/sitmun-application-stack/sitmun-application-stack/${{ matrix.source }}
 
       - name: Upgrade ${{ matrix.source }} to HEAD
         run: bash tools/tests/test_liquibase_1.2.7_to_head_upgrade.sh postgres-from ${{ matrix.source }}
@@ -79,7 +96,7 @@ jobs:
           fetch-tags: true
 
       - name: Fetch source tag
-        run: git fetch --no-tags origin tag sitmun-application-stack/${{ matrix.source }}
+        run: git fetch --no-tags origin tag legacy/sitmun-application-stack/sitmun-application-stack/${{ matrix.source }}
 
       - name: Upgrade Oracle ${{ matrix.source }} to HEAD
         run: bash tools/tests/test_liquibase_1.2.7_to_head_upgrade.sh oracle-from ${{ matrix.source }}
@@ -98,7 +115,7 @@ jobs:
           fetch-tags: true
 
       - name: Fetch 1.2.7 tag
-        run: git fetch --no-tags origin tag sitmun-application-stack/1.2.7
+        run: git fetch --no-tags origin tag legacy/sitmun-application-stack/sitmun-application-stack/1.2.7
 
       - name: Upgrade Oracle 1.2.7 to HEAD on XE 21
         env:
@@ -116,7 +133,7 @@ jobs:
           fetch-tags: true
 
       - name: Fetch 1.2.6 tag
-        run: git fetch --no-tags origin tag sitmun-application-stack/1.2.6
+        run: git fetch --no-tags origin tag legacy/sitmun-application-stack/sitmun-application-stack/1.2.6
 
       - name: Upgrade development PostgreSQL 1.2.6 to HEAD
         run: bash tools/tests/test_liquibase_1.2.7_to_head_upgrade.sh dev-postgres-from 1.2.6
@@ -132,7 +149,7 @@ jobs:
           fetch-tags: true
 
       - name: Fetch 1.2.6 tag
-        run: git fetch --no-tags origin tag sitmun-application-stack/1.2.6
+        run: git fetch --no-tags origin tag legacy/sitmun-application-stack/sitmun-application-stack/1.2.6
 
       - name: Upgrade development Oracle 1.2.6 to HEAD
         run: bash tools/tests/test_liquibase_1.2.7_to_head_upgrade.sh dev-oracle-from 1.2.6

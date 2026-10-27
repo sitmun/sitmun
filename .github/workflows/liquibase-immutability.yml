@@ -1,6 +1,14 @@
 name: Liquibase immutability
 
 on:
+  pull_request:
+    branches: [dev]
+    paths:
+      - 'profiles/**/liquibase/**'
+      - 'sitmun-backend/config/db/**'
+      - 'tools/bin/check_changelog_immutability.py'
+      - 'tools/tests/test_changelog_immutability.py'
+      - '.github/workflows/liquibase-immutability.yml'
   workflow_dispatch:
 
 jobs:

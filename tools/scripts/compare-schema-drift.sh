@@ -144,10 +144,10 @@ liquibase_pg() {
 jpa_reference_schema() {
   local jdbc_url="$1" user="$2" pass="$3" dialect="$4"
   shift 4
-  local backend="$REPO_ROOT/back/backend/sitmun-backend-core"
+  local backend="$REPO_ROOT/sitmun-backend"
   local log=/tmp/sitmun-jpa-schema-export.log
   if [[ ! -d "$backend" ]]; then
-    echo "sitmun-backend-core missing; cannot --against jpa" >&2
+    echo "sitmun-backend missing; cannot --against jpa" >&2
     return 2
   fi
   local -a spring_args=(

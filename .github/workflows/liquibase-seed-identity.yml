@@ -1,6 +1,15 @@
 name: Liquibase seed identity
 
 on:
+  pull_request:
+    branches: [dev]
+    paths:
+      - '**/02_codelists/STM_CODELIST.csv'
+      - '**/02_codelists/stm_codelist.csv'
+      - 'sitmun-backend/config/db/**'
+      - 'tools/bin/check_seed_identity_swap.py'
+      - 'tools/tests/test_seed_identity_swap.py'
+      - '.github/workflows/liquibase-seed-identity.yml'
   workflow_dispatch:
 
 jobs:
