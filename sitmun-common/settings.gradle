@@ -13,4 +13,4 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = 'sitmun-shared'
-include 'sitmun-catalog', 'sitmun-spring-upstream', 'sitmun-proxy-contract'
+include 'sitmun-spring-upstream', 'sitmun-proxy-contract'
