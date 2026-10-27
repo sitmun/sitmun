@@ -1,0 +1,33 @@
+package org.sitmun.authorization.client.dto;
+
+import java.util.Date;
+import java.util.Map;
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter
+@Setter
+public class ApplicationDtoLittle {
+  private int id;
+  private String name;
+  private String title;
+  private String type;
+  private String logo;
+  private String description;
+  private String maintenanceInformation;
+  private Boolean isUnavailable;
+  private Boolean appPrivate;
+  private Date lastUpdate;
+
+  /** Institutional contact email for the application; null when no approved email is configured. */
+  private String pointOfContact;
+
+  /** Name of the institution responsible for this application. */
+  private String responsibleInstitutionName;
+
+  private Map<String, Object> headerParams;
+  private Map<String, String> config;
+
+  /** External portal URL; populated only when type is external and jspTemplate is set. */
+  private String externalUrl;
+}

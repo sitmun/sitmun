@@ -1,0 +1,907 @@
+openapi: 3.0.3
+
+servers:
+  - url: http://localhost:8080
+    description: Servidor local de desarrollo
+
+info:
+  title: SITMUN 3 - API de Configuración y Autorización
+  description: |-
+    La **API de Configuración y Autorización** expone vía una API Web mecanismos para obtener una configuración 
+    derivada del estado actual de los objetos de dominio en función de la identidad y rol del que solicita
+    la información. Esta API se ha creado para que los **visores de mapas** y el **proxy** puedan configurarse.
+    
+    La **API de Configuración y Autorización** se compone de dos tipos de endpoints:
+    - **Configuración y Autorización de Visor de mapas**. La petición puede usar la cookie
+      `access_token` obtenida mediante la **API de Autenticación**. Sin una cookie válida,
+      se asume el usuario público de SITMUN.
+      
+      **Control de Privacidad de Aplicaciones**: Las aplicaciones pueden configurarse como privadas para restringir 
+      el acceso de usuarios públicos. Solo los usuarios autenticados pueden acceder a aplicaciones privadas.
+    - **Configuración y Autorización de Proxy**. La petición debe autenticarse usando una 
+      [API key](https://swagger.io/docs/specification/authentication/api-keys/) enviada mediante
+      la cabecera denominada `X-SITMUN-Proxy-Key`.
+      El uso de una API key específica para el endpoint  **Configuración y Autorización de Proxy** es una decisión de 
+      seguridad. Evita que a un cliente malicioso le pueda bastar el uso del token obtenido de la 
+      **API de Autenticación** para obtener secretos vía el endpoint **Configuración y Autorización de Proxy**.
+
+    ---
+
+    #### La documentación de esta API está en desarrollo 
+
+    El contenido de **Configuración y Autorización de Proxy** seguirá mejorando (aunque serán cambios menores) 
+    en los próximos días para ayudar a los desarrolladores que están trabajando en el proyecto SITMUN.
+    
+    **Configuración y Autorización de Visor de mapas** está en proceso de definición.
+    
+    ---
+
+  license:
+    name: EUPL 1.2
+    url: https://raw.githubusercontent.com/sitmun/sitmun-backend-core/master/LICENSE
+  version: 1.2.9
+  contact:
+    name: Comité técnico SITMUN
+    url: https://sitmun.github.io/contacto/
+
+tags:
+  - name: Configuración y Autorización de Proxy
+    description: API de Configuración y Autorización de Proxy.
+
+  - name: Configuración y Autorización de Visor de mapas
+    description: API de Configuración y Autorización de Visor de mapas (**En desarrollo**).
+
+paths:
+
+  /api/config/client/application:
+    get:
+      tags:
+        - Configuración y Autorización de Visor de mapas
+      summary: |-
+        Aplicaciones para un visor de mapas.
+      description: |-
+        Este endpoint devuelve las aplicaciones que el visor de mapas puede mostrar.
+
+        La sesión autenticada se recibe en la cookie `access_token`.
+        Sin una cookie válida, la petición usa el usuario público de SITMUN.
+      operationId: applicationsList
+      security:
+        - cookieAuth: [ ]
+        - { }
+      parameters:
+        - name: size
+          in: query
+          description: Tamaño de la página solicitada.
+          required: false
+          schema:
+            type: integer
+            default: 100000
+        - name: page
+          in: query
+          description: Número de página.
+          required: false
+          schema:
+            type: integer
+            default: 0
+      responses:
+        '200':
+          description: |-
+            Listado de las Aplicaciones SITMUN disponibles por el visor de mapas para el usuario que hace la petición.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  content:
+                    description: Lista de aplicaciones disponibles.
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Application'
+                  totalPages:
+                    description: Número total de páginas.
+                    type: integer
+                    format: int32
+                  size:
+                    description: Tamaño de la página.
+                    type: integer
+                    format: int32
+                  number:
+                    description: Número de página.
+                    type: integer
+                    format: int32
+        '401':
+          description: La credencial de autenticación no es válida o ha expirado.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '403':
+          description: El principal identificado no puede acceder a las aplicaciones solicitadas.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  /api/config/client/application/{appId}/territories:
+    get:
+      tags:
+        - Configuración y Autorización de Visor de mapas
+      summary: |-
+        Territorios para una aplicación en un visor de mapas.
+      description: |-
+        Este endpoint devuelve los territorios que el visor de mapas puede mostrar para una aplicación.
+
+        La sesión autenticada se recibe en la cookie `access_token`.
+        Sin una cookie válida, la petición usa el usuario público de SITMUN.
+      operationId: applicationTerritoriesList
+      security:
+        - cookieAuth: [ ]
+        - { }
+      parameters:
+        - name: appId
+          in: path
+          description: Identificador de la aplicación.
+          required: true
+          schema:
+            type: integer
+        - name: size
+          in: query
+          description: Tamaño de la página solicitada.
+          required: false
+          schema:
+            type: integer
+            default: 100000
+        - name: page
+          in: query
+          description: Número de página.
+          required: false
+          schema:
+            type: integer
+            default: 0
+      responses:
+        '200':
+          description: |-
+            Listado de los territorios SITMUN disponibles por el visor de mapas para el usuario que hace la petición.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  content:
+                    description: Lista de aplicaciones disponibles.
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Territory'
+                  totalPages:
+                    description: Número total de páginas.
+                    type: integer
+                    format: int32
+                  size:
+                    description: Tamaño de la página.
+                    type: integer
+                    format: int32
+                  number:
+                    description: Número de página.
+                    type: integer
+                    format: int32
+        '401':
+          description: La credencial de autenticación no es válida o ha expirado.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '403':
+          description: El principal identificado no puede acceder a los territorios solicitados.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  /api/config/client/territory:
+    get:
+      tags:
+        - Configuración y Autorización de Visor de mapas
+      summary: |-
+        Territorios para un visor de mapas.
+      description: |-
+        Este endpoint devuelve los territorios que el visor de mapas puede mostrar.
+
+        La sesión autenticada se recibe en la cookie `access_token`.
+        Sin una cookie válida, la petición usa el usuario público de SITMUN.
+      operationId: territoriesList
+      security:
+        - cookieAuth: [ ]
+        - { }
+      parameters:
+        - name: size
+          in: query
+          description: Tamaño de la página solicitada.
+          required: false
+          schema:
+            type: integer
+            default: 100000
+        - name: page
+          in: query
+          description: Número de página.
+          required: false
+          schema:
+            type: integer
+            default: 0
+      responses:
+        '200':
+          description: |-
+            Listado de los territorios SITMUN disponibles por el visor de mapas para el usuario que hace la petición.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  content:
+                    description: Lista de aplicaciones disponibles.
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Territory'
+                  totalPages:
+                    description: Número total de páginas.
+                    type: integer
+                    format: int32
+                  size:
+                    description: Tamaño de la página.
+                    type: integer
+                    format: int32
+                  number:
+                    description: Número de página.
+                    type: integer
+                    format: int32
+        '401':
+          description: La credencial de autenticación no es válida o ha expirado.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '403':
+          description: El principal identificado no puede acceder a los territorios solicitados.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  /api/config/client/territory/{terrId}/applications:
+    get:
+      tags:
+        - Configuración y Autorización de Visor de mapas
+      summary: |-
+        Listado de aplicaciones de un territorio.
+      description: |-
+        Este endpoint devuelve las aplicaciones que el visor de mapas puede mostrar en un territorio.
+
+        La sesión autenticada se recibe en la cookie `access_token`.
+        Sin una cookie válida, la petición usa el usuario público de SITMUN.
+      operationId: territoryApplicationsList
+      security:
+        - cookieAuth: [ ]
+        - { }
+      parameters:
+        - name: terrId
+          in: path
+          description: Identificador del territorio.
+          required: true
+          schema:
+            type: integer
+        - name: size
+          in: query
+          description: Tamaño de la página solicitada.
+          required: false
+          schema:
+            type: integer
+            default: 100000
+        - name: page
+          in: query
+          description: Número de página.
+          required: false
+          schema:
+            type: integer
+            default: 0
+      responses:
+        '200':
+          description: |-
+            Descripción Listado de las Aplicaciones SITMUN disponibles por el visor de mapas para el usuario que hace la petición en un territorio.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  content:
+                    description: Lista de aplicaciones disponibles.
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Application'
+                  totalPages:
+                    description: Número total de páginas.
+                    type: integer
+                    format: int32
+                  size:
+                    description: Tamaño de la página.
+                    type: integer
+                    format: int32
+                  number:
+                    description: Número de página.
+                    type: integer
+                    format: int32
+        '401':
+          description: La credencial de autenticación no es válida o ha expirado.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '403':
+          description: El principal identificado no puede acceder a las aplicaciones solicitadas.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  /api/config/client/profile/{appId}/{terrId}:
+    get:
+      tags:
+        - Configuración y Autorización de Visor de mapas
+      summary: |-
+        Configuración para un visor de mapas para un territorio y aplicación determinados.
+      description: |-
+        Este endpoint devuelve la configuración para un territorio y aplicación determinado.
+
+        La sesión autenticada se recibe en la cookie `access_token`.
+        Sin una cookie válida, la petición usa el usuario público de SITMUN.
+      operationId: profile
+      security:
+        - cookieAuth: [ ]
+        - { }
+      parameters:
+        - name: appId
+          in: path
+          description: Identificador de la aplicación.
+          required: true
+          schema:
+            type: integer
+        - name: terrId
+          in: path
+          description: Identificador del territorio.
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: |-
+            Configuración para el visor de mapas.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  application:
+                    description: Configuración relacionada con la aplicación.
+                    type: object
+                    properties:
+                      id:
+                        description: Identificador de la aplicación.
+                        type: integer
+                        format: int32
+                      title:
+                        description: Nombre de la aplicación.
+                        type: string
+                      type:
+                        description: Tipo de la aplicación.
+                        type: string
+                      theme:
+                        description: Tema que usa la aplicación.
+                        type: string
+                      srs:
+                        description: Sistema de coordenadas.
+                        type: string
+                      situation-map:
+                        description: Identificación del grupo que actúa como mapa de situación.
+                        type: string
+                      initialExtent:
+                        description: Extensión inicial del territorio.
+                        type: array
+                        items:
+                          type: number
+                          format: double
+                  backgrounds:
+                    description: Grupos que pueden ser usados como fondos.
+                    type: array
+                    items:
+                      type: object
+                      description: Grupo que puede ser usado como fondo.
+                      properties:
+                        id:
+                          description: Identificador del grupo.
+                          type: string
+                        title:
+                          description: Título del grupo.
+                          type: string
+                  groups:
+                    description: Lista de grupos.
+                    type: array
+                    items:
+                      type: object
+                      description: Grupo de cartografía.
+                      properties:
+                        id:
+                          description: Identificador del grupo.
+                          type: string
+                        title:
+                          description: Título del grupo.
+                          type: string
+                        layers:
+                          type: array
+                          items:
+                            description: Identificador de la cartografía.
+                            type: string
+                  layers:
+                    description: Lista de cartografías.
+                    type: array
+                    items:
+                      type: object
+                      description: Cartografía.
+                      properties:
+                        id:
+                          description: Identificador de la cartografía.
+                          type: string
+                        title:
+                          description: Título de la cartografía.
+                          type: string
+                        layers:
+                          type: array
+                          items:
+                            description: Capas de la cartografía.
+                            type: string
+                        service:
+                          description: Identificador del servicio.
+                          type: string
+                        queryableFeatureEnabled:
+                          description: >-
+                            Si es false, las capacidades WMS fusionadas marcan la capa como no
+                            consultable (GetFeatureInfo).
+                          type: boolean
+                  services:
+                    description: Lista de servicios.
+                    type: array
+                    items:
+                      description: Servicio de la cartografía.
+                      type: object
+                      properties:
+                        id:
+                          description: Identificador del servicio.
+                          type: string
+                        url:
+                          description: URL del servicio.
+                          type: string
+                        type:
+                          description: Tipo de servicio.
+                          type: string
+                        parameters:
+                          type: object
+                          additionalProperties:
+                            type: string
+                  tasks:
+                    description: Lista de tareas.
+                    type: array
+                    items:
+                      description: Tarea.
+                      type: object
+                      properties:
+                        id:
+                          description: Identificador de la tarea.
+                          type: string
+                        ui-control:
+                          description: Control de interfaz de usuario.
+                          type: string
+                        parameters:
+                          description: Parámetros de la tarea.
+                          type: object
+                          additionalProperties: true
+                  trees:
+                    description: Lista de árboles.
+                    type: array
+                    items:
+                      description: Árbol.
+                      type: object
+                      properties:
+                        id:
+                          description: Identificador del árbol.
+                          type: string
+                        title:
+                          description: Título del árbol.
+                          type: string
+                        image:
+                          description: Imagen del árbol.
+                          type: string
+                        rootNode:
+                          description: Identificador del nodo raíz.
+                          type: string
+                        nodes:
+                          type: object
+                          description: Mapa de nodos; la clave es el identificador del nodo.
+                          additionalProperties:
+                            type: object
+                            description: Nodo del árbol.
+                            properties:
+                              title:
+                                description: Título del nodo.
+                                type: string
+                              resource:
+                                description: |-
+                                  Si el nodo es una carpeta el valor es `null`.
+                                  Si el nodo es una hoja el valor identifica el recurso asociado.
+                                type: string
+                              isRadio:
+                                description: |-
+                                  Si el nodo es una carpeta indica si el nodo es de selección única.
+                                  Si el nodo es una hoja el valor es `null`.
+                              loadData:
+                                description: |-
+                                  Si el nodo es una carpeta indica si al pulsar el título se cargan todos los hijos.
+                                  Si el nodo es una hoja el valor es `null`.
+                                type: boolean
+                              loadByDefault:
+                                description: |-
+                                  Si el nodo es una hoja con cartografía, indica si la capa se carga automáticamente
+                                  en las capas de trabajo al abrir el mapa.
+                                type: boolean
+                              children:
+                                description: |-
+                                  Si el nodo es una carpeta indica los nodos hijos.
+                                  Si el nodo es una hoja el valor es `null`.
+                                type: array
+                                items:
+                                  description: Identificador del nodo hijo.
+                                  type: string
+
+        '401':
+          description: |-
+            El token de autenticación no es válido o ha expirado.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '403':
+          description: |-
+            El usuario identificado no puede acceder al perfil solicitado, o el perfil no está disponible.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+
+  /api/config/proxy:
+    post:
+      tags:
+        - Configuración y Autorización de Proxy
+      summary: |-
+        Obtiene la configuración para una petición de un cliente realizada 
+        a través del proxy.
+      description: |-
+        En esta versión, este endpoint devuelve la configuración para:
+        - GetMap a un OGC WMS.
+        - SELECT a una base de datos.
+        
+        La petición debe autenticarse usando una 
+        [API key](https://swagger.io/docs/specification/authentication/api-keys/) enviada mediante
+        la cabecera denominada `X-SITMUN-Proxy-Key`.
+      operationId: proxyConfig
+      security:
+        - proxyAuth: [ ]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProxyConfigurationRequest'
+        required: true
+      responses:
+        '200':
+          description: |-
+            Configuración a aplicar por el proxy para crear una petición
+            a un servicio web remoto o a una base de datos a partir de la
+            petición recibida por el cliente.
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/OgcWmsConfiguration'
+                  - $ref: '#/components/schemas/DatasourceConfiguration'
+                discriminator:
+                  propertyName: type
+                  mapping:
+                    "ogc:wms": '#/components/schemas/OgcWmsConfiguration'
+                    "datasource": '#/components/schemas/DatasourceConfiguration'
+        '401':
+          description: |-
+            La credencial del proxy no es válida, o el `id_token` no es válido o ha expirado.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '403':
+          description: |-
+            El principal identificado por `id_token` no puede acceder a la configuración solicitada.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        '400':
+          description: La configuración proxy solicitada no es válida.
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+
+components:
+  schemas:
+
+    JSONWebToken:
+      description: "JSON Web Token"
+      type: string
+      pattern: ^([a-zA-Z0-9_=]+)\.([a-zA-Z0-9_=]+)\.([a-zA-Z0-9_\-\+\/=]+)$
+
+    ProxyConfigurationRequest:
+      description: Parámetros de la petición realizada por el visor de mapas al proxy.
+      type: object
+      properties:
+        appId:
+          type: string
+          description: Identificador de la aplicación.
+        terId:
+          type: string
+          description: Identificador del territorio.
+        type:
+          type: string
+          enum: [ WMS, WFS, WMTS, SQL ]
+          description: Identificador del tipo de servicio.
+        typeId:
+          type: string
+          description: Identificador del servicio.
+        method:
+          type: string
+          enum: [ GET, POST ]
+          description: Método HTTP empleado.
+        parameters:
+          type: object
+          additionalProperties: true
+          description: Mapa con los parámetros pasados en la pregunta.
+        requestBody:
+          type: object
+          additionalProperties: true
+          description: Mapa con los parámetros pasados en el cuerpo de la petición.
+        id_token:
+          $ref: "#/components/schemas/JSONWebToken"
+      required:
+        - appId
+        - terId
+        - type
+        - typeId
+        - method
+
+    Configuration:
+      type: object
+      description: Configuración de una petición
+      properties:
+        type:
+          type: string
+          description: Tipo de configuración devuelta.
+        exp:
+          type: integer
+          description: |-
+            Fecha de expiración de la configuración expresado en segundos desde
+            1970-01-01T00:00:00Z UTC. La configuración se puede usar solo hasta
+            antes de dicha fecha.
+        payload:
+          type: object
+          additionalProperties: true
+          description: Valores de la configuración.
+          properties:
+            vary:
+              description: |-
+                Esta configuración está originada por una determinada
+                petición del cliente. Si hay una nueva petición del cliente
+                que se diferencia sólo en los valores asociados a los 
+                `parameters` listados en `vary`, se debe reutilizar esta 
+                configuración en lugar de solicitar una nueva si no ha expirado.
+              type: array
+              items:
+                type: string
+      required:
+        - type
+        - exp
+        - payload
+
+    OgcWmsConfiguration:
+      type: object
+      description: Configuración de una petición a un servicio remoto OGC WMS.
+      allOf:
+        - $ref: "#/components/schemas/Configuration"
+        - type: object
+          properties:
+            payload:
+              type: object
+              properties:
+                uri:
+                  type: string
+                  format: uri
+                method:
+                  type: string
+                  enum: [ GET ]
+                  description: Método HTTP empleado.
+                parameters:
+                  type: object
+                  additionalProperties: true
+                  description: Mapa con los parámetros pasados en la pregunta.
+                security:
+                  description: Mecanismo de autenticación
+                  oneOf:
+                    - $ref: "#/components/schemas/HttpSecurityScheme"
+              required:
+                - uri
+                - method
+
+    SecurityScheme:
+      type: object
+      description: Esquema de autenticación.
+      properties:
+        type:
+          description: Identificador del esquema de autenticación.
+          type: string
+      required:
+        - type
+
+    HttpSecurityScheme:
+      type: object
+      description: Esquema de autenticación HTTP.
+      allOf:
+        - $ref: "#/components/schemas/SecurityScheme"
+        - type: object
+          properties:
+            type:
+              description: Esquema tipo autenticación HTTP.
+              type: string
+              enum: [ "http" ]
+            scheme:
+              description: Esquema HTTP Basic.
+              type: string
+              enum: [ "basic" ]
+            username:
+              description: Nombre de usuario.
+              type: string
+            password:
+              description: Contraseña.
+              type: string
+              format: password
+          required:
+            - type
+            - scheme
+            - username
+            - password
+
+    DatasourceConfiguration:
+      type: object
+      description: Configuración de una petición a una base de datos JDBC.
+      allOf:
+        - $ref: "#/components/schemas/Configuration"
+        - type: object
+          properties:
+            payload:
+              properties:
+                uri:
+                  description: URI de conexión a una base de datos JDBC.
+                  type: string
+                  format: uri
+                user:
+                  description: Nombre de usuario.
+                  type: string
+                password:
+                  description: Contraseña.
+                  type: string
+                  format: password
+                driver:
+                  description: Nombre completo del driver JDBC.
+                  type: string
+                sql:
+                  description: Sentencia SQL que se debe ejecutar.
+                  type: string
+              required:
+                - uri
+                - user
+                - password
+                - driver
+                - sql
+
+    Application:
+      type: object
+      description: Aplicación de SITMUN.
+      properties:
+        id:
+          type: string
+          description: Identificador de la aplicación.
+        title:
+          type: string
+          description: Nombre de la aplicación.
+        pointOfContact:
+          type: string
+          nullable: true
+          description: Email del contacto institucional; nulo cuando no hay contacto elegible con email.
+        responsibleInstitutionName:
+          type: string
+          nullable: true
+          maxLength: 250
+          description: Nombre de la institución responsable de la aplicación.
+
+    Territory:
+      type: object
+      description: Territorio de SITMUN.
+      properties:
+        id:
+          type: string
+          description: Identificador del territorio.
+        name:
+          type: string
+          description: Nombre del territorio.
+
+    ErrorResponse:
+      type: object
+      description: Respuesta que puede acompañar a un error.
+      properties:
+        status:
+          type: integer
+          description: Código de estado HTTP.
+        error:
+          type: string
+          description: Descripción del código de error.
+        message:
+          type: string
+          description: Mensaje descriptivo del error.
+        path:
+          type: string
+          description: API afectado.
+        timestamp:
+          type: string
+          format: date-time
+          description: Marca de tiempo
+      required:
+        - status
+        - error
+        - message
+        - path
+        - timestamp
+
+    ProblemDetail:
+      type: object
+      description: Detalle de problema conforme a RFC 9457.
+      properties:
+        type:
+          type: string
+          format: uri
+        status:
+          type: integer
+        title:
+          type: string
+        detail:
+          type: string
+        instance:
+          type: string
+      required:
+        - type
+        - status
+        - title
+        - detail
+        - instance
+
+  securitySchemes:
+    proxyAuth:
+      type: apiKey
+      in: header
+      name: X-SITMUN-Proxy-Key
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: access_token

@@ -1,0 +1,37 @@
+package org.sitmun.authorization.client.dto;
+
+import java.util.List;
+import java.util.Map;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter
+@Setter
+@Builder
+public class NodeDto {
+  String uri;
+  String title;
+  String description;
+  String resource;
+  String action;
+  Boolean isRadio;
+  Boolean loadData;
+
+  /** When true, leaf may show GFI (with cartography queryableFeatureEnabled). */
+  Boolean queryableActive;
+
+  Boolean loadByDefault;
+  String type;
+  String viewMode;
+  String image;
+  Integer order;
+  Map<String, Object> mapping;
+  List<String> children;
+
+  /** Optional folder-level metadata URL (tree node). */
+  String metadataURL;
+
+  /** Optional folder-level dataset download URL (tree node). */
+  String datasetURL;
+}

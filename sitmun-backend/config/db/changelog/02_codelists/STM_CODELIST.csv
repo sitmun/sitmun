@@ -1,0 +1,73 @@
+COD_ID,COD_LIST,COD_VALUE,COD_SYSTEM,COD_DEFAULT,COD_DESCRIPTION
+1,application.type,E,FALSE,FALSE,External application
+2,application.type,I,FALSE,FALSE,Internal application
+3,applicationParameter.type,MOBILE,FALSE,FALSE,Mobile app parameter
+4,applicationParameter.type,Nomenclator,FALSE,FALSE,Nomenclator parameter
+5,applicationParameter.type,PRINT_TEMPLATE,FALSE,FALSE,Print template
+6,cartography.geometryType,LINE,FALSE,FALSE,Line
+7,cartography.geometryType,POINT,FALSE,FALSE,Point
+8,cartography.geometryType,POLYGON,FALSE,FALSE,Polygon
+9,cartography.legendType,LEGENDGRAPHIC,FALSE,FALSE,Get Legend Graphic
+10,cartography.legendType,CAPABILITIES,FALSE,FALSE,GetCapabilities
+11,cartography.legendType,LINK,FALSE,FALSE,Static link
+12,cartographyFilter.type,C,FALSE,FALSE,Custom
+13,cartographyFilter.type,D,FALSE,FALSE,Defined
+14,cartographyFilter.valueType,A,FALSE,FALSE,Alphanumeric
+15,cartographyFilter.valueType,D,FALSE,FALSE,Date
+16,cartographyFilter.valueType,N,FALSE,FALSE,Number
+17,cartographyParameter.format,F,FALSE,FALSE,Date
+18,cartographyParameter.format,I,FALSE,FALSE,Image
+19,cartographyParameter.format,N,FALSE,FALSE,Number
+20,cartographyParameter.format,P,FALSE,FALSE,Percentage
+21,cartographyParameter.format,T,FALSE,FALSE,Text
+22,cartographyParameter.format,U,FALSE,FALSE,URL
+23,cartographyParameter.type,INFO,FALSE,TRUE,INFO
+24,cartographyPermission.type,F,TRUE,FALSE,Background map
+25,cartographyPermission.type,C,TRUE,FALSE,Cartography group
+26,cartographyPermission.type,M,TRUE,FALSE,Location map
+27,cartographyPermission.type,I,TRUE,FALSE,Report
+28,cartographySpatialSelectionParameter.format,F,FALSE,FALSE,Date
+29,cartographySpatialSelectionParameter.format,I,FALSE,FALSE,Image
+30,cartographySpatialSelectionParameter.format,N,FALSE,FALSE,Number
+31,cartographySpatialSelectionParameter.format,P,FALSE,FALSE,Percentage
+32,cartographySpatialSelectionParameter.format,T,FALSE,FALSE,Text
+33,cartographySpatialSelectionParameter.format,U,FALSE,FALSE,URL
+34,cartographySpatialSelectionParameter.type,EDIT,FALSE,TRUE,EDIT
+35,cartographySpatialSelectionParameter.type,SELECT,FALSE,FALSE,SELECT
+36,downloadTask.scope,A,FALSE,FALSE,Application
+37,downloadTask.scope,U,FALSE,FALSE,Isolated
+38,downloadTask.scope,C,FALSE,FALSE,Layer
+40,queryTask.scope,external-link,FALSE,FALSE,External link
+44,service.authenticationMode,HTTP Basic authentication,TRUE,FALSE,HTTP Basic authentication
+45,service.authenticationMode,None,TRUE,TRUE,None
+46,service.type,AIMS,FALSE,FALSE,AIMS
+47,service.type,FME,FALSE,FALSE,FME
+48,service.type,TC,FALSE,FALSE,TC
+49,service.type,WFS,FALSE,FALSE,WFS
+50,service.type,WMS,FALSE,FALSE,WMS
+51,service.type,WMTS,FALSE,FALSE,WMTS
+52,serviceParameter.type,INFO,FALSE,FALSE,GetFeatureInfo
+53,serviceParameter.type,WMS,FALSE,FALSE,GetMap
+54,serviceParameter.type,OLPARAM,FALSE,FALSE,OpenLayers
+55,serviceParameter.type,WMTS,FALSE,FALSE,WMTS
+56,territory.scope,M,FALSE,FALSE,Municipality
+57,territory.scope,R,FALSE,FALSE,Regional
+58,territory.scope,T,FALSE,FALSE,Total
+59,tree.type,cartography,FALSE,TRUE,Cartography
+60,user.identificationType,DNI,FALSE,FALSE,DNI
+61,user.identificationType,NIE,FALSE,FALSE,NIE
+62,user.identificationType,PAS,FALSE,FALSE,Passport
+63,userPosition.type,AJ,FALSE,FALSE,City Council
+64,userPosition.type,AR,FALSE,FALSE,City Council SITMUN point of contact
+65,userPosition.type,EM,FALSE,FALSE,Company
+66,userPosition.type,DM,FALSE,FALSE,Demo
+67,userPosition.type,DB,FALSE,FALSE,Diputació de Barcelona
+68,userPosition.type,EX,FALSE,FALSE,External
+69,userPosition.type,GN,FALSE,FALSE,Generalitat de Catalunya
+70,userPosition.type,PR,FALSE,FALSE,Project
+71,userPosition.type,EN,FALSE,FALSE,Territorial Entity  (no City Council)
+72,userPosition.type,ER,FALSE,FALSE,Territorial Entity  (no City Council) point of contact
+73,userPosition.type,TS,FALSE,FALSE,Test
+74,service.nativeProtocol,NONE,FALSE,FALSE,No protocol
+75,tree.type,edition,TRUE,FALSE,Edition tree
+76,tree.type,touristic,TRUE,FALSE,Tourist application
