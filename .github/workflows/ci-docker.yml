@@ -1,0 +1,23 @@
+name: CI docker
+
+on:
+  workflow_call:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v5
+      - name: Build images
+        run: |
+          umask 077
+          cat > "$RUNNER_TEMP/compose.env" << EOF
+          SITMUN_USER_SECRET=$(openssl rand -hex 32)
+          MIDDLEWARE_SECRET=$(openssl rand -hex 32)
+          SITMUN_MBTILES_JOB_HANDLE_SECRET=$(openssl rand -hex 32)
+          EOF
+          export COMPOSE_PARALLEL_LIMIT=1
+          docker compose --env-file "$RUNNER_TEMP/compose.env" build front backend proxy
+          docker compose --env-file "$RUNNER_TEMP/compose.env" --profile mbtiles build mbtiles
