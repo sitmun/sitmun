@@ -1,0 +1,83 @@
+{
+    "home": {
+        "access": "Acceder",
+        "instanceSelection": "Introduzca url de instancia",
+        "registerInstance": "Registrar",
+        "user": "Usuario",
+        "password": "Contraseña",
+        "selectUser": "Selecciona usuario",
+        "cancel": "Cancelar",
+        "loginError": "Usuario o contraseña incorrectos",
+        "instanceRequired": "No se ha registrado una instancia"
+    },
+    "applist": {
+        "title": "Aplicaciones",
+        "selectTer": "Seleccionar territorio",
+        "openMap": "Abrir mapa",
+        "openDownload": "Abrir descarga",
+        "cancel": "Cancelar"
+    },
+    "download": {
+        "title": "Descargar",
+        "downloadZone": "Definir zona a descargar",
+        "scope": "Ámbito",
+        "zoomLevel": "Nivel de zoom",
+        "selectData": "Seleccionar datos a descargar",
+        "update": "Actualizar",
+        "minx": "Min x",
+        "miny": "Min y",
+        "maxx": "Max x",
+        "maxy": "Max y",
+        "selectProj": "Proyección",
+        "toast": "Descarga con éxito",
+        "storagePermissionError": "No se tienen permisos para almacenar ficheros en el dispositvo",
+        "noBgLayerSelected": "No se ha seleccionado ninguna capa de fondo",
+        "noLayerSelected": "No se ha seleccionado ninguna capa",
+        "remove": "Eliminar descarga",
+        "accept": "Aceptar",
+        "cancel": "Cancelar",
+        "dwl-modal-title": "Descarga de mapa",
+        "dwl-modal-message": "El peso estimado de la descarga va a ser de ",
+        "progress-file": "Descargando fichero",
+        "progress-request": "Procesando petición",
+        "delete-modal-title": "Eliminar descarga previa",
+        "delete-modal-message": "¿Está seguro de que desea eliminar la descarga previa?",
+        "no-freespace": "No hay espacio suficiente en el dispositivo para realizar la descarga.",
+        "storageData": "Datos almacenados",
+        "bgLayer": "Capas base",
+        "editLayer": "Capas editables"
+    },
+    "map": {
+        "title": "Mapa",
+        "addPoint": "Añadir punto",
+        "editPoint": "Editar punto",
+        "selector": "Campo",
+        "imageFormatError": "Formato de imagen incorrecto",
+        "imagePermissionError": "Permiso de cámara no concedido",
+        "locationPermissionError": "No se tienen permisos para obtener la ubicación",
+        "locationDisabled": "La ubicación está desactivada",
+        "locationError": "Error al obtener la ubicación",
+        "doneText": "Hecho",
+        "cancelText": "Cancelar",
+        "editGeometryError": "Se debe guardar antes de editar la geometría",
+        "noEditLayerSelected": "Se debe seleccionar la capa a editar previamente",
+        "invalidFeatureForm": "Hay campos obligatorios sin rellenar",
+        "prompt": {
+            "header": "Seleccionar imagen",
+            "gallery": "Abrir galería",
+            "picture": "Tomar foto"
+        },
+        "downloadLayers": "Capas descargadas"
+    },
+    "exit": {
+        "title": "Salir",
+        "message": "¿Salir de la aplicación?",
+        "exit": "Salir",
+        "continue": "Continuar"
+    },
+    "menu": {
+        "title": "Perfil",
+        "exit": "Cerrar sesión"
+    },
+    "offline": "Sin conexión"
+}

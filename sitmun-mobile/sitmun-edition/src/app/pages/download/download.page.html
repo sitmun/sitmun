@@ -1,0 +1,208 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button [routerLink]="['../applist']">
+        <ion-icon name="arrow-back" size="large"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title>{{ 'download.title' | translate }}</ion-title>
+    <ion-buttons slot="end">
+      <ion-button *ngIf="!networkConnected" class="offlineButton">
+        <ion-icon name="cloud-offline-outline" slot="start"></ion-icon>
+      </ion-button>
+        <ion-button (click)="openMenu()">
+          <ion-icon slot="icon-only" name="person"></ion-icon>
+        </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" id="dwnld-content">
+  <div class="container">
+    <div class="row">
+      <h4 class="text-center">{{ 'download.downloadZone' | translate }}</h4>
+    </div>
+    <div class="row">
+    <div class="col-auto">
+      <ion-select placeholder= "{{ 'download.selectProj' | translate }}" interface="popover" [(ngModel)]="mapProjSelected" (ngModelChange)="onProjChange()">
+          <ion-select-option *ngFor="let proj of mapProj" value="{{ proj }}">{{ proj }}</ion-select-option>
+      </ion-select>
+    </div>
+    </div>         
+    <div class="row">
+      <div class="col">
+        <ion-input [label]="'download.minx' | translate" [(ngModel)]="extent.minX" labelPlacement="stacked" fill="outline" class="mx-auto round-input"></ion-input>
+      </div>
+      <div class="col">
+        <ion-input [label]="'download.miny' | translate" [(ngModel)]="extent.minY" labelPlacement="stacked" fill="outline" class="mx-auto round-input"></ion-input>
+      </div>
+      <div class="col">
+        <ion-input [label]="'download.maxx' | translate" [(ngModel)]="extent.maxX" labelPlacement="stacked" fill="outline" class="mx-auto round-input"></ion-input>
+      </div>
+      <div class="col">
+        <ion-input [label]="'download.maxy' | translate" [(ngModel)]="extent.maxY" labelPlacement="stacked" fill="outline" class="mx-auto round-input"></ion-input>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-7">
+        <ion-range (ionChange)="onZoomChange($event)" labelPlacement="stacked" [label]="'download.zoomLevel' | translate" [ticks]="true" [min]="0" [max]="17" [value]="zoomValue"></ion-range>
+      </div>
+      <div class="col-3 my-auto">
+        <ion-input class="text-center round-input" fill="outline" [(ngModel)]="zoomValue" disabled="true"></ion-input>
+      </div>
+      <div class="col-2 my-auto">
+        <ion-button shape="round" class="dl-btn mx-auto" (click)="openMap()">
+          <ion-icon slot="icon-only" name="map"></ion-icon>
+        </ion-button>
+      </div>
+    </div>
+    <div class="row split">
+      <div class="col">                    
+        <div class="row">
+          <h4 class="text-center">{{ 'download.selectData' | translate }}</h4>
+        </div>
+        <div class="row" *ngIf="layersSizeBytes > 0">
+          <div class="d-flex align-items-center gap-2 my-4">
+          <h5>{{ 'download.storageData' | translate }}</h5>
+          <div class="icono-dwl">
+              <ion-icon name="layers"></ion-icon>
+              <span class="text-dark">{{ layersSizeMBytes }}MB</span>
+          </div>
+        </div> 
+        </div>        
+        <div class="row" *ngIf="bgTreeData.length > 0">
+          <h5 class="co-black">{{ 'download.bgLayer' | translate }}</h5>
+        </div>
+        <div class="row tree-row" *ngIf="bgTreeData.length > 0">
+          <div class="tree-container">
+            <ul class="list-group">
+              <ng-container *ngFor="let node of bgTreeData">
+                <li class="list-group-item">
+                  <div class="d-flex align-items-center">
+                    <input type="checkbox" class="form-check-input me-2 bg-check" [(ngModel)]="node.checked" (change)="toggleBgCheck(node, $event)" />
+                    {{ node.name }}
+                  </div>
+                </li>
+              </ng-container>
+            </ul>
+          </div>
+        </div>
+        <div class="row">
+          <h5 class="co-black">{{ 'download.editLayer' | translate }}</h5>
+        </div>
+        <div class="row tree-row">
+          <div class="tree-container">
+            <ul class="list-group">
+              <ng-container *ngFor="let node of layersTreeData">
+                <li class="list-group-item">
+                  <div class="d-flex align-items-center">
+                    <input type="checkbox" class="form-check-input me-2" [(ngModel)]="node.checked" (change)="toggleCheck(node)" />
+                    <button class="btn btn-sm btn-link p-0 me-2" *ngIf="node.children && node.children.length > 0" (click)="toggleExpand(node)">
+                      <ion-icon [name]="node.expanded ? 'chevron-down' : 'chevron-forward'"></ion-icon>
+                    </button>
+                    {{ node.name }}
+                  </div>
+                  <ul class="list-group ms-4" *ngIf="node.expanded && node.children">
+                    <ng-container *ngTemplateOutlet="recursiveList; context:{ nodes: node.children }"></ng-container>
+                  </ul>
+                </li>
+              </ng-container>
+            </ul>
+            
+            <ng-template #recursiveList let-nodes="nodes">
+              <ng-container *ngFor="let child of nodes">
+                <li class="list-group-item">
+                  <div class="d-flex align-items-center">
+                    <input type="checkbox" class="form-check-input me-2" [(ngModel)]="child.checked" (change)="toggleCheck(child)" />
+                    <button class="btn btn-sm btn-link p-0 me-2" *ngIf="child.children && child.children.length > 0" (click)="toggleExpand(child)">
+                      <ion-icon [name]="child.expanded ? 'chevron-down' : 'chevron-forward'"></ion-icon>
+                    </button>
+                    {{ child.name }}
+                  </div>
+                  <ul class="list-group ms-4" *ngIf="child.expanded && child.children && child.children.length > 0">
+                    <ng-container *ngTemplateOutlet="recursiveList; context:{ nodes: child.children }"></ng-container>
+                  </ul>
+                </li>
+              </ng-container>
+            </ng-template>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="row" *ngIf="layersSizeBytes == 0">
+      <ion-button expand="block" class="dwld-btn" shape="round" (click)="openDownloadModal()">{{ 'download.title' | translate }}</ion-button>
+    </div>
+    <div class="row" *ngIf="layersSizeBytes > 0">
+      <ion-button expand="block" class="dwld-btn" shape="round" (click)="openDownloadModal()">{{ 'download.update' | translate }}</ion-button>
+    </div>
+    <div class="row" *ngIf="layersSizeBytes > 0">
+      <ion-button class="del-btn" expand="block" shape="round" (click)="openDeleteModal()">{{ 'download.remove' | translate }}</ion-button>
+    </div>   
+  </div>
+  
+
+  <ion-modal class="centered-modal" [isOpen]="alertModalOpen" (ionModalDidDismiss)="closeDownloadModal()">
+    <ng-template>
+      <div class="wrapper">
+        <div class="row">
+          <h1 class="text-dark">{{ 'download.dwl-modal-title' | translate }}</h1>
+        </div>
+        <div class="row">
+          <p class="text-dark">{{ 'download.dwl-modal-message' | translate }} <strong>{{ estimatedSize | number: '1.1-1' }}</strong> MB.</p>
+        </div>
+        <div class="row" *ngIf="freeSpaceMB < estimatedSize">
+          <p class="text-danger">{{ 'download.no-freespace' | translate }}</p>
+        </div>
+        <div class="row">
+          <div class="col">
+            <ion-button [disabled]="freeSpaceMB < estimatedSize" expand="block" (click)="downloadLayers()">{{ 'download.accept' | translate }}</ion-button>
+          </div>
+          <div class="col">
+            <ion-button expand="block" (click)="closeDownloadModal()">{{ 'download.cancel' | translate }}</ion-button>
+          </div>
+        </div>
+      </div>
+    </ng-template>
+  </ion-modal>     
+
+  <ion-modal class="centered-modal" [isOpen]="downloadProgress.value > 0" [canDismiss]="downloadProgress.value === 0">
+    <ng-template>
+      <div class="wrapper">
+        <div class="row">
+           <p class="text-dark">{{ downloadProgress.type | translate }}: {{ (downloadProgress.value * 100) | number: '1.0-0' }}%</p>
+           <ion-progress-bar [value]="downloadProgress.value" color="primary"></ion-progress-bar>
+        </div>
+      </div>
+    </ng-template>
+  </ion-modal>
+
+  <ion-modal class="centered-modal" [isOpen]="deleteModalOpen" (ionModalDidDismiss)="closeDeleteModal()">
+    <ng-template>
+      <div class="wrapper">
+        <div class="row">
+          <h1 class="text-dark">{{ 'download.delete-modal-title' | translate }}</h1>
+        </div>
+        <div class="row">
+          <p class="text-dark">{{ 'download.delete-modal-message' | translate }} </p>
+        </div>
+        <div class="row">
+          <div class="col">
+            <ion-button expand="block" (click)="removeDownload()">{{ 'download.accept' | translate }}</ion-button>
+          </div>
+          <div class="col">
+            <ion-button expand="block" (click)="closeDeleteModal()">{{ 'download.cancel' | translate }}</ion-button>
+          </div>
+        </div>
+      </div>
+    </ng-template>
+  </ion-modal>
+
+  <app-profile-modal #profileModal></app-profile-modal>
+
+   <ion-toast
+        [isOpen]="openToast"
+        message="{{ 'download.toast' | translate }}"
+        [duration]="5000"
+        (didDismiss)="closeToast()"
+      ></ion-toast>
+</ion-content>
