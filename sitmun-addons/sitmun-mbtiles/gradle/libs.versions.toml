@@ -9,7 +9,7 @@ spotless = "7.2.0"
 axion-release = "1.19.0"
 
 # Dependency versions
-h2 = "2.2.224"
+h2 = "2.5.252"
 jetbrains-annotations = "24.1.0"
 mbtiles4j = "1.2.0"
 proj4j = "1.1.5"
