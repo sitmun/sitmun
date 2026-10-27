@@ -3,7 +3,7 @@
 [![License: EUPL v1.2](https://img.shields.io/badge/License-EUPL%20v1.2-blue.svg)](LICENSE)
 ![Version](https://img.shields.io/badge/version-1.2.9-blue.svg)
 
-The **SITMUN Administration Application** is the official web-based frontend for managing the SITMUN geospatial application platform. Built with TypeScript and Angular 19, it provides a comprehensive administrative interface for the [SITMUN Backend Core](https://github.com/sitmun/sitmun-backend-core) REST API.
+The **SITMUN Administration Application** is the official web-based frontend for managing the SITMUN geospatial application platform. Built with TypeScript and Angular 22, it provides a comprehensive administrative interface for the SITMUN backend REST API.
 
 ## Table of Contents
 
@@ -149,7 +149,7 @@ src/environments/
 └── environment.prod.ts   # Production file replacement
 ```
 
-`angular.json` gives `fileReplacements` to `production` (`environment.prod.ts`) and `e2e` (`environment.e2e.ts`). `development` and `docker-dev` have none, so both compile `environment.ts`. `front/Dockerfile` writes `environment.prod.ts` from `environment.prod.ts.template` with `envsubst`, then runs `--configuration=docker-dev` when `ENVIRONMENT=development` and `--configuration=production` otherwise. Only the production configuration compiles that generated file.
+`angular.json` gives `fileReplacements` to `production` (`environment.prod.ts`) and `e2e` (`environment.e2e.ts`). `development` and `docker-dev` have none, so both compile `environment.ts`. `docker/front/Dockerfile` writes `environment.prod.ts` from `docker/front/admin/environment.prod.ts.template` with `envsubst`, then runs `--configuration=docker-dev` when `ENVIRONMENT=development` and `--configuration=production` otherwise. Only the production configuration compiles that generated file.
 
 ### Environment Variables
 
@@ -186,7 +186,7 @@ npm run build -- --configuration=production
 npm run build -- --configuration=production --base-href=/admin/
 ```
 
-For Docker builds, use the parent stack's docker-compose:
+For Docker builds, use the root `compose.yaml` in [sitmun/sitmun](https://github.com/sitmun/sitmun):
 
 ```bash
 # Production Docker build (default)

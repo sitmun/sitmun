@@ -1,5 +1,7 @@
 # Deployment
 
+Deploy [sitmun/sitmun](https://github.com/sitmun/sitmun). Components are directories in that repository. The Compose file is `compose.yaml`. Historical release tags are `legacy/<repository>/<tag>`.
+
 ## IIS as a reverse proxy to SITMUN Application Stack
 
 Below is a general, step-by-step guide for configuring IIS (Internet Information Services) to act as a reverse proxy to SITMUN Application Stack (running either on the same machine or a separate server). The main tool you’ll need is Microsoft’s Application Request Routing (ARR) and the URL Rewrite module.

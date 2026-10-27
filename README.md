@@ -35,12 +35,12 @@ The stack has four main components:
 │                    SITMUN Application Stack                 │
 ├─────────────────────────────────────────────────────────────┤
 │  Frontend Layer                                             │
-│  ├── SITMUN Viewer App (Angular 19)                         │
-│  └── SITMUN Admin App (Angular 19)                          │
+│  ├── SITMUN Viewer App (Angular 22)                         │
+│  └── SITMUN Admin App (Angular 22)                          │
 ├─────────────────────────────────────────────────────────────┤
 │  Backend Layer                                              │
-│  ├── SITMUN Backend Core (Spring Boot 3)                    │
-│  └── SITMUN Proxy Middleware (Spring Boot 3)                │
+│  ├── SITMUN Backend Core (Spring Boot 4)                    │
+│  └── SITMUN Proxy Middleware (Spring Boot 4)                │
 ├─────────────────────────────────────────────────────────────┤
 │  Database Layer                                             │
 │  ├── PostgreSQL 16 / Oracle 23c / H2                        │
@@ -52,18 +52,18 @@ The stack has four main components:
 
 | Component                   | Technology             | Purpose                                          | Port      |
 | --------------------------- | ---------------------- | ------------------------------------------------ | --------- |
-| **SITMUN Viewer App**       | Angular 19, TypeScript | Interactive map visualization and user interface | 9000      |
-| **SITMUN Admin App**        | Angular 19, TypeScript | Administrative interface and configuration       | 9000      |
-| **SITMUN Backend Core**     | Spring Boot 3, Java 17 | Core REST API and business logic                 | 9001      |
-| **SITMUN Proxy Middleware** | Spring Boot 3, Java 17 | Secure proxy and middleware services             | 9002      |
+| **SITMUN Viewer App**       | Angular 22, TypeScript | Interactive map visualization and user interface | 9000      |
+| **SITMUN Admin App**        | Angular 22, TypeScript | Administrative interface and configuration       | 9000      |
+| **SITMUN Backend Core**     | Spring Boot 4, Java 17 | Core REST API and business logic                 | 9001      |
+| **SITMUN Proxy Middleware** | Spring Boot 4, Java 17 | Secure proxy and middleware services             | 9002      |
 | **Database**                | PostgreSQL/Oracle/H2   | Data persistence and geospatial storage          | 9003/9004 |
 
 ## Technology Stack
 
-- Frontend: Angular 19, TypeScript, SITNA
-- Backend: Spring Boot 3, Java 17, Gradle
+- Frontend: Angular 22, TypeScript, SITNA
+- Backend: Spring Boot 4, Java 17, Gradle
 - Database: PostgreSQL 16 (default), Oracle 23c, H2 (dev only), Liquibase
-- Infrastructure: Docker, Docker Compose, Git submodules, SonarCloud
+- Infrastructure: Docker, Docker Compose
 
 ## Quick Start
 
@@ -74,11 +74,11 @@ The stack has four main components:
 
 ### Quick Setup
 
-1. **Clone the repository with submodules**
+1. **Clone the repository**
 
    ```bash
-   git clone --branch dev --recurse-submodules https://github.com/sitmun/sitmun-application-stack.git
-   cd sitmun-application-stack
+   git clone --branch dev https://github.com/sitmun/sitmun.git
+   cd sitmun
    ```
 
 2. **Setup the environment**
@@ -117,8 +117,6 @@ The stack has four main components:
    echo "SITMUN_MBTILES_JOB_HANDLE_SECRET=$(openssl rand -hex 32)" >> .env
    ```
 
-   - You can keep local overrides in `.env.local` (not committed); Docker Compose loads `.env → .env.local → environment variables`.
-
 4. **Start the SITMUN Application Stack**
 
    ```bash
@@ -143,8 +141,8 @@ The stack has four main components:
 1. **Clone the Repository**
 
    ```bash
-   git clone --branch dev --recurse-submodules https://github.com/sitmun/sitmun-application-stack.git
-   cd sitmun-application-stack
+   git clone --branch dev https://github.com/sitmun/sitmun.git
+   cd sitmun
    ```
 
 2. **Setup Environment**
@@ -284,7 +282,7 @@ The SITMUN Application Stack uses environment variables for configuration. Copy 
 | `SITMUN_MBTILES_JOB_HANDLE_SECRET` | Proxy MBTiles job-handle secret (min 32 chars) | Required                            |
 | `ENVIRONMENT`              | Frontend Docker build mode (development/production)   | `development`                       |
 
-Docker frontend builds read each app's version from its submodule `package.json` (admin and viewer independently). The About dialog shows that value at runtime.
+Docker frontend builds read each app's version from its `package.json` (admin and viewer independently). The About dialog shows that value at runtime.
 
 ### Database Configuration
 
@@ -565,9 +563,9 @@ Admin App ───┘
 Root Playwright tests exercise the admin and viewer apps against backend-core on in-memory H2 (no Docker Compose). Viewer suite also starts proxy middleware and a local secured WMS stub. Mobile web suite covers edition Bearer login, proxy-token exchange, and authenticated MBTiles through middleware (no public `/mbtiles`). Details: [e2e/README.md](e2e/README.md).
 
 ```bash
-# prerequisites: Java 17, Node ≥ 24.22.0 (mobile Android E2E needs Node 22), submodules initialized
-# admin: cd front/admin/sitmun-admin-app && npm ci
-# viewer: cd front/viewer/sitmun-viewer-app && npm ci
+# prerequisites: Java 17, Node ≥ 24.22.0 (mobile Android E2E needs Node 22)
+# admin: cd sitmun-admin && npm ci
+# viewer: cd sitmun-viewer && npm ci
 npm ci
 npm run e2e:install
 npm run e2e
@@ -581,18 +579,20 @@ Owned ports: admin `4300`, viewer `4400`, backend `18080`, proxy `18082`, WMS st
 
 ### Project Structure
 
-The SITMUN Application Stack uses Git submodules to include the source code of all SITMUN components:
+Source for every component is in this repository:
 
-| Submodule                            | GitHub Repository                                                                | Docker Service | Technology Stack       |
-| ------------------------------------ | -------------------------------------------------------------------------------- | -------------- | ---------------------- |
-| `front/admin/sitmun-admin-app`       | [SITMUN Admin App](https://github.com/sitmun/sitmun-admin-app.git)               | `front`        | Angular 19, TypeScript |
-| `front/viewer/sitmun-viewer-app`     | [SITMUN Viewer App](https://github.com/sitmun/sitmun-viewer-app.git)             | `front`        | Angular 19, TypeScript |
-| `apps/touristic-mobile-app`         | [SITMUN Touristic Mobile App](https://github.com/sitmun/touristic-mobile-app.git) | —              | Ionic/Angular, Capacitor |
-| `apps/edition-mobile-app`            | [SITMUN Edition Mobile App](https://github.com/sitmun/edition-mobile-app.git)   | —              | Ionic/Angular, Capacitor |
-| `back/backend/sitmun-backend-core`   | [SITMUN Backend Core](https://github.com/sitmun/sitmun-backend-core.git)         | `backend`      | Spring Boot 3, Java 17 |
-| `back/proxy/sitmun-proxy-middleware` | [SITMUN Proxy Middleware](https://github.com/sitmun/sitmun-proxy-middleware.git) | `proxy`        | Spring Boot 3, Java 17 |
-| `back/mbtiles/sitmun-mbtiles`        | [SITMUN MBTiles](https://github.com/sitmun/sitmun-mbtiles.git)                   | `mbtiles` (internal) | Spring Boot 3, Java 17 |
-| `back/shared/sitmun-shared`          | [SITMUN Shared](https://github.com/sitmun/sitmun-shared.git)                     | —                    | Java 17 library        |
+| Directory | Docker service | Technology |
+| --- | --- | --- |
+| `sitmun-admin` | `front` | Angular 22, TypeScript |
+| `sitmun-viewer` | `front` | Angular 22, TypeScript |
+| `sitmun-mobile/sitmun-touristic` | — | Ionic/Angular, Capacitor |
+| `sitmun-mobile/sitmun-edition` | — | Ionic/Angular, Capacitor |
+| `sitmun-backend` | `backend` | Spring Boot 4, Java 17 |
+| `sitmun-proxy` | `proxy` | Spring Boot 4, Java 17 |
+| `sitmun-addons/sitmun-mbtiles` | `mbtiles` (internal) | Spring Boot 4, Java 17 |
+| `sitmun-common` | — | Java 17 library |
+
+Image definitions live under `docker/`. The Compose file is `compose.yaml`.
 
 ### Profile-Based Development Environments
 
@@ -625,24 +625,15 @@ docker compose up -d
 
 ### Development Workflow
 
-1. **Update Repository and Submodules**
+1. **Update `dev`**
 
    ```bash
    git fetch origin dev
    git checkout dev
-   git submodule update --recursive --remote
+   git pull
    ```
 
-2. **Change Submodule Branch (if needed)**
-
-   ```bash
-   # Switch submodule to specific branch
-   git submodule set-branch -b branch_name submodule_name
-   git submodule sync
-   git submodule update --init
-   ```
-
-3. **Rebuild and Restart Services**
+2. **Rebuild and Restart Services**
 
    ```bash
    # Rebuild specific service
@@ -660,12 +651,12 @@ docker compose up -d
 
 ```bash
 # Navigate to admin app
-cd front/admin/sitmun-admin-app
+cd sitmun-admin
 npm ci
 npm start
 
 # Navigate to viewer app
-cd front/viewer/sitmun-viewer-app
+cd sitmun-viewer
 npm ci
 npm start
 ```
@@ -674,11 +665,11 @@ npm start
 
 ```bash
 # Navigate to backend core
-cd back/backend/sitmun-backend-core
+cd sitmun-backend
 ./gradlew bootRun --args='--spring.profiles.active=dev'
 
 # Navigate to proxy middleware
-cd back/proxy/sitmun-proxy-middleware
+cd sitmun-proxy
 ./gradlew bootRun --args='--spring.profiles.active=dev'
 ```
 
@@ -698,12 +689,12 @@ For local development using `ng serve`, the `development` configuration uses `en
 
 ```bash
 # Admin app
-cd front/admin/sitmun-admin-app
+cd sitmun-admin
 npm install
 npm start  # Uses development configuration
 
 # Viewer app
-cd front/viewer/sitmun-viewer-app
+cd sitmun-viewer
 npm install
 npm start  # Uses development configuration
 ```
@@ -735,37 +726,35 @@ This creates unoptimized builds with source maps. `docker-dev` has no `fileRepla
 #### Environment Files
 
 ```text
-front/
-├── admin/
-│   ├── environment.prod.ts.template          # Docker builds (envsubst)
-│   └── sitmun-admin-app/src/environments/
-│       ├── environment.ts                    # Local development
-│       └── environment.prod.ts               # Production fallback
-└── viewer/
-    ├── environment.prod.ts.template          # Docker builds (envsubst)
-    └── sitmun-viewer-app/src/environments/
-        ├── environment.ts                    # Local development
-        └── environment.prod.ts               # Production fallback
+docker/front/
+├── admin/environment.prod.ts.template
+└── viewer/environment.prod.ts.template
+sitmun-admin/src/environments/
+├── environment.ts
+└── environment.prod.ts
+sitmun-viewer/src/environments/
+├── environment.ts
+└── environment.prod.ts
 ```
 
 ### Code Quality
 
 ```bash
 # Frontend quality checks
-cd front/admin/sitmun-admin-app
+cd sitmun-admin
 npm run lint
 npm test
 
-cd front/viewer/sitmun-viewer-app
+cd sitmun-viewer
 npm run lint
 npm test
 
 # Backend quality checks
-cd back/backend/sitmun-backend-core
+cd sitmun-backend
 ./gradlew test
 ./gradlew spotlessCheck
 
-cd back/proxy/sitmun-proxy-middleware
+cd sitmun-proxy
 ./gradlew test
 ./gradlew spotlessCheck
 ```
@@ -1166,24 +1155,17 @@ git commit -m "style(formatting): apply prettier formatting"
 
 ### Code Review Process
 
-1. **Automated Checks**: All PRs must pass CI/CD pipeline
-2. **Code Review**: At least one maintainer review required
-3. **Quality Gate**: SonarCloud quality gate must pass
-4. **Testing**: All tests must pass with adequate coverage
-5. **Documentation**: Update docs for new features
+1. **Automated checks**: `ci-gate` must be green
+2. **Code review**: a `tech-com` code owner must approve
+3. **Testing**: tests for the change must pass
+4. **Documentation**: update docs for new features
 
 ## Support
 
 ### Getting Help
 
-- **Documentation**: Check component-specific README files in submodules
-- **Issues**: [GitHub Issues](https://github.com/sitmun/sitmun-application-stack/issues)
-- **Component Issues**:
-  - [Admin App Issues](https://github.com/sitmun/sitmun-admin-app/issues)
-  - [Viewer App Issues](https://github.com/sitmun/sitmun-viewer-app/issues)
-  - [Backend Core Issues](https://github.com/sitmun/sitmun-backend-core/issues)
-  - [Proxy Middleware Issues](https://github.com/sitmun/sitmun-proxy-middleware/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/sitmun/sitmun-application-stack/discussions)
+- **Documentation**: module README files in this repository
+- **Issues**: [GitHub Issues](https://github.com/sitmun/sitmun/issues)
 
 ### Reporting Issues
 
@@ -1201,7 +1183,7 @@ When reporting issues, please include:
 
 - **SITMUN Documentation**: [https://sitmun.github.io/](https://sitmun.github.io/)
 - **SITMUN Organization**: [https://github.com/sitmun](https://github.com/sitmun)
-- **SonarCloud Quality Gates**:
+- **SonarCloud dashboards**:
   - [Backend Core](https://sonarcloud.io/dashboard?id=org.sitmun%3Asitmun-backend-core)
   - [Admin App](https://sonarcloud.io/dashboard?id=org.sitmun%3Asitmun-admin-app)
   - [Proxy Middleware](https://sonarcloud.io/dashboard?id=org.sitmun%3Asitmun-proxy-middleware)
@@ -1228,16 +1210,13 @@ SITMUN is an open-source platform for territorial information management, design
 
 **Related Projects:**
 
-- [SITMUN Backend Core](https://github.com/sitmun/sitmun-backend-core) - REST API and business logic
-- [SITMUN Proxy Middleware](https://github.com/sitmun/sitmun-proxy-middleware) - Proxy and security middleware
-- [SITMUN Admin App](https://github.com/sitmun/sitmun-admin-app) - Administrative interface
-- [SITMUN Viewer App](https://github.com/sitmun/sitmun-viewer-app) - Map visualization frontend
+- [SITMUN](https://github.com/sitmun/sitmun) — admin, viewer, backend, proxy, and mobile apps in one repository
 
 **Technology Stack:**
 
-- Frontend: Angular 19, TypeScript, Angular Material, SITNA Library
-- Backend: Spring Boot 3, Java 17, PostgreSQL/Oracle/H2
-- Infrastructure: Docker, Docker Compose, Git Submodules
-- Quality: SonarCloud, GitHub Actions, Conventional Commits
+- Frontend: Angular 22, TypeScript, Angular Material, SITNA Library
+- Backend: Spring Boot 4, Java 17, PostgreSQL/Oracle/H2
+- Infrastructure: Docker, Docker Compose
+- Quality: GitHub Actions `ci-gate`, Conventional Commits
 
 For more information, visit the [SITMUN organization](https://github.com/sitmun) on GitHub.
