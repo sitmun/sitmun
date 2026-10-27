@@ -5,8 +5,8 @@ Reusable across front applications (admin, viewer, etc.).
 
 Usage:
   python3 sort_and_complete_translations.py --i18n-dir <path>
-  python3 sort_and_complete_translations.py --i18n-dir front/admin/sitmun-admin-app/src/assets/i18n --reference en
-  python3 sort_and_complete_translations.py --i18n-dir front/viewer/sitmun-viewer-app/src/assets/i18n --no-complete
+  python3 sort_and_complete_translations.py --i18n-dir sitmun-admin/src/assets/i18n --reference en
+  python3 sort_and_complete_translations.py --i18n-dir sitmun-viewer/src/assets/i18n --no-complete
 """
 
 import argparse
@@ -83,7 +83,7 @@ def main() -> None:
         "--i18n-dir",
         type=Path,
         required=True,
-        help="Path to assets/i18n directory (e.g. front/admin/sitmun-admin-app/src/assets/i18n)",
+        help="Path to assets/i18n directory (e.g. sitmun-admin/src/assets/i18n)",
     )
     parser.add_argument(
         "--reference",
