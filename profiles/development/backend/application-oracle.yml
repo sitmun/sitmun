@@ -1,4 +1,8 @@
 # JPA Configuration for Oracle
+sitmun:
+  db:
+    oracle:
+      version: ${SITMUN_ORACLE_VERSION:19}
 spring:
   jpa:
     properties:

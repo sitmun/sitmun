@@ -122,6 +122,28 @@ jobs:
           SITMUN_ORACLE_IMAGE: gvenzl/oracle-xe:21-slim
         run: bash tools/tests/test_liquibase_1.2.7_to_head_upgrade.sh oracle-from 1.2.7
 
+  # gvenzl/oracle-xe:11 is amd64 only. ubuntu-latest is amd64. Do not run this image on an Apple M1.
+  # The Liquibase image brings its own Oracle driver. This job checks the schema on Oracle 11g.
+  oracle-11-install:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: Fetch 1.2.7 tag
+        run: git fetch --no-tags origin tag legacy/sitmun-application-stack/sitmun-application-stack/1.2.7
+
+      - name: Upgrade Oracle 1.2.7 to HEAD on XE 11
+        env:
+          SITMUN_ORACLE_IMAGE: gvenzl/oracle-xe:11
+          SITMUN_ORACLE_VERSION: "11"
+          SITMUN_ORACLE_WAIT_TRIES: 300
+        run: bash tools/tests/test_liquibase_1.2.7_to_head_upgrade.sh oracle-from 1.2.7
+
   dev-postgres-from:
     runs-on: ubuntu-latest
     timeout-minutes: 20

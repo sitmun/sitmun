@@ -64,6 +64,10 @@ updates:
     target-branch: dev
     schedule:
       interval: weekly
+    # ojdbc10 stays on major 19. That line runs on JDK 17. 23.x is certified for Oracle 19, 21, and 23 only.
+    ignore:
+      - dependency-name: "com.oracle.database.jdbc:ojdbc10"
+        update-types: ["version-update:semver-major"]
   - package-ecosystem: github-actions
     directory: /
     target-branch: dev

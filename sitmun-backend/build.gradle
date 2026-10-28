@@ -66,6 +66,7 @@ dependencies {
   // Production databases
   implementation libs.postgresql
   implementation libs.oracle.jdbc
+  implementation libs.hibernate.community.dialects
   implementation libs.mssql.jdbc
 
   // Database migration

@@ -27,6 +27,7 @@ querydsl = "5.0.0"
 handlebars = "4.4.0"
 opencsv = "5.9"
 resilience4j = "2.4.0"
+oracle-jdbc = "19.32.0.0"
 
 [libraries]
 spring-boot-dependencies = { module = "org.springframework.boot:spring-boot-dependencies", version.ref = "spring-boot" }
@@ -64,7 +65,8 @@ handyUriTemplates = { module = "com.damnhandy:handy-uri-templates", version.ref 
 mime4j-core = { module = "org.apache.james:apache-mime4j-core", version.ref = "mime4j" }
 h2 = { module = "com.h2database:h2" }
 postgresql = { module = "org.postgresql:postgresql" }
-oracle-jdbc = { module = "com.oracle.database.jdbc:ojdbc11-production" }
+oracle-jdbc = { module = "com.oracle.database.jdbc:ojdbc10", version.ref = "oracle-jdbc" }
+hibernate-community-dialects = { module = "org.hibernate.orm:hibernate-community-dialects" }
 mssql-jdbc = { module = "com.microsoft.sqlserver:mssql-jdbc" }
 jetbrains-annotations = { module = "org.jetbrains:annotations", version.ref = "jetbrains-annotations" }
 lombok = { module = "org.projectlombok:lombok" }
