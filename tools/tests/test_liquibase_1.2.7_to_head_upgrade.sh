@@ -91,6 +91,35 @@ version_lt() {
   [[ "$1" != "$2" && "$(printf '%s\n' "$1" "$2" | sort -V | head -1)" == "$1" ]]
 }
 
+oracle_wait_line() {
+  /usr/bin/printf '%s\n' "$1"
+}
+
+wait_for_oracle() {
+  local i result note
+  for i in $(seq 1 "$ORACLE_WAIT_TRIES"); do
+    result=$(docker exec "$CONTAINER" bash -c "
+      printf 'SET HEADING OFF FEEDBACK OFF PAGESIZE 0 TRIMOUT ON;\nSELECT 42 FROM DUAL;\nEXIT;\n' \
+      | sqlplus -s ${DB_USER}/${DB_PASS}@//localhost:1521/${DB} 2>/dev/null
+    " 2>/dev/null | tr -d ' \n\r\t' || true)
+    if [[ -n "$result" ]]; then
+      note="probe=${result}"
+    else
+      note="probe returned nothing"
+    fi
+    if [[ "$result" == "42" ]]; then
+      oracle_wait_line "  Waiting for Oracle image=${ORACLE_IMAGE} attempt ${i}/${ORACLE_WAIT_TRIES} ${note} ready."
+      break
+    fi
+    oracle_wait_line "  Waiting for Oracle image=${ORACLE_IMAGE} attempt ${i}/${ORACLE_WAIT_TRIES} ${note}"
+    sleep 3
+    if [[ $i -eq "$ORACLE_WAIT_TRIES" ]]; then
+      oracle_wait_line "  TIMEOUT"
+      fail "Oracle container failed to become ready"
+      return 1
+    fi
+  done
+}
 
 # ── PostgreSQL ────────────────────────────────────────────────────────────────
 
@@ -402,6 +431,7 @@ DOCKEREOF
   docker rm -f "$CONTAINER" 2>/dev/null || true
   docker network rm "$NETWORK" 2>/dev/null || true
   docker network create "$NETWORK"
+  docker pull "$ORACLE_IMAGE"
   docker run -d --name "$CONTAINER" --network "$NETWORK" \
     -e ORACLE_PASSWORD="$ORACLE_PWD" \
     -e APP_USER="$DB_USER" \
@@ -409,24 +439,7 @@ DOCKEREOF
     -e ORACLE_DATABASE="$DB" \
     "$ORACLE_IMAGE"
 
-  echo -n "  Waiting for Oracle ($ORACLE_IMAGE)"
-  for i in $(seq 1 "$ORACLE_WAIT_TRIES"); do
-    result=$(docker exec "$CONTAINER" bash -c "
-      printf 'SET HEADING OFF FEEDBACK OFF PAGESIZE 0 TRIMOUT ON;\nSELECT 42 FROM DUAL;\nEXIT;\n' \
-      | sqlplus -s ${DB_USER}/${DB_PASS}@//localhost:1521/${DB} 2>/dev/null
-    " 2>/dev/null | tr -d ' \n\r\t' || true)
-    if [[ "$result" == "42" ]]; then
-      echo " ready."
-      break
-    fi
-    sleep 3
-    echo -n "."
-    if [[ $i -eq "$ORACLE_WAIT_TRIES" ]]; then
-      echo " TIMEOUT"
-      fail "Oracle container failed to become ready"
-      return 1
-    fi
-  done
+  wait_for_oracle || return 1
 
   echo ""
   echo "════ PHASE 1: apply $TAG_127 ════"
@@ -568,6 +581,7 @@ DOCKEREOF
   docker rm -f "$CONTAINER" 2>/dev/null || true
   docker network rm "$NETWORK" 2>/dev/null || true
   docker network create "$NETWORK"
+  docker pull "$ORACLE_IMAGE"
   docker run -d --name "$CONTAINER" --network "$NETWORK" \
     -e ORACLE_PASSWORD="$ORACLE_PWD" \
     -e APP_USER="$DB_USER" \
@@ -575,24 +589,7 @@ DOCKEREOF
     -e ORACLE_DATABASE="$DB" \
     "$ORACLE_IMAGE"
 
-  echo -n "  Waiting for Oracle ($ORACLE_IMAGE)"
-  for i in $(seq 1 "$ORACLE_WAIT_TRIES"); do
-    result=$(docker exec "$CONTAINER" bash -c "
-      printf 'SET HEADING OFF FEEDBACK OFF PAGESIZE 0 TRIMOUT ON;\nSELECT 42 FROM DUAL;\nEXIT;\n' \
-      | sqlplus -s ${DB_USER}/${DB_PASS}@//localhost:1521/${DB} 2>/dev/null
-    " 2>/dev/null | tr -d ' \n\r\t' || true)
-    if [[ "$result" == "42" ]]; then
-      echo " ready."
-      break
-    fi
-    sleep 3
-    echo -n "."
-    if [[ $i -eq "$ORACLE_WAIT_TRIES" ]]; then
-      echo " TIMEOUT"
-      fail "Oracle container failed to become ready"
-      return 1
-    fi
-  done
+  wait_for_oracle || return 1
 
   echo ""
   echo "════ PHASE 1: apply $tag ════"
@@ -716,6 +713,7 @@ DOCKEREOF
   docker rm -f "$CONTAINER" 2>/dev/null || true
   docker network rm "$NETWORK" 2>/dev/null || true
   docker network create "$NETWORK"
+  docker pull "$ORACLE_IMAGE"
   docker run -d --name "$CONTAINER" --network "$NETWORK" \
     -e ORACLE_PASSWORD="$ORACLE_PWD" \
     -e APP_USER="$DB_USER" \
@@ -723,24 +721,7 @@ DOCKEREOF
     -e ORACLE_DATABASE="$DB" \
     "$ORACLE_IMAGE"
 
-  echo -n "  Waiting for Oracle ($ORACLE_IMAGE)"
-  for i in $(seq 1 "$ORACLE_WAIT_TRIES"); do
-    result=$(docker exec "$CONTAINER" bash -c "
-      printf 'SET HEADING OFF FEEDBACK OFF PAGESIZE 0 TRIMOUT ON;\nSELECT 42 FROM DUAL;\nEXIT;\n' \
-      | sqlplus -s ${DB_USER}/${DB_PASS}@//localhost:1521/${DB} 2>/dev/null
-    " 2>/dev/null | tr -d ' \n\r\t' || true)
-    if [[ "$result" == "42" ]]; then
-      echo " ready."
-      break
-    fi
-    sleep 3
-    echo -n "."
-    if [[ $i -eq "$ORACLE_WAIT_TRIES" ]]; then
-      echo " TIMEOUT"
-      fail "Oracle container failed to become ready"
-      return 1
-    fi
-  done
+  wait_for_oracle || return 1
 
   echo ""
   echo "════ PHASE 1: apply $tag ════"
