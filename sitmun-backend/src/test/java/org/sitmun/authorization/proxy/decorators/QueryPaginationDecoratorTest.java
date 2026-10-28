@@ -16,14 +16,9 @@ class QueryPaginationDecoratorTest {
   private final QueryPaginationDecorator decorator = new QueryPaginationDecorator();
 
   @ParameterizedTest
-  @ValueSource(
-      strings = {
-        "jdbc:postgresql://localhost/sitmun",
-        "jdbc:h2:mem:test",
-        "jdbc:oracle:thin:@//localhost:1521/xe"
-      })
-  @DisplayName("addBehavior appends the same clause for PostgreSQL, H2, and Oracle")
-  void sameClauseForEveryTarget(String uri) {
+  @ValueSource(strings = {"jdbc:postgresql://localhost/sitmun", "jdbc:h2:mem:test"})
+  @DisplayName("PostgreSQL and H2 keep OFFSET and FETCH")
+  void postgresqlAndH2KeepOffsetFetch(String uri) {
     JdbcPayloadDto payload = JdbcPayloadDto.builder().uri(uri).sql("SELECT * FROM t").build();
 
     decorator.addBehavior(
@@ -32,6 +27,24 @@ class QueryPaginationDecoratorTest {
 
     assertThat(payload.getSql())
         .isEqualTo("SELECT * FROM t OFFSET 20 ROWS FETCH NEXT 10 ROWS ONLY");
+  }
+
+  @Test
+  @DisplayName("Oracle uses a ROWNUM wrapper")
+  void oracleUsesRownum() {
+    JdbcPayloadDto payload =
+        JdbcPayloadDto.builder()
+            .uri("jdbc:oracle:thin:@//localhost:1521/xe")
+            .sql("SELECT * FROM t")
+            .build();
+
+    decorator.addBehavior(
+        Map.of(QueryPaginationDecorator.SQL_LIMIT, "10", QueryPaginationDecorator.SQL_OFFSET, "20"),
+        payload);
+
+    assertThat(payload.getSql())
+        .isEqualTo(
+            "SELECT * FROM (SELECT q.*, ROWNUM rn FROM (SELECT * FROM t) q WHERE ROWNUM <= 30) WHERE rn > 20");
   }
 
   @Test
