@@ -17,7 +17,7 @@ const stagedWrapper = join(changelogDir, 'db.changelog-e2e.yaml');
 const stagedYaml = join(changelogDir, 'ensure-document-export-task-type.yaml');
 const stagedSpecDir = join(changelogDir, 'ensure-document-export-task-type');
 const prefix = 'e2e-backend';
-const gradlew = join(backendRoot, isWindows ? 'gradlew.bat' : 'gradlew');
+const gradlew = join(stackRoot, isWindows ? 'gradlew.bat' : 'gradlew');
 
 if (!existsSync(backendRoot)) {
   fail(prefix, `Backend module missing at ${backendRoot}`);
@@ -81,8 +81,8 @@ const springArgs = [
   '--spring.liquibase.change-log=file:./config/db/changelog/db.changelog-e2e.yaml',
 ].join(' ');
 
-const child = spawnDetached(gradlew, ['bootRun', '--no-daemon', `--args=${springArgs}`], {
-  cwd: backendRoot,
+const child = spawnDetached(gradlew, [':sitmun-backend:bootRun', '--no-daemon', `--args=${springArgs}`], {
+  cwd: stackRoot,
   env: {
     ...process.env,
     SITMUN_USER_SECRET: 'test-only-insecure-user-secret-32-bytes',

@@ -20,13 +20,11 @@ SITMUN (Sistema de Información Territorial de la Mancomunidad de Municipios) is
 
 Image definitions are under `docker/`. The Compose file is `compose.yaml`.
 
-Common, proxy, and MBTiles are one Gradle build. From the repository root:
+Common, proxy, MBTiles, and the backend are one Gradle build. From the repository root:
 
 ```bash
-./gradlew :sitmun-proxy:test :sitmun-mbtiles:test :sitmun-spring-upstream:test :sitmun-proxy-contract:test
+./gradlew :sitmun-backend:test :sitmun-proxy:test :sitmun-mbtiles:test :sitmun-spring-upstream:test :sitmun-proxy-contract:test
 ```
-
-Backend Gradle runs from `sitmun-backend` with its own wrapper. `./gradlew` inside `sitmun-proxy` still finds the parent `settings.gradle`.
 
 ## Toolchain
 
@@ -224,8 +222,7 @@ pnpm start
 `pnpm start` is `ng serve` with the `development` configuration. From `sitmun-mobile/sitmun-edition` or `sitmun-mobile/sitmun-touristic`: `pnpm ci` and `pnpm start`.
 
 ```bash
-cd sitmun-backend
-./gradlew bootRun
+./gradlew :sitmun-backend:bootRun
 
 # repository root; proxy dev profile is sitmun-proxy/src/main/resources/application-dev.yml
 ./gradlew :sitmun-proxy:bootRun --args='--spring.profiles.active=dev'
@@ -239,8 +236,7 @@ Backend has no `application-dev.yml`. Supply `SITMUN_USER_SECRET`, `SITMUN_PROXY
 cd sitmun-admin && pnpm run lint && pnpm test
 cd sitmun-viewer && pnpm run lint && pnpm test
 
-cd sitmun-backend
-./gradlew test spotlessCheck
+./gradlew :sitmun-backend:test :sitmun-backend:spotlessCheck
 
 # repository root
 ./gradlew :sitmun-proxy:test :sitmun-proxy:spotlessCheck
@@ -317,7 +313,7 @@ curl -X POST http://localhost:9001/api/authenticate/admin \
 curl -b cookies.txt http://localhost:9001/api/account
 ```
 
-Reinstall an app from that app directory: `rm -rf node_modules && pnpm ci`. Node must match `.nvmrc`. Java must match `.java-version`. Backend clean: `cd sitmun-backend && ./gradlew clean`. Proxy clean, from the repository root: `./gradlew :sitmun-proxy:clean`.
+Reinstall an app from that app directory: `rm -rf node_modules && pnpm ci`. Node must match `.nvmrc`. Java must match `.java-version`. Backend clean: `./gradlew :sitmun-backend:clean`. Proxy clean: `./gradlew :sitmun-proxy:clean`.
 
 `LOGGING_LEVEL_ORG_SITMUN` is passed through Compose (default `DEBUG`). Set it in `.env` and run `docker compose up -d backend proxy`.
 

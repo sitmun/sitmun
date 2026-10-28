@@ -41,11 +41,6 @@ jobs:
           java-version-file: .java-version
           cache: gradle
 
-      - name: Publish sitmun-shared to the local Maven repository
-        run: |
-          chmod +x gradlew
-          ./gradlew :sitmun-spring-upstream:publishToMavenLocal :sitmun-proxy-contract:publishToMavenLocal -x test
-
       - uses: pnpm/action-setup@v4
         with:
           version: 12.15.0
@@ -98,11 +93,6 @@ jobs:
           java-version-file: .java-version
           cache: gradle
 
-      - name: Publish sitmun-shared to the local Maven repository
-        run: |
-          chmod +x gradlew
-          ./gradlew :sitmun-spring-upstream:publishToMavenLocal :sitmun-proxy-contract:publishToMavenLocal -x test
-
       - uses: pnpm/action-setup@v4
         with:
           version: 12.15.0
@@ -154,11 +144,6 @@ jobs:
           distribution: temurin
           java-version-file: .java-version
           cache: gradle
-
-      - name: Publish sitmun-shared to the local Maven repository
-        run: |
-          chmod +x gradlew
-          ./gradlew :sitmun-spring-upstream:publishToMavenLocal :sitmun-proxy-contract:publishToMavenLocal -x test
 
       - uses: pnpm/action-setup@v4
         with:
@@ -217,11 +202,6 @@ jobs:
           java-version-file: .java-version
           cache: gradle
 
-      - name: Publish sitmun-shared to the local Maven repository
-        run: |
-          chmod +x gradlew
-          ./gradlew :sitmun-spring-upstream:publishToMavenLocal :sitmun-proxy-contract:publishToMavenLocal -x test
-
       - uses: pnpm/action-setup@v4
         with:
           version: 12.15.0
@@ -279,11 +259,6 @@ jobs:
           java-version-file: .java-version
           cache: gradle
 
-      - name: Publish sitmun-shared to the local Maven repository
-        run: |
-          chmod +x gradlew
-          ./gradlew :sitmun-spring-upstream:publishToMavenLocal :sitmun-proxy-contract:publishToMavenLocal -x test
-
       - uses: pnpm/action-setup@v4
         with:
           version: 12.15.0
@@ -329,11 +304,6 @@ jobs:
           distribution: temurin
           java-version-file: .java-version
           cache: gradle
-
-      - name: Publish sitmun-shared to the local Maven repository
-        run: |
-          chmod +x gradlew
-          ./gradlew :sitmun-spring-upstream:publishToMavenLocal :sitmun-proxy-contract:publishToMavenLocal -x test
 
       - uses: pnpm/action-setup@v4
         with:

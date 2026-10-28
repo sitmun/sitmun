@@ -200,11 +200,20 @@ def _failures_root_build(_root: Path) -> list[str]:
     if not settings:
         return ["missing root settings.gradle"]
     failures = []
-    for name in ("sitmun-spring-upstream", "sitmun-proxy-contract", "sitmun-proxy", "sitmun-mbtiles"):
+    for name in (
+        "sitmun-spring-upstream",
+        "sitmun-proxy-contract",
+        "sitmun-proxy",
+        "sitmun-mbtiles",
+        "sitmun-backend",
+    ):
         if f"'{name}'" not in settings:
             failures.append(f"root settings does not include {name}")
-    if "'sitmun-backend'" in settings:
-        failures.append("root settings includes backend")
+    backend = _read(ROOT / "sitmun-backend/build.gradle")
+    if "org.sitmun:sitmun-spring-upstream:" in backend or "org.sitmun:sitmun-proxy-contract:" in backend:
+        failures.append("sitmun-backend still uses a Maven coordinate")
+    if "project(':sitmun-spring-upstream')" not in backend or "project(':sitmun-proxy-contract')" not in backend:
+        failures.append("sitmun-backend does not depend on the root library projects")
     proxy = _read(ROOT / "sitmun-proxy/build.gradle")
     if "org.sitmun:sitmun-proxy-contract:" in proxy:
         failures.append("sitmun-proxy still uses the Maven coordinate")

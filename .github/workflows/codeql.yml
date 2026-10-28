@@ -19,9 +19,10 @@ jobs:
       matrix:
         include:
           - component: backend
-            directory: sitmun-backend
+            directory: .
             language: java
-            publish_common: true
+            publish_common: false
+            gradle_tasks: :sitmun-backend:assemble
           - component: proxy
             directory: .
             language: java
@@ -62,22 +63,11 @@ jobs:
         with:
           languages: ${{ matrix.language }}
           build-mode: ${{ matrix.language == 'java' && 'manual' || 'none' }}
-      - name: Publish sitmun-common
-        if: matrix.publish_common
-        run: |
-          chmod +x gradlew
-          ./gradlew :sitmun-spring-upstream:publishToMavenLocal :sitmun-proxy-contract:publishToMavenLocal -x test --no-daemon
       - name: Assemble
-        if: matrix.language == 'java' && matrix.component != 'backend'
+        if: matrix.language == 'java'
         run: |
           chmod +x gradlew
           ./gradlew ${{ matrix.gradle_tasks }} --no-daemon
-      - name: Assemble backend
-        if: matrix.component == 'backend'
-        working-directory: sitmun-backend
-        run: |
-          chmod +x gradlew
-          ./gradlew assemble --no-daemon
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v4
         with:

@@ -174,7 +174,7 @@ This service integrates with the [SITMUN Backend Core](https://github.com/sitmun
 - **Debug Logging**: Detailed logging for development (dev profile only)
 - **Automated Quality Checks**: Git hooks for pre-commit validation
 - **Conventional Commits**: Enforced commit message format
-- **Version Management**: Automated versioning with Axion Release
+- **Version**: `project.version` in `build.gradle`
 - **Code Formatting**: Automated code formatting with Spotless
 - **Coverage Reporting**: JaCoCo integration for code coverage
 - **Comprehensive Testing**: Unit and integration tests with comprehensive coverage
@@ -442,7 +442,7 @@ mbtiles:
 - **Coordinate Transformations**: proj4j 1.1.5
 - **XML Parsing**: dom4j 2.1.4
 - **Testing**: JUnit 5, Spring Boot Test, Mockito
-- **Code Quality**: Spotless (Google Java Format), JaCoCo, Axion Release
+- **Code Quality**: Spotless (Google Java Format), JaCoCo
 - **Development Tools**: Git Hooks, Conventional Commits
 
 ### System Architecture
@@ -730,7 +730,7 @@ src/
 The project uses Gradle with Version Catalogs for dependency management:
 
 - **Version Catalog**: `gradle/libs.versions.toml` - Centralized dependency versions
-- **Plugins**: Spring Boot, Lombok, Spotless, Axion Release
+- **Plugins**: Spring Boot, Lombok, Spotless, from the root version catalog
 - **Quality Tools**: JaCoCo for coverage, Spotless for formatting
 
 ### Code Quality
@@ -739,7 +739,7 @@ The project includes several code quality tools:
 
 - **Spotless**: Code formatting with Google Java Format
 - **JaCoCo**: Code coverage reporting
-- **Axion Release**: Version management with semantic versioning
+- **Version**: `project.version` in `build.gradle`
 - **Git Hooks**: Automated quality checks and commit validation
 
 ### Running Quality Checks
@@ -758,63 +758,9 @@ The project includes several code quality tools:
 open build/reports/jacoco/test/html/index.html
 ```
 
-### Version Management
+### Version
 
-The project uses Axion Release for automated version management:
-
-```bash
-# Check current version
-./gradlew currentVersion
-
-# Create a new release
-./gradlew release
-
-# Create a new patch version
-./gradlew patch
-```
-
-#### Creating a Release
-
-**Prerequisites:**
-1. **Clean Git State**: Ensure all changes are committed
-2. **Working Directory**: No uncommitted changes
-3. **Git Repository**: Must be a valid Git repository
-
-**Step-by-Step Release Process:**
-
-```bash
-# 1. Check current Git status
-git status
-
-# 2. Add and commit any pending changes
-git add .
-git commit -m "docs: update documentation for release"
-
-# 3. Verify the repository is clean
-git status
-
-# 4. Check current version
-./gradlew currentVersion
-
-# 5. Create a new release
-./gradlew release
-
-# 6. Push the release tag
-git push --tags
-```
-
-**Release Types:**
-
-- **`./gradlew release`**: Creates a new patch version (e.g., 1.0.0 → 1.0.1)
-- **`./gradlew release -Prelease.scope=minor`**: Creates a new minor version (e.g., 1.0.0 → 1.1.0)
-- **`./gradlew release -Prelease.scope=major`**: Creates a new major version (e.g., 1.0.0 → 2.0.0)
-
-**Troubleshooting:**
-
-If the release fails with "No such property: commit", ensure:
-1. All changes are committed to Git
-2. You're on a valid branch (not detached HEAD)
-3. Git repository is properly initialized
+The module version is `project.version` in `build.gradle`. Dependencies come from the root `gradle/libs.versions.toml`. Run Gradle from the repository root, for example `./gradlew :sitmun-mbtiles:test`.
 
 ### Testing
 
@@ -904,16 +850,6 @@ git commit -m "fix(mbtiles): resolve memory leak in tile processing"
 git commit -m "docs: update README with MBTiles compliance info"
 git commit -m "test: add integration tests for WMTS harvesting"
 git commit -m "style: format code with Google Java Format"
-```
-
-#### Managing Git Hooks
-
-```bash
-# Install Git hooks (opt-in)
-./gradlew setupGitHooks
-
-# Remove Git hooks
-./gradlew removeGitHooks
 ```
 
 ## Advanced Features

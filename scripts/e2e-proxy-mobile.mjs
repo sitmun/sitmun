@@ -14,7 +14,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const stackRoot = resolve(__dirname, '..');
 const proxyRoot = join(stackRoot, 'sitmun-proxy');
 const prefix = 'e2e-proxy-mobile';
-const gradlew = join(proxyRoot, isWindows ? 'gradlew.bat' : 'gradlew');
+const gradlew = join(stackRoot, isWindows ? 'gradlew.bat' : 'gradlew');
 const BACKEND_HEALTH_URL = 'http://localhost:18080/api/dashboard/health';
 const BACKEND_WAIT_MS = 180_000;
 
@@ -29,12 +29,12 @@ console.error('[e2e-proxy-mobile] Starting proxy middleware on port 18082...');
 const child = spawnDetached(
   gradlew,
   [
-    'bootRun',
+    ':sitmun-proxy:bootRun',
     '--no-daemon',
     '--args=--server.port=18082 --sitmun.backend.config.url=http://localhost:18080/api/config/proxy --sitmun.mbtiles.url=http://127.0.0.1:18084/mbtiles',
   ],
   {
-    cwd: proxyRoot,
+    cwd: stackRoot,
     env: {
       ...process.env,
       SITMUN_BACKEND_CONFIG_URL: 'http://localhost:18080/api/config/proxy',

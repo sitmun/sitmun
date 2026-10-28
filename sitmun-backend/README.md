@@ -695,8 +695,6 @@ The project enforces high code quality standards:
 - **SonarQube**: Code quality analysis
 - **JaCoCo**: Code coverage reporting
 - **Conventional Commits**: Structured commit messages
-- **Git Hooks**: Pre-commit validation
-
 ### Testing
 
 Comprehensive testing strategy:
@@ -1146,16 +1144,6 @@ git commit -m "fix(api): resolve JWT token validation issue"
 git commit -m "docs: update README with deployment instructions"
 git commit -m "test: add integration tests for user verification"
 git commit -m "style: format code with Google Java Format"
-```
-
-#### Managing Git Hooks
-
-```bash
-# Install Git hooks (opt-in)
-./gradlew setupGitHooks
-
-# Remove Git hooks
-./gradlew removeGitHooks
 ```
 
 ## Support

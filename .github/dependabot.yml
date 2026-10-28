@@ -57,22 +57,7 @@ updates:
     schedule:
       interval: weekly
   - package-ecosystem: gradle
-    directory: /sitmun-backend
-    target-branch: dev
-    schedule:
-      interval: weekly
-  - package-ecosystem: gradle
-    directory: /sitmun-proxy
-    target-branch: dev
-    schedule:
-      interval: weekly
-  - package-ecosystem: gradle
-    directory: /sitmun-addons/sitmun-mbtiles
-    target-branch: dev
-    schedule:
-      interval: weekly
-  - package-ecosystem: gradle
-    directory: /sitmun-common
+    directory: /
     target-branch: dev
     schedule:
       interval: weekly

@@ -9,9 +9,6 @@ plugins {
     id 'org.gradle.toolchains.foojay-resolver-convention' version '0.10.0'
 }
 
-// publishToMavenLocal follows maven.repo.local. A host ~/.m2 or settings.xml must not supply artifacts.
-System.setProperty('maven.repo.local', file('build/maven-repo').absolutePath)
-
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
@@ -32,3 +29,6 @@ project(':sitmun-proxy').projectDir = file('sitmun-proxy')
 
 include 'sitmun-mbtiles'
 project(':sitmun-mbtiles').projectDir = file('sitmun-addons/sitmun-mbtiles')
+
+include 'sitmun-backend'
+project(':sitmun-backend').projectDir = file('sitmun-backend')
