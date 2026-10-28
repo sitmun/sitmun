@@ -1,35 +1,19 @@
 #!/usr/bin/env bash
-# bump-version.sh — Propagate stack version from VERSION (or argument) to all consumer files.
+# bump-version.sh — Copy the platform version from gradle.properties into package.json and badges.
 # Usage: ./tools/scripts/bump-version.sh [VERSION] [--dry-run|-n] [--status|-s] [-h|--help]
 # Run from repo root. See tools/README.md "Version and release" for details.
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
-VERSION_FILE="$REPO_ROOT/VERSION"
+PROPS_FILE="$REPO_ROOT/gradle.properties"
 
 # ── Config: paths and patterns (add new versioned files here) ─────────────────
 # Format: "path|match_template|replace_template" — match/replace use {{VERSION}} and {{NEW}}.
 # Path is relative to REPO_ROOT. One targeted pattern per file; no global replace.
 BUMP_ENTRIES=(
-  "build.gradle|sub.version = '{{VERSION}}'|sub.version = '{{NEW}}'"
-  "sitmun-backend/build.gradle|project.version = '{{VERSION}}'|project.version = '{{NEW}}'"
-  "sitmun-proxy/build.gradle|project.version = '{{VERSION}}'|project.version = '{{NEW}}'"
-  "sitmun-addons/sitmun-mbtiles/build.gradle|project.version = '{{VERSION}}'|project.version = '{{NEW}}'"
-  "sitmun-proxy/build.gradle|project.version = '{{VERSION}}'|project.version = '{{NEW}}'"
   "sitmun-admin/package.json|\"version\": \"{{VERSION}}\"|\"version\": \"{{NEW}}\""
   "sitmun-viewer/package.json|\"version\": \"{{VERSION}}\"|\"version\": \"{{NEW}}\""
-  "sitmun-backend/src/main/resources/application.yml|  version: {{VERSION}}|  version: {{NEW}}"
-  "sitmun-backend/src/main/resources/static/v3/api-docs-admin.yaml|  version: {{VERSION}}|  version: {{NEW}}"
-  "sitmun-backend/src/main/resources/static/v3/api-docs-auth.yaml|  version: {{VERSION}}|  version: {{NEW}}"
-  "sitmun-backend/src/main/resources/static/v3/api-docs-conf.yaml|  version: {{VERSION}}|  version: {{NEW}}"
-  "sitmun-backend/src/main/resources/static/v3/api-docs-proxy.yaml|  version: {{VERSION}}|  version: {{NEW}}"
-  "sitmun-admin/src/environments/environment.ts|  version: '{{VERSION}}',|  version: '{{NEW}}',"
-  "sitmun-admin/src/environments/environment.prod.ts|  version: '{{VERSION}}',|  version: '{{NEW}}',"
-  "sitmun-admin/src/environments/environment.e2e.ts|  version: '{{VERSION}}',|  version: '{{NEW}}',"
-  "sitmun-viewer/src/environments/environment.ts|  version: '{{VERSION}}',|  version: '{{NEW}}',"
-  "sitmun-viewer/src/environments/environment.prod.ts|  version: '{{VERSION}}',|  version: '{{NEW}}',"
-  "sitmun-viewer/src/environments/environment.e2e.ts|  version: '{{VERSION}}',|  version: '{{NEW}}',"
   "README.md|version-{{VERSION}}-blue|version-{{NEW}}-blue"
   "sitmun-admin/README.md|version-{{VERSION}}-blue|version-{{NEW}}-blue"
   "sitmun-viewer/README.md|version-{{VERSION}}-blue|version-{{NEW}}-blue"
@@ -48,25 +32,6 @@ README_BADGE_FILES=(
   "sitmun-backend/README.md"
   "sitmun-proxy/README.md"
 )
-GRADLE_VERSION_FILES=(
-  "sitmun-backend/build.gradle"
-  "sitmun-proxy/build.gradle"
-)
-TS_ENV_VERSION_FILES=(
-  "sitmun-admin/src/environments/environment.ts"
-  "sitmun-admin/src/environments/environment.prod.ts"
-  "sitmun-admin/src/environments/environment.e2e.ts"
-  "sitmun-viewer/src/environments/environment.ts"
-  "sitmun-viewer/src/environments/environment.prod.ts"
-  "sitmun-viewer/src/environments/environment.e2e.ts"
-)
-BACKEND_APP_YML_FILE="sitmun-backend/src/main/resources/application.yml"
-OPENAPI_YAML_VERSION_FILES=(
-  "sitmun-backend/src/main/resources/static/v3/api-docs-admin.yaml"
-  "sitmun-backend/src/main/resources/static/v3/api-docs-auth.yaml"
-  "sitmun-backend/src/main/resources/static/v3/api-docs-conf.yaml"
-  "sitmun-backend/src/main/resources/static/v3/api-docs-proxy.yaml"
-)
 
 # ── Helpers ──────────────────────────────────────────────────────────────────
 usage() {
@@ -74,10 +39,10 @@ usage() {
 Usage:
   ./tools/scripts/bump-version.sh [VERSION] [--dry-run|-n] [--status|-s] [-h|--help]
 
-  --status, -s    Report version in VERSION and each consumer file; flag mismatches. No writes.
+  --status, -s    Report the version in gradle.properties and each consumer file. No writes.
   --dry-run, -n   Show changes that would be made; do not write files or run pnpm.
-  VERSION         Set VERSION file and propagate (e.g. 1.2.6). Creates VERSION if missing.
-  (no args)       Propagate from current VERSION file to all consumers.
+  VERSION         Set version= in gradle.properties and copy it to package.json and badges.
+  (no args)       Copy the current gradle.properties version to package.json and badges.
 
 Run from repo root. After updating files, runs pnpm install --lockfile-only in frontend apps.
 EOF
@@ -177,93 +142,6 @@ normalize_readme_badge_line() {
   mv "$temp" "$path"
 }
 
-# Normalize Gradle project.version line to canonical format.
-normalize_gradle_version_line() {
-  local file="$1" new_ver="$2"
-  local path="$REPO_ROOT/$file"
-  [[ ! -f "$path" ]] && return 0
-  local temp
-  temp="$(mktemp)"
-  awk -v new_ver="$new_ver" '
-    BEGIN { done = 0 }
-    {
-      if (done == 0 && $0 ~ /^"?project\.version = '\''[0-9][0-9.a-zA-Z-]*'\''"?$/) {
-        print "project.version = '\''" new_ver "'\''"
-        done = 1
-        next
-      }
-      print $0
-    }
-  ' "$path" > "$temp"
-  mv "$temp" "$path"
-}
-
-# Normalize TypeScript environment version line to canonical format.
-normalize_ts_env_version_line() {
-  local file="$1" new_ver="$2"
-  local path="$REPO_ROOT/$file"
-  [[ ! -f "$path" ]] && return 0
-  local temp
-  temp="$(mktemp)"
-  awk -v new_ver="$new_ver" '
-    BEGIN { done = 0 }
-    {
-      # Repair malformed variants like:
-      #   "  version: '\''1.2.6'\'',"
-      # and enforce canonical TS object property form.
-      if (done == 0 && $0 ~ /^[[:space:]]*"?[[:space:]]*version[[:space:]]*:[[:space:]]*["\047]?[0-9][0-9A-Za-z.-]*["\047]?,?[[:space:]]*"?[[:space:]]*$/) {
-        print "  version: '\''" new_ver "'\'',"
-        done = 1
-        next
-      }
-      print $0
-    }
-  ' "$path" > "$temp"
-  mv "$temp" "$path"
-}
-
-# Normalize backend application.yml version line to canonical unquoted format.
-normalize_backend_app_yml_version_line() {
-  local file="$1" new_ver="$2"
-  local path="$REPO_ROOT/$file"
-  [[ ! -f "$path" ]] && return 0
-  local temp
-  temp="$(mktemp)"
-  awk -v new_ver="$new_ver" '
-    BEGIN { done = 0 }
-    {
-      if (done == 0 && $0 ~ /^[[:space:]]*"?[[:space:]]*version:[[:space:]]*"*[0-9][0-9.a-zA-Z-]*"*[[:space:]]*"?$/) {
-        print "  version: " new_ver
-        done = 1
-        next
-      }
-      print $0
-    }
-  ' "$path" > "$temp"
-  mv "$temp" "$path"
-}
-
-# Normalize OpenAPI YAML version lines to canonical format.
-normalize_openapi_yaml_version_line() {
-  local file="$1" new_ver="$2"
-  local path="$REPO_ROOT/$file"
-  [[ ! -f "$path" ]] && return 0
-  local temp
-  temp="$(mktemp)"
-  awk -v new_ver="$new_ver" '
-    BEGIN { done = 0 }
-    {
-      if (done == 0 && $0 ~ /^[[:space:]]*"?[[:space:]]*version:[[:space:]]*[0-9][0-9.a-zA-Z-]*[[:space:]]*"?$/) {
-        print "  version: " new_ver
-        done = 1
-        next
-      }
-      print $0
-    }
-  ' "$path" > "$temp"
-  mv "$temp" "$path"
-}
-
 # Run post-propagation normalization for known structured files.
 normalize_known_version_lines() {
   local new_ver="$1"
@@ -274,38 +152,6 @@ normalize_known_version_lines() {
   for rel in "${README_BADGE_FILES[@]}"; do
     normalize_readme_badge_line "$rel" "$new_ver"
   done
-  for rel in "${GRADLE_VERSION_FILES[@]}"; do
-    normalize_gradle_version_line "$rel" "$new_ver"
-  done
-  for rel in "${TS_ENV_VERSION_FILES[@]}"; do
-    normalize_ts_env_version_line "$rel" "$new_ver"
-  done
-  normalize_backend_app_yml_version_line "$BACKEND_APP_YML_FILE" "$new_ver"
-  for rel in "${OPENAPI_YAML_VERSION_FILES[@]}"; do
-    normalize_openapi_yaml_version_line "$rel" "$new_ver"
-  done
-}
-
-# Basic structural checks to catch accidental corruption early.
-validate_ts_env_file() {
-  local file="$1" expected_ver="$2"
-  local path="$REPO_ROOT/$file"
-  [[ ! -f "$path" ]] && return 0
-  if ! awk -v expected_ver="$expected_ver" '
-    BEGIN { ok = 0; bad = 0 }
-    /^[[:space:]]*"/ && /version[[:space:]]*:/ { bad = 1 }
-    {
-      if ($0 ~ "^[[:space:]]*version:[[:space:]]*\\047" expected_ver "\\047,[[:space:]]*$") {
-        ok = 1
-      }
-    }
-    END {
-      if (bad == 1 || ok == 0) exit 1
-    }
-  ' "$path"; then
-    echo "Error: $file failed TS environment validation after version propagation." >&2
-    return 1
-  fi
 }
 
 validate_package_json_file() {
@@ -334,9 +180,6 @@ validate_post_propagation() {
   for rel in "${PACKAGE_JSON_FILES[@]}"; do
     validate_package_json_file "$rel" "$expected_ver"
   done
-  for rel in "${TS_ENV_VERSION_FILES[@]}"; do
-    validate_ts_env_file "$rel" "$expected_ver"
-  done
 }
 
 # ── Main: parse args ─────────────────────────────────────────────────────────
@@ -358,11 +201,11 @@ done
 EFFECTIVE_VERSION=""
 if [[ $DO_STATUS -eq 1 ]]; then
   # Status: report only
-  if [[ -f "$VERSION_FILE" ]]; then
-    EFFECTIVE_VERSION="$(cat "$VERSION_FILE" | tr -d ' \r\n')"
-    echo "VERSION $EFFECTIVE_VERSION"
+  EFFECTIVE_VERSION="$(awk -F= '/^version=/ { print $2; exit }' "$PROPS_FILE" | tr -d ' \r\n')"
+  if [[ -n "$EFFECTIVE_VERSION" ]]; then
+    echo "gradle.properties $EFFECTIVE_VERSION"
   else
-    echo "VERSION (missing)"
+    echo "gradle.properties (missing version=)"
   fi
   MISMATCH_COUNT=0
   for entry in "${BUMP_ENTRIES[@]}"; do
@@ -383,7 +226,7 @@ if [[ $DO_STATUS -eq 1 ]]; then
     fi
   done
   if [[ -n "$EFFECTIVE_VERSION" && $MISMATCH_COUNT -gt 0 ]]; then
-    echo "Mismatch: $MISMATCH_COUNT file(s) differ from VERSION"
+    echo "Mismatch: $MISMATCH_COUNT file(s) differ from gradle.properties"
   fi
   exit 0
 fi
@@ -393,17 +236,28 @@ if [[ -n "$VERSION_ARG" ]]; then
   validate_version "$VERSION_ARG"
   EFFECTIVE_VERSION="$VERSION_ARG"
   if [[ $DO_DRY_RUN -eq 0 ]]; then
-    echo "$EFFECTIVE_VERSION" > "$VERSION_FILE"
-    echo "Wrote VERSION with $EFFECTIVE_VERSION"
+    temp="$(mktemp)"
+    awk -v new_ver="$EFFECTIVE_VERSION" '
+      BEGIN { done = 0 }
+      /^version=/ { print "version=" new_ver; done = 1; next }
+      { print }
+      END { if (done == 0) print "version=" new_ver }
+    ' "$PROPS_FILE" > "$temp"
+    mv "$temp" "$PROPS_FILE"
+    echo "Wrote gradle.properties version=$EFFECTIVE_VERSION"
   else
-    echo "Would write VERSION with $EFFECTIVE_VERSION"
+    echo "Would write gradle.properties version=$EFFECTIVE_VERSION"
   fi
 else
-  if [[ ! -f "$VERSION_FILE" ]]; then
-    echo "Error: VERSION file not found. Create it (e.g. echo 1.2.4 > VERSION) or run with an explicit version to create and sync: ./tools/scripts/bump-version.sh 1.2.6" >&2
+  if [[ ! -f "$PROPS_FILE" ]]; then
+    echo "Error: gradle.properties not found." >&2
     exit 1
   fi
-  EFFECTIVE_VERSION="$(cat "$VERSION_FILE" | tr -d ' \r\n')"
+  EFFECTIVE_VERSION="$(awk -F= '/^version=/ { print $2; exit }' "$PROPS_FILE" | tr -d ' \r\n')"
+  if [[ -z "$EFFECTIVE_VERSION" ]]; then
+    echo "Error: gradle.properties has no version= line." >&2
+    exit 1
+  fi
   validate_version "$EFFECTIVE_VERSION"
 fi
 

@@ -93,5 +93,3 @@ jacocoTestReport {
 tasks.named('bootRun') {
     workingDir = layout.projectDirectory.asFile
 }
-
-project.version = '1.2.9'

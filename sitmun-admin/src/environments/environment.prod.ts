@@ -2,12 +2,13 @@
 // For Docker builds, use the environment.prod.ts.template with envsubst.
 
 import { LogLevel } from '@app/services/log-level.enum';
+import { version } from '../../package.json';
 
 export const environment = {
   production: true,
   apiBaseURL: '/backend', // Change this when there is a real production environment
   logLevel: LogLevel.Error,
-  version: '1.2.9',
+  version,
   buildTimestamp: new Date().toISOString(),
   environmentName: 'production',
   sessionTokenRefreshIntervalMs: 2 * 60 * 1000

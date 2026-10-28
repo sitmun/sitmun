@@ -157,7 +157,7 @@ def _failures_one_catalog(_root: Path) -> list[str]:
 def _failures_gradle_literals(_root: Path) -> list[str]:
     failures = []
     for path in ROOT.rglob("build.gradle"):
-        if "build" in path.parts:
+        if "build" in path.parts or "node_modules" in path.parts or ".gradle" in path.parts:
             continue
         text = _read(path)
         if "project.version" in text or COORDINATE.search(text):

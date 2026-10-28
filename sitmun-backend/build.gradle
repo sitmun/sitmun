@@ -91,7 +91,7 @@ dependencies {
   implementation libs.okhttp.logging
   implementation project(':sitmun-spring-upstream')
   implementation project(':sitmun-proxy-contract')
-  implementation 'io.github.resilience4j:resilience4j-timelimiter:2.3.0'
+  implementation libs.resilience4j.timelimiter
 
   // JSON processing
   implementation libs.json
@@ -347,4 +347,13 @@ tasks.named('bootRun') {
     workingDir = layout.projectDirectory.asFile
 }
 
-project.version = '1.2.9'
+springBoot {
+  buildInfo()
+}
+
+def platformVersion = version
+tasks.named('processResources') {
+  filesMatching('static/v3/api-docs-*.yaml') {
+    filter(org.apache.tools.ant.filters.ReplaceTokens, tokens: [version: platformVersion])
+  }
+}

@@ -48,7 +48,7 @@ Paths by scenario:
 | **apply-seed-data.sh** | Generate seed files then apply the Liquibase changelog to a remote database. `--db-type postgres\|oracle`; `--baseline` selects i18n language. |
 | **validate-liquibase-changelogs.sh** | List changelogs by last modification (newest first). Not an immutability gate. Pass `[liquibase_dir]` as first argument (default: development). |
 | **compare-schema-drift.sh** | Apply development vs postgres/oracle Liquibase (Docker), report PROBLEM/INFO drift, write **draft fix YAML** under `tools/out/schema-drift/`. Optional `--against jpa`. Target `dev-dialects` compares development postgresql vs oracle. |
-| **bump-version.sh** | Propagate stack `VERSION` into module build metadata, OpenAPI docs, frontend env files, README badges, and lockfiles. See [Version and release](#version-and-release). |
+| **bump-version.sh** | Copy the platform version from root `gradle.properties` into admin and viewer `package.json`, README badges, and lockfiles. See [Version and release](#version-and-release). |
 
 ```bash
 # Apply seed data to a remote PostgreSQL database (English baseline)
@@ -100,7 +100,7 @@ Applied profile/schema changesets are frozen. `check_changelog_immutability.py` 
 
 ### Version and release
 
-Coordinated stack version lives in root `VERSION`. Propagation and status:
+The platform version lives in root `gradle.properties` (`version=`). Propagation and status:
 
 ```bash
 # Show current version across consumers
@@ -111,7 +111,7 @@ bash tools/scripts/bump-version.sh 1.2.9
 bash tools/scripts/bump-version.sh --status
 ```
 
-Updates backend/proxy `build.gradle` and OpenAPI YAMLs, admin/viewer `package.json` / environments / badges, and regenerates frontend lockfiles when needed. Full cut/tag/merge sequence is in root [RELEASE.md](../RELEASE.md).
+Updates admin and viewer `package.json` and README badges, and regenerates those lockfiles when needed. Gradle, OpenAPI, and the frontend environment files take the version from that source at build time. Full cut/tag/merge sequence is in root [RELEASE.md](../RELEASE.md).
 
 ---
 
