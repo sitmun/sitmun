@@ -104,7 +104,7 @@ Docker frontend builds read each app version from that app's `package.json`. The
 
 ### Databases
 
-The oldest PostgreSQL server SITMUN must accept is 12. SQL sent to PostgreSQL must stay valid on PostgreSQL 12. The Oracle floor is Oracle 11g Release 2 (11.2). SQL sent to Oracle must stay within that grammar. `gradle.properties` does not define `sitmun.db.postgres.min` or `sitmun.db.oracle.min`. Compose and the Liquibase scripts use `postgres:16-alpine` as the runtime image. That image is not the floor. The Oracle Compose image is `gvenzl/oracle-free:23-slim`.
+The oldest PostgreSQL server SITMUN must accept is 12 (`sitmun.db.postgres.min` in `gradle.properties`). SQL sent to PostgreSQL must stay valid on PostgreSQL 12. The Oracle floor is Oracle 11g Release 2 (`sitmun.db.oracle.min=11.2`). SQL sent to Oracle must stay within that grammar. Compose and the Liquibase scripts use `postgres:16-alpine` as the runtime image. That image is not the floor. The Oracle Compose image is `gvenzl/oracle-free:23-slim`.
 
 Root Playwright and backend tests use in-memory H2. Compose does not start H2.
 

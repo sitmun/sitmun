@@ -4,7 +4,7 @@ SQL Oracle **ilustrativo** que copia un catálogo **núcleo** de SITMUN 2 a un e
 
 ## Requisitos previos
 
-1. Oracle 19c+ recomendado (`JSON_OBJECT` / `JSON_ARRAYAGG` con `RETURNING CLOB`).
+1. Oracle 19c es obligatorio para este ejemplo (`JSON_OBJECT` / `JSON_ARRAYAGG` con `RETURNING CLOB`). No es la versión mínima de SITMUN en ejecución, que sigue siendo Oracle 11g Release 2 (11.2).
 2. El esquema destino ya creado con el **master Liquibase Oracle completo**:
    [`profiles/oracle/liquibase/master.xml`](../../../profiles/oracle/liquibase/master.xml)
    (`01_schema.oracle.sql` más los incrementos hasta `18_*.sql`).

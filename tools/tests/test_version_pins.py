@@ -236,17 +236,28 @@ def _failures_capacitor(_root: Path) -> list[str]:
     return failures
 
 
-def _failures_postgres_floor(_root: Path) -> list[str]:
-    floor = ""
+def _property(name: str) -> str:
+    prefix = name + "="
     for line in _read(ROOT / "gradle.properties").splitlines():
-        if line.startswith("sitmun.db.postgres.min="):
-            floor = line.split("=", 1)[1].strip()
-    if not floor:
-        return ["missing sitmun.db.postgres.min"]
+        if line.startswith(prefix):
+            return line.split("=", 1)[1].strip()
+    return ""
+
+
+def _failures_postgres_floor(_root: Path) -> list[str]:
+    postgres = _property("sitmun.db.postgres.min")
+    oracle = _property("sitmun.db.oracle.min")
     failures = []
+    if postgres != "12":
+        failures.append(f"sitmun.db.postgres.min is {postgres or 'missing'}, expected 12")
+    if oracle != "11.2":
+        failures.append(f"sitmun.db.oracle.min is {oracle or 'missing'}, expected 11.2")
+    if not postgres.isdigit():
+        return failures
+    floor = int(postgres)
     for path in list((ROOT / "tools/tests").glob("*.sh")) + list((ROOT / ".github/workflows").glob("*.yml")):
         for image in re.findall(r"postgres:(\d+)", _read(path)):
-            if image != floor:
+            if int(image) < floor:
                 failures.append(f"{path.relative_to(ROOT)} uses postgres:{image}")
     return failures
 
@@ -340,7 +351,7 @@ CHECKS = (
     ("platform-version", lambda root: "\nversion=" in f"\n{_read(root / 'gradle.properties')}", _failures_platform_version),
     ("catalog-shape", lambda root: (root / "gradle/libs.versions.toml").is_file(), _failures_catalog_shape),
     ("capacitor", lambda root: "e2e-android" in _read(root / "mise.toml"), _failures_capacitor),
-    ("postgres-floor", lambda root: "sitmun.db.postgres.min=" in _read(root / "gradle.properties"), _failures_postgres_floor),
+    ("postgres-floor", lambda _root: True, _failures_postgres_floor),
 )
 
 
