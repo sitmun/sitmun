@@ -587,7 +587,7 @@ async function main() {
       .filter(Boolean)
       .join(' ');
     for (const [script, url] of webServers) {
-      const child = spawn('npm', ['run', script], {
+      const child = spawn('pnpm', ['run', script], {
         cwd: stackRoot,
         stdio: 'inherit',
         detached: true,
@@ -615,13 +615,13 @@ async function main() {
     };
 
     for (const appDir of [editionWork, touristicWork]) {
-      run('npm', ['ci'], { cwd: appDir });
-      run('npx', ['ionic', 'build', '--configuration=development'], { cwd: appDir });
+      run('pnpm', ['ci'], { cwd: appDir });
+      run('pnpm', ['exec', 'ionic', 'build', '--configuration=development'], { cwd: appDir });
       // Native projects are not committed in the mobile modules; generate in the temp copy.
       if (!existsSync(join(appDir, 'android'))) {
-        run('npx', ['cap', 'add', 'android'], { cwd: appDir });
+        run('pnpm', ['exec', 'cap', 'add', 'android'], { cwd: appDir });
       }
-      run('npx', ['cap', 'sync', 'android'], { cwd: appDir });
+      run('pnpm', ['exec', 'cap', 'sync', 'android'], { cwd: appDir });
       const gradle = join(appDir, 'android', process.platform === 'win32' ? 'gradlew.bat' : 'gradlew');
       if (!existsSync(gradle)) {
         throw new Error(`Capacitor android project missing gradlew at ${gradle}`);

@@ -9,7 +9,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const stackRoot = resolve(__dirname, '..');
 const viewerRoot = join(stackRoot, 'sitmun-viewer');
 const prefix = 'e2e-viewer';
-const npmCmd = isWindows ? 'npm.cmd' : 'npm';
+const pnpmCmd = isWindows ? 'pnpm.cmd' : 'pnpm';
 
 if (!existsSync(viewerRoot)) {
   fail(prefix, `Viewer module missing at ${viewerRoot}`);
@@ -18,7 +18,7 @@ if (!existsSync(join(viewerRoot, 'package.json'))) {
   fail(prefix, `Viewer package.json missing at ${viewerRoot}`);
 }
 if (!existsSync(join(viewerRoot, 'node_modules'))) {
-  fail(prefix, `Viewer dependencies missing. Run: cd ${viewerRoot} && npm ci`);
+  fail(prefix, `Viewer dependencies missing. Run: cd ${viewerRoot} && pnpm ci`);
 }
 
 function withViewerMemory(env) {
@@ -30,7 +30,7 @@ function withViewerMemory(env) {
 }
 
 function envWithViewerNode(env = process.env) {
-  const nvmrcPath = join(viewerRoot, '.nvmrc');
+  const nvmrcPath = join(stackRoot, '.nvmrc');
   if (!existsSync(nvmrcPath)) {
     return withViewerMemory(env);
   }
@@ -56,7 +56,7 @@ function envWithViewerNode(env = process.env) {
 const childEnv = envWithViewerNode(process.env);
 console.error('[e2e-viewer] Starting viewer on port 4400...');
 
-const child = spawnDetached(npmCmd, ['run', 'start:e2e', '--', '--port', '4400'], {
+const child = spawnDetached(pnpmCmd, ['run', 'start:e2e', '--', '--port', '4400'], {
   cwd: viewerRoot,
   env: childEnv,
 });

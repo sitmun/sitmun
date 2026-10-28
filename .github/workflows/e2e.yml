@@ -22,6 +22,9 @@ on:
           - mobile_android
           - all
 
+env:
+  NPM_CONFIG_USERCONFIG: ${{ github.workspace }}/config/npm-userconfig
+
 jobs:
   e2e-admin:
     if: inputs.suite == 'admin' || inputs.suite == 'all'
@@ -31,39 +34,42 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v5
 
-      - name: Set up Java 17
+      - name: Set up Java
         uses: actions/setup-java@v5
         with:
           distribution: temurin
-          java-version: '17'
+          java-version-file: .java-version
           cache: gradle
 
       - name: Publish sitmun-shared to the local Maven repository
         run: |
-          chmod +x sitmun-common/gradlew
-          sitmun-common/gradlew -p sitmun-common publishToMavenLocal
+          chmod +x gradlew
+          ./gradlew :sitmun-spring-upstream:publishToMavenLocal :sitmun-proxy-contract:publishToMavenLocal -x test
 
-      - name: Set up Node 24.22.0
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 12.15.0
+      - name: Set up Node
         uses: actions/setup-node@v5
         with:
-          node-version: '24.22.0'
-          cache: npm
+          node-version-file: .nvmrc
+          cache: pnpm
           cache-dependency-path: |
-            package-lock.json
-            sitmun-admin/package-lock.json
+            pnpm-lock.yaml
+            sitmun-admin/pnpm-lock.yaml
 
       - name: Install root dependencies
-        run: npm ci
+        run: pnpm ci
 
       - name: Install admin dependencies
         working-directory: sitmun-admin
-        run: npm ci
+        run: pnpm ci
 
       - name: Install Chromium
-        run: npx playwright install --with-deps chromium
+        run: pnpm exec playwright install --with-deps chromium
 
       - name: Run admin E2E suite
-        run: npm run e2e
+        run: pnpm run e2e
         env:
           CI: true
 
@@ -85,39 +91,42 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v5
 
-      - name: Set up Java 17
+      - name: Set up Java
         uses: actions/setup-java@v5
         with:
           distribution: temurin
-          java-version: '17'
+          java-version-file: .java-version
           cache: gradle
 
       - name: Publish sitmun-shared to the local Maven repository
         run: |
-          chmod +x sitmun-common/gradlew
-          sitmun-common/gradlew -p sitmun-common publishToMavenLocal
+          chmod +x gradlew
+          ./gradlew :sitmun-spring-upstream:publishToMavenLocal :sitmun-proxy-contract:publishToMavenLocal -x test
 
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 12.15.0
       - name: Set up Node from sitmun-viewer/.nvmrc
         uses: actions/setup-node@v5
         with:
-          node-version-file: sitmun-viewer/.nvmrc
-          cache: npm
+          node-version-file: .nvmrc
+          cache: pnpm
           cache-dependency-path: |
-            package-lock.json
-            sitmun-viewer/package-lock.json
+            pnpm-lock.yaml
+            sitmun-viewer/pnpm-lock.yaml
 
       - name: Install root dependencies
-        run: npm ci
+        run: pnpm ci
 
       - name: Install viewer dependencies
         working-directory: sitmun-viewer
-        run: npm ci
+        run: pnpm ci
 
       - name: Install Chromium
-        run: npx playwright install --with-deps chromium
+        run: pnpm exec playwright install --with-deps chromium
 
       - name: Run viewer E2E suite
-        run: npm run e2e:viewer
+        run: pnpm run e2e:viewer
         env:
           CI: true
 
@@ -139,44 +148,47 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v5
 
-      - name: Set up Java 17
+      - name: Set up Java
         uses: actions/setup-java@v5
         with:
           distribution: temurin
-          java-version: '17'
+          java-version-file: .java-version
           cache: gradle
 
       - name: Publish sitmun-shared to the local Maven repository
         run: |
-          chmod +x sitmun-common/gradlew
-          sitmun-common/gradlew -p sitmun-common publishToMavenLocal
+          chmod +x gradlew
+          ./gradlew :sitmun-spring-upstream:publishToMavenLocal :sitmun-proxy-contract:publishToMavenLocal -x test
 
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 12.15.0
       - name: Set up Node from sitmun-viewer/.nvmrc
         uses: actions/setup-node@v5
         with:
-          node-version-file: sitmun-viewer/.nvmrc
-          cache: npm
+          node-version-file: .nvmrc
+          cache: pnpm
           cache-dependency-path: |
-            package-lock.json
-            sitmun-admin/package-lock.json
-            sitmun-viewer/package-lock.json
+            pnpm-lock.yaml
+            sitmun-admin/pnpm-lock.yaml
+            sitmun-viewer/pnpm-lock.yaml
 
       - name: Install root dependencies
-        run: npm ci
+        run: pnpm ci
 
       - name: Install admin dependencies
         working-directory: sitmun-admin
-        run: npm ci
+        run: pnpm ci
 
       - name: Install viewer dependencies
         working-directory: sitmun-viewer
-        run: npm ci
+        run: pnpm ci
 
       - name: Install Chromium
-        run: npx playwright install --with-deps chromium
+        run: pnpm exec playwright install --with-deps chromium
 
       - name: Run application-contact E2E suite
-        run: npx playwright test --config=playwright.application-contact.config.ts
+        run: pnpm exec playwright test --config=playwright.application-contact.config.ts
         env:
           CI: true
 
@@ -198,44 +210,47 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v5
 
-      - name: Set up Java 17
+      - name: Set up Java
         uses: actions/setup-java@v5
         with:
           distribution: temurin
-          java-version: '17'
+          java-version-file: .java-version
           cache: gradle
 
       - name: Publish sitmun-shared to the local Maven repository
         run: |
-          chmod +x sitmun-common/gradlew
-          sitmun-common/gradlew -p sitmun-common publishToMavenLocal
+          chmod +x gradlew
+          ./gradlew :sitmun-spring-upstream:publishToMavenLocal :sitmun-proxy-contract:publishToMavenLocal -x test
 
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 12.15.0
       - name: Set up Node from sitmun-viewer/.nvmrc
         uses: actions/setup-node@v5
         with:
-          node-version-file: sitmun-viewer/.nvmrc
-          cache: npm
+          node-version-file: .nvmrc
+          cache: pnpm
           cache-dependency-path: |
-            package-lock.json
-            sitmun-admin/package-lock.json
-            sitmun-viewer/package-lock.json
+            pnpm-lock.yaml
+            sitmun-admin/pnpm-lock.yaml
+            sitmun-viewer/pnpm-lock.yaml
 
       - name: Install root dependencies
-        run: npm ci
+        run: pnpm ci
 
       - name: Install admin dependencies
         working-directory: sitmun-admin
-        run: npm ci
+        run: pnpm ci
 
       - name: Install viewer dependencies
         working-directory: sitmun-viewer
-        run: npm ci
+        run: pnpm ci
 
       - name: Install Chromium
-        run: npx playwright install --with-deps chromium
+        run: pnpm exec playwright install --with-deps chromium
 
       - name: Run MIA cross E2E suite
-        run: npm run e2e:mia-cross
+        run: pnpm run e2e:mia-cross
         env:
           CI: true
 
@@ -257,33 +272,36 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v5
 
-      - name: Set up Java 17
+      - name: Set up Java
         uses: actions/setup-java@v5
         with:
           distribution: temurin
-          java-version: '17'
+          java-version-file: .java-version
           cache: gradle
 
       - name: Publish sitmun-shared to the local Maven repository
         run: |
-          chmod +x sitmun-common/gradlew
-          sitmun-common/gradlew -p sitmun-common publishToMavenLocal
+          chmod +x gradlew
+          ./gradlew :sitmun-spring-upstream:publishToMavenLocal :sitmun-proxy-contract:publishToMavenLocal -x test
 
-      - name: Set up Node 24.22.0
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 12.15.0
+      - name: Set up Node
         uses: actions/setup-node@v5
         with:
-          node-version: '24.22.0'
-          cache: npm
-          cache-dependency-path: package-lock.json
+          node-version-file: .nvmrc
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
 
       - name: Install root dependencies
-        run: npm ci
+        run: pnpm ci
 
       - name: Install Chromium
-        run: npx playwright install --with-deps chromium
+        run: pnpm exec playwright install --with-deps chromium
 
       - name: Run mobile web E2E suite
-        run: npm run e2e:mobile:web
+        run: pnpm run e2e:mobile:web
         env:
           CI: true
 
@@ -305,30 +323,33 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v5
 
-      - name: Set up Java 17
+      - name: Set up Java
         uses: actions/setup-java@v5
         with:
           distribution: temurin
-          java-version: '17'
+          java-version-file: .java-version
           cache: gradle
 
       - name: Publish sitmun-shared to the local Maven repository
         run: |
-          chmod +x sitmun-common/gradlew
-          sitmun-common/gradlew -p sitmun-common publishToMavenLocal
+          chmod +x gradlew
+          ./gradlew :sitmun-spring-upstream:publishToMavenLocal :sitmun-proxy-contract:publishToMavenLocal -x test
 
-      - name: Set up Node 22
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 12.15.0
+      - name: Set up Node
         uses: actions/setup-node@v5
         with:
-          node-version: '22'
-          cache: npm
+          node-version-file: .nvmrc
+          cache: pnpm
           cache-dependency-path: |
-            package-lock.json
-            sitmun-mobile/sitmun-edition/package-lock.json
-            sitmun-mobile/sitmun-touristic/package-lock.json
+            pnpm-lock.yaml
+            sitmun-mobile/sitmun-edition/pnpm-lock.yaml
+            sitmun-mobile/sitmun-touristic/pnpm-lock.yaml
 
       - name: Install root dependencies
-        run: npm ci
+        run: pnpm ci
 
       - name: Enable KVM
         run: |
@@ -358,7 +379,7 @@ jobs:
           # Replaces the action default `-gpu swiftshader_indirect` (deprecated in
           # emulator 36.4.9). `-gpu software` is the current Android software mode.
           emulator-options: -no-window -gpu software -noaudio -no-boot-anim -camera-back none -no-snapshot-load -no-snapshot-save
-          script: npm run e2e:mobile:android
+          script: pnpm run e2e:mobile:android
         env:
           CI: true
 

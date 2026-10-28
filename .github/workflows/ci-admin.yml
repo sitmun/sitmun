@@ -4,6 +4,9 @@ on:
   workflow_call:
   workflow_dispatch:
 
+env:
+  NPM_CONFIG_USERCONFIG: ${{ github.workspace }}/config/npm-userconfig
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -12,14 +15,17 @@ jobs:
         working-directory: sitmun-admin
     steps:
       - uses: actions/checkout@v5
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 12.15.0
       - uses: actions/setup-node@v5
         with:
-          node-version: "24.22.0"
-          cache: npm
-          cache-dependency-path: sitmun-admin/package-lock.json
-      - run: npm ci
-      - run: npm run lint
-      - run: npm run test:coverage
-      - run: npm run build -- --configuration=production --base-href=/admin-app/
+          node-version-file: .nvmrc
+          cache: pnpm
+          cache-dependency-path: sitmun-admin/pnpm-lock.yaml
+      - run: pnpm ci
+      - run: pnpm run lint
+      - run: pnpm run test:coverage
+      - run: pnpm run build -- --configuration=production --base-href=/admin-app/
       - name: Validate build artifacts
         run: test -d dist/admin-app && test -n "$(ls -A dist/admin-app)"

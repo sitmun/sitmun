@@ -19,12 +19,12 @@ jobs:
       - uses: actions/setup-java@v5
         with:
           distribution: temurin
-          java-version: "17"
+          java-version-file: .java-version
           cache: gradle
       - name: Publish sitmun-common to the local Maven repository
-        working-directory: sitmun-common
+        working-directory: .
         run: |
           chmod +x gradlew
-          ./gradlew publishToMavenLocal
+          ./gradlew :sitmun-spring-upstream:publishToMavenLocal :sitmun-proxy-contract:publishToMavenLocal -x test
       - run: chmod +x gradlew
       - run: ./gradlew build
