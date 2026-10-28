@@ -48,7 +48,7 @@ fi
 BUILD_DIR="${GITHUB_WORKSPACE}/dist/viewer-app"
 if [ ! -d "$BUILD_DIR" ]; then
   echo -e "${RED}ERROR: Build artifacts not found at $BUILD_DIR${NC}"
-  echo "Please run 'npm run build' first"
+  echo "Please run 'pnpm run build' first"
   exit 1
 fi
 

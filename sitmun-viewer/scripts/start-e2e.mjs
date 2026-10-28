@@ -12,7 +12,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const appRoot = resolve(__dirname, '..');
 const distIndex = join(appRoot, 'dist', 'viewer-app', 'index.html');
 const isWindows = process.platform === 'win32';
-const npmCmd = isWindows ? 'npm.cmd' : 'npm';
+const pnpmCmd = isWindows ? 'pnpm.cmd' : 'pnpm';
 
 function fail(message) {
   console.error(`[start-e2e] ${message}`);
@@ -24,7 +24,7 @@ const skipBuild =
 
 if (!skipBuild) {
   console.error('[start-e2e] Building e2e configuration...');
-  const build = spawnSync(npmCmd, ['run', 'build:e2e'], {
+  const build = spawnSync(pnpmCmd, ['run', 'build:e2e'], {
     cwd: appRoot,
     env: process.env,
     stdio: 'inherit',

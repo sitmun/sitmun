@@ -1,7 +1,7 @@
 #!/bin/bash
 # clean.sh - Comprehensive cleaning script for sitmun-viewer-app
 # Usage: ./scripts/clean.sh [OPTIONS]
-#        or: npm run clean [-- OPTIONS]
+#        or: pnpm run clean [-- OPTIONS]
 
 # Color codes for output
 RED='\033[0;31m'
@@ -54,10 +54,10 @@ show_help() {
   echo "  $0                        # Interactive full clean"
   echo ""
   echo "NPM usage:"
-  echo "  npm run clean             # Interactive full clean"
-  echo "  npm run clean:force       # Non-interactive full clean"
-  echo "  npm run clean:build       # Build artifacts only"
-  echo "  npm run clean -- --dry-run # Preview with dry-run"
+  echo "  pnpm run clean             # Interactive full clean"
+  echo "  pnpm run clean:force       # Non-interactive full clean"
+  echo "  pnpm run clean:build       # Build artifacts only"
+  echo "  pnpm run clean -- --dry-run # Preview with dry-run"
 }
 
 # Detect CI environment
@@ -303,7 +303,7 @@ if [[ "$BUILD_ONLY" != "true" ]]; then
   remove_pattern "*.pyo" "Python optimized bytecode"
   remove_pattern "*.pyd" "Python extension module (Windows)"
   
-  remove_pattern "npm-debug.log" "npm error log"
+  remove_pattern "pnpm-debug.log" "pnpm error log"
   remove_pattern "yarn-error.log" "Yarn error log"
   remove_pattern "testem.log" "Test runner log"
   remove_pattern "libpeerconnection.log" "WebRTC log"
@@ -379,7 +379,7 @@ if [[ "$BUILD_ONLY" != "true" ]]; then
       if confirm_action "⚠ The following will permanently delete your dependencies:
   - node_modules/
 
-Remove node_modules? This will require running 'npm install' again."; then
+Remove node_modules? This will require running 'pnpm install' again."; then
         remove_item "node_modules" "Dependencies"
       else
         echo -e "${YELLOW}Skipping: node_modules${NC} ${YELLOW}(user cancelled)${NC}"
@@ -408,7 +408,7 @@ fi
 if [[ " ${CLEANED_TARGETS[@]} " =~ " node_modules " ]] && [[ "$DRY_RUN" != "true" ]]; then
   echo ""
   echo -e "${YELLOW}⚠ node_modules was removed${NC}"
-  echo "Run 'npm install' to reinstall dependencies"
+  echo "Run 'pnpm install' to reinstall dependencies"
 fi
 
 # Exit with appropriate code

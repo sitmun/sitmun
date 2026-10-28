@@ -24,14 +24,14 @@ export default defineConfig({
   },
   webServer: [
     {
-      command: 'npm run e2e:backend',
+      command: 'pnpm run e2e:backend',
       url: 'http://localhost:18080/api/dashboard/health',
       timeout: 180_000,
       reuseExistingServer: false,
       gracefulShutdown: { signal: 'SIGTERM', timeout: 10_000 },
     },
     {
-      command: 'npm run e2e:admin',
+      command: 'pnpm run e2e:admin',
       url: 'http://localhost:4300',
       timeout: 120_000,
       reuseExistingServer: false,

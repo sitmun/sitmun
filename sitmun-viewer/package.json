@@ -1,6 +1,7 @@
 {
   "name": "sitmun-viewer-app",
   "version": "1.2.9",
+  "packageManager": "pnpm@12.15.0",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
@@ -13,7 +14,7 @@
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage --watchAll=false",
     "lint": "ng lint",
-    "format": "npx prettier --write src",
+    "format": "pnpm exec prettier --write src",
     "clean": "bash scripts/clean.sh",
     "clean:force": "bash scripts/clean.sh --force",
     "clean:build": "bash scripts/clean.sh --build-only",
@@ -21,7 +22,7 @@
   },
   "private": true,
   "engines": {
-    "node": "^24.22.0 || ^26.0.0"
+    "node": ">=24.22.0"
   },
   "overrides": {
     "pdfmake": "0.1.70",

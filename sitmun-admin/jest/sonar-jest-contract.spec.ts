@@ -64,7 +64,7 @@ describe('Sonar Jest contract', () => {
     );
   });
 
-  it('does not collect coverage on the default config npm test loads', () => {
+  it('does not collect coverage on the default config pnpm test loads', () => {
     expect(jestConfig.collectCoverage).toBe(false);
   });
 

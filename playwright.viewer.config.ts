@@ -23,14 +23,14 @@ export default defineConfig({
   },
   webServer: [
     {
-      command: 'npm run e2e:backend',
+      command: 'pnpm run e2e:backend',
       url: 'http://localhost:18080/api/dashboard/health',
       timeout: 180_000,
       reuseExistingServer: false,
       gracefulShutdown: { signal: 'SIGTERM', timeout: 10_000 },
     },
     {
-      command: 'npm run e2e:wms-stub',
+      command: 'pnpm run e2e:wms-stub',
       url: 'http://127.0.0.1:18093/health',
       timeout: 30_000,
       reuseExistingServer: false,
@@ -38,14 +38,14 @@ export default defineConfig({
     },
     {
       // e2e-proxy waits for backend health before bootRun (parallel webServers).
-      command: 'npm run e2e:proxy',
+      command: 'pnpm run e2e:proxy',
       url: 'http://localhost:18082/actuator/health',
       timeout: 300_000,
       reuseExistingServer: false,
       gracefulShutdown: { signal: 'SIGTERM', timeout: 10_000 },
     },
     {
-      command: 'npm run e2e:viewer:app',
+      command: 'pnpm run e2e:viewer:app',
       url: 'http://localhost:4400',
       timeout: 420_000,
       reuseExistingServer: false,

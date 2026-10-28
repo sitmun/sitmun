@@ -1,6 +1,7 @@
 {
   "name": "touristic-mobile-app",
   "version": "1.0.0",
+  "packageManager": "pnpm@12.15.0",
   "author": "Ionic Framework",
   "homepage": "https://ionicframework.com/",
   "scripts": {
@@ -10,7 +11,7 @@
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "lint": "ng lint",
-    "android": "ionic build && npx cap sync android && npx cap copy android && npx cap open android"
+    "android": "ionic build && pnpm exec cap sync android && pnpm exec cap copy android && pnpm exec cap open android"
   },
   "private": true,
   "dependencies": {
@@ -45,6 +46,7 @@
     "bootstrap": "^5.3.3",
     "capacitor-native-settings": "^6.0.6",
     "ionicons": "^7.0.0",
+    "jeep-sqlite": "2.8.0",
     "jsonpath": "^1.1.1",
     "rxjs": "~7.8.0",
     "stream": "0.0.2",
