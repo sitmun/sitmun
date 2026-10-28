@@ -10,6 +10,9 @@ updates:
     target-branch: dev
     schedule:
       interval: weekly
+    # Majors only. Patches and minors still open.
+    # Angular 22 and its build, lint, and Jest packages move as one migration.
+    # TipTap 2, ECharts 5, and ngx-echarts 19 each break their own API on a major.
     ignore:
       - dependency-name: "@angular/*"
         update-types: ["version-update:semver-major"]
