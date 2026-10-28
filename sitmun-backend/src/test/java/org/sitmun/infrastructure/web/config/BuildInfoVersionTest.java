@@ -26,9 +26,9 @@ class BuildInfoVersionTest {
   @DisplayName("GET /api/dashboard/info returns the build version")
   @WithMockUser(roles = "ADMIN")
   void infoReturnsBuildVersion() throws Exception {
-    assertThat(buildProperties.getVersion()).isEqualTo("1.2.9");
+    assertThat(buildProperties.getVersion()).isNotBlank();
     mvc.perform(get("/api/dashboard/info"))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.build.version").value("1.2.9"));
+        .andExpect(jsonPath("$.build.version").value(buildProperties.getVersion()));
   }
 }
