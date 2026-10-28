@@ -20,7 +20,7 @@ import org.sitmun.mbtiles.dto.TileRequestDto;
 import org.springframework.batch.core.BatchStatus;
 import org.springframework.batch.core.job.JobExecution;
 import org.springframework.batch.core.launch.JobOperator;
-import org.springframework.batch.core.repository.explore.JobExplorer;
+import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
@@ -38,7 +38,7 @@ class MBTilesControllerIntegrationTest {
 
   @Autowired private ObjectMapper objectMapper;
 
-  @Autowired private JobExplorer jobExplorer;
+  @Autowired private JobRepository jobRepository;
 
   @Autowired private JobOperator jobOperator;
 
@@ -64,7 +64,7 @@ class MBTilesControllerIntegrationTest {
     long jobId = Long.parseLong(jobIdResponse);
 
     // Then - Verify the job was created in Spring Batch
-    final JobExecution jobExecution = jobExplorer.getJobExecution(jobId);
+    final JobExecution jobExecution = jobRepository.getJobExecution(jobId);
     assertNotNull(jobExecution, "Job should be created in Spring Batch");
     assertEquals(
         "mbtilesJob",
@@ -242,7 +242,7 @@ class MBTilesControllerIntegrationTest {
         .pollInterval(500, TimeUnit.MILLISECONDS)
         .until(
             () -> {
-              final JobExecution jobExecution = jobExplorer.getJobExecution(jobId);
+              final JobExecution jobExecution = jobRepository.getJobExecution(jobId);
               assertNotNull(jobExecution, "Job should be created in Spring Batch");
               return condition.apply(jobExecution.getStatus());
             });
@@ -270,7 +270,9 @@ class MBTilesControllerIntegrationTest {
     try {
       awaitStarted(jobId);
       log.info("Attempting to stop job {}", jobId);
-      assertTrue(jobOperator.stop(jobId));
+      JobExecution jobExecution = jobRepository.getJobExecution(jobId);
+      assertNotNull(jobExecution, "Job should be created in Spring Batch");
+      assertTrue(jobOperator.stop(jobExecution));
       awaitStoppingStoppedCompletedFailed(jobId);
     } catch (Exception e) {
       log.error("Error stopping job {}: {}", jobId, e.getMessage());

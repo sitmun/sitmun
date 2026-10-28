@@ -8,17 +8,12 @@ plugins {
     alias(libs.plugins.axion.release)
 }
 
-//version = scmVersion.version
 group = 'org.sitmun'
 
 java {
     toolchain {
-        languageVersion = JavaLanguageVersion.of(17)
+        languageVersion = JavaLanguageVersion.of(rootProject.file('.java-version').text.trim())
     }
-}
-
-repositories {
-    mavenCentral()
 }
 
 dependencies {
@@ -29,32 +24,19 @@ dependencies {
     implementation libs.spring.boot.starter.actuator
     implementation libs.hibernate.validator
 
-    // MBTiles Support
     implementation libs.mbtiles4j
-
-    // Coordinate System Transformations
     implementation libs.proj4j
-
-    // XML Parsing
     implementation libs.dom4j
 
-    // Database
     runtimeOnly libs.h2
 
-    // IntelliJ IDEA Annotations
     compileOnly libs.jetbrains.annotations
 
-    // Development tools (excluded from production builds)
     developmentOnly libs.spring.boot.devtools
-    
-    // Monitoring and Management
-    implementation 'org.springframework.boot:spring-boot-starter-actuator'
-    
-    // Testing
+
     testImplementation libs.spring.boot.starter.test
     testImplementation libs.spring.boot.starter.webmvc.test
 
-    // Annotation processing
     annotationProcessor libs.spring.boot.configuration.processor
     annotationProcessor libs.lombok
 }
@@ -63,21 +45,18 @@ tasks.named('test', Test) {
     useJUnitPlatform()
 }
 
-// Spotless configuration
 spotless {
     java {
-        googleJavaFormat()
+        googleJavaFormat(libs.versions.google.java.format.get())
     }
 }
 
-// JaCoCo configuration
 jacocoTestReport {
     reports {
         xml.required = true
     }
 }
 
-// Axion Release Plugin Configuration
 scmVersion {
     ignoreUncommittedChanges.set(true)
     tag {
@@ -107,7 +86,6 @@ def resolveGitHooksDir = {
     new File(gitMarker, 'hooks')
 }
 
-// Git hooks setup (opt-in: ./gradlew setupGitHooks)
 tasks.register('setupGitHooks') {
     group = 'git hooks'
     description = 'Install Git hooks for commit message validation and pre-commit checks'
@@ -118,7 +96,6 @@ tasks.register('setupGitHooks') {
     doLast {
         hookDir.mkdirs()
 
-        // Pre-commit hook
         preCommitHook.text = '''#!/bin/sh
             echo "🔍 Running pre-commit checks..."
             
@@ -150,7 +127,6 @@ tasks.register('setupGitHooks') {
         '''.stripIndent()
         preCommitHook.setExecutable(true)
 
-        // Commit message hook
         commitMsgHook.text = '''#!/bin/sh
             commit_msg=$(cat $1)
             
@@ -205,7 +181,6 @@ tasks.register('setupGitHooks') {
     }
 }
 
-// Task to remove Git hooks
 tasks.register('removeGitHooks') {
     group = 'git hooks'
     description = 'Remove Git hooks'

@@ -12,12 +12,8 @@ group = 'org.sitmun'
 
 java {
   toolchain {
-    languageVersion = JavaLanguageVersion.of(17)
+    languageVersion = JavaLanguageVersion.of(rootProject.file('.java-version').text.trim())
   }
-}
-repositories {
-  mavenLocal()
-  mavenCentral()
 }
 
 
@@ -51,7 +47,7 @@ dependencies {
   // HTTP Client
   implementation libs.okhttp3
   implementation libs.mime4j.core
-  implementation 'org.sitmun:sitmun-proxy-contract:1.2.9'
+  implementation project(':sitmun-proxy-contract')
 
   // URI Templates
   implementation libs.handyUriTemplates
@@ -84,7 +80,7 @@ tasks.named('test', Test) {
 // Spotless configuration
 spotless {
   java {
-    googleJavaFormat()
+    googleJavaFormat(libs.versions.google.java.format.get())
   }
 }
 

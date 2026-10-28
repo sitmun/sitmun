@@ -14,8 +14,8 @@ import org.springframework.batch.core.job.Job;
 import org.springframework.batch.core.job.JobExecution;
 import org.springframework.batch.core.job.parameters.JobParameter;
 import org.springframework.batch.core.job.parameters.JobParameters;
-import org.springframework.batch.core.launch.JobLauncher;
-import org.springframework.batch.core.repository.explore.JobExplorer;
+import org.springframework.batch.core.launch.JobOperator;
+import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.stereotype.Service;
 import tools.jackson.databind.ObjectMapper;
 
@@ -23,20 +23,20 @@ import tools.jackson.databind.ObjectMapper;
 @Slf4j
 public class MBTilesJobService {
 
-  private final JobLauncher batchJobLauncher;
-  private final JobExplorer jobExplorer;
+  private final JobOperator jobOperator;
+  private final JobRepository jobRepository;
   private final Job mbTilesJob;
   private final MBTilesProgressService mbTilesProgressService;
   private final TemporaryFileService temporaryFileService;
 
   public MBTilesJobService(
-      JobLauncher batchJobLauncher,
-      JobExplorer jobExplorer,
+      JobOperator jobOperator,
+      JobRepository jobRepository,
       Job mbTilesJob,
       MBTilesProgressService mbTilesProgressService,
       TemporaryFileService temporaryFileService) {
-    this.batchJobLauncher = batchJobLauncher;
-    this.jobExplorer = jobExplorer;
+    this.jobOperator = jobOperator;
+    this.jobRepository = jobRepository;
     this.mbTilesJob = mbTilesJob;
     this.mbTilesProgressService = mbTilesProgressService;
     this.temporaryFileService = temporaryFileService;
@@ -45,9 +45,8 @@ public class MBTilesJobService {
   public Long startJob(TileRequestDto tileRequest) {
     JobParameters params;
     try {
-      log.info(
-          "Starting MBTiles job with JobLauncher: {}", batchJobLauncher.getClass().getSimpleName());
-      log.info("JobLauncher TaskExecutor: {}", batchJobLauncher.getClass().getSimpleName());
+      log.info("Starting MBTiles job with JobOperator: {}", jobOperator.getClass().getSimpleName());
+      log.info("JobOperator TaskExecutor: {}", jobOperator.getClass().getSimpleName());
 
       Path tempFile = temporaryFileService.createUniqueTempFile("mbtiles");
       String outputPath = tempFile.toAbsolutePath().toString();
@@ -67,7 +66,7 @@ public class MBTilesJobService {
     }
     try {
       log.info("About to launch job with parameters: {}", params);
-      JobExecution jobExecution = batchJobLauncher.run(mbTilesJob, params);
+      JobExecution jobExecution = jobOperator.start(mbTilesJob, params);
       log.info("Job launched with ID: {}", jobExecution.getId());
       return jobExecution.getId();
     } catch (Exception e) {
@@ -77,7 +76,7 @@ public class MBTilesJobService {
   }
 
   public MBTilesJobStatusDto getJobStatus(long jobId) {
-    JobExecution jobExecution = jobExplorer.getJobExecution(jobId);
+    JobExecution jobExecution = jobRepository.getJobExecution(jobId);
     if (jobExecution == null) {
       throw new MBTilesFileNotFoundException();
     }
@@ -110,7 +109,7 @@ public class MBTilesJobService {
   }
 
   public ResourceDto getMBTilesFile(long jobId) {
-    JobExecution jobExecution = jobExplorer.getJobExecution(jobId);
+    JobExecution jobExecution = jobRepository.getJobExecution(jobId);
 
     if (jobExecution == null || !BatchStatus.COMPLETED.equals(jobExecution.getStatus())) {
       log.warn(
