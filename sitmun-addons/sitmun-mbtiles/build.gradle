@@ -25,6 +25,7 @@ dependencies {
 
     implementation libs.mbtiles4j
     implementation libs.proj4j
+    implementation libs.proj4j.epsg
     implementation libs.dom4j
 
     runtimeOnly libs.h2

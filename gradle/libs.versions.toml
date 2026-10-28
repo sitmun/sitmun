@@ -11,10 +11,10 @@ lombok = "9.8.2"
 mime4j = "0.8.12"
 jetbrains-annotations = "26.1.0"
 mbtiles4j = "1.2.0"
-proj4j = "1.1.5"
+proj4j = "1.4.3"
 dom4j = "2.1.4"
 springdoc-openapi = "1.9.0"
-springdoc-openapi-lib = "3.1.1"
+springdoc-openapi-lib = "3.2.0"
 liquibase-gradle = "2.2.0"
 sonarqube = "3.3"
 docker-compose = "0.17.12"
@@ -26,7 +26,7 @@ mapstruct = "1.6.3"
 querydsl = "5.0.0"
 handlebars = "4.4.0"
 opencsv = "5.9"
-resilience4j = "2.3.0"
+resilience4j = "2.4.0"
 
 [libraries]
 spring-boot-dependencies = { module = "org.springframework.boot:spring-boot-dependencies", version.ref = "spring-boot" }
@@ -70,6 +70,7 @@ jetbrains-annotations = { module = "org.jetbrains:annotations", version.ref = "j
 lombok = { module = "org.projectlombok:lombok" }
 mbtiles4j = { module = "ch.poole.geo:mbtiles4j", version.ref = "mbtiles4j" }
 proj4j = { module = "org.locationtech.proj4j:proj4j", version.ref = "proj4j" }
+proj4j-epsg = { module = "org.locationtech.proj4j:proj4j-epsg", version.ref = "proj4j" }
 dom4j = { module = "org.dom4j:dom4j", version.ref = "dom4j" }
 spring-boot-starter-data-rest = { module = "org.springframework.boot:spring-boot-starter-data-rest" }
 spring-boot-starter-security = { module = "org.springframework.boot:spring-boot-starter-security" }
