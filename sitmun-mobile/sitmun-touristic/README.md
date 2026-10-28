@@ -12,7 +12,7 @@ utilizando el **framework Ionic**, en conjunto con **Angular** para la construcc
 |----------------------------|-----------------------|----------------------------------------------------------|
 | Herramienta                | Versión recomendada   | Notas                                                    |
 | Node.js                    | 22.x LTS              | <https://nodejs.org/es>                                  |
-| npm (Node Package Manager) | 10.x                  | Se instala con Node.js                                   |
+| pnpm                       | packageManager        | Node y pnpm locales salen de mise (opcional). Corepack está desactivado. CI usa actions/setup-node y pnpm/action-setup. |
 | Ionic CLI                  | 7.x                   | <https://ionicframework.com/>                            |
 | Angular CLI                | 19.x                  | <https://angular.dev/installation>                       |
 | Capacitor                  | 6.x                   | Incluido en Ionic                                        |
@@ -65,7 +65,7 @@ git clone https://github.com/sitmun/touristic-mobile-app.git
 Instalar las dependencias necesarias de la aplicación:
 ```bash
 cd ./touristic-mobile-app
-npm install
+pnpm install
 ```
 ## INTEGRACIÓN CON CAPACITOR
 

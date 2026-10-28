@@ -4,7 +4,9 @@ Browser E2E against backend-core on in-memory H2. No Docker Compose.
 
 ## Coverage
 
-### Admin (`npm run e2e`)
+`pnpm run e2e`, `e2e:viewer`, `e2e:mia-cross`, `e2e:application-contact`, `e2e:mobile:web`, and `e2e:mobile:android` bind backend port 18080. Run one at a time.
+
+### Admin (`pnpm run e2e`)
 
 - Admin UI login (`/#/login` → `/#/dashboard`)
 - Language chrome on login: cleared `lang` → closed BCP-47 ISO from `language.default`; open menu shows API endonyms; no language field on the login form (`e2e/admin/language-chrome.spec.ts`, project `login`)
@@ -32,7 +34,7 @@ Browser E2E against backend-core on in-memory H2. No Docker Compose.
 - Templates + `language.default` i18n cluster (`e2e/admin/forms/template-default-language.spec.ts`, project `admin-forms`): enroll `<t>` on save with DB default as `sourceLanguage` (UI lang may differ); preview self-translation / translated / opaque-key fallback; Templates still load after default change; HTML/`sourceLanguage` stable; continuity seed for new default; enabled-only create dialog; CSV may import a disabled `source_language` (generated CSV is written to the OS temp dir); soft client-config task-name overlay check
 - Nested Plantilla literal preview (`e2e/admin/forms/template-nested-preview.spec.ts`): child `<t>` + Catalan value appears in parent preview for `lang=ca`
 
-### Viewer (`npm run e2e:viewer`)
+### Viewer (`pnpm run e2e:viewer`)
 
 - Language chrome on `/auth/login`: cleared `language` → closed ISO left of hamburger; open endonyms; no language entries in the hamburger menu (`e2e/viewer/language-chrome.spec.ts`, project `viewer-public`)
 - Public access: dashboard configuration plus `403` for private profile `1/1` and its secured WMS
@@ -51,9 +53,9 @@ Browser E2E against backend-core on in-memory H2. No Docker Compose.
 - More Info Advanced (`viewer-mia`): profile includes `sitna.moreInfoAdvanced` + type-16 parent on Toponímia (seed parent 42 includes query child 38); synthetic FeatureInfo `responseCallback` opens `.sitmun-mia-popup-overlay` and `POST /api/tasks/template/more-info-advanced/render` carries `appId`/`terId` body plus `lang` query ([sitmun-viewer-app#162](https://github.com/sitmun/sitmun-viewer-app/pull/162)); also asserts live backend render, overlay error on 500, close, multi-feature GFI re-render (`selectMiaGfiFeature`), and deferred-route races (late first identify must not overwrite a newer one; close-during-load ignores late fulfill); setup enables MIA + featureInfo task-availability. Shared helpers live in `e2e/viewer/helpers/mia.ts`.
 - Local Basic-auth upstream stub (plus unauthenticated `/legend` PNG for #164); capabilities advertise `GetFeatureInfo` `application/json` so SITNA sets `INFO_FORMAT`; GetFeatureInfo for layer `34_TOPO_TX` returns JSON FeatureCollection (XML fixture fallback). Production Liquibase is not modified.
 
-### MIA cross (`npm run e2e:mia-cross`)
+### MIA cross (`pnpm run e2e:mia-cross`)
 
-Shared H2 + admin + viewer + proxy + WMS stub. Do not run concurrently with admin, viewer, application-contact, or mobile suites.
+Starts admin, viewer, proxy, and the WMS stub on one H2.
 
 - TipTap Plantilla HTML marker + CSV Catalan literal → simulated GFI → overlay (`e2e/mia-cross/mia-template-viewer.spec.ts`)
 - Overlay type-17 PDF export: disposable document-export task, `.sitmun-mia-download-bar`, `POST /api/tasks/template/export` PDF + filename (`e2e/mia-cross/mia-template-viewer.spec.ts`). H2 `bootRun` stages `e2e/fixtures/ensure-document-export-task-type.yaml` beside the backend master changelog so `STM_TSK_TYP` 17 exists when that changelog only has map-image 18
@@ -65,14 +67,14 @@ Shared H2 + admin + viewer + proxy + WMS stub. Do not run concurrently with admi
 - Map-click GetFeatureInfo through stub → live MIA overlay (`e2e/mia-cross/mia-gfi-click.spec.ts`; strict overlay, no silent simulate fallback). Simulated GFI is a separate named test in the same file; other specs still use simulate for speed.
 - IDE Menorca `tu007rts_ccavalls` (tree node 12094 / GEO 1304): Capas GFI → MIA Plantilla with JDBC SQL sections (languages/territories/GFI-echo) and `nomruta` → `$featureName` (`e2e/mia-cross/mia-solrustic-gfi.spec.ts`; H2 liquibase `20_menorca_solrustic_mia_e2e`)
 
-**Still out of Playwright:** TipTap full toolbar matrix, binary child handling, filtrable columns, Docker profile Liquibase salvage. Viewer omits `lang` when UI language is blank (backend resolves); product lock, not a coverage gap.
+**Outside this harness:** TipTap full toolbar matrix, binary child handling, filtrable columns, Docker profile Liquibase salvage. When the UI language is blank, the viewer omits `lang` and the backend resolves it.
 
-### Application contact (`npm run e2e:application-contact`)
+### Application contact (`pnpm run e2e:application-contact`)
 
 - Shared one-backend suite: admin sets `responsibleInstitutionName` on application 2, reload persists, viewer public dashboard shows the value in application details
 - Starts admin (4300), viewer (4400), and a single backend (18080)
 
-### Mobile web (`npm run e2e:mobile:web`)
+### Mobile web (`pnpm run e2e:mobile:web`)
 
 - Disposable setup patches application `1` to type `ED` with `title: null`, rewrites WMTS service `1` to the local stub, and creates a regular edition user
 - Edition: `POST /api/authenticate/mobile` returns JSON `access_token` (no cookie); viewer/admin cookie logins remain empty-body; expired-only grants return `403` ([sitmun-backend-core#184](https://github.com/sitmun/sitmun-backend-core/issues/184))
@@ -81,44 +83,38 @@ Shared H2 + admin + viewer + proxy + WMS stub. Do not run concurrently with admi
 - Touristic: anonymous client application list includes type `T`; private profile denied
 - Proxy/MBTiles: missing bearer and `access_token`-as-proxy denied; authorized `proxy_token` estimate/create through `/middleware/proxy/{app}/{ter}/mbtiles...`; opaque `jobHandle`; direct gateway `/mbtiles` is `404`
 - Starts backend (18080), proxy (18082), MBTiles (18084), WMTS stub (18094), and gateway (18081)
-- Ionic web shells on :4500/:4501 are not required; mobile web coverage is API-only through the gateway
+- API-only through the gateway. Does not start Ionic web shells.
 
-### Mobile Android (`npm run e2e:mobile:android`)
+### Mobile Android (`pnpm run e2e:mobile:android`)
 
 - Builds debug APKs from temporary copies of pinned `sitmun-mobile/*` sources (does not commit Android projects); runs `cap add android` when the native project is absent
 - Requires `adb`, `ANDROID_HOME`/`ANDROID_SDK_ROOT`, Maestro CLI, and a connected API 34 emulator/device
 - Uses `adb reverse tcp:18081` and Maestro flows under `e2e/mobile/android/`
 - Records source SHA and APK SHA-256 under `test-results/mobile-android/`
-- Split coverage (Phase 8):
+- Split coverage:
   - **Maestro UI**: edition invalid and valid login (HTML ids via `androidWebViewHierarchy: devtools`; `hideKeyboard` before submit), touristic public profile (same DevTools hierarchy; auto-enter after tree provisioning via `POST /api/application-trees`)
   - **Gateway/API contracts** (before APK builds): missing bearer, wrong territory, `access_token` rejected as proxy, estimate/create/status/file with opaque `jobHandle`, direct `/mbtiles` is `404`
 - Does not run `adb shell am kill-all` (it ANRs `system`/`systemui` and hides the WebView)
 - Writes Maestro debug output under `test-results/mobile-android/maestro/<flow>/` (`--debug-output` + `--test-output-dir`; CI uploads that tree on failure)
-- Separate `e2e-mobile-touristic.mjs` / `e2e-mobile-edition.mjs` shell scripts are not used; Ionic web shells are covered by API-only `e2e:mobile:web`
-- CI installs Maestro `2.6.1` with SHA-256 verification of `maestro.zip`
-- CI `e2e-mobile-android` overrides `android-emulator-runner` to `-gpu software -no-snapshot-load -no-snapshot-save` (not the deprecated default `-gpu swiftshader_indirect`)
 
 ## Prerequisites
 
+Node is the root `.nvmrc`. pnpm is `packageManager` in the root `package.json`. Run `pnpm ci` from the repo root.
+
 - Java 17
-- Node ≥ 24.22.0 (admin, viewer, and root web E2E). Mobile Android E2E needs Node 22.
-- Admin dependencies: `cd sitmun-admin && npm ci`
-- Viewer dependencies: `cd sitmun-viewer && npm ci`
-- Root dependencies: `npm ci` (from stack root)
-- Chromium: `npm run e2e:install` (re-run after `@playwright/test` upgrades)
+- Admin dependencies: `cd sitmun-admin && pnpm ci`
+- Viewer dependencies: `cd sitmun-viewer && pnpm ci`
+- Chromium: `pnpm run e2e:install` (re-run after `@playwright/test` upgrades)
 
 ### Playwright browser missing
 
-If launch fails with `browserType.launch: Executable doesn't exist` (path may
-include `cursor-sandbox-cache/.../playwright/` when run inside a Cursor
-sandbox):
+If launch fails with `browserType.launch: Executable doesn't exist` (a Cursor sandbox cache path contains `cursor-sandbox-cache/.../playwright/`):
 
 ```bash
-npm run e2e:install
+pnpm run e2e:install
 ```
 
-Then rerun the suite outside the sandbox. That error is an environment setup
-problem, not an application regression.
+Rerun the suite outside the sandbox. A missing browser executable is environment setup.
 
 ## Owned ports
 
@@ -133,42 +129,41 @@ problem, not an application regression.
 | WMTS stub (mobile) | 18094 |
 | MBTiles (internal; not on gateway) | 18084 |
 
-Do not reuse development servers. The suite fails if these ports are already occupied.
-Do not run admin, viewer, `e2e:mia-cross`, application-contact, and mobile suites in parallel on one host; they share port 18080 and/or 18082.
+The suite starts its own processes and fails if a listed port is already occupied. Viewer, mia-cross, and both mobile suites also bind proxy port 18082.
 
 ## Commands
 
 ```bash
-# from stack root
-npm ci
-npm run e2e:install
+# from the repo root
+pnpm ci
+pnpm run e2e:install
 
 # admin
-npm run e2e
-npm run e2e:ui
-npm run e2e -- --project=admin-forms
+pnpm run e2e
+pnpm run e2e:ui
+pnpm run e2e -- --project=admin-forms
 
 # viewer (+ proxy + secured stub)
-npm run e2e:viewer
-npm run e2e:viewer:ui
-npm run e2e:viewer -- --project=viewer-public
-npm run e2e:viewer -- --project=viewer-password
-npm run e2e:viewer -- --project=viewer-catalog
-npm run e2e:viewer -- --project=viewer-legend
-npm run e2e:viewer -- --project=viewer-basemap
-npm run e2e:viewer -- --project=viewer-mia
+pnpm run e2e:viewer
+pnpm run e2e:viewer:ui
+pnpm run e2e:viewer -- --project=viewer-public
+pnpm run e2e:viewer -- --project=viewer-password
+pnpm run e2e:viewer -- --project=viewer-catalog
+pnpm run e2e:viewer -- --project=viewer-legend
+pnpm run e2e:viewer -- --project=viewer-basemap
+pnpm run e2e:viewer -- --project=viewer-mia
 
 # MIA / Plantilla / literal cross-stack (admin + viewer + proxy + stub)
-npm run e2e:mia-cross
-npm run e2e:mia-cross:ui
+pnpm run e2e:mia-cross
+pnpm run e2e:mia-cross:ui
 
 # admin → viewer responsible institution (shared backend)
-npm run e2e:application-contact
+pnpm run e2e:application-contact
 
 # mobile edition auth + MBTiles via middleware
-npm run e2e:mobile:web
-# optional: Android emulator + Maestro
-# npm run e2e:mobile:android
+pnpm run e2e:mobile:web
+# Android emulator + Maestro
+# pnpm run e2e:mobile:android
 ```
 
 ## Credential boundaries (mobile edition)
@@ -223,7 +218,7 @@ harness or document the gap when the behavior is outside current coverage.
 - Treat reports as restricted CI artifacts; do not paste Authorization values from traces into tickets
 
 ```bash
-npx playwright show-report
+pnpm exec playwright show-report
 ```
 
 ## Limitations
@@ -237,4 +232,4 @@ npx playwright show-report
 - Touristic GPS permission sheet and tablet APK layout are not in Maestro or Playwright
 - Mobile Android suite does not harden release manifests (app Android source is unchanged)
 - MBTiles protected-source credentials, job-handle key rotation multi-key support, rate/size/time limits, and iOS are absent from this harness
-- SITNA identify and simulate plus catalog layout measurements use `page.evaluate` on TC or DOM boxes as harness hooks, not MCP verification.
+- SITNA identify, simulate, and catalog layout measurements use `page.evaluate` on TC or DOM boxes as harness hooks.
