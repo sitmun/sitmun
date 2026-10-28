@@ -12,60 +12,60 @@ VERSION_FILE="$REPO_ROOT/VERSION"
 # Format: "path|match_template|replace_template" — match/replace use {{VERSION}} and {{NEW}}.
 # Path is relative to REPO_ROOT. One targeted pattern per file; no global replace.
 BUMP_ENTRIES=(
-  "back/backend/sitmun-backend-core/build.gradle|project.version = '{{VERSION}}'|project.version = '{{NEW}}'"
-  "back/backend/sitmun-backend-core/build.gradle|org.sitmun:sitmun-spring-upstream:{{VERSION}}|org.sitmun:sitmun-spring-upstream:{{NEW}}"
-  "back/backend/sitmun-backend-core/build.gradle|org.sitmun:sitmun-proxy-contract:{{VERSION}}|org.sitmun:sitmun-proxy-contract:{{NEW}}"
-  "back/proxy/sitmun-proxy-middleware/build.gradle|project.version = '{{VERSION}}'|project.version = '{{NEW}}'"
-  "back/proxy/sitmun-proxy-middleware/build.gradle|org.sitmun:sitmun-proxy-contract:{{VERSION}}|org.sitmun:sitmun-proxy-contract:{{NEW}}"
-  "back/shared/sitmun-shared/build.gradle|version = '{{VERSION}}'|version = '{{NEW}}'"
-  "back/shared/sitmun-shared/gradle.properties|version={{VERSION}}|version={{NEW}}"
-  "front/admin/sitmun-admin-app/package.json|\"version\": \"{{VERSION}}\"|\"version\": \"{{NEW}}\""
-  "front/viewer/sitmun-viewer-app/package.json|\"version\": \"{{VERSION}}\"|\"version\": \"{{NEW}}\""
-  "back/backend/sitmun-backend-core/src/main/resources/application.yml|  version: {{VERSION}}|  version: {{NEW}}"
-  "back/backend/sitmun-backend-core/src/main/resources/static/v3/api-docs-admin.yaml|  version: {{VERSION}}|  version: {{NEW}}"
-  "back/backend/sitmun-backend-core/src/main/resources/static/v3/api-docs-auth.yaml|  version: {{VERSION}}|  version: {{NEW}}"
-  "back/backend/sitmun-backend-core/src/main/resources/static/v3/api-docs-conf.yaml|  version: {{VERSION}}|  version: {{NEW}}"
-  "back/backend/sitmun-backend-core/src/main/resources/static/v3/api-docs-proxy.yaml|  version: {{VERSION}}|  version: {{NEW}}"
-  "front/admin/sitmun-admin-app/src/environments/environment.ts|  version: '{{VERSION}}',|  version: '{{NEW}}',"
-  "front/admin/sitmun-admin-app/src/environments/environment.prod.ts|  version: '{{VERSION}}',|  version: '{{NEW}}',"
-  "front/admin/sitmun-admin-app/src/environments/environment.e2e.ts|  version: '{{VERSION}}',|  version: '{{NEW}}',"
-  "front/viewer/sitmun-viewer-app/src/environments/environment.ts|  version: '{{VERSION}}',|  version: '{{NEW}}',"
-  "front/viewer/sitmun-viewer-app/src/environments/environment.prod.ts|  version: '{{VERSION}}',|  version: '{{NEW}}',"
-  "front/viewer/sitmun-viewer-app/src/environments/environment.e2e.ts|  version: '{{VERSION}}',|  version: '{{NEW}}',"
+  "build.gradle|sub.version = '{{VERSION}}'|sub.version = '{{NEW}}'"
+  "sitmun-backend/build.gradle|project.version = '{{VERSION}}'|project.version = '{{NEW}}'"
+  "sitmun-backend/build.gradle|org.sitmun:sitmun-spring-upstream:{{VERSION}}|org.sitmun:sitmun-spring-upstream:{{NEW}}"
+  "sitmun-backend/build.gradle|org.sitmun:sitmun-proxy-contract:{{VERSION}}|org.sitmun:sitmun-proxy-contract:{{NEW}}"
+  "sitmun-proxy/build.gradle|project.version = '{{VERSION}}'|project.version = '{{NEW}}'"
+  "sitmun-admin/package.json|\"version\": \"{{VERSION}}\"|\"version\": \"{{NEW}}\""
+  "sitmun-viewer/package.json|\"version\": \"{{VERSION}}\"|\"version\": \"{{NEW}}\""
+  "sitmun-backend/src/main/resources/application.yml|  version: {{VERSION}}|  version: {{NEW}}"
+  "sitmun-backend/src/main/resources/static/v3/api-docs-admin.yaml|  version: {{VERSION}}|  version: {{NEW}}"
+  "sitmun-backend/src/main/resources/static/v3/api-docs-auth.yaml|  version: {{VERSION}}|  version: {{NEW}}"
+  "sitmun-backend/src/main/resources/static/v3/api-docs-conf.yaml|  version: {{VERSION}}|  version: {{NEW}}"
+  "sitmun-backend/src/main/resources/static/v3/api-docs-proxy.yaml|  version: {{VERSION}}|  version: {{NEW}}"
+  "sitmun-admin/src/environments/environment.ts|  version: '{{VERSION}}',|  version: '{{NEW}}',"
+  "sitmun-admin/src/environments/environment.prod.ts|  version: '{{VERSION}}',|  version: '{{NEW}}',"
+  "sitmun-admin/src/environments/environment.e2e.ts|  version: '{{VERSION}}',|  version: '{{NEW}}',"
+  "sitmun-viewer/src/environments/environment.ts|  version: '{{VERSION}}',|  version: '{{NEW}}',"
+  "sitmun-viewer/src/environments/environment.prod.ts|  version: '{{VERSION}}',|  version: '{{NEW}}',"
+  "sitmun-viewer/src/environments/environment.e2e.ts|  version: '{{VERSION}}',|  version: '{{NEW}}',"
   "README.md|version-{{VERSION}}-blue|version-{{NEW}}-blue"
-  "front/admin/sitmun-admin-app/README.md|version-{{VERSION}}-blue|version-{{NEW}}-blue"
-  "front/viewer/sitmun-viewer-app/README.md|version-{{VERSION}}-blue|version-{{NEW}}-blue"
-  "back/backend/sitmun-backend-core/README.md|version-{{VERSION}}-blue|version-{{NEW}}-blue"
-  "back/proxy/sitmun-proxy-middleware/README.md|version-{{VERSION}}-blue|version-{{NEW}}-blue"
+  "sitmun-admin/README.md|version-{{VERSION}}-blue|version-{{NEW}}-blue"
+  "sitmun-viewer/README.md|version-{{VERSION}}-blue|version-{{NEW}}-blue"
+  "sitmun-backend/README.md|version-{{VERSION}}-blue|version-{{NEW}}-blue"
+  "sitmun-proxy/README.md|version-{{VERSION}}-blue|version-{{NEW}}-blue"
 )
-NPM_DIRS=( "front/admin/sitmun-admin-app" "front/viewer/sitmun-viewer-app" )
+NPM_DIRS=( "sitmun-admin" "sitmun-viewer" )
 PACKAGE_JSON_FILES=(
-  "front/admin/sitmun-admin-app/package.json"
-  "front/viewer/sitmun-viewer-app/package.json"
+  "sitmun-admin/package.json"
+  "sitmun-viewer/package.json"
 )
 README_BADGE_FILES=(
   "README.md"
-  "front/admin/sitmun-admin-app/README.md"
-  "front/viewer/sitmun-viewer-app/README.md"
-  "back/backend/sitmun-backend-core/README.md"
-  "back/proxy/sitmun-proxy-middleware/README.md"
+  "sitmun-admin/README.md"
+  "sitmun-viewer/README.md"
+  "sitmun-backend/README.md"
+  "sitmun-proxy/README.md"
 )
 GRADLE_VERSION_FILES=(
-  "back/backend/sitmun-backend-core/build.gradle"
-  "back/proxy/sitmun-proxy-middleware/build.gradle"
+  "sitmun-backend/build.gradle"
+  "sitmun-proxy/build.gradle"
 )
 TS_ENV_VERSION_FILES=(
-  "front/admin/sitmun-admin-app/src/environments/environment.ts"
-  "front/admin/sitmun-admin-app/src/environments/environment.prod.ts"
-  "front/viewer/sitmun-viewer-app/src/environments/environment.ts"
-  "front/viewer/sitmun-viewer-app/src/environments/environment.prod.ts"
+  "sitmun-admin/src/environments/environment.ts"
+  "sitmun-admin/src/environments/environment.prod.ts"
+  "sitmun-admin/src/environments/environment.e2e.ts"
+  "sitmun-viewer/src/environments/environment.ts"
+  "sitmun-viewer/src/environments/environment.prod.ts"
+  "sitmun-viewer/src/environments/environment.e2e.ts"
 )
-BACKEND_APP_YML_FILE="back/backend/sitmun-backend-core/src/main/resources/application.yml"
+BACKEND_APP_YML_FILE="sitmun-backend/src/main/resources/application.yml"
 OPENAPI_YAML_VERSION_FILES=(
-  "back/backend/sitmun-backend-core/src/main/resources/static/v3/api-docs-admin.yaml"
-  "back/backend/sitmun-backend-core/src/main/resources/static/v3/api-docs-auth.yaml"
-  "back/backend/sitmun-backend-core/src/main/resources/static/v3/api-docs-conf.yaml"
-  "back/backend/sitmun-backend-core/src/main/resources/static/v3/api-docs-proxy.yaml"
+  "sitmun-backend/src/main/resources/static/v3/api-docs-admin.yaml"
+  "sitmun-backend/src/main/resources/static/v3/api-docs-auth.yaml"
+  "sitmun-backend/src/main/resources/static/v3/api-docs-conf.yaml"
+  "sitmun-backend/src/main/resources/static/v3/api-docs-proxy.yaml"
 )
 
 # ── Helpers ──────────────────────────────────────────────────────────────────
@@ -75,11 +75,11 @@ Usage:
   ./tools/scripts/bump-version.sh [VERSION] [--dry-run|-n] [--status|-s] [-h|--help]
 
   --status, -s    Report version in VERSION and each consumer file; flag mismatches. No writes.
-  --dry-run, -n   Show changes that would be made; do not write files or run npm.
+  --dry-run, -n   Show changes that would be made; do not write files or run pnpm.
   VERSION         Set VERSION file and propagate (e.g. 1.2.6). Creates VERSION if missing.
   (no args)       Propagate from current VERSION file to all consumers.
 
-Run from repo root. After updating files, runs npm install --package-lock-only in frontend apps.
+Run from repo root. After updating files, runs pnpm install --lockfile-only in frontend apps.
 EOF
   exit 0
 }
@@ -438,23 +438,23 @@ if [[ $DO_DRY_RUN -eq 0 ]]; then
   validate_post_propagation "$EFFECTIVE_VERSION"
 fi
 
-# ── npm install --package-lock-only ─────────────────────────────────────────
+# ── pnpm install --lockfile-only ─────────────────────────────────────────
 if [[ $DO_DRY_RUN -eq 1 ]]; then
-  echo "Would run: npm install --package-lock-only in ${NPM_DIRS[*]}"
+  echo "Would run: pnpm install --lockfile-only in ${NPM_DIRS[*]}"
   exit 0
 fi
 
 for dir in "${NPM_DIRS[@]}"; do
   fullpath="$REPO_ROOT/$dir"
   if [[ ! -d "$fullpath" ]]; then
-    echo "Warning: $dir not found (skip npm)" >&2
+    echo "Warning: $dir not found (skip pnpm)" >&2
     continue
   fi
-  if ( cd "$fullpath" && npm install --package-lock-only ); then
+  if ( cd "$fullpath" && pnpm install --lockfile-only ); then
     echo "Updated lockfile in $dir"
   else
-    echo "Error: npm install --package-lock-only failed in $dir" >&2
-    echo "The version was propagated to all files but lockfiles could not be updated. Run 'npm install --package-lock-only' manually in $dir, or fix the environment and re-run this script with the same version." >&2
+    echo "Error: pnpm install --lockfile-only failed in $dir" >&2
+    echo "The version was propagated to all files but lockfiles could not be updated. Run 'pnpm install --lockfile-only' manually in $dir, or fix the environment and re-run this script with the same version." >&2
     exit 1
   fi
 done
