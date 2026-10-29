@@ -125,7 +125,7 @@ Updates admin and viewer `package.json` and README badges, and regenerates those
 | **test_changelog_immutability.py** | Unit tests for the PR-diff Liquibase immutability gate. |
 | **test_prepare_extracted_liquibase.py** | Unit tests for 1.2.6 CSV width rewrite and case-alias copies. |
 | **test_seed_identity_swap.py** | Unit tests for the STM_CODELIST unique-key swap gate (`#45`). |
-| **test_liquibase_1.2.7_to_head_upgrade.sh** | Tag → HEAD upgrade. CI: postgres 1.2.7/1.2.8, Oracle 1.2.6–1.2.8, development PostgreSQL 1.2.6, development Oracle 1.2.6, Oracle 1.2.7 on XE 21 (`#74`). `SITMUN_ORACLE_IMAGE` picks the server image (default `gvenzl/oracle-free:23-slim`), `SITMUN_ORACLE_WAIT_TRIES` the readiness budget. `gvenzl/oracle-xe:21-slim` and `gvenzl/oracle-xe:11` are amd64 only. CI job `oracle-11-install` runs the 11 image. Do not run it on an Apple M1. |
+| **test_liquibase_1.2.7_to_head_upgrade.sh** | Tag → HEAD upgrade. CI: postgres 1.2.7/1.2.8, Oracle 1.2.6–1.2.8, development PostgreSQL 1.2.6, development Oracle 1.2.6, Oracle 1.2.7 on XE 21 (`#74`). `SITMUN_ORACLE_IMAGE` picks the server image (default `gvenzl/oracle-free:23-slim`), `SITMUN_ORACLE_WAIT_TRIES` the readiness budget. `gvenzl/oracle-xe:21-slim` and `gvenzl/oracle-xe:11` are amd64 only. CI job `oracle-11-install` runs the 11 image against service `XE` and does not set `ORACLE_DATABASE`. XE 21 and Oracle 23 keep database `sitmun_upgrade`. Do not run the 11 image on an Apple M1. |
 | **test_liquibase_codelist_auth_mode_swap.sh** | Docker fixture for the 1.2.6→1.2.7 auth-mode ID swap. CI job `postgres-auth-mode-swap`. |
 
 ```bash

@@ -95,12 +95,22 @@ oracle_wait_line() {
   /usr/bin/printf '%s\n' "$1"
 }
 
+# gvenzl applies ORACLE_DATABASE on XE 18c and later. 11g has no PDB; its service is XE.
+oracle_service_name() {
+  if [[ "${SITMUN_ORACLE_VERSION:-}" == "11" ]]; then
+    echo "XE"
+  else
+    echo "$DB"
+  fi
+}
+
 wait_for_oracle() {
-  local i result note
+  local i result note service
+  service=$(oracle_service_name)
   for i in $(seq 1 "$ORACLE_WAIT_TRIES"); do
     result=$(docker exec "$CONTAINER" bash -c "
       printf 'SET HEADING OFF FEEDBACK OFF PAGESIZE 0 TRIMOUT ON;\nSELECT 42 FROM DUAL;\nEXIT;\n' \
-      | sqlplus -s ${DB_USER}/${DB_PASS}@//localhost:1521/${DB} 2>/dev/null
+      | sqlplus -s ${DB_USER}/${DB_PASS}@//localhost:1521/${service} 2>/dev/null
     " 2>/dev/null | tr -d ' \n\r\t' || true)
     if [[ -n "$result" ]]; then
       note="probe=${result}"
@@ -108,13 +118,14 @@ wait_for_oracle() {
       note="probe returned nothing"
     fi
     if [[ "$result" == "42" ]]; then
-      oracle_wait_line "  Waiting for Oracle image=${ORACLE_IMAGE} attempt ${i}/${ORACLE_WAIT_TRIES} ${note} ready."
+      oracle_wait_line "  Waiting for Oracle image=${ORACLE_IMAGE} service=${service} attempt ${i}/${ORACLE_WAIT_TRIES} ${note} ready."
       break
     fi
-    oracle_wait_line "  Waiting for Oracle image=${ORACLE_IMAGE} attempt ${i}/${ORACLE_WAIT_TRIES} ${note}"
+    oracle_wait_line "  Waiting for Oracle image=${ORACLE_IMAGE} service=${service} attempt ${i}/${ORACLE_WAIT_TRIES} ${note}"
     sleep 3
     if [[ $i -eq "$ORACLE_WAIT_TRIES" ]]; then
       oracle_wait_line "  TIMEOUT"
+      docker logs --tail 80 "$CONTAINER" || true
       fail "Oracle container failed to become ready"
       return 1
     fi
@@ -537,6 +548,8 @@ run_oracle_from() {
   local DB_USER=sitmun3
   local DB_PASS=sitmun3
   local ORACLE_PWD=password
+  local ORACLE_SERVICE
+  ORACLE_SERVICE=$(oracle_service_name)
   local TMP
   TMP=$(mktemp -d)
   local LB_SRC LB_HEAD
@@ -555,7 +568,7 @@ run_oracle_from() {
       --network "$NETWORK" \
       -v "$changelog_dir:/liquibase/changelog:ro" \
       liquibase/liquibase:4.29 \
-      --url="jdbc:oracle:thin:@//$CONTAINER:1521/$DB" \
+      --url="jdbc:oracle:thin:@//$CONTAINER:1521/$ORACLE_SERVICE" \
       --username="$DB_USER" \
       --password="$DB_PASS" \
       --changeLogFile="changelog/master.xml" \
@@ -569,7 +582,7 @@ run_oracle_from() {
     local sql="$1"
     docker exec -i "$CONTAINER" bash 2>/dev/null << DOCKEREOF | tr -d ' \n\r\t'
 printf '%s\n' "SET HEADING OFF FEEDBACK OFF PAGESIZE 0 TRIMOUT ON" "${sql}" "EXIT" \
-  | sqlplus -s ${DB_USER}/${DB_PASS}@//localhost:1521/${DB} 2>/dev/null
+  | sqlplus -s ${DB_USER}/${DB_PASS}@//localhost:1521/${ORACLE_SERVICE} 2>/dev/null
 DOCKEREOF
   }
 
@@ -582,12 +595,20 @@ DOCKEREOF
   docker network rm "$NETWORK" 2>/dev/null || true
   docker network create "$NETWORK"
   docker pull "$ORACLE_IMAGE"
-  docker run -d --name "$CONTAINER" --network "$NETWORK" \
-    -e ORACLE_PASSWORD="$ORACLE_PWD" \
-    -e APP_USER="$DB_USER" \
-    -e APP_USER_PASSWORD="$DB_PASS" \
-    -e ORACLE_DATABASE="$DB" \
-    "$ORACLE_IMAGE"
+  if [[ "${SITMUN_ORACLE_VERSION:-}" == "11" ]]; then
+    docker run -d --name "$CONTAINER" --network "$NETWORK" \
+      -e ORACLE_PASSWORD="$ORACLE_PWD" \
+      -e APP_USER="$DB_USER" \
+      -e APP_USER_PASSWORD="$DB_PASS" \
+      "$ORACLE_IMAGE"
+  else
+    docker run -d --name "$CONTAINER" --network "$NETWORK" \
+      -e ORACLE_PASSWORD="$ORACLE_PWD" \
+      -e APP_USER="$DB_USER" \
+      -e APP_USER_PASSWORD="$DB_PASS" \
+      -e ORACLE_DATABASE="$DB" \
+      "$ORACLE_IMAGE"
+  fi
 
   wait_for_oracle || return 1
 
