@@ -51,31 +51,12 @@ jobs:
     if: false
     runs-on: ubuntu-latest
     timeout-minutes: 120
-    env:
-      SITMUN_DB: oracle-19
-      SITMUN_DB_KEEP: "1"
     steps:
       - name: Checkout
         uses: actions/checkout@v5
-
-      - name: Set up Java
-        uses: actions/setup-java@v5
+      - name: Test the backend on Oracle 19
+        uses: ./.github/actions/backend-database
         with:
-          distribution: temurin
-          java-version-file: .java-version
-          cache: gradle
-
-      - name: Boot the backend
-        run: bash tools/tests/test_backend_db_boot.sh
-
-      - name: Run backend tests
-        if: ${{ !cancelled() }}
-        run: ./gradlew :sitmun-backend:testOracle19
-
-      - name: Upload test report
-        if: ${{ failure() }}
-        uses: actions/upload-artifact@v6
-        with:
-          name: test-oracle-19-report
-          path: sitmun-backend/build/reports/tests/testOracle19
-          retention-days: 7
+          db: oracle-19
+          gradle-task: testOracle19
+          report-name: test-oracle-19-report

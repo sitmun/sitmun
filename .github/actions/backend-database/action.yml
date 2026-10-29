@@ -1,0 +1,43 @@
+name: Backend database
+description: Boot the backend on one database, then run its Gradle suite.
+
+inputs:
+  db:
+    description: SITMUN_DB value (oracle-11, oracle-19, postgres-12, postgres-16)
+    required: true
+  gradle-task:
+    description: Gradle test task, for example testOracle11
+    required: true
+  report-name:
+    description: Artifact name for the test report
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Set up Java
+      uses: actions/setup-java@v5
+      with:
+        distribution: temurin
+        java-version-file: .java-version
+        cache: gradle
+
+    - name: Boot the backend
+      shell: bash
+      env:
+        SITMUN_DB: ${{ inputs.db }}
+        SITMUN_DB_KEEP: "1"
+      run: bash tools/tests/test_backend_db_boot.sh
+
+    - name: Run backend tests
+      if: ${{ !cancelled() }}
+      shell: bash
+      run: ./gradlew :sitmun-backend:${{ inputs.gradle-task }}
+
+    - name: Upload test report
+      if: ${{ failure() }}
+      uses: actions/upload-artifact@v6
+      with:
+        name: ${{ inputs.report-name }}
+        path: sitmun-backend/build/reports/tests/${{ inputs.gradle-task }}
+        retention-days: 7

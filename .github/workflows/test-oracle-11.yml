@@ -50,32 +50,12 @@ jobs:
     if: false
     runs-on: ubuntu-latest
     timeout-minutes: 120
-    env:
-      SITMUN_DB: oracle-11
-      SITMUN_DB_KEEP: "1"
     steps:
       - name: Checkout
         uses: actions/checkout@v5
-
-      - name: Set up Java
-        uses: actions/setup-java@v5
+      - name: Test the backend on Oracle 11
+        uses: ./.github/actions/backend-database
         with:
-          distribution: temurin
-          java-version-file: .java-version
-          cache: gradle
-
-      - name: Boot the backend
-        run: bash tools/tests/test_backend_db_boot.sh
-
-      # The suite drops and rebuilds the schema, so it runs after the production-changelog boot.
-      - name: Run backend tests
-        if: ${{ !cancelled() }}
-        run: ./gradlew :sitmun-backend:testOracle11
-
-      - name: Upload test report
-        if: ${{ failure() }}
-        uses: actions/upload-artifact@v6
-        with:
-          name: test-oracle-11-report
-          path: sitmun-backend/build/reports/tests/testOracle11
-          retention-days: 7
+          db: oracle-11
+          gradle-task: testOracle11
+          report-name: test-oracle-11-report

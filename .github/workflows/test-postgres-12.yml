@@ -49,31 +49,12 @@ jobs:
     if: false
     runs-on: ubuntu-latest
     timeout-minutes: 120
-    env:
-      SITMUN_DB: postgres-12
-      SITMUN_DB_KEEP: "1"
     steps:
       - name: Checkout
         uses: actions/checkout@v5
-
-      - name: Set up Java
-        uses: actions/setup-java@v5
+      - name: Test the backend on PostgreSQL 12
+        uses: ./.github/actions/backend-database
         with:
-          distribution: temurin
-          java-version-file: .java-version
-          cache: gradle
-
-      - name: Boot the backend
-        run: bash tools/tests/test_backend_db_boot.sh
-
-      - name: Run backend tests
-        if: ${{ !cancelled() }}
-        run: ./gradlew :sitmun-backend:testPostgres12
-
-      - name: Upload test report
-        if: ${{ failure() }}
-        uses: actions/upload-artifact@v6
-        with:
-          name: test-postgres-12-report
-          path: sitmun-backend/build/reports/tests/testPostgres12
-          retention-days: 7
+          db: postgres-12
+          gradle-task: testPostgres12
+          report-name: test-postgres-12-report
