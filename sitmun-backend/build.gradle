@@ -157,6 +157,7 @@ dependencies {
   
   // Testing utilities
   testImplementation libs.hamcrest
+  testImplementation libs.junit.platform.launcher
   
   // LDAP testing (embedded LDAP server)
   testImplementation libs.unboundid.ldapsdk
@@ -260,6 +261,9 @@ tasks.register('testPostgres', Test) {
   group = 'verification'
   description = 'Run tests with PostgreSQL database using Docker Compose'
   systemProperty 'spring.profiles.active', 'test,postgres'
+  systemProperty 'sitmun.test.database.enabled', 'true'
+  systemProperty 'sitmun.test.database.product', 'postgres'
+  systemProperty 'sitmun.test.database.version', '16'
   systemProperty 'sitmun.user.secret', 'test-only-insecure-user-secret-32-bytes'
   systemProperty 'sitmun.proxy-middleware.secret', 'test-only-insecure-middleware-secret'
   testLogging {
@@ -272,6 +276,9 @@ tasks.register('testOracle', Test) {
   group = 'verification'
   description = 'Run tests with OracleSQL database using Docker Compose'
   systemProperty 'spring.profiles.active', 'test,oracle'
+  systemProperty 'sitmun.test.database.enabled', 'true'
+  systemProperty 'sitmun.test.database.product', 'oracle'
+  systemProperty 'sitmun.test.database.version', '23'
   systemProperty 'sitmun.user.secret', 'test-only-insecure-user-secret-32-bytes'
   systemProperty 'sitmun.proxy-middleware.secret', 'test-only-insecure-middleware-secret'
   testLogging {
@@ -298,6 +305,9 @@ tasks.register('testOracle11', Test) {
   systemProperty 'spring.liquibase.url', oracleUrl
   // Liquibase opens its own connection outside Hikari; Oracle 11 XE rejects Etc/UTC (ORA-01882).
   systemProperty 'oracle.jdbc.timezoneAsRegion', 'false'
+  systemProperty 'sitmun.test.database.enabled', 'true'
+  systemProperty 'sitmun.test.database.product', 'oracle'
+  systemProperty 'sitmun.test.database.version', '11'
   systemProperty 'sitmun.user.secret', 'test-only-insecure-user-secret-32-bytes'
   systemProperty 'sitmun.proxy-middleware.secret', 'test-only-insecure-middleware-secret'
   testLogging {
@@ -315,6 +325,9 @@ tasks.register('testOracle19', Test) {
   systemProperty 'spring.profiles.active', 'test,oracle'
   systemProperty 'spring.datasource.url', oracleUrl
   systemProperty 'spring.liquibase.url', oracleUrl
+  systemProperty 'sitmun.test.database.enabled', 'true'
+  systemProperty 'sitmun.test.database.product', 'oracle'
+  systemProperty 'sitmun.test.database.version', '19'
   systemProperty 'sitmun.user.secret', 'test-only-insecure-user-secret-32-bytes'
   systemProperty 'sitmun.proxy-middleware.secret', 'test-only-insecure-middleware-secret'
   testLogging {
@@ -329,6 +342,9 @@ tasks.register('testPostgres12', Test) {
   testClassesDirs = sourceSets.test.output.classesDirs
   classpath = sourceSets.test.runtimeClasspath
   def postgresUrl = System.getenv('SITMUN_POSTGRES_URL') ?: 'jdbc:postgresql://127.0.0.1:54312/sitmun3'
+  systemProperty 'sitmun.test.database.enabled', 'true'
+  systemProperty 'sitmun.test.database.product', 'postgres'
+  systemProperty 'sitmun.test.database.version', '12'
   systemProperty 'spring.profiles.active', 'test,postgres'
   systemProperty 'spring.datasource.url', postgresUrl
   systemProperty 'spring.liquibase.url', postgresUrl
@@ -346,6 +362,9 @@ tasks.register('testPostgres16', Test) {
   testClassesDirs = sourceSets.test.output.classesDirs
   classpath = sourceSets.test.runtimeClasspath
   def postgresUrl = System.getenv('SITMUN_POSTGRES_URL') ?: 'jdbc:postgresql://127.0.0.1:54316/sitmun3'
+  systemProperty 'sitmun.test.database.enabled', 'true'
+  systemProperty 'sitmun.test.database.product', 'postgres'
+  systemProperty 'sitmun.test.database.version', '16'
   systemProperty 'spring.profiles.active', 'test,postgres'
   systemProperty 'spring.datasource.url', postgresUrl
   systemProperty 'spring.liquibase.url', postgresUrl

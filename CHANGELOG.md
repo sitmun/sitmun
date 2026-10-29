@@ -10,6 +10,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 #### Backend Core
 
+- **Tests**: A test that must not run on H2 uses `@EnabledOnDatabase`. `atLeast` is inclusive and `before` is exclusive. `@EnabledOnOracleSince11` is that annotation for Oracle 11 and newer. Production-database tasks set `sitmun.test.database.enabled`, `product`, and `version`.
 - **Cartography**: The cartography view includes `serviceType` from the linked service ([sitmun-admin-app#498](https://github.com/sitmun/sitmun-admin-app/issues/498)).
 - **Code lists**: `cartographyParameter.geometryKind` and `cartographyParameter.preferredGeometryType` store English descriptions. Spanish, Catalan, Aranese, and French labels, including format `Geometry`, come from `STM_TRANSLATION`.
 - **Profile**: A vector layer publishes `geometryName` and, when the attribute is generic Geometry, `preferredGeometryType`. `kind` is `vector` for WFS and `raster` for WMS and WMTS ([sitmun-admin-app#499](https://github.com/sitmun/sitmun-admin-app/issues/499)).
@@ -44,6 +45,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 #### Stack
 
+- **CI**: The four fresh-install checks share `.github/actions/backend-database`. A manual Liquibase upgrade run takes `db` and `source`.
 - **CI**: `ci-gate` follows changed paths on a push, comparing that push with the previous commit on the same branch. A manual run starts every job. The workflow also runs in a merge group.
 - **CI**: A Gradle catalog change runs the backend build and the end-to-end suites.
 - **CI**: `Test PostgreSQL 16` runs for any backend change. `Test PostgreSQL 12`, `Test Oracle 11`, and `Test Oracle 19` run for a persistence change, a pull request into `main`, or a manual run. Otherwise those checks report skipped. `tools/bin/ci_db_scope.py` chooses the tier.
