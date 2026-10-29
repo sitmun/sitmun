@@ -11,7 +11,7 @@ COPY sitmun-common /usr/src/sitmun-common
 COPY sitmun-proxy /usr/src/sitmun-proxy
 RUN --mount=type=cache,target=/root/.gradle-proxy \
     GRADLE_USER_HOME=/root/.gradle-proxy ./gradlew --no-daemon :sitmun-proxy:build \
-    -x :sitmun-proxy:check -x :sitmun-proxy:setupGitHooks
+    -x :sitmun-proxy:check
 
 # Stage 1, based on Amazon Corretto, to have only the compiled app
 FROM amazoncorretto:${JDK_VERSION}.${JDK_TAG}-alpine${ALPINE_TAG}

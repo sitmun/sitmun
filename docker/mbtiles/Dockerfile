@@ -9,7 +9,7 @@ COPY gradle /usr/src/gradle
 COPY sitmun-addons/sitmun-mbtiles /usr/src/sitmun-addons/sitmun-mbtiles
 RUN --mount=type=cache,target=/root/.gradle-mbtiles \
     GRADLE_USER_HOME=/root/.gradle-mbtiles ./gradlew --no-daemon :sitmun-mbtiles:build \
-    -x :sitmun-mbtiles:check -x :sitmun-mbtiles:setupGitHooks
+    -x :sitmun-mbtiles:check
 
 FROM amazoncorretto:${JDK_VERSION}.${JDK_TAG}-alpine${ALPINE_TAG}
 RUN apk add --no-cache curl
