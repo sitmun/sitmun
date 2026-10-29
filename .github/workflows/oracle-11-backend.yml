@@ -18,7 +18,9 @@ jobs:
   # gvenzl/oracle-xe:11 is amd64 only. ubuntu-latest is amd64.
   backend-on-oracle-11:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 120
+    env:
+      SITMUN_ORACLE_KEEP: "1"
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -32,3 +34,16 @@ jobs:
 
       - name: Boot the backend on Oracle XE 11
         run: bash tools/tests/test_backend_oracle11_boot.sh
+
+      # Runs after the boot check because the test profile drops and rebuilds the schema.
+      - name: Run backend tests on Oracle XE 11
+        if: ${{ !cancelled() }}
+        run: ./gradlew :sitmun-backend:testOracle11
+
+      - name: Upload test report
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v6
+        with:
+          name: backend-oracle-11-test-report
+          path: sitmun-backend/build/reports/tests/testOracle11
+          retention-days: 7

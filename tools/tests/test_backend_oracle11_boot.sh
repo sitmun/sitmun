@@ -10,6 +10,7 @@
 # gvenzl/oracle-xe:11 is amd64 only. On an Apple M1, start it in an x86_64 Colima
 # profile yourself and set SITMUN_ORACLE_URL so this script does not start a container:
 #   SITMUN_ORACLE_URL=jdbc:oracle:thin:@//127.0.0.1:15211/XE bash tools/tests/test_backend_oracle11_boot.sh
+# SITMUN_ORACLE_KEEP=1 leaves the started container running for :sitmun-backend:testOracle11.
 
 set -uo pipefail
 
@@ -38,7 +39,7 @@ cleanup() {
     kill "$BACKEND_PID" 2>/dev/null || true
     wait "$BACKEND_PID" 2>/dev/null || true
   fi
-  if $STARTED_CONTAINER; then
+  if $STARTED_CONTAINER && [[ "${SITMUN_ORACLE_KEEP:-}" != "1" ]]; then
     docker rm -f "$CONTAINER" >/dev/null 2>&1 || true
   fi
 }
