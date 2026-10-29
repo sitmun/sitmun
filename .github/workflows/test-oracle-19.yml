@@ -9,23 +9,44 @@ permissions:
 
 on:
   pull_request:
-    branches: [dev]
-    paths:
-      - 'sitmun-backend/**'
-      - 'profiles/oracle/**'
-      - 'gradle/**'
-      - 'build.gradle'
-      - 'settings.gradle'
-      - 'gradle.properties'
-      - 'tools/tests/test_backend_db_boot.sh'
-      - '.github/workflows/test-oracle-19.yml'
+    branches: [dev, main]
+  merge_group:
   workflow_dispatch:
 
 jobs:
+  changes:
+    name: Select Oracle 19 scope
+    timeout-minutes: 5
+    runs-on: ubuntu-latest
+    outputs:
+      db: ${{ steps.scope.outputs.db }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - name: Test the database selector
+        run: python3 tools/tests/test_ci_db_scope.py
+      - name: Select the database tier
+        id: scope
+        env:
+          EVENT: ${{ github.event_name }}
+          BASE_REF: ${{ github.base_ref }}
+          BASE: ${{ github.event_name == 'merge_group' && github.event.merge_group.base_sha || github.event.pull_request.base.sha }}
+          HEAD: ${{ github.event_name == 'merge_group' && github.event.merge_group.head_sha || github.event.pull_request.head.sha }}
+          INSTALL: oracle-19
+        run: |
+          if [ "$EVENT" = "workflow_dispatch" ]; then
+            python3 tools/bin/ci_db_scope.py --all --event "$EVENT" --base-ref "$BASE_REF" --install "$INSTALL" >> "$GITHUB_OUTPUT"
+          else
+            python3 tools/bin/ci_db_scope.py --base "$BASE" --head "$HEAD" --event "$EVENT" --base-ref "$BASE_REF" --install "$INSTALL" >> "$GITHUB_OUTPUT"
+          fi
+
   # gvenzl/oracle-xe:21-slim is amd64 only and stands in for the 19c install.
   # ORACLE_DATABASE=sitmun3 is set by tools/tests/test_backend_db_boot.sh.
   test-oracle-19:
     name: Test Oracle 19
+    needs: changes
     # Data REST calls return HTTP 500 and the log has no server exception.
     if: false
     runs-on: ubuntu-latest
