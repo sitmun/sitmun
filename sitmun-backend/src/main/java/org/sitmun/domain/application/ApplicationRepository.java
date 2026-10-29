@@ -32,12 +32,15 @@ public interface ApplicationRepository extends JpaRepository<Application, Intege
       """)
   Page<Application> findByContent(@Param("q") String q, Pageable pageable);
 
+  // Entity queries below dedupe through id subqueries, never "select distinct app": Oracle
+  // rejects DISTINCT and the 11g paging sort over the APP_HEADERPARAMS CLOB (ORA-00932).
   @RestResource(exported = false)
   @EntityGraph(attributePaths = {"territories", "territories.territory"})
   @Query(
       """
-      select distinct app from Application app, Task task, Role role
-      where task.id = ?1 and role member of app.availableRoles and role member of task.roles
+      select app from Application app
+      where app.id in (select candidate.id from Application candidate, Task task, Role role
+        where task.id = ?1 and role member of candidate.availableRoles and role member of task.roles)
       """)
   List<Application> findByTaskId(Integer taskId);
 
@@ -49,7 +52,7 @@ public interface ApplicationRepository extends JpaRepository<Application, Intege
   @RestResource(exported = false)
   @Query(
       """
-      select distinct app from Application app
+      select app from Application app
       where app.id in (select distinct app.id from Application app, UserConfiguration uc
         where uc.role member of app.availableRoles and uc.user.username = ?1"""
           + UserPositionActiveGrant.ON_GRANT
@@ -71,7 +74,7 @@ public interface ApplicationRepository extends JpaRepository<Application, Intege
   @RestResource(exported = false)
   @Query(
       """
-      select distinct app from Application app
+      select app from Application app
       where (app.id in (select distinct app.id from Application app, UserConfiguration uc
         where uc.role member of app.availableRoles and uc.user.username = ?1"""
           + UserPositionActiveGrant.ON_GRANT
@@ -94,7 +97,7 @@ public interface ApplicationRepository extends JpaRepository<Application, Intege
   @RestResource(exported = false)
   @Query(
       """
-      select distinct app from Application app
+      select app from Application app
       where app.id in (select distinct app.id from Application app, UserConfiguration uc
         where uc.role member of app.availableRoles and uc.user.username = ?1"""
           + UserPositionActiveGrant.ON_GRANT
@@ -117,7 +120,7 @@ public interface ApplicationRepository extends JpaRepository<Application, Intege
   @RestResource(exported = false)
   @Query(
       """
-    select distinct app from Application app
+    select app from Application app
     where (app.id in (select distinct app.id from Application app, UserConfiguration uc
       where uc.role member of app.availableRoles and uc.user.username = ?1"""
           + UserPositionActiveGrant.ON_GRANT
@@ -141,7 +144,7 @@ public interface ApplicationRepository extends JpaRepository<Application, Intege
   @RestResource(exported = false)
   @Query(
       """
-      select distinct app from Application app
+      select app from Application app
       where app.id in (select distinct app.id from Application app, UserConfiguration uc
         where app.id = ?2 and uc.role member of app.availableRoles and uc.user.username = ?1"""
           + UserPositionActiveGrant.ON_GRANT
@@ -164,7 +167,7 @@ public interface ApplicationRepository extends JpaRepository<Application, Intege
   @RestResource(exported = false)
   @Query(
       """
-    select distinct app from Application app
+    select app from Application app
     where (app.id in (select distinct app.id from Application app, UserConfiguration uc
       where app.id = ?2 and uc.role member of app.availableRoles and uc.user.username = ?1"""
           + UserPositionActiveGrant.ON_GRANT
@@ -188,7 +191,7 @@ public interface ApplicationRepository extends JpaRepository<Application, Intege
   @RestResource(exported = false)
   @Query(
       """
-      select distinct app from Application app
+      select app from Application app
       where (app.id in (select distinct app.id from Application app, UserConfiguration uc
         where uc.role member of app.availableRoles and uc.user.username = ?1"""
           + UserPositionActiveGrant.ON_GRANT
@@ -213,7 +216,7 @@ public interface ApplicationRepository extends JpaRepository<Application, Intege
   @RestResource(exported = false)
   @Query(
       """
-      select distinct app from Application app
+      select app from Application app
       where (app.id in (select distinct app.id from Application app, UserConfiguration uc
         where uc.role member of app.availableRoles and uc.user.username = ?1"""
           + UserPositionActiveGrant.ON_GRANT
