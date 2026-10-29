@@ -44,6 +44,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 #### Stack
 
+- **CI**: A newer push to the same pull request cancels the previous run of each top-level workflow. Pushes and manual runs are not cancelled.
+- **CI**: Each end-to-end suite call runs one job, named `E2E` plus a title such as `Admin` or `Mobile Android`.
+- **CI**: Workflow tokens can read repository contents. The stale-issue workflow can still write issues and pull requests. CodeQL can still write security events.
+- **CI**: Component jobs stop if they run past a limit. Admin, viewer, proxy, and MBTiles stop at 30 minutes. The backend stops at 45. Shared libraries stop at 20. The path-filter job and `ci-gate` stop at 5. Docker stays at 180. End-to-end suites stop at 45, 60, or 120 minutes.
+- **CI**: CodeQL no longer sets up Node for the admin and viewer analyses. Those jobs do not compile JavaScript.
 - **CI**: Workflows `Test Oracle 11`, `Test Oracle 19`, `Test PostgreSQL 12`, and `Test PostgreSQL 16` boot the backend on an empty schema, then run the backend suite. Oracle 19 uses `gvenzl/oracle-xe:21-slim` with database `sitmun3` as the stand-in for 19c.
 - **CI**: `.github/workflows/liquibase-upgrade.yml` upgrades each supported install from 1.2.6, 1.2.7, and 1.2.8. Jobs are `postgres-12-from`, `postgres-16-from`, `oracle-11-from`, and `oracle-19-from`. `oracle-23-from` stays on Oracle Free 23 as a forward-compatibility check. `SITMUN_POSTGRES_IMAGE` selects the PostgreSQL image.
 - **CI**: `.github/workflows/liquibase-upgrade.yml` job `dev-postgres-from` upgrades the development profile on PostgreSQL from 1.2.6 to HEAD (`--contexts=dev`).
