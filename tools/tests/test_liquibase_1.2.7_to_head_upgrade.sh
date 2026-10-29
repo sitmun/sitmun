@@ -25,8 +25,10 @@ TARGET="${1:-both}"
 # Issue #74: set SITMUN_ORACLE_IMAGE=gvenzl/oracle-xe:21-slim to run an upgrade
 # path against a pre-23ai server. That image is amd64 only. Pre-23ai startup is
 # slower, hence the larger default wait.
+# SITMUN_POSTGRES_IMAGE selects the PostgreSQL server (default postgres:16-alpine).
 ORACLE_IMAGE="${SITMUN_ORACLE_IMAGE:-gvenzl/oracle-free:23-slim}"
 ORACLE_WAIT_TRIES="${SITMUN_ORACLE_WAIT_TRIES:-150}"
+POSTGRES_IMAGE="${SITMUN_POSTGRES_IMAGE:-postgres:16-alpine}"
 
 PASS=0
 FAIL=0
@@ -182,7 +184,7 @@ run_postgres() {
     -e POSTGRES_DB="$DB" \
     -e POSTGRES_USER="$DB_USER" \
     -e POSTGRES_PASSWORD="$DB_PASS" \
-    postgres:16-alpine
+    "$POSTGRES_IMAGE"
 
   echo -n "  Waiting for Postgres"
   for _ in $(seq 1 40); do
@@ -333,7 +335,7 @@ run_postgres_from() {
     -e POSTGRES_DB="$DB" \
     -e POSTGRES_USER="$DB_USER" \
     -e POSTGRES_PASSWORD="$DB_PASS" \
-    postgres:16-alpine
+    "$POSTGRES_IMAGE"
 
   echo -n "  Waiting for Postgres"
   for _ in $(seq 1 40); do
@@ -846,7 +848,7 @@ run_dev_postgres_from() {
     -e POSTGRES_DB="$DB" \
     -e POSTGRES_USER="$DB_USER" \
     -e POSTGRES_PASSWORD="$DB_PASS" \
-    postgres:16-alpine
+    "$POSTGRES_IMAGE"
 
   echo -n "  Waiting for Postgres"
   for _ in $(seq 1 40); do

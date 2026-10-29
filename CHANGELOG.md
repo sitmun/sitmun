@@ -44,6 +44,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 #### Stack
 
+- **CI**: Workflows `Test Oracle 11`, `Test Oracle 19`, `Test PostgreSQL 12`, and `Test PostgreSQL 16` boot the backend on an empty schema, then run the backend suite. Oracle 19 uses `gvenzl/oracle-xe:21-slim` with database `sitmun3` as the stand-in for 19c.
+- **CI**: `.github/workflows/liquibase-upgrade.yml` upgrades each supported install from 1.2.6, 1.2.7, and 1.2.8. Jobs are `postgres-12-from`, `postgres-16-from`, `oracle-11-from`, and `oracle-19-from`. `oracle-23-from` stays on Oracle Free 23 as a forward-compatibility check. `SITMUN_POSTGRES_IMAGE` selects the PostgreSQL image.
 - **CI**: `.github/workflows/liquibase-upgrade.yml` job `dev-postgres-from` upgrades the development profile on PostgreSQL from 1.2.6 to HEAD (`--contexts=dev`).
 - **Submodules**: The shared upstream library is checked out at `back/shared/sitmun-shared` ([sitmun-shared](https://github.com/sitmun/sitmun-shared)). It follows the stack branch. `tools/scripts/bump-version.sh` moves its `1.2.9` version with the backend dependency `org.sitmun:sitmun-spring-upstream`.
 - **Development**: `profiles/development-lvh.env` announces the stack as `http://lvh.me:9000`. The air-gapped default stays `localhost`.
@@ -63,7 +65,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 #### Stack-level
 
-- **Database**: GitHub Actions job `oracle-11-install` upgrades the Oracle schema from 1.2.7 to HEAD on `gvenzl/oracle-xe:11` using service `XE`. That image is amd64 only. The Liquibase container brings its own driver, so the job does not boot the backend. That container sets `JAVA_TOOL_OPTIONS` to `-Duser.language=en -Duser.region=US` so Oracle 11g accepts the JDBC session locale.
+- **Database**: GitHub Actions job `oracle-11-from` upgrades the Oracle schema from 1.2.6, 1.2.7, and 1.2.8 to HEAD on `gvenzl/oracle-xe:11` using service `XE`. That image is amd64 only. The Liquibase container brings its own driver, so the job does not boot the backend. On Oracle 11 it sets `JAVA_TOOL_OPTIONS` to `-Doracle.jdbc.timezoneAsRegion=false` so the session accepts the runner time zone.
 - **Database**: Spring profile `oracle` sets `org.hibernate.dialect.OracleDialect`. Spring profile `oracle-11` sets `org.hibernate.community.dialect.OracleLegacyDialect` in `profiles/oracle/` and `profiles/development/backend/`. `sitmun-backend/docker/oracle/docker-compose-11.yml` uses `gvenzl/oracle-xe:11` and JDBC `jdbc:oracle:thin:@//oracle:1521/XE`. That image is amd64 only.
 - **Toolchain**: Submodule gitlinks point at Spring Boot `4.1.1` (shared, backend, proxy, mbtiles), Angular `22.2.3` / Node `24.22.0` (admin, viewer), and Gradle `8.14.6`. Root image and CI use Node `24.22.0`; mobile Android E2E stays on Node `22`. Published shared coordinate remains `1.2.9`.
 - **Viewer**: The stack points at viewer `dev`, which replaces filler control-spec expects, deletes the unused control loader, drops three local `any` casts, and removes comments that name the wrong type or narrate the next line ([sitmun-viewer-app#199](https://github.com/sitmun/sitmun-viewer-app/pull/199), [#200](https://github.com/sitmun/sitmun-viewer-app/pull/200), [#201](https://github.com/sitmun/sitmun-viewer-app/pull/201), [#202](https://github.com/sitmun/sitmun-viewer-app/pull/202), [#203](https://github.com/sitmun/sitmun-viewer-app/pull/203)).
@@ -97,7 +99,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - **E2E**: Each root E2E job publishes the pinned `sitmun-shared` to the local Maven repository before the suite starts. The backend resolves `sitmun-spring-upstream` and `sitmun-proxy-contract` `1.2.9` from that repository.
 - **Submodules**: `sitmun-mbtiles` follows the stack branch. `git submodule update --remote` on stack `dev` stays on mbtiles `dev`, the commit the stack already pins.
 - **Liquibase (Oracle)**: `changelog/26_map_image_task_type_pre23.yaml` takes changelog 22's slot in `profiles/oracle/liquibase/master.xml`. Changeset `22c_document_export_codelists` used `SELECT` without `FROM` and SQL `TRUE` literals, both 23ai-only, so install and upgrade failed on 19c with `ORA-00923` ([#74](https://github.com/sitmun/sitmun-application-stack/issues/74)). Changelog 22 stays byte-identical and unreferenced; its `DATABASECHANGELOG` rows remain on databases that applied it, and 26 is guarded so those databases converge without duplicate rows.
-- **Liquibase tests**: `test_liquibase_1.2.7_to_head_upgrade.sh` honours `SITMUN_ORACLE_IMAGE` and `SITMUN_ORACLE_WAIT_TRIES`. CI job `oracle-pre23-from` runs the Oracle 1.2.7 → HEAD upgrade on `gvenzl/oracle-xe:21-slim` ([#74](https://github.com/sitmun/sitmun-application-stack/issues/74)).
+- **Liquibase tests**: `test_liquibase_1.2.7_to_head_upgrade.sh` honours `SITMUN_ORACLE_IMAGE`, `SITMUN_ORACLE_WAIT_TRIES`, and `SITMUN_POSTGRES_IMAGE`. CI job `oracle-19-from` runs the Oracle upgrade on `gvenzl/oracle-xe:21-slim`, the stand-in for 19c ([#74](https://github.com/sitmun/sitmun-application-stack/issues/74)).
 
 #### Profile-level
 

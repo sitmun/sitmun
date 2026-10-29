@@ -79,10 +79,14 @@ class ApplicationContactMigrationTest {
   }
 
   private void insertTestData(Connection conn) throws SQLException {
-    conn.createStatement()
-        .execute(
+    try (var statement =
+        conn.prepareStatement(
             "INSERT INTO STM_USER (USE_ID, USE_USER, USE_ADM, USE_BLOCKED) "
-                + "VALUES (77777, 'migration-test-user', TRUE, FALSE)");
+                + "VALUES (77777, 'migration-test-user', ?, ?)")) {
+      statement.setBoolean(1, true);
+      statement.setBoolean(2, false);
+      statement.executeUpdate();
+    }
   }
 
   private static void applyLiquibase(DataSource ds, boolean dropFirst) throws Exception {

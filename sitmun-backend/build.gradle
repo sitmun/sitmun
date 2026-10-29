@@ -259,7 +259,7 @@ tasks.register('testH2', Test) {
 tasks.register('testPostgres', Test) {
   group = 'verification'
   description = 'Run tests with PostgreSQL database using Docker Compose'
-  systemProperty 'spring.profiles.active', 'postgres'
+  systemProperty 'spring.profiles.active', 'test,postgres'
   systemProperty 'sitmun.user.secret', 'test-only-insecure-user-secret-32-bytes'
   systemProperty 'sitmun.proxy-middleware.secret', 'test-only-insecure-middleware-secret'
   testLogging {
@@ -271,7 +271,7 @@ tasks.register('testPostgres', Test) {
 tasks.register('testOracle', Test) {
   group = 'verification'
   description = 'Run tests with OracleSQL database using Docker Compose'
-  systemProperty 'spring.profiles.active', 'oracle'
+  systemProperty 'spring.profiles.active', 'test,oracle'
   systemProperty 'sitmun.user.secret', 'test-only-insecure-user-secret-32-bytes'
   systemProperty 'sitmun.proxy-middleware.secret', 'test-only-insecure-middleware-secret'
   testLogging {
@@ -285,18 +285,70 @@ tasks.register('testOracle', Test) {
   }
 }
 
-// gvenzl/oracle-xe:11 is amd64 only, so this task does not start it. See tools/tests/test_backend_oracle11_boot.sh.
+// These tasks do not start a database. tools/tests/test_backend_db_boot.sh does.
+// gvenzl/oracle-xe is amd64 only.
 tasks.register('testOracle11', Test) {
   group = 'verification'
   description = 'Run tests against a running Oracle 11g XE database at SITMUN_ORACLE_URL'
   testClassesDirs = sourceSets.test.output.classesDirs
   classpath = sourceSets.test.runtimeClasspath
   def oracleUrl = System.getenv('SITMUN_ORACLE_URL') ?: 'jdbc:oracle:thin:@//127.0.0.1:15211/XE'
-  systemProperty 'spring.profiles.active', 'oracle,oracle-11'
+  systemProperty 'spring.profiles.active', 'test,oracle,oracle-11'
   systemProperty 'spring.datasource.url', oracleUrl
   systemProperty 'spring.liquibase.url', oracleUrl
   // Liquibase opens its own connection outside Hikari; Oracle 11 XE rejects Etc/UTC (ORA-01882).
   systemProperty 'oracle.jdbc.timezoneAsRegion', 'false'
+  systemProperty 'sitmun.user.secret', 'test-only-insecure-user-secret-32-bytes'
+  systemProperty 'sitmun.proxy-middleware.secret', 'test-only-insecure-middleware-secret'
+  testLogging {
+    events "failed"
+    exceptionFormat = 'full'
+  }
+}
+
+tasks.register('testOracle19', Test) {
+  group = 'verification'
+  description = 'Run tests against a running Oracle database at SITMUN_ORACLE_URL (19c install, XE 21 stand-in)'
+  testClassesDirs = sourceSets.test.output.classesDirs
+  classpath = sourceSets.test.runtimeClasspath
+  def oracleUrl = System.getenv('SITMUN_ORACLE_URL') ?: 'jdbc:oracle:thin:@//127.0.0.1:15219/sitmun3'
+  systemProperty 'spring.profiles.active', 'test,oracle'
+  systemProperty 'spring.datasource.url', oracleUrl
+  systemProperty 'spring.liquibase.url', oracleUrl
+  systemProperty 'sitmun.user.secret', 'test-only-insecure-user-secret-32-bytes'
+  systemProperty 'sitmun.proxy-middleware.secret', 'test-only-insecure-middleware-secret'
+  testLogging {
+    events "failed"
+    exceptionFormat = 'full'
+  }
+}
+
+tasks.register('testPostgres12', Test) {
+  group = 'verification'
+  description = 'Run tests against a running PostgreSQL 12 database at SITMUN_POSTGRES_URL'
+  testClassesDirs = sourceSets.test.output.classesDirs
+  classpath = sourceSets.test.runtimeClasspath
+  def postgresUrl = System.getenv('SITMUN_POSTGRES_URL') ?: 'jdbc:postgresql://127.0.0.1:54312/sitmun3'
+  systemProperty 'spring.profiles.active', 'test,postgres'
+  systemProperty 'spring.datasource.url', postgresUrl
+  systemProperty 'spring.liquibase.url', postgresUrl
+  systemProperty 'sitmun.user.secret', 'test-only-insecure-user-secret-32-bytes'
+  systemProperty 'sitmun.proxy-middleware.secret', 'test-only-insecure-middleware-secret'
+  testLogging {
+    events "failed"
+    exceptionFormat = 'full'
+  }
+}
+
+tasks.register('testPostgres16', Test) {
+  group = 'verification'
+  description = 'Run tests against a running PostgreSQL 16 database at SITMUN_POSTGRES_URL'
+  testClassesDirs = sourceSets.test.output.classesDirs
+  classpath = sourceSets.test.runtimeClasspath
+  def postgresUrl = System.getenv('SITMUN_POSTGRES_URL') ?: 'jdbc:postgresql://127.0.0.1:54316/sitmun3'
+  systemProperty 'spring.profiles.active', 'test,postgres'
+  systemProperty 'spring.datasource.url', postgresUrl
+  systemProperty 'spring.liquibase.url', postgresUrl
   systemProperty 'sitmun.user.secret', 'test-only-insecure-user-secret-32-bytes'
   systemProperty 'sitmun.proxy-middleware.secret', 'test-only-insecure-middleware-secret'
   testLogging {

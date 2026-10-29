@@ -103,7 +103,8 @@ class TreeNodeDefaultColumnMigrationTest {
         """);
     jdbc.update("INSERT INTO STM_TREE (TRE_ID, TRE_TYPE) VALUES (1, 'cartography')");
     jdbc.update(
-        "INSERT INTO STM_TREE_NOD (TNO_ID, TNO_NAME, TNO_ACTIVE, TNO_TREEID) VALUES (1, 'node', TRUE, 1)");
+        "INSERT INTO STM_TREE_NOD (TNO_ID, TNO_NAME, TNO_ACTIVE, TNO_TREEID) VALUES (1, 'node', ?, 1)",
+        true);
   }
 
   private static void runMigration52(Connection connection)

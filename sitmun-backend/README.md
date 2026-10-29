@@ -703,11 +703,17 @@ Comprehensive testing strategy:
 # Run all tests
 ./gradlew test
 
-# Test with PostgreSQL
+# Test with PostgreSQL 16 (Docker Compose)
 ./gradlew testPostgres
 
-# Test with Oracle
+# Test with Oracle Free 23 (Docker Compose)
 ./gradlew testOracle
+
+# Test against a database that is already running
+./gradlew testOracle11
+./gradlew testOracle19
+./gradlew testPostgres12
+./gradlew testPostgres16
 
 # Run specific test class
 ./gradlew test --tests AuthenticationControllerTest

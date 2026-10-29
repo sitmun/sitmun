@@ -17,6 +17,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.jayway.jsonpath.JsonPath;
+import java.sql.PreparedStatement;
 import java.sql.Statement;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -673,11 +674,25 @@ class ClientConfigurationProfileControllerTest {
   @Test
   @DisplayName("GET: Profile omits a stored service whose type is not WMS, WFS, or WMTS")
   void profileOmitsUnsupportedServiceType() throws Exception {
-    executeCommitted(
-        """
-        INSERT INTO STM_SERVICE (SER_ID, SER_NAME, SER_URL, SER_PROTOCOL, SER_BLOCKED, SER_PROXIED)
-        VALUES (99001, 'AIMS leftover', 'https://example.com/aims', 'AIMS', FALSE, FALSE)
-        """);
+    jdbcTemplate.execute(
+        (ConnectionCallback<Void>)
+            connection -> {
+              boolean previous = connection.getAutoCommit();
+              connection.setAutoCommit(true);
+              try (PreparedStatement statement =
+                  connection.prepareStatement(
+                      """
+                      INSERT INTO STM_SERVICE (SER_ID, SER_NAME, SER_URL, SER_PROTOCOL, SER_BLOCKED, SER_PROXIED)
+                      VALUES (99001, 'AIMS leftover', 'https://example.com/aims', 'AIMS', ?, ?)
+                      """)) {
+                statement.setBoolean(1, false);
+                statement.setBoolean(2, false);
+                statement.executeUpdate();
+              } finally {
+                connection.setAutoCommit(previous);
+              }
+              return null;
+            });
     executeCommitted("UPDATE STM_GEOINFO SET GEO_SERID = 99001 WHERE GEO_ID = 1");
     try {
       mvc.perform(get(CONFIG_CLIENT_PROFILE_URI, 1, 1))

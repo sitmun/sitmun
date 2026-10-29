@@ -125,9 +125,9 @@ Updates admin and viewer `package.json` and README badges, and regenerates those
 | **test_changelog_immutability.py** | Unit tests for the PR-diff Liquibase immutability gate. |
 | **test_prepare_extracted_liquibase.py** | Unit tests for 1.2.6 CSV width rewrite and case-alias copies. |
 | **test_seed_identity_swap.py** | Unit tests for the STM_CODELIST unique-key swap gate (`#45`). |
-| **test_liquibase_1.2.7_to_head_upgrade.sh** | Tag → HEAD upgrade. CI: postgres 1.2.7/1.2.8, Oracle 1.2.6–1.2.8, development PostgreSQL 1.2.6, development Oracle 1.2.6, Oracle 1.2.7 on XE 21 (`#74`). `SITMUN_ORACLE_IMAGE` picks the server image (default `gvenzl/oracle-free:23-slim`), `SITMUN_ORACLE_WAIT_TRIES` the readiness budget. `gvenzl/oracle-xe:21-slim` and `gvenzl/oracle-xe:11` are amd64 only. CI job `oracle-11-install` runs the 11 image against service `XE` and does not set `ORACLE_DATABASE`. XE 21 and Oracle 23 keep database `sitmun_upgrade`. Do not run the 11 image on an Apple M1. |
+| **test_liquibase_1.2.7_to_head_upgrade.sh** | Tag → HEAD upgrade. CI jobs `postgres-12-from`, `postgres-16-from`, `oracle-11-from`, `oracle-19-from`, and `oracle-23-from` each upgrade 1.2.6, 1.2.7, and 1.2.8. `oracle-23-from` is the forward-compatibility check on Oracle Free 23; no install runs 23. `oracle-19-from` uses `gvenzl/oracle-xe:21-slim` as the 19c stand-in (`#74`). Development jobs upgrade 1.2.6. `SITMUN_ORACLE_IMAGE` (default `gvenzl/oracle-free:23-slim`) and `SITMUN_POSTGRES_IMAGE` (default `postgres:16-alpine`) pick the server. `SITMUN_ORACLE_WAIT_TRIES` is the Oracle readiness budget. `gvenzl/oracle-xe:21-slim` and `gvenzl/oracle-xe:11` are amd64 only. `oracle-11-from` uses service `XE` and does not set `ORACLE_DATABASE`. The other Oracle jobs keep database `sitmun_upgrade`. Do not run the 11 image on an Apple M1. |
 | **test_liquibase_codelist_auth_mode_swap.sh** | Docker fixture for the 1.2.6→1.2.7 auth-mode ID swap. CI job `postgres-auth-mode-swap`. |
-| **test_backend_oracle11_boot.sh** | Boots the backend jar with profile `oracle-11` on an empty `gvenzl/oracle-xe:11` schema (service `XE`), then checks Liquibase, `OracleLegacyDialect`, health, startup, and the public application list. CI job `backend-on-oracle-11`, which then runs `./gradlew :sitmun-backend:testOracle11` (profiles `oracle,oracle-11`) on the same container; `SITMUN_ORACLE_KEEP=1` keeps it running. On an Apple M1, run Oracle in an x86_64 Colima profile and set `SITMUN_ORACLE_URL`. |
+| **test_backend_db_boot.sh** | Boots the backend jar on an empty schema. `SITMUN_DB` is `oracle-11`, `oracle-19`, `postgres-12`, or `postgres-16`. Checks Liquibase, the Hibernate dialect (`OracleLegacyDialect`, `OracleDialect`, or `PostgreSQLDialect`), the database version, health, startup, and the public application list. CI workflows `Test Oracle 11`, `Test Oracle 19`, `Test PostgreSQL 12`, and `Test PostgreSQL 16` then run `testOracle11`, `testOracle19`, `testPostgres12`, or `testPostgres16` on the same container. `SITMUN_DB_KEEP=1` keeps it running. On an Apple M1, run `gvenzl/oracle-xe` in an x86_64 Colima profile and set `SITMUN_DB_URL`. |
 
 ```bash
 python3 tools/tests/test_report_schema_drift.py
@@ -135,8 +135,12 @@ python3 tools/tests/test_changelog_immutability.py
 python3 tools/tests/test_prepare_extracted_liquibase.py
 python3 tools/tests/test_seed_identity_swap.py
 bash tools/tests/test_liquibase_1.2.7_to_head_upgrade.sh postgres
+SITMUN_POSTGRES_IMAGE=postgres:12-alpine \
+  bash tools/tests/test_liquibase_1.2.7_to_head_upgrade.sh postgres-from 1.2.7
 SITMUN_ORACLE_IMAGE=gvenzl/oracle-xe:21-slim \
   bash tools/tests/test_liquibase_1.2.7_to_head_upgrade.sh oracle-from 1.2.7
+SITMUN_DB=oracle-11 SITMUN_DB_URL=jdbc:oracle:thin:@//127.0.0.1:15211/XE \
+  bash tools/tests/test_backend_db_boot.sh
 bash tools/tests/test_liquibase_scenarios.sh
 bash tools/tests/test_liquibase_scenarios_oracle.sh
 ```

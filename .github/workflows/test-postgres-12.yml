@@ -1,26 +1,27 @@
-name: Oracle 11 backend
+name: Test PostgreSQL 12
 
 on:
   pull_request:
     branches: [dev]
     paths:
       - 'sitmun-backend/**'
-      - 'profiles/oracle/**'
+      - 'profiles/postgres/**'
       - 'gradle/**'
       - 'build.gradle'
       - 'settings.gradle'
       - 'gradle.properties'
-      - 'tools/tests/test_backend_oracle11_boot.sh'
-      - '.github/workflows/oracle-11-backend.yml'
+      - 'tools/tests/test_backend_db_boot.sh'
+      - '.github/workflows/test-postgres-12.yml'
   workflow_dispatch:
 
 jobs:
-  # gvenzl/oracle-xe:11 is amd64 only. ubuntu-latest is amd64.
-  backend-on-oracle-11:
+  test-postgres-12:
+    name: Test PostgreSQL 12
     runs-on: ubuntu-latest
     timeout-minutes: 120
     env:
-      SITMUN_ORACLE_KEEP: "1"
+      SITMUN_DB: postgres-12
+      SITMUN_DB_KEEP: "1"
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -32,18 +33,17 @@ jobs:
           java-version-file: .java-version
           cache: gradle
 
-      - name: Boot the backend on Oracle XE 11
-        run: bash tools/tests/test_backend_oracle11_boot.sh
+      - name: Boot the backend
+        run: bash tools/tests/test_backend_db_boot.sh
 
-      # Runs after the boot check because the test profile drops and rebuilds the schema.
-      - name: Run backend tests on Oracle XE 11
+      - name: Run backend tests
         if: ${{ !cancelled() }}
-        run: ./gradlew :sitmun-backend:testOracle11
+        run: ./gradlew :sitmun-backend:testPostgres12
 
       - name: Upload test report
         if: ${{ failure() }}
         uses: actions/upload-artifact@v6
         with:
-          name: backend-oracle-11-test-report
-          path: sitmun-backend/build/reports/tests/testOracle11
+          name: test-postgres-12-report
+          path: sitmun-backend/build/reports/tests/testPostgres12
           retention-days: 7

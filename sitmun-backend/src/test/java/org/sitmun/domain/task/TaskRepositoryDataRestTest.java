@@ -53,7 +53,9 @@ class TaskRepositoryDataRestTest extends BaseTest {
 
     TaskType basic = taskTypeRepository.findById(1).orElseThrow();
 
-    territory = Territory.builder().name("Territorio 1").code("some-code").blocked(false).build();
+    String suffix = UUID.randomUUID().toString().substring(0, 8);
+    territory =
+        Territory.builder().name("Territorio " + suffix).code("c-" + suffix).blocked(false).build();
     territoryRepository.save(territory);
     tasks = new ArrayList<>();
 
