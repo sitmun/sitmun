@@ -10,6 +10,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 #### Backend Core
 
+- **Tests**: A test that must not run on H2 uses `@EnabledOnDatabase`. `atLeast` is inclusive and `before` is exclusive. `@EnabledOnOracleSince11` is that annotation for Oracle 11 and newer. Production-database tasks set `sitmun.test.database.enabled`, `product`, and `version`.
 - **Cartography**: The cartography view includes `serviceType` from the linked service ([sitmun-admin-app#498](https://github.com/sitmun/sitmun-admin-app/issues/498)).
 - **Code lists**: `cartographyParameter.geometryKind` and `cartographyParameter.preferredGeometryType` store English descriptions. Spanish, Catalan, Aranese, and French labels, including format `Geometry`, come from `STM_TRANSLATION`.
 - **Profile**: A vector layer publishes `geometryName` and, when the attribute is generic Geometry, `preferredGeometryType`. `kind` is `vector` for WFS and `raster` for WMS and WMTS ([sitmun-admin-app#499](https://github.com/sitmun/sitmun-admin-app/issues/499)).

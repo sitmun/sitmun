@@ -716,6 +716,8 @@ Comprehensive testing strategy:
 ./gradlew testPostgres16
 ```
 
+`test` and `testH2` use H2 and leave `sitmun.test.database.enabled` unset. The tasks above set `sitmun.test.database.enabled=true` plus `product` and `version` (`oracle`/`11`, `oracle`/`19`, `oracle`/`23`, `postgres`/`12`, `postgres`/`16`). A test that must not run on H2 uses `@EnabledOnDatabase`. `@EnabledOnOracleSince11` runs on Oracle 11 and newer.
+
 One database, fresh install and then each upgrade from 1.2.6, 1.2.7, and 1.2.8. Oracle 11 runs on Linux only. Oracle 19 on Apple Silicon uses an x86_64 Colima profile and `SITMUN_DB_URL`.
 
 | Database | Fresh install | Upgrade jobs |
