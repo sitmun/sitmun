@@ -95,6 +95,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - **CI**: CodeQL JavaScript analysis no longer installs pnpm.
 - **CI**: `ng` is started with `pnpm exec` so pnpm does not forward a bare `--` as an empty Angular option.
 - **CI**: Test Oracle 11, Test Oracle 19, Test PostgreSQL 12, and Test PostgreSQL 16 are disabled. Those suites return HTTP 500 from Data REST and the failure log has no server exception.
+- **Admin**: `@tiptap/pm`, `ajv`, and `@jest/globals` are direct dependencies, so the editor build can load ProseMirror, `ajv/dist/compile/codegen`, and the task model spec.
+- **Viewer**: The API SITNA `FeatureHistoryEvent` declaration is listed at its pnpm path, the path webpack compiles.
 
 #### Viewer Application
 

@@ -16,7 +16,6 @@
     "downlevelIteration": true,
     "experimentalDecorators": true,
     "moduleResolution": "bundler",
-    "preserveSymlinks": true,
     "importHelpers": true,
     "esModuleInterop": true,
     "resolveJsonModule": true,
