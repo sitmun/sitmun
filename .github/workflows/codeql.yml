@@ -1,5 +1,12 @@
 name: CodeQL
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
 on:
   push:
     branches: [main, dev]
@@ -19,33 +26,21 @@ jobs:
       matrix:
         include:
           - component: backend
-            directory: .
             language: java
-            publish_common: false
             gradle_tasks: :sitmun-backend:assemble
           - component: proxy
-            directory: .
             language: java
-            publish_common: false
             gradle_tasks: :sitmun-proxy:assemble
           - component: mbtiles
-            directory: .
             language: java
-            publish_common: false
             gradle_tasks: :sitmun-mbtiles:assemble
           - component: common
-            directory: .
             language: java
-            publish_common: false
             gradle_tasks: :sitmun-spring-upstream:assemble :sitmun-proxy-contract:assemble
           - component: admin
-            directory: sitmun-admin
             language: javascript
-            publish_common: false
           - component: viewer
-            directory: sitmun-viewer
             language: javascript
-            publish_common: false
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-java@v5

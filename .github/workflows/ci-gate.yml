@@ -1,5 +1,12 @@
 name: ci-gate
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
 on:
   push:
     branches: [main, dev]
@@ -7,6 +14,7 @@ on:
 
 jobs:
   changes:
+    timeout-minutes: 5
     runs-on: ubuntu-latest
     outputs:
       admin: ${{ steps.filter.outputs.admin }}
@@ -216,42 +224,49 @@ jobs:
     uses: ./.github/workflows/e2e.yml
     with:
       suite: admin
+      title: Admin
   e2e-viewer:
     needs: changes
     if: github.event_name == 'push' || needs.changes.outputs.e2e_viewer == 'true'
     uses: ./.github/workflows/e2e.yml
     with:
       suite: viewer
+      title: Viewer
   e2e-contact:
     needs: changes
     if: github.event_name == 'push' || needs.changes.outputs.e2e_contact == 'true'
     uses: ./.github/workflows/e2e.yml
     with:
       suite: contact
+      title: Application Contact
   e2e-mia:
     needs: changes
     if: github.event_name == 'push' || needs.changes.outputs.e2e_mia == 'true'
     uses: ./.github/workflows/e2e.yml
     with:
       suite: mia
+      title: MIA Cross
   e2e-mobile-web:
     needs: changes
     if: github.event_name == 'push' || needs.changes.outputs.e2e_mobile_web == 'true'
     uses: ./.github/workflows/e2e.yml
     with:
       suite: mobile_web
+      title: Mobile Web
   e2e-mobile-android:
     needs: changes
     if: github.event_name == 'push' || needs.changes.outputs.e2e_mobile_android == 'true'
     uses: ./.github/workflows/e2e.yml
     with:
       suite: mobile_android
+      title: Mobile Android
 
   ci-gate:
     name: ci-gate
     needs: [changes, admin, viewer, backend, proxy, mbtiles, shared, docker, e2e-admin, e2e-viewer, e2e-contact, e2e-mia, e2e-mobile-web, e2e-mobile-android]
     if: always()
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
       - name: Require component results
         env:

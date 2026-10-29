@@ -4,7 +4,11 @@ on:
   workflow_call:
     inputs:
       suite:
-        description: admin, viewer, contact, mia, mobile_web, mobile_android, or all
+        description: admin, viewer, contact, mia, mobile_web, or mobile_android
+        required: true
+        type: string
+      title:
+        description: Title Case check name, for example Admin
         required: true
         type: string
   workflow_dispatch:
@@ -20,16 +24,26 @@ on:
           - mia
           - mobile_web
           - mobile_android
-          - all
+      title:
+        description: Title Case check name
+        required: true
+        type: choice
+        options:
+          - Admin
+          - Viewer
+          - Application Contact
+          - MIA Cross
+          - Mobile Web
+          - Mobile Android
 
 env:
   NPM_CONFIG_USERCONFIG: ${{ github.workspace }}/config/npm-userconfig
 
 jobs:
-  e2e-admin:
-    if: inputs.suite == 'admin' || inputs.suite == 'all'
+  e2e:
+    name: E2E ${{ inputs.title }}
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: ${{ inputs.suite == 'mobile_android' && 120 || (inputs.suite == 'mia' || inputs.suite == 'mobile_web') && 60 || 45 }}
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -44,7 +58,9 @@ jobs:
       - uses: pnpm/action-setup@v4
         with:
           version: 12.15.0
-      - name: Set up Node
+
+      - name: Set up Node for admin
+        if: inputs.suite == 'admin'
         uses: actions/setup-node@v5
         with:
           node-version-file: .nvmrc
@@ -53,50 +69,8 @@ jobs:
             pnpm-lock.yaml
             sitmun-admin/pnpm-lock.yaml
 
-      - name: Install root dependencies
-        run: pnpm ci
-
-      - name: Install admin dependencies
-        working-directory: sitmun-admin
-        run: pnpm ci
-
-      - name: Install Chromium
-        run: pnpm exec playwright install --with-deps chromium
-
-      - name: Run admin E2E suite
-        run: pnpm run e2e
-        env:
-          CI: true
-
-      - name: Upload Playwright artifacts
-        if: failure()
-        uses: actions/upload-artifact@v6
-        with:
-          name: playwright-admin-artifacts
-          path: |
-            playwright-report/
-            test-results/
-          retention-days: 7
-
-  e2e-viewer:
-    if: inputs.suite == 'viewer' || inputs.suite == 'all'
-    runs-on: ubuntu-latest
-    timeout-minutes: 45
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v5
-
-      - name: Set up Java
-        uses: actions/setup-java@v5
-        with:
-          distribution: temurin
-          java-version-file: .java-version
-          cache: gradle
-
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 12.15.0
-      - name: Set up Node from sitmun-viewer/.nvmrc
+      - name: Set up Node for viewer
+        if: inputs.suite == 'viewer'
         uses: actions/setup-node@v5
         with:
           node-version-file: .nvmrc
@@ -105,50 +79,8 @@ jobs:
             pnpm-lock.yaml
             sitmun-viewer/pnpm-lock.yaml
 
-      - name: Install root dependencies
-        run: pnpm ci
-
-      - name: Install viewer dependencies
-        working-directory: sitmun-viewer
-        run: pnpm ci
-
-      - name: Install Chromium
-        run: pnpm exec playwright install --with-deps chromium
-
-      - name: Run viewer E2E suite
-        run: pnpm run e2e:viewer
-        env:
-          CI: true
-
-      - name: Upload Playwright artifacts
-        if: failure()
-        uses: actions/upload-artifact@v6
-        with:
-          name: playwright-viewer-artifacts
-          path: |
-            playwright-report/
-            test-results/
-          retention-days: 7
-
-  e2e-application-contact:
-    if: inputs.suite == 'contact' || inputs.suite == 'all'
-    runs-on: ubuntu-latest
-    timeout-minutes: 45
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v5
-
-      - name: Set up Java
-        uses: actions/setup-java@v5
-        with:
-          distribution: temurin
-          java-version-file: .java-version
-          cache: gradle
-
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 12.15.0
-      - name: Set up Node from sitmun-viewer/.nvmrc
+      - name: Set up Node for admin and viewer
+        if: contains(fromJSON('["contact","mia"]'), inputs.suite)
         uses: actions/setup-node@v5
         with:
           node-version-file: .nvmrc
@@ -158,157 +90,16 @@ jobs:
             sitmun-admin/pnpm-lock.yaml
             sitmun-viewer/pnpm-lock.yaml
 
-      - name: Install root dependencies
-        run: pnpm ci
-
-      - name: Install admin dependencies
-        working-directory: sitmun-admin
-        run: pnpm ci
-
-      - name: Install viewer dependencies
-        working-directory: sitmun-viewer
-        run: pnpm ci
-
-      - name: Install Chromium
-        run: pnpm exec playwright install --with-deps chromium
-
-      - name: Run application-contact E2E suite
-        run: pnpm exec playwright test --config=playwright.application-contact.config.ts
-        env:
-          CI: true
-
-      - name: Upload Playwright artifacts
-        if: failure()
-        uses: actions/upload-artifact@v6
-        with:
-          name: playwright-application-contact-artifacts
-          path: |
-            playwright-report/
-            test-results/
-          retention-days: 7
-
-  e2e-mia-cross:
-    if: inputs.suite == 'mia' || inputs.suite == 'all'
-    runs-on: ubuntu-latest
-    timeout-minutes: 60
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v5
-
-      - name: Set up Java
-        uses: actions/setup-java@v5
-        with:
-          distribution: temurin
-          java-version-file: .java-version
-          cache: gradle
-
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 12.15.0
-      - name: Set up Node from sitmun-viewer/.nvmrc
-        uses: actions/setup-node@v5
-        with:
-          node-version-file: .nvmrc
-          cache: pnpm
-          cache-dependency-path: |
-            pnpm-lock.yaml
-            sitmun-admin/pnpm-lock.yaml
-            sitmun-viewer/pnpm-lock.yaml
-
-      - name: Install root dependencies
-        run: pnpm ci
-
-      - name: Install admin dependencies
-        working-directory: sitmun-admin
-        run: pnpm ci
-
-      - name: Install viewer dependencies
-        working-directory: sitmun-viewer
-        run: pnpm ci
-
-      - name: Install Chromium
-        run: pnpm exec playwright install --with-deps chromium
-
-      - name: Run MIA cross E2E suite
-        run: pnpm run e2e:mia-cross
-        env:
-          CI: true
-
-      - name: Upload Playwright artifacts
-        if: failure()
-        uses: actions/upload-artifact@v6
-        with:
-          name: playwright-mia-cross-artifacts
-          path: |
-            playwright-report/
-            test-results/
-          retention-days: 7
-
-  e2e-mobile-web:
-    if: inputs.suite == 'mobile_web' || inputs.suite == 'all'
-    runs-on: ubuntu-latest
-    timeout-minutes: 60
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v5
-
-      - name: Set up Java
-        uses: actions/setup-java@v5
-        with:
-          distribution: temurin
-          java-version-file: .java-version
-          cache: gradle
-
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 12.15.0
-      - name: Set up Node
+      - name: Set up Node for mobile web
+        if: inputs.suite == 'mobile_web'
         uses: actions/setup-node@v5
         with:
           node-version-file: .nvmrc
           cache: pnpm
           cache-dependency-path: pnpm-lock.yaml
 
-      - name: Install root dependencies
-        run: pnpm ci
-
-      - name: Install Chromium
-        run: pnpm exec playwright install --with-deps chromium
-
-      - name: Run mobile web E2E suite
-        run: pnpm run e2e:mobile:web
-        env:
-          CI: true
-
-      - name: Upload Playwright artifacts
-        if: failure()
-        uses: actions/upload-artifact@v6
-        with:
-          name: playwright-mobile-web-artifacts
-          path: |
-            playwright-report/
-            test-results/
-          retention-days: 7
-
-  e2e-mobile-android:
-    if: inputs.suite == 'mobile_android' || inputs.suite == 'all'
-    runs-on: ubuntu-latest
-    timeout-minutes: 120
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v5
-
-      - name: Set up Java
-        uses: actions/setup-java@v5
-        with:
-          distribution: temurin
-          java-version-file: .java-version
-          cache: gradle
-
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 12.15.0
-      - name: Set up Node
+      - name: Set up Node for mobile Android
+        if: inputs.suite == 'mobile_android'
         uses: actions/setup-node@v5
         with:
           node-version-file: .nvmrc
@@ -321,13 +112,44 @@ jobs:
       - name: Install root dependencies
         run: pnpm ci
 
+      - name: Install admin dependencies
+        if: contains(fromJSON('["admin","contact","mia"]'), inputs.suite)
+        working-directory: sitmun-admin
+        run: pnpm ci
+
+      - name: Install viewer dependencies
+        if: contains(fromJSON('["viewer","contact","mia"]'), inputs.suite)
+        working-directory: sitmun-viewer
+        run: pnpm ci
+
+      - name: Install Chromium
+        if: inputs.suite != 'mobile_android'
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Run the suite
+        if: inputs.suite != 'mobile_android'
+        env:
+          CI: true
+          SUITE: ${{ inputs.suite }}
+        run: |
+          case "$SUITE" in
+            admin) pnpm run e2e ;;
+            viewer) pnpm run e2e:viewer ;;
+            contact) pnpm exec playwright test --config=playwright.application-contact.config.ts ;;
+            mia) pnpm run e2e:mia-cross ;;
+            mobile_web) pnpm run e2e:mobile:web ;;
+            *) echo "unknown suite: $SUITE" >&2; exit 1 ;;
+          esac
+
       - name: Enable KVM
+        if: inputs.suite == 'mobile_android'
         run: |
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
 
       - name: Install Maestro CLI (pinned)
+        if: inputs.suite == 'mobile_android'
         run: |
           MAESTRO_VERSION=2.6.1
           EXPECTED_SHA256=3440825f514f537c6a96bcf5de995780c2a4a7f83a43208fdc95d4f1fecfad3b
@@ -341,22 +163,31 @@ jobs:
           "$HOME/.maestro/bin/maestro" --version
 
       - name: Run Android mobile E2E suite
+        if: inputs.suite == 'mobile_android'
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 34
           arch: x86_64
           profile: pixel_6
-          # Replaces the action default `-gpu swiftshader_indirect` (deprecated in
-          # emulator 36.4.9). `-gpu software` is the current Android software mode.
           emulator-options: -no-window -gpu software -noaudio -no-boot-anim -camera-back none -no-snapshot-load -no-snapshot-save
           script: pnpm run e2e:mobile:android
         env:
           CI: true
 
-      - name: Upload Android E2E artifacts
-        if: failure()
+      - name: Upload Playwright artifacts
+        if: failure() && inputs.suite != 'mobile_android'
         uses: actions/upload-artifact@v6
         with:
-          name: mobile-android-artifacts
+          name: playwright-${{ inputs.suite }}-artifacts
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7
+
+      - name: Upload Android E2E artifacts
+        if: failure() && inputs.suite == 'mobile_android'
+        uses: actions/upload-artifact@v6
+        with:
+          name: playwright-${{ inputs.suite }}-artifacts
           path: test-results/mobile-android/
           retention-days: 7
