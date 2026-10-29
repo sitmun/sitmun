@@ -23,7 +23,6 @@ jobs:
           node-version-file: .nvmrc
           cache: pnpm
           cache-dependency-path: sitmun-viewer/pnpm-lock.yaml
-      - run: pnpm config set --global "//npm.pkg.github.com/:_authToken" "${{ secrets.TOKEN_FOR_WORKFLOWS }}"
       - run: pnpm ci
       - run: pnpm run lint
       - run: pnpm run test:coverage
