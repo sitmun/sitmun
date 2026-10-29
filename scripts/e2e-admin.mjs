@@ -20,7 +20,7 @@ if (!existsSync(join(adminRoot, 'node_modules'))) {
   fail(prefix, `Admin dependencies missing. Run: cd ${adminRoot} && pnpm ci`);
 }
 
-const child = spawnDetached(pnpmCmd, ['run', 'start:e2e', '--', '--port', '4300'], {
+const child = spawnDetached(pnpmCmd, ['exec', 'ng', 'serve', '--configuration=e2e', '--port', '4300'], {
   cwd: adminRoot,
   env: process.env,
 });

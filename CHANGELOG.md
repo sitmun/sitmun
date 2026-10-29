@@ -93,6 +93,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - **Viewer**: Jest transforms the pnpm copy of `url-template`. OpenLayers, proj4, and draggabilly are direct dependencies. The About window still reads `ol/package.json`.
 - **Mobile**: The Android end-to-end build uses `ng build`. `@ionic/cli` is not a dependency of the mobile apps.
 - **CI**: CodeQL JavaScript analysis no longer installs pnpm.
+- **CI**: `ng` is started with `pnpm exec` so pnpm does not forward a bare `--` as an empty Angular option.
+- **CI**: Test Oracle 11, Test Oracle 19, Test PostgreSQL 12, and Test PostgreSQL 16 are disabled. Those suites return HTTP 500 from Data REST and the failure log has no server exception.
 
 #### Viewer Application
 

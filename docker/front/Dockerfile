@@ -34,9 +34,9 @@ RUN export BUILD_TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%S.000Z") && \
     if [ "${ENVIRONMENT}" = "production" ]; then export FRONT_ENV=Production; export FRONT_PRODUCTION=true; else export FRONT_ENV=Development; export FRONT_PRODUCTION=false; fi && \
     envsubst '$BUILD_TIMESTAMP,$APP_VERSION,$FRONT_ENV,$PUBLIC_BASE_PATH' < ./src/environments/environment.prod.ts.template > ./src/environments/environment.prod.ts
 RUN if [ "${ENVIRONMENT}" = "development" ]; then \
-      pnpm run build -- --configuration=docker-dev --base-href=${PUBLIC_BASE_PATH}admin/; \
+      pnpm exec ng build --configuration=docker-dev --base-href=${PUBLIC_BASE_PATH}admin/; \
     else \
-      pnpm run build -- --configuration=production --base-href=${PUBLIC_BASE_PATH}admin/; \
+      pnpm exec ng build --configuration=production --base-href=${PUBLIC_BASE_PATH}admin/; \
     fi
 
 # Clean up and prepare for viewer app build
@@ -63,9 +63,9 @@ RUN export BUILD_TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%S.000Z") && \
 RUN envsubst < ./src/index.html.template > ./src/index.html
 RUN envsubst '$$PUBLIC_BASE_PATH' < ./webpack.config.js.template > ./webpack.config.js
 RUN if [ "${ENVIRONMENT}" = "development" ]; then \
-      pnpm run build -- --configuration=docker-dev --base-href=${PUBLIC_BASE_PATH}viewer/; \
+      pnpm exec ng build --configuration=docker-dev --base-href=${PUBLIC_BASE_PATH}viewer/; \
     else \
-      pnpm run build -- --configuration=production --base-href=${PUBLIC_BASE_PATH}viewer/; \
+      pnpm exec ng build --configuration=production --base-href=${PUBLIC_BASE_PATH}viewer/; \
     fi
 
 # Stage 1, based on Nginx, to have only the compiled apps, ready for production with Nginx

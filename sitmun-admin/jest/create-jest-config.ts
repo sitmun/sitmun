@@ -106,7 +106,9 @@ export function createJestConfig(
       ...HEAVY_GUI_STUBS
     },
     setupFilesAfterEnv: ['<rootDir>/setup-jest.ts'],
-    transformIgnorePatterns: ['node_modules/(?!.*\\.mjs$|@angular|rxjs)'],
+    transformIgnorePatterns: [
+      '/node_modules/(?!(\\.pnpm/(@angular\\+|rxjs@)|@angular/|rxjs/|.*\\.mjs$))'
+    ],
     testMatch: ['**/*.spec.ts'],
     testPathIgnorePatterns: ['/node_modules/']
   };
