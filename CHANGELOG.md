@@ -45,6 +45,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 #### Stack
 
+- **CI**: `ci-gate` selects changed components with `tools/bin/ci_scope.py`. Gradle caches are written from `dev` only. End-to-end jobs reuse the Playwright browser. Docker builds reuse layers from the GitHub Actions cache. Third-party actions are pinned to a commit. Dependabot opens one pull request for action updates.
 - **CI**: The four fresh-install checks share `.github/actions/backend-database`. A manual Liquibase upgrade run takes `db` and `source`.
 - **CI**: `ci-gate` follows changed paths on a push, comparing that push with the previous commit on the same branch. A manual run starts every job. The workflow also runs in a merge group.
 - **CI**: A Gradle catalog change runs the backend build and the end-to-end suites.
