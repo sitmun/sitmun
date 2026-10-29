@@ -44,6 +44,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 #### Stack
 
+- **CI**: `ci-gate` follows changed paths on a push, comparing that push with the previous commit on the same branch. A manual run starts every job. The workflow also runs in a merge group.
+- **CI**: A Gradle catalog change runs the backend build and the end-to-end suites.
+- **CI**: `Test PostgreSQL 16` runs for any backend change. `Test PostgreSQL 12`, `Test Oracle 11`, and `Test Oracle 19` run for a persistence change, a pull request into `main`, or a manual run. Otherwise those checks report skipped. `tools/bin/ci_db_scope.py` chooses the tier.
 - **CI**: A newer push to the same pull request cancels the previous run of each top-level workflow. Pushes and manual runs are not cancelled.
 - **CI**: Each end-to-end suite call runs one job, named `E2E` plus a title such as `Admin` or `Mobile Android`.
 - **CI**: Workflow tokens can read repository contents. The stale-issue workflow can still write issues and pull requests. CodeQL can still write security events.
