@@ -48,7 +48,11 @@ jobs:
         with:
           distribution: temurin
           java-version-file: .java-version
-          cache: gradle
+      - name: Set up Gradle
+        if: matrix.language == 'java'
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-read-only: ${{ github.ref != 'refs/heads/dev' }}
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v4
         with:

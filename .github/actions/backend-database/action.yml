@@ -20,7 +20,11 @@ runs:
       with:
         distribution: temurin
         java-version-file: .java-version
-        cache: gradle
+
+    - name: Set up Gradle
+      uses: gradle/actions/setup-gradle@v4
+      with:
+        cache-read-only: ${{ github.ref != 'refs/heads/dev' }}
 
     - name: Boot the backend
       shell: bash
