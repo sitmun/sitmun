@@ -49,7 +49,7 @@
     "jeep-sqlite": "2.8.0",
     "jsonpath": "^1.1.1",
     "rxjs": "~7.8.0",
-    "stream": "0.0.2",
+    "stream": "0.0.3",
     "timers": "^0.1.1",
     "tslib": "^2.3.0",
     "uri-templates": "^0.2.0",
