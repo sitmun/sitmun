@@ -19,21 +19,25 @@ jobs:
       matrix:
         include:
           - component: backend
-            directory: sitmun-backend
+            directory: .
             language: java
-            publish_common: true
+            publish_common: false
+            gradle_tasks: :sitmun-backend:assemble
           - component: proxy
-            directory: sitmun-proxy
+            directory: .
             language: java
-            publish_common: true
+            publish_common: false
+            gradle_tasks: :sitmun-proxy:assemble
           - component: mbtiles
-            directory: sitmun-addons/sitmun-mbtiles
+            directory: .
             language: java
             publish_common: false
+            gradle_tasks: :sitmun-mbtiles:assemble
           - component: common
-            directory: sitmun-common
+            directory: .
             language: java
             publish_common: false
+            gradle_tasks: :sitmun-spring-upstream:assemble :sitmun-proxy-contract:assemble
           - component: admin
             directory: sitmun-admin
             language: javascript
@@ -48,29 +52,18 @@ jobs:
         if: matrix.language == 'java'
         with:
           distribution: temurin
-          java-version: "17"
+          java-version-file: .java-version
           cache: gradle
-      - uses: actions/setup-node@v5
-        if: matrix.language == 'javascript'
-        with:
-          node-version: "24.22.0"
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v4
         with:
           languages: ${{ matrix.language }}
           build-mode: ${{ matrix.language == 'java' && 'manual' || 'none' }}
-      - name: Publish sitmun-common
-        if: matrix.publish_common
-        working-directory: sitmun-common
-        run: |
-          chmod +x gradlew
-          ./gradlew publishToMavenLocal
       - name: Assemble
         if: matrix.language == 'java'
-        working-directory: ${{ matrix.directory }}
         run: |
           chmod +x gradlew
-          ./gradlew assemble --no-daemon
+          ./gradlew ${{ matrix.gradle_tasks }} --no-daemon
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v4
         with:

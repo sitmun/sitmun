@@ -95,6 +95,13 @@ class SequenceMigrationTest {
   }
 
   private static DataSource createDataSource() {
+    var url = System.getProperty("spring.datasource.url");
+    if (url != null && !url.isBlank()) {
+      return new DriverManagerDataSource(
+          url,
+          System.getProperty("spring.datasource.username", "sitmun3"),
+          System.getProperty("spring.datasource.password", "sitmun3"));
+    }
     var profiles = System.getProperty("spring.profiles.active", "test,h2");
     if (profiles.contains("postgres")) {
       return new DriverManagerDataSource(

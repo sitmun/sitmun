@@ -3,11 +3,13 @@
 
 import { LogLevel } from '@app/services/log-level.enum';
 
+import packageJson from '../../package.json';
+
 export const environment = {
   production: false,
   apiBaseURL: 'http://localhost:9000/backend',
   logLevel: LogLevel.Debug,
-  version: '1.2.9',
+  version: packageJson.version,
   buildTimestamp: new Date().toISOString(),
   environmentName: 'development',
   sessionTokenRefreshIntervalMs: 2 * 60 * 1000

@@ -66,11 +66,13 @@ class TreeControllerTest extends BaseTest {
                   "DELETE FROM STM_TREE_NOD WHERE TNO_TREEID = 2 AND TNO_ID <> 15"
                       + " AND TNO_PARENTID IS NOT NULL");
               jdbcTemplate.update("DELETE FROM STM_TREE_NOD WHERE TNO_TREEID = 2 AND TNO_ID <> 15");
-              jdbcTemplate.update("UPDATE STM_TREE_NOD SET TNO_RADIO = FALSE WHERE TNO_TREEID = 2");
+              jdbcTemplate.update(
+                  "UPDATE STM_TREE_NOD SET TNO_RADIO = ? WHERE TNO_TREEID = 2", false);
               // Seed: tree 1 radio folder is node 7 only.
               jdbcTemplate.update(
-                  "UPDATE STM_TREE_NOD SET TNO_RADIO = FALSE WHERE TNO_TREEID = 1 AND TNO_ID <> 7");
-              jdbcTemplate.update("UPDATE STM_TREE_NOD SET TNO_RADIO = TRUE WHERE TNO_ID = 7");
+                  "UPDATE STM_TREE_NOD SET TNO_RADIO = ? WHERE TNO_TREEID = 1 AND TNO_ID <> 7",
+                  false);
+              jdbcTemplate.update("UPDATE STM_TREE_NOD SET TNO_RADIO = ? WHERE TNO_ID = 7", true);
             });
   }
 
@@ -401,8 +403,9 @@ class TreeControllerTest extends BaseTest {
     try {
       Integer radioFolders =
           jdbcTemplate.queryForObject(
-              "SELECT COUNT(*) FROM STM_TREE_NOD WHERE TNO_TREEID = 2 AND TNO_RADIO = TRUE",
-              Integer.class);
+              "SELECT COUNT(*) FROM STM_TREE_NOD WHERE TNO_TREEID = 2 AND TNO_RADIO = ?",
+              Integer.class,
+              true);
       assertEquals(0, radioFolders, "tree 2 must have no radio folders before type change");
 
       String treeJson =

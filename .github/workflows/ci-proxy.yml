@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: sitmun-proxy
+        working-directory: .
     env:
       SPRING_PROFILES_ACTIVE: dev
     steps:
@@ -19,12 +19,7 @@ jobs:
       - uses: actions/setup-java@v5
         with:
           distribution: temurin
-          java-version: "17"
+          java-version-file: .java-version
           cache: gradle
-      - name: Publish sitmun-common to the local Maven repository
-        working-directory: sitmun-common
-        run: |
-          chmod +x gradlew
-          ./gradlew publishToMavenLocal
       - run: chmod +x gradlew
-      - run: ./gradlew build
+      - run: ./gradlew :sitmun-proxy:build

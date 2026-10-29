@@ -1,0 +1,10 @@
+# Oracle 11g on top of profile oracle. Used by :sitmun-backend:testOracle11.
+spring:
+  datasource:
+    hikari:
+      data-source-properties:
+        # Oracle 11 XE rejects zone regions such as Etc/UTC with ORA-01882.
+        oracle.jdbc.timezoneAsRegion: "false"
+  jpa:
+    properties.hibernate:
+      dialect: org.sitmun.infrastructure.persistence.dialect.SitmunOracleLegacyDialect

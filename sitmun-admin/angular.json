@@ -140,7 +140,9 @@
         },
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
-          "options": {},
+          "options": {
+            "buildTarget": "admin-app:build:development"
+          },
           "configurations": {
             "production": {
               "buildTarget": "admin-app:build:production"

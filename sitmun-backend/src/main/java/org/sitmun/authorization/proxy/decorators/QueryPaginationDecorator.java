@@ -26,7 +26,8 @@ public class QueryPaginationDecorator implements Decorator<Map<String, String>> 
       Integer offset = Pagination.parseCount(target.get(SQL_OFFSET));
       String sql = jdbcPayloadDto.getSql();
       if (sql != null && !sql.isEmpty() && (limit != null || offset != null)) {
-        jdbcPayloadDto.setSql(JdbcSqlDialect.appendPagination(sql, limit, offset));
+        jdbcPayloadDto.setSql(
+            JdbcSqlDialect.appendPagination(sql, limit, offset, jdbcPayloadDto.getUri()));
       }
     }
   }

@@ -9,7 +9,7 @@ const stackRoot = resolve(__dirname, '..');
 const backendRoot = join(stackRoot, 'sitmun-backend');
 const changelog = join(backendRoot, 'config', 'db', 'changelog', 'db.changelog-master.yaml');
 const prefix = 'e2e-backend-mobile';
-const gradlew = join(backendRoot, isWindows ? 'gradlew.bat' : 'gradlew');
+const gradlew = join(stackRoot, isWindows ? 'gradlew.bat' : 'gradlew');
 
 if (!existsSync(backendRoot)) {
   fail(prefix, `Backend module missing at ${backendRoot}`);
@@ -32,8 +32,8 @@ const springArgs = [
   '--sitmun.proxy-middleware.url=http://localhost:18081/middleware',
 ].join(' ');
 
-const child = spawnDetached(gradlew, ['bootRun', '--no-daemon', `--args=${springArgs}`], {
-  cwd: backendRoot,
+const child = spawnDetached(gradlew, [':sitmun-backend:bootRun', '--no-daemon', `--args=${springArgs}`], {
+  cwd: stackRoot,
   env: {
     ...process.env,
     SITMUN_USER_SECRET: 'test-only-insecure-user-secret-32-bytes',

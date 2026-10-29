@@ -168,7 +168,7 @@ function serveStatic(req, res) {
 }
 
 if (!existsSync(join(distRoot, 'index.html'))) {
-  fail(`Missing ${join(distRoot, 'index.html')}. Run: npm run build:e2e`);
+  fail(`Missing ${join(distRoot, 'index.html')}. Run: pnpm run build:e2e`);
 }
 
 const port = parsePort(process.argv.slice(2));

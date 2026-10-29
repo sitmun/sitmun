@@ -34,7 +34,8 @@ const config: Config = {
     '^@shared/(.*)$': '<rootDir>/src/app/shared/$1',
     '^@ui/(.*)$': '<rootDir>/src/app/ui/$1',
     '^src/environments/(.*)$': '<rootDir>/src/environments/$1',
-    '^src/app/(.*)$': '<rootDir>/src/app/$1'
+    '^src/app/(.*)$': '<rootDir>/src/app/$1',
+    '^ol/package.json$': '<rootDir>/node_modules/ol/package.json'
   },
 
   // The paths to modules that run some code to configure or set up the testing environment before each test
@@ -42,7 +43,7 @@ const config: Config = {
 
   // An array of regexp pattern strings that are matched against all source file paths, matched files will skip transformation
   transformIgnorePatterns: [
-    'node_modules/(?!.*\\.mjs$|@angular|rxjs|api-sitna|url-template|ol|proj4)'
+    '/node_modules/(?!(\\.pnpm/(url-template@|rxjs@|@angular\\+|api-sitna@|ol@|proj4@)|url-template/|rxjs/|@angular/|api-sitna/|ol/|proj4/|.*\\.mjs$))'
   ],
 
   // The glob patterns Jest uses to detect test files

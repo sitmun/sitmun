@@ -695,8 +695,6 @@ The project enforces high code quality standards:
 - **SonarQube**: Code quality analysis
 - **JaCoCo**: Code coverage reporting
 - **Conventional Commits**: Structured commit messages
-- **Git Hooks**: Pre-commit validation
-
 ### Testing
 
 Comprehensive testing strategy:
@@ -705,11 +703,17 @@ Comprehensive testing strategy:
 # Run all tests
 ./gradlew test
 
-# Test with PostgreSQL
+# Test with PostgreSQL 16 (Docker Compose)
 ./gradlew testPostgres
 
-# Test with Oracle
+# Test with Oracle Free 23 (Docker Compose)
 ./gradlew testOracle
+
+# Test against a database that is already running
+./gradlew testOracle11
+./gradlew testOracle19
+./gradlew testPostgres12
+./gradlew testPostgres16
 
 # Run specific test class
 ./gradlew test --tests AuthenticationControllerTest
@@ -1049,8 +1053,6 @@ The Backend Core supports different service types that can be configured:
 }
 ```
 
-Client `LIMIT` and `OFFSET` on a JDBC task are appended as `OFFSET n ROWS FETCH NEXT m ROWS ONLY`. PostgreSQL has accepted that clause since 8.4. Oracle has accepted it since 12.1.
-
 ### Troubleshooting Integration
 
 #### Common Issues
@@ -1146,16 +1148,6 @@ git commit -m "fix(api): resolve JWT token validation issue"
 git commit -m "docs: update README with deployment instructions"
 git commit -m "test: add integration tests for user verification"
 git commit -m "style: format code with Google Java Format"
-```
-
-#### Managing Git Hooks
-
-```bash
-# Install Git hooks (opt-in)
-./gradlew setupGitHooks
-
-# Remove Git hooks
-./gradlew removeGitHooks
 ```
 
 ## Support

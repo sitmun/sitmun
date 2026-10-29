@@ -28,7 +28,8 @@
       "@api/*": ["src/app/api/*"],
       "@sections/*": ["src/app/sections/*"],
       "@shared/*": ["src/app/shared/*"],
-      "@ui/*": ["src/app/ui/*"]
+      "@ui/*": ["src/app/ui/*"],
+      "ol/package.json": ["node_modules/ol/package.json"]
     },
     "useDefineForClassFields": false,
     "skipLibCheck": true,

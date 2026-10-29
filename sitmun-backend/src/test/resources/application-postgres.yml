@@ -6,6 +6,7 @@
 # =====================================================================================================================
 
 spring:
+  test.database.replace: none
   # PostgreSQL Database Configuration
   datasource:
     type: com.zaxxer.hikari.HikariDataSource

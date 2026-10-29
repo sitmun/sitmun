@@ -16,12 +16,13 @@ on:
   workflow_dispatch:
     inputs:
       source:
-        description: Optional X.Y.Z override for a single postgres-from run
+        description: Optional X.Y.Z override for a single upgrade-from run
         required: false
         default: ''
 
 jobs:
   prepare-extracted-unit:
+    name: Prepare extracted unit
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -32,6 +33,7 @@ jobs:
         run: python3 tools/tests/test_prepare_extracted_liquibase.py
 
   postgres-1-2-7-to-head:
+    name: Upgrade PostgreSQL through 1.2.8 failure
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -49,13 +51,14 @@ jobs:
       - name: Upgrade 1.2.7 then 1.2.8 fail then HEAD
         run: bash tools/tests/test_liquibase_1.2.7_to_head_upgrade.sh postgres
 
-  postgres-from:
+  postgres-12-from:
+    name: Upgrade PostgreSQL 12 from ${{ matrix.source }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
     strategy:
       fail-fast: false
       matrix:
-        source: ['1.2.8']
+        source: ['1.2.6', '1.2.7', '1.2.8']
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -67,9 +70,35 @@ jobs:
         run: git fetch --no-tags origin tag legacy/sitmun-application-stack/sitmun-application-stack/${{ matrix.source }}
 
       - name: Upgrade ${{ matrix.source }} to HEAD
+        env:
+          SITMUN_POSTGRES_IMAGE: postgres:12-alpine
+        run: bash tools/tests/test_liquibase_1.2.7_to_head_upgrade.sh postgres-from ${{ matrix.source }}
+
+  postgres-16-from:
+    name: Upgrade PostgreSQL 16 from ${{ matrix.source }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        source: ['1.2.6', '1.2.7', '1.2.8']
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: Fetch source tag
+        run: git fetch --no-tags origin tag legacy/sitmun-application-stack/sitmun-application-stack/${{ matrix.source }}
+
+      - name: Upgrade ${{ matrix.source }} to HEAD
+        env:
+          SITMUN_POSTGRES_IMAGE: postgres:16-alpine
         run: bash tools/tests/test_liquibase_1.2.7_to_head_upgrade.sh postgres-from ${{ matrix.source }}
 
   postgres-auth-mode-swap:
+    name: Swap auth mode code list
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -81,7 +110,9 @@ jobs:
       - name: Auth-mode COD_ID swap (#45)
         run: bash tools/tests/test_liquibase_codelist_auth_mode_swap.sh
 
-  oracle-from:
+  # Forward-compatibility check. No install runs Oracle 23.
+  oracle-23-from:
+    name: Upgrade Oracle 23 from ${{ matrix.source }}
     runs-on: ubuntu-latest
     timeout-minutes: 40
     strategy:
@@ -98,15 +129,21 @@ jobs:
       - name: Fetch source tag
         run: git fetch --no-tags origin tag legacy/sitmun-application-stack/sitmun-application-stack/${{ matrix.source }}
 
-      - name: Upgrade Oracle ${{ matrix.source }} to HEAD
+      - name: Upgrade ${{ matrix.source }} to HEAD
+        env:
+          SITMUN_ORACLE_IMAGE: gvenzl/oracle-free:23-slim
         run: bash tools/tests/test_liquibase_1.2.7_to_head_upgrade.sh oracle-from ${{ matrix.source }}
 
-  # Issue #74: DIBA runs the oracle profile on 19c, so that upgrade path also has
-  # to hold on a pre-23ai server. The development profile stays on Oracle Free.
-  # gvenzl/oracle-xe is amd64 only, which the ubuntu-latest runners are.
-  oracle-pre23-from:
+  # Issue #74: DIBA runs the oracle profile on 19c. gvenzl/oracle-xe:21-slim stands
+  # in for that install. The image is amd64 only, which the ubuntu-latest runners are.
+  oracle-19-from:
+    name: Upgrade Oracle 19 from ${{ matrix.source }}
     runs-on: ubuntu-latest
     timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        source: ['1.2.6', '1.2.7', '1.2.8']
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -114,15 +151,43 @@ jobs:
           fetch-depth: 0
           fetch-tags: true
 
-      - name: Fetch 1.2.7 tag
-        run: git fetch --no-tags origin tag legacy/sitmun-application-stack/sitmun-application-stack/1.2.7
+      - name: Fetch source tag
+        run: git fetch --no-tags origin tag legacy/sitmun-application-stack/sitmun-application-stack/${{ matrix.source }}
 
-      - name: Upgrade Oracle 1.2.7 to HEAD on XE 21
+      - name: Upgrade ${{ matrix.source }} to HEAD
         env:
           SITMUN_ORACLE_IMAGE: gvenzl/oracle-xe:21-slim
-        run: bash tools/tests/test_liquibase_1.2.7_to_head_upgrade.sh oracle-from 1.2.7
+        run: bash tools/tests/test_liquibase_1.2.7_to_head_upgrade.sh oracle-from ${{ matrix.source }}
+
+  # gvenzl/oracle-xe:11 is amd64 only. ubuntu-latest is amd64. Do not run this image on an Apple M1.
+  # The Liquibase image brings its own Oracle driver.
+  oracle-11-from:
+    name: Upgrade Oracle 11 from ${{ matrix.source }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        source: ['1.2.6', '1.2.7', '1.2.8']
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: Fetch source tag
+        run: git fetch --no-tags origin tag legacy/sitmun-application-stack/sitmun-application-stack/${{ matrix.source }}
+
+      - name: Upgrade ${{ matrix.source }} to HEAD
+        env:
+          SITMUN_ORACLE_IMAGE: gvenzl/oracle-xe:11
+          SITMUN_ORACLE_VERSION: "11"
+          SITMUN_ORACLE_WAIT_TRIES: 300
+        run: bash tools/tests/test_liquibase_1.2.7_to_head_upgrade.sh oracle-from ${{ matrix.source }}
 
   dev-postgres-from:
+    name: Upgrade development PostgreSQL from 1.2.6
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -139,6 +204,7 @@ jobs:
         run: bash tools/tests/test_liquibase_1.2.7_to_head_upgrade.sh dev-postgres-from 1.2.6
 
   dev-oracle-from:
+    name: Upgrade development Oracle from 1.2.6
     runs-on: ubuntu-latest
     timeout-minutes: 40
     steps:

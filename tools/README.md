@@ -48,7 +48,7 @@ Paths by scenario:
 | **apply-seed-data.sh** | Generate seed files then apply the Liquibase changelog to a remote database. `--db-type postgres\|oracle`; `--baseline` selects i18n language. |
 | **validate-liquibase-changelogs.sh** | List changelogs by last modification (newest first). Not an immutability gate. Pass `[liquibase_dir]` as first argument (default: development). |
 | **compare-schema-drift.sh** | Apply development vs postgres/oracle Liquibase (Docker), report PROBLEM/INFO drift, write **draft fix YAML** under `tools/out/schema-drift/`. Optional `--against jpa`. Target `dev-dialects` compares development postgresql vs oracle. |
-| **bump-version.sh** | Propagate stack `VERSION` into module build metadata, OpenAPI docs, frontend env files, README badges, and lockfiles. See [Version and release](#version-and-release). |
+| **bump-version.sh** | Copy the platform version from root `gradle.properties` into admin and viewer `package.json`, README badges, and lockfiles. See [Version and release](#version-and-release). |
 
 ```bash
 # Apply seed data to a remote PostgreSQL database (English baseline)
@@ -100,7 +100,7 @@ Applied profile/schema changesets are frozen. `check_changelog_immutability.py` 
 
 ### Version and release
 
-Coordinated stack version lives in root `VERSION`. Propagation and status:
+The platform version lives in root `gradle.properties` (`version=`). Propagation and status:
 
 ```bash
 # Show current version across consumers
@@ -111,7 +111,7 @@ bash tools/scripts/bump-version.sh 1.2.9
 bash tools/scripts/bump-version.sh --status
 ```
 
-Updates backend/proxy `build.gradle` and OpenAPI YAMLs, admin/viewer `package.json` / environments / badges, and regenerates frontend lockfiles when needed. Full cut/tag/merge sequence is in root [RELEASE.md](../RELEASE.md).
+Updates admin and viewer `package.json` and README badges, and regenerates those lockfiles when needed. Gradle, OpenAPI, and the frontend environment files take the version from that source at build time. Full cut/tag/merge sequence is in root [RELEASE.md](../RELEASE.md).
 
 ---
 
@@ -125,8 +125,9 @@ Updates backend/proxy `build.gradle` and OpenAPI YAMLs, admin/viewer `package.js
 | **test_changelog_immutability.py** | Unit tests for the PR-diff Liquibase immutability gate. |
 | **test_prepare_extracted_liquibase.py** | Unit tests for 1.2.6 CSV width rewrite and case-alias copies. |
 | **test_seed_identity_swap.py** | Unit tests for the STM_CODELIST unique-key swap gate (`#45`). |
-| **test_liquibase_1.2.7_to_head_upgrade.sh** | Tag → HEAD upgrade. CI: postgres 1.2.7/1.2.8, Oracle 1.2.6–1.2.8, development PostgreSQL 1.2.6, development Oracle 1.2.6, Oracle 1.2.7 on XE 21 (`#74`). `SITMUN_ORACLE_IMAGE` picks the server image (default `gvenzl/oracle-free:23-slim`), `SITMUN_ORACLE_WAIT_TRIES` the readiness budget. `gvenzl/oracle-xe:21-slim` is amd64 only. |
+| **test_liquibase_1.2.7_to_head_upgrade.sh** | Tag → HEAD upgrade. CI jobs `postgres-12-from`, `postgres-16-from`, `oracle-11-from`, `oracle-19-from`, and `oracle-23-from` each upgrade 1.2.6, 1.2.7, and 1.2.8. `oracle-23-from` is the forward-compatibility check on Oracle Free 23; no install runs 23. `oracle-19-from` uses `gvenzl/oracle-xe:21-slim` as the 19c stand-in (`#74`). Development jobs upgrade 1.2.6. `SITMUN_ORACLE_IMAGE` (default `gvenzl/oracle-free:23-slim`) and `SITMUN_POSTGRES_IMAGE` (default `postgres:16-alpine`) pick the server. `SITMUN_ORACLE_WAIT_TRIES` is the Oracle readiness budget. `gvenzl/oracle-xe:21-slim` and `gvenzl/oracle-xe:11` are amd64 only. `oracle-11-from` uses service `XE` and does not set `ORACLE_DATABASE`. The other Oracle jobs keep database `sitmun_upgrade`. Do not run the 11 image on an Apple M1. |
 | **test_liquibase_codelist_auth_mode_swap.sh** | Docker fixture for the 1.2.6→1.2.7 auth-mode ID swap. CI job `postgres-auth-mode-swap`. |
+| **test_backend_db_boot.sh** | Boots the backend jar on an empty schema. `SITMUN_DB` is `oracle-11`, `oracle-19`, `postgres-12`, or `postgres-16`. Checks Liquibase, the Hibernate dialect (`OracleLegacyDialect`, `OracleDialect`, or `PostgreSQLDialect`), the database version, health, startup, and the public application list. CI workflows `Test Oracle 11`, `Test Oracle 19`, `Test PostgreSQL 12`, and `Test PostgreSQL 16` then run `testOracle11`, `testOracle19`, `testPostgres12`, or `testPostgres16` on the same container. `SITMUN_DB_KEEP=1` keeps it running. On an Apple M1, run `gvenzl/oracle-xe` in an x86_64 Colima profile and set `SITMUN_DB_URL`. |
 
 ```bash
 python3 tools/tests/test_report_schema_drift.py
@@ -134,8 +135,12 @@ python3 tools/tests/test_changelog_immutability.py
 python3 tools/tests/test_prepare_extracted_liquibase.py
 python3 tools/tests/test_seed_identity_swap.py
 bash tools/tests/test_liquibase_1.2.7_to_head_upgrade.sh postgres
+SITMUN_POSTGRES_IMAGE=postgres:12-alpine \
+  bash tools/tests/test_liquibase_1.2.7_to_head_upgrade.sh postgres-from 1.2.7
 SITMUN_ORACLE_IMAGE=gvenzl/oracle-xe:21-slim \
   bash tools/tests/test_liquibase_1.2.7_to_head_upgrade.sh oracle-from 1.2.7
+SITMUN_DB=oracle-11 SITMUN_DB_URL=jdbc:oracle:thin:@//127.0.0.1:15211/XE \
+  bash tools/tests/test_backend_db_boot.sh
 bash tools/tests/test_liquibase_scenarios.sh
 bash tools/tests/test_liquibase_scenarios_oracle.sh
 ```

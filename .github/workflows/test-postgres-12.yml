@@ -1,0 +1,51 @@
+name: Test PostgreSQL 12
+
+on:
+  pull_request:
+    branches: [dev]
+    paths:
+      - 'sitmun-backend/**'
+      - 'profiles/postgres/**'
+      - 'gradle/**'
+      - 'build.gradle'
+      - 'settings.gradle'
+      - 'gradle.properties'
+      - 'tools/tests/test_backend_db_boot.sh'
+      - '.github/workflows/test-postgres-12.yml'
+  workflow_dispatch:
+
+jobs:
+  test-postgres-12:
+    name: Test PostgreSQL 12
+    # Data REST calls return HTTP 500 and the log has no server exception.
+    if: false
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    env:
+      SITMUN_DB: postgres-12
+      SITMUN_DB_KEEP: "1"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Set up Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version-file: .java-version
+          cache: gradle
+
+      - name: Boot the backend
+        run: bash tools/tests/test_backend_db_boot.sh
+
+      - name: Run backend tests
+        if: ${{ !cancelled() }}
+        run: ./gradlew :sitmun-backend:testPostgres12
+
+      - name: Upload test report
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v6
+        with:
+          name: test-postgres-12-report
+          path: sitmun-backend/build/reports/tests/testPostgres12
+          retention-days: 7

@@ -30,16 +30,34 @@ jobs:
           filters: |
             admin:
               - 'sitmun-admin/**'
+              - '.nvmrc'
             viewer:
               - 'sitmun-viewer/**'
+              - '.nvmrc'
             backend:
               - 'sitmun-backend/**'
+              - '.java-version'
             proxy:
               - 'sitmun-proxy/**'
+              - 'settings.gradle'
+              - 'build.gradle'
+              - 'gradle/**'
+              - 'gradlew'
+              - '.java-version'
             mbtiles:
               - 'sitmun-addons/sitmun-mbtiles/**'
+              - 'settings.gradle'
+              - 'build.gradle'
+              - 'gradle/**'
+              - 'gradlew'
+              - '.java-version'
             shared:
               - 'sitmun-common/**'
+              - 'settings.gradle'
+              - 'build.gradle'
+              - 'gradle/**'
+              - 'gradlew'
+              - '.java-version'
             docker:
               - 'docker/**'
               - 'compose.yaml'
@@ -63,7 +81,9 @@ jobs:
               - 'scripts/e2e-process.mjs'
               - 'playwright.config.ts'
               - 'package.json'
-              - 'package-lock.json'
+              - 'pnpm-lock.yaml'
+              - '.nvmrc'
+              - '.java-version'
               - '.github/workflows/e2e.yml'
               - '.github/workflows/ci-gate.yml'
             e2e_viewer:
@@ -80,7 +100,9 @@ jobs:
               - 'scripts/e2e-process.mjs'
               - 'playwright.viewer.config.ts'
               - 'package.json'
-              - 'package-lock.json'
+              - 'pnpm-lock.yaml'
+              - '.nvmrc'
+              - '.java-version'
               - '.github/workflows/e2e.yml'
               - '.github/workflows/ci-gate.yml'
             e2e_contact:
@@ -96,7 +118,9 @@ jobs:
               - 'scripts/e2e-process.mjs'
               - 'playwright.application-contact.config.ts'
               - 'package.json'
-              - 'package-lock.json'
+              - 'pnpm-lock.yaml'
+              - '.nvmrc'
+              - '.java-version'
               - '.github/workflows/e2e.yml'
               - '.github/workflows/ci-gate.yml'
             e2e_mia:
@@ -115,7 +139,9 @@ jobs:
               - 'scripts/e2e-process.mjs'
               - 'playwright.mia-cross.config.ts'
               - 'package.json'
-              - 'package-lock.json'
+              - 'pnpm-lock.yaml'
+              - '.nvmrc'
+              - '.java-version'
               - '.github/workflows/e2e.yml'
               - '.github/workflows/ci-gate.yml'
             e2e_mobile_web:
@@ -131,7 +157,9 @@ jobs:
               - 'scripts/e2e-process.mjs'
               - 'playwright.mobile.config.ts'
               - 'package.json'
-              - 'package-lock.json'
+              - 'pnpm-lock.yaml'
+              - '.nvmrc'
+              - '.java-version'
               - '.github/workflows/e2e.yml'
               - '.github/workflows/ci-gate.yml'
             e2e_mobile_android:
@@ -148,7 +176,9 @@ jobs:
               - 'scripts/e2e-process.mjs'
               - 'playwright.mobile.config.ts'
               - 'package.json'
-              - 'package-lock.json'
+              - 'pnpm-lock.yaml'
+              - '.nvmrc'
+              - '.java-version'
               - '.github/workflows/e2e.yml'
               - '.github/workflows/ci-gate.yml'
 
@@ -219,12 +249,13 @@ jobs:
 
   ci-gate:
     name: ci-gate
-    needs: [admin, viewer, backend, proxy, mbtiles, shared, docker, e2e-admin, e2e-viewer, e2e-contact, e2e-mia, e2e-mobile-web, e2e-mobile-android]
+    needs: [changes, admin, viewer, backend, proxy, mbtiles, shared, docker, e2e-admin, e2e-viewer, e2e-contact, e2e-mia, e2e-mobile-web, e2e-mobile-android]
     if: always()
     runs-on: ubuntu-latest
     steps:
       - name: Require component results
         env:
+          CHANGES: ${{ needs.changes.result }}
           ADMIN: ${{ needs.admin.result }}
           VIEWER: ${{ needs.viewer.result }}
           BACKEND: ${{ needs.backend.result }}
@@ -242,6 +273,7 @@ jobs:
           python3 - << 'PY'
           import os, sys
           names = (
+              "CHANGES",
               "ADMIN", "VIEWER", "BACKEND", "PROXY", "MBTILES", "SHARED", "DOCKER",
               "E2E_ADMIN", "E2E_VIEWER", "E2E_CONTACT", "E2E_MIA",
               "E2E_MOBILE_WEB", "E2E_MOBILE_ANDROID",

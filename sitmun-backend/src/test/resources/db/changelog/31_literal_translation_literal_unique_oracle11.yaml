@@ -1,0 +1,17 @@
+databaseChangeLog:
+  # Oracle 11 has no STANDARD_HASH, and a 4000 CHAR key exceeds the index key limit.
+  # Creating STM_LTR_LITERAL_UK here makes 31-literal-translation-literal-uk-oracle MARK_RAN.
+  - changeSet:
+      id: 31-literal-translation-literal-uk-oracle11
+      author: sitmun
+      dbms: oracle
+      preConditions:
+        - onFail: MARK_RAN
+          sqlCheck:
+            expectedResult: 1
+            sql: SELECT COUNT(*) FROM PRODUCT_COMPONENT_VERSION WHERE PRODUCT LIKE 'Oracle Database%' AND VERSION LIKE '11.%'
+      changes:
+        - sql:
+            sql: >
+              CREATE UNIQUE INDEX STM_LTR_LITERAL_UK ON STM_LITERAL_TRANSLATION
+              (ORA_HASH(LTR_LITERAL), LENGTH(LTR_LITERAL), SUBSTR(LTR_LITERAL, 1, 1000))

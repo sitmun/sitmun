@@ -1,0 +1,33 @@
+pluginManagement {
+    repositories {
+        gradlePluginPortal()
+        mavenCentral()
+    }
+}
+
+plugins {
+    id 'org.gradle.toolchains.foojay-resolver-convention' version '1.0.0'
+}
+
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositories {
+        mavenCentral()
+    }
+}
+
+rootProject.name = 'sitmun'
+
+def includeProject = { String name, String dir ->
+    def directory = file(dir)
+    if (directory.directory) {
+        include name
+        project(":$name").projectDir = directory
+    }
+}
+
+includeProject('sitmun-spring-upstream', 'sitmun-common/sitmun-spring-upstream')
+includeProject('sitmun-proxy-contract', 'sitmun-common/sitmun-proxy-contract')
+includeProject('sitmun-proxy', 'sitmun-proxy')
+includeProject('sitmun-mbtiles', 'sitmun-addons/sitmun-mbtiles')
+includeProject('sitmun-backend', 'sitmun-backend')

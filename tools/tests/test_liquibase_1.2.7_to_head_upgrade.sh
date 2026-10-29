@@ -25,8 +25,10 @@ TARGET="${1:-both}"
 # Issue #74: set SITMUN_ORACLE_IMAGE=gvenzl/oracle-xe:21-slim to run an upgrade
 # path against a pre-23ai server. That image is amd64 only. Pre-23ai startup is
 # slower, hence the larger default wait.
+# SITMUN_POSTGRES_IMAGE selects the PostgreSQL server (default postgres:16-alpine).
 ORACLE_IMAGE="${SITMUN_ORACLE_IMAGE:-gvenzl/oracle-free:23-slim}"
 ORACLE_WAIT_TRIES="${SITMUN_ORACLE_WAIT_TRIES:-150}"
+POSTGRES_IMAGE="${SITMUN_POSTGRES_IMAGE:-postgres:16-alpine}"
 
 PASS=0
 FAIL=0
@@ -91,6 +93,46 @@ version_lt() {
   [[ "$1" != "$2" && "$(printf '%s\n' "$1" "$2" | sort -V | head -1)" == "$1" ]]
 }
 
+oracle_wait_line() {
+  /usr/bin/printf '%s\n' "$1"
+}
+
+# gvenzl applies ORACLE_DATABASE on XE 18c and later. 11g has no PDB; its service is XE.
+oracle_service_name() {
+  if [[ "${SITMUN_ORACLE_VERSION:-}" == "11" ]]; then
+    echo "XE"
+  else
+    echo "$DB"
+  fi
+}
+
+wait_for_oracle() {
+  local i result note service
+  service=$(oracle_service_name)
+  for i in $(seq 1 "$ORACLE_WAIT_TRIES"); do
+    result=$(docker exec "$CONTAINER" bash -c "
+      printf 'SET HEADING OFF FEEDBACK OFF PAGESIZE 0 TRIMOUT ON;\nSELECT 42 FROM DUAL;\nEXIT;\n' \
+      | sqlplus -s ${DB_USER}/${DB_PASS}@//localhost:1521/${service} 2>/dev/null
+    " 2>/dev/null | tr -d ' \n\r\t' || true)
+    if [[ -n "$result" ]]; then
+      note="probe=${result}"
+    else
+      note="probe returned nothing"
+    fi
+    if [[ "$result" == "42" ]]; then
+      oracle_wait_line "  Waiting for Oracle image=${ORACLE_IMAGE} service=${service} attempt ${i}/${ORACLE_WAIT_TRIES} ${note} ready."
+      break
+    fi
+    oracle_wait_line "  Waiting for Oracle image=${ORACLE_IMAGE} service=${service} attempt ${i}/${ORACLE_WAIT_TRIES} ${note}"
+    sleep 3
+    if [[ $i -eq "$ORACLE_WAIT_TRIES" ]]; then
+      oracle_wait_line "  TIMEOUT"
+      docker logs --tail 80 "$CONTAINER" || true
+      fail "Oracle container failed to become ready"
+      return 1
+    fi
+  done
+}
 
 # ── PostgreSQL ────────────────────────────────────────────────────────────────
 
@@ -142,7 +184,7 @@ run_postgres() {
     -e POSTGRES_DB="$DB" \
     -e POSTGRES_USER="$DB_USER" \
     -e POSTGRES_PASSWORD="$DB_PASS" \
-    postgres:16-alpine
+    "$POSTGRES_IMAGE"
 
   echo -n "  Waiting for Postgres"
   for _ in $(seq 1 40); do
@@ -293,7 +335,7 @@ run_postgres_from() {
     -e POSTGRES_DB="$DB" \
     -e POSTGRES_USER="$DB_USER" \
     -e POSTGRES_PASSWORD="$DB_PASS" \
-    postgres:16-alpine
+    "$POSTGRES_IMAGE"
 
   echo -n "  Waiting for Postgres"
   for _ in $(seq 1 40); do
@@ -402,6 +444,7 @@ DOCKEREOF
   docker rm -f "$CONTAINER" 2>/dev/null || true
   docker network rm "$NETWORK" 2>/dev/null || true
   docker network create "$NETWORK"
+  docker pull "$ORACLE_IMAGE"
   docker run -d --name "$CONTAINER" --network "$NETWORK" \
     -e ORACLE_PASSWORD="$ORACLE_PWD" \
     -e APP_USER="$DB_USER" \
@@ -409,24 +452,7 @@ DOCKEREOF
     -e ORACLE_DATABASE="$DB" \
     "$ORACLE_IMAGE"
 
-  echo -n "  Waiting for Oracle ($ORACLE_IMAGE)"
-  for i in $(seq 1 "$ORACLE_WAIT_TRIES"); do
-    result=$(docker exec "$CONTAINER" bash -c "
-      printf 'SET HEADING OFF FEEDBACK OFF PAGESIZE 0 TRIMOUT ON;\nSELECT 42 FROM DUAL;\nEXIT;\n' \
-      | sqlplus -s ${DB_USER}/${DB_PASS}@//localhost:1521/${DB} 2>/dev/null
-    " 2>/dev/null | tr -d ' \n\r\t' || true)
-    if [[ "$result" == "42" ]]; then
-      echo " ready."
-      break
-    fi
-    sleep 3
-    echo -n "."
-    if [[ $i -eq "$ORACLE_WAIT_TRIES" ]]; then
-      echo " TIMEOUT"
-      fail "Oracle container failed to become ready"
-      return 1
-    fi
-  done
+  wait_for_oracle || return 1
 
   echo ""
   echo "════ PHASE 1: apply $TAG_127 ════"
@@ -524,6 +550,8 @@ run_oracle_from() {
   local DB_USER=sitmun3
   local DB_PASS=sitmun3
   local ORACLE_PWD=password
+  local ORACLE_SERVICE
+  ORACLE_SERVICE=$(oracle_service_name)
   local TMP
   TMP=$(mktemp -d)
   local LB_SRC LB_HEAD
@@ -531,18 +559,30 @@ run_oracle_from() {
   if version_lt "$version" "1.2.7"; then
     quote_csv_embedded_commas "$LB_SRC"
   fi
+  # Oracle 23 accepts boolean literals. 11g and the 21c stand-in do not.
+  # The rewritten body has a new checksum, so record one HEAD already accepts.
+  local ORACLE_BOOL_REWRITES=0
+  if [[ "${SITMUN_ORACLE_IMAGE:-}" != *oracle-free* ]]; then
+    ORACLE_BOOL_REWRITES=$(python3 "$PREPARE_LB" --oracle-booleans "$LB_SRC")
+  fi
   LB_HEAD="$REPO_ROOT/profiles/oracle/liquibase"
 
   liquibase_ora() {
     local label="$1" changelog_dir="$2"
+    # Oracle 11 XE rejects zone regions such as Etc/UTC at session setup (ORA-00604 / ORA-01882).
+    local -a liquibase_env=()
+    if [[ "${SITMUN_ORACLE_VERSION:-}" == "11" ]]; then
+      liquibase_env=(-e "JAVA_TOOL_OPTIONS=-Doracle.jdbc.timezoneAsRegion=false")
+    fi
     echo ""
     echo "── Liquibase: $label ──"
     set +e
     LB_OUTPUT=$(docker run --rm \
       --network "$NETWORK" \
+      ${liquibase_env[@]+"${liquibase_env[@]}"} \
       -v "$changelog_dir:/liquibase/changelog:ro" \
       liquibase/liquibase:4.29 \
-      --url="jdbc:oracle:thin:@//$CONTAINER:1521/$DB" \
+      --url="jdbc:oracle:thin:@//$CONTAINER:1521/$ORACLE_SERVICE" \
       --username="$DB_USER" \
       --password="$DB_PASS" \
       --changeLogFile="changelog/master.xml" \
@@ -556,7 +596,7 @@ run_oracle_from() {
     local sql="$1"
     docker exec -i "$CONTAINER" bash 2>/dev/null << DOCKEREOF | tr -d ' \n\r\t'
 printf '%s\n' "SET HEADING OFF FEEDBACK OFF PAGESIZE 0 TRIMOUT ON" "${sql}" "EXIT" \
-  | sqlplus -s ${DB_USER}/${DB_PASS}@//localhost:1521/${DB} 2>/dev/null
+  | sqlplus -s ${DB_USER}/${DB_PASS}@//localhost:1521/${ORACLE_SERVICE} 2>/dev/null
 DOCKEREOF
   }
 
@@ -568,31 +608,23 @@ DOCKEREOF
   docker rm -f "$CONTAINER" 2>/dev/null || true
   docker network rm "$NETWORK" 2>/dev/null || true
   docker network create "$NETWORK"
-  docker run -d --name "$CONTAINER" --network "$NETWORK" \
-    -e ORACLE_PASSWORD="$ORACLE_PWD" \
-    -e APP_USER="$DB_USER" \
-    -e APP_USER_PASSWORD="$DB_PASS" \
-    -e ORACLE_DATABASE="$DB" \
-    "$ORACLE_IMAGE"
+  docker pull "$ORACLE_IMAGE"
+  if [[ "${SITMUN_ORACLE_VERSION:-}" == "11" ]]; then
+    docker run -d --name "$CONTAINER" --network "$NETWORK" \
+      -e ORACLE_PASSWORD="$ORACLE_PWD" \
+      -e APP_USER="$DB_USER" \
+      -e APP_USER_PASSWORD="$DB_PASS" \
+      "$ORACLE_IMAGE"
+  else
+    docker run -d --name "$CONTAINER" --network "$NETWORK" \
+      -e ORACLE_PASSWORD="$ORACLE_PWD" \
+      -e APP_USER="$DB_USER" \
+      -e APP_USER_PASSWORD="$DB_PASS" \
+      -e ORACLE_DATABASE="$DB" \
+      "$ORACLE_IMAGE"
+  fi
 
-  echo -n "  Waiting for Oracle ($ORACLE_IMAGE)"
-  for i in $(seq 1 "$ORACLE_WAIT_TRIES"); do
-    result=$(docker exec "$CONTAINER" bash -c "
-      printf 'SET HEADING OFF FEEDBACK OFF PAGESIZE 0 TRIMOUT ON;\nSELECT 42 FROM DUAL;\nEXIT;\n' \
-      | sqlplus -s ${DB_USER}/${DB_PASS}@//localhost:1521/${DB} 2>/dev/null
-    " 2>/dev/null | tr -d ' \n\r\t' || true)
-    if [[ "$result" == "42" ]]; then
-      echo " ready."
-      break
-    fi
-    sleep 3
-    echo -n "."
-    if [[ $i -eq "$ORACLE_WAIT_TRIES" ]]; then
-      echo " TIMEOUT"
-      fail "Oracle container failed to become ready"
-      return 1
-    fi
-  done
+  wait_for_oracle || return 1
 
   echo ""
   echo "════ PHASE 1: apply $tag ════"
@@ -602,6 +634,10 @@ DOCKEREOF
   else
     fail "Phase1 Liquibase $version failed (exit $LB_RC)"
     print_lb_errors
+  fi
+  if [[ $LB_RC -eq 0 && "${ORACLE_BOOL_REWRITES:-0}" != "0" ]]; then
+    sqlplus_q "UPDATE DATABASECHANGELOG SET MD5SUM='9:99cf8d3a597aeccf7d77f7a7e417469c' WHERE ID='1' AND AUTHOR='sitmun';"
+    sqlplus_q "COMMIT;"
   fi
   SRC_MD5=$(sqlplus_q "SELECT MD5SUM FROM DATABASECHANGELOG WHERE ID='1' AND AUTHOR='sitmun';")
   assert_ne "Phase1 sitmun:1 MD5SUM set" "" "$SRC_MD5"
@@ -716,6 +752,7 @@ DOCKEREOF
   docker rm -f "$CONTAINER" 2>/dev/null || true
   docker network rm "$NETWORK" 2>/dev/null || true
   docker network create "$NETWORK"
+  docker pull "$ORACLE_IMAGE"
   docker run -d --name "$CONTAINER" --network "$NETWORK" \
     -e ORACLE_PASSWORD="$ORACLE_PWD" \
     -e APP_USER="$DB_USER" \
@@ -723,24 +760,7 @@ DOCKEREOF
     -e ORACLE_DATABASE="$DB" \
     "$ORACLE_IMAGE"
 
-  echo -n "  Waiting for Oracle ($ORACLE_IMAGE)"
-  for i in $(seq 1 "$ORACLE_WAIT_TRIES"); do
-    result=$(docker exec "$CONTAINER" bash -c "
-      printf 'SET HEADING OFF FEEDBACK OFF PAGESIZE 0 TRIMOUT ON;\nSELECT 42 FROM DUAL;\nEXIT;\n' \
-      | sqlplus -s ${DB_USER}/${DB_PASS}@//localhost:1521/${DB} 2>/dev/null
-    " 2>/dev/null | tr -d ' \n\r\t' || true)
-    if [[ "$result" == "42" ]]; then
-      echo " ready."
-      break
-    fi
-    sleep 3
-    echo -n "."
-    if [[ $i -eq "$ORACLE_WAIT_TRIES" ]]; then
-      echo " TIMEOUT"
-      fail "Oracle container failed to become ready"
-      return 1
-    fi
-  done
+  wait_for_oracle || return 1
 
   echo ""
   echo "════ PHASE 1: apply $tag ════"
@@ -838,7 +858,7 @@ run_dev_postgres_from() {
     -e POSTGRES_DB="$DB" \
     -e POSTGRES_USER="$DB_USER" \
     -e POSTGRES_PASSWORD="$DB_PASS" \
-    postgres:16-alpine
+    "$POSTGRES_IMAGE"
 
   echo -n "  Waiting for Postgres"
   for _ in $(seq 1 40); do

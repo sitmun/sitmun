@@ -3,1220 +3,326 @@
 [![License: EUPL v1.2](https://img.shields.io/badge/License-EUPL%20v1.2-blue.svg)](LICENSE)
 ![Version](https://img.shields.io/badge/version-1.2.9-blue.svg)
 
-The **SITMUN Application Stack** is a comprehensive multi-container geospatial platform that provides a complete solution for territorial information management, geographical services, and spatial applications. This stack integrates all SITMUN components into a unified, containerized environment designed for development, testing, and production deployment.
+SITMUN (Sistema de Información Territorial de la Mancomunidad de Municipios) is a geospatial information system. This repository is [sitmun/sitmun](https://github.com/sitmun/sitmun).
 
-## Table of Contents
+## Modules
 
-- [About SITMUN](#about-sitmun)
-- [Architecture Overview](#architecture-overview)
-- [Technology Stack](#technology-stack)
-- [Quick Start](#quick-start)
-- [Installation](#installation)
-- [Configuration](#configuration)
-- [Services](#services)
-- [Development](#development)
-- [API Documentation](#api-documentation)
-- [Security](#security)
-- [Troubleshooting](#troubleshooting)
-- [Contributing](#contributing)
-- [Support](#support)
-- [License](#license)
+| Path | Runtime | Compose |
+| --- | --- | --- |
+| `sitmun-admin` | Angular 22 | `front` (`/admin/`) |
+| `sitmun-viewer` | Angular 22 | `front` (`/viewer/`) |
+| `sitmun-mobile/sitmun-edition` | Ionic 8, Angular 18 | none |
+| `sitmun-mobile/sitmun-touristic` | Ionic 8, Angular 18 | none |
+| `sitmun-backend` | Spring Boot 4, Java 17 | `backend` |
+| `sitmun-proxy` | Spring Boot 4, Java 17 | `proxy` |
+| `sitmun-addons/sitmun-mbtiles` | Spring Boot 4, Java 17 | `mbtiles` (profile, no host port) |
+| `sitmun-common` | Java 17 libraries | none |
 
-## About SITMUN
+Image definitions are under `docker/`. The Compose file is `compose.yaml`.
 
-SITMUN (Sistema de Información Territorial de la Mancomunidad de Municipios) is a geospatial information management system for territorial data, services, and spatial applications.
+Common, proxy, MBTiles, and the backend are one Gradle build. From the repository root:
 
-## Architecture Overview
-
-The stack has four main components:
-
-```text
-┌─────────────────────────────────────────────────────────────┐
-│                    SITMUN Application Stack                 │
-├─────────────────────────────────────────────────────────────┤
-│  Frontend Layer                                             │
-│  ├── SITMUN Viewer App (Angular 22)                         │
-│  └── SITMUN Admin App (Angular 22)                          │
-├─────────────────────────────────────────────────────────────┤
-│  Backend Layer                                              │
-│  ├── SITMUN Backend Core (Spring Boot 4)                    │
-│  └── SITMUN Proxy Middleware (Spring Boot 4)                │
-├─────────────────────────────────────────────────────────────┤
-│  Database Layer                                             │
-│  ├── PostgreSQL 16 / Oracle 23c / H2                        │
-│  └── Liquibase Migration                                    │
-└─────────────────────────────────────────────────────────────┘
+```bash
+./gradlew :sitmun-backend:test :sitmun-proxy:test :sitmun-mbtiles:test :sitmun-spring-upstream:test :sitmun-proxy-contract:test
 ```
 
-### Component Architecture
+## Toolchain
 
-| Component                   | Technology             | Purpose                                          | Port      |
-| --------------------------- | ---------------------- | ------------------------------------------------ | --------- |
-| **SITMUN Viewer App**       | Angular 22, TypeScript | Interactive map visualization and user interface | 9000      |
-| **SITMUN Admin App**        | Angular 22, TypeScript | Administrative interface and configuration       | 9000      |
-| **SITMUN Backend Core**     | Spring Boot 4, Java 17 | Core REST API and business logic                 | 9001      |
-| **SITMUN Proxy Middleware** | Spring Boot 4, Java 17 | Secure proxy and middleware services             | 9002      |
-| **Database**                | PostgreSQL/Oracle/H2   | Data persistence and geospatial storage          | 9003/9004 |
+Java is the root `.java-version` (17). Node is the root `.nvmrc` (24.22.0). pnpm is the `packageManager` field on each install root. mise is optional and reads those files. CI does not use mise: `actions/setup-node` with `node-version-file: .nvmrc` and `pnpm/action-setup`, then `pnpm ci`.
 
-## Technology Stack
+pnpm runs in `sitmun-admin`, `sitmun-viewer`, `sitmun-mobile/sitmun-edition`, and `sitmun-mobile/sitmun-touristic`. Each of those directories has a `pnpm-workspace.yaml` with `allowBuilds` only. The repository root has no `pnpm-workspace.yaml`. The root `package.json` is the Playwright harness. Admin and viewer `engines.node` is `>=24.22.0`.
 
-- Frontend: Angular 22, TypeScript, SITNA
-- Backend: Spring Boot 4, Java 17, Gradle
-- Database: PostgreSQL 16 (default), Oracle 23c, H2 (dev only), Liquibase
-- Infrastructure: Docker, Docker Compose
+Commands: `pnpm ci`, `pnpm install`, `pnpm add`, `pnpm run`, `pnpm exec`.
 
-## Quick Start
+## Quick start
 
-### Prerequisites
+Docker Engine and Docker Compose (or Docker Desktop), plus Git.
 
-- Docker Engine + Docker Compose (or Docker Desktop)
-- Git
+```bash
+git clone --branch dev https://github.com/sitmun/sitmun.git
+cd sitmun
+./setup.sh          # Windows: ./setup.ps1
+docker compose up -d
+```
 
-### Quick Setup
+`./setup.sh` and `./setup.ps1` copy `profiles/development-postgres.env` to `.env` only when `.env` is missing, then append `SITMUN_USER_SECRET`, `MIDDLEWARE_SECRET`, and `SITMUN_MBTILES_JOB_HANDLE_SECRET` when those keys are absent. Do not commit the values.
 
-1. **Clone the repository**
+To choose a profile yourself, copy one file to `.env` and append the same three secrets (each `openssl rand -hex 32`, at least 32 characters). Compose marks them required (`:?`) and refuses to start without them.
 
-   ```bash
-   git clone --branch dev https://github.com/sitmun/sitmun.git
-   cd sitmun
-   ```
+| Profile | Use |
+| --- | --- |
+| `profiles/development-postgres.env` | Development PostgreSQL. This is what `setup.sh` copies. |
+| `profiles/development-oracle.env` | Development Oracle |
+| `profiles/development.env` | Development PostgreSQL |
+| `profiles/development-lvh.env` | Development PostgreSQL announced as `http://lvh.me:9000` |
+| `profiles/postgres.env` | Production PostgreSQL (`ENVIRONMENT=production`, minimal seed) |
+| `profiles/oracle.env` | Production Oracle (`ENVIRONMENT=production`, minimal seed) |
 
-2. **Setup the environment**
+Copying a profile over an existing `.env` drops secrets already appended. Append them again.
 
-   For Unix-based systems (Linux/macOS):
+Seeded login: `admin` / `admin`. For a deployment other than a local demo, replace the database password (Compose falls back to `sitmun3` / `sitmun3`).
 
-   ```bash
-   ./setup.sh
-   ```
-
-   For Windows systems:
-
-   ```powershell
-   ./setup.ps1
-   ```
-
-3. **Select a profile (`.env`)**
-
-   The stack is configured via `.env`. Recommended profiles are under `profiles/`:
-
-   ```bash
-   # Development (PostgreSQL)
-   cp profiles/development-postgres.env .env
-
-   # Development (Oracle)
-   # cp profiles/development-oracle.env .env
-   ```
-
-   Notes:
-   - The setup scripts create `.env` from `profiles/development-postgres.env` **only if** `.env` is missing. They then append `SITMUN_USER_SECRET`, `MIDDLEWARE_SECRET`, and `SITMUN_MBTILES_JOB_HANDLE_SECRET` when those keys are absent.
-   - A manual copy must append the same three values before Compose will start:
-
-   ```bash
-   echo "SITMUN_USER_SECRET=$(openssl rand -hex 32)" >> .env
-   echo "MIDDLEWARE_SECRET=$(openssl rand -hex 32)" >> .env
-   echo "SITMUN_MBTILES_JOB_HANDLE_SECRET=$(openssl rand -hex 32)" >> .env
-   ```
-
-4. **Start the SITMUN Application Stack**
-
-   ```bash
-   docker compose up -d
-   ```
-
-5. **Access the applications**
-
-   - **Viewer Application**: [http://localhost:9000/viewer](http://localhost:9000/viewer) (public access)
-   - **Admin Application**: [http://localhost:9000/admin](http://localhost:9000/admin) (requires authentication)
-   - **Backend API**: [http://localhost:9000/backend](http://localhost:9000/backend)
-   - **API Documentation**: [http://localhost:9001/swagger-ui/index.html](http://localhost:9001/swagger-ui/index.html)
-
-6. **Default credentials**
-   - Username: `admin`
-   - Password: `admin`
-
-## Installation
-
-### Development Installation
-
-1. **Clone the Repository**
-
-   ```bash
-   git clone --branch dev https://github.com/sitmun/sitmun.git
-   cd sitmun
-   ```
-
-2. **Setup Environment**
-
-   ```bash
-   # Unix-based systems
-   ./setup.sh
-
-   # Windows systems
-   ./setup.ps1
-   ```
-
-3. **Select a development profile (`.env`)**
-
-   ```bash
-   cp profiles/development-postgres.env .env
-   # Or: cp profiles/development-oracle.env .env
-   echo "SITMUN_USER_SECRET=$(openssl rand -hex 32)" >> .env
-   echo "MIDDLEWARE_SECRET=$(openssl rand -hex 32)" >> .env
-   echo "SITMUN_MBTILES_JOB_HANDLE_SECRET=$(openssl rand -hex 32)" >> .env
-   ```
-
-   `./setup.sh` and `./setup.ps1` append those three keys when they create `.env` and the keys are absent. Do not commit the values.
-
-4. **Start Services**
-
-   ```bash
-   docker compose up -d
-   ```
-
-5. **Verify Installation**
-
-   ```bash
-   # Check service status
-   docker compose ps
-
-   # Check backend health
-   curl http://localhost:9001/api/dashboard/health
-
-   # Check proxy health
-   curl http://localhost:9002/actuator/health
-   ```
-
-### Production Installation
-
-1. **Environment Configuration**
-
-   Copy a profile to `.env` and edit for production (see [Database Configuration](#database-configuration) for all options):
-
-   ```bash
-   # For PostgreSQL (default)
-   cp profiles/postgres.env .env
-
-   # For Oracle
-   cp profiles/oracle.env .env
-
-   # Local named host (lvh.me resolves to 127.0.0.1). Open http://lvh.me:9000
-   cp profiles/development-lvh.env .env
-
-   # Edit environment variables for production
-   nano .env
-   ```
-
-   The copied profile already sets the database, Spring, Liquibase, and frontend variables (all other compose variables have working defaults). The only variables you must add to boot are the three secrets. Compose marks them required (`:?`) and refuses to start without them:
-
-   ```env
-   # Secrets (mandatory, no default, min 32 chars each) -- see step 2
-   SITMUN_USER_SECRET=<32+ char random value>
-   MIDDLEWARE_SECRET=<32+ char random value>
-   SITMUN_MBTILES_JOB_HANDLE_SECRET=<32+ char random value>
-   ```
-
-   For a real production deployment you should also override the database credentials, which otherwise default to `sitmun3`/`sitmun3`:
-
-   ```env
-   DATABASE=<db name>
-   DATABASE_USERNAME=<db user>
-   DATABASE_PASSWORD=<db password>
-   ```
-
-2. **Secrets (mandatory)**
-
-   Production profiles (`profiles/postgres`, `profiles/oracle`) do **not** ship secret defaults. You must set these three variables in `.env`, each at least 32 characters:
-
-   ```bash
-   # Backend JWT signing secret, backend-proxy shared secret, and MBTiles job handle
-   echo "SITMUN_USER_SECRET=$(openssl rand -hex 32)" >> .env
-   echo "MIDDLEWARE_SECRET=$(openssl rand -hex 32)" >> .env
-   echo "SITMUN_MBTILES_JOB_HANDLE_SECRET=$(openssl rand -hex 32)" >> .env
-   ```
-
-   Enforcement is fail-fast, so misconfiguration is caught before the platform serves traffic:
-
-   - A missing variable makes Docker Compose refuse to start (`variable is required`).
-   - A blank or shorter-than-32-character value aborts backend/proxy startup via `SecuritySecretValidator` / `ProxySecretValidator` (`IllegalStateException`), so the container never becomes healthy.
-
-   `MIDDLEWARE_SECRET` is shared: it is injected into the backend as `SITMUN_PROXY_MIDDLEWARE_SECRET` and into the proxy as `SITMUN_BACKEND_CONFIG_SECRET`. Both sides must match. `SITMUN_MBTILES_JOB_HANDLE_SECRET` is the proxy job-handle secret. Never commit secrets, and never reuse a development default.
-
-3. **Database Setup**
-
-   Database settings are already set by the profile you copied. To change database type later, copy a different profile to `.env` or edit `SITMUN_DB_PROFILE` and `COMPOSE_PROFILES` in `.env`. See the [Database Configuration](#database-configuration) section for details and verification steps.
-
-4. **SSL Configuration**
-
-   ```bash
-   # In .env, set for HTTPS (standard port 443)
-   PUBLIC_URL_SCHEME=https
-   # PUBLIC_PORT and PUBLIC_NON_STANDARD_PORT are not needed for standard port 443
-   ```
+| URL | What |
+| --- | --- |
+| http://localhost:9000/viewer/ | Viewer. Public applications do not require a login. |
+| http://localhost:9000/admin/ | Admin. Requires authentication. |
+| http://localhost:9000/backend/ | Backend through nginx |
+| http://localhost:9001/swagger-ui/index.html | Swagger UI on the backend port |
+| http://localhost:9001/api/dashboard/health | Backend health |
+| http://localhost:9002/actuator/health | Proxy health |
 
 ## Configuration
 
-### Environment Variables
+Compose `:-` defaults below apply when the variable is unset. Dockerfile `ARG` defaults for `NODE_VERSION` and `JDK_VERSION` stay in `docker/**/Dockerfile`, so `docker compose build` works with no `.env`.
 
-The SITMUN Application Stack uses environment variables for configuration. Copy a profile from `profiles/` to `.env` (see [Database Configuration](#database-configuration)); the following variables are used:
+| Variable | Role | Compose default |
+| --- | --- | --- |
+| `PUBLIC_URL_SCHEME` | `http` or `https` in generated public URLs | `http` |
+| `PUBLIC_HOSTNAME` | Public hostname | `localhost` |
+| `PUBLIC_PORT` | Public port in generated URLs | `9000` |
+| `PUBLIC_BASE_PATH` | Public prefix. Must start and end with `/`. | `/` |
+| `LOCAL_PORT` | Host port published by nginx | `9000` |
+| `LOCAL_BASE_PATH` | Prefix inside the nginx container | `/` |
+| `ENVIRONMENT` | Frontend image. `development` builds Angular `docker-dev`. Any other value builds `production`. | `development` |
+| `COMPOSE_PROFILES` | `postgres` or `oracle`. Add `,demo` for the example database (`,dev` is a deprecated alias). Add `,mbtiles` for MBTiles. | unset |
+| `DATABASE_TYPE` | Fallback Spring profile when `SPRING_PROFILES_ACTIVE` is unset | `postgres` |
+| `SPRING_PROFILES_ACTIVE` | Backend Spring profiles | `DATABASE_TYPE`, else `postgres` |
+| `SITMUN_CONFIG_DIR` | Directory under `profiles/` mounted at `/usr/src/config` | `development/backend` |
+| `DATABASE_URL` | JDBC URL prefix. Compose appends `DATABASE`. | `jdbc:postgresql://postgres:5432/` |
+| `DATABASE` | Database name | `sitmun3` |
+| `DATABASE_USERNAME` | Database user | `sitmun3` |
+| `DATABASE_PASSWORD` | Database password | `sitmun3` |
+| `FORCE_USE_OF_PROXY` | Sets `SITMUN_PROXY_FORCE` | `false` |
+| `SITMUN_PROXY_MIDDLEWARE_VALIDATE_USER_ACCESS` | Proxy access check | `true` |
+| `SITMUN_USER_SECRET` | Backend JWT signing secret. Minimum 32 characters. | required |
+| `MIDDLEWARE_SECRET` | Shared secret. Backend receives it as `SITMUN_PROXY_MIDDLEWARE_SECRET`. Proxy receives it as `SITMUN_BACKEND_CONFIG_SECRET`. | required |
+| `SITMUN_MBTILES_JOB_HANDLE_SECRET` | Proxy MBTiles job-handle secret. Minimum 32 characters. | required |
 
-| Variable                   | Description                                           | Default Value                       |
-| -------------------------- | ----------------------------------------------------- | ----------------------------------- |
-| `PUBLIC_URL_SCHEME`        | Protocol (http/https)                                 | `http`                              |
-| `PUBLIC_HOSTNAME`          | Public hostname                                       | `localhost`                         |
-| `PUBLIC_PORT`              | Public port number (blank for standard port)          | `9000`                              |
-| `PUBLIC_NON_STANDARD_PORT` | Set to mark use of a non-standard port                | `1`                                 |
-| `PUBLIC_BASE_PATH`         | Application context path (must start and end with /)  | `/`                                 |
-| `LOCAL_PORT`               | Port the nginx container listens on                   | `9000`                              |
-| `LOCAL_BASE_PATH`          | Base path in the nginx container                      | `/`                                 |
-| `SITMUN_PROFILE`           | SITMUN scenario profile                               | `development`                       |
-| `SITMUN_DB_PROFILE`        | Spring Boot database profile (postgres/oracle)        | `postgres`                          |
-| `COMPOSE_PROFILES`         | Docker profiles: `postgres`, `oracle`, `demo` (example DB; `dev` alias), `mbtiles` | `postgres` |
-| `DATABASE`                 | Database name                                         | `sitmun3`                           |
-| `DATABASE_URL`             | JDBC URL                                              | `jdbc:postgresql://postgres:5432/`  |
-| `DATABASE_USERNAME`        | Database username                                     | `sitmun3`                           |
-| `DATABASE_PASSWORD`        | Database password                                     | `sitmun3`                           |
-| `FORCE_USE_OF_PROXY`       | Force proxy middleware                                | `false`                             |
-| `SITMUN_PROXY_MIDDLEWARE_VALIDATE_USER_ACCESS` | Enable proxy access validation (blocks access to blocked services) | `true` |
-| `SITMUN_USER_SECRET`       | Backend JWT signing secret (min 32 chars)             | Required                            |
-| `MIDDLEWARE_SECRET`        | Backend-proxy shared secret (min 32 chars)            | Required                            |
-| `SITMUN_MBTILES_JOB_HANDLE_SECRET` | Proxy MBTiles job-handle secret (min 32 chars) | Required                            |
-| `ENVIRONMENT`              | Frontend Docker build mode (development/production)   | `development`                       |
+`SecuritySecretValidator` (backend) and `ProxySecretValidator` (proxy) abort startup with `IllegalStateException` when a secret is blank or shorter than 32 characters.
 
-Docker frontend builds read each app's version from its `package.json` (admin and viewer independently). The About dialog shows that value at runtime.
+Docker frontend builds read each app version from that app's `package.json`. The About dialog shows that value.
 
-### Database Configuration
+### Databases
 
-The SITMUN Application Stack supports multiple database backends: **PostgreSQL 16** (default), **Oracle 23c**, and **H2** (development only). JDBC task pagination uses `OFFSET n ROWS FETCH NEXT m ROWS ONLY`. PostgreSQL has accepted that clause since 8.4. Oracle has accepted it since 12.1. Three environment variables control setup:
+The oldest PostgreSQL server SITMUN must accept is 12 (`sitmun.db.postgres.min` in `gradle.properties`). SQL sent to PostgreSQL must stay valid on PostgreSQL 12. The Oracle floor is Oracle 11g Release 2 (`sitmun.db.oracle.min=11.2`). SQL sent to Oracle must stay within that grammar. Compose and the Liquibase scripts use `postgres:16-alpine` as the runtime image. That image is not the floor. The Oracle Compose image is `gvenzl/oracle-free:23-slim`.
 
-- **`SITMUN_PROFILE`** -- SITMUN scenario profile. Use `development` for local development scenarios.
-- **`SITMUN_DB_PROFILE`** -- Spring Boot database profile for the backend (`postgres` or `oracle`). Controls database dialect, Liquibase config, and which database service the backend depends on. Must always be set.
-- **`COMPOSE_PROFILES`** -- Built-in Docker Compose variable that selects which containers start. Set to `postgres` or `oracle` for a dockerized database. Add `,demo` for the example demo database (host port 9005; `,dev` remains a deprecated alias). Add `,mbtiles` for the MBTiles service used by edition-mobile tile export. Omit entirely for external databases.
+Root Playwright and backend tests use in-memory H2. Compose does not start H2.
 
-`SITMUN_DB_PROFILE` and `COMPOSE_PROFILES` must agree on the database type when using a dockerized database.
+| | PostgreSQL | Oracle |
+| --- | --- | --- |
+| Compose service | `postgres` | `oracle` |
+| Image | `postgres:16-alpine` | `gvenzl/oracle-free:23-slim` |
+| Host port | `9003:5432` | `9004:1521` |
+| `COMPOSE_PROFILES` | `postgres` | `oracle` |
+| JDBC prefix | `jdbc:postgresql://postgres:5432/` | `jdbc:oracle:thin:@//oracle:1521/` |
+| Profile file | `profiles/postgres/application-postgres.yml` or `profiles/development/backend/application-postgres.yml` | `application-oracle.yml` (profile `oracle`) or `application-oracle-11.yml` (profile `oracle-11`) in `profiles/oracle/` and `profiles/development/backend/` |
+| `hibernate.dialect` in that file | `org.hibernate.dialect.PostgreSQLDialect` | `org.hibernate.dialect.OracleDialect` for `oracle`. `org.hibernate.community.dialect.OracleLegacyDialect` for `oracle-11` |
 
-The backend automatically loads the appropriate configuration from:
+The backend service in `compose.yaml` also sets `SPRING_JPA_DATABASE_PLATFORM` to `org.hibernate.dialect.PostgreSQLDialect`.
 
-- `profiles/development/backend/application-postgres.yml` (for PostgreSQL)
-- `profiles/development/backend/application-oracle.yml` (for Oracle)
-
-#### Using Profile .env Files (Recommended)
-
-Pre-configured profile `.env` files are provided in `profiles/`. Copy the desired profile to the project root as `.env`, edit as needed, then start the stack:
-
-```bash
-# Dockerized PostgreSQL
-cp profiles/postgres.env .env
-docker compose up -d
-
-# Dockerized Oracle
-cp profiles/oracle.env .env
-docker compose up -d
-
-# Development PostgreSQL (main DB + Liquibase seed; no example DB / MBTiles)
-cp profiles/development-postgres.env .env
-docker compose up -d
-
-# Development Oracle (same idea)
-cp profiles/development-oracle.env .env
-docker compose up -d
-
-# External PostgreSQL (set connection details in .env, then start app services only)
-# See "External Database" section below for the required variables
-docker compose up -d front backend proxy
-
-# External Oracle (set connection details in .env, then start app services only)
-# See "External Database" section below for the required variables
-docker compose up -d front backend proxy
-```
-
-#### PostgreSQL 16 (Default)
-
-Using a profile `.env` file:
+Development profiles mount `profiles/development/backend` (`SITMUN_CONFIG_DIR` default). `profiles/postgres.env` sets `SITMUN_CONFIG_DIR=postgres`. `profiles/oracle.env` sets `SITMUN_CONFIG_DIR=oracle`. Liquibase runs on backend startup.
 
 ```bash
 cp profiles/postgres.env .env
+# append the three secrets, then:
 docker compose up -d
-```
 
-Or set variables directly in `.env`:
-
-```env
-SITMUN_PROFILE=development
-SITMUN_DB_PROFILE=postgres
-COMPOSE_PROFILES=postgres
-DATABASE_URL=jdbc:postgresql://postgres:5432/
-DATABASE=sitmun3
-DATABASE_USERNAME=sitmun3
-DATABASE_PASSWORD=sitmun3
-```
-
-Then: `docker compose up -d`
-
-**Configuration details:**
-
-- **Container name**: `postgres`
-- **Port**: `9003:5432` (external:internal)
-- **JDBC URL format**: `jdbc:postgresql://postgres:5432/`
-- **Spring profile**: `postgres`
-- **Hibernate dialect**: `org.hibernate.dialect.PostgreSQLDialect`
-
-#### Oracle Database 23c
-
-Using a profile `.env` file:
-
-```bash
 cp profiles/oracle.env .env
 docker compose up -d
 ```
 
-Or set variables directly in `.env`:
+Oracle's first start waits on its healthcheck (`start_period: 60s`). Follow it with `docker compose logs -f oracle`.
 
-```env
-SITMUN_PROFILE=development
-SITMUN_DB_PROFILE=oracle
-COMPOSE_PROFILES=oracle
-DATABASE_URL=jdbc:oracle:thin:@//oracle:1521/
-DATABASE=sitmun3
-DATABASE_USERNAME=sitmun3
-DATABASE_PASSWORD=sitmun3
+To point at a database outside Compose, leave `COMPOSE_PROFILES` empty and set `SPRING_PROFILES_ACTIVE`, `DATABASE_URL`, `DATABASE`, `DATABASE_USERNAME`, `DATABASE_PASSWORD`, and the three secrets. `depends_on.required: false` skips a profiled database that is not started, so `docker compose up -d` starts `front`, `backend`, and `proxy` only.
+
+Switch databases with `docker compose down`, copy the other profile to `.env`, append the three secrets, then `docker compose up -d`.
+
+#### Example database
+
+Compose service `example`, host port `9005`, image `postgres:16-alpine`. Opt in with `COMPOSE_PROFILES=postgres,demo` (or `oracle,demo`). Init scripts live in `profiles/development/demo-data/`. Credentials: `example` / `example`. Read-only role: `example_reader` / `example_reader`. Tourism tasks that use `jdbc:postgresql://example/example` need this container. The main database starts without it.
+
+#### MBTiles
+
+Opt in with `,mbtiles`. The service is only on the Compose network. Nginx returns 404 for `/mbtiles`. Admin, viewer, and WMS/WFS proxy traffic do not need it. Root Playwright starts MBTiles with `pnpm run e2e:mbtiles` on port 18084, not this Compose service.
+
+### Frontend files
+
+Admin `environment.ts` sets `apiBaseURL`. Viewer `environment.ts` sets `apiUrl` and `hashLocationStrategy: false`. Viewer `environment.prod.ts` sets `hashLocationStrategy: true`.
+
+| Angular configuration | When | API URL | Source maps |
+| --- | --- | --- | --- |
+| `development` | `pnpm start` (`ng serve`) | `http://localhost:9000/backend` | yes |
+| `docker-dev` | Docker build when `ENVIRONMENT=development` | `environment.ts` (`http://localhost:9000/backend`). No `fileReplacements`. | yes |
+| `production` | Docker build when `ENVIRONMENT` is not `development` | `environment.prod.ts` after `envsubst` on `docker/front/*/environment.prod.ts.template` | no |
+
+`docker compose build front` follows the Compose default `ENVIRONMENT=development`, so it builds `docker-dev`. A production image needs `ENVIRONMENT=production` (set in `profiles/postgres.env` and `profiles/oracle.env`).
+
+```text
+docker/front/admin/environment.prod.ts.template
+docker/front/viewer/environment.prod.ts.template
+sitmun-admin/src/environments/environment.ts
+sitmun-admin/src/environments/environment.prod.ts
+sitmun-viewer/src/environments/environment.ts
+sitmun-viewer/src/environments/environment.prod.ts
 ```
 
-Then: `docker compose up -d`
-
-Oracle may take 60+ seconds on first start. Monitor with:
-
-```bash
-docker compose logs -f oracle
-# Wait for "DATABASE IS READY TO USE!" message
-```
-
-**Configuration details:**
-
-- **Container name**: `oracle`
-- **Port**: `9004:1521` (external:internal)
-- **JDBC URL format**: `jdbc:oracle:thin:@//oracle:1521/`
-- **Spring profile**: `oracle`
-- **Hibernate dialect**: `org.hibernate.dialect.OracleDialect`
-
-#### Switching Between Databases
-
-1. Stop all services:
-
-   ```bash
-   docker compose down
-   ```
-
-2. Copy a different profile to `.env` and start:
-
-   ```bash
-   cp profiles/oracle.env .env
-   docker compose up -d
-   ```
-
-   Or update `SITMUN_DB_PROFILE` and `COMPOSE_PROFILES` in your `.env` file and run `docker compose up -d`.
-
-3. Database migrations (Liquibase) run automatically on backend startup.
-
-#### External Database
-
-For an external database not managed by Docker Compose:
-
-1. Set the required variables in `.env` (no template file is provided; see the variables below):
-
-   ```env
-   COMPOSE_PROFILES=
-   SPRING_PROFILES_ACTIVE=postgres
-   DATABASE_URL=jdbc:postgresql://your-host:5432/
-   DATABASE=sitmun3
-   DATABASE_USERNAME=sitmun3
-   DATABASE_PASSWORD=sitmun3
-   SITMUN_USER_SECRET=<32+ char random value>
-   MIDDLEWARE_SECRET=<32+ char random value>
-   SITMUN_MBTILES_JOB_HANDLE_SECRET=<32+ char random value>
-   ```
-
-2. Start services without a database container:
-
-   ```bash
-   docker compose up -d front backend proxy
-   ```
-
-   The `front backend proxy` arguments are required because `depends_on` references the database service, which is not started. This selectively starts only the application services.
-
-Or set variables directly in `.env`:
-
-```env
-SITMUN_PROFILE=development
-SITMUN_DB_PROFILE=postgres       # or oracle
-# COMPOSE_PROFILES is omitted -- no database container starts
-DATABASE_URL=jdbc:postgresql://your-host:5432/
-DATABASE=your_database
-DATABASE_USERNAME=your_username
-DATABASE_PASSWORD=your_password
-```
-
-Then: `docker compose up -d front backend proxy`
-
-#### Example Demo Database (Optional)
-
-An optional demo database with geospatial datasets is available for testing. It runs on port `9005` and includes UNESCO heritage sites, web publications, and materials management data from `profiles/development/demo-data/`.
-
-Development profiles do **not** enable it by default. Opt in by adding the Compose profile `demo` (`,dev` is a deprecated alias that still works):
-
-```bash
-# In .env (PostgreSQL)
-COMPOSE_PROFILES=postgres,demo
-
-# Or temporarily:
-COMPOSE_PROFILES=postgres,demo docker compose up -d
-
-# Oracle:
-# COMPOSE_PROFILES=oracle,demo
-```
-
-Tourism/demo tasks that use JDBC `jdbc:postgresql://example/example` need this container. The main SITMUN database still starts without it. Credentials: `example`/`example` (read-only role `example_reader`/`example_reader`).
-
-#### MBTiles (Optional)
-
-The MBTiles service supports edition-mobile offline tile export through proxy middleware. It is internal to the Compose network (no host port); nginx returns `404` for public `/mbtiles`.
-
-Development profiles do **not** enable it by default. Opt in with `,mbtiles`:
-
-```bash
-# In .env
-COMPOSE_PROFILES=postgres,mbtiles
-
-# With example demo DB as well:
-# COMPOSE_PROFILES=postgres,demo,mbtiles
-```
-
-Admin, viewer, and normal WMS/WFS proxy flows work without it. Root Playwright mobile suites start MBTiles via `npm run e2e:mbtiles` (Gradle on port 18084), not this Compose service.
-
-### Application Configuration
-
-#### Frontend Configuration
-
-Admin `environment.ts` uses `apiBaseURL`. Viewer `environment.ts` uses `apiUrl` and `hashLocationStrategy`. Viewer `hashLocationStrategy` is `false` in `environment.ts` and `true` in `environment.prod.ts`. The production configuration is the only Docker build that compiles `environment.prod.ts`.
-
-#### Backend Configuration
-
-```yaml
-# Spring Boot application configuration
-spring:
-  profiles:
-    active: ${SPRING_PROFILES_ACTIVE:dev}
-  datasource:
-    url: ${DATABASE_URL}${DATABASE}
-    username: ${DATABASE_USERNAME}
-    password: ${DATABASE_PASSWORD}
-
-sitmun:
-  user:
-    secret: ${SITMUN_USER_SECRET}
-    token-validity-in-milliseconds: 36000000
-  proxy-middleware:
-    secret: ${SITMUN_PROXY_MIDDLEWARE_SECRET}
-```
+Backend properties: `sitmun-backend/src/main/resources/application.yml`. User and proxy token lifetime there is `900000` milliseconds. The mounted profile under `profiles/${SITMUN_CONFIG_DIR}` supplies the database dialect and Liquibase changelog.
 
 ## Services
 
-### Available Services
+With `PUBLIC_BASE_PATH=/` and nginx on port 9000:
 
-When the `BASE_URL` is `http://localhost:9000/`, the following services are available:
+| Path | Upstream |
+| --- | --- |
+| `/viewer/` | Viewer static files |
+| `/admin/` | Admin static files |
+| `/backend/` | `backend:8080` |
+| `/middleware/` | `proxy:8080` (prefix stripped) |
+| `/mbtiles` | 404 |
 
-| Application            | URL                     | Description              | Authentication |
-| ---------------------- | ----------------------- | ------------------------ | -------------- |
-| **Viewer Application** | `${BASE_URL}viewer`     | Interactive map viewer   | Optional       |
-| **Admin Application**  | `${BASE_URL}admin`      | Administrative interface | Required       |
-| **Backend API**        | `${BASE_URL}backend`    | Core REST API            | JWT Token      |
-| **Proxy Middleware**   | `${BASE_URL}middleware` | Proxy services           | JWT Token      |
-
-### Service Endpoints
-
-#### Backend Core API
-
-- **Health Check**: `http://localhost:9001/api/dashboard/health`
-- **Authentication**: `http://localhost:9001/api/authenticate`
-- **User Management**: `http://localhost:9001/api/account`
-- **Application Config**: `http://localhost:9001/api/config/client/application`
-- **API Documentation**: `http://localhost:9001/swagger-ui/index.html`
-
-#### Proxy Middleware API
-
-- **Health Check**: `http://localhost:9002/actuator/health`
-- **Proxy Configuration**: `http://localhost:9002/api/config/proxy`
-- **Service Proxy**: `http://localhost:9002/api/proxy/*`
-
-### Service Dependencies
+Direct host ports: backend `9001`, proxy `9002`, PostgreSQL `9003`, Oracle `9004`, example database `9005`.
 
 ```text
-Viewer App ──┐
-             ├── Backend Core ── Database
-Admin App ───┘
-             └── Proxy Middleware ── External Services
+Viewer ──┐
+         ├── Backend ── Database
+Admin ───┘
+         └── Proxy ── upstream WMS/WMTS/WFS, SQL, API
 ```
 
 ## Development
 
 ### End-to-end tests
 
-Root Playwright tests exercise the admin and viewer apps against backend-core on in-memory H2 (no Docker Compose). Viewer suite also starts proxy middleware and a local secured WMS stub. Mobile web suite covers edition Bearer login, proxy-token exchange, and authenticated MBTiles through middleware (no public `/mbtiles`). Details: [e2e/README.md](e2e/README.md).
+Root Playwright runs admin and viewer against backend-core on in-memory H2. No Docker Compose. Coverage: [e2e/README.md](e2e/README.md).
+
+`pnpm run e2e`, `pnpm run e2e:viewer`, `pnpm run e2e:mia-cross`, `pnpm run e2e:application-contact`, and `pnpm run e2e:mobile:web` share port 18080. Run one at a time.
 
 ```bash
-# prerequisites: Java 17, Node ≥ 24.22.0 (mobile Android E2E needs Node 22)
-# admin: cd sitmun-admin && npm ci
-# viewer: cd sitmun-viewer && npm ci
-npm ci
-npm run e2e:install
-npm run e2e
-npm run e2e:viewer
-npm run e2e:mobile:web
-# optional Android emulator + Maestro (requires ANDROID_HOME, adb, Maestro)
-# npm run e2e:mobile:android
+pnpm ci
+pnpm run e2e:install
+pnpm run e2e
 ```
 
-Owned ports: admin `4300`, viewer `4400`, backend `18080`, proxy `18082`, WMS stub `18093`. Mobile adds gateway `18081`, MBTiles `18084`, WMTS stub `18094`.
+Install admin and viewer dependencies from those directories (`pnpm ci`) before the browser suites. Optional Android emulator flow: `pnpm run e2e:mobile:android` (see `e2e/README.md`).
 
-### Project Structure
+### Apps and backend
 
-Source for every component is in this repository:
+```bash
+cd sitmun-admin
+pnpm ci
+pnpm start
 
-| Directory | Docker service | Technology |
+cd sitmun-viewer
+pnpm ci
+pnpm start
+```
+
+`pnpm start` is `ng serve` with the `development` configuration. From `sitmun-mobile/sitmun-edition` or `sitmun-mobile/sitmun-touristic`: `pnpm ci` and `pnpm start`.
+
+```bash
+./gradlew :sitmun-backend:bootRun
+
+# repository root; proxy dev profile is sitmun-proxy/src/main/resources/application-dev.yml
+./gradlew :sitmun-proxy:bootRun --args='--spring.profiles.active=dev'
+```
+
+Backend has no `application-dev.yml`. Supply `SITMUN_USER_SECRET`, `SITMUN_PROXY_MIDDLEWARE_SECRET`, and a datasource. The H2 arguments used by Playwright are in `scripts/e2e-backend.mjs`.
+
+### Checks
+
+```bash
+cd sitmun-admin && pnpm run lint && pnpm test
+cd sitmun-viewer && pnpm run lint && pnpm test
+
+./gradlew :sitmun-backend:test :sitmun-backend:spotlessCheck
+
+# repository root
+./gradlew :sitmun-proxy:test :sitmun-proxy:spotlessCheck
+./gradlew :sitmun-mbtiles:test :sitmun-mbtiles:spotlessCheck
+```
+
+Rebuild one Compose service:
+
+```bash
+docker compose build service_name
+docker compose up service_name -d
+```
+
+## API
+
+Swagger UI: http://localhost:9001/swagger-ui/index.html
+
+OpenAPI files: `sitmun-backend/src/main/resources/static/v3/`.
+
+Actuator on the backend exposes `health` and `info` at `/api/dashboard` (`GET /api/dashboard/health`, `GET /api/dashboard/info`). `metrics` is not in that include list.
+
+| Method | Path | Role |
 | --- | --- | --- |
-| `sitmun-admin` | `front` | Angular 22, TypeScript |
-| `sitmun-viewer` | `front` | Angular 22, TypeScript |
-| `sitmun-mobile/sitmun-touristic` | — | Ionic/Angular, Capacitor |
-| `sitmun-mobile/sitmun-edition` | — | Ionic/Angular, Capacitor |
-| `sitmun-backend` | `backend` | Spring Boot 4, Java 17 |
-| `sitmun-proxy` | `proxy` | Spring Boot 4, Java 17 |
-| `sitmun-addons/sitmun-mbtiles` | `mbtiles` (internal) | Spring Boot 4, Java 17 |
-| `sitmun-common` | — | Java 17 library |
-
-Image definitions live under `docker/`. The Compose file is `compose.yaml`.
-
-### Profile-Based Development Environments
-
-The stack includes minimum viable database profiles for rapid backend + database bootstrapping:
-
-```text
-profiles/
-  development/
-    backend/           # Backend Spring config (application.yml, Liquibase migrations)
-    proxy/             # Proxy Spring config
-  oracle/              # Oracle Liquibase and backend config, mounted by the root Compose file
-  postgres/            # PostgreSQL Liquibase and backend config, mounted by the root Compose file
-```
-
-PostgreSQL and Oracle start from the repository root. Copy the profile, append the three secrets when they are absent, then start the root Compose file. `SITMUN_CONFIG_DIR` mounts `profiles/postgres` or `profiles/oracle`.
-
-```bash
-cp profiles/postgres.env .env
-echo "SITMUN_USER_SECRET=$(openssl rand -hex 32)" >> .env
-echo "MIDDLEWARE_SECRET=$(openssl rand -hex 32)" >> .env
-echo "SITMUN_MBTILES_JOB_HANDLE_SECRET=$(openssl rand -hex 32)" >> .env
-docker compose up -d
-
-cp profiles/oracle.env .env
-echo "SITMUN_USER_SECRET=$(openssl rand -hex 32)" >> .env
-echo "MIDDLEWARE_SECRET=$(openssl rand -hex 32)" >> .env
-echo "SITMUN_MBTILES_JOB_HANDLE_SECRET=$(openssl rand -hex 32)" >> .env
-docker compose up -d
-```
-
-### Development Workflow
-
-1. **Update `dev`**
-
-   ```bash
-   git fetch origin dev
-   git checkout dev
-   git pull
-   ```
-
-2. **Rebuild and Restart Services**
-
-   ```bash
-   # Rebuild specific service
-   docker compose build --no-cache service_name
-   docker compose up service_name -d
-
-   # Rebuild all services
-   docker compose build --no-cache
-   docker compose up -d
-   ```
-
-### Individual Component Development
-
-#### Frontend Development (Angular)
-
-```bash
-# Navigate to admin app
-cd sitmun-admin
-npm ci
-npm start
-
-# Navigate to viewer app
-cd sitmun-viewer
-npm ci
-npm start
-```
-
-#### Backend Development (Spring Boot)
-
-```bash
-# Navigate to backend core
-cd sitmun-backend
-./gradlew bootRun --args='--spring.profiles.active=dev'
-
-# Navigate to proxy middleware
-cd sitmun-proxy
-./gradlew bootRun --args='--spring.profiles.active=dev'
-```
-
-### Frontend Build Configurations
-
-The frontend applications (Admin and Viewer) support three build configurations to cover different use cases:
-
-| Configuration  | Use Case             | API URL                  | Source Maps | Optimization  |
-| -------------- | -------------------- | ------------------------ | ----------- | ------------- |
-| `development`  | Local `ng serve`     | `localhost:9000/backend` | Yes         | No            |
-| `docker-dev`   | Docker debugging     | `localhost:9000/backend` (`environment.ts`) | Yes         | No            |
-| `production`   | Docker production    | Template-based           | No          | Yes           |
-
-#### Local Development
-
-For local development using `ng serve`, the `development` configuration uses `environment.ts` which points to the local docker-compose stack:
-
-```bash
-# Admin app
-cd sitmun-admin
-npm install
-npm start  # Uses development configuration
-
-# Viewer app
-cd sitmun-viewer
-npm install
-npm start  # Uses development configuration
-```
-
-The API URL is set to `http://localhost:9000/backend` (the docker-compose stack backend).
-
-#### Docker Production Build
-
-For production Docker builds, the `production` configuration is used by default:
-
-```bash
-# Build production Docker image (default)
-docker compose build front
-```
-
-This creates optimized builds without source maps, using the `environment.prod.ts.template` which injects the API URL via `envsubst` at build time.
-
-#### Docker Development Build (Debugging)
-
-For debugging issues in a Docker environment, use the `docker-dev` configuration which includes source maps:
-
-```bash
-# Build Docker image with source maps for debugging
-ENVIRONMENT=development docker compose build front
-```
-
-This creates unoptimized builds with source maps. `docker-dev` has no `fileReplacements` entry, so the image compiles `environment.ts` and calls `http://localhost:9000/backend`. The envsubst output in `environment.prod.ts` is compiled only by the production configuration.
-
-#### Environment Files
-
-```text
-docker/front/
-├── admin/environment.prod.ts.template
-└── viewer/environment.prod.ts.template
-sitmun-admin/src/environments/
-├── environment.ts
-└── environment.prod.ts
-sitmun-viewer/src/environments/
-├── environment.ts
-└── environment.prod.ts
-```
-
-### Code Quality
-
-```bash
-# Frontend quality checks
-cd sitmun-admin
-npm run lint
-npm test
-
-cd sitmun-viewer
-npm run lint
-npm test
-
-# Backend quality checks
-cd sitmun-backend
-./gradlew test
-./gradlew spotlessCheck
-
-cd sitmun-proxy
-./gradlew test
-./gradlew spotlessCheck
-```
-
-## API Documentation
-
-### Backend Core API Reference
-
-The SITMUN Backend Core provides comprehensive REST API functionality:
-
-#### Authentication Endpoints
-
-```http
-POST /api/authenticate
-Content-Type: application/json
-{
-  "username": "admin",
-  "password": "admin"
-}
-
-GET /api/account
-Cookie: access_token=<jwt-token>
-
-POST /api/authenticate/logout
-Cookie: access_token=<jwt-token>
-```
-
-#### User Management Endpoints
-
-```http
-GET /api/account/all
-GET /api/account/{id}
-GET /api/account/public/{id}
-POST /api/user-verification/verify-password
-POST /api/user-verification/verify-email
-POST /api/recover-password
-GET /api/userTokenValid
-```
-
-#### Configuration Endpoints
-
-```http
-GET /api/config/client/application
-GET /api/config/client/territory
-GET /api/config/client/profile/{appId}/{territoryId}
-POST /api/config/proxy
-```
-
-#### Health and Monitoring
-
-```http
-GET /api/dashboard/health
-GET /api/dashboard/info
-GET /api/dashboard/metrics
-```
-
-### Proxy Middleware API Reference
-
-The SITMUN Proxy Middleware provides secure proxy functionality:
-
-#### Proxy Endpoints
-
-```http
-GET /actuator/health
-POST /api/config/proxy
-GET /api/proxy/{service-type}/{service-id}
-```
-
-#### Service Types Supported
-
-- **WMS**: Web Map Service proxy
-- **WFS**: Web Feature Service proxy
-- **WMTS**: Web Map Tile Service proxy
-- **JDBC**: Database connection proxy
-- **Custom**: Custom service proxy
-
-### API Documentation Access
-
-- **Backend Core Swagger**: [http://localhost:9001/swagger-ui/index.html](http://localhost:9001/swagger-ui/index.html)
-- **Proxy Middleware**: Available through backend configuration endpoints
-- **OpenAPI Specification**: Available in `/static/v3/` directory
+| `POST` | `/api/authenticate` | Viewer login. Sets cookie `viewer_access_token`. |
+| `POST` | `/api/authenticate/admin` | Admin login. Sets cookie `admin_access_token`. |
+| `POST` | `/api/authenticate/mobile` | Edition login. JSON `access_token`. |
+| `POST` | `/api/authenticate/logout` | Clears the session cookie. |
+| `GET` | `/api/account` | Current account. |
+| `GET` | `/api/config/client/application` | Client applications. |
+| `GET` | `/api/config/client/territory` | Client territories. |
+| `GET` | `/api/config/client/profile/{appId}/{territoryId}` | Client profile. |
+| `POST` | `/api/config/proxy` | Proxy configuration. Backend, not the proxy process. |
+
+The legacy cookie name `access_token` is deprecated.
+
+Proxy process, on port 9002 or under `/middleware/` after nginx strips that prefix:
+
+| Method | Path |
+| --- | --- |
+| `GET` | `/actuator/health` |
+| `GET`, `POST` | `/proxy/{appId}/{terId}/{type}/{typeId}` |
+
+`ProxyMiddlewareConstants` types: `WMS`, `WMTS`, `SQL`, `API`. Backend cartography service types: `WMS`, `WMTS`, `WFS`.
 
 ## Security
 
-### Authentication and Authorization
+Authentication in this tree is username/password, LDAP when the `ldap` profile is active, and OIDC when the `oidc` profile is active. Browser sessions use the cookies above. `WebSecurityConfigurer.corsConfigurationSource()` allows credentials, all headers, methods `OPTIONS`, `GET`, `POST`, `PUT`, and `DELETE`, and `allowedOriginPattern("*")`.
 
-- **JWT Tokens**: Secure token-based authentication with configurable expiration
-- **OIDC Authentication**: Multi-provider OpenID Connect support for enterprise single sign-on (new in 1.2.1)
-- **Database Authentication**: Traditional username/password authentication
-- **LDAP Integration**: Enterprise directory service authentication
-- **Role-Based Access Control**: Fine-grained permissions based on user roles and territories
-- **Application Privacy**: Applications can be marked as private to restrict public access
-- **Public User Support**: Anonymous access with appropriate restrictions
-
-### Security Features
-
-```typescript
-// Route protection example
-{
-  path: 'admin',
-  component: AdminComponent,
-  canActivate: [AuthGuard],
-  data: { roles: ['ADMIN'] }
-}
-
-// HTTP interceptor for token handling
-@Injectable()
-export class AuthInterceptor implements HttpInterceptor {
-  intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
-    const token = this.authService.getToken();
-    if (token) {
-      req = req.clone({
-        setHeaders: { Authorization: `Bearer ${token}` }
-      });
-    }
-    return next.handle(req);
-  }
-}
-```
-
-### Security Configuration
-
-#### Secrets
-
-Three secrets must be provided, each at least 32 characters:
-
-```env
-# .env file
-SITMUN_USER_SECRET=<32+ char random value>   # backend JWT signing secret
-MIDDLEWARE_SECRET=<32+ char random value>     # shared backend <-> proxy secret
-SITMUN_MBTILES_JOB_HANDLE_SECRET=<32+ char random value> # proxy MBTiles job handle
-```
-
-```bash
-# Generate secure random values
-openssl rand -hex 32
-```
-
-**IMPORTANT for production**:
-
-- `MIDDLEWARE_SECRET` is injected into the backend as `SITMUN_PROXY_MIDDLEWARE_SECRET` and into the proxy as `SITMUN_BACKEND_CONFIG_SECRET`; both sides must share the same value.
-- `SITMUN_USER_SECRET` signs user JWTs and is backend-only.
-- `SITMUN_MBTILES_JOB_HANDLE_SECRET` is the proxy job-handle secret.
-- Startup is fail-fast: `SecuritySecretValidator` (backend) and `ProxySecretValidator` (proxy) reject blank or shorter-than-32-character secrets with an `IllegalStateException`, so the service never comes up misconfigured. Root Compose marks `SITMUN_USER_SECRET`, `MIDDLEWARE_SECRET`, and `SITMUN_MBTILES_JOB_HANDLE_SECRET` required and refuses to start without them.
-- Never commit secrets to version control, and never reuse the development defaults.
-
-#### JWT Configuration
-
-```yaml
-sitmun:
-  user:
-    secret: ${SITMUN_USER_SECRET}
-    token-validity-in-milliseconds: 36000000
-  proxy-middleware:
-    secret: ${SITMUN_PROXY_MIDDLEWARE_SECRET}
-```
-
-#### CORS Configuration
-
-Backend CORS is configured in `WebSecurityConfigurer.corsConfigurationSource()`. The current policy allows credentials, all headers, `OPTIONS`, `GET`, `POST`, `PUT`, and `DELETE`, and uses `allowedOriginPattern("*")`.
-
-#### Content Security Policy
-
-```typescript
-// Angular CSP configuration
-{
-  "content_security_policy": {
-    "default-src": ["'self'"],
-    "script-src": ["'self'", "'unsafe-inline'"],
-    "style-src": ["'self'", "'unsafe-inline'"],
-    "img-src": ["'self'", "data:", "https:"],
-    "connect-src": ["'self'", "https:"]
-  }
-}
-```
+Generate secrets with `openssl rand -hex 32`. `SITMUN_USER_SECRET` stays on the backend. `MIDDLEWARE_SECRET` must match on both sides. Do not commit secrets.
 
 ## Troubleshooting
 
-### Common Issues
-
-#### Docker Issues
-
 ```bash
-# Clean up Docker resources
-docker compose down -v
-docker system prune -f
-docker volume prune -f
-
-# Check service logs
-docker compose logs service_name
-docker compose logs -f service_name
-```
-
-#### Database Connection Issues
-
-**Check database container status:**
-
-```bash
-# Check if database container is running
-docker compose ps postgres  # For PostgreSQL
-docker compose ps oracle    # For Oracle
-
-# Check database logs
-docker compose logs postgres
-docker compose logs oracle
-```
-
-**Verify database connectivity from backend:**
-
-```bash
-# Test network connectivity
-docker compose exec backend ping postgres  # For PostgreSQL
-docker compose exec backend ping oracle   # For Oracle
-
-# Check backend health (includes database connection check)
+docker compose ps
+docker compose logs -f backend
 curl http://localhost:9001/api/dashboard/health
+curl http://localhost:9002/actuator/health
 ```
 
-**PostgreSQL-specific troubleshooting:**
+`SITMUN_CONFIG_DIR`, `SPRING_PROFILES_ACTIVE`, and `COMPOSE_PROFILES` have to name the same database. PostgreSQL JDBC prefix: `jdbc:postgresql://postgres:5432/`. Oracle: `jdbc:oracle:thin:@//oracle:1521/`. Host ports 9003 and 9004 must be free.
 
 ```bash
-# Connect to PostgreSQL container
-docker compose exec -it postgres psql -U sitmun3 -d sitmun3
-
-# Check PostgreSQL logs
-docker compose logs postgres | grep -i error
-
-# Verify PostgreSQL is accepting connections
 docker compose exec postgres pg_isready -U sitmun3
+docker compose exec -it postgres psql -U sitmun3 -d sitmun3
 ```
 
-**Oracle-specific troubleshooting:**
+Admin login (cookie `admin_access_token`):
 
 ```bash
-# Oracle takes 60+ seconds to start on first run
-docker compose logs -f oracle
-# Wait for "DATABASE IS READY TO USE!" message
-
-# Connect to Oracle container
-docker compose exec -it oracle sqlplus sitmun3/sitmun3@//localhost:1521/sitmun3
-
-# Check Oracle logs
-docker compose logs oracle | grep -i error
-
-# Verify Oracle is ready (may take time)
-docker compose exec oracle sqlplus -L sitmun3/sitmun3@//localhost:1521/sitmun3 -c "SELECT 1 FROM DUAL;"
-```
-
-**Common database configuration errors:**
-
-- **Wrong profile configuration**: Ensure `SITMUN_DB_PROFILE` and `COMPOSE_PROFILES` agree on the database type (both `postgres` or both `oracle`)
-- **Incorrect DATABASE_URL format**:
-  - PostgreSQL: `jdbc:postgresql://postgres:5432/`
-  - Oracle: `jdbc:oracle:thin:@//oracle:1521/`
-- **Database not ready**: Wait for health checks to pass before starting backend
-- **Port conflicts**: Check if ports 9003 (PostgreSQL) or 9004 (Oracle) are already in use
-
-#### Authentication Issues
-
-```bash
-# Check the authenticated account using a saved login cookie
-curl -b cookies.txt http://localhost:9001/api/account
-
-# Verify user credentials
-curl -X POST http://localhost:9001/api/authenticate \
+curl -X POST http://localhost:9001/api/authenticate/admin \
   -c cookies.txt \
   -H "Content-Type: application/json" \
   -d '{"username":"admin","password":"admin"}'
+curl -b cookies.txt http://localhost:9001/api/account
 ```
 
-#### Frontend Build Issues
+Reinstall an app from that app directory: `rm -rf node_modules && pnpm ci`. Node must match `.nvmrc`. Java must match `.java-version`. Backend clean: `./gradlew :sitmun-backend:clean`. Proxy clean: `./gradlew :sitmun-proxy:clean`.
 
-```bash
-# Clear npm cache
-npm cache clean --force
-
-# Reinstall dependencies
-rm -rf node_modules package-lock.json
-npm ci
-
-# Check Node.js version
-node --version  # Should be 24.22.0 or higher (Node 22 for mobile Android E2E)
-```
-
-#### Backend Build Issues
-
-```bash
-# Clean Gradle cache
-./gradlew clean
-
-# Check Java version
-java --version  # Should be 17 or higher
-
-# Run with debug logging
-./gradlew bootRun --args='--spring.profiles.active=dev --logging.level.org.sitmun=DEBUG'
-```
-
-### Debug Mode
-
-#### Enable Debug Logging
-
-```bash
-# Backend debug logging
-export LOGGING_LEVEL_ORG_SITMUN=DEBUG
-export LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY=DEBUG
-
-# Restart services
-docker compose restart backend proxy
-```
-
-#### Frontend Debug Mode
-
-```bash
-# Angular debug mode
-ng serve --configuration=development --verbose
-
-# Check browser console for errors
-# Enable source maps in browser dev tools
-```
-
-### Performance Issues
-
-#### Memory Issues
-
-```bash
-# Increase Docker memory limits
-docker compose down
-docker system prune -f
-docker compose up -d
-
-# Increase Java heap size
-export JAVA_OPTS="-Xmx4g -Xms2g"
-```
-
-#### Database Performance
-
-```bash
-# Check database performance
-docker compose exec postgres psql -U sitmun3 -d sitmun3 -c "SELECT * FROM pg_stat_activity;"
-
-# Optimize database queries
-# Check database indexes
-# Monitor slow queries
-```
+`LOGGING_LEVEL_ORG_SITMUN` is passed through Compose (default `DEBUG`). Set it in `.env` and run `docker compose up -d backend proxy`.
 
 ## Contributing
 
-### Development Guidelines
+[CONTRIBUTING.md](CONTRIBUTING.md).
 
-1. **Fork the repository** and create a feature branch
-2. **Follow coding standards**:
-   - Angular: Follow Angular style guide and use conventional commits
-   - Spring Boot: Follow Spring Boot best practices and use conventional commits
-   - Use functional code with complete but terse documentation
-3. **Write tests** for new functionality
-4. **Update documentation** as needed
-5. **Ensure quality checks pass**:
+Issues: https://github.com/sitmun/sitmun/issues
 
-   ```bash
-   # Frontend
-   npm run lint
-   npm test
-   npm run build -- --configuration=production
-
-   # Backend
-   ./gradlew test
-   ./gradlew spotlessCheck
-   ./gradlew build
-   ```
-
-6. **Submit a pull request** with a clear description
-
-### Conventional Commits
-
-We use [Conventional Commits](https://conventionalcommits.org/) for commit messages:
-
-```bash
-# Examples
-git commit -m "feat(auth): add LDAP authentication support"
-git commit -m "fix(api): resolve JWT token validation issue"
-git commit -m "docs(readme): update installation instructions"
-git commit -m "test(components): add unit tests for user component"
-git commit -m "style(formatting): apply prettier formatting"
-```
-
-**Types:**
-
-- `feat`: New feature
-- `fix`: Bug fix
-- `docs`: Documentation changes
-- `style`: Code style changes
-- `refactor`: Code refactoring
-- `test`: Adding or updating tests
-- `chore`: Maintenance tasks
-- `perf`: Performance improvements
-- `ci`: CI/CD changes
-- `build`: Build system changes
-
-### Code Review Process
-
-1. **Automated checks**: `ci-gate` must be green
-2. **Code review**: a `tech-com` code owner must approve
-3. **Testing**: tests for the change must pass
-4. **Documentation**: update docs for new features
-
-## Support
-
-### Getting Help
-
-- **Documentation**: module README files in this repository
-- **Issues**: [GitHub Issues](https://github.com/sitmun/sitmun/issues)
-
-### Reporting Issues
-
-When reporting issues, please include:
-
-1. **Environment**: OS, Docker version, Node.js version, Java version
-2. **Steps to reproduce**: Clear step-by-step instructions
-3. **Expected behavior**: What should happen
-4. **Actual behavior**: What actually happens
-5. **Screenshots**: If applicable
-6. **Logs**: Docker logs, browser console errors, application logs
-7. **Configuration**: Relevant environment variables and configuration files
-
-### Community Resources
-
-- **SITMUN Documentation**: [https://sitmun.github.io/](https://sitmun.github.io/)
-- **SITMUN Organization**: [https://github.com/sitmun](https://github.com/sitmun)
-- **SonarCloud dashboards**:
-  - [Backend Core](https://sonarcloud.io/dashboard?id=org.sitmun%3Asitmun-backend-core)
-  - [Admin App](https://sonarcloud.io/dashboard?id=org.sitmun%3Asitmun-admin-app)
-  - [Proxy Middleware](https://sonarcloud.io/dashboard?id=org.sitmun%3Asitmun-proxy-middleware)
+Admin SonarCloud project key `org.sitmun:sitmun-admin-app`: https://sonarcloud.io/dashboard?id=org.sitmun%3Asitmun-admin-app
 
 ## License
 
-This project is licensed under the **European Union Public Licence V. 1.2** (EUPL-1.2). The EUPL is a copyleft open-source license compatible with major open-source licenses including GPL, AGPL, MPL, and others. See the [LICENSE](LICENSE) file for the full license text.
-
-### License Compatibility
-
-The EUPL v1.2 is compatible with:
-
-- GNU General Public License (GPL) v2, v3
-- GNU Affero General Public License (AGPL) v3
-- Mozilla Public License (MPL) v2
-- Eclipse Public License (EPL) v1.0
-- And many others
-
----
-
-## Related Projects and Links
-
-SITMUN is an open-source platform for territorial information management, designed to help organizations manage geographical data, services, and applications effectively.
-
-**Related Projects:**
-
-- [SITMUN](https://github.com/sitmun/sitmun) — admin, viewer, backend, proxy, and mobile apps in one repository
-
-**Technology Stack:**
-
-- Frontend: Angular 22, TypeScript, Angular Material, SITNA Library
-- Backend: Spring Boot 4, Java 17, PostgreSQL/Oracle/H2
-- Infrastructure: Docker, Docker Compose
-- Quality: GitHub Actions `ci-gate`, Conventional Commits
-
-For more information, visit the [SITMUN organization](https://github.com/sitmun) on GitHub.
+European Union Public Licence v1.2. See [LICENSE](LICENSE).

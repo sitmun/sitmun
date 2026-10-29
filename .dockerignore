@@ -51,7 +51,7 @@ __pycache__/
 *$py.class
 *.pyc
 
-# Dependencies (exclude installed trees, keep package.json and package-lock.json)
+# Dependencies (exclude installed trees, keep package.json and pnpm-lock.yaml)
 node_modules/
 **/node_modules/
 **/build/
@@ -62,7 +62,7 @@ sitmun-mobile/
 e2e/
 
 # Keep these files (DO NOT exclude):
-# package.json, package-lock.json (frontend)
+# package.json, pnpm-lock.yaml (frontend)
 # build.gradle, settings.gradle, gradle.properties (backend)
 # gradlew, gradle/ (backend)
 # src/ (source code)

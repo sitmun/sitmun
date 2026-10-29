@@ -7,6 +7,7 @@ import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
 import org.sitmun.infrastructure.config.Profiles;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.info.BuildProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
@@ -27,9 +28,9 @@ public class OpenApiConfigurer {
   private final String apiVersion;
 
   public OpenApiConfigurer(
-      @Value("${sitmun.module}") String moduleName, @Value("${sitmun.version}") String apiVersion) {
+      @Value("${sitmun.module}") String moduleName, BuildProperties buildProperties) {
     this.moduleName = moduleName;
-    this.apiVersion = apiVersion;
+    this.apiVersion = buildProperties.getVersion();
   }
 
   /**

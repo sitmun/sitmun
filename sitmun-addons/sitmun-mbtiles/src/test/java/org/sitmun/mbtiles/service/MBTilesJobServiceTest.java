@@ -30,15 +30,15 @@ import org.springframework.batch.core.BatchStatus;
 import org.springframework.batch.core.job.Job;
 import org.springframework.batch.core.job.JobExecution;
 import org.springframework.batch.core.job.parameters.JobParameters;
-import org.springframework.batch.core.launch.JobLauncher;
-import org.springframework.batch.core.repository.explore.JobExplorer;
+import org.springframework.batch.core.launch.JobOperator;
+import org.springframework.batch.core.repository.JobRepository;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("MBTilesJobService Tests")
 class MBTilesJobServiceTest {
 
-  @Mock private JobLauncher jobLauncher;
-  @Mock private JobExplorer jobExplorer;
+  @Mock private JobOperator jobOperator;
+  @Mock private JobRepository jobRepository;
   @Mock private Job mbTilesJob;
   @Mock private MBTilesProgressService mbTilesProgressService;
   @Mock private TemporaryFileService temporaryFileService;
@@ -49,7 +49,7 @@ class MBTilesJobServiceTest {
   void setUp() {
     mbTilesJobService =
         new MBTilesJobService(
-            jobLauncher, jobExplorer, mbTilesJob, mbTilesProgressService, temporaryFileService);
+            jobOperator, jobRepository, mbTilesJob, mbTilesProgressService, temporaryFileService);
   }
 
   @Test
@@ -62,7 +62,7 @@ class MBTilesJobServiceTest {
 
     Path mockTempFile = Path.of("/tmp/test-file.mbtiles");
     when(temporaryFileService.createUniqueTempFile("mbtiles")).thenReturn(mockTempFile);
-    when(jobLauncher.run(eq(mbTilesJob), any(JobParameters.class))).thenReturn(jobExecution);
+    when(jobOperator.start(eq(mbTilesJob), any(JobParameters.class))).thenReturn(jobExecution);
 
     // When
     Long jobId = mbTilesJobService.startJob(tileRequest);
@@ -77,7 +77,7 @@ class MBTilesJobServiceTest {
     TileRequestDto tileRequest = createSampleTileRequest();
     Path mockTempFile = Path.of("/tmp/test-file.mbtiles");
     when(temporaryFileService.createUniqueTempFile("mbtiles")).thenReturn(mockTempFile);
-    when(jobLauncher.run(eq(mbTilesJob), any(JobParameters.class)))
+    when(jobOperator.start(eq(mbTilesJob), any(JobParameters.class)))
         .thenThrow(new IllegalArgumentException("launcher failed"));
 
     assertThatThrownBy(() -> mbTilesJobService.startJob(tileRequest))
@@ -91,7 +91,7 @@ class MBTilesJobServiceTest {
     long jobId = 123L;
     JobExecution jobExecution = mock(JobExecution.class);
 
-    when(jobExplorer.getJobExecution(jobId)).thenReturn(jobExecution);
+    when(jobRepository.getJobExecution(jobId)).thenReturn(jobExecution);
 
     // Test STARTED status
     when(jobExecution.getStatus()).thenReturn(BatchStatus.STARTED);
@@ -113,7 +113,7 @@ class MBTilesJobServiceTest {
     MBTilesProgressDto progressDto =
         MBTilesProgressDto.builder().totalTiles(1000L).processedTiles(500L).build();
 
-    when(jobExplorer.getJobExecution(jobId)).thenReturn(jobExecution);
+    when(jobRepository.getJobExecution(jobId)).thenReturn(jobExecution);
     when(jobExecution.getStatus()).thenReturn(BatchStatus.COMPLETED);
     when(mbTilesProgressService.getJobProgress(jobId)).thenReturn(progressDto);
 
@@ -131,7 +131,7 @@ class MBTilesJobServiceTest {
   void handleMissingJob() {
     // Given
     long jobId = 999L;
-    when(jobExplorer.getJobExecution(jobId)).thenReturn(null);
+    when(jobRepository.getJobExecution(jobId)).thenReturn(null);
 
     // When & Then
     assertThatThrownBy(() -> mbTilesJobService.getJobStatus(jobId))
@@ -147,7 +147,7 @@ class MBTilesJobServiceTest {
     MBTilesProgressDto progressDto =
         MBTilesProgressDto.builder().totalTiles(1000L).processedTiles(500L).build();
 
-    when(jobExplorer.getJobExecution(jobId)).thenReturn(jobExecution);
+    when(jobRepository.getJobExecution(jobId)).thenReturn(jobExecution);
     when(jobExecution.getStatus()).thenReturn(BatchStatus.FAILED);
     when(mbTilesProgressService.getJobProgress(jobId)).thenReturn(progressDto);
 
@@ -173,7 +173,7 @@ class MBTilesJobServiceTest {
     when(jobExecution.getStatus()).thenReturn(BatchStatus.COMPLETED);
     when(jobExecution.getJobParameters()).thenReturn(jobParameters);
     when(jobParameters.getString("outputPath")).thenReturn(tempFile.toString());
-    when(jobExplorer.getJobExecution(jobId)).thenReturn(jobExecution);
+    when(jobRepository.getJobExecution(jobId)).thenReturn(jobExecution);
 
     // When
     ResourceDto response = mbTilesJobService.getMBTilesFile(jobId);
@@ -197,7 +197,7 @@ class MBTilesJobServiceTest {
     when(jobExecution.getStatus()).thenReturn(BatchStatus.COMPLETED);
     when(jobExecution.getJobParameters()).thenReturn(jobParameters);
     when(jobParameters.getString("outputPath")).thenReturn("/nonexistent/file.mbtiles");
-    when(jobExplorer.getJobExecution(jobId)).thenReturn(jobExecution);
+    when(jobRepository.getJobExecution(jobId)).thenReturn(jobExecution);
 
     // When & Then
     assertThatThrownBy(() -> mbTilesJobService.getMBTilesFile(jobId))
@@ -211,7 +211,7 @@ class MBTilesJobServiceTest {
     long jobId = 123L;
     JobExecution jobExecution = mock(JobExecution.class);
 
-    when(jobExplorer.getJobExecution(jobId)).thenReturn(jobExecution);
+    when(jobRepository.getJobExecution(jobId)).thenReturn(jobExecution);
     when(jobExecution.getStatus()).thenReturn(BatchStatus.COMPLETED);
     doThrow(new RuntimeException("Clear progress failed"))
         .when(mbTilesProgressService)
@@ -230,7 +230,7 @@ class MBTilesJobServiceTest {
     long jobId = 123L;
     JobExecution jobExecution = mock(JobExecution.class);
 
-    when(jobExplorer.getJobExecution(jobId)).thenReturn(jobExecution);
+    when(jobRepository.getJobExecution(jobId)).thenReturn(jobExecution);
     when(jobExecution.getStatus()).thenReturn(BatchStatus.COMPLETED);
     when(mbTilesProgressService.getJobProgress(jobId)).thenReturn(null);
 
@@ -250,7 +250,7 @@ class MBTilesJobServiceTest {
     long jobId = 123L;
     JobExecution jobExecution = mock(JobExecution.class);
 
-    when(jobExplorer.getJobExecution(jobId)).thenReturn(jobExecution);
+    when(jobRepository.getJobExecution(jobId)).thenReturn(jobExecution);
     when(jobExecution.getStatus()).thenReturn(BatchStatus.COMPLETED);
     when(mbTilesProgressService.getJobProgress(jobId))
         .thenThrow(new RuntimeException("Get progress failed"));
@@ -270,7 +270,7 @@ class MBTilesJobServiceTest {
     MBTilesProgressDto progressDto =
         MBTilesProgressDto.builder().totalTiles(1000L).processedTiles(500L).build();
 
-    when(jobExplorer.getJobExecution(jobId)).thenReturn(jobExecution);
+    when(jobRepository.getJobExecution(jobId)).thenReturn(jobExecution);
     when(jobExecution.getStatus()).thenReturn(BatchStatus.STARTED);
     when(mbTilesProgressService.getJobProgress(jobId)).thenReturn(progressDto);
 
@@ -295,7 +295,7 @@ class MBTilesJobServiceTest {
     when(jobExecution.getStatus()).thenReturn(BatchStatus.COMPLETED);
     when(jobExecution.getJobParameters()).thenReturn(jobParameters);
     when(jobParameters.getString("outputPath")).thenReturn(null);
-    when(jobExplorer.getJobExecution(jobId)).thenReturn(jobExecution);
+    when(jobRepository.getJobExecution(jobId)).thenReturn(jobExecution);
 
     // When & Then
     assertThatThrownBy(() -> mbTilesJobService.getMBTilesFile(jobId))

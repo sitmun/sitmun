@@ -317,7 +317,7 @@ spring.profiles.active=prod
 - **Debug Logging**: Detailed logging for development (dev profile only)
 - **Automated Quality Checks**: Git hooks for pre-commit validation
 - **Conventional Commits**: Enforced commit message format
-- **Version Management**: Automated versioning with Axion Release
+- **Version**: `project.version` in `build.gradle`
 - **Code Formatting**: Automated code formatting with Spotless
 - **Coverage Reporting**: JaCoCo integration for code coverage
 - **Testing**: Unit and integration tests
@@ -578,7 +578,7 @@ server:
 - **Docker**: Multi-stage containerization with Amazon Corretto
 - **Spotless 7.2.0**: Code formatting with Google Java Format
 - **JaCoCo**: Code coverage reporting
-- **Axion Release 1.19.0**: Version management with semantic versioning
+- **Version**: `project.version` in `build.gradle`
 - **Lombok 8.6**: Reduces boilerplate code
 
 ### System Architecture
@@ -817,7 +817,7 @@ The project uses Gradle with Version Catalogs for dependency management:
 
 - **Version Catalog**: `gradle/libs.versions.toml` - Centralized dependency versions
 - **Packaging**: Configurable JAR or WAR output via `-Ppackaging` property
-- **Plugins**: Spring Boot 3.5.4, Lombok 8.6, Spotless 7.2.0, Axion Release 1.19.0
+- **Plugins**: Spring Boot, Lombok, Spotless, from the root version catalog
 - **Quality Tools**: JaCoCo for coverage, Spotless for formatting
 - **Dependencies**:
   - Spring Boot Starters (Web, JDBC, Actuator)
@@ -833,7 +833,7 @@ Code quality tools:
 
 - **Spotless**: Code formatting with Google Java Format
 - **JaCoCo**: Code coverage reporting
-- **Axion Release**: Version management with semantic versioning
+- **Version**: `project.version` in `build.gradle`
 - **Git Hooks**: Automated quality checks and commit validation
 
 ### Running Quality Checks
@@ -852,57 +852,9 @@ Code quality tools:
 open build/reports/jacoco/test/html/index.html
 ```
 
-### Version Management
+### Version
 
-The project uses Axion Release for automated version management:
-
-```bash
-# Check current version
-./gradlew currentVersion
-
-# Create a new release
-./gradlew release
-
-# Create a new patch version
-./gradlew patch
-```
-
-#### Creating a Release
-
-**Prerequisites:**
-
-1. **Clean Git State**: Ensure all changes are committed
-2. **Working Directory**: No uncommitted changes
-3. **Git Repository**: Must be a valid Git repository
-
-**Step-by-Step Release Process:**
-
-```bash
-# 1. Check current Git status
-git status
-
-# 2. Add and commit any pending changes
-git add .
-git commit -m "docs: update documentation for release"
-
-# 3. Verify the repository is clean
-git status
-
-# 4. Check current version
-./gradlew currentVersion
-
-# 5. Create a new release
-./gradlew release
-
-# 6. Push the release tag
-git push --tags
-```
-
-**Release Types:**
-
-- `./gradlew release`: Creates a new patch version (e.g., 1.0.0 → 1.0.1)
-- `./gradlew release -Prelease.scope=minor`: Creates a new minor version (e.g., 1.0.0 → 1.1.0)
-- `./gradlew release -Prelease.scope=major`: Creates a new major version (e.g., 1.0.0 → 2.0.0)
+The module version is `project.version` in `build.gradle`. Dependencies come from the root `gradle/libs.versions.toml`. Run Gradle from the repository root, for example `./gradlew :sitmun-proxy:test`.
 
 ### Testing
 
@@ -943,21 +895,6 @@ Testing commands:
 
 ### Development Workflow
 
-#### Git Hooks
-
-Git hooks are opt-in via `./gradlew setupGitHooks`. When installed, they run on every commit:
-
-**Pre-commit checks:**
-
-- Code formatting validation (Spotless)
-- Unit and integration tests
-- Code coverage verification
-
-**Commit message validation:**
-
-- Conventional commit format enforcement
-- SITMUN-specific scope support `(proxy)`
-
 #### Commit Message Format
 
 Follow the conventional commit format:
@@ -991,16 +928,6 @@ git commit -m "fix(proxy): resolve authentication token handling"
 git commit -m "docs: update README with proxy configuration info"
 git commit -m "test: add integration tests for proxy requests"
 git commit -m "style: format code with Google Java Format"
-```
-
-#### Managing Git Hooks
-
-```bash
-# Install Git hooks (opt-in)
-./gradlew setupGitHooks
-
-# Remove Git hooks
-./gradlew removeGitHooks
 ```
 
 ## Advanced Features

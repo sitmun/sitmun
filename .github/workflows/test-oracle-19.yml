@@ -1,0 +1,53 @@
+name: Test Oracle 19
+
+on:
+  pull_request:
+    branches: [dev]
+    paths:
+      - 'sitmun-backend/**'
+      - 'profiles/oracle/**'
+      - 'gradle/**'
+      - 'build.gradle'
+      - 'settings.gradle'
+      - 'gradle.properties'
+      - 'tools/tests/test_backend_db_boot.sh'
+      - '.github/workflows/test-oracle-19.yml'
+  workflow_dispatch:
+
+jobs:
+  # gvenzl/oracle-xe:21-slim is amd64 only and stands in for the 19c install.
+  # ORACLE_DATABASE=sitmun3 is set by tools/tests/test_backend_db_boot.sh.
+  test-oracle-19:
+    name: Test Oracle 19
+    # Data REST calls return HTTP 500 and the log has no server exception.
+    if: false
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    env:
+      SITMUN_DB: oracle-19
+      SITMUN_DB_KEEP: "1"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Set up Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version-file: .java-version
+          cache: gradle
+
+      - name: Boot the backend
+        run: bash tools/tests/test_backend_db_boot.sh
+
+      - name: Run backend tests
+        if: ${{ !cancelled() }}
+        run: ./gradlew :sitmun-backend:testOracle19
+
+      - name: Upload test report
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v6
+        with:
+          name: test-oracle-19-report
+          path: sitmun-backend/build/reports/tests/testOracle19
+          retention-days: 7

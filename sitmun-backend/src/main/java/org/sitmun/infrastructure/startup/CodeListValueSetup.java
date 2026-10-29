@@ -12,7 +12,8 @@ import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
 
 @Slf4j
 @Component
@@ -26,19 +27,25 @@ public class CodeListValueSetup implements ApplicationRunner {
   private final StartupCodelistsProperties properties;
   private final CodeListValueRepository repository;
   private final StartupReady startupReady;
+  private final TransactionTemplate transactionTemplate;
 
   public CodeListValueSetup(
       StartupCodelistsProperties properties,
       CodeListValueRepository repository,
-      StartupReady startupReady) {
+      StartupReady startupReady,
+      PlatformTransactionManager transactionManager) {
     this.properties = properties;
     this.repository = repository;
     this.startupReady = startupReady;
+    this.transactionTemplate = new TransactionTemplate(transactionManager);
   }
 
   @Override
-  @Transactional
   public void run(ApplicationArguments args) {
+    transactionTemplate.executeWithoutResult(status -> insertMissingValues());
+  }
+
+  private void insertMissingValues() {
     log.info("Started CodeListValueSetup");
     Map<String, Map<String, CodeListValue>> existingConfiguration = new HashMap<>();
     repository

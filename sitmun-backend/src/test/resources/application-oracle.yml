@@ -6,6 +6,7 @@
 # =====================================================================================================================
 
 spring:
+  test.database.replace: none
   # Oracle Database Configuration
   datasource:
     type: com.zaxxer.hikari.HikariDataSource
@@ -32,7 +33,7 @@ spring:
   jpa:
     hibernate.ddl-auto: validate
     properties.hibernate:
-      dialect: org.hibernate.dialect.OracleDialect
+      dialect: org.sitmun.infrastructure.persistence.dialect.SitmunOracleDialect
       type.preferred_boolean_jdbc_type: SMALLINT
       connection.provider_disables_autocommit: true
 

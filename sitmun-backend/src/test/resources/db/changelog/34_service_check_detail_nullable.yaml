@@ -1,0 +1,20 @@
+databaseChangeLog:
+  - changeSet:
+      id: 34-service-check-sec-detail-nullable-oracle
+      author: sitmun
+      dbms: oracle
+      preConditions:
+        - onFail: MARK_RAN
+        - onError: MARK_RAN
+        - sqlCheck:
+            expectedResult: 1
+            sql: >-
+              SELECT CASE WHEN NULLABLE = 'N' THEN 1 ELSE 0 END
+              FROM USER_TAB_COLUMNS
+              WHERE TABLE_NAME = 'STM_SERVICE_CHECK'
+              AND COLUMN_NAME = 'SEC_DETAIL'
+      changes:
+        - dropNotNullConstraint:
+            tableName: STM_SERVICE_CHECK
+            columnName: SEC_DETAIL
+            columnDataType: VARCHAR2(4000 CHAR)

@@ -5,11 +5,12 @@
     "outDir": "./out-tsc/app",
     "types": []
   },
-  "files": ["src/main.ts", "src/polyfills.ts"],
-  "include": [
-    "src/**/*.d.ts",
-    "node_modules/api-sitna/TC/tool/FeatureHistoryEvent.d.ts"
+  "files": [
+    "src/main.ts",
+    "src/polyfills.ts",
+    "node_modules/.pnpm/api-sitna@4.9.1_@types+node@24.19.2/node_modules/api-sitna/TC/tool/FeatureHistoryEvent.d.ts"
   ],
+  "include": ["src/**/*.d.ts"],
   "exclude": ["**/*.spec.ts"],
   "angularCompilerOptions": {
     "extendedDiagnostics": {

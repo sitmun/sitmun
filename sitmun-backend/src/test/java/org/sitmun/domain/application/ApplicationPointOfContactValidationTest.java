@@ -44,7 +44,8 @@ class ApplicationPointOfContactValidationTest {
     // Insert an app with APP_CREATORID = publicUserId
     jdbcTemplate.update(
         "INSERT INTO STM_APP (APP_ID, APP_NAME, APP_TYPE, APP_PRIVATE, APP_CREATORID) "
-            + "VALUES (99999, 'test-poc', 'I', FALSE, ?)",
+            + "VALUES (99999, 'test-poc', 'I', ?, ?)",
+        false,
         publicUserId);
 
     User publicUser =
@@ -72,7 +73,8 @@ class ApplicationPointOfContactValidationTest {
 
     jdbcTemplate.update(
         "INSERT INTO STM_APP (APP_ID, APP_NAME, APP_TYPE, APP_PRIVATE, APP_CREATORID) "
-            + "VALUES (99998, 'test-poc-2', 'I', FALSE, ?)",
+            + "VALUES (99998, 'test-poc-2', 'I', ?, ?)",
+        false,
         adminId);
 
     // Replace admin (built-in) with a new ordinary user
@@ -101,7 +103,8 @@ class ApplicationPointOfContactValidationTest {
 
     jdbcTemplate.update(
         "INSERT INTO STM_APP (APP_ID, APP_NAME, APP_TYPE, APP_PRIVATE, APP_CREATORID) "
-            + "VALUES (99997, 'test-poc-3', 'I', FALSE, ?)",
+            + "VALUES (99997, 'test-poc-3', 'I', ?, ?)",
+        false,
         adminId);
 
     // Try to set built-in public as new creator (ineligible)

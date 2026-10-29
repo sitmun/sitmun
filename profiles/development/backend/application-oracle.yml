@@ -1,6 +1,6 @@
-# JPA Configuration for Oracle
+# Oracle 19 or newer
 spring:
   jpa:
     properties:
-      hibernate.dialect: org.hibernate.dialect.OracleDialect
+      hibernate.dialect: org.sitmun.infrastructure.persistence.dialect.SitmunOracleDialect
       hibernate.type.preferred_boolean_jdbc_type: INTEGER
