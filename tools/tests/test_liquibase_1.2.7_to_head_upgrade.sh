@@ -561,10 +561,10 @@ run_oracle_from() {
 
   liquibase_ora() {
     local label="$1" changelog_dir="$2"
-    # Oracle 11g rejects the JVM locale during JDBC session setup (ORA-00604 / ORA-12705).
+    # Oracle 11 XE rejects zone regions such as Etc/UTC at session setup (ORA-00604 / ORA-01882).
     local -a liquibase_env=()
     if [[ "${SITMUN_ORACLE_VERSION:-}" == "11" ]]; then
-      liquibase_env=(-e "JAVA_TOOL_OPTIONS=-Duser.language=en -Duser.region=US")
+      liquibase_env=(-e "JAVA_TOOL_OPTIONS=-Doracle.jdbc.timezoneAsRegion=false")
     fi
     echo ""
     echo "── Liquibase: $label ──"

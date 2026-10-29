@@ -2,6 +2,7 @@
 # test_backend_oracle11_boot.sh
 # Boots the backend jar with profile oracle-11 on an empty Oracle XE 11 schema and
 # checks that it serves requests, not only that health is UP.
+# The JVM runs in Etc/UTC, the zone of a GitHub runner, which Oracle 11 XE does not know as a region.
 #
 # Usage:
 #   bash tools/tests/test_backend_oracle11_boot.sh
@@ -95,7 +96,7 @@ SPRING_DATASOURCE_USERNAME="$DB_USER" \
 SPRING_DATASOURCE_PASSWORD="$DB_PASS" \
 SPRING_LIQUIBASE_CHANGE_LOG="file:${REPO_ROOT}/profiles/oracle/liquibase/master.xml" \
 SERVER_PORT="$BACKEND_PORT" \
-  java -jar "$JAR" >"$BACKEND_LOG" 2>&1 &
+  java -Duser.timezone=Etc/UTC -jar "$JAR" >"$BACKEND_LOG" 2>&1 &
 BACKEND_PID=$!
 
 for i in $(seq 1 "$BACKEND_WAIT_TRIES"); do
