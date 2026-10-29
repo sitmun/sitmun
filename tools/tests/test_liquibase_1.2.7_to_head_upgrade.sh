@@ -561,11 +561,17 @@ run_oracle_from() {
 
   liquibase_ora() {
     local label="$1" changelog_dir="$2"
+    # Oracle 11g rejects the JVM locale during JDBC session setup (ORA-00604 / ORA-12705).
+    local -a liquibase_env=()
+    if [[ "${SITMUN_ORACLE_VERSION:-}" == "11" ]]; then
+      liquibase_env=(-e "JAVA_TOOL_OPTIONS=-Duser.language=en -Duser.region=US")
+    fi
     echo ""
     echo "── Liquibase: $label ──"
     set +e
     LB_OUTPUT=$(docker run --rm \
       --network "$NETWORK" \
+      ${liquibase_env[@]+"${liquibase_env[@]}"} \
       -v "$changelog_dir:/liquibase/changelog:ro" \
       liquibase/liquibase:4.29 \
       --url="jdbc:oracle:thin:@//$CONTAINER:1521/$ORACLE_SERVICE" \
