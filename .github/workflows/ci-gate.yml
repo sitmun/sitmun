@@ -11,6 +11,8 @@ on:
   push:
     branches: [main, dev]
   pull_request:
+  merge_group:
+  workflow_dispatch:
 
 jobs:
   changes:
@@ -32,9 +34,13 @@ jobs:
       e2e_mobile_android: ${{ steps.filter.outputs.e2e_mobile_android }}
     steps:
       - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
       - uses: dorny/paths-filter@v3
         id: filter
         with:
+          base: ${{ github.event_name == 'merge_group' && github.event.merge_group.base_sha || github.event_name == 'push' && github.ref_name || '' }}
+          ref: ${{ github.event_name == 'merge_group' && github.event.merge_group.head_sha || '' }}
           filters: |
             admin:
               - 'sitmun-admin/**'
@@ -227,70 +233,70 @@ jobs:
 
   admin:
     needs: changes
-    if: github.event_name == 'push' || needs.changes.outputs.admin == 'true'
+    if: github.event_name == 'workflow_dispatch' || needs.changes.outputs.admin == 'true'
     uses: ./.github/workflows/ci-admin.yml
   viewer:
     needs: changes
-    if: github.event_name == 'push' || needs.changes.outputs.viewer == 'true'
+    if: github.event_name == 'workflow_dispatch' || needs.changes.outputs.viewer == 'true'
     uses: ./.github/workflows/ci-viewer.yml
   backend:
     needs: changes
-    if: github.event_name == 'push' || needs.changes.outputs.backend == 'true'
+    if: github.event_name == 'workflow_dispatch' || needs.changes.outputs.backend == 'true'
     uses: ./.github/workflows/ci-backend.yml
   proxy:
     needs: changes
-    if: github.event_name == 'push' || needs.changes.outputs.proxy == 'true'
+    if: github.event_name == 'workflow_dispatch' || needs.changes.outputs.proxy == 'true'
     uses: ./.github/workflows/ci-proxy.yml
   mbtiles:
     needs: changes
-    if: github.event_name == 'push' || needs.changes.outputs.mbtiles == 'true'
+    if: github.event_name == 'workflow_dispatch' || needs.changes.outputs.mbtiles == 'true'
     uses: ./.github/workflows/ci-mbtiles.yml
   shared:
     needs: changes
-    if: github.event_name == 'push' || needs.changes.outputs.shared == 'true'
+    if: github.event_name == 'workflow_dispatch' || needs.changes.outputs.shared == 'true'
     uses: ./.github/workflows/ci-shared.yml
   docker:
     needs: changes
-    if: github.event_name == 'push' || needs.changes.outputs.docker == 'true'
+    if: github.event_name == 'workflow_dispatch' || needs.changes.outputs.docker == 'true'
     uses: ./.github/workflows/ci-docker.yml
   e2e-admin:
     needs: changes
-    if: github.event_name == 'push' || needs.changes.outputs.e2e_admin == 'true'
+    if: github.event_name == 'workflow_dispatch' || needs.changes.outputs.e2e_admin == 'true'
     uses: ./.github/workflows/e2e.yml
     with:
       suite: admin
       title: Admin
   e2e-viewer:
     needs: changes
-    if: github.event_name == 'push' || needs.changes.outputs.e2e_viewer == 'true'
+    if: github.event_name == 'workflow_dispatch' || needs.changes.outputs.e2e_viewer == 'true'
     uses: ./.github/workflows/e2e.yml
     with:
       suite: viewer
       title: Viewer
   e2e-contact:
     needs: changes
-    if: github.event_name == 'push' || needs.changes.outputs.e2e_contact == 'true'
+    if: github.event_name == 'workflow_dispatch' || needs.changes.outputs.e2e_contact == 'true'
     uses: ./.github/workflows/e2e.yml
     with:
       suite: contact
       title: Application Contact
   e2e-mia:
     needs: changes
-    if: github.event_name == 'push' || needs.changes.outputs.e2e_mia == 'true'
+    if: github.event_name == 'workflow_dispatch' || needs.changes.outputs.e2e_mia == 'true'
     uses: ./.github/workflows/e2e.yml
     with:
       suite: mia
       title: MIA Cross
   e2e-mobile-web:
     needs: changes
-    if: github.event_name == 'push' || needs.changes.outputs.e2e_mobile_web == 'true'
+    if: github.event_name == 'workflow_dispatch' || needs.changes.outputs.e2e_mobile_web == 'true'
     uses: ./.github/workflows/e2e.yml
     with:
       suite: mobile_web
       title: Mobile Web
   e2e-mobile-android:
     needs: changes
-    if: github.event_name == 'push' || needs.changes.outputs.e2e_mobile_android == 'true'
+    if: github.event_name == 'workflow_dispatch' || needs.changes.outputs.e2e_mobile_android == 'true'
     uses: ./.github/workflows/e2e.yml
     with:
       suite: mobile_android
