@@ -714,7 +714,29 @@ Comprehensive testing strategy:
 ./gradlew testOracle19
 ./gradlew testPostgres12
 ./gradlew testPostgres16
+```
 
+One database, fresh install and then each upgrade from 1.2.6, 1.2.7, and 1.2.8. Oracle 11 runs on Linux only. Oracle 19 on Apple Silicon uses an x86_64 Colima profile and `SITMUN_DB_URL`.
+
+| Database | Fresh install | Upgrade jobs |
+| --- | --- | --- |
+| `postgres-12` | `test-postgres-12.yml` | `postgres-12-from` |
+| `postgres-16` | `test-postgres-16.yml` | `postgres-16-from`, `postgres-1-2-7-to-head`, `postgres-auth-mode-swap`, `dev-postgres-from` |
+| `oracle-11` | `test-oracle-11.yml` | `oracle-11-from` |
+| `oracle-19` | `test-oracle-19.yml` | `oracle-19-from` |
+| `oracle-23` | none | `oracle-23-from`, `dev-oracle-from` |
+
+```bash
+SITMUN_DB=postgres-12 SITMUN_DB_KEEP=1 bash tools/tests/test_backend_db_boot.sh && ./gradlew :sitmun-backend:testPostgres12
+for s in 1.2.6 1.2.7 1.2.8; do
+  git fetch --no-tags origin tag "legacy/sitmun-application-stack/sitmun-application-stack/$s"
+  SITMUN_POSTGRES_IMAGE=postgres:12-alpine bash tools/tests/test_liquibase_1.2.7_to_head_upgrade.sh postgres-from "$s"
+done
+```
+
+In GitHub Actions, start the matching fresh-install workflow and the upgrade workflow with `-f db=postgres-12`. Add `-f source=1.2.7` for one starting version.
+
+```bash
 # Run specific test class
 ./gradlew test --tests AuthenticationControllerTest
 ```
