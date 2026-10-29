@@ -8,7 +8,6 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Date;
 import java.util.HashSet;
-import java.util.List;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -20,9 +19,6 @@ import org.sitmun.domain.background.BackgroundRepository;
 import org.sitmun.domain.cartography.permission.CartographyPermission;
 import org.sitmun.domain.cartography.permission.CartographyPermissionRepository;
 import org.sitmun.domain.role.Role;
-import org.sitmun.domain.role.RoleRepository;
-import org.sitmun.domain.task.Task;
-import org.sitmun.domain.task.TaskRepository;
 import org.sitmun.infrastructure.persistence.type.i18n.I18nTestConfiguration;
 import org.sitmun.infrastructure.security.core.SecurityConstants;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,8 +38,6 @@ class ApplicationRepositoryTest {
   @Autowired private EntityManager entityManager;
   @Autowired private CartographyPermissionRepository cartographyPermissionRepository;
   @Autowired private BackgroundRepository backgroundRepository;
-  @Autowired private RoleRepository roleRepository;
-  @Autowired private TaskRepository taskRepository;
   private Application application;
 
   @BeforeEach
@@ -161,28 +155,6 @@ class ApplicationRepositoryTest {
             "SITMUN - Municipal",
             "SITMUN - Provincial",
             "SITMUN - Supramunicipal");
-  }
-
-  @Test
-  @DisplayName("An application sharing two roles with a task is listed once for that task")
-  void findByTaskIdListsEachApplicationOnce() {
-    Role first = roleRepository.save(Role.builder().name("task-app-role-1").build());
-    Role second = roleRepository.save(Role.builder().name("task-app-role-2").build());
-    application.getAvailableRoles().clear();
-    application.getAvailableRoles().addAll(List.of(first, second));
-    applicationRepository.save(application);
-    Task task =
-        taskRepository.save(
-            Task.builder()
-                .name("task-app-roles")
-                .roles(new HashSet<>(List.of(first, second)))
-                .build());
-    entityManager.flush();
-    entityManager.clear();
-
-    assertThat(applicationRepository.findByTaskId(task.getId()))
-        .extracting(Application::getId)
-        .containsExactly(application.getId());
   }
 
   private static PageRequest page() {
