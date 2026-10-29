@@ -9,6 +9,7 @@ databaseChangeLog:
       changes:
         - sql:
             comment: Insert H2 driver row if missing
+            dbms: h2,postgresql
             sql: |
               INSERT INTO STM_CODELIST (COD_ID, COD_LIST, COD_VALUE, COD_SYSTEM, COD_DEFAULT, COD_DESCRIPTION)
               SELECT (SELECT COALESCE(MAX(COD_ID), 0) + 1 FROM STM_CODELIST),
@@ -19,6 +20,7 @@ databaseChangeLog:
               )
         - sql:
             comment: Insert PostgreSQL driver row if missing
+            dbms: h2,postgresql
             sql: |
               INSERT INTO STM_CODELIST (COD_ID, COD_LIST, COD_VALUE, COD_SYSTEM, COD_DEFAULT, COD_DESCRIPTION)
               SELECT (SELECT COALESCE(MAX(COD_ID), 0) + 1 FROM STM_CODELIST),
@@ -29,6 +31,7 @@ databaseChangeLog:
               )
         - sql:
             comment: Insert Oracle driver row if missing
+            dbms: h2,postgresql
             sql: |
               INSERT INTO STM_CODELIST (COD_ID, COD_LIST, COD_VALUE, COD_SYSTEM, COD_DEFAULT, COD_DESCRIPTION)
               SELECT (SELECT COALESCE(MAX(COD_ID), 0) + 1 FROM STM_CODELIST),
@@ -39,10 +42,59 @@ databaseChangeLog:
               )
         - sql:
             comment: Insert SQL Server driver row if missing
+            dbms: h2,postgresql
             sql: |
               INSERT INTO STM_CODELIST (COD_ID, COD_LIST, COD_VALUE, COD_SYSTEM, COD_DEFAULT, COD_DESCRIPTION)
               SELECT (SELECT COALESCE(MAX(COD_ID), 0) + 1 FROM STM_CODELIST),
                      'databaseConnection.driver', 'com.microsoft.sqlserver.jdbc.SQLServerDriver', TRUE, FALSE, 'Microsoft SQL Server JDBC Driver'
+              WHERE NOT EXISTS (
+                SELECT 1 FROM STM_CODELIST
+                WHERE COD_LIST = 'databaseConnection.driver' AND COD_VALUE = 'com.microsoft.sqlserver.jdbc.SQLServerDriver'
+              )
+        - sql:
+            comment: Insert H2 driver row if missing (Oracle before 23 needs FROM DUAL and 1/0)
+            dbms: oracle
+            sql: |
+              INSERT INTO STM_CODELIST (COD_ID, COD_LIST, COD_VALUE, COD_SYSTEM, COD_DEFAULT, COD_DESCRIPTION)
+              SELECT (SELECT COALESCE(MAX(COD_ID), 0) + 1 FROM STM_CODELIST),
+                     'databaseConnection.driver', 'org.h2.Driver', 1, 0, 'H2 JDBC Driver'
+              FROM DUAL
+              WHERE NOT EXISTS (
+                SELECT 1 FROM STM_CODELIST
+                WHERE COD_LIST = 'databaseConnection.driver' AND COD_VALUE = 'org.h2.Driver'
+              )
+        - sql:
+            comment: Insert PostgreSQL driver row if missing (Oracle before 23 needs FROM DUAL and 1/0)
+            dbms: oracle
+            sql: |
+              INSERT INTO STM_CODELIST (COD_ID, COD_LIST, COD_VALUE, COD_SYSTEM, COD_DEFAULT, COD_DESCRIPTION)
+              SELECT (SELECT COALESCE(MAX(COD_ID), 0) + 1 FROM STM_CODELIST),
+                     'databaseConnection.driver', 'org.postgresql.Driver', 1, 0, 'PostgreSQL JDBC Driver'
+              FROM DUAL
+              WHERE NOT EXISTS (
+                SELECT 1 FROM STM_CODELIST
+                WHERE COD_LIST = 'databaseConnection.driver' AND COD_VALUE = 'org.postgresql.Driver'
+              )
+        - sql:
+            comment: Insert Oracle driver row if missing (Oracle before 23 needs FROM DUAL and 1/0)
+            dbms: oracle
+            sql: |
+              INSERT INTO STM_CODELIST (COD_ID, COD_LIST, COD_VALUE, COD_SYSTEM, COD_DEFAULT, COD_DESCRIPTION)
+              SELECT (SELECT COALESCE(MAX(COD_ID), 0) + 1 FROM STM_CODELIST),
+                     'databaseConnection.driver', 'oracle.jdbc.OracleDriver', 1, 0, 'Oracle JDBC driver'
+              FROM DUAL
+              WHERE NOT EXISTS (
+                SELECT 1 FROM STM_CODELIST
+                WHERE COD_LIST = 'databaseConnection.driver' AND COD_VALUE = 'oracle.jdbc.OracleDriver'
+              )
+        - sql:
+            comment: Insert SQL Server driver row if missing (Oracle before 23 needs FROM DUAL and 1/0)
+            dbms: oracle
+            sql: |
+              INSERT INTO STM_CODELIST (COD_ID, COD_LIST, COD_VALUE, COD_SYSTEM, COD_DEFAULT, COD_DESCRIPTION)
+              SELECT (SELECT COALESCE(MAX(COD_ID), 0) + 1 FROM STM_CODELIST),
+                     'databaseConnection.driver', 'com.microsoft.sqlserver.jdbc.SQLServerDriver', 1, 0, 'Microsoft SQL Server JDBC Driver'
+              FROM DUAL
               WHERE NOT EXISTS (
                 SELECT 1 FROM STM_CODELIST
                 WHERE COD_LIST = 'databaseConnection.driver' AND COD_VALUE = 'com.microsoft.sqlserver.jdbc.SQLServerDriver'
