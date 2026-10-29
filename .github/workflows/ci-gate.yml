@@ -220,36 +220,42 @@ jobs:
     uses: ./.github/workflows/e2e.yml
     with:
       suite: admin
+      title: Admin
   e2e-viewer:
     needs: changes
     if: github.event_name == 'push' || needs.changes.outputs.e2e_viewer == 'true'
     uses: ./.github/workflows/e2e.yml
     with:
       suite: viewer
+      title: Viewer
   e2e-contact:
     needs: changes
     if: github.event_name == 'push' || needs.changes.outputs.e2e_contact == 'true'
     uses: ./.github/workflows/e2e.yml
     with:
       suite: contact
+      title: Application Contact
   e2e-mia:
     needs: changes
     if: github.event_name == 'push' || needs.changes.outputs.e2e_mia == 'true'
     uses: ./.github/workflows/e2e.yml
     with:
       suite: mia
+      title: MIA Cross
   e2e-mobile-web:
     needs: changes
     if: github.event_name == 'push' || needs.changes.outputs.e2e_mobile_web == 'true'
     uses: ./.github/workflows/e2e.yml
     with:
       suite: mobile_web
+      title: Mobile Web
   e2e-mobile-android:
     needs: changes
     if: github.event_name == 'push' || needs.changes.outputs.e2e_mobile_android == 'true'
     uses: ./.github/workflows/e2e.yml
     with:
       suite: mobile_android
+      title: Mobile Android
 
   ci-gate:
     name: ci-gate
