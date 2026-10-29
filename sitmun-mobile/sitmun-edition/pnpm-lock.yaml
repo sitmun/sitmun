@@ -230,8 +230,8 @@ importers:
         specifier: ^6.0.3
         version: 6.0.3(@capacitor/core@6.2.1)
       '@capacitor/status-bar':
-        specifier: 6.0.2
-        version: 6.0.2(@capacitor/core@6.2.1)
+        specifier: 6.0.3
+        version: 6.0.3(@capacitor/core@6.2.1)
       '@ionic/angular':
         specifier: ^8.4.1
         version: 8.6.2(@angular/core@18.2.13(rxjs@7.8.2)(zone.js@0.14.10))(@angular/forms@18.2.13(@angular/common@18.2.13(@angular/core@18.2.13(rxjs@7.8.2)(zone.js@0.14.10))(rxjs@7.8.2))(@angular/core@18.2.13(rxjs@7.8.2)(zone.js@0.14.10))(@angular/platform-browser@18.2.13(@angular/animations@18.2.13(@angular/core@18.2.13(rxjs@7.8.2)(zone.js@0.14.10)))(@angular/common@18.2.13(@angular/core@18.2.13(rxjs@7.8.2)(zone.js@0.14.10))(rxjs@7.8.2))(@angular/core@18.2.13(rxjs@7.8.2)(zone.js@0.14.10)))(rxjs@7.8.2))(@angular/router@18.2.13(@angular/common@18.2.13(@angular/core@18.2.13(rxjs@7.8.2)(zone.js@0.14.10))(rxjs@7.8.2))(@angular/core@18.2.13(rxjs@7.8.2)(zone.js@0.14.10))(@angular/platform-browser@18.2.13(@angular/animations@18.2.13(@angular/core@18.2.13(rxjs@7.8.2)(zone.js@0.14.10)))(@angular/common@18.2.13(@angular/core@18.2.13(rxjs@7.8.2)(zone.js@0.14.10))(rxjs@7.8.2))(@angular/core@18.2.13(rxjs@7.8.2)(zone.js@0.14.10)))(rxjs@7.8.2))(rxjs@7.8.2)(zone.js@0.14.10)
@@ -1252,8 +1252,8 @@ packages:
     peerDependencies:
       '@capacitor/core': ^6.0.0
 
-  '@capacitor/status-bar@6.0.2':
-    resolution: {integrity: sha512-AmRIX6QvFemItlY7/69ARkIAqitRQqJ2qwgZmD1KqgFb78pH+XFXm1guvS/a8CuOOm/IqZ4ddDbl20yxtBqzGA==}
+  '@capacitor/status-bar@6.0.3':
+    resolution: {integrity: sha512-nFlgSmtx6Zwaw0tEvZgQsWHBeOfWWB/AvEoCApopLT4mHkBVoSrwkLvy2PjZs5wxCbsmqvQczr3XCyTwaDZVQg==}
     peerDependencies:
       '@capacitor/core': ^6.0.0
 
@@ -7600,7 +7600,7 @@ snapshots:
     dependencies:
       '@capacitor/core': 6.2.1
 
-  '@capacitor/status-bar@6.0.2(@capacitor/core@6.2.1)':
+  '@capacitor/status-bar@6.0.3(@capacitor/core@6.2.1)':
     dependencies:
       '@capacitor/core': 6.2.1
 
