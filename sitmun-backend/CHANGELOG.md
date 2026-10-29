@@ -18,7 +18,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Changed
 
-- **Database**: The Oracle JDBC driver is `ojdbc10` 19.32.0.0. `SITMUN_ORACLE_VERSION` defaults to `19` and selects `OracleDialect`. `11` selects `OracleLegacyDialect`. Task paging does not read this setting.
+- **Database**: The Oracle JDBC driver is `ojdbc10` 19.32.0.0. Profile `oracle` sets `org.hibernate.dialect.OracleDialect`. Profile `oracle-11` sets `org.hibernate.community.dialect.OracleLegacyDialect`. Task paging does not read a version property.
 - **Build**: Spring Boot is 4.1.1; springdoc-openapi is 3.1.1; Liquibase via `spring-boot-starter-liquibase`; OIDC via `spring-boot-starter-security-oauth2-client`.
 - **Build**: `setupGitHooks` is no longer a dependency of `build` (submodule-safe / opt-in via `./gradlew setupGitHooks`).
 - **Build**: Gradle wrapper is 8.14.6.

@@ -115,8 +115,8 @@ Root Playwright and backend tests use in-memory H2. Compose does not start H2.
 | Host port | `9003:5432` | `9004:1521` |
 | `COMPOSE_PROFILES` | `postgres` | `oracle` |
 | JDBC prefix | `jdbc:postgresql://postgres:5432/` | `jdbc:oracle:thin:@//oracle:1521/` |
-| Profile file | `profiles/postgres/application-postgres.yml` or `profiles/development/backend/application-postgres.yml` | `profiles/oracle/application-oracle.yml` or `profiles/development/backend/application-oracle.yml` |
-| `hibernate.dialect` in that file | `org.hibernate.dialect.PostgreSQLDialect` | `org.hibernate.dialect.OracleDialect`, or `OracleLegacyDialect` when `SITMUN_ORACLE_VERSION` is `11` |
+| Profile file | `profiles/postgres/application-postgres.yml` or `profiles/development/backend/application-postgres.yml` | `application-oracle.yml` (profile `oracle`) or `application-oracle-11.yml` (profile `oracle-11`) in `profiles/oracle/` and `profiles/development/backend/` |
+| `hibernate.dialect` in that file | `org.hibernate.dialect.PostgreSQLDialect` | `org.hibernate.dialect.OracleDialect` for `oracle`. `org.hibernate.community.dialect.OracleLegacyDialect` for `oracle-11` |
 
 The backend service in `compose.yaml` also sets `SPRING_JPA_DATABASE_PLATFORM` to `org.hibernate.dialect.PostgreSQLDialect`.
 

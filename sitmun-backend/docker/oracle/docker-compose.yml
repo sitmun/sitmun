@@ -18,11 +18,10 @@ services:
     volumes:
       - ../../config:/app/config:ro
     environment:
+      SPRING_PROFILES_ACTIVE: oracle
       SPRING_DATASOURCE_URL: jdbc:oracle:thin:@//oracle:1521/sitmun3
       SPRING_DATASOURCE_USERNAME: sitmun3
       SPRING_DATASOURCE_PASSWORD: sitmun3
-      SITMUN_ORACLE_VERSION: ${SITMUN_ORACLE_VERSION:-19}
-      SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: org.hibernate.dialect.OracleDialect
       SPRING_LIQUIBASE_CONTEXTS: oracle
       SITMUN_BACKEND_URL: http://localhost:8080/
     depends_on:

@@ -1,0 +1,57 @@
+# gvenzl/oracle-xe:11 is amd64 only. Do not start it on an Apple M1.
+services:
+  sitmun-backend:
+    build:
+      context: ../..
+      dockerfile: docker/Dockerfile
+    container_name: sitmun-backend
+    ports:
+      - "8080:8080"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/api/dashboard/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    networks:
+      - sitmun-network-oracle-11
+    restart: unless-stopped
+    volumes:
+      - ../../config:/app/config:ro
+    environment:
+      SPRING_PROFILES_ACTIVE: oracle-11
+      SPRING_DATASOURCE_URL: jdbc:oracle:thin:@//oracle:1521/XE
+      SPRING_DATASOURCE_USERNAME: sitmun3
+      SPRING_DATASOURCE_PASSWORD: sitmun3
+      SPRING_LIQUIBASE_CONTEXTS: oracle
+      SITMUN_BACKEND_URL: http://localhost:8080/
+    depends_on:
+      oracle:
+        condition: service_healthy
+        required: true
+
+  oracle:
+    image: gvenzl/oracle-xe:11
+    restart: unless-stopped
+    networks:
+      - sitmun-network-oracle-11
+    ports:
+      - "1521:1521"
+    environment:
+      ORACLE_PASSWORD: password
+      APP_USER: sitmun3
+      APP_USER_PASSWORD: sitmun3
+    healthcheck:
+      test: |
+        bash -c '
+        lsnrctl status | grep -q "Service \"XE\"" &&
+        echo "SELECT 1 FROM DUAL;" | sqlplus -s sitmun3/sitmun3@//localhost:1521/XE | grep -q "1"
+        '
+      interval: 10s
+      timeout: 10s
+      start_period: 300s
+      retries: 60
+
+networks:
+  sitmun-network-oracle-11:
+    driver: bridge

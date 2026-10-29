@@ -1,0 +1,6 @@
+# Oracle 11g. Activate profile oracle-11 on its own.
+spring:
+  jpa:
+    properties:
+      hibernate.dialect: org.hibernate.community.dialect.OracleLegacyDialect
+      hibernate.type.preferred_boolean_jdbc_type: INTEGER
