@@ -11,7 +11,8 @@ import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
 
 @Slf4j
 @Component
@@ -24,16 +25,23 @@ public class DatabaseConnectionDriverCodeListSetup implements ApplicationRunner 
 
   private final StartupCodelistsProperties properties;
   private final CodeListValueRepository repository;
+  private final TransactionTemplate transactionTemplate;
 
   public DatabaseConnectionDriverCodeListSetup(
-      StartupCodelistsProperties properties, CodeListValueRepository repository) {
+      StartupCodelistsProperties properties,
+      CodeListValueRepository repository,
+      PlatformTransactionManager transactionManager) {
     this.properties = properties;
     this.repository = repository;
+    this.transactionTemplate = new TransactionTemplate(transactionManager);
   }
 
   @Override
-  @Transactional
   public void run(ApplicationArguments args) {
+    transactionTemplate.executeWithoutResult(status -> insertMissingDrivers());
+  }
+
+  private void insertMissingDrivers() {
     log.info("Started DatabaseConnectionDriverCodeListSetup");
     List<String> existingConfiguration = new ArrayList<>();
     List<CodeListValue> newValues = new ArrayList<>();

@@ -81,6 +81,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+#### Backend Core
+
+- **Code lists**: Startup inserts of missing code list values commit on PostgreSQL and Oracle. Those test pools turn JDBC auto-commit off, so the previous startup transaction was rolled back and production-database suites did not see values such as application type `ED`.
+- **Grants**: A position that expires today stays active on Oracle. `CURRENT_DATE` there includes the time of day, so the Oracle dialects use `trunc(current_date)`.
+
+#### Stack
+
+- **Database**: An upgrade from 1.2.6 on Oracle 11 and on the 19c stand-in rewrites unquoted `TRUE` and `FALSE` in the extracted schema. Those releases reject boolean literals. The run then stores a checksum the current changelog already accepts.
+- **Docker**: The backend and proxy images configure a Gradle project only when its directory was copied into the image.
+- **Viewer**: Jest transforms the pnpm copy of `url-template`. OpenLayers, proj4, and draggabilly are direct dependencies. The About window still reads `ol/package.json`.
+- **Mobile**: The Android end-to-end build uses `ng build`. `@ionic/cli` is not a dependency of the mobile apps.
+- **CI**: CodeQL JavaScript analysis no longer installs pnpm.
+
 #### Viewer Application
 
 - **About**: The About window shows the installed API SITNA and OpenLayers versions. The Docker production template no longer hardcodes `sitnaVersion` ([sitmun-viewer-app#218](https://github.com/sitmun/sitmun-viewer-app/issues/218), [sitmun-viewer-app#219](https://github.com/sitmun/sitmun-viewer-app/pull/219)).

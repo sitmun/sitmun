@@ -54,10 +54,6 @@ jobs:
           distribution: temurin
           java-version-file: .java-version
           cache: gradle
-      - uses: actions/setup-node@v5
-        if: matrix.language == 'javascript'
-        with:
-          node-version-file: .nvmrc
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v4
         with:

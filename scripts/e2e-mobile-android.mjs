@@ -616,7 +616,7 @@ async function main() {
 
     for (const appDir of [editionWork, touristicWork]) {
       run('pnpm', ['ci'], { cwd: appDir });
-      run('pnpm', ['exec', 'ionic', 'build', '--configuration=development'], { cwd: appDir });
+      run('pnpm', ['exec', 'ng', 'build', '--configuration=development'], { cwd: appDir });
       // Native projects are not committed in the mobile modules; generate in the temp copy.
       if (!existsSync(join(appDir, 'android'))) {
         run('pnpm', ['exec', 'cap', 'add', 'android'], { cwd: appDir });

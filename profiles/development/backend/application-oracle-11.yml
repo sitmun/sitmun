@@ -8,5 +8,5 @@ spring:
         oracle.jdbc.timezoneAsRegion: "false"
   jpa:
     properties:
-      hibernate.dialect: org.hibernate.community.dialect.OracleLegacyDialect
+      hibernate.dialect: org.sitmun.infrastructure.persistence.dialect.SitmunOracleLegacyDialect
       hibernate.type.preferred_boolean_jdbc_type: INTEGER

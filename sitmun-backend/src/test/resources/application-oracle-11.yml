@@ -7,4 +7,4 @@ spring:
         oracle.jdbc.timezoneAsRegion: "false"
   jpa:
     properties.hibernate:
-      dialect: org.hibernate.community.dialect.OracleLegacyDialect
+      dialect: org.sitmun.infrastructure.persistence.dialect.SitmunOracleLegacyDialect

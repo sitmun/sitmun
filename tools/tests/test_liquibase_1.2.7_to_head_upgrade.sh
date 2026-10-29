@@ -559,6 +559,12 @@ run_oracle_from() {
   if version_lt "$version" "1.2.7"; then
     quote_csv_embedded_commas "$LB_SRC"
   fi
+  # Oracle 23 accepts boolean literals. 11g and the 21c stand-in do not.
+  # The rewritten body has a new checksum, so record one HEAD already accepts.
+  local ORACLE_BOOL_REWRITES=0
+  if [[ "${SITMUN_ORACLE_IMAGE:-}" != *oracle-free* ]]; then
+    ORACLE_BOOL_REWRITES=$(python3 "$PREPARE_LB" --oracle-booleans "$LB_SRC")
+  fi
   LB_HEAD="$REPO_ROOT/profiles/oracle/liquibase"
 
   liquibase_ora() {
@@ -628,6 +634,10 @@ DOCKEREOF
   else
     fail "Phase1 Liquibase $version failed (exit $LB_RC)"
     print_lb_errors
+  fi
+  if [[ $LB_RC -eq 0 && "${ORACLE_BOOL_REWRITES:-0}" != "0" ]]; then
+    sqlplus_q "UPDATE DATABASECHANGELOG SET MD5SUM='9:99cf8d3a597aeccf7d77f7a7e417469c' WHERE ID='1' AND AUTHOR='sitmun';"
+    sqlplus_q "COMMIT;"
   fi
   SRC_MD5=$(sqlplus_q "SELECT MD5SUM FROM DATABASECHANGELOG WHERE ID='1' AND AUTHOR='sitmun';")
   assert_ne "Phase1 sitmun:1 MD5SUM set" "" "$SRC_MD5"

@@ -1,7 +1,7 @@
 // Production environment configuration (static fallback).
 // For Docker builds, use the environment.prod.ts.template with envsubst.
 
-import { version } from '../../package.json';
+import packageJson from '../../package.json';
 
 export const environment = {
   production: true,
@@ -9,7 +9,7 @@ export const environment = {
   hideBackgroundImage: false,
   hideDNIEAccess: false,
   apiUrl: '/backend', // Change this when there is a real production environment
-  version,
+  version: packageJson.version,
   environmentName: 'Production',
   buildTimestamp: new Date().toISOString(),
   loginBackgroundImageUrl: 'assets/logos/barcelona_background.jpg',

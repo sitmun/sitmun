@@ -104,7 +104,8 @@ module.exports = (config) => {
       ...(config.resolve && config.resolve.alias),
       // Cesium Gaussian-splat loader is ESM that breaks the Angular 22 script
       // optimizer when pulled through custom-webpack. SITMUN maps do not need it.
-      '@spz-loader/core': path.resolve(__dirname, 'src/shims/empty-spz-loader.js')
+      '@spz-loader/core': path.resolve(__dirname, 'src/shims/empty-spz-loader.js'),
+      'ol/package.json': path.resolve(__dirname, 'node_modules/ol/package.json')
     }
   };
 

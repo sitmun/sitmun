@@ -104,5 +104,23 @@ class AliasCsvCaseTest(unittest.TestCase):
             self.assertTrue(pel.exists_exact(data / "STM_USER.csv"))
 
 
+class RewriteOracleBooleansTest(unittest.TestCase):
+    def test_unquoted_boolean_literals_become_digits(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "01_schema.oracle.sql"
+            path.write_text(
+                "CREATE TABLE T (FLAG NUMBER DEFAULT FALSE);\n"
+                "INSERT INTO T VALUES ('FALSE', TRUE);\n",
+                encoding="utf-8",
+            )
+            changed = pel.rewrite_oracle_booleans(Path(tmp))
+            self.assertEqual(changed, 1)
+            self.assertEqual(
+                path.read_text(encoding="utf-8"),
+                "CREATE TABLE T (FLAG NUMBER DEFAULT 0);\n"
+                "INSERT INTO T VALUES ('FALSE', 1);\n",
+            )
+
+
 if __name__ == "__main__":
     unittest.main()

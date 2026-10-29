@@ -1,6 +1,6 @@
 // E2E environment: same-origin /backend and /middleware proxied to local stack.
 
-import { version } from '../../package.json';
+import packageJson from '../../package.json';
 
 export const environment = {
   production: false,
@@ -8,7 +8,7 @@ export const environment = {
   hideBackgroundImage: true,
   hideDNIEAccess: true,
   apiUrl: '/backend',
-  version,
+  version: packageJson.version,
   environmentName: 'E2E',
   buildTimestamp: new Date().toISOString(),
   loginBackgroundImageUrl: '',

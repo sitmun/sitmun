@@ -1,12 +1,13 @@
 // E2E environment: same-origin /backend proxied to local backend.
 import { LogLevel } from '@app/services/log-level.enum';
-import { version } from '../../package.json';
+
+import packageJson from '../../package.json';
 
 export const environment = {
   production: false,
   apiBaseURL: '/backend',
   logLevel: LogLevel.Error,
-  version,
+  version: packageJson.version,
   buildTimestamp: new Date().toISOString(),
   environmentName: 'e2e',
   sessionTokenRefreshIntervalMs: 10 * 60 * 1000

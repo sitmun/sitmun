@@ -17,6 +17,8 @@ import sys
 from pathlib import Path
 
 FILE_REF = re.compile(r"^\s+file:\s+(\S+)", re.M)
+SQL_STRING = re.compile(r"'(?:''|[^'])*'")
+SQL_BOOL = re.compile(r"\b(TRUE|FALSE)\b", re.IGNORECASE)
 
 
 def rewrite_csv_width(root: Path) -> int:
@@ -90,17 +92,45 @@ def alias_csv_case(root: Path) -> int:
     return created
 
 
+def rewrite_oracle_booleans(root: Path) -> int:
+    """Oracle before 23 rejects boolean literals. Leave quoted text unchanged."""
+    changed = 0
+    for path in root.rglob("*.sql"):
+        text = path.read_text(encoding="utf-8")
+        parts = SQL_STRING.split(text)
+        quoted = SQL_STRING.findall(text)
+        out: list[str] = []
+        for index, part in enumerate(parts):
+            out.append(
+                SQL_BOOL.sub(
+                    lambda match: "1" if match.group(1).upper() == "TRUE" else "0",
+                    part,
+                )
+            )
+            if index < len(quoted):
+                out.append(quoted[index])
+        rewritten = "".join(out)
+        if rewritten == text:
+            continue
+        path.write_text(rewritten, encoding="utf-8")
+        changed += 1
+    return changed
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--csv-width", metavar="DIR")
     parser.add_argument("--alias-case", metavar="DIR")
+    parser.add_argument("--oracle-booleans", metavar="DIR")
     args = parser.parse_args(argv)
-    if not args.csv_width and not args.alias_case:
-        parser.error("pass --csv-width DIR and/or --alias-case DIR")
+    if not args.csv_width and not args.alias_case and not args.oracle_booleans:
+        parser.error("pass --csv-width, --alias-case, and/or --oracle-booleans")
     if args.csv_width:
         rewrite_csv_width(Path(args.csv_width))
     if args.alias_case:
         alias_csv_case(Path(args.alias_case))
+    if args.oracle_booleans:
+        print(rewrite_oracle_booleans(Path(args.oracle_booleans)))
     return 0
 
 

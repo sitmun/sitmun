@@ -1,7 +1,7 @@
 // Development environment configuration.
 // Uses the local docker-compose stack backend URL.
 
-import { version } from '../../package.json';
+import packageJson from '../../package.json';
 
 export const environment = {
   production: false,
@@ -9,7 +9,7 @@ export const environment = {
   hideBackgroundImage: false,
   hideDNIEAccess: true,
   apiUrl: 'http://localhost:9000/backend',
-  version,
+  version: packageJson.version,
   environmentName: 'Development',
   buildTimestamp: new Date().toISOString(),
   loginBackgroundImageUrl: 'assets/logos/barcelona_background.jpg',
