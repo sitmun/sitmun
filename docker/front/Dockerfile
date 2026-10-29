@@ -10,8 +10,6 @@ ENV ENVIRONMENT=${ENVIRONMENT}
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,target=/var/lib/apt,sharing=locked \
     apt-get update && apt-get install -y gettext curl ca-certificates
-# Ensure case sensitivity is handled properly
-ENV NODE_OPTIONS="--preserve-symlinks"
 # Standalone pnpm install at the packageManager version. Corepack stays off.
 ENV PNPM_HOME="/pnpm"
 ENV PATH="/pnpm/bin:${PATH}"
