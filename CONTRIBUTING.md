@@ -7,7 +7,7 @@ Work happens in [sitmun/sitmun](https://github.com/sitmun/sitmun).
 - `main` only takes release pull requests from `dev`.
 - A `tech-com` code-owner review is required.
 - `ci-gate` must be green.
-- `Test Oracle 11`, `Test Oracle 19`, `Test PostgreSQL 12`, and `Test PostgreSQL 16` must be green or skipped. They skip when the change does not touch the backend. PostgreSQL 16 runs for any backend change. The other three run for persistence changes and for a pull request into `main`.
+- `Test Oracle 11g`, `Test Oracle 21c (stand-in for 19c)`, `Test PostgreSQL 12`, and `Test PostgreSQL 16` must be green or skipped. They skip when the change does not touch the backend. PostgreSQL 16 runs for any backend change. The other three run for persistence changes and for a pull request into `main`.
 - Pull requests into `dev` merge through the merge queue once that queue is turned on.
 - Direct pushes to `dev` and `main` are rejected.
 

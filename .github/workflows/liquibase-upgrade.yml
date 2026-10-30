@@ -151,7 +151,7 @@ jobs:
 
   # Forward-compatibility check. No install runs Oracle 23.
   oracle-23-from:
-    name: Upgrade Oracle 23 from ${{ matrix.source }}
+    name: Upgrade Oracle 23ai from ${{ matrix.source }}
     if: github.event_name != 'workflow_dispatch' || inputs.db == 'all' || inputs.db == 'oracle-23'
     runs-on: ubuntu-latest
     timeout-minutes: 40
@@ -185,7 +185,7 @@ jobs:
   # Issue #74: DIBA runs the oracle profile on 19c. gvenzl/oracle-xe:21-slim stands
   # in for that install. The image is amd64 only, which the ubuntu-latest runners are.
   oracle-19-from:
-    name: Upgrade Oracle 19 from ${{ matrix.source }}
+    name: Upgrade Oracle 21c (stand-in for 19c) from ${{ matrix.source }}
     if: github.event_name != 'workflow_dispatch' || inputs.db == 'all' || inputs.db == 'oracle-19'
     runs-on: ubuntu-latest
     timeout-minutes: 60
@@ -219,7 +219,7 @@ jobs:
   # gvenzl/oracle-xe:11 is amd64 only. ubuntu-latest is amd64. Do not run this image on an Apple M1.
   # The Liquibase image brings its own Oracle driver.
   oracle-11-from:
-    name: Upgrade Oracle 11 from ${{ matrix.source }}
+    name: Upgrade Oracle 11g from ${{ matrix.source }}
     if: github.event_name != 'workflow_dispatch' || inputs.db == 'all' || inputs.db == 'oracle-11'
     runs-on: ubuntu-latest
     timeout-minutes: 90

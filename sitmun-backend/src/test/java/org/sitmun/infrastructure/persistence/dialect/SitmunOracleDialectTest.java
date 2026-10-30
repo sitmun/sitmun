@@ -1,0 +1,44 @@
+package org.sitmun.infrastructure.persistence.dialect;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.CALLS_REAL_METHODS;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
+
+import org.hibernate.dialect.Dialect;
+import org.hibernate.engine.jdbc.dialect.spi.DialectResolutionInfo;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+
+@DisplayName("SITMUN Oracle dialects")
+class SitmunOracleDialectTest {
+
+  @Test
+  @DisplayName("The legacy dialect reports the connected Oracle 11 version")
+  void legacyDialectUsesConnectedVersion() throws Exception {
+    Dialect dialect = build(SitmunOracleLegacyDialect.class, 11, 2);
+
+    assertThat(dialect.getVersion().getMajor()).isEqualTo(11);
+    assertThat(dialect.getVersion().getMinor()).isEqualTo(2);
+    assertThat(dialect.currentDate()).isEqualTo("trunc(current_date)");
+  }
+
+  @Test
+  @DisplayName("The dialect reports the connected Oracle 21 version")
+  void dialectUsesConnectedVersion() throws Exception {
+    Dialect dialect = build(SitmunOracleDialect.class, 21, 0);
+
+    assertThat(dialect.getVersion().getMajor()).isEqualTo(21);
+    assertThat(dialect.currentDate()).isEqualTo("trunc(current_date)");
+  }
+
+  /** Hibernate builds a configured dialect through this constructor when the class declares it. */
+  private static Dialect build(Class<? extends Dialect> type, int major, int minor)
+      throws Exception {
+    DialectResolutionInfo info = mock(DialectResolutionInfo.class, CALLS_REAL_METHODS);
+    doReturn(major).when(info).getDatabaseMajorVersion();
+    doReturn(minor).when(info).getDatabaseMinorVersion();
+    doReturn(major + "." + minor).when(info).getDatabaseVersion();
+    return type.getConstructor(DialectResolutionInfo.class).newInstance(info);
+  }
+}

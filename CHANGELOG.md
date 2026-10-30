@@ -49,13 +49,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - **CI**: The four fresh-install checks share `.github/actions/backend-database`. A manual Liquibase upgrade run takes `db` and `source`.
 - **CI**: `ci-gate` follows changed paths on a push, comparing that push with the previous commit on the same branch. A manual run starts every job. The workflow also runs in a merge group.
 - **CI**: A Gradle catalog change runs the backend build and the end-to-end suites.
-- **CI**: `Test PostgreSQL 16` runs for any backend change. `Test PostgreSQL 12`, `Test Oracle 11`, and `Test Oracle 19` run for a persistence change, a pull request into `main`, or a manual run. Otherwise those checks report skipped. `tools/bin/ci_db_scope.py` chooses the tier.
+- **CI**: `Test PostgreSQL 16` runs for any backend change. `Test PostgreSQL 12`, `Test Oracle 11g`, and `Test Oracle 21c (stand-in for 19c)` run for a persistence change, a pull request into `main`, or a manual run. Otherwise those checks report skipped. `tools/bin/ci_db_scope.py` chooses the tier.
 - **CI**: A newer push to the same pull request cancels the previous run of each top-level workflow. Pushes and manual runs are not cancelled.
 - **CI**: Each end-to-end suite call runs one job, named `E2E` plus a title such as `Admin` or `Mobile Android`.
 - **CI**: Workflow tokens can read repository contents. The stale-issue workflow can still write issues and pull requests. CodeQL can still write security events.
 - **CI**: Component jobs stop if they run past a limit. Admin, viewer, proxy, and MBTiles stop at 30 minutes. The backend stops at 45. Shared libraries stop at 20. The path-filter job and `ci-gate` stop at 5. Docker stays at 180. End-to-end suites stop at 45, 60, or 120 minutes.
 - **CI**: CodeQL no longer sets up Node for the admin and viewer analyses. Those jobs do not compile JavaScript.
-- **CI**: Workflows `Test Oracle 11`, `Test Oracle 19`, `Test PostgreSQL 12`, and `Test PostgreSQL 16` boot the backend on an empty schema, then run the backend suite. Oracle 19 uses `gvenzl/oracle-xe:21-slim` with database `sitmun3` as the stand-in for 19c.
+- **CI**: Workflows `Test Oracle 11g`, `Test Oracle 21c (stand-in for 19c)`, `Test PostgreSQL 12`, and `Test PostgreSQL 16` boot the backend on an empty schema, then run the backend suite. Oracle 19 uses `gvenzl/oracle-xe:21-slim` with database `sitmun3` as the stand-in for 19c. Oracle check labels use release names (`11g`, `21c (stand-in for 19c)`, `23ai`); workflow files and job ids keep the bare number. The boot check expects `SitmunOracleLegacyDialect` and `SitmunOracleDialect`.
 - **CI**: `.github/workflows/liquibase-upgrade.yml` upgrades each supported install from 1.2.6, 1.2.7, and 1.2.8. Jobs are `postgres-12-from`, `postgres-16-from`, `oracle-11-from`, and `oracle-19-from`. `oracle-23-from` stays on Oracle Free 23 as a forward-compatibility check. `SITMUN_POSTGRES_IMAGE` selects the PostgreSQL image.
 - **CI**: `.github/workflows/liquibase-upgrade.yml` job `dev-postgres-from` upgrades the development profile on PostgreSQL from 1.2.6 to HEAD (`--contexts=dev`).
 - **Submodules**: The shared upstream library is checked out at `back/shared/sitmun-shared` ([sitmun-shared](https://github.com/sitmun/sitmun-shared)). It follows the stack branch. `tools/scripts/bump-version.sh` moves its `1.2.9` version with the backend dependency `org.sitmun:sitmun-spring-upstream`.
@@ -94,6 +94,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 #### Backend Core
 
+- **Database**: The Oracle dialects take the connected database version. Oracle 11 was configured as Oracle 8, and Oracle 21 as 19.
+- **Database**: The backend changelog creates the literal unique index on Oracle 11 without `STANDARD_HASH`, which Oracle 11 lacks.
 - **Usage**: Usage ingest returns HTTP 400 when a row names a service or application that does not exist, and writes no row of that report. PostgreSQL returned HTTP 500.
 - **Tests**: Two repository slice tests use the Liquibase test schema instead of Hibernate `create-drop`, and the test seed holds the startup code-list values. On PostgreSQL the slices left a schema the next test context could not use.
 - **Tests**: PostgreSQL and Oracle test pools no longer set MySQL Connector/J statement-cache properties. The PostgreSQL pool still sets `reWriteBatchedInserts`.

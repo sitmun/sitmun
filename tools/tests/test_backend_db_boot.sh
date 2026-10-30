@@ -34,7 +34,7 @@ case "$SITMUN_DB" in
     ENGINE=oracle
     PROFILE=oracle-11
     CONFIG_DIR="$REPO_ROOT/profiles/oracle"
-    DIALECT=OracleLegacyDialect
+    DIALECT=SitmunOracleLegacyDialect
     VERSION_MARK=11
     DB_WAIT_TRIES="${SITMUN_DB_WAIT_TRIES:-300}"
     DEFAULT_URL="jdbc:oracle:thin:@//127.0.0.1:${HOST_PORT}/XE"
@@ -46,7 +46,7 @@ case "$SITMUN_DB" in
     ENGINE=oracle
     PROFILE=oracle
     CONFIG_DIR="$REPO_ROOT/profiles/oracle"
-    DIALECT=OracleDialect
+    DIALECT=SitmunOracleDialect
     # XE 21 stands in for the 19c install. Hibernate reports the image version.
     VERSION_MARK=21
     DB_WAIT_TRIES="${SITMUN_DB_WAIT_TRIES:-300}"

@@ -198,6 +198,7 @@ tasks.named('processTestResources', Copy).configure {
     include '16_template_task_type.yaml'
     include '17_more_info_advanced_e2e.yaml'
     include '18_literal_translations_varchar.yaml'
+    include '31_literal_translation_literal_unique_oracle11.yaml'
     include '19_mia_chrome_literals.yaml'
     include '21_align_schema_dialects.yaml'
     include '22_align_nullability.yaml'

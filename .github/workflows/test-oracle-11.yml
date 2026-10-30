@@ -1,4 +1,4 @@
-name: Test Oracle 11
+name: Test Oracle 11g
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.event.pull_request.number || github.run_id }}
@@ -15,7 +15,7 @@ on:
 
 jobs:
   changes:
-    name: Select Oracle 11 scope
+    name: Select Oracle 11g scope
     timeout-minutes: 5
     runs-on: ubuntu-latest
     outputs:
@@ -44,7 +44,7 @@ jobs:
 
   # gvenzl/oracle-xe:11 is amd64 only. ubuntu-latest is amd64.
   test-oracle-11:
-    name: Test Oracle 11
+    name: Test Oracle 11g
     needs: changes
     if: github.event_name == 'workflow_dispatch' || needs.changes.outputs.db == 'true'
     runs-on: ubuntu-latest
@@ -52,7 +52,7 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v5
-      - name: Test the backend on Oracle 11
+      - name: Test the backend on Oracle 11g
         uses: ./.github/actions/backend-database
         with:
           db: oracle-11
