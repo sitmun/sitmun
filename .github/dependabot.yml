@@ -73,6 +73,10 @@ updates:
     target-branch: dev
     schedule:
       interval: weekly
+    groups:
+      github-actions:
+        patterns:
+          - "*"
   - package-ecosystem: docker
     directory: /
     target-branch: dev

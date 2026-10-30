@@ -1,0 +1,25 @@
+services:
+  front:
+    build:
+      cache_from:
+        - type=gha,scope=front
+      cache_to:
+        - type=gha,scope=front,mode=max
+  backend:
+    build:
+      cache_from:
+        - type=gha,scope=backend
+      cache_to:
+        - type=gha,scope=backend,mode=max
+  proxy:
+    build:
+      cache_from:
+        - type=gha,scope=proxy
+      cache_to:
+        - type=gha,scope=proxy,mode=max
+  mbtiles:
+    build:
+      cache_from:
+        - type=gha,scope=mbtiles
+      cache_to:
+        - type=gha,scope=mbtiles,mode=max

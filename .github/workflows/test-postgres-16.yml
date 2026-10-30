@@ -37,9 +37,9 @@ jobs:
           INSTALL: postgres-16
         run: |
           if [ "$EVENT" = "workflow_dispatch" ]; then
-            python3 tools/bin/ci_db_scope.py --all --event "$EVENT" --base-ref "$BASE_REF" --install "$INSTALL" >> "$GITHUB_OUTPUT"
+            python3 tools/bin/ci_scope.py --all --event "$EVENT" --base-ref "$BASE_REF" --install "$INSTALL" >> "$GITHUB_OUTPUT"
           else
-            python3 tools/bin/ci_db_scope.py --base "$BASE" --head "$HEAD" --event "$EVENT" --base-ref "$BASE_REF" --install "$INSTALL" >> "$GITHUB_OUTPUT"
+            python3 tools/bin/ci_scope.py --base "$BASE" --head "$HEAD" --event "$EVENT" --base-ref "$BASE_REF" --install "$INSTALL" >> "$GITHUB_OUTPUT"
           fi
 
   test-postgres-16:

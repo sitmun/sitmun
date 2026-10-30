@@ -37,9 +37,9 @@ jobs:
           INSTALL: oracle-19
         run: |
           if [ "$EVENT" = "workflow_dispatch" ]; then
-            python3 tools/bin/ci_db_scope.py --all --event "$EVENT" --base-ref "$BASE_REF" --install "$INSTALL" >> "$GITHUB_OUTPUT"
+            python3 tools/bin/ci_scope.py --all --event "$EVENT" --base-ref "$BASE_REF" --install "$INSTALL" >> "$GITHUB_OUTPUT"
           else
-            python3 tools/bin/ci_db_scope.py --base "$BASE" --head "$HEAD" --event "$EVENT" --base-ref "$BASE_REF" --install "$INSTALL" >> "$GITHUB_OUTPUT"
+            python3 tools/bin/ci_scope.py --base "$BASE" --head "$HEAD" --event "$EVENT" --base-ref "$BASE_REF" --install "$INSTALL" >> "$GITHUB_OUTPUT"
           fi
 
   # gvenzl/oracle-xe:21-slim is amd64 only and stands in for the 19c install.

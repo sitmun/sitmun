@@ -12,7 +12,7 @@ from pathlib import Path
 BIN = Path(__file__).resolve().parent.parent / "bin"
 sys.path.insert(0, str(BIN))
 
-import ci_db_scope as scope  # noqa: E402
+import ci_scope as scope  # noqa: E402
 
 
 class TierTest(unittest.TestCase):
@@ -74,6 +74,78 @@ class RunsTest(unittest.TestCase):
 
     def test_dispatch_runs_every_install(self):
         self.assertTrue(scope.runs("none", "postgres-12", "", "workflow_dispatch"))
+
+
+class FlagTest(unittest.TestCase):
+    def test_docs_select_nothing(self):
+        flags = scope.flags_for(["docs/x.md"])
+        self.assertTrue(all(value is False for value in flags.values()))
+
+    def test_admin_source_selects_admin_and_its_suites(self):
+        flags = scope.flags_for(["sitmun-admin/src/main.ts"])
+        self.assertTrue(flags["admin"])
+        self.assertTrue(flags["docker"])
+        self.assertTrue(flags["e2e_admin"])
+        self.assertTrue(flags["e2e_contact"])
+        self.assertTrue(flags["e2e_mia"])
+        self.assertFalse(flags["viewer"])
+        self.assertFalse(flags["backend"])
+
+    def test_viewer_source_selects_viewer(self):
+        flags = scope.flags_for(["sitmun-viewer/src/app.ts"])
+        self.assertTrue(flags["viewer"])
+        self.assertTrue(flags["e2e_viewer"])
+        self.assertFalse(flags["admin"])
+
+    def test_backend_source_selects_backend_and_every_suite(self):
+        flags = scope.flags_for(["sitmun-backend/src/App.java"])
+        self.assertTrue(flags["backend"])
+        self.assertTrue(flags["docker"])
+        for name in flags:
+            if name.startswith("e2e_"):
+                self.assertTrue(flags[name], name)
+        self.assertFalse(flags["admin"])
+
+    def test_proxy_source_selects_proxy(self):
+        flags = scope.flags_for(["sitmun-proxy/src/Proxy.java"])
+        self.assertTrue(flags["proxy"])
+        self.assertTrue(flags["e2e_viewer"])
+        self.assertTrue(flags["e2e_mobile_web"])
+        self.assertFalse(flags["backend"])
+
+    def test_mbtiles_source_selects_mbtiles(self):
+        flags = scope.flags_for(["sitmun-addons/sitmun-mbtiles/src/Tiles.java"])
+        self.assertTrue(flags["mbtiles"])
+        self.assertTrue(flags["docker"])
+        self.assertTrue(flags["e2e_mobile_android"])
+        self.assertFalse(flags["proxy"])
+
+    def test_common_source_selects_shared(self):
+        flags = scope.flags_for(["sitmun-common/src/Shared.java"])
+        self.assertTrue(flags["shared"])
+        self.assertTrue(flags["e2e_admin"])
+        self.assertFalse(flags["backend"])
+
+    def test_catalog_selects_gradle_consumers(self):
+        flags = scope.flags_for(["gradle/libs.versions.toml"])
+        for name in ("backend", "proxy", "mbtiles", "shared"):
+            self.assertTrue(flags[name], name)
+        for name in flags:
+            if name.startswith("e2e_"):
+                self.assertTrue(flags[name], name)
+        self.assertFalse(flags["admin"])
+        self.assertFalse(flags["docker"])
+
+    def test_docker_file_selects_only_docker(self):
+        flags = scope.flags_for(["docker/backend/Dockerfile"])
+        self.assertTrue(flags["docker"])
+        self.assertFalse(flags["backend"])
+
+    def test_admin_e2e_spec_selects_only_that_suite(self):
+        flags = scope.flags_for(["e2e/admin/login.spec.ts"])
+        self.assertTrue(flags["e2e_admin"])
+        self.assertFalse(flags["e2e_viewer"])
+        self.assertFalse(flags["admin"])
 
 
 class DeletedFileTest(unittest.TestCase):
