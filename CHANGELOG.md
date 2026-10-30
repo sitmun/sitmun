@@ -94,6 +94,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 #### Backend Core
 
+- **Usage**: Usage ingest returns HTTP 400 when a row names a service or application that does not exist, and writes no row of that report. PostgreSQL returned HTTP 500.
+- **Tests**: Two repository slice tests use the Liquibase test schema instead of Hibernate `create-drop`, and the test seed holds the startup code-list values. On PostgreSQL the slices left a schema the next test context could not use.
+- **Tests**: PostgreSQL and Oracle test pools no longer set MySQL Connector/J statement-cache properties. The PostgreSQL pool still sets `reWriteBatchedInserts`.
 - **Code lists**: Startup inserts of missing code list values commit on PostgreSQL and Oracle. Those test pools turn JDBC auto-commit off, so the previous startup transaction was rolled back and production-database suites did not see values such as application type `ED`.
 - **Grants**: A position that expires today stays active on Oracle. `CURRENT_DATE` there includes the time of day, so the Oracle dialects use `trunc(current_date)`.
 
@@ -105,7 +108,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - **Mobile**: The Android end-to-end build uses `ng build`. `@ionic/cli` is not a dependency of the mobile apps.
 - **CI**: CodeQL JavaScript analysis no longer installs pnpm.
 - **CI**: `ng` is started with `pnpm exec` so pnpm does not forward a bare `--` as an empty Angular option.
-- **CI**: Test Oracle 11, Test Oracle 19, Test PostgreSQL 12, and Test PostgreSQL 16 are disabled. Those suites return HTTP 500 from Data REST and the failure log has no server exception.
 - **Admin**: `@tiptap/pm`, `ajv`, and `@jest/globals` are direct dependencies, so the editor build can load ProseMirror, `ajv/dist/compile/codegen`, and the task model spec.
 - **Viewer**: The API SITNA `FeatureHistoryEvent` declaration is listed at its pnpm path, the path webpack compiles.
 

@@ -54,6 +54,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+- **Tests**: `CartographyRepositoryByServiceTest` and `ServiceRepositoryWmsSearchTest` use the Liquibase test schema on the suite database. They no longer rebuild it with Hibernate `create-drop`, which on PostgreSQL left a schema the next test context could not use (`cached plan must not change result type`, closed connections, duplicate territory rows).
+- **Tests**: The test seed `02_codelists` holds the startup code-list values from `sitmun.startup.code-lists`, such as application types `T` and `ED` and the `treenode.node.type` values. Slice contexts do not run `CodeListValueSetup`, and with `drop-first` they recreate the schema without those values for the next context.
+- **Tests**: PostgreSQL and Oracle test pools no longer set `cachePrepStmts`, `prepStmtCacheSize`, `prepStmtCacheSqlLimit`, or `useServerPrepStmts`. Those names belong to MySQL Connector/J. The PostgreSQL pool still sets `reWriteBatchedInserts`.
 - **Database**: On Oracle, `GET /api/config/client/application` no longer fails with `ORA-00932`. Application queries select each application once by id instead of `select distinct` over the `APP_HEADERPARAMS` CLOB. Profile `oracle-11` sends the session time zone as an offset (`oracle.jdbc.timezoneAsRegion=false`), because Oracle 11 XE rejects `Etc/UTC` with `ORA-01882`.
 - **Tests**: The Oracle test changelog drops `NOT NULL` on `STM_SERVICE_CHECK.SEC_DETAIL`, matching runtime changelog 34. Oracle stores `''` as NULL, and service-check rows write an empty detail. Suite SQL binds booleans as JDBC parameters, because Oracle has no `TRUE` or `FALSE` literals before 23. `TaskRepositoryDataRestTest` inserts a unique territory name so a leftover row does not violate `STM_TER_NAME_UK`.
 - **Tests**: `testOracle`, `testOracle11`, `testOracle19`, `testPostgres`, `testPostgres12`, and `testPostgres16` keep the `test` profile. That profile turns service checks off. Without it, probes start during startup and take the second pooled connection while code-list setup still holds the first.
@@ -69,6 +72,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 - **Profile**: `featureInfoFields` publishes `maxWidth` and `maxHeight` from `PGI_OPTIONS` for an Image field.
 - **Usage**: Usage ingest returns HTTP 400 when `hourStart`, `serviceId`, or `applicationId` is null. An explicit `0` still binds.
+- **Usage**: Usage ingest returns HTTP 400 with `Unknown service {id}` or `Unknown application {id}` when a row names a service or application that does not exist. No row of that report is written. Before, H2 stored the row and PostgreSQL returned HTTP 500, because the failed insert aborted the transaction before the retry.
 - **Service checks**: Service-check ingest returns HTTP 400 when `requestContext` or `exchangeSignals` is missing.
 - **Images**: A PNG data URI is source-subsampled to the configured size before scaling, matching URL images, so a large bitmap is not decoded at full size. SVG data URIs stay `image/svg+xml` ([#309](https://github.com/sitmun/sitmun-backend-core/issues/309)).
 - **Config**: `ConfigurationParameter` equality follows its id. Two rows with the same id compare equal and share a hash code, including in a `HashSet`. A configuration parameter is not equal to an application parameter with the same id ([#295](https://github.com/sitmun/sitmun-backend-core/issues/295)).

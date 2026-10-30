@@ -45,8 +45,7 @@ jobs:
   test-postgres-12:
     name: Test PostgreSQL 12
     needs: changes
-    # Data REST calls return HTTP 500 and the log has no server exception.
-    if: false
+    if: github.event_name == 'workflow_dispatch' || needs.changes.outputs.db == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 120
     steps:
