@@ -95,6 +95,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 #### Backend Core
 
 - **Database**: The Oracle dialects take the connected database version. Oracle 11 was configured as Oracle 8, and Oracle 21 as 19.
+- **Grants**: On Oracle, a user position created today grants access today. A cast to date kept the time of day there.
+- **i18n**: Creating a task with a new template literal no longer returns HTTP 500 on Oracle, whose JDBC driver does not support `releaseSavepoint`.
 - **Database**: The backend changelog creates the literal unique index on Oracle 11 without `STANDARD_HASH`, which Oracle 11 lacks.
 - **Usage**: Usage ingest returns HTTP 400 when a row names a service or application that does not exist, and writes no row of that report. PostgreSQL returned HTTP 500.
 - **Tests**: Two repository slice tests use the Liquibase test schema instead of Hibernate `create-drop`, and the test seed holds the startup code-list values. On PostgreSQL the slices left a schema the next test context could not use.
