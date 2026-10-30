@@ -1,4 +1,4 @@
-name: Test Oracle 19
+name: Test Oracle 21c (stand-in for 19c)
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.event.pull_request.number || github.run_id }}
@@ -15,7 +15,7 @@ on:
 
 jobs:
   changes:
-    name: Select Oracle 19 scope
+    name: Select Oracle 21c (stand-in for 19c) scope
     timeout-minutes: 5
     runs-on: ubuntu-latest
     outputs:
@@ -45,16 +45,15 @@ jobs:
   # gvenzl/oracle-xe:21-slim is amd64 only and stands in for the 19c install.
   # ORACLE_DATABASE=sitmun3 is set by tools/tests/test_backend_db_boot.sh.
   test-oracle-19:
-    name: Test Oracle 19
+    name: Test Oracle 21c (stand-in for 19c)
     needs: changes
-    # Data REST calls return HTTP 500 and the log has no server exception.
-    if: false
+    if: github.event_name == 'workflow_dispatch' || needs.changes.outputs.db == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 120
     steps:
       - name: Checkout
         uses: actions/checkout@v5
-      - name: Test the backend on Oracle 19
+      - name: Test the backend on Oracle 21c (stand-in for 19c)
         uses: ./.github/actions/backend-database
         with:
           db: oracle-19
