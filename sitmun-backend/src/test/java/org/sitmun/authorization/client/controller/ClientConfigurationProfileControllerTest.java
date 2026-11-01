@@ -52,6 +52,17 @@ class ClientConfigurationProfileControllerTest {
   private String proxyUrl;
 
   @Test
+  @DisplayName("GET: profile stays up when a linked tree type is null")
+  void profileStaysUpWhenTreeTypeIsNull() throws Exception {
+    jdbcTemplate.update("UPDATE STM_TREE SET TRE_TYPE = NULL WHERE TRE_ID = 10001");
+    try {
+      mvc.perform(get(CONFIG_CLIENT_PROFILE_URI, 10001, 10001)).andExpect(status().isOk());
+    } finally {
+      jdbcTemplate.update("UPDATE STM_TREE SET TRE_TYPE = 'cartography' WHERE TRE_ID = 10001");
+    }
+  }
+
+  @Test
   @DisplayName("GET: initialExtent computed from territory 1 extent + center")
   void applicationDetails() throws Exception {
     mvc.perform(get(CONFIG_CLIENT_PROFILE_URI, 10001, 10001))

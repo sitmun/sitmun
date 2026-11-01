@@ -7,6 +7,7 @@ import jakarta.validation.constraints.NotBlank;
 import java.util.Objects;
 import lombok.*;
 import org.sitmun.domain.PersistenceConstants;
+import org.sitmun.domain.StoredFlagListener;
 
 /** Available languages. */
 @Entity
@@ -16,7 +17,7 @@ import org.sitmun.domain.PersistenceConstants;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-@EntityListeners(I18nListener.class)
+@EntityListeners({I18nListener.class, StoredFlagListener.class})
 public class Language {
 
   /** Unique identifier. */

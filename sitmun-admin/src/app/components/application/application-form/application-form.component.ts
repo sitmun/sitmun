@@ -320,7 +320,7 @@ export class ApplicationFormComponent extends BaseFormComponent<ApplicationProje
     this.entityToEdit.headerParams = this.headerParams;
 
     this.entityForm = new UntypedFormGroup({
-      name: new UntypedFormControl(this.entityToEdit.name, [Validators.required,]),
+      name: new UntypedFormControl(this.entityToEdit.name, [Validators.required, Validators.maxLength(50)]),
       description: new UntypedFormControl(this.entityToEdit.description, [Validators.required]),
       type: new UntypedFormControl(this.entityToEdit.type, [Validators.required,]),
       title: new UntypedFormControl(this.entityToEdit.title),
@@ -330,7 +330,7 @@ export class ApplicationFormComponent extends BaseFormComponent<ApplicationProje
       ]),
       theme: new UntypedFormControl(this.entityToEdit.theme),
       situationMapId: new UntypedFormControl(this.entityToEdit.situationMapId, []),
-      srs: new UntypedFormControl(this.entityToEdit.srs),
+      srs: new UntypedFormControl(this.entityToEdit.srs, [Validators.maxLength(50)]),
       scales: new UntypedFormControl(this.entityToEdit.scales?.join(',')),
       treeAutoRefresh: new UntypedFormControl(this.entityToEdit.treeAutoRefresh),
       accessParentTerritory: new UntypedFormControl(this.entityToEdit.accessParentTerritory),
@@ -623,7 +623,7 @@ export class ApplicationFormComponent extends BaseFormComponent<ApplicationProje
         .withForm(
           new FormGroup({
             name: new FormControl('', {
-              validators: [Validators.required],
+              validators: [Validators.required, Validators.maxLength(50)],
               nonNullable: true
             }),
             type: new FormControl('', {

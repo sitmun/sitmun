@@ -172,6 +172,7 @@ export class LayersPermitsFormComponent extends BaseFormComponent<CartographyGro
     this.entityForm = new UntypedFormGroup({
       name: new UntypedFormControl(this.entityToEdit.name, [
         Validators.required,
+        Validators.maxLength(50),
       ]),
       type: new UntypedFormControl(this.entityToEdit.type, [
         Validators.required,

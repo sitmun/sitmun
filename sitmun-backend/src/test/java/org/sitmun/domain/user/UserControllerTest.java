@@ -194,6 +194,28 @@ class UserControllerTest {
   }
 
   @Test
+  @DisplayName("POST: Reject a 251 character email")
+  void rejectEmailLongerThan250() throws Exception {
+    String content =
+        """
+        {
+        "username":"%s",
+        "email":"%s@example.com",
+        "administrator": false,
+        "blocked": false
+        }
+        """
+            .formatted(username, "a".repeat(239));
+
+    mvc.perform(
+            post(URIConstants.ACCOUNT_URI)
+                .cookie(new Cookie(ACCESS_TOKEN, validToken))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(content))
+        .andExpect(status().isBadRequest());
+  }
+
+  @Test
   @DisplayName("POST: Reject empty password on account update")
   void rejectEmptyPasswordOnAccountUpdate() throws Exception {
     String content =

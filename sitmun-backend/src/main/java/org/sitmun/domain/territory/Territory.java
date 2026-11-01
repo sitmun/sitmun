@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Objects;
@@ -13,6 +14,7 @@ import lombok.*;
 import org.sitmun.authorization.client.dto.ClientConfigurationViews;
 import org.sitmun.domain.CodeListsConstants;
 import org.sitmun.domain.PersistenceConstants;
+import org.sitmun.domain.StoredFlagListener;
 import org.sitmun.domain.application.territory.ApplicationTerritory;
 import org.sitmun.domain.cartography.availability.CartographyAvailability;
 import org.sitmun.domain.task.availability.TaskAvailability;
@@ -35,7 +37,7 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 @Entity
-@EntityListeners({AuditingEntityListener.class, I18nListener.class})
+@EntityListeners({AuditingEntityListener.class, I18nListener.class, StoredFlagListener.class})
 @Table(
     name = "STM_TERRITORY",
     uniqueConstraints = @UniqueConstraint(name = "STM_TER_NOM_UK", columnNames = "TER_NAME"))
@@ -98,7 +100,8 @@ public class Territory {
   private String territorialAuthorityAddress;
 
   /** Territorial authority email. */
-  @Column(name = "TER_EMAIL", length = PersistenceConstants.IDENTIFIER)
+  @Column(name = "TER_EMAIL", length = PersistenceConstants.SHORT_DESCRIPTION)
+  @Size(max = PersistenceConstants.SHORT_DESCRIPTION)
   @Email
   @JsonView(ClientConfigurationViews.ApplicationTerritory.class)
   private String territorialAuthorityEmail;
@@ -115,6 +118,7 @@ public class Territory {
    * @deprecated
    */
   @Column(name = "TER_SCOPE", length = PersistenceConstants.IDENTIFIER)
+  @Size(max = PersistenceConstants.IDENTIFIER)
   @CodeList(CodeListsConstants.TERRITORY_SCOPE)
   @JsonView(ClientConfigurationViews.ApplicationTerritory.class)
   @Deprecated(forRemoval = true)
@@ -189,6 +193,7 @@ public class Territory {
 
   /** Projection to be used in this application when it is internal. */
   @Column(name = "TER_PROJECT", length = PersistenceConstants.IDENTIFIER)
+  @Size(max = PersistenceConstants.IDENTIFIER)
   @Srs
   private String srs;
 

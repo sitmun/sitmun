@@ -330,7 +330,7 @@ export class LayersFormComponent extends BaseFormComponent<CartographyProjection
 
     this.entityForm = new UntypedFormGroup(
       {
-      name: new UntypedFormControl(this.entityToEdit.name, [Validators.required]),
+      name: new UntypedFormControl(this.entityToEdit.name, [Validators.required, Validators.maxLength(100)]),
       serviceId: new UntypedFormControl(this.entityToEdit.serviceId, [Validators.required]),
       joinedLayers: new UntypedFormControl(this.entityToEdit.layers?.join(','), [Validators.required]),
       minimumScale: new UntypedFormControl(this.entityToEdit.minimumScale, [
@@ -344,7 +344,7 @@ export class LayersFormComponent extends BaseFormComponent<CartographyProjection
       metadataURL: new UntypedFormControl(this.entityToEdit.metadataURL, []),
       legendType: new UntypedFormControl(this.entityToEdit.legendType || null, []),
       legendURL: new UntypedFormControl(this.entityToEdit.legendURL, []),
-      source: new UntypedFormControl(this.entityToEdit.source, []),
+      source: new UntypedFormControl(this.entityToEdit.source, [Validators.maxLength(50)]),
       description: new UntypedFormControl(this.entityToEdit.description, []),
       datasetURL: new UntypedFormControl(this.entityToEdit.datasetURL, []),
       applyFilterToGetMap: new UntypedFormControl(this.entityToEdit.applyFilterToGetMap, []),
@@ -556,7 +556,7 @@ export class LayersFormComponent extends BaseFormComponent<CartographyProjection
         .withReference(this.newParameterDialog)
         .withTitle('entity.cartography.parameters.title')
         .withForm(new FormGroup({
-          name: new FormControl(null, [Validators.required]),
+          name: new FormControl(null, [Validators.required, Validators.maxLength(50)]),
           type: new FormControl(null, [Validators.required]),
           value: new FormControl(null, [Validators.required]),
           format: new FormControl(null, []),
@@ -638,11 +638,11 @@ export class LayersFormComponent extends BaseFormComponent<CartographyProjection
         .withReference(this.newTerritorialFilterDialog)
         .withTitle('entity.cartography.filters.parameters.title')
         .withForm(new FormGroup({
-          name: new FormControl(null, [Validators.required]),
+          name: new FormControl(null, [Validators.required, Validators.maxLength(50)]),
           required: new FormControl(false),
           type: new FormControl(null, [Validators.required]),
           territorialLevelId: new FormControl(null),
-          column: new FormControl(null),
+          column: new FormControl(null, [Validators.maxLength(50)]),
           values: new FormControl(null),
           valueType: new FormControl(null, []),
         })).withPreOpenFunction((form: FormGroup) => {
@@ -690,8 +690,8 @@ export class LayersFormComponent extends BaseFormComponent<CartographyProjection
         .withReference(this.newStyleDialog)
         .withTitle('entity.cartography.styles.parameters.header')
         .withForm(new FormGroup({
-          name: new FormControl(null, [Validators.required]),
-          title: new FormControl(null, [Validators.required]),
+          name: new FormControl(null, [Validators.required, Validators.maxLength(50)]),
+          title: new FormControl(null, [Validators.required, Validators.maxLength(250)]),
           description: new FormControl(null, []),
           format: new FormControl(null, []),
           width: new FormControl(null, []),

@@ -107,7 +107,7 @@
               <!-- Email -->
               <mat-form-field appearance="outline" class="half add-gap sitmun-cartography-rich-hint-field" subscriptSizing="dynamic">
                 <mat-label>{{ 'common.form.email' | translate }}</mat-label>
-                <input matInput type="email" formControlName="email" maxlength="50">
+                <input matInput type="email" formControlName="email" maxlength="250">
                 <mat-hint align="start">{{ 'entity.user.hint.email' | translate }}</mat-hint>
                 <mat-hint align="end">{{ entityForm.get('email') | characterCount }}</mat-hint>
                 @if (entityForm?.get('email')?.hasError('email')) {

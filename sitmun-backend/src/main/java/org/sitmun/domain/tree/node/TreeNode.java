@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonView;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import java.util.Map;
 import java.util.Objects;
 import lombok.*;
@@ -13,6 +14,7 @@ import org.hibernate.annotations.OnDeleteAction;
 import org.sitmun.authorization.client.dto.ClientConfigurationViews;
 import org.sitmun.domain.CodeListsConstants;
 import org.sitmun.domain.PersistenceConstants;
+import org.sitmun.domain.StoredFlagListener;
 import org.sitmun.domain.cartography.Cartography;
 import org.sitmun.domain.task.Task;
 import org.sitmun.domain.tree.Tree;
@@ -24,7 +26,7 @@ import org.sitmun.infrastructure.persistence.type.map.HashMapConverter;
 
 /** Tree node. */
 @Entity
-@EntityListeners(I18nListener.class)
+@EntityListeners({I18nListener.class, StoredFlagListener.class})
 @Table(name = "STM_TREE_NOD")
 @Builder
 @Getter
@@ -135,7 +137,8 @@ public class TreeNode {
   private String image;
 
   /** Image name. */
-  @Column(name = "TNO_IMAGE_NAME")
+  @Column(name = "TNO_IMAGE_NAME", length = 255)
+  @Size(max = 255)
   private String imageName;
 
   /** View mode. */

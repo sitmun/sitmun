@@ -193,7 +193,7 @@ export class TreeNodesComponent implements OnInit, OnDestroy, OnChanges {
   /** True during a node switch to suppress spurious Material `(closed)` events. */
   private suppressPanelStateUpdates = false;
 
-  filterOptions = [{value: 'UNDEFINED', description: 'common.boolean.undefined'}, {value: true, description: 'common.boolean.yes'}, {value: false, description: 'common.boolean.no'}];
+  filterOptions = [{value: true, description: 'common.boolean.yes'}, {value: false, description: 'common.boolean.no'}];
   codeValues = constants.codeValue;
   get defaultLang(): string {
     return config.defaultLang;
@@ -1207,8 +1207,8 @@ export class TreeNodesComponent implements OnInit, OnDestroy, OnChanges {
   initializeTreesNodeForm(): void {
     this.treeNodeForm = new UntypedFormGroup({
       id: new UntypedFormControl(null, []),
-      name: new UntypedFormControl(null, [Validators.required]),
-      tooltip: new UntypedFormControl(null, []),
+      name: new UntypedFormControl(null, [Validators.required, Validators.maxLength(80)]),
+      tooltip: new UntypedFormControl(null, [Validators.maxLength(100)]),
       nodeType: new UntypedFormControl(null, []), // Optional for folders, will be validated conditionally
       cartography: new UntypedFormControl({ value: null, disabled: false }, []),
       radio: new UntypedFormControl(null, []),
@@ -1216,9 +1216,9 @@ export class TreeNodesComponent implements OnInit, OnDestroy, OnChanges {
       queryableActive: new UntypedFormControl(false, []),
       datasetURL: new UntypedFormControl(null, []),
       metadataURL: new UntypedFormControl(null, []),
-      description: new UntypedFormControl(null, []),
+      description: new UntypedFormControl(null, [Validators.maxLength(250)]),
       image: new UntypedFormControl(null, []),
-      imageName: new UntypedFormControl(null, []),
+      imageName: new UntypedFormControl(null, [Validators.maxLength(255)]),
       task: new UntypedFormControl({ value: null, disabled: false }, []),
       viewMode: new UntypedFormControl(null, []),
       filterable: new UntypedFormControl(null, []),
@@ -1228,9 +1228,9 @@ export class TreeNodesComponent implements OnInit, OnDestroy, OnChanges {
       parent: new UntypedFormControl(null, []),
       type: new UntypedFormControl(null, []),
       order: new UntypedFormControl(null, []),
-      filterGetFeatureInfo: new UntypedFormControl("UNDEFINED", []),
-      filterGetMap: new UntypedFormControl("UNDEFINED", []),
-      filterSelectable: new UntypedFormControl("UNDEFINED", []),
+      filterGetFeatureInfo: new UntypedFormControl(false, []),
+      filterGetMap: new UntypedFormControl(false, []),
+      filterSelectable: new UntypedFormControl(false, []),
       nameTranslations: new UntypedFormControl(null, []),
       descriptionTranslations: new UntypedFormControl(null, []),
       nameTranslationsModified: new UntypedFormControl(null, []),
@@ -1389,9 +1389,9 @@ export class TreeNodesComponent implements OnInit, OnDestroy, OnChanges {
       descriptionFormModified: descriptionFormModified,
       nameTranslations: node.nameTranslations,
       descriptionTranslations: node.descriptionTranslations,
-      filterGetFeatureInfo: (node.filterGetFeatureInfo == null || false) ? "UNDEFINED" : node.filterGetFeatureInfo,
-      filterGetMap: (node.filterGetMap == null || false) ? "UNDEFINED" : node.filterGetMap,
-      filterSelectable: (node.filterSelectable == null || false) ? "UNDEFINED" : node.filterSelectable,
+      filterGetFeatureInfo: node.filterGetFeatureInfo === true,
+      filterGetMap: node.filterGetMap === true,
+      filterSelectable: node.filterSelectable === true,
       style: node.style,
       status: status,
       type: currentType,
@@ -1575,9 +1575,9 @@ export class TreeNodesComponent implements OnInit, OnDestroy, OnChanges {
       children: [],
       status: 'pendingCreation',
       nodeType,
-      filterGetFeatureInfo: 'UNDEFINED',
-      filterGetMap: 'UNDEFINED',
-      filterSelectable: 'UNDEFINED',
+      filterGetFeatureInfo: false,
+      filterGetMap: false,
+      filterSelectable: false,
       visible: true,
       active: false
     });
@@ -2632,9 +2632,9 @@ export class TreeNodesComponent implements OnInit, OnDestroy, OnChanges {
       treeNodeObj.metadataURL = treeNode.metadataURL;
       treeNodeObj.description = treeNode.description;
       treeNodeObj.tree = tree;
-      treeNodeObj.filterGetFeatureInfo = treeNode.filterGetFeatureInfo == "UNDEFINED" ? null : treeNode.filterGetFeatureInfo;
-      treeNodeObj.filterGetMap = treeNode.filterGetMap == "UNDEFINED" ? null : treeNode.filterGetMap;
-      treeNodeObj.filterSelectable = treeNode.filterSelectable == "UNDEFINED" ? null : treeNode.filterSelectable;
+      treeNodeObj.filterGetFeatureInfo = treeNode.filterGetFeatureInfo === true;
+      treeNodeObj.filterGetMap = treeNode.filterGetMap === true;
+      treeNodeObj.filterSelectable = treeNode.filterSelectable === true;
       // Convert sentinel value back to null before saving
       if (treeNode.style === this.defaultStyleSentinel) {
         treeNodeObj.style = null;
@@ -3087,18 +3087,6 @@ export class TreeNodesComponent implements OnInit, OnDestroy, OnChanges {
       });
     }
 
-    if (!this.currentNodeIsFolder) {
-      if (this.treeNodeForm.get('filterGetFeatureInfo').value == "UNDEFINED") {
-        this.treeNodeForm.get('filterGetFeatureInfo').patchValue(null);
-      }
-      if (this.treeNodeForm.get('filterGetMap').value == "UNDEFINED") {
-        this.treeNodeForm.get('filterGetMap').patchValue(null);
-      }
-      if (this.treeNodeForm.get('filterSelectable').value == "UNDEFINED") {
-        this.treeNodeForm.get('filterSelectable').patchValue(null);
-      }
-    }
-
     let newNameTranslation: Map<string, Translation> = null;
     let newDescriptionTranslation: Map<string, Translation> = null;
 
@@ -3187,18 +3175,6 @@ export class TreeNodesComponent implements OnInit, OnDestroy, OnChanges {
       this.treeNodeForm.patchValue({
         status: "Modified"
       });
-    }
-
-    if (!this.currentNodeIsFolder) {
-      if (this.treeNodeForm.get('filterGetFeatureInfo').value == "UNDEFINED") {
-        this.treeNodeForm.get('filterGetFeatureInfo').patchValue(null);
-      }
-      if (this.treeNodeForm.get('filterGetMap').value == "UNDEFINED") {
-        this.treeNodeForm.get('filterGetMap').patchValue(null);
-      }
-      if (this.treeNodeForm.get('filterSelectable').value == "UNDEFINED") {
-        this.treeNodeForm.get('filterSelectable').patchValue(null);
-      }
     }
 
     let newNameTranslation: Map<string, Translation> = null;

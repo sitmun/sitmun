@@ -558,8 +558,8 @@ export class TreesFormComponent extends BaseFormComponent<Tree> {
   initializeTreesForm(): void {
     this.entityForm = new UntypedFormGroup({
       id: new UntypedFormControl(null, []),
-      name: new UntypedFormControl(null, [Validators.required]),
-      description: new UntypedFormControl(null, []),
+      name: new UntypedFormControl(null, [Validators.required, Validators.maxLength(100)]),
+      description: new UntypedFormControl(null, [Validators.maxLength(250)]),
       type: new UntypedFormControl(null, [Validators.required]),
       image: new UntypedFormControl(null, []),
       imageName: new UntypedFormControl(null, [])

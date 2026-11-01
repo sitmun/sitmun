@@ -201,7 +201,7 @@ export class UserFormComponent extends BaseFormComponent<UserProjection> {
       ),
       firstName: new UntypedFormControl(this.entityToEdit.firstName, [Validators.maxLength(50)]),
       lastName: new UntypedFormControl(this.entityToEdit.lastName, [Validators.maxLength(50)]),
-      email: new UntypedFormControl(this.entityToEdit.email, [Validators.email, Validators.maxLength(50)]),
+      email: new UntypedFormControl(this.entityToEdit.email, [Validators.email, Validators.maxLength(250)]),
       newPassword: new UntypedFormControl(
         this.passwordSet ? UserFormComponent.PASSWORD_PLACEHOLDER : '',
         []

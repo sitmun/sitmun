@@ -300,7 +300,7 @@
                               <mat-form-field appearance="outline" class="appearance-form-field">
                                 <mat-label>{{ appearanceFieldLabelI18nKey | translate }}</mat-label>
                                 <input #treenodeImageNameInput matInput type="text" formControlName="imageName"
-                                  (keyup)="onImageChange('node', $event)" readonly
+                                  (keyup)="onImageChange('node', $event)" readonly maxlength="255"
                                   [placeholder]="'entity.tree.imagePlaceHolder' | translate">
                               </mat-form-field>
                               <textarea matInput type="text" hidden formControlName="image"></textarea>

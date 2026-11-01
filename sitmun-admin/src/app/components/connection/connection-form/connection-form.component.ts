@@ -105,7 +105,7 @@ export class ConnectionFormComponent extends BaseFormComponent<Connection> {
     }
     this.resetPasswordFieldState();
     this.entityForm = new UntypedFormGroup({
-      name: new UntypedFormControl(this.entityToEdit.name, [Validators.required]),
+      name: new UntypedFormControl(this.entityToEdit.name, [Validators.required, Validators.maxLength(50)]),
       driver: new UntypedFormControl(this.entityToEdit.driver, [Validators.required]),
       user: new UntypedFormControl(this.entityToEdit.user),
       newPassword: new UntypedFormControl(

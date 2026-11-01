@@ -8,11 +8,13 @@ import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import java.util.*;
 import lombok.*;
 import org.hibernate.annotations.BatchSize;
 import org.sitmun.authorization.client.dto.ClientConfigurationViews;
 import org.sitmun.domain.CodeListsConstants;
+import org.sitmun.domain.StoredFlagListener;
 import org.sitmun.domain.cartography.availability.CartographyAvailability;
 import org.sitmun.domain.cartography.filter.CartographyFilter;
 import org.sitmun.domain.cartography.parameter.CartographyParameter;
@@ -34,7 +36,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 /** Geographic information. */
 @Entity
-@EntityListeners({AuditingEntityListener.class, I18nListener.class})
+@EntityListeners({AuditingEntityListener.class, I18nListener.class, StoredFlagListener.class})
 @Table(name = "STM_GEOINFO")
 @Builder
 @Getter
@@ -229,6 +231,7 @@ public class Cartography {
 
   /** Grouping source. */
   @Column(name = "GEO_SOURCE", length = IDENTIFIER)
+  @Size(max = IDENTIFIER)
   private String source;
 
   /** Availailability. */

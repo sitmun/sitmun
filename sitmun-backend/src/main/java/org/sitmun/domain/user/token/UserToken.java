@@ -38,6 +38,6 @@ public class UserToken {
   @Column(name = "ATTEMPT_COUNTER", nullable = false)
   private int attemptCounter;
 
-  @Column(name = "ACTIVE", nullable = true)
+  @Column(name = "ACTIVE", nullable = false)
   private boolean active;
 }

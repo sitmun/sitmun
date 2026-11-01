@@ -3,6 +3,7 @@ package org.sitmun.domain.cartography.filter;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import java.util.List;
 import java.util.Objects;
 import lombok.*;
@@ -10,6 +11,7 @@ import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 import org.sitmun.domain.CodeListsConstants;
 import org.sitmun.domain.PersistenceConstants;
+import org.sitmun.domain.StoredFlagListener;
 import org.sitmun.domain.cartography.Cartography;
 import org.sitmun.domain.territory.type.TerritoryType;
 import org.sitmun.infrastructure.persistence.type.codelist.CodeList;
@@ -17,6 +19,7 @@ import org.sitmun.infrastructure.persistence.type.list.StringListAttributeConver
 
 /** Geographic Information filter. */
 @Entity
+@EntityListeners(StoredFlagListener.class)
 @Table(name = "STM_FIL_GI")
 @Builder
 @Getter
@@ -40,6 +43,7 @@ public class CartographyFilter {
 
   /** Filter name. */
   @Column(name = "FGI_NAME", length = PersistenceConstants.IDENTIFIER)
+  @Size(max = PersistenceConstants.IDENTIFIER)
   @NotBlank
   private String name;
 
@@ -61,6 +65,7 @@ public class CartographyFilter {
 
   /** Column where the filter applies. */
   @Column(name = "FGI_COLUMN", length = PersistenceConstants.IDENTIFIER)
+  @Size(max = PersistenceConstants.IDENTIFIER)
   private String column;
 
   /** A row is part of the filter if the value of the column is one of these values. */

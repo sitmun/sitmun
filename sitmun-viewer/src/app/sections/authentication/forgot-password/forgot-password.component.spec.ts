@@ -75,4 +75,16 @@ describe('ForgotPasswordComponent', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
+
+  it('keeps a 60 character email', () => {
+    const email = `${'a'.repeat(48)}@example.com`;
+    const input = fixture.nativeElement.querySelector(
+      'input[name="mail"]'
+    ) as HTMLInputElement;
+    input.value = email;
+    input.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+    expect(component.recoveryRequest.email).toBe(email);
+    expect(component.recoveryRequest.email.length).toBe(60);
+  });
 });

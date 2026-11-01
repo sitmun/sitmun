@@ -3,6 +3,7 @@ package org.sitmun.domain.tree;
 import com.fasterxml.jackson.annotation.JsonView;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
@@ -45,7 +46,8 @@ public class Tree {
   private Integer id;
 
   /** Tree name. */
-  @Column(name = "TRE_NAME", length = PersistenceConstants.IDENTIFIER)
+  @Column(name = "TRE_NAME", length = 100)
+  @Size(max = 100)
   @NotBlank
   @JsonView(ClientConfigurationViews.ApplicationTerritory.class)
   @I18n

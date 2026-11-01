@@ -7,6 +7,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import java.util.Objects;
 import lombok.*;
 import org.hibernate.annotations.OnDelete;
@@ -46,6 +47,7 @@ public class CartographySpatialSelectionParameter {
 
   /** Name. */
   @Column(name = "PSG_NAME", length = IDENTIFIER)
+  @Size(max = IDENTIFIER)
   @NotBlank
   private String name;
 
@@ -56,11 +58,13 @@ public class CartographySpatialSelectionParameter {
 
   /** Format. */
   @Column(name = "PSG_FORMAT", length = IDENTIFIER)
+  @Size(max = IDENTIFIER)
   @CodeList(CodeListsConstants.CARTOGRAPHY_SPATIAL_SELECTION_PARAMETER_FORMAT)
   private String format;
 
   /** Type. */
   @Column(name = "PSG_TYPE", length = IDENTIFIER)
+  @Size(max = IDENTIFIER)
   @NotNull
   @CodeList(CodeListsConstants.CARTOGRAPHY_SPATIAL_SELECTION_PARAMETER_TYPE)
   private String type;

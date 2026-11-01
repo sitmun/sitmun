@@ -75,4 +75,14 @@ class TreeNodeRadioPolicyTest {
     assertThat(TreeNodeRadioPolicy.canExposeRadio(leaf)).isFalse();
     assertThat(TreeNodeRadioPolicy.canExposeRadio(touristicFolder)).isFalse();
   }
+
+  @Test
+  @DisplayName("canExposeRadio is false when the tree type is null")
+  void canExposeRadioFalseWhenTreeTypeIsNull() {
+    Tree tree = Tree.builder().build();
+    TreeNode folder = new TreeNode();
+    folder.setTree(tree);
+
+    assertThat(TreeNodeRadioPolicy.canExposeRadio(folder)).isFalse();
+  }
 }

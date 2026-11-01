@@ -19,7 +19,7 @@ public final class TreeNodeRadioPolicy {
   }
 
   public static boolean isRadioAllowedTree(Tree tree) {
-    return tree != null && RADIO_TREE_TYPES.contains(tree.getType());
+    return tree != null && tree.getType() != null && RADIO_TREE_TYPES.contains(tree.getType());
   }
 
   public static boolean canExposeRadio(TreeNode node) {

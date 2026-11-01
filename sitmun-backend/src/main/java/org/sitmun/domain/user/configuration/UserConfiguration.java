@@ -9,6 +9,7 @@ import lombok.*;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 import org.sitmun.authorization.client.dto.ClientConfigurationViews;
+import org.sitmun.domain.StoredFlagListener;
 import org.sitmun.domain.application.Application;
 import org.sitmun.domain.role.Role;
 import org.sitmun.domain.territory.Territory;
@@ -18,7 +19,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 /** User role in a territory. */
 @Entity
-@EntityListeners(AuditingEntityListener.class)
+@EntityListeners({AuditingEntityListener.class, StoredFlagListener.class})
 @Table(
     name = "STM_USR_CONF",
     uniqueConstraints =
