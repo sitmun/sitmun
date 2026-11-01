@@ -78,7 +78,7 @@ jobs:
     name: Upgrade PostgreSQL 16 from 1.2.9
     if: github.event_name != 'workflow_dispatch' || inputs.db == 'all' || inputs.db == 'postgres-16'
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 70
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -95,7 +95,63 @@ jobs:
           git fetch --no-tags origin tag legacy/sitmun-application-stack/sitmun-application-stack/1.2.8
           git fetch --no-tags origin tag legacy/sitmun-application-stack/sitmun-application-stack/1.2.9
       - name: Upgrade 1.2.9 to the shipped master
+        env:
+          SITMUN_UPGRADE_KEEP_DB: "1"
         run: bash tools/tests/test_liquibase_upgrade_from_1.2.9.sh postgres-16
+      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
+        with:
+          version: 12.15.0
+      - name: Set up Node
+        uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+          cache-dependency-path: |
+            pnpm-lock.yaml
+            sitmun-admin/pnpm-lock.yaml
+      - name: Install root dependencies
+        run: pnpm ci
+      - name: Install admin dependencies
+        working-directory: sitmun-admin
+        run: pnpm ci
+      - name: Read the Playwright version
+        id: playwright-version
+        run: |
+          version=$(python3 -c "import pathlib,re; text=pathlib.Path('pnpm-lock.yaml').read_text(); match=re.search(r'playwright@(\d+\.\d+\.\d+)', text); assert match; print(match.group(1))")
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+      - name: Cache Playwright browsers
+        id: playwright-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ steps.playwright-version.outputs.version }}
+      - name: Install Chromium
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: pnpm exec playwright install --with-deps chromium
+      - name: Install Chromium system dependencies
+        if: steps.playwright-cache.outputs.cache-hit == 'true'
+        run: pnpm exec playwright install-deps chromium
+      - name: Run admin end-to-end on the upgraded database
+        env:
+          CI: "true"
+          SITMUN_E2E_DATASOURCE_URL: jdbc:postgresql://127.0.0.1:54360/sitmun3
+          SITMUN_E2E_DATASOURCE_USERNAME: sitmun3
+          SITMUN_E2E_DATASOURCE_PASSWORD: sitmun3
+        run: pnpm run e2e
+      - name: Upload Playwright artifacts
+        if: failure()
+        uses: actions/upload-artifact@v6
+        with:
+          name: playwright-admin-upgraded-artifacts
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7
+      - name: Remove the upgraded database
+        if: always()
+        run: |
+          docker rm -f sitmun-upgrade-129-postgres-16
+          docker network rm sitmun_up_129_postgres16 || true
 
   oracle-23-from:
     name: Upgrade Oracle 23ai from 1.2.9

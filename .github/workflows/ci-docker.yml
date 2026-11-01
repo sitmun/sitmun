@@ -24,3 +24,20 @@ jobs:
           compose=(docker compose --env-file "$RUNNER_TEMP/compose.env" -f compose.yaml -f .github/docker/compose.ci.yaml)
           "${compose[@]}" build front backend proxy
           "${compose[@]}" --profile mbtiles build mbtiles
+      - name: Wait until the backend is healthy
+        run: |
+          umask 077
+          cat > "$RUNNER_TEMP/compose.env" << EOF
+          SITMUN_USER_SECRET=$(openssl rand -hex 32)
+          MIDDLEWARE_SECRET=$(openssl rand -hex 32)
+          SITMUN_MBTILES_JOB_HANDLE_SECRET=$(openssl rand -hex 32)
+          EOF
+          export COMPOSE_PARALLEL_LIMIT=1
+          export COMPOSE_PROFILES=postgres
+          export SPRING_PROFILES_ACTIVE=postgres
+          export SPRING_LIQUIBASE_CHANGE_LOG=classpath:/db/changelog/db.changelog-master.yaml
+          compose=(docker compose --env-file "$RUNNER_TEMP/compose.env" -f compose.yaml -f .github/docker/compose.ci.yaml)
+          cleanup() { "${compose[@]}" down -v || true; }
+          trap cleanup EXIT
+          "${compose[@]}" up -d --wait --wait-timeout 300 postgres backend
+          curl -fsS http://localhost:9001/api/dashboard/health

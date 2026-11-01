@@ -76,6 +76,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 #### Stack-level
 
+- **Database**: A fresh install sets each `STM_SEQUENCE` counter to one past the highest id. Counters are not raised to 100000. The PostgreSQL and Oracle test profiles set Liquibase `drop-first` to false, so those tests do not drop the database they connect to.
+- **MBTiles**: Hibernate `ddl-auto` is `none`. Hibernate does not create or drop the MBTiles database.
 - **Database**: GitHub Actions job `oracle-11-from` upgrades the Oracle schema from 1.2.6, 1.2.7, and 1.2.8 to HEAD on `gvenzl/oracle-xe:11` using service `XE`. That image is amd64 only. The Liquibase container brings its own driver, so the job does not boot the backend. On Oracle 11 it sets `JAVA_TOOL_OPTIONS` to `-Doracle.jdbc.timezoneAsRegion=false` so the session accepts the runner time zone.
 - **Database**: Spring profile `oracle` sets `org.hibernate.dialect.OracleDialect`. Spring profile `oracle-11` sets `org.hibernate.community.dialect.OracleLegacyDialect` in `profiles/oracle/` and `profiles/development/backend/`. `sitmun-backend/docker/oracle/docker-compose-11.yml` uses `gvenzl/oracle-xe:11` and JDBC `jdbc:oracle:thin:@//oracle:1521/XE`. That image is amd64 only.
 - **Toolchain**: Submodule gitlinks point at Spring Boot `4.1.1` (shared, backend, proxy, mbtiles), Angular `22.2.3` / Node `24.22.0` (admin, viewer), and Gradle `8.14.6`. Root image and CI use Node `24.22.0`; mobile Android E2E stays on Node `22`. Published shared coordinate remains `1.2.9`.

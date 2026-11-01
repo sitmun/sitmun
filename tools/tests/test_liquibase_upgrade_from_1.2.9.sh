@@ -35,6 +35,7 @@ fi
 
 CONTAINER="sitmun-upgrade-129-${ENGINE}"
 NETWORK="sitmun_up_129_${ENGINE//-/}"
+KEEP_DB="${SITMUN_UPGRADE_KEEP_DB:-}"
 TMP="$REPO_ROOT/build/upgrade-1.2.9-$ENGINE"
 BACKEND_LOG="$REPO_ROOT/build/upgrade-1.2.9-$ENGINE-backend.log"
 BACKEND_PID=""
@@ -48,7 +49,15 @@ stop_backend() {
     BACKEND_PID=""
   fi
 }
-cleanup() { stop_backend; container_rm; network_rm; }
+cleanup() {
+  stop_backend
+  if [[ -n "$KEEP_DB" && "$FAIL" == "0" ]]; then
+    echo "Keeping $CONTAINER on port $PORT"
+    return
+  fi
+  container_rm
+  network_rm
+}
 trap cleanup EXIT
 
 sql_count() {
@@ -318,6 +327,55 @@ if "${validate_cmd[@]}" \
 else
   fail "liquibase validate"
 fi
+
+run_required_code_lists() {
+  local task url envname
+  case "$ENGINE" in
+    postgres-12)
+      task=testRequiredCodeListsPostgres12
+      envname=SITMUN_POSTGRES_URL
+      url="jdbc:postgresql://127.0.0.1:${PORT}/sitmun3"
+      ;;
+    postgres-16)
+      task=testRequiredCodeListsPostgres16
+      envname=SITMUN_POSTGRES_URL
+      url="jdbc:postgresql://127.0.0.1:${PORT}/sitmun3"
+      ;;
+    oracle-23)
+      task=testRequiredCodeListsOracle23
+      envname=SITMUN_ORACLE_URL
+      url="jdbc:oracle:thin:@//127.0.0.1:${PORT}/sitmun3"
+      ;;
+    oracle-21)
+      task=testRequiredCodeListsOracle19
+      envname=SITMUN_ORACLE_URL
+      url="jdbc:oracle:thin:@//127.0.0.1:${PORT}/sitmun3"
+      ;;
+    oracle-11)
+      task=testRequiredCodeListsOracle11
+      envname=SITMUN_ORACLE_URL
+      url="jdbc:oracle:thin:@//127.0.0.1:${PORT}/XE"
+      ;;
+    *)
+      fail "no required-code-list task for $ENGINE"
+      return
+      ;;
+  esac
+  echo "── $ENGINE: required code lists on the upgraded database ──"
+  if (
+    cd "$REPO_ROOT" &&
+    env "$envname=$url" ./gradlew --no-daemon \
+      ":sitmun-backend:${task}" \
+      -Dsitmun.test.sequence-floor=false \
+      -Dsitmun.test.changelog=shipped
+  ); then
+    ok "required code lists on the upgraded database"
+  else
+    fail "required code lists on the upgraded database"
+  fi
+}
+
+run_required_code_lists
 
 echo ""
 echo "Results: $PASS passed, $FAIL failed"

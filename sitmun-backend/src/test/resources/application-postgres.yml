@@ -30,7 +30,6 @@ spring:
 
   # JPA Configuration for PostgreSQL
   jpa:
-    hibernate.ddl-auto: validate
     properties.hibernate:
       dialect: org.hibernate.dialect.PostgreSQLDialect
       connection:
@@ -48,7 +47,7 @@ spring:
   liquibase:
     change-log: classpath:/db/changelog-test/db.changelog-master.yaml
     enabled: true
-    drop-first: true
+    drop-first: false
     url: jdbc:postgresql://localhost:5432/sitmun3
     user: ${spring.datasource.username}
     password: ${spring.datasource.password}

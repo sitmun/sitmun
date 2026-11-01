@@ -51,18 +51,6 @@ databaseChangeLog:
       file: db/changelog/db.changelog-master.yaml
       relativeToChangelogFile: false
   - changeSet:
-      id: test-sequence-floor-h2
-      author: sitmun
-      dbms: h2
-      logicalFilePath: db/changelog-test/05-sequence-floor.h2.sql
-      changes:
-        - sqlFile:
-            path: 05-sequence-floor.h2.sql
-            relativeToChangelogFile: true
-            splitStatements: true
-            stripComments: false
-            endDelimiter: ";"
-  - changeSet:
       id: test-fixtures-postgresql
       author: sitmun
       dbms: h2,postgresql
@@ -86,3 +74,40 @@ databaseChangeLog:
             splitStatements: true
             stripComments: false
             endDelimiter: "--end"
+  - changeSet:
+      id: test-sequence-floor-h2
+      author: sitmun
+      dbms: h2
+      validCheckSum: ANY
+      logicalFilePath: db/changelog-test/05-sequence-floor.h2.sql
+      changes:
+        - sqlFile:
+            path: 05-sequence-floor.h2.sql
+            relativeToChangelogFile: true
+            splitStatements: true
+            stripComments: false
+            endDelimiter: ";"
+  - changeSet:
+      id: test-sequence-counter-postgresql
+      author: sitmun
+      dbms: postgresql
+      logicalFilePath: db/changelog/baseline/05-sequence-floor.postgresql.sql
+      changes:
+        - sqlFile:
+            path: db/changelog/baseline/05-sequence-floor.postgresql.sql
+            relativeToChangelogFile: false
+            splitStatements: true
+            stripComments: false
+            endDelimiter: ";"
+  - changeSet:
+      id: test-sequence-counter-oracle
+      author: sitmun
+      dbms: oracle
+      logicalFilePath: db/changelog/baseline/05-sequence-floor.oracle.sql
+      changes:
+        - sqlFile:
+            path: db/changelog/baseline/05-sequence-floor.oracle.sql
+            relativeToChangelogFile: false
+            splitStatements: true
+            stripComments: false
+            endDelimiter: ";"

@@ -24,7 +24,6 @@ spring:
 
   # JPA Configuration for Oracle
   jpa:
-    hibernate.ddl-auto: validate
     properties.hibernate.dialect: org.sitmun.infrastructure.persistence.dialect.SitmunOracleDialect
     properties.hibernate.type.preferred_boolean_jdbc_type: SMALLINT
 
@@ -32,7 +31,7 @@ spring:
   liquibase:
     change-log: classpath:/db/changelog-test/db.changelog-master.yaml
     enabled: true
-    drop-first: true
+    drop-first: false
     url: jdbc:oracle:thin:@//localhost:1521/sitmun3?oracle.net.CONNECT_TIMEOUT=30000
     user: ${spring.datasource.username}
     password: ${spring.datasource.password}

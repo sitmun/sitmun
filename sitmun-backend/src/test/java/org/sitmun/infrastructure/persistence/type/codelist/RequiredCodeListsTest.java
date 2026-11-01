@@ -46,11 +46,7 @@ class RequiredCodeListsTest {
               .resolve("master.xml");
     }
     registry.add("spring.liquibase.change-log", () -> "file:" + master.toAbsolutePath());
-    registry.add("spring.liquibase.drop-first", () -> "true");
   }
-
-  private static final long APPLICATION_ID_FLOOR = 100_000L;
-  private static final long PRODUCT_BLOCK_END = 10_000L;
 
   private static final List<SequenceCounter> COUNTERS =
       List.of(
@@ -121,33 +117,24 @@ class RequiredCodeListsTest {
   }
 
   @Test
-  @DisplayName("a fresh install leaves application ids at or above 100000")
-  void freshInstallFloorsEverySequence() throws Exception {
-    Assumptions.assumeTrue("shipped".equals(System.getProperty("sitmun.test.changelog")));
+  @DisplayName("a fresh install sets each counter to one past the highest id")
+  void freshInstallSetsEveryCounterOnePastTheHighestId() throws Exception {
+    Assumptions.assumeTrue(
+        "shipped".equals(System.getProperty("sitmun.test.changelog"))
+            && !"false".equals(System.getProperty("sitmun.test.sequence-floor", "true")),
+        "sequence counters are checked on a fresh shipped install");
     try (Connection connection = dataSource.getConnection()) {
       assertSoftly(
           softly ->
               COUNTERS.forEach(
                   counter -> {
                     try {
-                      long maxId = selectNextId(connection, counter) - 1;
+                      long nextId = selectNextId(connection, counter);
                       Long stored = selectSequenceCount(connection, counter.sequenceName());
                       softly
                           .assertThat(stored)
                           .as("%s counter", counter.sequenceName())
-                          .isNotNull()
-                          .isGreaterThanOrEqualTo(APPLICATION_ID_FLOOR)
-                          .isGreaterThanOrEqualTo(maxId);
-                      if (maxId > 0 && maxId < APPLICATION_ID_FLOOR) {
-                        if ("TAS_ID".equals(counter.sequenceName())) {
-                          softly.assertThat(maxId).as("TAS_ID shipped id").isEqualTo(32_306L);
-                        } else {
-                          softly
-                              .assertThat(maxId)
-                              .as("%s shipped id", counter.sequenceName())
-                              .isLessThan(PRODUCT_BLOCK_END);
-                        }
-                      }
+                          .isEqualTo(nextId);
                     } catch (SQLException exception) {
                       throw new AssertionError(counter.sequenceName(), exception);
                     }
