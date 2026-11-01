@@ -3,7 +3,7 @@ package org.sitmun.domain.user.position;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.time.LocalDate;
-import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
@@ -286,12 +286,10 @@ class UserPositionActiveGrantTest {
     userPositionRepository.save(position);
   }
 
+  /** UTC civil day, matching {@code hibernate.jdbc.time_zone} and the H2 session zone. */
   private static Date atStartOfDay(int dayOffset) {
     return Date.from(
-        LocalDate.now(ZoneId.systemDefault())
-            .plusDays(dayOffset)
-            .atStartOfDay(ZoneId.systemDefault())
-            .toInstant());
+        LocalDate.now(ZoneOffset.UTC).plusDays(dayOffset).atStartOfDay(ZoneOffset.UTC).toInstant());
   }
 
   private record Fixture(
