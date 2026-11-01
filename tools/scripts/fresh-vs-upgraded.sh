@@ -189,8 +189,6 @@ EXIT
 }
 
 if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
-  set -euo pipefail
-  REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
-  OUT_ROOT="${OUT_ROOT:-$REPO_ROOT/tools/out/schema-drift}"
-  run_fresh_vs_upgraded "${1:?usage: $0 postgres-16|postgres-12|oracle-23|oracle-21|oracle-11}"
+  engine="${1:?usage: $0 postgres-16|postgres-12|oracle-23|oracle-21|oracle-11}"
+  exec bash "$(cd "$(dirname "$0")" && pwd)/compare-schema-drift.sh" fresh-vs-upgraded "$engine"
 fi

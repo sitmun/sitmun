@@ -46,8 +46,8 @@ overlay_shipped_changelog() {
 import pathlib, sys
 path = pathlib.Path(sys.argv[1])
 path.write_text(path.read_text().replace(
-    "classpath:/db/changelog/db.changelog-master.yaml",
-    "db/changelog/db.changelog-master.yaml",
+    '<include file="classpath:/db/changelog/db.changelog-master.yaml"/>',
+    '<include file="db/changelog/db.changelog-master.yaml" relativeToChangelogFile="true"/>',
 ))
 PY
 }
