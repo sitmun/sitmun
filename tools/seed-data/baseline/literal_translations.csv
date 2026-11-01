@@ -1,0 +1,8 @@
+ltr_id,ltr_literal,lan_shortname
+1,No data,en
+2,Error executing task,en
+3,Query,en
+4,Invalid child task id,en
+5,task not executed,en
+6,Binary content cannot be embedded: server authentication required,en
+7,[binary content],en

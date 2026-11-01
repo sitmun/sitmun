@@ -62,7 +62,7 @@ class CartographyRepositoryDataRestTest {
     service =
         Service.builder()
             .name("Service")
-            .serviceURL("http://localhost/api/services/1")
+            .serviceURL("http://localhost/api/services/10001")
             .type("service-type")
             .blocked(false)
             .build();
@@ -171,7 +171,7 @@ class CartographyRepositoryDataRestTest {
   @DisplayName("GET: has cartography-groups property")
   @WithMockUser(roles = "ADMIN")
   void hasAccessToCartographyGroups() throws Exception {
-    mvc.perform(get(CARTOGRAPHY_URI_PERMISSION_URI, 1))
+    mvc.perform(get(CARTOGRAPHY_URI_PERMISSION_URI, 10001))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$._embedded.cartography-groups[*]", hasSize(1)));
   }
@@ -227,12 +227,12 @@ class CartographyRepositoryDataRestTest {
   @DisplayName("GET: filters are available in projections")
   @WithMockUser(roles = "ADMIN")
   void applyFilterFlagsAreTrue() throws Exception {
-    mvc.perform(get(CARTOGRAPHY_URI, 1).contentType(APPLICATION_JSON))
+    mvc.perform(get(CARTOGRAPHY_URI, 10001).contentType(APPLICATION_JSON))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.applyFilterToGetFeatureInfo", is(true)))
         .andExpect(jsonPath("$.applyFilterToSpatialSelection", is(true)));
 
-    mvc.perform(get(CARTOGRAPHY_URI_PROJECTION, 1).contentType(APPLICATION_JSON))
+    mvc.perform(get(CARTOGRAPHY_URI_PROJECTION, 10001).contentType(APPLICATION_JSON))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.applyFilterToGetFeatureInfo", is(true)))
         .andExpect(jsonPath("$.applyFilterToSpatialSelection", is(true)));

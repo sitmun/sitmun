@@ -28,10 +28,10 @@ class TaskRepositoryTest {
   @DisplayName("Find tasks filtered by roles and territory")
   void findTasksByRolesAndTerritory() {
     List<Role> roles =
-        roleRepository.findRolesByApplicationAndUserAndTerritory(PUBLIC_PRINCIPAL, 1, 1);
-    List<Task> cp = taskRepository.findByRolesAndTerritory(roles, 1);
-    // Seed oracle for public app/ter 1: wrong size or missing 42/43 means seed pollution.
-    assertThat(cp).hasSize(14);
-    assertThat(cp).extracting(Task::getId).contains(42, 43);
+        roleRepository.findRolesByApplicationAndUserAndTerritory(PUBLIC_PRINCIPAL, 10001, 10001);
+    List<Task> cp = taskRepository.findByRolesAndTerritory(roles, 10001);
+    // Seed oracle for public app/ter 1: wrong size or missing 10042/10043 means seed pollution.
+    assertThat(cp).hasSize(17);
+    assertThat(cp).extracting(Task::getId).contains(10042, 10043);
   }
 }

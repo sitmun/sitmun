@@ -25,12 +25,12 @@ const artifactDir = join(stackRoot, 'test-results', 'mobile-android');
 const editionSrc = join(stackRoot, 'sitmun-mobile', 'sitmun-edition');
 const touristicSrc = join(stackRoot, 'sitmun-mobile', 'sitmun-touristic');
 
-const EDITION_APP_ID = 1;
-const EDITION_TERRITORY_ID = 1;
-const EDITION_ROLE_ID = 1;
-const TOURISTIC_APP_ID = 6;
-const WMTS_SERVICE_ID = 1;
-const WMTS_LAYER_ID = 1;
+const EDITION_APP_ID = 10001;
+const EDITION_TERRITORY_ID = 10001;
+const EDITION_ROLE_ID = 10001;
+const TOURISTIC_APP_ID = 10006;
+const WMTS_SERVICE_ID = 10001;
+const WMTS_LAYER_ID = 10001;
 const WMTS_UPSTREAM_URL = 'http://127.0.0.1:18094/wmts';
 const PROXY_KEY = 'test-only-insecure-middleware-secret';
 const GATEWAY = 'http://127.0.0.1:18081';
@@ -250,7 +250,7 @@ async function provisionMobileBackend(gatewayBackend) {
   );
   requireOk('assign touristic role', assignRole.res, assignRole.text);
 
-  // Seed app 6 has no trees; touristic home navigation requires a type=touristic tree
+  // Fixture touristic app 10006 has no trees; touristic home navigation requires a type=touristic tree
   // with a menu root node or redirect throws on undefined rootNode.type.
   await provisionTouristicTree(gatewayBackend, cookieHeader);
 
@@ -466,7 +466,7 @@ async function provisionTouristicTree(gatewayBackend, cookieHeader) {
     throw new Error(`attach tree to app failed: ${appTrees.res.status} ${appTrees.text}`);
   }
 
-  const roleTrees = await jsonFetch(`${gatewayBackend}/api/roles/1/trees`, {
+  const roleTrees = await jsonFetch(`${gatewayBackend}/api/roles/${EDITION_ROLE_ID}/trees`, {
     method: 'GET',
     headers: { 'X-SITMUN-Client': 'admin', Cookie: cookieHeader },
   });
@@ -476,7 +476,7 @@ async function provisionTouristicTree(gatewayBackend, cookieHeader) {
   const existing =
     roleTrees.body?._embedded?.trees?.map((t) => t._links?.self?.href).filter(Boolean) ?? [];
   const merged = existing.includes(treeUri) ? existing : [...existing, treeUri];
-  const putRoleTrees = await jsonFetch(`${gatewayBackend}/api/roles/1/trees`, {
+  const putRoleTrees = await jsonFetch(`${gatewayBackend}/api/roles/${EDITION_ROLE_ID}/trees`, {
     method: 'PUT',
     headers: uriHeaders,
     body: merged.join('\n'),

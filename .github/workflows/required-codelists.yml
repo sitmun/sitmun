@@ -1,0 +1,88 @@
+name: Required code lists
+
+concurrency:
+  group: required-code-lists-${{ github.event_name == 'pull_request' && github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+on:
+  workflow_call:
+  workflow_dispatch:
+
+jobs:
+  postgres-12:
+    name: Required code lists on PostgreSQL 12
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+      - name: Test required code lists on PostgreSQL 12
+        uses: ./.github/actions/backend-database
+        with:
+          db: postgres-12
+          gradle-task: testRequiredCodeListsPostgres12
+          report-name: required-codelists-postgres-12
+
+  postgres-16:
+    name: Required code lists on PostgreSQL 16
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+      - name: Test required code lists on PostgreSQL 16
+        uses: ./.github/actions/backend-database
+        with:
+          db: postgres-16
+          gradle-task: testRequiredCodeListsPostgres16
+          report-name: required-codelists-postgres-16
+
+  oracle-11:
+    name: Required code lists on Oracle 11g
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+      - name: Test required code lists on Oracle 11g
+        uses: ./.github/actions/backend-database
+        with:
+          db: oracle-11
+          gradle-task: testRequiredCodeListsOracle11
+          report-name: required-codelists-oracle-11
+
+  oracle-19:
+    name: Required code lists on Oracle 21c (stand-in for 19c)
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+      - name: Test required code lists on Oracle 21c
+        uses: ./.github/actions/backend-database
+        with:
+          db: oracle-19
+          gradle-task: testRequiredCodeListsOracle19
+          report-name: required-codelists-oracle-19
+
+  oracle-23:
+    name: Required code lists on Oracle 23ai
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+      - name: Set up Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version-file: .java-version
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@ed408507eac070d1f99cc633dbcf757c94c7933a # v4
+        with:
+          cache-read-only: ${{ github.ref != 'refs/heads/dev' }}
+      - name: Test required code lists on Oracle 23ai
+        run: ./gradlew :sitmun-backend:testRequiredCodeListsOracle

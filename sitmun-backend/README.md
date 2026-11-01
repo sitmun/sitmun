@@ -518,7 +518,7 @@ spring:
   application:
     name: SITMUN
   liquibase:
-    change-log: file:./config/db/changelog/db.changelog-master.yaml
+    change-log: file:./src/test/resources/db/changelog-test/db.changelog-master.yaml
   jpa:
     hibernate:
       ddl-auto: none

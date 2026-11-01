@@ -23,8 +23,8 @@ export { includedOwner, mappingAddTestId } from './mia-mapping-testid';
 export const MIA_CREATE_PATH = '/#/tasksMoreInfoAdvanced/-1/16';
 export const CARTOGRAPHY_SEARCH = 'Toponimia';
 export const CARTOGRAPHY_OPTION = /Toponimia 1:25\.000/;
-export const ROLE_ID = 1;
-export const TERRITORY_ID = 1;
+export const ROLE_ID = 10001;
+export const TERRITORY_ID = 10001;
 
 export async function createMiaWithChild(
   page: Page,
@@ -326,8 +326,8 @@ const ADMIN_URI_LIST_HEADERS = {
   'Content-Type': 'text/uri-list',
 } as const;
 
-/** Toponímia GEO_ID 6 — same cartography as MIA parent 42 / mia-cross GFI. */
-export const TOPONIMIA_CARTOGRAPHY_ID = 6;
+/** Toponímia GEO_ID 10006 — same cartography as MIA parent 10042 / mia-cross GFI. */
+export const TOPONIMIA_CARTOGRAPHY_ID = 10006;
 
 function localhostApiUri(href: string, resource: string): string {
   const match = href.match(new RegExp(`/api/${resource}/\\d+`));

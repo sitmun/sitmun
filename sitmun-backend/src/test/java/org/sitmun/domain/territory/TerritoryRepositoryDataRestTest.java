@@ -107,7 +107,7 @@ class TerritoryRepositoryDataRestTest {
   @DisplayName("GET: has link to task availabilities")
   @WithMockUser(roles = "ADMIN")
   void hasLinkToTaskAvailability() throws Exception {
-    mvc.perform(get(TERRITORY_URI, 1))
+    mvc.perform(get(TERRITORY_URI, 10001))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$._links.taskAvailabilities").exists());
   }
@@ -116,7 +116,7 @@ class TerritoryRepositoryDataRestTest {
   @DisplayName("GET: has computed center")
   @WithMockUser(roles = "ADMIN")
   void hasComputedCenter() throws Exception {
-    mvc.perform(get(TERRITORY_URI, 1))
+    mvc.perform(get(TERRITORY_URI, 10001))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.center.x").value(422552.0))
         .andExpect(jsonPath("$.center.y").value(4623846.0));
@@ -126,7 +126,7 @@ class TerritoryRepositoryDataRestTest {
   @DisplayName("GET: has link to cartography availabilities")
   @WithMockUser(roles = "ADMIN")
   void hasLinkToCartographyAvailabilities() throws Exception {
-    mvc.perform(get(TERRITORY_URI, 1))
+    mvc.perform(get(TERRITORY_URI, 10001))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$._links.cartographyAvailabilities").exists());
   }

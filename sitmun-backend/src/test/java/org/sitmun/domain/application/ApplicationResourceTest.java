@@ -442,7 +442,7 @@ class ApplicationResourceTest {
   @WithMockUser(roles = "ADMIN")
   void getServiceLayersAsPublic() throws Exception {
     // ok is expected
-    mvc.perform(get(SERVICE_LAYERS_URI, 1)).andExpect(status().isOk());
+    mvc.perform(get(SERVICE_LAYERS_URI, 10001)).andExpect(status().isOk());
   }
 
   @Test

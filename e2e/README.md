@@ -1,6 +1,6 @@
 # SITMUN root end-to-end tests
 
-Browser E2E against backend-core on in-memory H2. No Docker Compose.
+Browser E2E against backend-core. The default database is in-memory H2. No Docker Compose.
 
 ## Coverage
 
@@ -26,7 +26,7 @@ Browser E2E against backend-core on in-memory H2. No Docker Compose.
 - Plantilla TipTap attribute mustaches: visual mustache `img` is a placeholder (`[data-sitmun-mustache-media="img"]`, no `img[src*="{{"]`); `src`/`href` stay literal after visual sibling edit + ADMIN preview; no-edit exact `templateHtml`; edited div/bare-table/authored-link shapes; attribute-safe unresolved `{{#APP_NAME}}` preview (`e2e/admin/forms/template-attr-mustache-preview.spec.ts`, project `admin-forms`)
 
 - Plantilla role and territory tabs: assigning a role and a territory on the task form persists after reload ([sitmun-admin-app#467](https://github.com/sitmun/sitmun-admin-app/issues/467); `e2e/admin/forms/template-task-relations.spec.ts`, project `admin-forms`)
-- More Info Advanced **Details**: validation, create with cartography + included query child 38, layout update persistence; cartography open-in-new; deep route `/#/tasks/42/16`; Parameters `app-relation-grid` add + reload persist; child parameter mapping UI round-trip + persists across a subsequent Parameters save; orphan `childTaskParameters` keys dropped on save; Add mapping disabled when included child has no parameters; ADMIN `POST /api/tasks/template/more-info-advanced/render` for seeded parent 42 (`e2e/admin/forms/mia-form.spec.ts`, project `admin-forms`)
+- More Info Advanced **Details**: validation, create with cartography + included query child 10038, layout update persistence; cartography open-in-new; deep route `/#/tasks/10042/16`; Parameters `app-relation-grid` add + reload persist; child parameter mapping UI round-trip + persists across a subsequent Parameters save; orphan `childTaskParameters` keys dropped on save; Add mapping disabled when included child has no parameters; ADMIN `POST /api/tasks/template/more-info-advanced/render` for seeded parent 10042 (`e2e/admin/forms/mia-form.spec.ts`, project `admin-forms`)
 - Cartography collection: ADMIN `GET /api/cartographies?size=10000` returns 200 (Boot 4.1.1 / Hibernate 7 EntityGraph+styles bag regression that blanked MIA cartography autocomplete) (`e2e/admin/forms/cartography-list.spec.ts`, project `admin-forms`)
 - Language default change: Set as Default preview dialog cancel leaves `language.default` unchanged; raw config PUT cannot freely replace it (`e2e/admin/forms/language-default.spec.ts`)
 - Language enabled/order: disable/reorder a non-default language, assert login chrome omits it, restore (`e2e/admin/forms/language-order.spec.ts`)
@@ -47,7 +47,7 @@ Browser E2E against backend-core on in-memory H2. No Docker Compose.
 - Map legend (`viewer-legend`): after loading a stubbed catalog leaf, Capas shows capabilities `LegendURL` imagery and the Legend task shows symbology when the stub denies `DescribeLayer` and fails `/wms` GetLegendGraphic (DiBa/ArcGIS-style #164); setup enables `sitna.legend` task-availability
 - No base map (`viewer-basemap`): basemap selector option `sitmun-no-base-map` clears raster basemap to a white viewport while a catalog leaf stays visible (#167); setup enables `sitna.basemapSelector` task-availability
 - Print preview (`viewer-print`): 1600×700 window; A4 landscape map becomes 1040×704 and A4 portrait 712×1034 while `tc-ctl-prnmap-printing` is set, then returns to window size ([sitmun-viewer-app#160](https://github.com/sitmun/sitmun-viewer-app/issues/160)); at 1276×650, 800, 960, and 1080 a portrait A4 page stays 1034px tall and the wheel brings its bottom into the window ([sitmun-viewer-app#181](https://github.com/sitmun/sitmun-viewer-app/issues/181)); at 1276, 1600, and 1920×1080 the preview buttons stay on the page and the header menu still opens ([sitmun-viewer-app#182](https://github.com/sitmun/sitmun-viewer-app/issues/182)); setup enables `sitna.printMap` and drops seed `div: "print"` / external logo
-- GetFeatureInfo include list plus more-info (`viewer-gfi-fields`): profile for Toponímia (`34_TOPO_TX`, cartography 6) gets a `sitmun.moreInfo` URL task whose placeholder reads `id`, then three field-list cases. One listed field (`name` → Place) keeps Place and the task row, uses omitted `id` in the link, and hides the `id` header. An empty list keeps the original properties plus the more-info row. Two listed fields where one name misses the feature keep both rows (blank cell for the miss), hide unlisted headers, and still show the more-info link (`e2e/viewer/gfi-field-list.spec.ts`).
+- GetFeatureInfo include list plus more-info (`viewer-gfi-fields`): profile for Toponímia (`34_TOPO_TX`, cartography 10006) gets a `sitmun.moreInfo` URL task whose placeholder reads `id`, then three field-list cases. One listed field (`name` → Place) keeps Place and the task row, uses omitted `id` in the link, and hides the `id` header. An empty list keeps the original properties plus the more-info row. Two listed fields where one name misses the feature keep both rows (blank cell for the miss), hide unlisted headers, and still show the more-info link (`e2e/viewer/gfi-field-list.spec.ts`).
 - Operation-scoped parameters (`viewer-parameters`): on proxied service 3 and cartography 4, a WMS row is on GetMap and GetFeatureInfo, GETMAP is only on GetMap, and INFO is only on GetFeatureInfo. The layer WMS row is on both; the layer INFO row is only on GetFeatureInfo. The stub `GET /last-query` is the upstream oracle (`e2e/viewer/parameter-scope.spec.ts`).
 - HTML GetFeatureInfo embed (`viewer-gfi`): `e2e/viewer/gfi-html-embed.spec.ts` loads the viewer origin, then nested `iframe`s against the WMS stub. Playwright `frame.url()` is the oracle. `/embed/allow` (no `X-Frame-Options`) commits `http://127.0.0.1:18093/embed/allow`. `/embed/deny` (`X-Frame-Options: DENY`) does not. Same-origin `location.href` is not used. Chromium opaque error documents can throw `SecurityError` for both outcomes. Jest covers hide/load/probe ([sitmun-viewer-app#169](https://github.com/sitmun/sitmun-viewer-app/issues/169)).
 - More Info Advanced (`viewer-mia`): profile includes `sitna.moreInfoAdvanced` + type-16 parent on Toponímia (seed parent 42 includes query child 38); synthetic FeatureInfo `responseCallback` opens `.sitmun-mia-popup-overlay` and `POST /api/tasks/template/more-info-advanced/render` carries `appId`/`terId` body plus `lang` query ([sitmun-viewer-app#162](https://github.com/sitmun/sitmun-viewer-app/pull/162)); also asserts live backend render, overlay error on 500, close, multi-feature GFI re-render (`selectMiaGfiFeature`), and deferred-route races (late first identify must not overwrite a newer one; close-during-load ignores late fulfill); setup enables MIA + featureInfo task-availability. Shared helpers live in `e2e/viewer/helpers/mia.ts`.
@@ -58,14 +58,14 @@ Browser E2E against backend-core on in-memory H2. No Docker Compose.
 Starts admin, viewer, proxy, and the WMS stub on one H2.
 
 - TipTap Plantilla HTML marker + CSV Catalan literal → simulated GFI → overlay (`e2e/mia-cross/mia-template-viewer.spec.ts`)
-- Overlay type-17 PDF export: disposable document-export task, `.sitmun-mia-download-bar`, `POST /api/tasks/template/export` PDF + filename (`e2e/mia-cross/mia-template-viewer.spec.ts`). H2 `bootRun` stages `e2e/fixtures/ensure-document-export-task-type.yaml` beside the backend master changelog so `STM_TSK_TYP` 17 exists when that changelog only has map-image 18
+- Overlay type-17 PDF export: disposable document-export task, `.sitmun-mia-download-bar`, `POST /api/tasks/template/export` PDF + filename (`e2e/mia-cross/mia-template-viewer.spec.ts`). H2 `bootRun` loads the test changelog (shipped master, then fixture rows in the 10000 band) and includes `e2e/fixtures/ensure-document-export-task-type.yaml` afterwards. Task type 17 is already in the shipped seed, so that changeset is marked ran.
 - Enroll-on-save `<t>` → API translation for UI lang → overlay; same value after `language.default` change; enroll-only opaque-key fallback in overlay (`e2e/mia-cross/mia-template-viewer.spec.ts`)
 - MIA parameter mapping feature attr → Plantilla `$param` in overlay (`e2e/mia-cross/mia-mapping.spec.ts`)
 - Nested Plantilla A→B composition in viewer overlay; nested child `<t>` + Catalan value in overlay for UI lang (`e2e/mia-cross/mia-nested-viewer.spec.ts`)
-- Public-user MIA render on temporarily public app `1/1` (`e2e/mia-cross/mia-public-viewer.spec.ts`)
+- Public-user MIA render on temporarily public app `10001/10001` (`e2e/mia-cross/mia-public-viewer.spec.ts`)
 - Public-user overlay PDF export on the same public map (`e2e/mia-cross/mia-public-viewer.spec.ts`)
 - Map-click GetFeatureInfo through stub → live MIA overlay (`e2e/mia-cross/mia-gfi-click.spec.ts`; strict overlay, no silent simulate fallback). Simulated GFI is a separate named test in the same file; other specs still use simulate for speed.
-- IDE Menorca `tu007rts_ccavalls` (tree node 12094 / GEO 1304): Capas GFI → MIA Plantilla with JDBC SQL sections (languages/territories/GFI-echo) and `nomruta` → `$featureName` (`e2e/mia-cross/mia-solrustic-gfi.spec.ts`; H2 liquibase `20_menorca_solrustic_mia_e2e`)
+- IDE Menorca `tu007rts_ccavalls` (tree node 12094 / GEO 1304): Capas GFI → MIA Plantilla with JDBC SQL sections (languages/territories/GFI-echo) and `nomruta` → `$featureName` (`e2e/mia-cross/mia-solrustic-gfi.spec.ts`). H2 loads `e2e/fixtures/20_menorca_solrustic_mia_e2e.yaml` after the fixture rows. App 12 and territory 4 stay; role, tree, background, and cartography foreign keys use the 10000 band.
 
 **Outside this harness:** TipTap full toolbar matrix, binary child handling, filtrable columns, Docker profile Liquibase salvage. When the UI language is blank, the viewer omits `lang` and the backend resolves it.
 
@@ -193,10 +193,10 @@ harness or document the gap when the behavior is outside current coverage.
 
 ## State model
 
-- Fresh in-memory H2 database per suite run (Playwright `reuseExistingServer` is always `false`)
+- Fresh in-memory H2 database per suite run (Playwright `reuseExistingServer` is always `false`), unless `SITMUN_E2E_DATASOURCE_URL` names an existing database. That path does not drop it. Both paths load the test changelog: the shipped master, then fixture rows in the 10000 band. On an upgraded database the shipped changesets are already recorded, so only the fixture changeset runs.
 - Liquibase seeds `admin` / `admin`
 - Admin form tests create unique entities and delete them via authenticated API cleanup
-- Viewer setup provisions a dedicated regular user (password suite) plus disposable PoC users for applications 2/3; rewrites seeded WMS service 3 to the local stub through the admin API; adds task-availability for `sitna.layerCatalog` / `workLayerManager` and patches tree-node `loadData`/`active` fixtures for catalog E2E; H2 is discarded when backend exits
+- Viewer setup provisions a dedicated regular user (password suite) plus disposable PoC users for applications 10002/10003; rewrites seeded WMS service 10003 to the local stub through the admin API; adds task-availability for `sitna.layerCatalog` / `workLayerManager` and patches tree-node `loadData`/`active` fixtures for catalog E2E; H2 is discarded when backend exits
 - Application-contact suite uses one shared backend for admin write and viewer read of the same application row
 - Auth/fixture files live under `e2e/.auth/` (gitignored)
 - Seed IDs for viewer / mia-cross / mobile setup are declared in [e2e/viewer/fixtures.ts](viewer/fixtures.ts) and [e2e/mobile/fixtures.ts](mobile/fixtures.ts) (examples: app `1`, WMS service `3`, MIA parent task `42`, Menorca app `12` / territory `4` / GEO `1304` / tree node `12094`). Liquibase drift of those IDs fails E2E opaquely.
@@ -223,7 +223,7 @@ pnpm exec playwright show-report
 
 ## Limitations
 
-- H2 only (not Postgres/Oracle)
+- Default database is in-memory H2. `SITMUN_E2E_DATASOURCE_URL` points this admin backend at an existing database, runs the test changelog with `drop-first` false, and is the upgraded PostgreSQL 16 run. Viewer, mia-cross, application-contact, and mobile stay on H2; do not set the variable for those suites.
 - No OIDC login
 - Admin suite does not cover Application / Layer `app-relation-grid` **CRUD** except MIA Parameters add+reload in `mia-form.spec.ts` and Plantilla Roles/Territories add+reload in `template-task-relations.spec.ts`. Layers form now asserts lazy association GETs for Territories / Permissions / Trees (not grid CRUD). Role/User/Territory/MIA Details create/edit and application-contact (Application Details field) are separate and do not exercise relation-grid CRUD
 - Viewer suite covers configuration + proxy GetCapabilities, plus layer-catalog radio/`loadData` DOM contracts; not full SITNA tile painting

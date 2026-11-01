@@ -72,12 +72,12 @@ class TerritoryRepositoryTest {
     assertThat(
             names(
                 territoryRepository.findByRestrictedUserAndApplication(
-                    "internal", 5, PageRequest.of(0, 10))))
+                    "internal", 10005, PageRequest.of(0, 10))))
         .containsExactly("Provincia A");
     assertThat(
             names(
                 territoryRepository.findByPublicUserAndApplication(
-                    "internal", 5, PageRequest.of(0, 10))))
+                    "internal", 10005, PageRequest.of(0, 10))))
         .containsExactly("Provincia A");
   }
 
@@ -209,7 +209,7 @@ class TerritoryRepositoryTest {
   @Test
   @DisplayName("Seed territory 3: computedView equals raw extent when center is absent")
   void territory3ComputedView() {
-    Territory territory = territoryRepository.findById(3).orElseThrow();
+    Territory territory = territoryRepository.findById(10003).orElseThrow();
     org.sitmun.infrastructure.persistence.type.envelope.Envelope view = territory.getComputedView();
     assertThat(view).isNotNull();
     assertThat(view.getMinX()).isEqualTo(430250.0);

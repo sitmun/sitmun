@@ -15,7 +15,7 @@ const ADMIN_HEADERS = {
 };
 
 /** Seed cartography on service 3: layers DTE50_MUN,DTE50_PROV. */
-const CARTOGRAPHY_ID = 4;
+const CARTOGRAPHY_ID = 10004;
 const LAYERS = 'DTE50_MUN,DTE50_PROV';
 const STUB_LAST_QUERY = 'http://127.0.0.1:18093/last-query';
 const PROXY_CARTOGRAPHY = `/middleware/proxy/${APP_ID}/${TERRITORY_ID}/WMS/${SERVICE_ID}/${CARTOGRAPHY_ID}`;
@@ -233,7 +233,7 @@ async function createProxiedCartography(
   const cartographyId = idFrom(createdLayer.headers().location ?? '', 'cartographies');
   const cartography = `http://localhost:18080/api/cartographies/${cartographyId}`;
 
-  const permissions = await admin.get('/backend/api/cartographies/4/permissions', {
+  const permissions = await admin.get('/backend/api/cartographies/10004/permissions', {
     headers: { 'X-SITMUN-Client': 'admin' },
   });
   expect(permissions.ok(), `permissions lookup failed: ${permissions.status()}`).toBeTruthy();

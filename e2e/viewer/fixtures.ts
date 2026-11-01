@@ -2,16 +2,16 @@ import { mkdir, readFile } from 'node:fs/promises';
 import path from 'node:path';
 import type { Page, Response } from '@playwright/test';
 
-export const APP_ID = 1;
-export const TERRITORY_ID = 1;
-export const ROLE_ID = 1;
-export const SERVICE_ID = 3;
+export const APP_ID = 10001;
+export const TERRITORY_ID = 10001;
+export const ROLE_ID = 10001;
+export const SERVICE_ID = 10003;
 /** WMS services backing Topográficos leaves used by catalog E2E. */
-export const CATALOG_LEAF_SERVICE_IDS = [4, 5] as const;
-/** Seed UI tasks required for Capas / layer catalog / legend (missing from STM_AVAIL_TSK). */
+export const CATALOG_LEAF_SERVICE_IDS = [10004, 10005] as const;
+/** Shipped UI tasks required for Capas / layer catalog / legend (missing from STM_AVAIL_TSK). */
 export const LAYER_CATALOG_TASK_ID = 11;
 export const LEGEND_TASK_ID = 12;
-export const WORK_LAYER_MANAGER_TASK_ID = 31;
+export const WORK_LAYER_MANAGER_TASK_ID = 30;
 /** Seed STM_TASK id for sitna.basemapSelector (STM_TSK_UI TUI_ID 2). */
 export const BASEMAP_SELECTOR_TASK_ID = 2;
 /**
@@ -26,10 +26,10 @@ export const OVERVIEW_MAP_TASK_ID = 18;
 export const SEARCH_TASK_ID = 24;
 export const STREET_VIEW_TASK_ID = 26;
 export const THREE_D_TASK_ID = 27;
-/** Seed UI control sitna.moreInfoAdvanced (STM_TASK 43 / STM_TSK_UI 34). */
-export const MIA_CONTROL_TASK_ID = 43;
-/** Seed MIA parent on Toponímia cartography GEO_ID 6 (STM_TASK 42, typeId 16). */
-export const MIA_PARENT_TASK_ID = 42;
+/** Fixture UI control sitna.moreInfoAdvanced (STM_TASK 10043 / STM_TSK_UI 34). */
+export const MIA_CONTROL_TASK_ID = 10043;
+/** Fixture MIA parent on Toponímia cartography GEO_ID 10006 (STM_TASK 10042, typeId 16). */
+export const MIA_PARENT_TASK_ID = 10042;
 /** Seed Feature Information control — needed for identify → MIA callback path. */
 export const FEATURE_INFO_TASK_ID = 8;
 /** Seed STM_TASK id for sitna.printMap (STM_TSK_UI TUI_ID 20) — print preview sizing (#160). */
@@ -55,26 +55,26 @@ export const CCAVALLS_PLANTILLA_TASK_ID = 9020;
  * Catalog E2E uses the visible Topográficos branch (Ortofotos is filtered out of the
  * seed catalog in H2). node/2 = radio+loadData; node/5 = checkbox loadData only.
  */
-export const RADIO_FOLDER_NODE_ID = 'node/2';
+export const RADIO_FOLDER_NODE_ID = 'node/10002';
 export const RADIO_FOLDER_TITLE = 'Topográfico 1:50.000';
-export const RADIO_FIRST_CHILD_NODE_ID = 'node/3';
-export const RADIO_SECOND_CHILD_NODE_ID = 'node/4';
-export const CHECKBOX_LOAD_FOLDER_NODE_ID = 'node/5';
+export const RADIO_FIRST_CHILD_NODE_ID = 'node/10003';
+export const RADIO_SECOND_CHILD_NODE_ID = 'node/10004';
+export const CHECKBOX_LOAD_FOLDER_NODE_ID = 'node/10005';
 export const CHECKBOX_LOAD_FOLDER_TITLE = 'Topográfico 1:25.000';
-/** Non-radio cartography leaf under checkbox-load folder (seed GEO_ID 5). */
-export const NON_RADIO_LEAF_NODE_ID = 'node/6';
+/** Non-radio cartography leaf under checkbox-load folder (fixture GEO_ID 10005). */
+export const NON_RADIO_LEAF_NODE_ID = 'node/10006';
 export const NON_RADIO_LEAF_TITLE = '1:25.000 ICGC';
-export const NON_RADIO_ROOT_FOLDER_NODE_ID = 'node/1';
+export const NON_RADIO_ROOT_FOLDER_NODE_ID = 'node/10001';
 export const NON_RADIO_ROOT_FOLDER_TITLE = 'Topográficos';
-export const RADIO_FOLDER_TREE_NODE_DB_ID = 2;
-export const CHECKBOX_LOAD_FOLDER_TREE_NODE_DB_ID = 5;
-/** Toponímia leaf under radio folder; seed cartography GEO_ID 6. */
-export const QUERYABLE_LEAF_NODE_ID = 'node/3';
-export const QUERYABLE_LEAF_TREE_NODE_DB_ID = 3;
-export const QUERYABLE_LEAF_CARTOGRAPHY_ID = 6;
+export const RADIO_FOLDER_TREE_NODE_DB_ID = 10002;
+export const CHECKBOX_LOAD_FOLDER_TREE_NODE_DB_ID = 10005;
+/** Toponímia leaf under radio folder; fixture cartography GEO_ID 10006. */
+export const QUERYABLE_LEAF_NODE_ID = 'node/10003';
+export const QUERYABLE_LEAF_TREE_NODE_DB_ID = 10003;
+export const QUERYABLE_LEAF_CARTOGRAPHY_ID = 10006;
 export const QUERYABLE_LEAF_TITLE = 'Toponímia';
-/** Non-radio leaf under Topográfico 1:25.000 (seed GEO_ID 5). */
-export const NON_RADIO_LEAF_CARTOGRAPHY_ID = 5;
+/** Non-radio leaf under Topográfico 1:25.000 (fixture GEO_ID 10005). */
+export const NON_RADIO_LEAF_CARTOGRAPHY_ID = 10005;
 /**
  * Profile maxScaleDenominator for Capas #92 E2E (Toponímia).
  * Zoomed-out OGC scales above this mark the Capas row notvisible.
@@ -82,8 +82,8 @@ export const NON_RADIO_LEAF_CARTOGRAPHY_ID = 5;
 export const QUERYABLE_LEAF_MAX_SCALE_DENOMINATOR = 100_000;
 
 /** Public applications used for responsible-institution / PoC email assertions. */
-export const CONTACT_APP_ID = 2;
-export const BLOCKED_CONTACT_APP_ID = 3;
+export const CONTACT_APP_ID = 10002;
+export const BLOCKED_CONTACT_APP_ID = 10003;
 export const CONTACT_APP_TITLE = 'SITMUN - Municipal';
 export const BLOCKED_CONTACT_APP_TITLE = 'SITMUN - Supramunicipal';
 export const CONTACT_INSTITUTION = 'E2E Eligible Institution';

@@ -187,12 +187,6 @@
       "description": "Query to count users per application."
     },
     {
-      "name": "sitmun.startup.code-lists.check-on-startup",
-      "type": "java.lang.Boolean",
-      "description": "Check code lists on startup.",
-      "defaultValue": true
-    },
-    {
       "name": "sitmun.proxy-middleware.token-validity-in-milliseconds",
       "type": "java.lang.Long",
       "description": "Token validity duration for proxy middleware in milliseconds.",
@@ -295,28 +289,5 @@
       "description": "Maximum bytes passed into the shared StAX scan."
     }
   ],
-  "hints": [
-    {
-      "name": "sitmun.startup.code-lists.database-connection-drivers",
-      "providers": [
-        {
-          "name": "any",
-          "parameters": {
-            "target": "org.sitmun.infrastructure.startup.StartupCodelistsProperties$DatabaseConnectionDriverDefinition"
-          }
-        }
-      ]
-    },
-    {
-      "name": "sitmun.startup.code-lists.code-list-values",
-      "providers": [
-        {
-          "name": "any",
-          "parameters": {
-            "target": "org.sitmun.infrastructure.startup.StartupCodelistsProperties$CodeListValueDefinition"
-          }
-        }
-      ]
-    }
-  ]
+  "hints": []
 }

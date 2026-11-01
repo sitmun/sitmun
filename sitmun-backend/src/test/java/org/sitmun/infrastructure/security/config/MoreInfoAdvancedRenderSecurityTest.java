@@ -18,8 +18,8 @@ import org.springframework.test.web.servlet.MvcResult;
 
 /**
  * HTTP security for {@code POST /api/tasks/template/more-info-advanced/render} must match {@code
- * TemplatePreviewController}'s {@code @PreAuthorize} (USER, ADMIN, PUBLIC). Seeded H2 task 42 (MIA
- * parent with ATS on territory 1) is the render target.
+ * TemplatePreviewController}'s {@code @PreAuthorize} (USER, ADMIN, PUBLIC). Seeded H2 task 10042
+ * (MIA parent with ATS on territory 1) is the render target.
  */
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -29,7 +29,7 @@ class MoreInfoAdvancedRenderSecurityTest {
   private static final String RENDER_URI = "/api/tasks/template/more-info-advanced/render";
   private static final String BODY =
       """
-      {"appId":1,"terId":1,"miaTaskIds":[42],"parameters":{}}
+      {"appId":10001,"terId":10001,"miaTaskIds":[10042],"parameters":{}}
       """;
 
   @Autowired private MockMvc mvc;
@@ -40,7 +40,7 @@ class MoreInfoAdvancedRenderSecurityTest {
   void renderAllowsAdmin() throws Exception {
     mvc.perform(post(RENDER_URI).contentType(APPLICATION_JSON).content(BODY))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.tasks[0].taskId").value(42));
+        .andExpect(jsonPath("$.tasks[0].taskId").value(10042));
   }
 
   @Test
@@ -49,7 +49,7 @@ class MoreInfoAdvancedRenderSecurityTest {
   void renderAllowsUser() throws Exception {
     mvc.perform(post(RENDER_URI).contentType(APPLICATION_JSON).content(BODY))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.tasks[0].taskId").value(42));
+        .andExpect(jsonPath("$.tasks[0].taskId").value(10042));
   }
 
   @Test

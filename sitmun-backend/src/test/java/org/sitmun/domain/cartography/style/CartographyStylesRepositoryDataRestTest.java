@@ -31,7 +31,7 @@ class CartographyStylesRepositoryDataRestTest {
         {
         "name":"test",
         "defaultStyle":false,
-        "cartography":"http://localhost/api/cartographies/1"
+        "cartography":"http://localhost/api/cartographies/10001"
         }""";
 
     String location =
@@ -56,14 +56,14 @@ class CartographyStylesRepositoryDataRestTest {
         {
         "name":"test",
         "defaultStyle":true,
-        "cartography":"http://localhost/api/cartographies/1"
+        "cartography":"http://localhost/api/cartographies/10001"
         }""";
     String duplicateDefault =
         """
         {
         "name":"test-other",
         "defaultStyle":true,
-        "cartography":"http://localhost/api/cartographies/1"
+        "cartography":"http://localhost/api/cartographies/10001"
         }""";
 
     String location1 =

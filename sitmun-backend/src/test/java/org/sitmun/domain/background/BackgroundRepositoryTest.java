@@ -22,7 +22,7 @@ class BackgroundRepositoryTest {
   @Test
   @DisplayName("Find active background by application")
   void findActiveBackgroundsByApp() {
-    List<OrderedBackground> backgrounds = backgroundRepository.findActiveByApplication(1);
+    List<OrderedBackground> backgrounds = backgroundRepository.findActiveByApplication(10001);
     assertThat(backgrounds).hasSize(1);
     assertThat(backgrounds.get(0).background()).isNotNull();
   }

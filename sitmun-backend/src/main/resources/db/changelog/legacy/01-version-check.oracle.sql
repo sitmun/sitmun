@@ -1,0 +1,357 @@
+DECLARE
+  present_23 NUMBER;
+  present_pre23 NUMBER;
+  known NUMBER;
+BEGIN
+  SELECT COUNT(*) INTO present_23
+  FROM databasechangelog d
+  WHERE EXISTS (
+    SELECT 1 FROM (
+    SELECT '1' AS id, 'sitmun' AS author, 'changelog/01_schema.oracle.sql' AS filename FROM dual
+    UNION ALL
+    SELECT '25-fix-auth-mode-swap' AS id, 'sitmun' AS author, 'changelog/25_fix_auth_mode_swap.yaml' AS filename FROM dual
+    UNION ALL
+    SELECT '2' AS id, 'sitmun' AS author, 'changelog/02_codelists.yaml' AS filename FROM dual
+    UNION ALL
+    SELECT '3' AS id, 'sitmun' AS author, 'changelog/03_task_types.yaml' AS filename FROM dual
+    UNION ALL
+    SELECT '4' AS id, 'sitmun' AS author, 'changelog/04_seed_data.yaml' AS filename FROM dual
+    UNION ALL
+    SELECT '5' AS id, 'sitmun' AS author, 'changelog/05_translations.yaml' AS filename FROM dual
+    UNION ALL
+    SELECT '6' AS id, 'sitmun' AS author, 'changelog/06_params.yaml' AS filename FROM dual
+    UNION ALL
+    SELECT '7' AS id, 'sitmun' AS author, 'changelog/07_sequences.yaml' AS filename FROM dual
+    UNION ALL
+    SELECT '08-application-responsible-institution' AS id, 'sitmun' AS author, 'changelog/08_application_responsible_institution.sql' AS filename FROM dual
+    UNION ALL
+    SELECT '09_language_order_column' AS id, 'sitmun' AS author, 'changelog/09_language_order_enabled_and_labels.yaml' AS filename FROM dual
+    UNION ALL
+    SELECT '09_language_order_and_labels' AS id, 'sitmun' AS author, 'changelog/09_language_order_enabled_and_labels.yaml' AS filename FROM dual
+    UNION ALL
+    SELECT '10_language_enabled_column' AS id, 'sitmun' AS author, 'changelog/09_language_order_enabled_and_labels.yaml' AS filename FROM dual
+    UNION ALL
+    SELECT '10_language_enabled_backfill' AS id, 'sitmun' AS author, 'changelog/09_language_order_enabled_and_labels.yaml' AS filename FROM dual
+    UNION ALL
+    SELECT '10_template_task_type' AS id, 'sitmun' AS author, 'changelog/10_add_template_task_type.yaml' AS filename FROM dual
+    UNION ALL
+    SELECT '11_template_reference_alias' AS id, 'sitmun' AS author, 'changelog/11_add_template_reference_alias.yaml' AS filename FROM dual
+    UNION ALL
+    SELECT '11b_template_reference_alias_uk' AS id, 'sitmun' AS author, 'changelog/11_add_template_reference_alias.yaml' AS filename FROM dual
+    UNION ALL
+    SELECT '12_more_info_advanced_ui_control' AS id, 'sitmun' AS author, 'changelog/12_add_more_info_advanced_ui_control.yaml' AS filename FROM dual
+    UNION ALL
+    SELECT '13_more_info_advanced_task_type' AS id, 'sitmun' AS author, 'changelog/13_add_more_info_advanced_task_type.yaml' AS filename FROM dual
+    UNION ALL
+    SELECT '14' AS id, 'sitmun' AS author, 'changelog/14_add_literal_translations.sql' AS filename FROM dual
+    UNION ALL
+    SELECT '15' AS id, 'sitmun' AS author, 'changelog/15_add_literal_translation_source_language.sql' AS filename FROM dual
+    UNION ALL
+    SELECT '16' AS id, 'sitmun' AS author, 'changelog/16_add_translation_sequences.sql' AS filename FROM dual
+    UNION ALL
+    SELECT '17-literal-translations-varchar-literal' AS id, 'sitmun' AS author, 'changelog/17_literal_translations_varchar.sql' AS filename FROM dual
+    UNION ALL
+    SELECT '17-literal-translations-varchar-value' AS id, 'sitmun' AS author, 'changelog/17_literal_translations_varchar.sql' AS filename FROM dual
+    UNION ALL
+    SELECT '18-seed-mia-chrome-no-data-oracle' AS id, 'sitmun' AS author, 'changelog/18_mia_chrome_literals.sql' AS filename FROM dual
+    UNION ALL
+    SELECT '18-seed-mia-chrome-error-executing-task-oracle' AS id, 'sitmun' AS author, 'changelog/18_mia_chrome_literals.sql' AS filename FROM dual
+    UNION ALL
+    SELECT '18-seed-mia-chrome-query-oracle' AS id, 'sitmun' AS author, 'changelog/18_mia_chrome_literals.sql' AS filename FROM dual
+    UNION ALL
+    SELECT '18-seed-mia-chrome-invalid-child-task-id-oracle' AS id, 'sitmun' AS author, 'changelog/18_mia_chrome_literals.sql' AS filename FROM dual
+    UNION ALL
+    SELECT '18-seed-mia-chrome-task-not-executed-oracle' AS id, 'sitmun' AS author, 'changelog/18_mia_chrome_literals.sql' AS filename FROM dual
+    UNION ALL
+    SELECT '18-seed-mia-chrome-binary-access-message-oracle' AS id, 'sitmun' AS author, 'changelog/18_mia_chrome_literals.sql' AS filename FROM dual
+    UNION ALL
+    SELECT '18-seed-mia-chrome-binary-placeholder-oracle' AS id, 'sitmun' AS author, 'changelog/18_mia_chrome_literals.sql' AS filename FROM dual
+    UNION ALL
+    SELECT '19-add-tno-default-oracle' AS id, 'sitmun' AS author, 'changelog/19_add_tree_node_default.yaml' AS filename FROM dual
+    UNION ALL
+    SELECT '20_application_tree_order_oracle' AS id, 'sitmun' AS author, 'changelog/20_application_tree_order.yaml' AS filename FROM dual
+    UNION ALL
+    SELECT '21-align-bac-name-oracle' AS id, 'sitmun' AS author, 'changelog/21_align_schema_with_development.yaml' AS filename FROM dual
+    UNION ALL
+    SELECT '21-align-pap-name-oracle' AS id, 'sitmun' AS author, 'changelog/21_align_schema_with_development.yaml' AS filename FROM dual
+    UNION ALL
+    SELECT '21-align-fgi-valuetype-oracle' AS id, 'sitmun' AS author, 'changelog/21_align_schema_with_development.yaml' AS filename FROM dual
+    UNION ALL
+    SELECT '21-align-geo-type-oracle' AS id, 'sitmun' AS author, 'changelog/21_align_schema_with_development.yaml' AS filename FROM dual
+    UNION ALL
+    SELECT '21-align-ggi-type-oracle' AS id, 'sitmun' AS author, 'changelog/21_align_schema_with_development.yaml' AS filename FROM dual
+    UNION ALL
+    SELECT '21-align-pse-name-oracle' AS id, 'sitmun' AS author, 'changelog/21_align_schema_with_development.yaml' AS filename FROM dual
+    UNION ALL
+    SELECT '21-align-ser-protocol-oracle' AS id, 'sitmun' AS author, 'changelog/21_align_schema_with_development.yaml' AS filename FROM dual
+    UNION ALL
+    SELECT '21-align-sgi-lurl-format-oracle' AS id, 'sitmun' AS author, 'changelog/21_align_schema_with_development.yaml' AS filename FROM dual
+    UNION ALL
+    SELECT '21-align-stm-log-fk-appid-oracle' AS id, 'sitmun' AS author, 'changelog/21_align_schema_with_development.yaml' AS filename FROM dual
+    UNION ALL
+    SELECT '21-align-stm-log-fk-giid-oracle' AS id, 'sitmun' AS author, 'changelog/21_align_schema_with_development.yaml' AS filename FROM dual
+    UNION ALL
+    SELECT '21-align-stm-log-fk-taskid-oracle' AS id, 'sitmun' AS author, 'changelog/21_align_schema_with_development.yaml' AS filename FROM dual
+    UNION ALL
+    SELECT '21-align-stm-log-fk-terid-oracle' AS id, 'sitmun' AS author, 'changelog/21_align_schema_with_development.yaml' AS filename FROM dual
+    UNION ALL
+    SELECT '21-align-stm-log-fk-userid-oracle' AS id, 'sitmun' AS author, 'changelog/21_align_schema_with_development.yaml' AS filename FROM dual
+    UNION ALL
+    SELECT '21-align-pgi-type-oracle' AS id, 'sitmun' AS author, 'changelog/21_align_schema_with_development.yaml' AS filename FROM dual
+    UNION ALL
+    SELECT '22_document_export_task_type' AS id, 'sitmun' AS author, 'changelog/22_add_map_image_task_type.yaml' AS filename FROM dual
+    UNION ALL
+    SELECT '22_map_image_task_type' AS id, 'sitmun' AS author, 'changelog/22_add_map_image_task_type.yaml' AS filename FROM dual
+    UNION ALL
+    SELECT '22b_map_image_task_type_seq' AS id, 'sitmun' AS author, 'changelog/22_add_map_image_task_type.yaml' AS filename FROM dual
+    UNION ALL
+    SELECT '22c_document_export_codelists' AS id, 'sitmun' AS author, 'changelog/22_add_map_image_task_type.yaml' AS filename FROM dual
+    UNION ALL
+    SELECT '23_document_export_tasks' AS id, 'sitmun' AS author, 'changelog/23_add_document_export_tasks.yaml' AS filename FROM dual
+    UNION ALL
+    SELECT '24_default_template_regions' AS id, 'sitmun' AS author, 'changelog/24_add_default_template_regions.yaml' AS filename FROM dual
+    ) required
+    WHERE required.id = d.id
+      AND required.author = d.author
+      AND required.filename = d.filename
+  );
+  SELECT COUNT(*) INTO present_pre23
+  FROM databasechangelog d
+  WHERE EXISTS (
+    SELECT 1 FROM (
+    SELECT '1' AS id, 'sitmun' AS author, 'changelog/01_schema.oracle.sql' AS filename FROM dual
+    UNION ALL
+    SELECT '25-fix-auth-mode-swap' AS id, 'sitmun' AS author, 'changelog/25_fix_auth_mode_swap.yaml' AS filename FROM dual
+    UNION ALL
+    SELECT '2' AS id, 'sitmun' AS author, 'changelog/02_codelists.yaml' AS filename FROM dual
+    UNION ALL
+    SELECT '3' AS id, 'sitmun' AS author, 'changelog/03_task_types.yaml' AS filename FROM dual
+    UNION ALL
+    SELECT '4' AS id, 'sitmun' AS author, 'changelog/04_seed_data.yaml' AS filename FROM dual
+    UNION ALL
+    SELECT '5' AS id, 'sitmun' AS author, 'changelog/05_translations.yaml' AS filename FROM dual
+    UNION ALL
+    SELECT '6' AS id, 'sitmun' AS author, 'changelog/06_params.yaml' AS filename FROM dual
+    UNION ALL
+    SELECT '7' AS id, 'sitmun' AS author, 'changelog/07_sequences.yaml' AS filename FROM dual
+    UNION ALL
+    SELECT '08-application-responsible-institution' AS id, 'sitmun' AS author, 'changelog/08_application_responsible_institution.sql' AS filename FROM dual
+    UNION ALL
+    SELECT '09_language_order_column' AS id, 'sitmun' AS author, 'changelog/09_language_order_enabled_and_labels.yaml' AS filename FROM dual
+    UNION ALL
+    SELECT '09_language_order_and_labels' AS id, 'sitmun' AS author, 'changelog/09_language_order_enabled_and_labels.yaml' AS filename FROM dual
+    UNION ALL
+    SELECT '10_language_enabled_column' AS id, 'sitmun' AS author, 'changelog/09_language_order_enabled_and_labels.yaml' AS filename FROM dual
+    UNION ALL
+    SELECT '10_language_enabled_backfill' AS id, 'sitmun' AS author, 'changelog/09_language_order_enabled_and_labels.yaml' AS filename FROM dual
+    UNION ALL
+    SELECT '10_template_task_type' AS id, 'sitmun' AS author, 'changelog/10_add_template_task_type.yaml' AS filename FROM dual
+    UNION ALL
+    SELECT '11_template_reference_alias' AS id, 'sitmun' AS author, 'changelog/11_add_template_reference_alias.yaml' AS filename FROM dual
+    UNION ALL
+    SELECT '11b_template_reference_alias_uk' AS id, 'sitmun' AS author, 'changelog/11_add_template_reference_alias.yaml' AS filename FROM dual
+    UNION ALL
+    SELECT '12_more_info_advanced_ui_control' AS id, 'sitmun' AS author, 'changelog/12_add_more_info_advanced_ui_control.yaml' AS filename FROM dual
+    UNION ALL
+    SELECT '13_more_info_advanced_task_type' AS id, 'sitmun' AS author, 'changelog/13_add_more_info_advanced_task_type.yaml' AS filename FROM dual
+    UNION ALL
+    SELECT '14' AS id, 'sitmun' AS author, 'changelog/14_add_literal_translations.sql' AS filename FROM dual
+    UNION ALL
+    SELECT '15' AS id, 'sitmun' AS author, 'changelog/15_add_literal_translation_source_language.sql' AS filename FROM dual
+    UNION ALL
+    SELECT '16' AS id, 'sitmun' AS author, 'changelog/16_add_translation_sequences.sql' AS filename FROM dual
+    UNION ALL
+    SELECT '17-literal-translations-varchar-literal' AS id, 'sitmun' AS author, 'changelog/17_literal_translations_varchar.sql' AS filename FROM dual
+    UNION ALL
+    SELECT '17-literal-translations-varchar-value' AS id, 'sitmun' AS author, 'changelog/17_literal_translations_varchar.sql' AS filename FROM dual
+    UNION ALL
+    SELECT '18-seed-mia-chrome-no-data-oracle' AS id, 'sitmun' AS author, 'changelog/18_mia_chrome_literals.sql' AS filename FROM dual
+    UNION ALL
+    SELECT '18-seed-mia-chrome-error-executing-task-oracle' AS id, 'sitmun' AS author, 'changelog/18_mia_chrome_literals.sql' AS filename FROM dual
+    UNION ALL
+    SELECT '18-seed-mia-chrome-query-oracle' AS id, 'sitmun' AS author, 'changelog/18_mia_chrome_literals.sql' AS filename FROM dual
+    UNION ALL
+    SELECT '18-seed-mia-chrome-invalid-child-task-id-oracle' AS id, 'sitmun' AS author, 'changelog/18_mia_chrome_literals.sql' AS filename FROM dual
+    UNION ALL
+    SELECT '18-seed-mia-chrome-task-not-executed-oracle' AS id, 'sitmun' AS author, 'changelog/18_mia_chrome_literals.sql' AS filename FROM dual
+    UNION ALL
+    SELECT '18-seed-mia-chrome-binary-access-message-oracle' AS id, 'sitmun' AS author, 'changelog/18_mia_chrome_literals.sql' AS filename FROM dual
+    UNION ALL
+    SELECT '18-seed-mia-chrome-binary-placeholder-oracle' AS id, 'sitmun' AS author, 'changelog/18_mia_chrome_literals.sql' AS filename FROM dual
+    UNION ALL
+    SELECT '19-add-tno-default-oracle' AS id, 'sitmun' AS author, 'changelog/19_add_tree_node_default.yaml' AS filename FROM dual
+    UNION ALL
+    SELECT '20_application_tree_order_oracle' AS id, 'sitmun' AS author, 'changelog/20_application_tree_order.yaml' AS filename FROM dual
+    UNION ALL
+    SELECT '21-align-bac-name-oracle' AS id, 'sitmun' AS author, 'changelog/21_align_schema_with_development.yaml' AS filename FROM dual
+    UNION ALL
+    SELECT '21-align-pap-name-oracle' AS id, 'sitmun' AS author, 'changelog/21_align_schema_with_development.yaml' AS filename FROM dual
+    UNION ALL
+    SELECT '21-align-fgi-valuetype-oracle' AS id, 'sitmun' AS author, 'changelog/21_align_schema_with_development.yaml' AS filename FROM dual
+    UNION ALL
+    SELECT '21-align-geo-type-oracle' AS id, 'sitmun' AS author, 'changelog/21_align_schema_with_development.yaml' AS filename FROM dual
+    UNION ALL
+    SELECT '21-align-ggi-type-oracle' AS id, 'sitmun' AS author, 'changelog/21_align_schema_with_development.yaml' AS filename FROM dual
+    UNION ALL
+    SELECT '21-align-pse-name-oracle' AS id, 'sitmun' AS author, 'changelog/21_align_schema_with_development.yaml' AS filename FROM dual
+    UNION ALL
+    SELECT '21-align-ser-protocol-oracle' AS id, 'sitmun' AS author, 'changelog/21_align_schema_with_development.yaml' AS filename FROM dual
+    UNION ALL
+    SELECT '21-align-sgi-lurl-format-oracle' AS id, 'sitmun' AS author, 'changelog/21_align_schema_with_development.yaml' AS filename FROM dual
+    UNION ALL
+    SELECT '21-align-stm-log-fk-appid-oracle' AS id, 'sitmun' AS author, 'changelog/21_align_schema_with_development.yaml' AS filename FROM dual
+    UNION ALL
+    SELECT '21-align-stm-log-fk-giid-oracle' AS id, 'sitmun' AS author, 'changelog/21_align_schema_with_development.yaml' AS filename FROM dual
+    UNION ALL
+    SELECT '21-align-stm-log-fk-taskid-oracle' AS id, 'sitmun' AS author, 'changelog/21_align_schema_with_development.yaml' AS filename FROM dual
+    UNION ALL
+    SELECT '21-align-stm-log-fk-terid-oracle' AS id, 'sitmun' AS author, 'changelog/21_align_schema_with_development.yaml' AS filename FROM dual
+    UNION ALL
+    SELECT '21-align-stm-log-fk-userid-oracle' AS id, 'sitmun' AS author, 'changelog/21_align_schema_with_development.yaml' AS filename FROM dual
+    UNION ALL
+    SELECT '21-align-pgi-type-oracle' AS id, 'sitmun' AS author, 'changelog/21_align_schema_with_development.yaml' AS filename FROM dual
+    UNION ALL
+    SELECT '23_document_export_tasks' AS id, 'sitmun' AS author, 'changelog/23_add_document_export_tasks.yaml' AS filename FROM dual
+    UNION ALL
+    SELECT '24_default_template_regions' AS id, 'sitmun' AS author, 'changelog/24_add_default_template_regions.yaml' AS filename FROM dual
+    UNION ALL
+    SELECT '26_document_export_task_type' AS id, 'sitmun' AS author, 'changelog/26_map_image_task_type_pre23.yaml' AS filename FROM dual
+    UNION ALL
+    SELECT '26_map_image_task_type' AS id, 'sitmun' AS author, 'changelog/26_map_image_task_type_pre23.yaml' AS filename FROM dual
+    UNION ALL
+    SELECT '26b_map_image_task_type_seq' AS id, 'sitmun' AS author, 'changelog/26_map_image_task_type_pre23.yaml' AS filename FROM dual
+    UNION ALL
+    SELECT '26c_document_export_codelists' AS id, 'sitmun' AS author, 'changelog/26_map_image_task_type_pre23.yaml' AS filename FROM dual
+    ) required
+    WHERE required.id = d.id
+      AND required.author = d.author
+      AND required.filename = d.filename
+  );
+  IF present_23 = 52 OR present_pre23 = 52 THEN
+    RETURN;
+  END IF;
+  SELECT COUNT(*) INTO known
+  FROM databasechangelog d
+  WHERE EXISTS (
+    SELECT 1 FROM (
+    SELECT '1' AS id, 'sitmun' AS author, 'changelog/01_schema.oracle.sql' AS filename FROM dual
+    UNION ALL
+    SELECT '25-fix-auth-mode-swap' AS id, 'sitmun' AS author, 'changelog/25_fix_auth_mode_swap.yaml' AS filename FROM dual
+    UNION ALL
+    SELECT '2' AS id, 'sitmun' AS author, 'changelog/02_codelists.yaml' AS filename FROM dual
+    UNION ALL
+    SELECT '3' AS id, 'sitmun' AS author, 'changelog/03_task_types.yaml' AS filename FROM dual
+    UNION ALL
+    SELECT '4' AS id, 'sitmun' AS author, 'changelog/04_seed_data.yaml' AS filename FROM dual
+    UNION ALL
+    SELECT '5' AS id, 'sitmun' AS author, 'changelog/05_translations.yaml' AS filename FROM dual
+    UNION ALL
+    SELECT '6' AS id, 'sitmun' AS author, 'changelog/06_params.yaml' AS filename FROM dual
+    UNION ALL
+    SELECT '7' AS id, 'sitmun' AS author, 'changelog/07_sequences.yaml' AS filename FROM dual
+    UNION ALL
+    SELECT '08-application-responsible-institution' AS id, 'sitmun' AS author, 'changelog/08_application_responsible_institution.sql' AS filename FROM dual
+    UNION ALL
+    SELECT '09_language_order_column' AS id, 'sitmun' AS author, 'changelog/09_language_order_enabled_and_labels.yaml' AS filename FROM dual
+    UNION ALL
+    SELECT '09_language_order_and_labels' AS id, 'sitmun' AS author, 'changelog/09_language_order_enabled_and_labels.yaml' AS filename FROM dual
+    UNION ALL
+    SELECT '10_language_enabled_column' AS id, 'sitmun' AS author, 'changelog/09_language_order_enabled_and_labels.yaml' AS filename FROM dual
+    UNION ALL
+    SELECT '10_language_enabled_backfill' AS id, 'sitmun' AS author, 'changelog/09_language_order_enabled_and_labels.yaml' AS filename FROM dual
+    UNION ALL
+    SELECT '10_template_task_type' AS id, 'sitmun' AS author, 'changelog/10_add_template_task_type.yaml' AS filename FROM dual
+    UNION ALL
+    SELECT '11_template_reference_alias' AS id, 'sitmun' AS author, 'changelog/11_add_template_reference_alias.yaml' AS filename FROM dual
+    UNION ALL
+    SELECT '11b_template_reference_alias_uk' AS id, 'sitmun' AS author, 'changelog/11_add_template_reference_alias.yaml' AS filename FROM dual
+    UNION ALL
+    SELECT '12_more_info_advanced_ui_control' AS id, 'sitmun' AS author, 'changelog/12_add_more_info_advanced_ui_control.yaml' AS filename FROM dual
+    UNION ALL
+    SELECT '13_more_info_advanced_task_type' AS id, 'sitmun' AS author, 'changelog/13_add_more_info_advanced_task_type.yaml' AS filename FROM dual
+    UNION ALL
+    SELECT '14' AS id, 'sitmun' AS author, 'changelog/14_add_literal_translations.sql' AS filename FROM dual
+    UNION ALL
+    SELECT '15' AS id, 'sitmun' AS author, 'changelog/15_add_literal_translation_source_language.sql' AS filename FROM dual
+    UNION ALL
+    SELECT '16' AS id, 'sitmun' AS author, 'changelog/16_add_translation_sequences.sql' AS filename FROM dual
+    UNION ALL
+    SELECT '17-literal-translations-varchar-literal' AS id, 'sitmun' AS author, 'changelog/17_literal_translations_varchar.sql' AS filename FROM dual
+    UNION ALL
+    SELECT '17-literal-translations-varchar-value' AS id, 'sitmun' AS author, 'changelog/17_literal_translations_varchar.sql' AS filename FROM dual
+    UNION ALL
+    SELECT '18-seed-mia-chrome-no-data-oracle' AS id, 'sitmun' AS author, 'changelog/18_mia_chrome_literals.sql' AS filename FROM dual
+    UNION ALL
+    SELECT '18-seed-mia-chrome-error-executing-task-oracle' AS id, 'sitmun' AS author, 'changelog/18_mia_chrome_literals.sql' AS filename FROM dual
+    UNION ALL
+    SELECT '18-seed-mia-chrome-query-oracle' AS id, 'sitmun' AS author, 'changelog/18_mia_chrome_literals.sql' AS filename FROM dual
+    UNION ALL
+    SELECT '18-seed-mia-chrome-invalid-child-task-id-oracle' AS id, 'sitmun' AS author, 'changelog/18_mia_chrome_literals.sql' AS filename FROM dual
+    UNION ALL
+    SELECT '18-seed-mia-chrome-task-not-executed-oracle' AS id, 'sitmun' AS author, 'changelog/18_mia_chrome_literals.sql' AS filename FROM dual
+    UNION ALL
+    SELECT '18-seed-mia-chrome-binary-access-message-oracle' AS id, 'sitmun' AS author, 'changelog/18_mia_chrome_literals.sql' AS filename FROM dual
+    UNION ALL
+    SELECT '18-seed-mia-chrome-binary-placeholder-oracle' AS id, 'sitmun' AS author, 'changelog/18_mia_chrome_literals.sql' AS filename FROM dual
+    UNION ALL
+    SELECT '19-add-tno-default-oracle' AS id, 'sitmun' AS author, 'changelog/19_add_tree_node_default.yaml' AS filename FROM dual
+    UNION ALL
+    SELECT '20_application_tree_order_oracle' AS id, 'sitmun' AS author, 'changelog/20_application_tree_order.yaml' AS filename FROM dual
+    UNION ALL
+    SELECT '21-align-bac-name-oracle' AS id, 'sitmun' AS author, 'changelog/21_align_schema_with_development.yaml' AS filename FROM dual
+    UNION ALL
+    SELECT '21-align-pap-name-oracle' AS id, 'sitmun' AS author, 'changelog/21_align_schema_with_development.yaml' AS filename FROM dual
+    UNION ALL
+    SELECT '21-align-fgi-valuetype-oracle' AS id, 'sitmun' AS author, 'changelog/21_align_schema_with_development.yaml' AS filename FROM dual
+    UNION ALL
+    SELECT '21-align-geo-type-oracle' AS id, 'sitmun' AS author, 'changelog/21_align_schema_with_development.yaml' AS filename FROM dual
+    UNION ALL
+    SELECT '21-align-ggi-type-oracle' AS id, 'sitmun' AS author, 'changelog/21_align_schema_with_development.yaml' AS filename FROM dual
+    UNION ALL
+    SELECT '21-align-pse-name-oracle' AS id, 'sitmun' AS author, 'changelog/21_align_schema_with_development.yaml' AS filename FROM dual
+    UNION ALL
+    SELECT '21-align-ser-protocol-oracle' AS id, 'sitmun' AS author, 'changelog/21_align_schema_with_development.yaml' AS filename FROM dual
+    UNION ALL
+    SELECT '21-align-sgi-lurl-format-oracle' AS id, 'sitmun' AS author, 'changelog/21_align_schema_with_development.yaml' AS filename FROM dual
+    UNION ALL
+    SELECT '21-align-stm-log-fk-appid-oracle' AS id, 'sitmun' AS author, 'changelog/21_align_schema_with_development.yaml' AS filename FROM dual
+    UNION ALL
+    SELECT '21-align-stm-log-fk-giid-oracle' AS id, 'sitmun' AS author, 'changelog/21_align_schema_with_development.yaml' AS filename FROM dual
+    UNION ALL
+    SELECT '21-align-stm-log-fk-taskid-oracle' AS id, 'sitmun' AS author, 'changelog/21_align_schema_with_development.yaml' AS filename FROM dual
+    UNION ALL
+    SELECT '21-align-stm-log-fk-terid-oracle' AS id, 'sitmun' AS author, 'changelog/21_align_schema_with_development.yaml' AS filename FROM dual
+    UNION ALL
+    SELECT '21-align-stm-log-fk-userid-oracle' AS id, 'sitmun' AS author, 'changelog/21_align_schema_with_development.yaml' AS filename FROM dual
+    UNION ALL
+    SELECT '21-align-pgi-type-oracle' AS id, 'sitmun' AS author, 'changelog/21_align_schema_with_development.yaml' AS filename FROM dual
+    UNION ALL
+    SELECT '22_document_export_task_type' AS id, 'sitmun' AS author, 'changelog/22_add_map_image_task_type.yaml' AS filename FROM dual
+    UNION ALL
+    SELECT '22_map_image_task_type' AS id, 'sitmun' AS author, 'changelog/22_add_map_image_task_type.yaml' AS filename FROM dual
+    UNION ALL
+    SELECT '22b_map_image_task_type_seq' AS id, 'sitmun' AS author, 'changelog/22_add_map_image_task_type.yaml' AS filename FROM dual
+    UNION ALL
+    SELECT '22c_document_export_codelists' AS id, 'sitmun' AS author, 'changelog/22_add_map_image_task_type.yaml' AS filename FROM dual
+    UNION ALL
+    SELECT '23_document_export_tasks' AS id, 'sitmun' AS author, 'changelog/23_add_document_export_tasks.yaml' AS filename FROM dual
+    UNION ALL
+    SELECT '24_default_template_regions' AS id, 'sitmun' AS author, 'changelog/24_add_default_template_regions.yaml' AS filename FROM dual
+    UNION ALL
+    SELECT '26_document_export_task_type' AS id, 'sitmun' AS author, 'changelog/26_map_image_task_type_pre23.yaml' AS filename FROM dual
+    UNION ALL
+    SELECT '26_map_image_task_type' AS id, 'sitmun' AS author, 'changelog/26_map_image_task_type_pre23.yaml' AS filename FROM dual
+    UNION ALL
+    SELECT '26b_map_image_task_type_seq' AS id, 'sitmun' AS author, 'changelog/26_map_image_task_type_pre23.yaml' AS filename FROM dual
+    UNION ALL
+    SELECT '26c_document_export_codelists' AS id, 'sitmun' AS author, 'changelog/26_map_image_task_type_pre23.yaml' AS filename FROM dual
+    ) required
+    WHERE required.id = d.id
+      AND required.author = d.author
+      AND required.filename = d.filename
+  );
+  IF known = 0 THEN
+    RETURN;
+  END IF;
+  RAISE_APPLICATION_ERROR(-20001, 'upgrade to 1.2.9 first');
+END;

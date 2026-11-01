@@ -27,7 +27,6 @@ DEFAULT_TREES = (
     "profiles/development/backend/liquibase",
     "profiles/postgres/liquibase",
     "profiles/oracle/liquibase",
-    "sitmun-backend/config/db/changelog",
 )
 
 TREE_ALLOWLIST: dict[str, tuple[str, ...]] = {

@@ -12,12 +12,18 @@
 #   bash tools/scripts/compare-schema-drift.sh postgres --against jpa
 #   bash tools/scripts/compare-schema-drift.sh postgres --out /tmp/drift-pg
 #   bash tools/scripts/compare-schema-drift.sh postgres --fail-on none
+#   bash tools/scripts/compare-schema-drift.sh fresh-vs-upgraded postgres-16
 
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 TARGET="${1:-postgres}"
 shift || true
+FVU_ENGINE=""
+if [[ "$TARGET" == "fresh-vs-upgraded" ]]; then
+  FVU_ENGINE="${1:?usage: $0 fresh-vs-upgraded postgres-16|postgres-12|oracle-23|oracle-21|oracle-11}"
+  shift
+fi
 
 AGAINST="profiles"
 OUT_ROOT=""
@@ -34,7 +40,7 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-if [[ "$AGAINST" != "profiles" && "$AGAINST" != "jpa" ]]; then
+if [[ -z "$FVU_ENGINE" && "$AGAINST" != "profiles" && "$AGAINST" != "jpa" ]]; then
   echo "--against must be profiles or jpa" >&2
   exit 2
 fi
@@ -582,8 +588,15 @@ case "$TARGET" in
   dev-dialects)
     run_dev_dialects || OVERALL=$?
     ;;
+  fresh-vs-upgraded)
+    # shellcheck source=fresh-vs-upgraded.sh
+    source "$REPO_ROOT/tools/scripts/fresh-vs-upgraded.sh"
+    run_fresh_vs_upgraded "$FVU_ENGINE" || OVERALL=$?
+    exit "$OVERALL"
+    ;;
   *)
     echo "Usage: $0 postgres|oracle|both|dev-dialects [--against profiles|jpa] [--out DIR] [--fail-on problem|any|none]" >&2
+    echo "       $0 fresh-vs-upgraded postgres-16|postgres-12|oracle-23|oracle-21|oracle-11" >&2
     exit 2
     ;;
 esac

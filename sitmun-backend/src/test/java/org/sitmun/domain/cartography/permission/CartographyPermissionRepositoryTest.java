@@ -28,9 +28,9 @@ class CartographyPermissionRepositoryTest {
   void findPermissionsByUsernameApplicationAndTerritory() {
     List<Role> roles =
         roleRepository.findRolesByApplicationAndUserAndTerritory(
-            SecurityConstants.PUBLIC_PRINCIPAL, 1, 1);
+            SecurityConstants.PUBLIC_PRINCIPAL, 10001, 10001);
     List<CartographyPermission> cp =
-        cartographyPermissionRepository.findByRolesAndTerritory(roles, 1);
+        cartographyPermissionRepository.findByRolesAndTerritory(roles, 10001);
     assertThat(cp).hasSize(3);
   }
 }

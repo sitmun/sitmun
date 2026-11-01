@@ -54,22 +54,22 @@ class CodeListValueRepositoryDataRestTest {
     mvc.perform(get(CODELIST_VALUES_URI_FILTER, "cartographyPermission.type"))
         .andExpect(status().isOk())
         .andExpect(
-            jsonPath("$._embedded.codelist-values[?(@.id == 24)].description")
+            jsonPath("$._embedded.codelist-values[?(@.id == 26)].description")
                 .value("Background map"))
         .andExpect(
-            jsonPath("$._embedded.codelist-values[?(@.id == 25)].description")
+            jsonPath("$._embedded.codelist-values[?(@.id == 27)].description")
                 .value("Cartography group"))
         .andExpect(
-            jsonPath("$._embedded.codelist-values[?(@.id == 26)].description")
+            jsonPath("$._embedded.codelist-values[?(@.id == 28)].description")
                 .value("Location map"))
         .andExpect(
-            jsonPath("$._embedded.codelist-values[?(@.id == 27)].description").value("Report"));
+            jsonPath("$._embedded.codelist-values[?(@.id == 29)].description").value("Report"));
 
     mvc.perform(get(CODELIST_VALUES_URI_FILTER, "userPosition.type"))
         .andExpect(status().isOk())
         .andExpect(
-            jsonPath("$._embedded.codelist-values[?(@.id == 63)].description")
-                .value("City Council"));
+            jsonPath("$._embedded.codelist-values[?(@.id == 94)].description")
+                .value("Point of contact"));
   }
 
   @Test
@@ -79,7 +79,7 @@ class CodeListValueRepositoryDataRestTest {
     mvc.perform(get(CODELIST_VALUES_URI_FILTER + "&lang=es", "cartographyFilter.type"))
         .andExpect(status().isOk())
         .andExpect(
-            jsonPath("$._embedded.codelist-values[?(@.id == 12)].description")
+            jsonPath("$._embedded.codelist-values[?(@.id == 14)].description")
                 .value("Personalizado"));
   }
 
@@ -90,7 +90,7 @@ class CodeListValueRepositoryDataRestTest {
     mvc.perform(get(CODELIST_VALUES_URI_FILTER + "&lang=ca", "cartographyFilter.type"))
         .andExpect(status().isOk())
         .andExpect(
-            jsonPath("$._embedded.codelist-values[?(@.id == 12)].description")
+            jsonPath("$._embedded.codelist-values[?(@.id == 14)].description")
                 .value("Personalitzat"));
   }
 
@@ -150,9 +150,9 @@ class CodeListValueRepositoryDataRestTest {
                 CODELIST_VALUES_URI_FILTER + "&lang=ca",
                 CARTOGRAPHY_SPATIAL_SELECTION_PARAMETER_TYPE))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$._embedded.codelist-values[?(@.id == 34)].value").value("EDIT"))
+        .andExpect(jsonPath("$._embedded.codelist-values[?(@.id == 36)].value").value("EDIT"))
         .andExpect(
-            jsonPath("$._embedded.codelist-values[?(@.id == 34)].description").value("EDIT"));
+            jsonPath("$._embedded.codelist-values[?(@.id == 36)].description").value("EDITAR"));
   }
 
   @Test
@@ -186,13 +186,13 @@ class CodeListValueRepositoryDataRestTest {
       "description":"%s"
       }"""
             .formatted(updatedDescription);
-    mvc.perform(put(CODELIST_VALUE_URI, 24).contentType(APPLICATION_JSON).content(body))
+    mvc.perform(put(CODELIST_VALUE_URI, 26).contentType(APPLICATION_JSON).content(body))
         .andExpect(status().is2xxSuccessful());
 
     mvc.perform(get(CODELIST_VALUES_URI_FILTER, "cartographyPermission.type"))
         .andExpect(status().isOk())
         .andExpect(
-            jsonPath("$._embedded.codelist-values[?(@.id == 24)].description")
+            jsonPath("$._embedded.codelist-values[?(@.id == 26)].description")
                 .value(updatedDescription));
 
     // Restore original description so seed data is unchanged
@@ -205,7 +205,7 @@ class CodeListValueRepositoryDataRestTest {
       "defaultCode":false,
       "description":"Background map"
       }""";
-    mvc.perform(put(CODELIST_VALUE_URI, 24).contentType(APPLICATION_JSON).content(restoreBody))
+    mvc.perform(put(CODELIST_VALUE_URI, 26).contentType(APPLICATION_JSON).content(restoreBody))
         .andExpect(status().is2xxSuccessful());
   }
 
@@ -214,7 +214,7 @@ class CodeListValueRepositoryDataRestTest {
   @WithMockUser(roles = "ADMIN")
   void cantModifySystemCodeListValue() throws Exception {
     mvc.perform(
-            put(CODELIST_VALUE_URI, 24)
+            put(CODELIST_VALUE_URI, 26)
                 .contentType(APPLICATION_JSON)
                 .content(
                     """
@@ -227,7 +227,7 @@ class CodeListValueRepositoryDataRestTest {
         .andExpect(jsonPath("$.detail").value("System field cannot be changed"));
 
     mvc.perform(
-            put(CODELIST_VALUE_URI, 24)
+            put(CODELIST_VALUE_URI, 26)
                 .contentType(APPLICATION_JSON)
                 .content(
                     """
@@ -240,7 +240,7 @@ class CodeListValueRepositoryDataRestTest {
         .andExpect(jsonPath("$.detail").value("Value cannot be changed in system property"));
 
     mvc.perform(
-            put(CODELIST_VALUE_URI, 24)
+            put(CODELIST_VALUE_URI, 26)
                 .contentType(APPLICATION_JSON)
                 .content(
                     """
@@ -258,11 +258,11 @@ class CodeListValueRepositoryDataRestTest {
   @DisplayName("DELETE of a system code returns 400 and System field cannot be deleted")
   @WithMockUser(roles = "ADMIN")
   void cantDeleteCodeListValue() throws Exception {
-    mvc.perform(delete(CODELIST_VALUE_URI, 24))
+    mvc.perform(delete(CODELIST_VALUE_URI, 26))
         .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.detail").value("System field cannot be deleted"));
 
-    mvc.perform(get(CODELIST_VALUE_URI, 24)).andExpect(status().isOk());
+    mvc.perform(get(CODELIST_VALUE_URI, 26)).andExpect(status().isOk());
   }
 
   /**

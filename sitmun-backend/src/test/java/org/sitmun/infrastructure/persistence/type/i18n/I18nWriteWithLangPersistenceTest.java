@@ -23,7 +23,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 @DisplayName("I18n write with non-default lang")
 class I18nWriteWithLangPersistenceTest {
 
-  private static final int TREE_ID = 4;
+  private static final int TREE_ID = 10004;
 
   @Autowired private MockMvc mvc;
   @Autowired private JdbcTemplate jdbcTemplate;

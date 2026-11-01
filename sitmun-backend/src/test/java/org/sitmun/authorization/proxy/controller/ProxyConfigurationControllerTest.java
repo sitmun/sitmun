@@ -49,10 +49,10 @@ class ProxyConfigurationControllerTest {
     String content =
         """
         {
-          "appId": 1,
-          "terId": 1,
+          "appId": 10001,
+          "terId": 10001,
           "type": "SQL",
-          "typeId": 23,
+          "typeId": 10023,
           "method": "GET"
         }
       """;
@@ -68,10 +68,10 @@ class ProxyConfigurationControllerTest {
     String content =
         """
         {
-          "appId": 1,
-          "terId": 1,
+          "appId": 10001,
+          "terId": 10001,
           "type": "SQL",
-          "typeId": 23,
+          "typeId": 10023,
           "method": "GET"
         }
       """;
@@ -92,10 +92,10 @@ class ProxyConfigurationControllerTest {
     String content =
         """
         {
-          "appId": 1,
-          "terId": 1,
+          "appId": 10001,
+          "terId": 10001,
           "type": "SQL",
-          "typeId": 23,
+          "typeId": 10023,
           "method": "GET"
         }
       """;
@@ -116,10 +116,10 @@ class ProxyConfigurationControllerTest {
     String content =
         """
         {
-          "appId": 1,
-          "terId": 1,
+          "appId": 10001,
+          "terId": 10001,
           "type": "SQL",
-          "typeId": 23,
+          "typeId": 10023,
           "method": "GET"
         }
       """;
@@ -140,10 +140,10 @@ class ProxyConfigurationControllerTest {
     String content =
         """
         {
-          "appId": 1,
-          "terId": 1,
+          "appId": 10001,
+          "terId": 10001,
           "type": "WMTS",
-          "typeId": 1,
+          "typeId": 10001,
           "method": "GET"
         }
       """;
@@ -165,10 +165,10 @@ class ProxyConfigurationControllerTest {
     String content =
         """
         {
-          "appId": 1,
-          "terId": 1,
+          "appId": 10001,
+          "terId": 10001,
           "type": "SQL",
-          "typeId": 23,
+          "typeId": 10023,
           "method": "GET"
         }
       """;
@@ -184,10 +184,10 @@ class ProxyConfigurationControllerTest {
     String content =
         """
         {
-          "appId": 1,
-          "terId": 1,
+          "appId": 10001,
+          "terId": 10001,
           "type": "SQL",
-          "typeId": 23,
+          "typeId": 10023,
           "method": "GET",
           "parameters": {
             "OFFSET": "100",
@@ -212,10 +212,10 @@ class ProxyConfigurationControllerTest {
     String content =
         """
         {
-          "appId": 1,
-          "terId": 1,
+          "appId": 10001,
+          "terId": 10001,
           "type": "SQL",
-          "typeId": 28,
+          "typeId": 10028,
           "method": "GET"
         }
       """;
@@ -229,7 +229,7 @@ class ProxyConfigurationControllerTest {
         .andExpect(
             jsonPath("$.payload.sql")
                 .value(
-                    "SELECT * FROM EXAMPLE WHERE USER_ID=1 AND TERR_ID=1 AND APP_ID=1 AND TERR_COD=60001"));
+                    "SELECT * FROM EXAMPLE WHERE USER_ID=1 AND TERR_ID=10001 AND APP_ID=10001 AND TERR_COD=60001"));
   }
 
   @Test
@@ -239,10 +239,10 @@ class ProxyConfigurationControllerTest {
     String content =
         """
         {
-          "appId": 1,
-          "terId": 1,
+          "appId": 10001,
+          "terId": 10001,
           "type": "SQL",
-          "typeId": 23,
+          "typeId": 10023,
           "method": "GET",
           "parameters": {
             "columnA": "123",
@@ -267,10 +267,10 @@ class ProxyConfigurationControllerTest {
     String content =
         """
         {
-          "appId": 1,
-          "terId": 1,
+          "appId": 10001,
+          "terId": 10001,
           "type": "SQL",
-          "typeId": 27,
+          "typeId": 10027,
           "method": "GET",
           "parameters": {
             "columnA": "123"

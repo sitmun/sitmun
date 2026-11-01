@@ -28,7 +28,7 @@ class ClientConfigurationTerritoryApplicationsControllerTest {
   @Test
   @DisplayName("GET: Page with public user in territory 2")
   void readPublicUser() throws Exception {
-    mvc.perform(get(URIConstants.CONFIG_CLIENT_TERRITORY_APPLICATIONS_URI, 2))
+    mvc.perform(get(URIConstants.CONFIG_CLIENT_TERRITORY_APPLICATIONS_URI, 10002))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.content", hasSize(4)))
         .andExpect(jsonPath("$.page.totalElements", is(4)))
@@ -46,7 +46,8 @@ class ClientConfigurationTerritoryApplicationsControllerTest {
   @DisplayName("GET: Territory 2 omits the application granted only on territory 1")
   void readOtherUser() throws Exception {
     mvc.perform(
-            get(URIConstants.CONFIG_CLIENT_TERRITORY_APPLICATIONS_URI, 2).with(user("internal")))
+            get(URIConstants.CONFIG_CLIENT_TERRITORY_APPLICATIONS_URI, 10002)
+                .with(user("internal")))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.content", hasSize(4)))
         .andExpect(jsonPath("$.page.size", is(pageSize)))
@@ -67,7 +68,7 @@ class ClientConfigurationTerritoryApplicationsControllerTest {
   @DisplayName("GET: Get specific page")
   void readOtherUserWithPagination() throws Exception {
     mvc.perform(
-            get(URIConstants.CONFIG_CLIENT_TERRITORY_APPLICATIONS_URI + "?size=1&page=1", 2)
+            get(URIConstants.CONFIG_CLIENT_TERRITORY_APPLICATIONS_URI + "?size=1&page=1", 10002)
                 .with(user("internal")))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.content", hasSize(1)))
@@ -81,7 +82,7 @@ class ClientConfigurationTerritoryApplicationsControllerTest {
   @DisplayName("GET: Request out of bounds")
   void readOtherUserWithPaginationOutOfBounds() throws Exception {
     mvc.perform(
-            get(URIConstants.CONFIG_CLIENT_TERRITORY_APPLICATIONS_URI + "?size=1&page=5", 2)
+            get(URIConstants.CONFIG_CLIENT_TERRITORY_APPLICATIONS_URI + "?size=1&page=5", 10002)
                 .with(user("internal")))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.content").isEmpty())

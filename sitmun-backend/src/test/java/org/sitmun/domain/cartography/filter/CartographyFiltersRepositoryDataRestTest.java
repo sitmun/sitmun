@@ -31,7 +31,7 @@ class CartographyFiltersRepositoryDataRestTest {
         "name":"test",
         "type":"C",
         "required":true,
-        "cartography":"http://localhost/api/cartographies/1"
+        "cartography":"http://localhost/api/cartographies/10001"
         }
         """;
 
@@ -47,7 +47,7 @@ class CartographyFiltersRepositoryDataRestTest {
 
     mvc.perform(get(location + "/cartography"))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.id").value(1));
+        .andExpect(jsonPath("$.id").value(10001));
 
     mvc.perform(delete(location)).andExpect(status().isNoContent());
   }

@@ -1,0 +1,115 @@
+name: Fresh versus upgraded
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+on:
+  pull_request:
+    branches: [dev]
+    paths:
+      - 'sitmun-backend/src/main/resources/db/changelog/**'
+      - 'profiles/oracle/liquibase/changelog/26_map_image_task_type_pre23.yaml'
+      - 'tools/scripts/compare-schema-drift.sh'
+      - 'tools/scripts/fresh-vs-upgraded.sh'
+      - 'tools/bin/compare_fresh_vs_upgraded.py'
+      - 'tools/bin/generate_legacy_upgrade.py'
+      - '.github/workflows/fresh-vs-upgraded.yml'
+  workflow_dispatch:
+    inputs:
+      db:
+        description: Database to compare, or all
+        required: true
+        type: choice
+        default: all
+        options:
+          - all
+          - postgres-12
+          - postgres-16
+          - oracle-11
+          - oracle-19
+          - oracle-23
+
+jobs:
+  postgres-12:
+    name: Fresh versus upgraded PostgreSQL 12
+    if: github.event_name != 'workflow_dispatch' || inputs.db == 'all' || inputs.db == 'postgres-12'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+      - name: Fetch the 1.2.9 tag
+        run: git fetch --no-tags origin tag legacy/sitmun-application-stack/sitmun-application-stack/1.2.9
+      - name: Compare a fresh database with an upgraded 1.2.9 database
+        run: bash tools/scripts/compare-schema-drift.sh fresh-vs-upgraded postgres-12
+
+  postgres-16:
+    name: Fresh versus upgraded PostgreSQL 16
+    if: github.event_name != 'workflow_dispatch' || inputs.db == 'all' || inputs.db == 'postgres-16'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+      - name: Fetch the 1.2.9 tag
+        run: git fetch --no-tags origin tag legacy/sitmun-application-stack/sitmun-application-stack/1.2.9
+      - name: Compare a fresh database with an upgraded 1.2.9 database
+        run: bash tools/scripts/compare-schema-drift.sh fresh-vs-upgraded postgres-16
+
+  oracle-23:
+    name: Fresh versus upgraded Oracle 23ai
+    if: github.event_name != 'workflow_dispatch' || inputs.db == 'all' || inputs.db == 'oracle-23'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+      - name: Fetch the 1.2.9 tag
+        run: git fetch --no-tags origin tag legacy/sitmun-application-stack/sitmun-application-stack/1.2.9
+      - name: Compare a fresh database with an upgraded 1.2.9 database
+        run: bash tools/scripts/compare-schema-drift.sh fresh-vs-upgraded oracle-23
+
+  oracle-19:
+    name: Fresh versus upgraded Oracle 21c (stand-in for 19c)
+    if: github.event_name != 'workflow_dispatch' || inputs.db == 'all' || inputs.db == 'oracle-19'
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+      - name: Fetch the 1.2.9 tag
+        run: git fetch --no-tags origin tag legacy/sitmun-application-stack/sitmun-application-stack/1.2.9
+      - name: Compare a fresh database with an upgraded 1.2.9 database
+        run: bash tools/scripts/compare-schema-drift.sh fresh-vs-upgraded oracle-21
+
+  oracle-11:
+    name: Fresh versus upgraded Oracle 11g
+    if: github.event_name != 'workflow_dispatch' || inputs.db == 'all' || inputs.db == 'oracle-11'
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+      - name: Fetch the 1.2.9 tag
+        run: git fetch --no-tags origin tag legacy/sitmun-application-stack/sitmun-application-stack/1.2.9
+      - name: Compare a fresh database with an upgraded 1.2.9 database
+        run: bash tools/scripts/compare-schema-drift.sh fresh-vs-upgraded oracle-11

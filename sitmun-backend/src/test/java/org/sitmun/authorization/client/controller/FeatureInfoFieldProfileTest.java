@@ -34,15 +34,15 @@ class FeatureInfoFieldProfileTest {
   @Test
   @DisplayName("GET: no INFO rows omits the field list")
   void omittedWhenEmpty() throws Exception {
-    mvc.perform(get(CONFIG_CLIENT_PROFILE_URI, 1, 1).param("lang", "es"))
+    mvc.perform(get(CONFIG_CLIENT_PROFILE_URI, 10001, 10001).param("lang", "es"))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.layers[?(@.id=='layer/3')].featureInfoFields").doesNotExist());
+        .andExpect(jsonPath("$.layers[?(@.id=='layer/10003')].featureInfoFields").doesNotExist());
   }
 
   @Test
   @DisplayName("GET: lang returns the translated label and the original property name")
   void translatedLabelKeepsPropertyName() throws Exception {
-    var cartography = cartographyRepository.findById(1).orElseThrow();
+    var cartography = cartographyRepository.findById(10001).orElseThrow();
     var code =
         cartographyParameterRepository.saveAndFlush(
             CartographyParameter.builder()
@@ -73,23 +73,28 @@ class FeatureInfoFieldProfileTest {
                 .translation("Temporada")
                 .build());
     try {
-      mvc.perform(get(CONFIG_CLIENT_PROFILE_URI, 1, 1).param("lang", "es"))
+      mvc.perform(get(CONFIG_CLIENT_PROFILE_URI, 10001, 10001).param("lang", "es"))
           .andExpect(status().isOk())
           .andExpect(
-              jsonPath("$.layers[?(@.id=='layer/1')].featureInfoFields[0].name", hasItem("code")))
-          .andExpect(
-              jsonPath("$.layers[?(@.id=='layer/1')].featureInfoFields[0].label", hasItem("Code")))
-          .andExpect(
-              jsonPath("$.layers[?(@.id=='layer/1')].featureInfoFields[1].name", hasItem("season")))
+              jsonPath(
+                  "$.layers[?(@.id=='layer/10001')].featureInfoFields[0].name", hasItem("code")))
           .andExpect(
               jsonPath(
-                  "$.layers[?(@.id=='layer/1')].featureInfoFields[1].label", hasItem("Temporada")));
+                  "$.layers[?(@.id=='layer/10001')].featureInfoFields[0].label", hasItem("Code")))
+          .andExpect(
+              jsonPath(
+                  "$.layers[?(@.id=='layer/10001')].featureInfoFields[1].name", hasItem("season")))
+          .andExpect(
+              jsonPath(
+                  "$.layers[?(@.id=='layer/10001')].featureInfoFields[1].label",
+                  hasItem("Temporada")));
 
-      mvc.perform(get(CONFIG_CLIENT_PROFILE_URI, 1, 1).param("lang", "en"))
+      mvc.perform(get(CONFIG_CLIENT_PROFILE_URI, 10001, 10001).param("lang", "en"))
           .andExpect(status().isOk())
           .andExpect(
               jsonPath(
-                  "$.layers[?(@.id=='layer/1')].featureInfoFields[1].label", hasItem("Season")));
+                  "$.layers[?(@.id=='layer/10001')].featureInfoFields[1].label",
+                  hasItem("Season")));
     } finally {
       translationRepository.delete(translation);
       cartographyParameterRepository.delete(season);
@@ -100,7 +105,7 @@ class FeatureInfoFieldProfileTest {
   @Test
   @DisplayName("GET: image field publishes max width and max height")
   void imageLimitsArePublished() throws Exception {
-    var cartography = cartographyRepository.findById(1).orElseThrow();
+    var cartography = cartographyRepository.findById(10001).orElseThrow();
     var options = new FeatureInfoFormatOptions();
     options.setMaxWidth(240);
     options.setMaxHeight(160);
@@ -116,17 +121,21 @@ class FeatureInfoFieldProfileTest {
                 .options(options)
                 .build());
     try {
-      mvc.perform(get(CONFIG_CLIENT_PROFILE_URI, 1, 1).param("lang", "es"))
+      mvc.perform(get(CONFIG_CLIENT_PROFILE_URI, 10001, 10001).param("lang", "es"))
           .andExpect(status().isOk())
           .andExpect(
               jsonPath(
-                  "$.layers[?(@.id=='layer/1')].featureInfoFields[0].name", hasItem("lnkimatge")))
+                  "$.layers[?(@.id=='layer/10001')].featureInfoFields[0].name",
+                  hasItem("lnkimatge")))
           .andExpect(
-              jsonPath("$.layers[?(@.id=='layer/1')].featureInfoFields[0].maxWidth", hasItem(240)))
+              jsonPath(
+                  "$.layers[?(@.id=='layer/10001')].featureInfoFields[0].maxWidth", hasItem(240)))
           .andExpect(
-              jsonPath("$.layers[?(@.id=='layer/1')].featureInfoFields[0].maxHeight", hasItem(160)))
+              jsonPath(
+                  "$.layers[?(@.id=='layer/10001')].featureInfoFields[0].maxHeight", hasItem(160)))
           .andExpect(
-              jsonPath("$.layers[?(@.id=='layer/1')].featureInfoFields[0].format", hasItem("I")));
+              jsonPath(
+                  "$.layers[?(@.id=='layer/10001')].featureInfoFields[0].format", hasItem("I")));
     } finally {
       cartographyParameterRepository.delete(photo);
     }

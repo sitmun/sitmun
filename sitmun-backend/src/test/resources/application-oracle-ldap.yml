@@ -30,7 +30,7 @@ spring:
 
   # Liquibase Configuration for Oracle
   liquibase:
-    change-log: classpath:/db/changelog/db.changelog-oracle.yaml
+    change-log: classpath:/db/changelog-test/db.changelog-master.yaml
     enabled: true
     drop-first: true
     url: jdbc:oracle:thin:@//localhost:1521/sitmun3?oracle.net.CONNECT_TIMEOUT=30000

@@ -104,48 +104,53 @@ class LiquibaseSeedCanaryTest {
   @Autowired private TaskRepository taskRepository;
 
   @Test
-  @DisplayName("Seed: STM_TREE_NOD rows and Municipal root id 15")
+  @DisplayName("Seed: STM_TREE_NOD rows and Municipal root id 10015")
   void treeNodeSeedIntact() {
     assertThat(count("SELECT COUNT(*) FROM STM_TREE_NOD"))
         .as(POLLUTION + " (STM_TREE_NOD total)")
         .isEqualTo(15);
-    assertThat(count("SELECT COUNT(*) FROM STM_TREE_NOD WHERE TNO_TREEID = 1"))
-        .as(POLLUTION + " (tree 1 nodes)")
+    assertThat(count("SELECT COUNT(*) FROM STM_TREE_NOD WHERE TNO_TREEID = 10001"))
+        .as(POLLUTION + " (tree 10001 nodes)")
         .isEqualTo(14);
 
     Map<String, Object> node15 =
-        jdbc.queryForMap("SELECT TNO_ID, TNO_NAME, TNO_TREEID FROM STM_TREE_NOD WHERE TNO_ID = 15");
-    assertThat(asInt(node15.get("TNO_ID"))).as(POLLUTION + " (node 15 missing)").isEqualTo(15);
+        jdbc.queryForMap(
+            "SELECT TNO_ID, TNO_NAME, TNO_TREEID FROM STM_TREE_NOD WHERE TNO_ID = 10015");
+    assertThat(asInt(node15.get("TNO_ID")))
+        .as(POLLUTION + " (node 10015 missing)")
+        .isEqualTo(10015);
     assertThat(node15.get("TNO_NAME"))
-        .as(POLLUTION + " (node 15 name)")
+        .as(POLLUTION + " (node 10015 name)")
         .isEqualTo("Municipal root");
-    assertThat(asInt(node15.get("TNO_TREEID"))).as(POLLUTION + " (node 15 tree)").isEqualTo(2);
+    assertThat(asInt(node15.get("TNO_TREEID")))
+        .as(POLLUTION + " (node 10015 tree)")
+        .isEqualTo(10002);
   }
 
   @Test
   @DisplayName("Seed: public app/ter 1 trees, cartographies, tasks, permissions")
   void publicAppTerritorySeedIntact() {
     List<Role> roles =
-        roleRepository.findRolesByApplicationAndUserAndTerritory(PUBLIC_PRINCIPAL, 1, 1);
+        roleRepository.findRolesByApplicationAndUserAndTerritory(PUBLIC_PRINCIPAL, 10001, 10001);
 
     List<Tree> trees =
-        applicationTreeRepository.findByAppAndRoles(1, roles).stream()
+        applicationTreeRepository.findByAppAndRoles(10001, roles).stream()
             .map(OrderedTree::tree)
             .toList();
     assertThat(trees).as(POLLUTION + " (app/ter 1 trees)").hasSize(2);
 
-    List<Cartography> cartographies = cartographyRepository.findByRolesAndTerritory(roles, 1);
+    List<Cartography> cartographies = cartographyRepository.findByRolesAndTerritory(roles, 10001);
     assertThat(cartographies).as(POLLUTION + " (app/ter 1 cartographies)").hasSize(11);
 
-    List<Task> tasks = taskRepository.findByRolesAndTerritory(roles, 1);
-    assertThat(tasks).as(POLLUTION + " (app/ter 1 tasks)").hasSize(14);
+    List<Task> tasks = taskRepository.findByRolesAndTerritory(roles, 10001);
+    assertThat(tasks).as(POLLUTION + " (app/ter 10001 tasks)").hasSize(17);
     assertThat(tasks)
-        .as(POLLUTION + " (MIA task ids 42/43)")
+        .as(POLLUTION + " (MIA task ids 10042/10043)")
         .extracting(Task::getId)
-        .contains(42, 43);
+        .contains(10042, 10043);
 
     List<CartographyPermission> permissions =
-        cartographyPermissionRepository.findByRolesAndTerritory(roles, 1);
+        cartographyPermissionRepository.findByRolesAndTerritory(roles, 10001);
     assertThat(permissions).as(POLLUTION + " (app/ter 1 permissions)").hasSize(3);
   }
 

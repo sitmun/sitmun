@@ -61,7 +61,7 @@ class TreeNodeRepositoryDataRestTest {
   @DisplayName("GET: Retrieve tree name from node")
   @WithMockUser(roles = "ADMIN")
   void retrieveTreeName() throws Exception {
-    mvc.perform(get(TREE_NODE_URI_PROJECTION, 1))
+    mvc.perform(get(TREE_NODE_URI_PROJECTION, 10001))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.treeName").value("Provincial"));
   }
@@ -70,27 +70,27 @@ class TreeNodeRepositoryDataRestTest {
   @DisplayName("GET: Retrieve folder")
   @WithMockUser(roles = "ADMIN")
   void retrieveFolder() throws Exception {
-    mvc.perform(get(TREE_NODE_URI_PROJECTION, 1))
+    mvc.perform(get(TREE_NODE_URI_PROJECTION, 10001))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.isFolder").value(true));
-    mvc.perform(get(TREE_NODE_CARTOGRAPHY_URI, 1)).andExpect(status().isNotFound());
+    mvc.perform(get(TREE_NODE_CARTOGRAPHY_URI, 10001)).andExpect(status().isNotFound());
   }
 
   @Test
   @DisplayName("GET: Retrieve leaf")
   @WithMockUser(roles = "ADMIN")
   void retrieveLeaf() throws Exception {
-    mvc.perform(get(TREE_NODE_URI_PROJECTION, 3))
+    mvc.perform(get(TREE_NODE_URI_PROJECTION, 10003))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.isFolder").value(false));
-    mvc.perform(get(TREE_NODE_CARTOGRAPHY_URI, 3)).andExpect(status().isOk());
+    mvc.perform(get(TREE_NODE_CARTOGRAPHY_URI, 10003)).andExpect(status().isOk());
   }
 
   @Test
   @DisplayName("GET: Retrieve nodes from tree")
   @WithMockUser(roles = "ADMIN")
   void retrieveNodesFromTree() throws Exception {
-    mvc.perform(get(TREE_ALL_NODES_URI, 1))
+    mvc.perform(get(TREE_ALL_NODES_URI, 10001))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$._embedded.tree-nodes", hasSize(14)))
         .andExpect(jsonPath("$._embedded.tree-nodes[?(@.isFolder == true)]", hasSize(6)))
@@ -105,7 +105,7 @@ class TreeNodeRepositoryDataRestTest {
         """
       {
       "name":"test",
-      "tree":"http://localhost/api/trees/1"
+      "tree":"http://localhost/api/trees/10001"
       }
       """;
 
@@ -133,8 +133,8 @@ class TreeNodeRepositoryDataRestTest {
         """
         {
         "name":"test",
-        "tree":"http://localhost/api/trees/1",
-        "parent":"http://localhost/api/tree-nodes/1"
+        "tree":"http://localhost/api/trees/10001",
+        "parent":"http://localhost/api/tree-nodes/10001"
         }""";
 
     MvcResult result =
@@ -164,7 +164,7 @@ class TreeNodeRepositoryDataRestTest {
         """
         {
         "name":"test",
-        "tree":"http://localhost/api/trees/1",
+        "tree":"http://localhost/api/trees/10001",
         "image":"%s"
         }"""
             .formatted(PNG_8X8_TRANSPARENT);
@@ -195,7 +195,7 @@ class TreeNodeRepositoryDataRestTest {
         """
         {
         "name":"test-svg",
-        "tree":"http://localhost/api/trees/1",
+        "tree":"http://localhost/api/trees/10001",
         "image":"%s"
         }"""
             .formatted(SVG_10X10);
@@ -227,7 +227,7 @@ class TreeNodeRepositoryDataRestTest {
         """
         {
         "name":"test",
-        "tree":"http://localhost/api/trees/1",
+        "tree":"http://localhost/api/trees/10001",
         "image":"%s"
         }"""
             .formatted(PNG_125X125_TRANSPARENT);
@@ -258,7 +258,7 @@ class TreeNodeRepositoryDataRestTest {
         """
         {
         "name":"test",
-        "tree":"http://localhost/api/trees/1",
+        "tree":"http://localhost/api/trees/10001",
         "image":"%s"
         }"""
             .formatted(PNG_8X8_TRANSPARENT);
@@ -291,7 +291,7 @@ class TreeNodeRepositoryDataRestTest {
         """
         {
         "name":"%s",
-        "tree":"http://localhost/api/trees/1",
+        "tree":"http://localhost/api/trees/10001",
         "image":"%s"
         }"""
             .formatted(uniqueName, JPEG_8X8);
@@ -331,11 +331,11 @@ class TreeNodeRepositoryDataRestTest {
         }
         """;
 
-    mvc.perform(patch(TREE_NODE_URI, 3).content(patchContent))
+    mvc.perform(patch(TREE_NODE_URI, 10003).content(patchContent))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.active").value(true));
 
-    mvc.perform(get(TREE_NODE_URI_PROJECTION, 3))
+    mvc.perform(get(TREE_NODE_URI_PROJECTION, 10003))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.active").value(true));
   }
@@ -351,13 +351,16 @@ class TreeNodeRepositoryDataRestTest {
         }
         """;
 
-    mvc.perform(patch(TREE_NODE_URI, 3).content(patchContent))
+    mvc.perform(patch(TREE_NODE_URI, 10003).content(patchContent))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.visible").value(false));
 
-    mvc.perform(get(TREE_NODE_URI_PROJECTION, 3))
+    mvc.perform(get(TREE_NODE_URI_PROJECTION, 10003))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.visible").value(false));
+
+    mvc.perform(patch(TREE_NODE_URI, 10003).content("{\"visible\":true}"))
+        .andExpect(status().isOk());
   }
 
   @Test
@@ -368,8 +371,8 @@ class TreeNodeRepositoryDataRestTest {
         """
         {
         "name":"load-by-default-folder",
-        "tree":"http://localhost/api/trees/1",
-        "parent":"http://localhost/api/tree-nodes/1",
+        "tree":"http://localhost/api/trees/10001",
+        "parent":"http://localhost/api/tree-nodes/10001",
         "active": true
         }
         """;
@@ -393,9 +396,9 @@ class TreeNodeRepositoryDataRestTest {
         """
         {
         "name":"hidden-load-by-default-leaf",
-        "tree":"http://localhost/api/trees/1",
-        "parent":"http://localhost/api/tree-nodes/7",
-        "cartography":"http://localhost/api/cartographies/8",
+        "tree":"http://localhost/api/trees/10001",
+        "parent":"http://localhost/api/tree-nodes/10007",
+        "cartography":"http://localhost/api/cartographies/10008",
         "visible": false,
         "active": true
         }
@@ -420,9 +423,9 @@ class TreeNodeRepositoryDataRestTest {
         """
         {
         "name":"cartography-task-malformed",
-        "tree":"http://localhost/api/trees/1",
-        "parent":"http://localhost/api/tree-nodes/1",
-        "cartography":"http://localhost/api/cartographies/8",
+        "tree":"http://localhost/api/trees/10001",
+        "parent":"http://localhost/api/tree-nodes/10001",
+        "cartography":"http://localhost/api/cartographies/10008",
         "task":"http://localhost/api/tasks/1",
         "active": true
         }
@@ -447,9 +450,9 @@ class TreeNodeRepositoryDataRestTest {
         """
         {
         "name":"cartography-task-malformed",
-        "tree":"http://localhost/api/trees/1",
-        "parent":"http://localhost/api/tree-nodes/1",
-        "cartography":"http://localhost/api/cartographies/8",
+        "tree":"http://localhost/api/trees/10001",
+        "parent":"http://localhost/api/tree-nodes/10001",
+        "cartography":"http://localhost/api/cartographies/10008",
         "task":"http://localhost/api/tasks/1"
         }
         """;
@@ -486,9 +489,9 @@ class TreeNodeRepositoryDataRestTest {
         """
         {
         "name":"radio-leaf",
-        "tree":"http://localhost/api/trees/1",
-        "parent":"http://localhost/api/tree-nodes/7",
-        "cartography":"http://localhost/api/cartographies/8",
+        "tree":"http://localhost/api/trees/10001",
+        "parent":"http://localhost/api/tree-nodes/10007",
+        "cartography":"http://localhost/api/cartographies/10008",
         "radio": true
         }
         """;
@@ -506,8 +509,8 @@ class TreeNodeRepositoryDataRestTest {
         """
         {
         "name":"radio-folder-child",
-        "tree":"http://localhost/api/trees/1",
-        "parent":"http://localhost/api/tree-nodes/7"
+        "tree":"http://localhost/api/trees/10001",
+        "parent":"http://localhost/api/tree-nodes/10007"
         }
         """;
 
@@ -524,8 +527,8 @@ class TreeNodeRepositoryDataRestTest {
         """
         {
         "name":"radio-task-child",
-        "tree":"http://localhost/api/trees/1",
-        "parent":"http://localhost/api/tree-nodes/7",
+        "tree":"http://localhost/api/trees/10001",
+        "parent":"http://localhost/api/tree-nodes/10007",
         "task":"http://localhost/api/tasks/1"
         }
         """;
@@ -543,8 +546,8 @@ class TreeNodeRepositoryDataRestTest {
         """
         {
         "name":"radio-task-parent",
-        "tree":"http://localhost/api/trees/1",
-        "parent":"http://localhost/api/tree-nodes/1"
+        "tree":"http://localhost/api/trees/10001",
+        "parent":"http://localhost/api/tree-nodes/10001"
         }
         """;
 
@@ -559,7 +562,7 @@ class TreeNodeRepositoryDataRestTest {
         """
         {
         "name":"radio-task-child",
-        "tree":"http://localhost/api/trees/1",
+        "tree":"http://localhost/api/trees/10001",
         "parent":"http://localhost/api/tree-nodes/%d",
         "task":"http://localhost/api/tasks/1"
         }
@@ -596,7 +599,7 @@ class TreeNodeRepositoryDataRestTest {
         """
         {
         "name":"touristic-radio-folder",
-        "tree":"http://localhost/api/trees/4",
+        "tree":"http://localhost/api/trees/10004",
         "radio": true
         }
         """;
@@ -617,8 +620,8 @@ class TreeNodeRepositoryDataRestTest {
         }
         """;
 
-    mvc.perform(patch(TREE_NODE_URI, 3).content(visiblePatch)).andExpect(status().isOk());
-    mvc.perform(patch(TREE_NODE_URI, 4).content(visiblePatch)).andExpect(status().isOk());
+    mvc.perform(patch(TREE_NODE_URI, 10003).content(visiblePatch)).andExpect(status().isOk());
+    mvc.perform(patch(TREE_NODE_URI, 10004).content(visiblePatch)).andExpect(status().isOk());
 
     String patchContent =
         """
@@ -627,11 +630,11 @@ class TreeNodeRepositoryDataRestTest {
         }
         """;
 
-    mvc.perform(patch(TREE_NODE_URI, 3).content(patchContent))
+    mvc.perform(patch(TREE_NODE_URI, 10003).content(patchContent))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.active").value(true));
 
-    mvc.perform(patch(TREE_NODE_URI, 4).content(patchContent))
+    mvc.perform(patch(TREE_NODE_URI, 10004).content(patchContent))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.active").value(true));
   }
@@ -647,11 +650,11 @@ class TreeNodeRepositoryDataRestTest {
         }
         """;
 
-    mvc.perform(patch(TREE_NODE_URI, 7).content(patchContent))
+    mvc.perform(patch(TREE_NODE_URI, 10007).content(patchContent))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.radio").value(false));
 
-    mvc.perform(get(TREE_NODE_URI_PROJECTION, 7))
+    mvc.perform(get(TREE_NODE_URI_PROJECTION, 10007))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.radio").value(false));
 
@@ -662,11 +665,11 @@ class TreeNodeRepositoryDataRestTest {
         }
         """;
 
-    mvc.perform(patch(TREE_NODE_URI, 7).content(enableRadio))
+    mvc.perform(patch(TREE_NODE_URI, 10007).content(enableRadio))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.radio").value(true));
 
-    mvc.perform(get(TREE_NODE_URI_PROJECTION, 7))
+    mvc.perform(get(TREE_NODE_URI_PROJECTION, 10007))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.radio").value(true));
   }
@@ -682,11 +685,11 @@ class TreeNodeRepositoryDataRestTest {
         }
         """;
 
-    mvc.perform(patch(TREE_NODE_URI, 1).content(enableLoadData))
+    mvc.perform(patch(TREE_NODE_URI, 10001).content(enableLoadData))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.loadData").value(true));
 
-    mvc.perform(get(TREE_NODE_URI_PROJECTION, 1))
+    mvc.perform(get(TREE_NODE_URI_PROJECTION, 10001))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.loadData").value(true));
   }
@@ -703,12 +706,12 @@ class TreeNodeRepositoryDataRestTest {
         }
         """;
 
-    mvc.perform(patch(TREE_NODE_URI, 7).content(patchContent))
+    mvc.perform(patch(TREE_NODE_URI, 10007).content(patchContent))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.radio").value(true))
         .andExpect(jsonPath("$.loadData").value(true));
 
-    mvc.perform(get(TREE_NODE_URI_PROJECTION, 7))
+    mvc.perform(get(TREE_NODE_URI_PROJECTION, 10007))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.radio").value(true))
         .andExpect(jsonPath("$.loadData").value(true));
@@ -725,11 +728,11 @@ class TreeNodeRepositoryDataRestTest {
         }
         """;
 
-    mvc.perform(patch(TREE_NODE_URI, 8).content(patchContent))
+    mvc.perform(patch(TREE_NODE_URI, 10008).content(patchContent))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.loadData").value(false));
 
-    mvc.perform(get(TREE_NODE_URI_PROJECTION, 8))
+    mvc.perform(get(TREE_NODE_URI_PROJECTION, 10008))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.loadData").value(false));
   }
@@ -746,15 +749,18 @@ class TreeNodeRepositoryDataRestTest {
         }
         """;
 
-    mvc.perform(patch(TREE_NODE_URI, 3).content(patchContent))
+    mvc.perform(patch(TREE_NODE_URI, 10003).content(patchContent))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.active").value(false))
         .andExpect(jsonPath("$.visible").value(false));
 
-    mvc.perform(get(TREE_NODE_URI_PROJECTION, 3))
+    mvc.perform(get(TREE_NODE_URI_PROJECTION, 10003))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.active").value(false))
         .andExpect(jsonPath("$.visible").value(false));
+
+    mvc.perform(patch(TREE_NODE_URI, 10003).content("{\"visible\":true,\"active\":true}"))
+        .andExpect(status().isOk());
   }
 
   @Test
@@ -765,8 +771,8 @@ class TreeNodeRepositoryDataRestTest {
         """
         {
         "name":"radio-subfolder-parent",
-        "tree":"http://localhost/api/trees/1",
-        "parent":"http://localhost/api/tree-nodes/1"
+        "tree":"http://localhost/api/trees/10001",
+        "parent":"http://localhost/api/tree-nodes/10001"
         }
         """;
 
@@ -781,7 +787,7 @@ class TreeNodeRepositoryDataRestTest {
         """
         {
         "name":"radio-subfolder-child",
-        "tree":"http://localhost/api/trees/1",
+        "tree":"http://localhost/api/trees/10001",
         "parent":"http://localhost/api/tree-nodes/%d"
         }
         """
@@ -814,12 +820,12 @@ class TreeNodeRepositoryDataRestTest {
   @DisplayName("GET: seed fixture preserves radio folder and default leaf state")
   @WithMockUser(roles = "ADMIN")
   void seedFixturePreservesRadioAndDefaultLeafState() throws Exception {
-    mvc.perform(get(TREE_NODE_URI_PROJECTION, 7))
+    mvc.perform(get(TREE_NODE_URI_PROJECTION, 10007))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.radio").value(true))
         .andExpect(jsonPath("$.loadData").value(true));
 
-    mvc.perform(get(TREE_NODE_URI_PROJECTION, 9))
+    mvc.perform(get(TREE_NODE_URI_PROJECTION, 10009))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.active").value(true));
   }
@@ -835,7 +841,7 @@ class TreeNodeRepositoryDataRestTest {
         }
         """;
 
-    mvc.perform(patch(TREE_NODE_URI, 8).content(patchContent))
+    mvc.perform(patch(TREE_NODE_URI, 10008).content(patchContent))
         .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.type").value(ProblemTypes.TREE_NODE_RADIO_DEFAULT_CONFLICT));
   }
@@ -846,15 +852,15 @@ class TreeNodeRepositoryDataRestTest {
   void linkSaveParentFolderUnderRadioRejected() throws Exception {
     // Node 5 is a folder (no cartography); node 7 is a radio folder.
     mvc.perform(
-            put(TREE_NODE_PARENT_URI, 5)
+            put(TREE_NODE_PARENT_URI, 10005)
                 .contentType("text/uri-list")
-                .content("http://localhost/api/tree-nodes/7"))
+                .content("http://localhost/api/tree-nodes/10007"))
         .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.type").value(ProblemTypes.TREE_NODE_RADIO_STRUCTURE));
 
-    mvc.perform(get(TREE_NODE_PARENT_URI, 5))
+    mvc.perform(get(TREE_NODE_PARENT_URI, 10005))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.id").value(1));
+        .andExpect(jsonPath("$.id").value(10001));
   }
 
   @Test
@@ -866,9 +872,9 @@ class TreeNodeRepositoryDataRestTest {
         """
         {
         "name":"active-cartography-leaf",
-        "tree":"http://localhost/api/trees/1",
-        "parent":"http://localhost/api/tree-nodes/1",
-        "cartography":"http://localhost/api/cartographies/8",
+        "tree":"http://localhost/api/trees/10001",
+        "parent":"http://localhost/api/tree-nodes/10001",
+        "cartography":"http://localhost/api/cartographies/10008",
         "order": 98,
         "active": true
         }
@@ -901,7 +907,7 @@ class TreeNodeRepositoryDataRestTest {
   void linkSaveTaskOnRadioChildRejected() throws Exception {
     // Node 8 is a cartography leaf under radio folder 7; linking a task violates radio structure.
     mvc.perform(
-            put(TREE_NODE_URI + "/task", 8)
+            put(TREE_NODE_URI + "/task", 10008)
                 .contentType("text/uri-list")
                 .content("http://localhost/api/tasks/1"))
         .andExpect(status().isBadRequest())
@@ -916,9 +922,9 @@ class TreeNodeRepositoryDataRestTest {
         """
         {
         "name":"active-leaf",
-        "tree":"http://localhost/api/trees/1",
-        "parent":"http://localhost/api/tree-nodes/1",
-        "cartography":"http://localhost/api/cartographies/8",
+        "tree":"http://localhost/api/trees/10001",
+        "parent":"http://localhost/api/tree-nodes/10001",
+        "cartography":"http://localhost/api/cartographies/10008",
         "order": 99,
         "active": true
         }
@@ -935,7 +941,7 @@ class TreeNodeRepositoryDataRestTest {
     mvc.perform(
             put(TREE_NODE_PARENT_URI, id)
                 .contentType("text/uri-list")
-                .content("http://localhost/api/tree-nodes/7"))
+                .content("http://localhost/api/tree-nodes/10007"))
         .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.type").value(ProblemTypes.TREE_NODE_RADIO_DEFAULT_CONFLICT));
 

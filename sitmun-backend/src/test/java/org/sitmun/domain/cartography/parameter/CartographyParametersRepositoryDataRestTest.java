@@ -33,7 +33,7 @@ class CartographyParametersRepositoryDataRestTest {
         "format":"I",
         "order":null,
         "type":"INFO",
-        "cartography":"http://localhost/api/cartographies/1"
+        "cartography":"http://localhost/api/cartographies/10001"
         }""";
 
     String location =
@@ -52,7 +52,7 @@ class CartographyParametersRepositoryDataRestTest {
 
     mvc.perform(get("/api/cartography-parameters/{id}/cartography", id))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.id").value(1));
+        .andExpect(jsonPath("$.id").value(10001));
 
     mvc.perform(delete("/api/cartography-parameters/{id}", id)).andExpect(status().isNoContent());
   }

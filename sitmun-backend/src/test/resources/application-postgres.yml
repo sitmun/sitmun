@@ -46,7 +46,7 @@ spring:
 
   # Liquibase Configuration for Postgres
   liquibase:
-    change-log: classpath:/db/changelog/db.changelog-postgres.yaml
+    change-log: classpath:/db/changelog-test/db.changelog-master.yaml
     enabled: true
     drop-first: true
     url: jdbc:postgresql://localhost:5432/sitmun3

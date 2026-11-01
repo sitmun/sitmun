@@ -39,7 +39,7 @@ class MbtilesProxyConfigurationIntegrationTest {
 
   @BeforeEach
   void ensureEditionApplication() {
-    Application app = applicationRepository.findById(1).orElseThrow();
+    Application app = applicationRepository.findById(10001).orElseThrow();
     app.setType("ED");
     applicationRepository.saveAndFlush(app);
   }
@@ -52,14 +52,14 @@ class MbtilesProxyConfigurationIntegrationTest {
     String body =
         """
         {
-          "appId": 1,
-          "territoryId": 1,
+          "appId": 10001,
+          "territoryId": 10001,
           "action": "estimate",
           "bbox": {"minX":0,"minY":0,"maxX":1,"maxY":1},
           "minZoom": 0,
           "maxZoom": 1,
           "srs": "EPSG:3857",
-          "services": [{"serviceId":1,"layerIds":[1]}]
+          "services": [{"serviceId":10001,"layerIds":[10001]}]
         }
         """;
 

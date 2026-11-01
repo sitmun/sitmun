@@ -1,0 +1,159 @@
+databaseChangeLog:
+  - changeSet:
+      id: legacy-1.2.9-version-check-postgresql
+      author: sitmun
+      dbms: postgresql
+      logicalFilePath: db/changelog/legacy/01-version-check.postgresql.sql
+      changes:
+        - sqlFile:
+            path: 01-version-check.postgresql.sql
+            relativeToChangelogFile: true
+            splitStatements: false
+            stripComments: false
+  - changeSet:
+      id: legacy-1.2.9-version-check-oracle
+      author: sitmun
+      dbms: oracle
+      logicalFilePath: db/changelog/legacy/01-version-check.oracle.sql
+      changes:
+        - sqlFile:
+            path: 01-version-check.oracle.sql
+            relativeToChangelogFile: true
+            splitStatements: false
+            stripComments: false
+  - changeSet:
+      id: legacy-1.2.9-schema-postgresql
+      author: sitmun
+      dbms: postgresql
+      logicalFilePath: db/changelog/legacy/02-schema.postgresql.sql
+      preConditions:
+        - onFail: MARK_RAN
+        - sqlCheck:
+            expectedResult: "1"
+            sql: SELECT COUNT(*) FROM databasechangelog WHERE id = '1' AND filename = 'changelog/01_schema.postgresql.sql'
+      changes:
+        - sqlFile:
+            path: 02-schema.postgresql.sql
+            relativeToChangelogFile: true
+            splitStatements: true
+            stripComments: false
+            endDelimiter: ";"
+  - changeSet:
+      id: legacy-1.2.9-schema-oracle
+      author: sitmun
+      dbms: oracle
+      logicalFilePath: db/changelog/legacy/02-schema.oracle.sql
+      preConditions:
+        - onFail: MARK_RAN
+        - sqlCheck:
+            expectedResult: "1"
+            sql: SELECT COUNT(*) FROM databasechangelog WHERE id = '1' AND filename = 'changelog/01_schema.oracle.sql'
+      changes:
+        - sqlFile:
+            path: 02-schema.oracle.sql
+            relativeToChangelogFile: true
+            splitStatements: true
+            stripComments: false
+            endDelimiter: ";"
+  - changeSet:
+      id: legacy-1.2.9-codelists-postgresql
+      author: sitmun
+      dbms: postgresql
+      logicalFilePath: db/changelog/legacy/03-codelists.postgresql.sql
+      preConditions:
+        - onFail: MARK_RAN
+        - sqlCheck:
+            expectedResult: "1"
+            sql: SELECT COUNT(*) FROM databasechangelog WHERE id = '1' AND filename = 'changelog/01_schema.postgresql.sql'
+      changes:
+        - sqlFile:
+            path: 03-codelists.postgresql.sql
+            relativeToChangelogFile: true
+            splitStatements: true
+            stripComments: false
+            endDelimiter: ";"
+  - changeSet:
+      id: legacy-1.2.9-codelists-oracle
+      author: sitmun
+      dbms: oracle
+      logicalFilePath: db/changelog/legacy/03-codelists.oracle.sql
+      preConditions:
+        - onFail: MARK_RAN
+        - sqlCheck:
+            expectedResult: "1"
+            sql: SELECT COUNT(*) FROM databasechangelog WHERE id = '1' AND filename = 'changelog/01_schema.oracle.sql'
+      changes:
+        - sqlFile:
+            path: 03-codelists.oracle.sql
+            relativeToChangelogFile: true
+            splitStatements: true
+            stripComments: false
+            endDelimiter: ";"
+  - changeSet:
+      id: legacy-1.2.9-translations-postgresql
+      author: sitmun
+      dbms: postgresql
+      logicalFilePath: db/changelog/legacy/04-translations.postgresql.sql
+      preConditions:
+        - onFail: MARK_RAN
+        - sqlCheck:
+            expectedResult: "1"
+            sql: SELECT COUNT(*) FROM databasechangelog WHERE id = '1' AND filename = 'changelog/01_schema.postgresql.sql'
+      changes:
+        - sqlFile:
+            path: 04-translations.postgresql.sql
+            relativeToChangelogFile: true
+            splitStatements: true
+            stripComments: false
+            endDelimiter: ";"
+  - changeSet:
+      id: legacy-1.2.9-translations-oracle
+      author: sitmun
+      dbms: oracle
+      logicalFilePath: db/changelog/legacy/04-translations.oracle.sql
+      preConditions:
+        - onFail: MARK_RAN
+        - sqlCheck:
+            expectedResult: "1"
+            sql: SELECT COUNT(*) FROM databasechangelog WHERE id = '1' AND filename = 'changelog/01_schema.oracle.sql'
+      changes:
+        - sqlFile:
+            path: 04-translations.oracle.sql
+            relativeToChangelogFile: true
+            splitStatements: true
+            stripComments: false
+            endDelimiter: ";"
+  - changeSet:
+      id: legacy-1.2.9-sequences-postgresql
+      author: sitmun
+      dbms: postgresql
+      logicalFilePath: db/changelog/legacy/05-sequences.postgresql.sql
+      preConditions:
+        - onFail: MARK_RAN
+        - sqlCheck:
+            expectedResult: "1"
+            sql: SELECT COUNT(*) FROM databasechangelog WHERE id = '1' AND filename = 'changelog/01_schema.postgresql.sql'
+      changes:
+        - sqlFile:
+            path: 05-sequences.postgresql.sql
+            relativeToChangelogFile: true
+            splitStatements: true
+            stripComments: false
+            endDelimiter: ";"
+  - changeSet:
+      id: legacy-1.2.9-sequences-oracle
+      author: sitmun
+      dbms: oracle
+      logicalFilePath: db/changelog/legacy/05-sequences.oracle.sql
+      preConditions:
+        - onFail: MARK_RAN
+        - sqlCheck:
+            expectedResult: "1"
+            sql: SELECT COUNT(*) FROM databasechangelog WHERE id = '1' AND filename = 'changelog/01_schema.oracle.sql'
+      changes:
+        - sqlFile:
+            path: 05-sequences.oracle.sql
+            relativeToChangelogFile: true
+            splitStatements: true
+            stripComments: false
+            endDelimiter: ";"

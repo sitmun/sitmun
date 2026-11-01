@@ -188,13 +188,13 @@ class TaskRepositoryDataRestTest extends BaseTest {
   @WithMockUser(roles = "ADMIN")
   @DisplayName("GET: Get tasks per application")
   void getTasksAvailableForApplication() throws Exception {
-    mvc.perform(get(URIConstants.TASKS_AVAILABLE_URI, 1))
+    mvc.perform(get(URIConstants.TASKS_AVAILABLE_URI, 10001))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$._embedded.tasks", hasSize(43)));
+        .andExpect(jsonPath("$._embedded.tasks", hasSize(46)));
 
-    mvc.perform(get(URIConstants.TASKS_AVAILABLE_URI, 2))
+    mvc.perform(get(URIConstants.TASKS_AVAILABLE_URI, 10002))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$._embedded.tasks", hasSize(43)));
+        .andExpect(jsonPath("$._embedded.tasks", hasSize(46)));
   }
 
   @Test
@@ -208,10 +208,11 @@ class TaskRepositoryDataRestTest extends BaseTest {
   @DisplayName("GET: This endpoint is enabled for ROLE_ADMIN")
   void getTasksAsSitmunAdmin() throws Exception {
     // Full task projection includes this class's @BeforeEach fixtures (+2) atop seeded tasks
-    // (41 CSV + MIA control 43 + MIA parent 42). Explicit size=100 (default page size is 10).
+    // (10041 CSV + MIA control 10043 + MIA parent 10042). Explicit size=100 (default page size is
+    // 10).
     mvc.perform(get(URIConstants.TASKS_URI_PROJECTION_VIEW + "&size=100"))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$._embedded.tasks", hasSize(45)));
+        .andExpect(jsonPath("$._embedded.tasks", hasSize(52)));
   }
 
   @Test
@@ -241,7 +242,7 @@ class TaskRepositoryDataRestTest extends BaseTest {
   void getTasksSortedByNameAsc() throws Exception {
     mvc.perform(get(URIConstants.TASKS_URI_PROJECTION_VIEW + "&sort=name,ASC&size=100"))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$._embedded.tasks", hasSize(45)))
+        .andExpect(jsonPath("$._embedded.tasks", hasSize(52)))
         .andExpect(jsonPath("$._embedded.tasks[0].name", lessThanOrEqualTo("ZZZ")))
         .andExpect(jsonPath("$._embedded.tasks[41].name", greaterThanOrEqualTo("AAA")));
   }
@@ -252,7 +253,7 @@ class TaskRepositoryDataRestTest extends BaseTest {
   void getTasksSortedByNameDesc() throws Exception {
     mvc.perform(get(URIConstants.TASKS_URI_PROJECTION_VIEW + "&sort=name,DESC&size=100"))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$._embedded.tasks", hasSize(45)))
+        .andExpect(jsonPath("$._embedded.tasks", hasSize(52)))
         .andExpect(jsonPath("$._embedded.tasks[0].name", greaterThanOrEqualTo("AAA")))
         .andExpect(jsonPath("$._embedded.tasks[41].name", lessThanOrEqualTo("ZZZ")));
   }

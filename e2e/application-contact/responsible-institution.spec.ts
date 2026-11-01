@@ -7,7 +7,7 @@ import {
 } from '../admin/helpers/form';
 
 const VIEWER_URL = 'http://localhost:4400';
-const APPLICATION_ID = 2;
+const APPLICATION_ID = 10002;
 const APPLICATION_TITLE = 'SITMUN - Municipal';
 
 test.describe('Responsible institution admin → viewer', () => {
