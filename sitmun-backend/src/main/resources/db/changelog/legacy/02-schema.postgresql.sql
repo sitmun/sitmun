@@ -77,3 +77,13 @@ ALTER TABLE stm_tree_nod ALTER COLUMN tno_active SET DEFAULT true;
 ALTER TABLE stm_tree_nod ALTER COLUMN tno_active SET NOT NULL;
 
 CREATE UNIQUE INDEX stm_ltr_literal_uk ON stm_literal_translation (md5(ltr_literal));
+
+ALTER TABLE stm_token_user ALTER COLUMN code_otp TYPE character varying(255);
+
+ALTER TABLE stm_tree ALTER COLUMN tre_image_name TYPE character varying(255);
+
+ALTER TABLE stm_tree_nod ALTER COLUMN tno_style TYPE character varying(255);
+
+ALTER TABLE stm_tree_nod ALTER COLUMN tno_view_mode TYPE character varying(255);
+
+ALTER TABLE stm_geoinfo ADD CONSTRAINT stm_geo_uk_styid UNIQUE (geo_styid);

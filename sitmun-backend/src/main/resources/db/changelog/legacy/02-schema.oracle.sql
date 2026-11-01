@@ -131,3 +131,13 @@ ALTER TABLE stm_app_bckg RENAME CONSTRAINT stm_abc_uk TO stm_apf_uk;
 ALTER TABLE stm_usr_conf RENAME CONSTRAINT stm_uco_fk_use TO stm_uco_fk_usu;
 
 ALTER TABLE stm_role RENAME CONSTRAINT stm_rol_name_pk TO stm_rol_name_uk;
+
+ALTER TABLE stm_token_user MODIFY (code_otp VARCHAR2(255 CHAR));
+
+ALTER TABLE stm_tree MODIFY (tre_image_name VARCHAR2(255 CHAR));
+
+ALTER TABLE stm_tree_nod MODIFY (tno_style VARCHAR2(255 CHAR));
+
+ALTER TABLE stm_tree_nod MODIFY (tno_view_mode VARCHAR2(255 CHAR));
+
+ALTER TABLE stm_geoinfo ADD CONSTRAINT stm_geo_uk_styid UNIQUE (geo_styid);

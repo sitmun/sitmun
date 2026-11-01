@@ -8,3 +8,4 @@ spring:
   jpa:
     properties.hibernate:
       dialect: org.sitmun.infrastructure.persistence.dialect.SitmunOracleLegacyDialect
+      jdbc.time_zone: UTC
