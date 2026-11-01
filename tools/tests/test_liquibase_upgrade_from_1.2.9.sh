@@ -123,8 +123,13 @@ start_db() {
     "${DOCKER[@]}" run -d --name "$CONTAINER" --network "$NETWORK" -p "${PORT}:5432" \
       -e POSTGRES_DB=sitmun3 -e POSTGRES_USER="$DB_USER" -e POSTGRES_PASSWORD="$DB_PASS" \
       "$IMAGE" >/dev/null
+    # The image accepts connections once while it initializes, then restarts.
+    # The second "ready" line is the server the test can write to.
     for _ in $(seq 1 60); do
-      "${DOCKER[@]}" exec "$CONTAINER" pg_isready -U "$DB_USER" -d sitmun3 -q && return 0
+      ready=$("${DOCKER[@]}" logs "$CONTAINER" 2>&1 | grep -c "database system is ready to accept connections" || true)
+      if [[ "$ready" -ge 2 ]] && "${DOCKER[@]}" exec "$CONTAINER" psql -U "$DB_USER" -d sitmun3 -c 'SELECT 1' >/dev/null 2>&1; then
+        return 0
+      fi
       sleep 1
     done
   else
@@ -187,6 +192,39 @@ wait_health() {
 echo "── Build backend jar ──"
 (cd "$REPO_ROOT" && ./gradlew --no-daemon -q :sitmun-backend:bootJar)
 JAR=$(ls "$REPO_ROOT"/sitmun-backend/build/libs/*.jar | grep -v -- '-plain\.jar$' | head -1)
+
+echo "── $ENGINE: a database that is not 1.2.9 must be refused ──"
+start_db
+if [[ "$KIND" == "postgres" ]]; then
+  "${DOCKER[@]}" exec "$CONTAINER" psql -U "$DB_USER" -d sitmun3 -v ON_ERROR_STOP=1 \
+    -c "CREATE TABLE stm_app (app_id integer PRIMARY KEY);"
+else
+  service=sitmun3
+  [[ "$KIND" == "oracle11" ]] && service=XE
+  printf 'CREATE TABLE stm_app (app_id NUMBER PRIMARY KEY);\nEXIT\n' \
+    | "${DOCKER[@]}" exec -i "$CONTAINER" sqlplus -s "${DB_USER}/${DB_PASS}@//localhost:1521/${service}"
+fi
+before=0
+boot_backend
+refused=0
+for _ in $(seq 1 40); do
+  if grep -q "upgrade to 1.2.9 first" "$BACKEND_LOG"; then
+    refused=1
+    break
+  fi
+  if ! kill -0 "$BACKEND_PID" 2>/dev/null; then
+    break
+  fi
+  sleep 3
+done
+stop_backend
+after=$(sql_count "SELECT COUNT(*) FROM databasechangelog" 2>/dev/null || echo 0)
+if [[ "$refused" == "1" && "$after" == "$before" ]]; then
+  ok "non-1.2.9 database refused and changelog stayed at $after rows"
+else
+  fail "non-1.2.9 refusal refused=$refused rows $before -> $after"
+  tail -40 "$BACKEND_LOG" || true
+fi
 
 echo "── $ENGINE: 1.2.8 must be refused ──"
 start_db

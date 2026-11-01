@@ -1,6 +1,7 @@
 DO $$
 DECLARE
   present integer;
+  shared_styles text;
 BEGIN
   SELECT COUNT(*) INTO present
   FROM databasechangelog d
@@ -117,9 +118,23 @@ BEGIN
       AND required.filename = d.filename
   );
   IF present = 0 THEN
+    IF to_regclass('stm_app') IS NOT NULL THEN
+      RAISE EXCEPTION 'upgrade to 1.2.9 first';
+    END IF;
     RETURN;
   END IF;
   IF present < 53 THEN
     RAISE EXCEPTION 'upgrade to 1.2.9 first';
+  END IF;
+  SELECT string_agg(geo_id::text, ', ' ORDER BY geo_id) INTO shared_styles
+  FROM stm_geoinfo
+  WHERE geo_styid IN (
+    SELECT geo_styid FROM stm_geoinfo
+    WHERE geo_styid IS NOT NULL
+    GROUP BY geo_styid
+    HAVING COUNT(*) > 1
+  );
+  IF shared_styles IS NOT NULL THEN
+    RAISE EXCEPTION 'shared geo_styid on cartography ids %', shared_styles;
   END IF;
 END $$;

@@ -2,6 +2,8 @@ DECLARE
   present_23 NUMBER;
   present_pre23 NUMBER;
   known NUMBER;
+  app_exists NUMBER;
+  shared_styles VARCHAR2(4000);
 BEGIN
   SELECT COUNT(*) INTO present_23
   FROM databasechangelog d
@@ -228,6 +230,17 @@ BEGIN
       AND required.filename = d.filename
   );
   IF present_23 = 52 OR present_pre23 = 52 THEN
+    SELECT LISTAGG(geo_id, ', ') WITHIN GROUP (ORDER BY geo_id) INTO shared_styles
+    FROM stm_geoinfo
+    WHERE geo_styid IN (
+      SELECT geo_styid FROM stm_geoinfo
+      WHERE geo_styid IS NOT NULL
+      GROUP BY geo_styid
+      HAVING COUNT(*) > 1
+    );
+    IF shared_styles IS NOT NULL THEN
+      RAISE_APPLICATION_ERROR(-20002, 'shared geo_styid on cartography ids ' || shared_styles);
+    END IF;
     RETURN;
   END IF;
   SELECT COUNT(*) INTO known
@@ -351,6 +364,10 @@ BEGIN
       AND required.filename = d.filename
   );
   IF known = 0 THEN
+    SELECT COUNT(*) INTO app_exists FROM user_tables WHERE table_name = 'STM_APP';
+    IF app_exists > 0 THEN
+      RAISE_APPLICATION_ERROR(-20001, 'upgrade to 1.2.9 first');
+    END IF;
     RETURN;
   END IF;
   RAISE_APPLICATION_ERROR(-20001, 'upgrade to 1.2.9 first');
