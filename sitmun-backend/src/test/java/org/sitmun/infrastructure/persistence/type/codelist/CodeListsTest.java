@@ -10,6 +10,7 @@ import java.util.stream.StreamSupport;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.sitmun.domain.cartography.permission.CartographyPermission;
+import org.sitmun.infrastructure.persistence.type.i18n.TranslationRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
@@ -18,6 +19,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 class CodeListsTest {
 
   @Autowired private CodeListValueRepository codeListValueRepository;
+  @Autowired private TranslationRepository translationRepository;
 
   @Test
   @DisplayName("Verify all code list constants are available in database")
@@ -224,6 +226,44 @@ class CodeListsTest {
   @DisplayName("Verify service.type code list values")
   void checkServiceType() {
     assertThat(select(SERVICE_TYPE)).containsExactlyInAnyOrder("WFS", "WMS", "WMTS");
+  }
+
+  @Test
+  @DisplayName("Drivers stay below the fixture id band and are not system rows")
+  void driversAreDeletable() {
+    var drivers =
+        StreamSupport.stream(
+                codeListValueRepository
+                    .findAll(
+                        QCodeListValue.codeListValue.codeListName.eq(DATABASE_CONNECTION_DRIVER))
+                    .spliterator(),
+                false)
+            .toList();
+    assertThat(drivers)
+        .extracting(CodeListValue::getValue)
+        .containsExactlyInAnyOrder(
+            "org.h2.Driver",
+            "org.postgresql.Driver",
+            "oracle.jdbc.OracleDriver",
+            "com.microsoft.sqlserver.jdbc.SQLServerDriver");
+    assertThat(drivers).allSatisfy(row -> assertThat(row.getSystem()).isFalse());
+    assertThat(drivers).allSatisfy(row -> assertThat(row.getId()).isLessThan(10000));
+  }
+
+  @Test
+  @DisplayName("English service.type translations match the protocol name")
+  void englishServiceTypeTranslations() {
+    StreamSupport.stream(
+            codeListValueRepository
+                .findAll(QCodeListValue.codeListValue.codeListName.eq(SERVICE_TYPE))
+                .spliterator(),
+            false)
+        .forEach(
+            row ->
+                assertThat(
+                        translationRepository.findTranslation(row.getId(), "CodeListValue", "en"))
+                    .extracting(translation -> translation.getTranslation())
+                    .contains(row.getValue()));
   }
 
   @Test
