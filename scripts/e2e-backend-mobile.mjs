@@ -2,12 +2,12 @@
 import { existsSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { writeH2Changelog } from './e2e-h2-changelog.mjs';
 import { attachChildLifecycle, fail, isWindows, spawnDetached } from './e2e-process.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const stackRoot = resolve(__dirname, '..');
 const backendRoot = join(stackRoot, 'sitmun-backend');
-const changelog = join(backendRoot, 'config', 'db', 'changelog', 'db.changelog-master.yaml');
 const prefix = 'e2e-backend-mobile';
 const gradlew = join(stackRoot, isWindows ? 'gradlew.bat' : 'gradlew');
 
@@ -17,8 +17,11 @@ if (!existsSync(backendRoot)) {
 if (!existsSync(gradlew)) {
   fail(prefix, `Gradle wrapper missing at ${gradlew}`);
 }
-if (!existsSync(changelog)) {
-  fail(prefix, `Liquibase changelog missing at ${changelog}`);
+let changelog;
+try {
+  changelog = writeH2Changelog(stackRoot);
+} catch (error) {
+  fail(prefix, error instanceof Error ? error.message : String(error));
 }
 
 const springArgs = [
@@ -28,6 +31,7 @@ const springArgs = [
   '--spring.datasource.driver-class-name=org.h2.Driver',
   '--spring.datasource.username=sa',
   '--spring.datasource.password=',
+  `--spring.liquibase.change-log=file:${changelog}`,
   '--server.forward-headers-strategy=framework',
   '--sitmun.proxy-middleware.url=http://localhost:18081/middleware',
 ].join(' ');

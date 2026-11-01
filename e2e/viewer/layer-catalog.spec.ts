@@ -1836,7 +1836,7 @@ async function seedWfsCatalogLeaf(admin: APIRequestContext): Promise<WfsSeed> {
   const cartographyId = idFrom(createdLayer.headers().location ?? '', 'cartographies');
   const cartography = `http://localhost:18080/api/cartographies/${cartographyId}`;
 
-  const permissions = await admin.get('/backend/api/cartographies/4/permissions', {
+  const permissions = await admin.get('/backend/api/cartographies/10004/permissions', {
     headers: { 'X-SITMUN-Client': 'admin' },
   });
   expect(permissions.ok(), `permissions lookup failed: ${permissions.status()}`).toBeTruthy();

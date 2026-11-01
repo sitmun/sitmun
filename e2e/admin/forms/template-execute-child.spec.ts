@@ -40,19 +40,19 @@ test.describe('Plantilla template dry-run', () => {
       'Content-Type': 'application/json',
     };
 
-    // Seeded STM_TASK id 38: web-api-query-no-proxy (resolveDirect; no JDBC).
-    const seeded = await request.get('/backend/api/tasks/38?projection=view', {
+    // Fixture STM_TASK id 10038: web-api-query-no-proxy (resolveDirect; no JDBC).
+    const seeded = await request.get('/backend/api/tasks/10038?projection=view', {
       headers: { 'X-SITMUN-Client': 'admin' },
     });
     expect(
       seeded.ok(),
-      `seeded query task 38 missing: ${seeded.status()} ${await seeded.text()}`,
+      `seeded query task 10038 missing: ${seeded.status()} ${await seeded.text()}`,
     ).toBeTruthy();
     const seededTask = await seeded.json();
     expect(String(seededTask.properties?.scope ?? '').toLowerCase()).toBe(
       'web-api-query-no-proxy',
     );
-    const linkedTaskId = 38;
+    const linkedTaskId = 10038;
     const body = {
       templateTaskId: null,
       linkedTaskId,

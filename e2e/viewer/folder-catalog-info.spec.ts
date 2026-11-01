@@ -8,7 +8,7 @@ import {
   TERRITORY_ID,
 } from './fixtures';
 
-const FOLDER_DB_ID = 1;
+const FOLDER_DB_ID = 10001;
 const FOLDER_DESCRIPTION = 'Carrers, números de portal i illes urbanes del municipi.';
 const METADATA_URL = 'https://ide.example.cat/geonetwork/srv/cat/catalog.search#/metadata/adreces';
 const DATASET_URL = 'https://ide.example.cat/descarrega/adreces.zip';
@@ -56,7 +56,7 @@ async function openCatalog(page: Page): Promise<void> {
   };
   const node = profileBody.trees
     ?.flatMap((tree) => Object.entries(tree.nodes ?? {}))
-    .find(([id]) => id === 'node/1')?.[1];
+    .find(([id]) => id === 'node/10001')?.[1];
   expect(node?.['description'], JSON.stringify(node)).toBe(FOLDER_DESCRIPTION);
   expect(node?.['metadataURL']).toBe(METADATA_URL);
   expect(node?.['datasetURL']).toBe(DATASET_URL);

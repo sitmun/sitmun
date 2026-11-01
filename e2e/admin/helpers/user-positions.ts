@@ -5,7 +5,7 @@ import { control, gotoCreateForm, saveAndCaptureId, uniqueValue, waitForFormRead
 export const POSITIONS_TAB =
   /Data associated to territory|Puestos por territorio|Positions par territoire/i;
 export const ADMIN_HEADERS = { 'X-SITMUN-Client': 'admin' };
-export const TERRITORY_URI = 'http://localhost:18080/api/territories/1';
+export const TERRITORY_URI = 'http://localhost:18080/api/territories/10001';
 export const EN_CREATED_DATE_HEADER = 'Valid from';
 export const EN_EXPIRATION_DATE_HEADER = 'Valid until';
 export const ES_CREATED_DATE_HEADER = 'Fecha de alta';

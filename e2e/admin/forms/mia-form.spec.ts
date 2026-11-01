@@ -30,8 +30,8 @@ import {
 import { createPlantilla } from '../helpers/template';
 
 const MIA_CREATE_PATH = '/#/tasksMoreInfoAdvanced/-1/16';
-const SEEDED_QUERY_CHILD_ID = 38;
-const SEEDED_MIA_PARENT_ID = 42;
+const SEEDED_QUERY_CHILD_ID = 10038;
+const SEEDED_MIA_PARENT_ID = 10042;
 const CARTOGRAPHY_SEARCH = 'Toponimia';
 const CARTOGRAPHY_OPTION = /Toponimia 1:25\.000/;
 const CHILD_TASK_SEARCH = 'Web API direct';
@@ -151,8 +151,8 @@ test.describe('MIA form', () => {
         'Content-Type': 'application/json',
       },
       data: {
-        appId: 1,
-        terId: 1,
+        appId: 10001,
+        terId: 10001,
         miaTaskIds: [SEEDED_MIA_PARENT_ID],
         parameters: {},
       },

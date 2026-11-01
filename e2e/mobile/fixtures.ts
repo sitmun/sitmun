@@ -1,12 +1,12 @@
 import path from 'node:path';
 
 export const MOBILE_FIXTURE_FILE = path.join(process.cwd(), 'e2e', '.auth', 'mobile.json');
-export const EDITION_APP_ID = 1;
-export const EDITION_TERRITORY_ID = 1;
-export const EDITION_ROLE_ID = 1;
-export const TOURISTIC_APP_ID = 6;
-export const WMTS_SERVICE_ID = 1;
-export const WMTS_LAYER_ID = 1;
+export const EDITION_APP_ID = 10001;
+export const EDITION_TERRITORY_ID = 10001;
+export const EDITION_ROLE_ID = 10001;
+export const TOURISTIC_APP_ID = 10006;
+export const WMTS_SERVICE_ID = 10001;
+export const WMTS_LAYER_ID = 10001;
 export const WMTS_UPSTREAM_URL = 'http://127.0.0.1:18094/wmts';
 
 export const BACKEND = 'http://localhost:18081/backend';

@@ -49,8 +49,8 @@ test.describe('Plantilla role and territory tabs', () => {
     createdResources,
   }) => {
     test.setTimeout(90_000);
-    const roleName = await namedResource(request, '/backend/api/roles/1');
-    const territoryName = await namedResource(request, '/backend/api/territories/1');
+    const roleName = await namedResource(request, '/backend/api/roles/10001');
+    const territoryName = await namedResource(request, '/backend/api/territories/10001');
 
     const plantilla = await createPlantilla(page, { html: '<p>e2e-relations</p>' });
     createdResources.push({ collection: 'tasks', id: plantilla.id });
