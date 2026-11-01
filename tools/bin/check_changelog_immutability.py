@@ -23,11 +23,7 @@ INCLUDE_YAML = re.compile(r"^\s+file:\s+(\S+)", re.M)
 PREFIX_RE = re.compile(r"(?:^|/)(\d+)_")
 VALID_CHECKSUM_LINE = re.compile(r"^--validCheckSum(?:\s|:)\s*\S+")
 
-DEFAULT_TREES = (
-    "profiles/development/backend/liquibase",
-    "profiles/postgres/liquibase",
-    "profiles/oracle/liquibase",
-)
+DEFAULT_TREES = ("sitmun-backend/src/main/resources/db/changelog",)
 
 TREE_ALLOWLIST: dict[str, tuple[str, ...]] = {
     "profiles/postgres/liquibase": (
