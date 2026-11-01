@@ -230,14 +230,11 @@ BEGIN
       AND required.filename = d.filename
   );
   IF present_23 = 52 OR present_pre23 = 52 THEN
-    SELECT LISTAGG(geo_id, ', ') WITHIN GROUP (ORDER BY geo_id) INTO shared_styles
-    FROM stm_geoinfo
-    WHERE geo_styid IN (
-      SELECT geo_styid FROM stm_geoinfo
-      WHERE geo_styid IS NOT NULL
-      GROUP BY geo_styid
-      HAVING COUNT(*) > 1
-    );
+    -- Dynamic SQL: a fresh database has no stm_geoinfo, and Oracle compiles
+    -- static queries in this block before that table exists.
+    EXECUTE IMMEDIATE
+      'SELECT LISTAGG(geo_id, '', '') WITHIN GROUP (ORDER BY geo_id) FROM stm_geoinfo WHERE geo_styid IN (SELECT geo_styid FROM stm_geoinfo WHERE geo_styid IS NOT NULL GROUP BY geo_styid HAVING COUNT(*) > 1)'
+      INTO shared_styles;
     IF shared_styles IS NOT NULL THEN
       RAISE_APPLICATION_ERROR(-20002, 'shared geo_styid on cartography ids ' || shared_styles);
     END IF;
