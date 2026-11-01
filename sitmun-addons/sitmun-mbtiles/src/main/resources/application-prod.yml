@@ -1,13 +1,5 @@
 # Production Profile Configuration
 spring:
-  # Database Configuration
-  # Note: For persistence, replace it with Postgres, MySQL, etc.
-  datasource:
-    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
-    driver-class-name: org.h2.Driver
-    username: sa
-    password: 
-  
   # H2 Console disabled for production
   h2:
     console:
@@ -16,8 +8,6 @@ spring:
   # JPA Configuration (production)
   jpa:
     show-sql: false
-    hibernate:
-      ddl-auto: validate
     properties:
       hibernate:
         format_sql: false

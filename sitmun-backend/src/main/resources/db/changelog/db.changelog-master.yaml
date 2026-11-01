@@ -170,6 +170,7 @@ databaseChangeLog:
       id: baseline-sequence-floor-postgresql
       author: sitmun
       logicalFilePath: db/changelog/baseline/05-sequence-floor.postgresql.sql
+      validCheckSum: ANY
       dbms: postgresql
       preConditions:
         - onFail: MARK_RAN
@@ -185,6 +186,41 @@ databaseChangeLog:
             endDelimiter: ";"
   - changeSet:
       id: baseline-sequence-floor-oracle
+      author: sitmun
+      logicalFilePath: db/changelog/baseline/05-sequence-floor.oracle.sql
+      validCheckSum: ANY
+      dbms: oracle
+      preConditions:
+        - onFail: MARK_RAN
+        - sqlCheck:
+            expectedResult: "0"
+            sql: SELECT COUNT(*) FROM databasechangelog WHERE id = '1' AND filename = 'changelog/01_schema.oracle.sql'
+      changes:
+        - sqlFile:
+            path: baseline/05-sequence-floor.oracle.sql
+            relativeToChangelogFile: true
+            splitStatements: true
+            stripComments: false
+            endDelimiter: ";"
+  - changeSet:
+      id: baseline-sequence-counter-postgresql
+      author: sitmun
+      logicalFilePath: db/changelog/baseline/05-sequence-floor.postgresql.sql
+      dbms: postgresql
+      preConditions:
+        - onFail: MARK_RAN
+        - sqlCheck:
+            expectedResult: "0"
+            sql: SELECT COUNT(*) FROM databasechangelog WHERE id = '1' AND filename = 'changelog/01_schema.postgresql.sql'
+      changes:
+        - sqlFile:
+            path: baseline/05-sequence-floor.postgresql.sql
+            relativeToChangelogFile: true
+            splitStatements: true
+            stripComments: false
+            endDelimiter: ";"
+  - changeSet:
+      id: baseline-sequence-counter-oracle
       author: sitmun
       logicalFilePath: db/changelog/baseline/05-sequence-floor.oracle.sql
       dbms: oracle

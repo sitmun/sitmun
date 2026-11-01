@@ -2,7 +2,7 @@
 """Write test fixtures from the old JUnit CSVs.
 
 Shipped baseline rows keep their ids. Every other explicit id below 10000 moves
-up by 10000 so it sits in the fixture band. The sequence floor is not changed.
+up by 10000 so it sits in the fixture band. Sequence counters are not edited here.
 """
 
 from __future__ import annotations

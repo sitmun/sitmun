@@ -18,13 +18,11 @@ import liquibase.resource.CompositeResourceAccessor;
 import liquibase.resource.DirectoryResourceAccessor;
 import org.h2.jdbcx.JdbcDataSource;
 import org.junit.jupiter.api.Test;
-import org.springframework.jdbc.datasource.DriverManagerDataSource;
 
 class SequenceMigrationTest {
 
   private static final Path PROJECT_ROOT = Path.of(".").toAbsolutePath().normalize();
   private static final String CHANGELOG = "db/changelog-test/db.changelog-master.yaml";
-  private static final long APPLICATION_ID_FLOOR = 100_000L;
 
   private static final List<Generator> GENERATORS =
       List.of(
@@ -68,7 +66,7 @@ class SequenceMigrationTest {
           new Generator("USER_TOKEN_ID", "STM_TOKEN_USER", "USER_TOKEN_ID"));
 
   @Test
-  void testChangelogLeavesEveryCounterAtOrAboveTheFloor() throws Exception {
+  void testChangelogSetsEveryCounterOnePastTheHighestId() throws Exception {
     assertThat(GENERATORS)
         .extracting(Generator::sequenceName, Generator::tableName, Generator::idColumn)
         .contains(tuple("ATR_ID", "STM_APP_TREE", "ATR_ID"));
@@ -83,14 +81,12 @@ class SequenceMigrationTest {
               GENERATORS.forEach(
                   generator -> {
                     try {
-                      long highestId = selectNextId(connection, generator) - 1;
+                      long nextId = selectNextId(connection, generator);
                       var actual = selectSequenceCount(connection, generator.sequenceName());
                       softly
                           .assertThat(actual)
                           .as("%s generator", generator.sequenceName())
-                          .isNotNull()
-                          .isGreaterThanOrEqualTo(APPLICATION_ID_FLOOR)
-                          .isGreaterThanOrEqualTo(highestId);
+                          .isEqualTo(nextId);
                     } catch (SQLException exception) {
                       throw new AssertionError(generator.sequenceName(), exception);
                     }
@@ -99,23 +95,6 @@ class SequenceMigrationTest {
   }
 
   private static DataSource createDataSource() {
-    var url = System.getProperty("spring.datasource.url");
-    if (url != null && !url.isBlank()) {
-      return new DriverManagerDataSource(
-          url,
-          System.getProperty("spring.datasource.username", "sitmun3"),
-          System.getProperty("spring.datasource.password", "sitmun3"));
-    }
-    var profiles = System.getProperty("spring.profiles.active", "test,h2");
-    if (profiles.contains("postgres")) {
-      return new DriverManagerDataSource(
-          "jdbc:postgresql://localhost:5432/sitmun3", "sitmun3", "sitmun3");
-    }
-    if (profiles.contains("oracle")) {
-      return new DriverManagerDataSource(
-          "jdbc:oracle:thin:@//localhost:1521/sitmun3", "sitmun3", "sitmun3");
-    }
-
     var dataSource = new JdbcDataSource();
     dataSource.setURL("jdbc:h2:mem:sequence-" + UUID.randomUUID() + ";DB_CLOSE_DELAY=-1");
     dataSource.setUser("sa");

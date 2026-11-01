@@ -21,7 +21,7 @@ FLOOR = (
 )
 
 FLOOR_ROW = re.compile(
-    r"VALUES \('([A-Z0-9_]+)', GREATEST\(\(SELECT COALESCE\(MAX\(([a-z0-9_]+)\), 0\) \+ 1 FROM ([a-z0-9_]+)\)"
+    r"VALUES \('([A-Z0-9_]+)', \(SELECT COALESCE\(MAX\(([a-z0-9_]+)\), 0\) \+ 1 FROM ([a-z0-9_]+)\)"
 )
 
 
