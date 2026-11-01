@@ -606,10 +606,10 @@ setup('provision viewer user and secured WMS service', async ({ request }) => {
       `patch tree-node ${id} failed: ${response.status()} ${await response.text()}`,
     ).toBeTruthy();
   };
-  await patchTreeNode(2, { loadData: true, radio: true });
-  await patchTreeNode(5, { loadData: true });
-  await patchTreeNode(7, { loadData: true });
-  await patchTreeNode(9, { active: false });
+  await patchTreeNode(10002, { loadData: true, radio: true });
+  await patchTreeNode(10005, { loadData: true });
+  await patchTreeNode(10007, { loadData: true });
+  await patchTreeNode(10009, { active: false });
   // GFI catalog marker: node queryableActive + layer queryableFeatureEnabled.
   await patchTreeNode(QUERYABLE_LEAF_TREE_NODE_DB_ID, {
     queryableActive: true,

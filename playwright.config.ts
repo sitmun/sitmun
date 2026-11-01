@@ -26,7 +26,7 @@ export default defineConfig({
     {
       command: 'pnpm run e2e:backend',
       url: 'http://localhost:18080/api/dashboard/health',
-      timeout: 180_000,
+      timeout: process.env.SITMUN_E2E_DATASOURCE_URL ? 600_000 : 180_000,
       reuseExistingServer: false,
       gracefulShutdown: { signal: 'SIGTERM', timeout: 10_000 },
     },
