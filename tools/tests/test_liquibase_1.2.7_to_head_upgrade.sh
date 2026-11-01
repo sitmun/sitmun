@@ -36,6 +36,22 @@ FAIL=0
 ok()   { echo "  ✓ $*"; PASS=$((PASS+1)); }
 fail() { echo "  ✗ $*"; FAIL=$((FAIL+1)); }
 
+# Liquibase CLI has no application classpath. Copy the shipped changelog beside
+# the development master and point the include at that copy.
+overlay_shipped_changelog() {
+  local dest="$1"
+  mkdir -p "$dest/db/changelog"
+  cp -R "$REPO_ROOT/sitmun-backend/src/main/resources/db/changelog/." "$dest/db/changelog/"
+  python3 - "$dest/master.xml" <<'PY'
+import pathlib, sys
+path = pathlib.Path(sys.argv[1])
+path.write_text(path.read_text().replace(
+    "classpath:/db/changelog/db.changelog-master.yaml",
+    "db/changelog/db.changelog-master.yaml",
+))
+PY
+}
+
 assert_eq() {
   local label="$1" expected="$2" actual="$3"
   if [[ "$actual" == "$expected" ]]; then
@@ -712,6 +728,7 @@ run_dev_oracle_from() {
   LB_HEAD="$TMP/head"
   mkdir -p "$LB_HEAD"
   cp -R "$REPO_ROOT/profiles/development/backend/liquibase/." "$LB_HEAD/"
+  overlay_shipped_changelog "$LB_HEAD"
   alias_csv_case "$LB_HEAD"
 
   liquibase_ora() {
@@ -818,6 +835,7 @@ run_dev_postgres_from() {
   LB_HEAD="$TMP/head"
   mkdir -p "$LB_HEAD"
   cp -R "$REPO_ROOT/profiles/development/backend/liquibase/." "$LB_HEAD/"
+  overlay_shipped_changelog "$LB_HEAD"
   alias_csv_case "$LB_HEAD"
 
   liquibase_pg() {

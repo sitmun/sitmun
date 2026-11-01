@@ -7,29 +7,6 @@ databaseChangeLog:
       changes:
         - loadData:
             encoding: UTF-8
-            file: 04_initial_data_dev/stm_ter_typ.csv
-            relativeToChangelogFile: true
-            tableName: STM_TER_TYP
-            usePreparedStatements: true
-            quotchar: '"'
-            columns:
-              - column:
-                  name: TET_ID
-                  type: NUMERIC
-              - column:
-                  name: TET_NAME
-                  type: STRING
-              - column:
-                  name: TET_OFFICIAL
-                  type: BOOLEAN
-              - column:
-                  name: TET_TOP
-                  type: BOOLEAN
-              - column:
-                  name: TET_BOTTOM
-                  type: BOOLEAN
-        - loadData:
-            encoding: UTF-8
             file: 04_initial_data_dev/stm_user.csv
             relativeToChangelogFile: true
             tableName: STM_USER
@@ -525,6 +502,9 @@ databaseChangeLog:
             quotchar: '"'
             columns:
               - column:
+                  name: ATR_ID
+                  type: NUMERIC
+              - column:
                   name: ATR_APPID
                   type: NUMERIC
               - column:
@@ -721,50 +701,6 @@ databaseChangeLog:
                   type: NUMERIC
               - column:
                   name: TUI_TYPE
-                  type: STRING
-        - loadData:
-            encoding: UTF-8
-            file: 04_initial_data_dev/stm_task.csv
-            relativeToChangelogFile: true
-            tableName: STM_TASK
-            usePreparedStatements: true
-            quotchar: '"'
-            columns:
-              - column:
-                  name: TAS_ID
-                  type: NUMERIC
-              - column:
-                  name: TAS_NAME
-                  type: STRING
-              - column:
-                  name: TAS_SERID
-                  type: NUMERIC
-              - column:
-                  name: TAS_GTASKID
-                  type: NUMERIC
-              - column:
-                  name: TAS_TTASKID
-                  type: NUMERIC
-              - column:
-                  name: TAS_TUIID
-                  type: NUMERIC
-              - column:
-                  name: TAS_CREATED
-                  type: DATETIME
-              - column:
-                  name: TAS_CONNID
-                  type: NUMERIC
-              - column:
-                  name: TAS_GIID
-                  type: NUMERIC
-              - column:
-                  name: TAS_ORDER
-                  type: NUMERIC
-              - column:
-                  name: TAS_SERID
-                  type: NUMERIC
-              - column:
-                  name: TAS_PARAMS
                   type: STRING
         - loadData:
             encoding: UTF-8

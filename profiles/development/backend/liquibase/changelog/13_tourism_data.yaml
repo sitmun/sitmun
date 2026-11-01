@@ -124,6 +124,9 @@ databaseChangeLog:
             quotchar: ''''
             columns:
               - column:
+                  name: ATR_ID
+                  type: NUMERIC
+              - column:
                   name: ATR_APPID
                   type: NUMERIC
               - column:
