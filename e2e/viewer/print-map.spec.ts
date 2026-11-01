@@ -92,11 +92,26 @@ async function loginAndOpenMap(page: Page): Promise<void> {
 
 /** Opens the left tools panel and expands the print control. */
 async function openPrintPanel(page: Page): Promise<void> {
-  await page.locator('#tools-tab').click();
-  await expect(page.locator('.tc-left-panel')).not.toHaveClass(/tc-collapsed-left/);
+  const printSlot = page.locator('#tc-slot-print');
+  const printHeading = printSlot.locator('> h2');
+  await printHeading.waitFor({ state: 'visible', timeout: 90_000 });
 
-  await page.locator('#tc-slot-print > h2').click();
-  await expect(page.locator('#tc-slot-print')).not.toHaveClass(/tc-collapsed/);
+  const panel = page.locator('.tc-left-panel');
+  const toolsTab = page.locator('#tools-tab');
+  await expect
+    .poll(async () => {
+      if (
+        await panel.evaluate((element) => element.classList.contains('tc-collapsed-left'))
+      ) {
+        // locator.click() retries after the drawer opens and toggles it shut.
+        await toolsTab.evaluate((tab: HTMLElement) => tab.click());
+      }
+      return panel.evaluate((element) => !element.classList.contains('tc-collapsed-left'));
+    })
+    .toBe(true);
+
+  await printHeading.click();
+  await expect(printSlot).not.toHaveClass(/tc-collapsed/);
 }
 
 test.use({ viewport: WINDOW });
@@ -233,21 +248,7 @@ test.describe('Viewer print preview', () => {
       await page.goto(`/user/map/${APP_ID}/${TERRITORY_ID}`, {
         waitUntil: 'domcontentloaded',
       });
-      await page.locator('#tc-slot-print').waitFor({ state: 'attached', timeout: 90_000 });
-
-      const panel = page.locator('.tc-left-panel');
-      for (let attempt = 0; attempt < 5; attempt++) {
-        await page.locator('#tools-tab').click();
-        const collapsed = await panel.evaluate((element) =>
-          element.classList.contains('tc-collapsed-left'),
-        );
-        if (!collapsed) {
-          break;
-        }
-      }
-      await expect(panel).not.toHaveClass(/tc-collapsed-left/);
-      await page.locator('#tc-slot-print > h2').click();
-      await expect(page.locator('#tc-slot-print')).not.toHaveClass(/tc-collapsed/);
+      await openPrintPanel(page);
 
       await page.selectOption('#print-design', 'portrait');
       await page.selectOption('#print-size', 'a4');
