@@ -144,3 +144,7 @@ INSERT INTO stm_codelist (cod_id, cod_list, cod_value, cod_system, cod_default, 
 INSERT INTO stm_codelist (cod_id, cod_list, cod_value, cod_system, cod_default, cod_description) VALUES (159, 'documentExport.engine', 'openhtmltopdf', true, true, 'OpenHTMLToPDF');
 INSERT INTO stm_codelist (cod_id, cod_list, cod_value, cod_system, cod_default, cod_description) VALUES (160, 'serviceParameter.type', 'GETMAP', false, false, 'GetMap');
 INSERT INTO stm_codelist (cod_id, cod_list, cod_value, cod_system, cod_default, cod_description) VALUES (161, 'serviceParameter.type', 'WFS', false, false, 'All WFS operations');
+INSERT INTO stm_codelist (cod_id, cod_list, cod_value, cod_system, cod_default, cod_description) VALUES (162, 'databaseConnection.driver', 'org.h2.Driver', false, false, 'H2 JDBC Driver');
+INSERT INTO stm_codelist (cod_id, cod_list, cod_value, cod_system, cod_default, cod_description) VALUES (163, 'databaseConnection.driver', 'org.postgresql.Driver', false, false, 'PostgreSQL JDBC Driver');
+INSERT INTO stm_codelist (cod_id, cod_list, cod_value, cod_system, cod_default, cod_description) VALUES (164, 'databaseConnection.driver', 'oracle.jdbc.OracleDriver', false, false, 'Oracle JDBC driver');
+INSERT INTO stm_codelist (cod_id, cod_list, cod_value, cod_system, cod_default, cod_description) VALUES (165, 'databaseConnection.driver', 'com.microsoft.sqlserver.jdbc.SQLServerDriver', false, false, 'Microsoft SQL Server JDBC Driver');
