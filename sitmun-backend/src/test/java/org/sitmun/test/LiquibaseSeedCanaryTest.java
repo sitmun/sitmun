@@ -116,11 +116,15 @@ class LiquibaseSeedCanaryTest {
     Map<String, Object> node15 =
         jdbc.queryForMap(
             "SELECT TNO_ID, TNO_NAME, TNO_TREEID FROM STM_TREE_NOD WHERE TNO_ID = 10015");
-    assertThat(asInt(node15.get("TNO_ID"))).as(POLLUTION + " (node 10015 missing)").isEqualTo(10015);
+    assertThat(asInt(node15.get("TNO_ID")))
+        .as(POLLUTION + " (node 10015 missing)")
+        .isEqualTo(10015);
     assertThat(node15.get("TNO_NAME"))
         .as(POLLUTION + " (node 10015 name)")
         .isEqualTo("Municipal root");
-    assertThat(asInt(node15.get("TNO_TREEID"))).as(POLLUTION + " (node 10015 tree)").isEqualTo(10002);
+    assertThat(asInt(node15.get("TNO_TREEID")))
+        .as(POLLUTION + " (node 10015 tree)")
+        .isEqualTo(10002);
   }
 
   @Test

@@ -291,7 +291,10 @@ class TreeControllerTest extends BaseTest {
   @WithMockUser(roles = "ADMIN")
   void validateCartographyTreeOnTouristicAppReturns422() throws Exception {
     TreeTypeValidationRequest request =
-        TreeTypeValidationRequest.builder().type("cartography").applicationIds(Set.of(10006)).build();
+        TreeTypeValidationRequest.builder()
+            .type("cartography")
+            .applicationIds(Set.of(10006))
+            .build();
 
     mvc.perform(
             post("/api/trees/10004/validate-type-change")
@@ -346,7 +349,10 @@ class TreeControllerTest extends BaseTest {
   @WithMockUser(roles = "ADMIN")
   void validateWithNonExistentTreeId() throws Exception {
     TreeTypeValidationRequest request =
-        TreeTypeValidationRequest.builder().type("cartography").applicationIds(Set.of(10001)).build();
+        TreeTypeValidationRequest.builder()
+            .type("cartography")
+            .applicationIds(Set.of(10001))
+            .build();
 
     mvc.perform(
             post("/api/trees/99999/validate-type-change")
@@ -426,7 +432,9 @@ class TreeControllerTest extends BaseTest {
               .andReturn();
       String putBody = putResult.getResponse().getContentAsString();
       assertEquals(
-          200, putResult.getResponse().getStatus(), "PUT /api/trees/10002 type→edition: " + putBody);
+          200,
+          putResult.getResponse().getStatus(),
+          "PUT /api/trees/10002 type→edition: " + putBody);
       assertEquals("edition", JsonPath.parse(putBody).read("$.type", String.class));
     } finally {
       restoreSeedTreeTypes();

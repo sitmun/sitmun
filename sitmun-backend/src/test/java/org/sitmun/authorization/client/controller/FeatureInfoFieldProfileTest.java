@@ -76,20 +76,25 @@ class FeatureInfoFieldProfileTest {
       mvc.perform(get(CONFIG_CLIENT_PROFILE_URI, 10001, 10001).param("lang", "es"))
           .andExpect(status().isOk())
           .andExpect(
-              jsonPath("$.layers[?(@.id=='layer/10001')].featureInfoFields[0].name", hasItem("code")))
-          .andExpect(
-              jsonPath("$.layers[?(@.id=='layer/10001')].featureInfoFields[0].label", hasItem("Code")))
-          .andExpect(
-              jsonPath("$.layers[?(@.id=='layer/10001')].featureInfoFields[1].name", hasItem("season")))
+              jsonPath(
+                  "$.layers[?(@.id=='layer/10001')].featureInfoFields[0].name", hasItem("code")))
           .andExpect(
               jsonPath(
-                  "$.layers[?(@.id=='layer/10001')].featureInfoFields[1].label", hasItem("Temporada")));
+                  "$.layers[?(@.id=='layer/10001')].featureInfoFields[0].label", hasItem("Code")))
+          .andExpect(
+              jsonPath(
+                  "$.layers[?(@.id=='layer/10001')].featureInfoFields[1].name", hasItem("season")))
+          .andExpect(
+              jsonPath(
+                  "$.layers[?(@.id=='layer/10001')].featureInfoFields[1].label",
+                  hasItem("Temporada")));
 
       mvc.perform(get(CONFIG_CLIENT_PROFILE_URI, 10001, 10001).param("lang", "en"))
           .andExpect(status().isOk())
           .andExpect(
               jsonPath(
-                  "$.layers[?(@.id=='layer/10001')].featureInfoFields[1].label", hasItem("Season")));
+                  "$.layers[?(@.id=='layer/10001')].featureInfoFields[1].label",
+                  hasItem("Season")));
     } finally {
       translationRepository.delete(translation);
       cartographyParameterRepository.delete(season);
@@ -120,13 +125,17 @@ class FeatureInfoFieldProfileTest {
           .andExpect(status().isOk())
           .andExpect(
               jsonPath(
-                  "$.layers[?(@.id=='layer/10001')].featureInfoFields[0].name", hasItem("lnkimatge")))
+                  "$.layers[?(@.id=='layer/10001')].featureInfoFields[0].name",
+                  hasItem("lnkimatge")))
           .andExpect(
-              jsonPath("$.layers[?(@.id=='layer/10001')].featureInfoFields[0].maxWidth", hasItem(240)))
+              jsonPath(
+                  "$.layers[?(@.id=='layer/10001')].featureInfoFields[0].maxWidth", hasItem(240)))
           .andExpect(
-              jsonPath("$.layers[?(@.id=='layer/10001')].featureInfoFields[0].maxHeight", hasItem(160)))
+              jsonPath(
+                  "$.layers[?(@.id=='layer/10001')].featureInfoFields[0].maxHeight", hasItem(160)))
           .andExpect(
-              jsonPath("$.layers[?(@.id=='layer/10001')].featureInfoFields[0].format", hasItem("I")));
+              jsonPath(
+                  "$.layers[?(@.id=='layer/10001')].featureInfoFields[0].format", hasItem("I")));
     } finally {
       cartographyParameterRepository.delete(photo);
     }

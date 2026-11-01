@@ -39,7 +39,8 @@ class ClientConfigurationApplicationTerritoryControllerTest {
   @DisplayName("GET: Page with authenticated user")
   void readOtherUser() throws Exception {
     mvc.perform(
-            get(URIConstants.CONFIG_CLIENT_APPLICATION_TERRITORIES_URI, 10001).with(user("internal")))
+            get(URIConstants.CONFIG_CLIENT_APPLICATION_TERRITORIES_URI, 10001)
+                .with(user("internal")))
         .andDo(print())
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.content", hasSize(3)))
@@ -53,7 +54,8 @@ class ClientConfigurationApplicationTerritoryControllerTest {
   @DisplayName("GET: Territories in an application are sorted in alphabetic order")
   void territoriesAreInAlphabeticOrder() throws Exception {
     mvc.perform(
-            get(URIConstants.CONFIG_CLIENT_APPLICATION_TERRITORIES_URI, 10001).with(user("internal")))
+            get(URIConstants.CONFIG_CLIENT_APPLICATION_TERRITORIES_URI, 10001)
+                .with(user("internal")))
         .andExpect(status().isOk())
         .andExpect(
             jsonPath(

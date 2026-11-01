@@ -46,7 +46,8 @@ class ClientConfigurationTerritoryApplicationsControllerTest {
   @DisplayName("GET: Territory 2 omits the application granted only on territory 1")
   void readOtherUser() throws Exception {
     mvc.perform(
-            get(URIConstants.CONFIG_CLIENT_TERRITORY_APPLICATIONS_URI, 10002).with(user("internal")))
+            get(URIConstants.CONFIG_CLIENT_TERRITORY_APPLICATIONS_URI, 10002)
+                .with(user("internal")))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.content", hasSize(4)))
         .andExpect(jsonPath("$.page.size", is(pageSize)))

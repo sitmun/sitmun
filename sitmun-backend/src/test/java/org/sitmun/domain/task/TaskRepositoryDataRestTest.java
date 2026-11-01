@@ -208,7 +208,8 @@ class TaskRepositoryDataRestTest extends BaseTest {
   @DisplayName("GET: This endpoint is enabled for ROLE_ADMIN")
   void getTasksAsSitmunAdmin() throws Exception {
     // Full task projection includes this class's @BeforeEach fixtures (+2) atop seeded tasks
-    // (10041 CSV + MIA control 10043 + MIA parent 10042). Explicit size=100 (default page size is 10).
+    // (10041 CSV + MIA control 10043 + MIA parent 10042). Explicit size=100 (default page size is
+    // 10).
     mvc.perform(get(URIConstants.TASKS_URI_PROJECTION_VIEW + "&size=100"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$._embedded.tasks", hasSize(52)));

@@ -143,13 +143,15 @@ class ApplicationRepositoryTest {
   @DisplayName("Territory 2 omits the application granted only on territory 1")
   void findApplicationsByUsernameAndTerritory() {
     assertThat(
-            titles(applicationRepository.findByRestrictedUserAndTerritory("internal", 10002, page())))
+            titles(
+                applicationRepository.findByRestrictedUserAndTerritory("internal", 10002, page())))
         .containsExactlyInAnyOrder(
             "SITMUN - Externa",
             "SITMUN - Municipal",
             "SITMUN - Provincial",
             "SITMUN - Supramunicipal");
-    assertThat(titles(applicationRepository.findByPublicUserAndTerritory("internal", 10002, page())))
+    assertThat(
+            titles(applicationRepository.findByPublicUserAndTerritory("internal", 10002, page())))
         .containsExactlyInAnyOrder(
             "SITMUN - Externa",
             "SITMUN - Municipal",

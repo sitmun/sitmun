@@ -90,7 +90,8 @@ class ClientConfigurationProfileControllerTest {
         .andExpect(jsonPath("$.tasks[?(@.id=='task/10041')].url", hasItem(expectedUrl)))
         .andExpect(
             jsonPath("$.tasks[?(@.id=='task/10041')].parameters.resultsPath", hasItem("/features")))
-        .andExpect(jsonPath("$.tasks[?(@.id=='task/10041')].parameters.labelField", hasItem("name")))
+        .andExpect(
+            jsonPath("$.tasks[?(@.id=='task/10041')].parameters.labelField", hasItem("name")))
         .andExpect(
             jsonPath("$.tasks[?(@.id=='task/10041')].parameters.resultsPath.type").doesNotExist());
   }
@@ -144,7 +145,8 @@ class ClientConfigurationProfileControllerTest {
     mvc.perform(get(CONFIG_CLIENT_PROFILE_URI, 10001, 10001))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.layers[?(@.id=='layer/10001')].minScaleDenominator", hasItem(500)))
-        .andExpect(jsonPath("$.layers[?(@.id=='layer/10001')].maxScaleDenominator", hasItem(1000000)));
+        .andExpect(
+            jsonPath("$.layers[?(@.id=='layer/10001')].maxScaleDenominator", hasItem(1000000)));
   }
 
   @Test
@@ -201,9 +203,11 @@ class ClientConfigurationProfileControllerTest {
         .andExpect(jsonPath("$.services[?(@.id=='service/10001')].url", hasItem(url)))
         .andExpect(jsonPath("$.services[?(@.id=='service/10001')].type", hasItem("WMTS")))
         .andExpect(
-            jsonPath("$.services[?(@.id=='service/10001')].parameters.format", hasItem("image/jpeg")))
+            jsonPath(
+                "$.services[?(@.id=='service/10001')].parameters.format", hasItem("image/jpeg")))
         .andExpect(
-            jsonPath("$.services[?(@.id=='service/10001')].parameters.matrixSet", hasItem("UTM25831")))
+            jsonPath(
+                "$.services[?(@.id=='service/10001')].parameters.matrixSet", hasItem("UTM25831")))
         .andExpect(jsonPath("$.services[?(@.id=='service/10001')].crs").exists())
         .andExpect(
             jsonPath("$.services[?(@.id=='service/10001')].title", hasItem("ICC Mapesmultibase")));
@@ -216,7 +220,9 @@ class ClientConfigurationProfileControllerTest {
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.groups[?(@.id=='group/10002')].title", hasItem("Background Map")))
         .andExpect(
-            jsonPath("$.groups[?(@.id=='group/10002')].layers.*", hasItems("layer/10001", "layer/10002")));
+            jsonPath(
+                "$.groups[?(@.id=='group/10002')].layers.*",
+                hasItems("layer/10001", "layer/10002")));
   }
 
   @Test
@@ -225,7 +231,8 @@ class ClientConfigurationProfileControllerTest {
     mvc.perform(get(CONFIG_CLIENT_PROFILE_URI, 10001, 10001))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.backgrounds").isArray())
-        .andExpect(jsonPath("$.backgrounds[?(@.id=='group/10002')].title", hasItem("Background Map")))
+        .andExpect(
+            jsonPath("$.backgrounds[?(@.id=='group/10002')].title", hasItem("Background Map")))
         .andExpect(
             jsonPath(
                 "$.backgrounds[?(@.id=='group/10002')].thumbnail",
@@ -249,8 +256,10 @@ class ClientConfigurationProfileControllerTest {
         .andExpect(jsonPath("$.application.situation-map", is("group/10003")))
         .andExpect(jsonPath("$.groups[?(@.id=='group/10003')].title", hasItem("Situation Map")))
         .andExpect(jsonPath("$.groups[?(@.id=='group/10003')].layers.*", hasItem("layer/10004")))
-        .andExpect(jsonPath("$.groups[?(@.id=='group/10003')].layers.*", not(hasItem("layer/10010"))))
-        .andExpect(jsonPath("$.groups[?(@.id=='group/10003')].layers.*", not(hasItem("layer/10011"))));
+        .andExpect(
+            jsonPath("$.groups[?(@.id=='group/10003')].layers.*", not(hasItem("layer/10010"))))
+        .andExpect(
+            jsonPath("$.groups[?(@.id=='group/10003')].layers.*", not(hasItem("layer/10011"))));
   }
 
   @Test
@@ -266,7 +275,8 @@ class ClientConfigurationProfileControllerTest {
   void taskParameters() throws Exception {
     mvc.perform(get(CONFIG_CLIENT_PROFILE_URI, 10001, 10001))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.tasks[?(@.id=='task/10041')].parameters.resultsPath", hasItem("/features")))
+        .andExpect(
+            jsonPath("$.tasks[?(@.id=='task/10041')].parameters.resultsPath", hasItem("/features")))
         .andExpect(
             jsonPath("$.tasks[?(@.id=='task/10041')].parameters.labelField", hasItem("name")));
   }
@@ -289,7 +299,8 @@ class ClientConfigurationProfileControllerTest {
     String expectedUrl = proxyUrl + "/proxy/10001/10001/API/10037";
     mvc.perform(get(CONFIG_CLIENT_PROFILE_URI, 10001, 10001))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.tasks[?(@.id=='task/10037')].parameters.limit.type", hasItem("query")))
+        .andExpect(
+            jsonPath("$.tasks[?(@.id=='task/10037')].parameters.limit.type", hasItem("query")))
         .andExpect(jsonPath("$.tasks[?(@.id=='task/10037')].scope", hasItem(SCOPE_API)))
         .andExpect(jsonPath("$.tasks[?(@.id=='task/10037')].url", hasItem(expectedUrl)));
   }
@@ -315,7 +326,8 @@ class ClientConfigurationProfileControllerTest {
   void taskWebApiQueryNoProxyQueryParameter() throws Exception {
     mvc.perform(get(CONFIG_CLIENT_PROFILE_URI, 10001, 10001))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.tasks[?(@.id=='task/10039')].parameters.limit.type", hasItem("query")))
+        .andExpect(
+            jsonPath("$.tasks[?(@.id=='task/10039')].parameters.limit.type", hasItem("query")))
         .andExpect(jsonPath("$.tasks[?(@.id=='task/10039')].scope", hasItem(SCOPE_URL)))
         .andExpect(
             jsonPath(
@@ -330,7 +342,8 @@ class ClientConfigurationProfileControllerTest {
     String expectedUrl = proxyUrl + "/proxy/10001/10001/SQL/10034";
     mvc.perform(get(CONFIG_CLIENT_PROFILE_URI, 10001, 10001))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.tasks[?(@.id=='task/10034')].parameters.limit.type", hasItem("query")))
+        .andExpect(
+            jsonPath("$.tasks[?(@.id=='task/10034')].parameters.limit.type", hasItem("query")))
         .andExpect(jsonPath("$.tasks[?(@.id=='task/10034')].scope", hasItem(SCOPE_SQL)))
         .andExpect(jsonPath("$.tasks[?(@.id=='task/10034')].url", hasItem(expectedUrl)));
   }
@@ -354,7 +367,9 @@ class ClientConfigurationProfileControllerTest {
     mvc.perform(get(CONFIG_CLIENT_PROFILE_URI, 10001, 10001))
         .andExpect(status().isOk())
         .andExpect(
-            jsonPath("$.trees[?(@.id=='tree/10001')].nodes['node/10008'].loadByDefault", hasItem(false)));
+            jsonPath(
+                "$.trees[?(@.id=='tree/10001')].nodes['node/10008'].loadByDefault",
+                hasItem(false)));
   }
 
   @Test
@@ -398,7 +413,8 @@ class ClientConfigurationProfileControllerTest {
   void radioFolderExposesIsRadio() throws Exception {
     mvc.perform(get(CONFIG_CLIENT_PROFILE_URI, 10001, 10001))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.trees[?(@.id=='tree/10001')].nodes['node/10007'].isRadio", hasItem(true)));
+        .andExpect(
+            jsonPath("$.trees[?(@.id=='tree/10001')].nodes['node/10007'].isRadio", hasItem(true)));
   }
 
   @Test
@@ -416,25 +432,32 @@ class ClientConfigurationProfileControllerTest {
         "queryableActive": false
         }
         """;
-    mvc.perform(patch(TREE_NODE_URI, 10008).content(enableQueryable).with(user("admin").roles("ADMIN")))
+    mvc.perform(
+            patch(TREE_NODE_URI, 10008).content(enableQueryable).with(user("admin").roles("ADMIN")))
         .andExpect(status().isOk());
     try {
       mvc.perform(get(CONFIG_CLIENT_PROFILE_URI, 10001, 10001))
           .andExpect(status().isOk())
           .andExpect(
               jsonPath(
-                  "$.trees[?(@.id=='tree/10001')].nodes['node/10008'].queryableActive", hasItem(true)));
+                  "$.trees[?(@.id=='tree/10001')].nodes['node/10008'].queryableActive",
+                  hasItem(true)));
       mvc.perform(
-              patch(TREE_NODE_URI, 10008).content(disableQueryable).with(user("admin").roles("ADMIN")))
+              patch(TREE_NODE_URI, 10008)
+                  .content(disableQueryable)
+                  .with(user("admin").roles("ADMIN")))
           .andExpect(status().isOk());
       mvc.perform(get(CONFIG_CLIENT_PROFILE_URI, 10001, 10001))
           .andExpect(status().isOk())
           .andExpect(
               jsonPath(
-                  "$.trees[?(@.id=='tree/10001')].nodes['node/10008'].queryableActive", hasItem(false)));
+                  "$.trees[?(@.id=='tree/10001')].nodes['node/10008'].queryableActive",
+                  hasItem(false)));
     } finally {
       mvc.perform(
-              patch(TREE_NODE_URI, 10008).content(disableQueryable).with(user("admin").roles("ADMIN")))
+              patch(TREE_NODE_URI, 10008)
+                  .content(disableQueryable)
+                  .with(user("admin").roles("ADMIN")))
           .andExpect(status().isOk());
     }
   }
@@ -454,16 +477,20 @@ class ClientConfigurationProfileControllerTest {
         "loadData": false
         }
         """;
-    mvc.perform(patch(TREE_NODE_URI, 10001).content(enableLoadData).with(user("admin").roles("ADMIN")))
+    mvc.perform(
+            patch(TREE_NODE_URI, 10001).content(enableLoadData).with(user("admin").roles("ADMIN")))
         .andExpect(status().isOk());
     try {
       mvc.perform(get(CONFIG_CLIENT_PROFILE_URI, 10001, 10001))
           .andExpect(status().isOk())
           .andExpect(
-              jsonPath("$.trees[?(@.id=='tree/10001')].nodes['node/10001'].loadData", hasItem(true)));
+              jsonPath(
+                  "$.trees[?(@.id=='tree/10001')].nodes['node/10001'].loadData", hasItem(true)));
     } finally {
       mvc.perform(
-              patch(TREE_NODE_URI, 10001).content(disableLoadData).with(user("admin").roles("ADMIN")))
+              patch(TREE_NODE_URI, 10001)
+                  .content(disableLoadData)
+                  .with(user("admin").roles("ADMIN")))
           .andExpect(status().isOk());
     }
   }
@@ -483,17 +510,22 @@ class ClientConfigurationProfileControllerTest {
         "loadData": false
         }
         """;
-    mvc.perform(patch(TREE_NODE_URI, 10007).content(enableLoadData).with(user("admin").roles("ADMIN")))
+    mvc.perform(
+            patch(TREE_NODE_URI, 10007).content(enableLoadData).with(user("admin").roles("ADMIN")))
         .andExpect(status().isOk());
     try {
       mvc.perform(get(CONFIG_CLIENT_PROFILE_URI, 10001, 10001))
           .andExpect(status().isOk())
-          .andExpect(jsonPath("$.trees[?(@.id=='tree/10001')].nodes['node/10007'].isRadio", hasItem(true)))
           .andExpect(
-              jsonPath("$.trees[?(@.id=='tree/10001')].nodes['node/10007'].loadData", hasItem(true)));
+              jsonPath("$.trees[?(@.id=='tree/10001')].nodes['node/10007'].isRadio", hasItem(true)))
+          .andExpect(
+              jsonPath(
+                  "$.trees[?(@.id=='tree/10001')].nodes['node/10007'].loadData", hasItem(true)));
     } finally {
       mvc.perform(
-              patch(TREE_NODE_URI, 10007).content(disableLoadData).with(user("admin").roles("ADMIN")))
+              patch(TREE_NODE_URI, 10007)
+                  .content(disableLoadData)
+                  .with(user("admin").roles("ADMIN")))
           .andExpect(status().isOk());
     }
   }
@@ -504,7 +536,9 @@ class ClientConfigurationProfileControllerTest {
     mvc.perform(get(CONFIG_CLIENT_PROFILE_URI, 10001, 10001))
         .andExpect(status().isOk())
         .andExpect(
-            jsonPath("$.trees[?(@.id=='tree/10001')].nodes['node/10008'].isRadio", hasItem(nullValue())));
+            jsonPath(
+                "$.trees[?(@.id=='tree/10001')].nodes['node/10008'].isRadio",
+                hasItem(nullValue())));
   }
 
   @Test
@@ -515,23 +549,31 @@ class ClientConfigurationProfileControllerTest {
         .andExpect(jsonPath("$.trees[?(@.id=='tree/10001')].title", hasItem("Provincial")))
         .andExpect(jsonPath("$.trees[?(@.id=='tree/10001')].rootNode", hasItem("node/tree/10001")))
         .andExpect(
-            jsonPath("$.trees[?(@.id=='tree/10001')].nodes['node/tree/10001'].children[*]").isArray())
+            jsonPath("$.trees[?(@.id=='tree/10001')].nodes['node/tree/10001'].children[*]")
+                .isArray())
         .andExpect(
-            jsonPath("$.trees[?(@.id=='tree/10001')].nodes['node/tree/10001'].children[*]", hasSize(2)))
+            jsonPath(
+                "$.trees[?(@.id=='tree/10001')].nodes['node/tree/10001'].children[*]", hasSize(2)))
         .andExpect(
             jsonPath(
                 "$.trees[?(@.id=='tree/10001')].nodes['node/tree/10001'].children[*]",
                 containsInAnyOrder("node/10001", "node/10007")))
         .andExpect(
-            jsonPath("$.trees[?(@.id=='tree/10001')].nodes['node/tree/10001'].loadData", hasItem(false)))
+            jsonPath(
+                "$.trees[?(@.id=='tree/10001')].nodes['node/tree/10001'].loadData", hasItem(false)))
         .andExpect(
             jsonPath(
-                "$.trees[?(@.id=='tree/10001')].nodes['node/tree/10001'].loadByDefault", hasItem(false)))
+                "$.trees[?(@.id=='tree/10001')].nodes['node/tree/10001'].loadByDefault",
+                hasItem(false)))
         .andExpect(
-            jsonPath("$.trees[?(@.id=='tree/10001')].nodes['node/10009'].resource", hasItem("layer/10009")))
-        .andExpect(jsonPath("$.trees[?(@.id=='tree/10001')].nodes['node/10009'].loadData", hasItem(false)))
+            jsonPath(
+                "$.trees[?(@.id=='tree/10001')].nodes['node/10009'].resource",
+                hasItem("layer/10009")))
         .andExpect(
-            jsonPath("$.trees[?(@.id=='tree/10001')].nodes['node/10009'].loadByDefault", hasItem(true)));
+            jsonPath("$.trees[?(@.id=='tree/10001')].nodes['node/10009'].loadData", hasItem(false)))
+        .andExpect(
+            jsonPath(
+                "$.trees[?(@.id=='tree/10001')].nodes['node/10009'].loadByDefault", hasItem(true)));
   }
 
   @Test
@@ -542,7 +584,8 @@ class ClientConfigurationProfileControllerTest {
         .andExpect(jsonPath("$.trees[?(@.id=='tree/10001')].nodes['node/10012']").doesNotExist())
         .andExpect(
             jsonPath(
-                "$.trees[?(@.id=='tree/10001')].nodes['node/10007'].children[*]", not(hasItem("node/10012"))));
+                "$.trees[?(@.id=='tree/10001')].nodes['node/10007'].children[*]",
+                not(hasItem("node/10012"))));
   }
 
   @Test
@@ -554,7 +597,8 @@ class ClientConfigurationProfileControllerTest {
         .andExpect(jsonPath("$.trees[?(@.id=='tree/10001')].nodes['node/10014']").doesNotExist())
         .andExpect(
             jsonPath(
-                "$.trees[?(@.id=='tree/10001')].nodes['node/10001'].children[*]", not(hasItem("node/10013"))));
+                "$.trees[?(@.id=='tree/10001')].nodes['node/10001'].children[*]",
+                not(hasItem("node/10013"))));
   }
 
   @Test
@@ -566,16 +610,19 @@ class ClientConfigurationProfileControllerTest {
         .andExpect(jsonPath("$.trees[?(@.id=='tree/10001')].nodes['node/10011']").doesNotExist())
         .andExpect(
             jsonPath(
-                "$.trees[?(@.id=='tree/10001')].nodes['node/10007'].children[*]", not(hasItem("node/10010"))))
+                "$.trees[?(@.id=='tree/10001')].nodes['node/10007'].children[*]",
+                not(hasItem("node/10010"))))
         .andExpect(
             jsonPath(
-                "$.trees[?(@.id=='tree/10001')].nodes['node/10007'].children[*]", not(hasItem("node/10011"))));
+                "$.trees[?(@.id=='tree/10001')].nodes['node/10007'].children[*]",
+                not(hasItem("node/10011"))));
   }
 
   @Test
   @DisplayName("GET profile tree children follow TNO_ORDER, node/10007 then node/10001")
   void treeNodeOrder() throws Exception {
-    // node/10007 has TNO_ORDER=1 but id=7 (higher id); node/10001 has TNO_ORDER=2 but id=1 (lower id).
+    // node/10007 has TNO_ORDER=1 but id=7 (higher id); node/10001 has TNO_ORDER=2 but id=1 (lower
+    // id).
     // This verifies the profile returns children sorted by TNO_ORDER, not by insertion/id order.
     mvc.perform(get(CONFIG_CLIENT_PROFILE_URI, 10001, 10001))
         .andExpect(status().isOk())
@@ -590,7 +637,8 @@ class ClientConfigurationProfileControllerTest {
                 "$.trees[?(@.id=='tree/10001')].nodes['node/10007'].children[*]",
                 containsInRelativeOrder("node/10009", "node/10008")))
         .andExpect(jsonPath("$.trees[?(@.id=='tree/10001')].nodes['node/10009'].order", hasItem(1)))
-        .andExpect(jsonPath("$.trees[?(@.id=='tree/10001')].nodes['node/10008'].order", hasItem(2)));
+        .andExpect(
+            jsonPath("$.trees[?(@.id=='tree/10001')].nodes['node/10008'].order", hasItem(2)));
   }
 
   @Test
@@ -750,9 +798,13 @@ class ClientConfigurationProfileControllerTest {
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.groups[?(@.id=='group/10002')].title", hasItem("Background Map")))
         .andExpect(
-            jsonPath("$.groups[?(@.id=='group/10002')].layers.*", hasItems("layer/10001", "layer/10002")))
-        .andExpect(jsonPath("$.groups[?(@.id=='group/10002')].layers.*", not(hasItem("layer/10010"))))
-        .andExpect(jsonPath("$.groups[?(@.id=='group/10002')].layers.*", not(hasItem("layer/10011"))));
+            jsonPath(
+                "$.groups[?(@.id=='group/10002')].layers.*",
+                hasItems("layer/10001", "layer/10002")))
+        .andExpect(
+            jsonPath("$.groups[?(@.id=='group/10002')].layers.*", not(hasItem("layer/10010"))))
+        .andExpect(
+            jsonPath("$.groups[?(@.id=='group/10002')].layers.*", not(hasItem("layer/10011"))));
   }
 
   // Phase 1 snapshot tests: lock wire format for parameters and top-level TaskDto fields
@@ -761,12 +813,15 @@ class ClientConfigurationProfileControllerTest {
   @DisplayName("GET: SQL query task - parameters block and top-level fields snapshot")
   void sqlQueryTaskWireFormatSnapshot() throws Exception {
     String expectedUrl =
-        (proxyForce ? proxyUrl : "http://localhost:8080/middleware") + "/proxy/10001/10001/SQL/10034";
+        (proxyForce ? proxyUrl : "http://localhost:8080/middleware")
+            + "/proxy/10001/10001/SQL/10034";
     mvc.perform(get(CONFIG_CLIENT_PROFILE_URI, 10001, 10001))
         .andExpect(status().isOk())
         // Parameters block
-        .andExpect(jsonPath("$.tasks[?(@.id=='task/10034')].parameters.limit.type", hasItem("query")))
-        .andExpect(jsonPath("$.tasks[?(@.id=='task/10034')].parameters.limit.required", hasItem(true)))
+        .andExpect(
+            jsonPath("$.tasks[?(@.id=='task/10034')].parameters.limit.type", hasItem("query")))
+        .andExpect(
+            jsonPath("$.tasks[?(@.id=='task/10034')].parameters.limit.required", hasItem(true)))
         // Parameters must not contain label, value, name
         .andExpect(jsonPath("$.tasks[?(@.id=='task/10034')].parameters.limit.label").doesNotExist())
         .andExpect(jsonPath("$.tasks[?(@.id=='task/10034')].parameters.limit.value").doesNotExist())
@@ -784,11 +839,13 @@ class ClientConfigurationProfileControllerTest {
   @DisplayName("GET: Web API proxied task - parameters block and top-level fields snapshot")
   void webApiProxiedTaskWireFormatSnapshot() throws Exception {
     String expectedUrl =
-        (proxyForce ? proxyUrl : "http://localhost:8080/middleware") + "/proxy/10001/10001/API/10037";
+        (proxyForce ? proxyUrl : "http://localhost:8080/middleware")
+            + "/proxy/10001/10001/API/10037";
     mvc.perform(get(CONFIG_CLIENT_PROFILE_URI, 10001, 10001))
         .andExpect(status().isOk())
         // Parameters block
-        .andExpect(jsonPath("$.tasks[?(@.id=='task/10037')].parameters.limit.type", hasItem("query")))
+        .andExpect(
+            jsonPath("$.tasks[?(@.id=='task/10037')].parameters.limit.type", hasItem("query")))
         .andExpect(
             jsonPath("$.tasks[?(@.id=='task/10037')].parameters.limit.required", hasItem(false)))
         // Top-level TaskDto fields

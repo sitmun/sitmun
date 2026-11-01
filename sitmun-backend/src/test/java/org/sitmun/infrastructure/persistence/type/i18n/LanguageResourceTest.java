@@ -78,8 +78,7 @@ class LanguageResourceTest {
             jsonPath("$._embedded.languages[?(@.shortname == 'es')].name", hasItem("Castellano")))
         .andExpect(
             jsonPath(
-                "$._embedded.languages[?(@.shortname == 'es')].translatedName",
-                hasItem("Español")))
+                "$._embedded.languages[?(@.shortname == 'es')].translatedName", hasItem("Español")))
         .andExpect(
             jsonPath("$._embedded.languages[?(@.shortname == 'en')].name", hasItem("English")))
         .andExpect(
