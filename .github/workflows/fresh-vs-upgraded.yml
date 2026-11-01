@@ -12,8 +12,7 @@ on:
     branches: [dev]
     paths:
       - 'sitmun-backend/src/main/resources/db/changelog/**'
-      - 'profiles/oracle/liquibase/changelog/26_map_image_task_type_pre23.yaml'
-      - 'tools/scripts/compare-schema-drift.sh'
+      - 'tools/tests/26_map_image_task_type_pre23.yaml'
       - 'tools/scripts/fresh-vs-upgraded.sh'
       - 'tools/bin/compare_fresh_vs_upgraded.py'
       - 'tools/bin/generate_legacy_upgrade.py'
@@ -48,7 +47,7 @@ jobs:
       - name: Fetch the 1.2.9 tag
         run: git fetch --no-tags origin tag legacy/sitmun-application-stack/sitmun-application-stack/1.2.9
       - name: Compare a fresh database with an upgraded 1.2.9 database
-        run: bash tools/scripts/compare-schema-drift.sh fresh-vs-upgraded postgres-12
+        run: bash tools/scripts/fresh-vs-upgraded.sh postgres-12
 
   postgres-16:
     name: Fresh versus upgraded PostgreSQL 16
@@ -64,7 +63,7 @@ jobs:
       - name: Fetch the 1.2.9 tag
         run: git fetch --no-tags origin tag legacy/sitmun-application-stack/sitmun-application-stack/1.2.9
       - name: Compare a fresh database with an upgraded 1.2.9 database
-        run: bash tools/scripts/compare-schema-drift.sh fresh-vs-upgraded postgres-16
+        run: bash tools/scripts/fresh-vs-upgraded.sh postgres-16
 
   oracle-23:
     name: Fresh versus upgraded Oracle 23ai
@@ -80,7 +79,7 @@ jobs:
       - name: Fetch the 1.2.9 tag
         run: git fetch --no-tags origin tag legacy/sitmun-application-stack/sitmun-application-stack/1.2.9
       - name: Compare a fresh database with an upgraded 1.2.9 database
-        run: bash tools/scripts/compare-schema-drift.sh fresh-vs-upgraded oracle-23
+        run: bash tools/scripts/fresh-vs-upgraded.sh oracle-23
 
   oracle-19:
     name: Fresh versus upgraded Oracle 21c (stand-in for 19c)
@@ -96,7 +95,7 @@ jobs:
       - name: Fetch the 1.2.9 tag
         run: git fetch --no-tags origin tag legacy/sitmun-application-stack/sitmun-application-stack/1.2.9
       - name: Compare a fresh database with an upgraded 1.2.9 database
-        run: bash tools/scripts/compare-schema-drift.sh fresh-vs-upgraded oracle-21
+        run: bash tools/scripts/fresh-vs-upgraded.sh oracle-21
 
   oracle-11:
     name: Fresh versus upgraded Oracle 11g
@@ -112,4 +111,4 @@ jobs:
       - name: Fetch the 1.2.9 tag
         run: git fetch --no-tags origin tag legacy/sitmun-application-stack/sitmun-application-stack/1.2.9
       - name: Compare a fresh database with an upgraded 1.2.9 database
-        run: bash tools/scripts/compare-schema-drift.sh fresh-vs-upgraded oracle-11
+        run: bash tools/scripts/fresh-vs-upgraded.sh oracle-11

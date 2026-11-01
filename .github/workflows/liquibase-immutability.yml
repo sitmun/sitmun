@@ -12,6 +12,7 @@ on:
     branches: [dev]
     paths:
       - 'profiles/**/liquibase/**'
+      - 'sitmun-backend/src/main/resources/db/changelog/**'
       - 'tools/bin/check_changelog_immutability.py'
       - 'tools/tests/test_changelog_immutability.py'
       - '.github/workflows/liquibase-immutability.yml'

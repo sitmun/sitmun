@@ -46,8 +46,8 @@ overlay_shipped_changelog() {
 import pathlib, sys
 path = pathlib.Path(sys.argv[1])
 path.write_text(path.read_text().replace(
-    "classpath:/db/changelog/db.changelog-master.yaml",
-    "db/changelog/db.changelog-master.yaml",
+    '<include file="classpath:/db/changelog/db.changelog-master.yaml"/>',
+    '<include file="db/changelog/db.changelog-master.yaml" relativeToChangelogFile="true"/>',
 ))
 PY
 }
@@ -732,7 +732,7 @@ run_dev_oracle_from() {
   alias_csv_case "$LB_HEAD"
 
   liquibase_ora() {
-    local label="$1" changelog_dir="$2"
+    local label="$1" changelog_dir="$2" command="${3:-update}"
     echo ""
     echo "── Liquibase: $label ──"
     set +e
@@ -747,7 +747,7 @@ run_dev_oracle_from() {
       --password="$DB_PASS" \
       --changeLogFile="changelog/master.xml" \
       --contexts=dev \
-      update 2>&1)
+      "$command" 2>&1)
     LB_RC=$?
     set -e
     print_lb_snippet
@@ -793,17 +793,17 @@ DOCKEREOF
 
   echo ""
   echo "════ PHASE 2: apply HEAD ════"
-  liquibase_ora "HEAD" "$LB_HEAD"
-  if [[ $LB_RC -eq 0 ]]; then
-    ok "Phase2 Liquibase HEAD succeeded"
-  else
-    fail "Phase2 Liquibase HEAD failed (exit $LB_RC)"
+  liquibase_ora "clear checksums" "$LB_HEAD" clearCheckSums
+  if [[ $LB_RC -ne 0 ]]; then
+    fail "Phase2 clearCheckSums failed (exit $LB_RC)"
     print_lb_errors
   fi
-  if echo "$LB_OUTPUT" | grep -qi "Validation Failed\|checksum"; then
-    fail "Phase2 reported checksum validation failure"
+  liquibase_ora "HEAD" "$LB_HEAD"
+  if echo "$LB_OUTPUT" | grep -q "upgrade to 1.2.9 first"; then
+    ok "Phase2 refused a database that is not 1.2.9"
   else
-    ok "Phase2 no checksum validation failure"
+    fail "Phase2 did not refuse the database (exit $LB_RC)"
+    print_lb_errors
   fi
 
   echo ""
@@ -839,7 +839,7 @@ run_dev_postgres_from() {
   alias_csv_case "$LB_HEAD"
 
   liquibase_pg() {
-    local label="$1" changelog_dir="$2"
+    local label="$1" changelog_dir="$2" command="${3:-update}"
     echo ""
     echo "── Liquibase: $label ──"
     set +e
@@ -854,7 +854,7 @@ run_dev_postgres_from() {
       --password="$DB_PASS" \
       --changeLogFile="changelog/master.xml" \
       --contexts=dev \
-      update 2>&1)
+      "$command" 2>&1)
     LB_RC=$?
     set -e
     print_lb_snippet
@@ -902,17 +902,17 @@ run_dev_postgres_from() {
 
   echo ""
   echo "════ PHASE 2: apply HEAD ════"
-  liquibase_pg "HEAD" "$LB_HEAD"
-  if [[ $LB_RC -eq 0 ]]; then
-    ok "Phase2 Liquibase HEAD succeeded"
-  else
-    fail "Phase2 Liquibase HEAD failed (exit $LB_RC)"
+  liquibase_pg "clear checksums" "$LB_HEAD" clearCheckSums
+  if [[ $LB_RC -ne 0 ]]; then
+    fail "Phase2 clearCheckSums failed (exit $LB_RC)"
     print_lb_errors
   fi
-  if echo "$LB_OUTPUT" | grep -qi "Validation Failed\|checksum"; then
-    fail "Phase2 reported checksum validation failure"
+  liquibase_pg "HEAD" "$LB_HEAD"
+  if echo "$LB_OUTPUT" | grep -q "upgrade to 1.2.9 first"; then
+    ok "Phase2 refused a database that is not 1.2.9"
   else
-    ok "Phase2 no checksum validation failure"
+    fail "Phase2 did not refuse the database (exit $LB_RC)"
+    print_lb_errors
   fi
 
   echo ""

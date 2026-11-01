@@ -81,7 +81,7 @@ apply_tag() {
   # Changelog 22c does not parse before Oracle 23. Oracle 11 and 21 use the
   # pre-23 restatement, which keeps the same task and code-list rows.
   if [[ "$KIND" == "oracle11" || "$ENGINE" == "oracle-21" ]] && grep -q '22_add_map_image_task_type.yaml' "$changelog/master.xml"; then
-    cp "$REPO_ROOT/profiles/oracle/liquibase/changelog/26_map_image_task_type_pre23.yaml" "$changelog/changelog/"
+    cp "$REPO_ROOT/tools/tests/26_map_image_task_type_pre23.yaml" "$changelog/changelog/"
     python3 - "$changelog/master.xml" <<'PY'
 import pathlib, sys
 path = pathlib.Path(sys.argv[1])

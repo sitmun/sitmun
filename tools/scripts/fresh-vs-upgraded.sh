@@ -25,7 +25,7 @@ run_fresh_vs_upgraded() {
   git -C "$REPO_ROOT" archive "$tag" "profiles/${profile}/liquibase" | tar -x -C "$src"
   local changelog="$src/profiles/${profile}/liquibase"
   if [[ "$kind" == "oracle11" || "$engine" == "oracle-21" ]] && grep -q '22_add_map_image_task_type.yaml' "$changelog/master.xml"; then
-    cp "$REPO_ROOT/profiles/oracle/liquibase/changelog/26_map_image_task_type_pre23.yaml" "$changelog/changelog/"
+    cp "$REPO_ROOT/tools/tests/26_map_image_task_type_pre23.yaml" "$changelog/changelog/"
     python3 - "$changelog/master.xml" <<'PY'
 import pathlib, sys
 path = pathlib.Path(sys.argv[1])
@@ -187,3 +187,8 @@ EXIT
   unset -f docker 2>/dev/null || true
   return 0
 }
+
+if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
+  engine="${1:?usage: $0 postgres-16|postgres-12|oracle-23|oracle-21|oracle-11}"
+  exec bash "$(cd "$(dirname "$0")" && pwd)/compare-schema-drift.sh" fresh-vs-upgraded "$engine"
+fi
