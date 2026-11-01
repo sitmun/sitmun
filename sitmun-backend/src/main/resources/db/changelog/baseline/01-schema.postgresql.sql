@@ -419,7 +419,7 @@ CREATE TABLE stm_territory (
 CREATE TABLE stm_token_user (
     user_token_id integer NOT NULL,
     user_id integer NOT NULL,
-    code_otp character varying(150) NOT NULL,
+    code_otp character varying(255) NOT NULL,
     expire_at timestamp(6) without time zone,
     attempt_counter integer NOT NULL,
     active boolean NOT NULL
@@ -439,7 +439,7 @@ CREATE TABLE stm_tree (
     tre_abstract character varying(250),
     tre_type character varying(50),
     tre_image text,
-    tre_image_name character varying(250),
+    tre_image_name character varying(255),
     tre_userid integer
 );
 
@@ -459,13 +459,13 @@ CREATE TABLE stm_tree_nod (
     tno_filter_gfi boolean,
     tno_queryact boolean,
     tno_filter_se boolean,
-    tno_style character varying(50),
+    tno_style character varying(255),
     tno_treeid integer NOT NULL,
     tno_giid integer,
     tno_type character varying(50),
     tno_image text,
     tno_image_name character varying(4000),
-    tno_view_mode character varying(50),
+    tno_view_mode character varying(255),
     tno_taskid integer,
     tno_filterable boolean DEFAULT false,
     tno_mapping text,
@@ -802,6 +802,9 @@ ALTER TABLE ONLY stm_geoinfo
 
 ALTER TABLE ONLY stm_geoinfo
     ADD CONSTRAINT stm_geo_fk_sgi FOREIGN KEY (geo_styid) REFERENCES stm_sty_gi(sgi_id);
+
+ALTER TABLE ONLY stm_geoinfo
+    ADD CONSTRAINT stm_geo_uk_styid UNIQUE (geo_styid);
 
 ALTER TABLE ONLY stm_ggi_gi
     ADD CONSTRAINT stm_ggg_fk_geo FOREIGN KEY (ggg_giid) REFERENCES stm_geoinfo(geo_id) ON DELETE CASCADE;
