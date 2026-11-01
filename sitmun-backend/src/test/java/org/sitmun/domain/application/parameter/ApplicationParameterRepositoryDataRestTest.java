@@ -26,7 +26,7 @@ class ApplicationParameterRepositoryDataRestTest {
   @DisplayName("GET: Retrieve filtered application parameters")
   @WithMockUser(roles = "ADMIN")
   void filteredApplicationParameters() throws Exception {
-    mvc.perform(get(APPLICATION_PARAMETERS_URI, 1, "type", "PRINT_TEMPLATE"))
+    mvc.perform(get(APPLICATION_PARAMETERS_URI, 10001, "type", "PRINT_TEMPLATE"))
         .andDo(print())
         .andExpect(status().isOk())
         .andExpect(jsonPath("$._embedded.application-parameters", hasSize(4)));

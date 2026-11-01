@@ -1,0 +1,29 @@
+ltv_id,ltr_id,lan_shortname,ltv_value
+1,1,ca,Sense dades
+2,1,es,Sin datos
+3,1,en,No data
+4,1,fr,Aucune donnee
+5,2,ca,Error executant la tasca
+6,2,es,Error ejecutando tarea
+7,2,en,Error executing task
+8,2,fr,Erreur d execution de la tache
+9,3,ca,Consulta
+10,3,es,Consulta
+11,3,en,Query
+12,3,fr,Requete
+13,4,ca,Identificador de tasca fill no valid
+14,4,es,Id de tarea hija no valido
+15,4,en,Invalid child task id
+16,4,fr,Identifiant de tache enfant invalide
+17,5,ca,cal executar la tasca
+18,5,es,falta ejecutar tarea
+19,5,en,task not executed
+20,5,fr,tache non executee
+21,6,ca,Contingut binari no incrustable: cal autenticacio de servidor
+22,6,es,Contenido binario no embebible: requiere autenticacion de servidor
+23,6,en,Binary content cannot be embedded: server authentication required
+24,6,fr,Contenu binaire non integrable: authentification serveur requise
+25,7,ca,[contingut binari]
+26,7,es,[contenido binario]
+27,7,en,[binary content]
+28,7,fr,[contenu binaire]

@@ -1,0 +1,88 @@
+databaseChangeLog:
+  - changeSet:
+      id: test-schema-h2
+      author: sitmun
+      dbms: h2
+      logicalFilePath: db/changelog-test/01-schema.h2.sql
+      changes:
+        - sqlFile:
+            path: 01-schema.h2.sql
+            relativeToChangelogFile: true
+            splitStatements: true
+            stripComments: false
+            endDelimiter: ";"
+  - changeSet:
+      id: test-languages-h2
+      author: sitmun
+      dbms: h2
+      logicalFilePath: db/changelog/baseline/03-languages.postgresql.sql
+      changes:
+        - sqlFile:
+            path: db/changelog/baseline/03-languages.postgresql.sql
+            relativeToChangelogFile: false
+            splitStatements: true
+            stripComments: false
+            endDelimiter: ";"
+  - changeSet:
+      id: test-codelists-h2
+      author: sitmun
+      dbms: h2
+      logicalFilePath: db/changelog/baseline/02-codelists.postgresql.sql
+      changes:
+        - sqlFile:
+            path: db/changelog/baseline/02-codelists.postgresql.sql
+            relativeToChangelogFile: false
+            splitStatements: true
+            stripComments: false
+            endDelimiter: ";"
+  - changeSet:
+      id: test-seed-h2
+      author: sitmun
+      dbms: h2
+      logicalFilePath: db/changelog/baseline/06-seed.postgresql.sql
+      changes:
+        - sqlFile:
+            path: db/changelog/baseline/06-seed.postgresql.sql
+            relativeToChangelogFile: false
+            splitStatements: true
+            stripComments: false
+            endDelimiter: "--end"
+  - include:
+      file: db/changelog/db.changelog-master.yaml
+      relativeToChangelogFile: false
+  - changeSet:
+      id: test-sequence-floor-h2
+      author: sitmun
+      dbms: h2
+      logicalFilePath: db/changelog-test/05-sequence-floor.h2.sql
+      changes:
+        - sqlFile:
+            path: 05-sequence-floor.h2.sql
+            relativeToChangelogFile: true
+            splitStatements: true
+            stripComments: false
+            endDelimiter: ";"
+  - changeSet:
+      id: test-fixtures-postgresql
+      author: sitmun
+      dbms: h2,postgresql
+      logicalFilePath: db/changelog-test/02-fixtures.postgresql.sql
+      changes:
+        - sqlFile:
+            path: 02-fixtures.postgresql.sql
+            relativeToChangelogFile: true
+            splitStatements: true
+            stripComments: false
+            endDelimiter: "--end"
+  - changeSet:
+      id: test-fixtures-oracle
+      author: sitmun
+      dbms: oracle
+      logicalFilePath: db/changelog-test/02-fixtures.oracle.sql
+      changes:
+        - sqlFile:
+            path: 02-fixtures.oracle.sql
+            relativeToChangelogFile: true
+            splitStatements: true
+            stripComments: false
+            endDelimiter: "--end"

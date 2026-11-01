@@ -1,0 +1,202 @@
+databaseChangeLog:
+  - include:
+      file: legacy/db.changelog-legacy.yaml
+      relativeToChangelogFile: true
+  - changeSet:
+      id: baseline-schema-postgresql
+      author: sitmun
+      logicalFilePath: db/changelog/baseline/01-schema.postgresql.sql
+      dbms: postgresql
+      preConditions:
+        - onFail: MARK_RAN
+        - sqlCheck:
+            expectedResult: "0"
+            sql: SELECT COUNT(*) FROM databasechangelog WHERE id = '1' AND filename = 'changelog/01_schema.postgresql.sql'
+      changes:
+        - sqlFile:
+            path: baseline/01-schema.postgresql.sql
+            relativeToChangelogFile: true
+            splitStatements: true
+            stripComments: false
+            endDelimiter: ";"
+  - changeSet:
+      id: baseline-schema-oracle
+      author: sitmun
+      logicalFilePath: db/changelog/baseline/01-schema.oracle.sql
+      dbms: oracle
+      preConditions:
+        - onFail: MARK_RAN
+        - sqlCheck:
+            expectedResult: "0"
+            sql: SELECT COUNT(*) FROM databasechangelog WHERE id = '1' AND filename = 'changelog/01_schema.oracle.sql'
+      changes:
+        - sqlFile:
+            path: baseline/01-schema.oracle.sql
+            relativeToChangelogFile: true
+            splitStatements: true
+            stripComments: false
+            endDelimiter: ";"
+  - changeSet:
+      id: baseline-languages-postgresql
+      author: sitmun
+      logicalFilePath: db/changelog/baseline/03-languages.postgresql.sql
+      dbms: postgresql
+      preConditions:
+        - onFail: MARK_RAN
+        - sqlCheck:
+            expectedResult: "0"
+            sql: SELECT COUNT(*) FROM databasechangelog WHERE id = '1' AND filename = 'changelog/01_schema.postgresql.sql'
+      changes:
+        - sqlFile:
+            path: baseline/03-languages.postgresql.sql
+            relativeToChangelogFile: true
+            splitStatements: true
+            stripComments: false
+            endDelimiter: ";"
+  - changeSet:
+      id: baseline-languages-oracle
+      author: sitmun
+      logicalFilePath: db/changelog/baseline/03-languages.oracle.sql
+      dbms: oracle
+      preConditions:
+        - onFail: MARK_RAN
+        - sqlCheck:
+            expectedResult: "0"
+            sql: SELECT COUNT(*) FROM databasechangelog WHERE id = '1' AND filename = 'changelog/01_schema.oracle.sql'
+      changes:
+        - sqlFile:
+            path: baseline/03-languages.oracle.sql
+            relativeToChangelogFile: true
+            splitStatements: true
+            stripComments: false
+            endDelimiter: ";"
+  - changeSet:
+      id: baseline-codelists-postgresql
+      author: sitmun
+      logicalFilePath: db/changelog/baseline/02-codelists.postgresql.sql
+      dbms: postgresql
+      preConditions:
+        - onFail: MARK_RAN
+        - sqlCheck:
+            expectedResult: "0"
+            sql: SELECT COUNT(*) FROM databasechangelog WHERE id = '1' AND filename = 'changelog/01_schema.postgresql.sql'
+      changes:
+        - sqlFile:
+            path: baseline/02-codelists.postgresql.sql
+            relativeToChangelogFile: true
+            splitStatements: true
+            stripComments: false
+            endDelimiter: ";"
+  - changeSet:
+      id: baseline-codelists-oracle
+      author: sitmun
+      logicalFilePath: db/changelog/baseline/02-codelists.oracle.sql
+      dbms: oracle
+      preConditions:
+        - onFail: MARK_RAN
+        - sqlCheck:
+            expectedResult: "0"
+            sql: SELECT COUNT(*) FROM databasechangelog WHERE id = '1' AND filename = 'changelog/01_schema.oracle.sql'
+      changes:
+        - sqlFile:
+            path: baseline/02-codelists.oracle.sql
+            relativeToChangelogFile: true
+            splitStatements: true
+            stripComments: false
+            endDelimiter: ";"
+  - changeSet:
+      id: baseline-seed-postgresql
+      author: sitmun
+      logicalFilePath: db/changelog/baseline/06-seed.postgresql.sql
+      dbms: postgresql
+      preConditions:
+        - onFail: MARK_RAN
+        - sqlCheck:
+            expectedResult: "0"
+            sql: SELECT COUNT(*) FROM databasechangelog WHERE id = '1' AND filename = 'changelog/01_schema.postgresql.sql'
+      changes:
+        - sqlFile:
+            path: baseline/06-seed.postgresql.sql
+            relativeToChangelogFile: true
+            splitStatements: true
+            stripComments: false
+            endDelimiter: "--end"
+  - changeSet:
+      id: baseline-seed-oracle
+      author: sitmun
+      logicalFilePath: db/changelog/baseline/06-seed.oracle.sql
+      dbms: oracle
+      preConditions:
+        - onFail: MARK_RAN
+        - sqlCheck:
+            expectedResult: "0"
+            sql: SELECT COUNT(*) FROM databasechangelog WHERE id = '1' AND filename = 'changelog/01_schema.oracle.sql'
+      changes:
+        - sqlFile:
+            path: baseline/06-seed.oracle.sql
+            relativeToChangelogFile: true
+            splitStatements: true
+            stripComments: false
+            endDelimiter: "--end"
+  - changeSet:
+      id: baseline-translations
+      author: sitmun
+      logicalFilePath: db/changelog/baseline/04-translations.sql
+      preConditions:
+        - onFail: MARK_RAN
+        - or:
+            - dbms:
+                type: h2
+            - and:
+                - dbms:
+                    type: postgresql
+                - sqlCheck:
+                    expectedResult: "0"
+                    sql: SELECT COUNT(*) FROM databasechangelog WHERE id = '1' AND filename = 'changelog/01_schema.postgresql.sql'
+            - and:
+                - dbms:
+                    type: oracle
+                - sqlCheck:
+                    expectedResult: "0"
+                    sql: SELECT COUNT(*) FROM databasechangelog WHERE id = '1' AND filename = 'changelog/01_schema.oracle.sql'
+      changes:
+        - sqlFile:
+            path: baseline/04-translations.sql
+            relativeToChangelogFile: true
+            splitStatements: true
+            stripComments: false
+            endDelimiter: ";"
+  - changeSet:
+      id: baseline-sequence-floor-postgresql
+      author: sitmun
+      logicalFilePath: db/changelog/baseline/05-sequence-floor.postgresql.sql
+      dbms: postgresql
+      preConditions:
+        - onFail: MARK_RAN
+        - sqlCheck:
+            expectedResult: "0"
+            sql: SELECT COUNT(*) FROM databasechangelog WHERE id = '1' AND filename = 'changelog/01_schema.postgresql.sql'
+      changes:
+        - sqlFile:
+            path: baseline/05-sequence-floor.postgresql.sql
+            relativeToChangelogFile: true
+            splitStatements: true
+            stripComments: false
+            endDelimiter: ";"
+  - changeSet:
+      id: baseline-sequence-floor-oracle
+      author: sitmun
+      logicalFilePath: db/changelog/baseline/05-sequence-floor.oracle.sql
+      dbms: oracle
+      preConditions:
+        - onFail: MARK_RAN
+        - sqlCheck:
+            expectedResult: "0"
+            sql: SELECT COUNT(*) FROM databasechangelog WHERE id = '1' AND filename = 'changelog/01_schema.oracle.sql'
+      changes:
+        - sqlFile:
+            path: baseline/05-sequence-floor.oracle.sql
+            relativeToChangelogFile: true
+            splitStatements: true
+            stripComments: false
+            endDelimiter: ";"

@@ -30,9 +30,9 @@ class TreeRepositoryTest {
   void findTreesByRolesAndTerritory() {
     List<Role> roles =
         roleRepository.findRolesByApplicationAndUserAndTerritory(
-            SecurityConstants.PUBLIC_PRINCIPAL, 1, 1);
+            SecurityConstants.PUBLIC_PRINCIPAL, 10001, 10001);
     List<Tree> tr =
-        applicationTreeRepository.findByAppAndRoles(1, roles).stream()
+        applicationTreeRepository.findByAppAndRoles(10001, roles).stream()
             .map(OrderedTree::tree)
             .toList();
     // Seed oracle for app/ter 1: size ≠ 2 means another test polluted Liquibase seed — fix that

@@ -33,5 +33,5 @@ spring:
 
   # Liquibase Configuration for H2
   liquibase:
-    change-log: classpath:/db/changelog/db.changelog-h2.yaml
+    change-log: classpath:/db/changelog-test/db.changelog-master.yaml
     enabled: true 

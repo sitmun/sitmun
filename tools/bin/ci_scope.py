@@ -17,7 +17,6 @@ PERSISTENCE_PREFIXES = (
     "sitmun-backend/src/main/java/org/sitmun/administration/service/dashboard/",
     "sitmun-backend/src/main/java/org/sitmun/administration/service/database/",
     "sitmun-backend/src/main/resources/",
-    "sitmun-backend/config/",
     "sitmun-backend/src/test/resources/",
     "profiles/",
     "gradle/",

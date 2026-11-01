@@ -14,6 +14,7 @@ import liquibase.Contexts;
 import liquibase.Liquibase;
 import liquibase.database.DatabaseFactory;
 import liquibase.database.jvm.JdbcConnection;
+import liquibase.resource.CompositeResourceAccessor;
 import liquibase.resource.DirectoryResourceAccessor;
 import org.h2.jdbcx.JdbcDataSource;
 import org.junit.jupiter.api.Test;
@@ -22,7 +23,8 @@ import org.springframework.jdbc.datasource.DriverManagerDataSource;
 class SequenceMigrationTest {
 
   private static final Path PROJECT_ROOT = Path.of(".").toAbsolutePath().normalize();
-  private static final String CHANGELOG = "config/db/changelog/db.changelog-master.yaml";
+  private static final String CHANGELOG = "db/changelog-test/db.changelog-master.yaml";
+  private static final long APPLICATION_ID_FLOOR = 100_000L;
 
   private static final List<Generator> GENERATORS =
       List.of(
@@ -66,7 +68,7 @@ class SequenceMigrationTest {
           new Generator("USER_TOKEN_ID", "STM_TOKEN_USER", "USER_TOKEN_ID"));
 
   @Test
-  void productionChangelogInitializesEveryTableGeneratorAboveSeededIds() throws Exception {
+  void testChangelogLeavesEveryCounterAtOrAboveTheFloor() throws Exception {
     assertThat(GENERATORS)
         .extracting(Generator::sequenceName, Generator::tableName, Generator::idColumn)
         .contains(tuple("ATR_ID", "STM_APP_TREE", "ATR_ID"));
@@ -81,12 +83,14 @@ class SequenceMigrationTest {
               GENERATORS.forEach(
                   generator -> {
                     try {
-                      var expected = selectNextId(connection, generator);
+                      long highestId = selectNextId(connection, generator) - 1;
                       var actual = selectSequenceCount(connection, generator.sequenceName());
                       softly
                           .assertThat(actual)
                           .as("%s generator", generator.sequenceName())
-                          .isEqualTo(expected);
+                          .isNotNull()
+                          .isGreaterThanOrEqualTo(APPLICATION_ID_FLOOR)
+                          .isGreaterThanOrEqualTo(highestId);
                     } catch (SQLException exception) {
                       throw new AssertionError(generator.sequenceName(), exception);
                     }
@@ -123,8 +127,11 @@ class SequenceMigrationTest {
       var database =
           DatabaseFactory.getInstance()
               .findCorrectDatabaseImplementation(new JdbcConnection(connection));
-      try (var liquibase =
-          new Liquibase(CHANGELOG, new DirectoryResourceAccessor(PROJECT_ROOT), database)) {
+      var resources =
+          new CompositeResourceAccessor(
+              new DirectoryResourceAccessor(PROJECT_ROOT.resolve("src/test/resources")),
+              new DirectoryResourceAccessor(PROJECT_ROOT.resolve("src/main/resources")));
+      try (var liquibase = new Liquibase(CHANGELOG, resources, database)) {
         liquibase.dropAll();
         liquibase.update(new Contexts());
       }

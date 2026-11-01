@@ -58,7 +58,7 @@ class LanguageResourceTest {
         .andExpect(
             jsonPath(
                 "$._embedded.languages[?(@.shortname == 'es')].translatedName",
-                hasItem("Castellà")))
+                hasItem("Espanyol")))
         .andExpect(
             jsonPath(
                 "$._embedded.languages[?(@.shortname == 'oc-aranes')].name",
@@ -79,7 +79,7 @@ class LanguageResourceTest {
         .andExpect(
             jsonPath(
                 "$._embedded.languages[?(@.shortname == 'es')].translatedName",
-                hasItem("Castellano")))
+                hasItem("Español")))
         .andExpect(
             jsonPath("$._embedded.languages[?(@.shortname == 'en')].name", hasItem("English")))
         .andExpect(
@@ -98,7 +98,7 @@ class LanguageResourceTest {
         .andExpect(
             jsonPath(
                 "$._embedded.languages[?(@.shortname == 'es')].translatedName",
-                hasItem("Castelhan")))
+                hasItem("Espanhòl")))
         .andExpect(
             jsonPath(
                 "$._embedded.languages[?(@.shortname == 'oc-aranes')].name",
@@ -106,7 +106,7 @@ class LanguageResourceTest {
         .andExpect(
             jsonPath(
                 "$._embedded.languages[?(@.shortname == 'oc-aranes')].translatedName",
-                hasItem("Occitan aranés")));
+                hasItem("Aranés")));
   }
 
   @Test

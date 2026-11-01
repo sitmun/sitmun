@@ -28,14 +28,14 @@ class CartographyPermissionsRepositoryDataRestTest {
   @AfterEach
   void resetSeedPermissionTypes() {
     cartographyPermissionRepository
-        .findById(2)
+        .findById(10002)
         .ifPresent(
             permission -> {
               permission.setType(TYPE_BACKGROUND_MAP);
               cartographyPermissionRepository.save(permission);
             });
     cartographyPermissionRepository
-        .findById(3)
+        .findById(10003)
         .ifPresent(
             permission -> {
               permission.setType(TYPE_SITUATION_MAP);
@@ -85,7 +85,7 @@ class CartographyPermissionsRepositoryDataRestTest {
   @DisplayName("GET: Retrieve roles associated to CartographyPermissions")
   @WithMockUser(roles = "ADMIN")
   void rolesOfAPermissions() throws Exception {
-    mvc.perform(get(CARTOGRAPHY_PERMISSION_ROLES_URI, 1))
+    mvc.perform(get(CARTOGRAPHY_PERMISSION_ROLES_URI, 10001))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$._embedded.*.*", hasSize(1)));
   }
@@ -137,7 +137,7 @@ class CartographyPermissionsRepositoryDataRestTest {
       "name":"test",
       "type":"C"
       }""";
-    mvc.perform(put(CARTOGRAPHY_PERMISSION_URI, 3).content(changedContent))
+    mvc.perform(put(CARTOGRAPHY_PERMISSION_URI, 10003).content(changedContent))
         .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.errors[0].field").value("type"))
         .andExpect(jsonPath("$.errors[0].rejectedValue").value("C"))
@@ -156,7 +156,7 @@ class CartographyPermissionsRepositoryDataRestTest {
       "type":"C"
       }
       """;
-    mvc.perform(put(CARTOGRAPHY_PERMISSION_URI, 2).content(changedContent))
+    mvc.perform(put(CARTOGRAPHY_PERMISSION_URI, 10002).content(changedContent))
         .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.errors[0].field").value("type"))
         .andExpect(jsonPath("$.errors[0].rejectedValue").value("C"))

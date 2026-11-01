@@ -89,18 +89,18 @@ class DatabaseConnectionRepositoryIntegrationTest {
   @DisplayName("PUT: Update DatabaseConnection")
   @WithMockUser(roles = "ADMIN")
   void updateConnection() throws Exception {
-    JSONObject updatedValueJson = getConnection(1);
+    JSONObject updatedValueJson = getConnection(10001);
     assertThat(Objects.requireNonNull(updatedValueJson).get("user")).isEqualTo("User1");
 
     updatedValueJson.put("user", "User3");
-    updateConnection(1, updatedValueJson);
+    updateConnection(10001, updatedValueJson);
 
-    assertThat(Objects.requireNonNull(getConnection(1)).get("user")).isEqualTo("User3");
+    assertThat(Objects.requireNonNull(getConnection(10001)).get("user")).isEqualTo("User3");
 
     updatedValueJson.put("user", "User1");
-    updateConnection(1, updatedValueJson);
+    updateConnection(10001, updatedValueJson);
 
-    assertThat(Objects.requireNonNull(getConnection(1)).get("user")).isEqualTo("User1");
+    assertThat(Objects.requireNonNull(getConnection(10001)).get("user")).isEqualTo("User1");
   }
 
   @SuppressWarnings({"rawtypes", "unchecked"})
@@ -108,21 +108,21 @@ class DatabaseConnectionRepositoryIntegrationTest {
   @DisplayName("PUT: Cannot update connection for catographies")
   @WithMockUser(roles = "ADMIN")
   void putCannotUpdateConnectionCartographies() throws Exception {
-    JSONObject oldValueJson = getConnectionCartographies(1);
+    JSONObject oldValueJson = getConnectionCartographies(10001);
     List oldList = getListOfCartographies(Objects.requireNonNull(oldValueJson));
 
     List newList =
         Arrays.asList(
-            "http://localhost/api/cartographies/1",
-            "http://localhost/api/cartographies/2",
-            "http://localhost/api/cartographies/3",
-            "http://localhost/api/cartographies/4",
-            "http://localhost/api/cartographies/5",
-            "http://localhost/api/cartographies/6");
+            "http://localhost/api/cartographies/10001",
+            "http://localhost/api/cartographies/10002",
+            "http://localhost/api/cartographies/10003",
+            "http://localhost/api/cartographies/10004",
+            "http://localhost/api/cartographies/10005",
+            "http://localhost/api/cartographies/10006");
 
-    updateConnectionCartograhies(1, newList);
+    updateConnectionCartograhies(10001, newList);
 
-    oldValueJson = getConnectionCartographies(1);
+    oldValueJson = getConnectionCartographies(10001);
     List updatedList = getListOfCartographies(Objects.requireNonNull(oldValueJson));
 
     assertThat(updatedList).containsExactlyInAnyOrderElementsOf(oldList);

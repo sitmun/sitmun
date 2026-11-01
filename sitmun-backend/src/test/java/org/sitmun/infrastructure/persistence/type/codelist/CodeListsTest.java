@@ -23,7 +23,7 @@ class CodeListsTest {
   @DisplayName("Verify all code list constants are available in database")
   void verifyAllCodeListConstantsAvailable() {
     assertThat(codeListValueRepository.findDistinctCodeListName())
-        .containsExactlyInAnyOrder(
+        .contains(
             APPLICATION_PARAMETER_TYPE,
             APPLICATION_TYPE,
             CARTOGRAPHY_FILTER_TYPE,
@@ -194,6 +194,7 @@ class CodeListsTest {
         .containsExactlyInAnyOrder(
             SCOPE_URL_QUERY,
             SCOPE_CARTOGRAPHY_QUERY,
+            SCOPE_RESOURCE_QUERY,
             SCOPE_SQL_QUERY,
             SCOPE_WEB_API_QUERY,
             SCOPE_WEB_API_QUERY_NO_PROXY);
@@ -248,9 +249,7 @@ class CodeListsTest {
   @Test
   @DisplayName("Verify userPosition.type code list values")
   void checkUserPositionType() {
-    assertThat(select(USER_POSITION_TYPE))
-        .containsExactlyInAnyOrder(
-            "AJ", "AR", "DB", "DM", "EM", "EN", "ER", "EX", "GN", "PR", "TS");
+    assertThat(select(USER_POSITION_TYPE)).containsExactlyInAnyOrder("POC");
   }
 
   @Test

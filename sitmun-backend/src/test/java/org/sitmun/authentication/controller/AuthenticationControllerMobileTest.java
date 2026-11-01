@@ -41,7 +41,7 @@ class AuthenticationControllerMobileTest {
 
   @BeforeEach
   void ensureEditionApplication() {
-    Application app = applicationRepository.findById(1).orElseThrow();
+    Application app = applicationRepository.findById(10001).orElseThrow();
     app.setType("ED");
     applicationRepository.saveAndFlush(app);
   }
@@ -135,7 +135,7 @@ class AuthenticationControllerMobileTest {
   @Test
   @DisplayName("Mobile Bearer can list applications and only receives ED apps")
   void mobileBearerListsOnlyEditionApplications() throws Exception {
-    Application touristic = applicationRepository.findById(6).orElseThrow();
+    Application touristic = applicationRepository.findById(10006).orElseThrow();
     touristic.setType("T");
     applicationRepository.saveAndFlush(touristic);
 
@@ -158,12 +158,12 @@ class AuthenticationControllerMobileTest {
     mvc.perform(get("/api/account").header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
         .andExpect(status().isForbidden());
 
-    Application nonEdition = applicationRepository.findById(2).orElseThrow();
+    Application nonEdition = applicationRepository.findById(10002).orElseThrow();
     nonEdition.setType("I");
     applicationRepository.saveAndFlush(nonEdition);
 
     mvc.perform(
-            get("/api/config/client/profile/2/1")
+            get("/api/config/client/profile/10002/10001")
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
         .andExpect(status().isForbidden());
 

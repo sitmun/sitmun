@@ -32,10 +32,13 @@ jobs:
       e2e_mia: ${{ steps.filter.outputs.e2e_mia }}
       e2e_mobile_web: ${{ steps.filter.outputs.e2e_mobile_web }}
       e2e_mobile_android: ${{ steps.filter.outputs.e2e_mobile_android }}
+      tier: ${{ steps.filter.outputs.tier }}
     steps:
       - uses: actions/checkout@v5
         with:
           fetch-depth: 0
+      - name: Check the required code-list manifest
+        run: python3 tools/tests/test_inventory_codelist_consumers.py
       - name: Select changed components
         id: filter
         env:
@@ -119,9 +122,14 @@ jobs:
       suite: mobile_android
       title: Mobile Android
 
+  required-codelists:
+    needs: changes
+    if: github.event_name == 'workflow_dispatch' || needs.changes.outputs.tier == 'persistence'
+    uses: ./.github/workflows/required-codelists.yml
+
   ci-gate:
     name: ci-gate
-    needs: [changes, admin, viewer, backend, proxy, mbtiles, shared, docker, e2e-admin, e2e-viewer, e2e-contact, e2e-mia, e2e-mobile-web, e2e-mobile-android]
+    needs: [changes, admin, viewer, backend, proxy, mbtiles, shared, docker, e2e-admin, e2e-viewer, e2e-contact, e2e-mia, e2e-mobile-web, e2e-mobile-android, required-codelists]
     if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -142,6 +150,7 @@ jobs:
           E2E_MIA: ${{ needs.e2e-mia.result }}
           E2E_MOBILE_WEB: ${{ needs.e2e-mobile-web.result }}
           E2E_MOBILE_ANDROID: ${{ needs.e2e-mobile-android.result }}
+          REQUIRED_CODELISTS: ${{ needs.required-codelists.result }}
         run: |
           python3 - << 'PY'
           import os, sys
@@ -150,6 +159,7 @@ jobs:
               "ADMIN", "VIEWER", "BACKEND", "PROXY", "MBTILES", "SHARED", "DOCKER",
               "E2E_ADMIN", "E2E_VIEWER", "E2E_CONTACT", "E2E_MIA",
               "E2E_MOBILE_WEB", "E2E_MOBILE_ANDROID",
+              "REQUIRED_CODELISTS",
           )
           bad = [name for name in names if os.environ[name] in ("failure", "cancelled")]
           if bad:

@@ -66,7 +66,7 @@ class BackgroundRepositoryDataRestTest {
         "name":"test",
         "description":"test",
         "active":"true",
-        "cartographyGroup":"http://localhost/api/cartography-group/1"
+        "cartographyGroup":"http://localhost/api/cartography-group/10001"
         }""";
     mvc.perform(post(BACKGROUNDS_URI).content(content))
         .andExpect(status().isBadRequest())
@@ -79,9 +79,9 @@ class BackgroundRepositoryDataRestTest {
   @DisplayName("PUT: fail update of cartography group with invalid background map")
   @WithMockUser(roles = "ADMIN")
   void failUpdateBackgroundWithInvalidMap() throws Exception {
-    String content = "http://localhost/api/cartography-group/1";
+    String content = "http://localhost/api/cartography-group/10001";
     mvc.perform(
-            put(BACKGROUND_URI_CARTOGRAPHY_GROUP, 1).content(content).contentType("text/uri-list"))
+            put(BACKGROUND_URI_CARTOGRAPHY_GROUP, 10001).content(content).contentType("text/uri-list"))
         .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.errors[0].field").value("cartographyGroup.type"))
         .andExpect(jsonPath("$.errors[0].rejectedValue").value("C"))

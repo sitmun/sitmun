@@ -37,7 +37,7 @@ Paths by scenario:
   They mount `profiles/<scenario>/liquibase` and run `liquibase update` with `changelog/master.xml`. So they run the same changelog as production for that profile. Behaviour matches the backend when it uses that profile.
 
 - **JUnit tests**  
-  They use classpath changelogs (e.g. `classpath:/db/changelog/db.changelog-postgres.yaml` in `application-postgres.yml`), which include files from `src/test/resources/db/changelog/` and/or the backend `config/db/changelog/`. That set can differ from the profile changelogs (e.g. no 07_sequences, or different includes). So JUnit Liquibase runs do not necessarily behave the same as profile-based runs; they validate the app against a test DB schema, not the production seed flow.
+  They use `classpath:/db/changelog-test/db.changelog-master.yaml`: the H2 schema, the shipped master, then fixture rows. That is the test database, not a production profile run.
 
 ---
 
@@ -47,7 +47,7 @@ Paths by scenario:
 |--------|---------|
 | **apply-seed-data.sh** | Generate seed files then apply the Liquibase changelog to a remote database. `--db-type postgres\|oracle`; `--baseline` selects i18n language. |
 | **validate-liquibase-changelogs.sh** | List changelogs by last modification (newest first). Not an immutability gate. Pass `[liquibase_dir]` as first argument (default: development). |
-| **compare-schema-drift.sh** | Apply development vs postgres/oracle Liquibase (Docker), report PROBLEM/INFO drift, write **draft fix YAML** under `tools/out/schema-drift/`. Optional `--against jpa`. Target `dev-dialects` compares development postgresql vs oracle. |
+| **compare-schema-drift.sh** | Apply development vs postgres/oracle Liquibase (Docker), report PROBLEM/INFO drift, write **draft fix YAML** under `tools/out/schema-drift/`. Optional `--against jpa`. Target `dev-dialects` compares development postgresql vs oracle. Target `fresh-vs-upgraded <engine>` compares a fresh 1.3.0 database with a 1.2.9 database upgraded by the shipped master. Engines are `postgres-16`, `postgres-12`, `oracle-23`, `oracle-21`, and `oracle-11`. Workflow `Fresh versus upgraded` runs that target. |
 | **bump-version.sh** | Copy the platform version from root `gradle.properties` into admin and viewer `package.json`, README badges, and lockfiles. See [Version and release](#version-and-release). |
 
 ```bash
@@ -96,7 +96,7 @@ bash tools/scripts/compare-schema-drift.sh postgres --against jpa --fail-on none
 
 Drafts are **not** auto-wired into `master.xml`. Do not rewrite `sitmun:1`; only add incremental changesets after review. Default draft prefix is `22_schema_drift_fix`. Java field defaults / Bean Validation are annotated as INFO via `extract_jpa_column_hints.py`. They do not invent SQL `DEFAULT` clauses.
 
-Applied profile/schema changesets are frozen. `check_changelog_immutability.py` fails a diff that edits a shipped include numbered below the HEAD tip. Includes that were not on the diff base (new incrementals in the same PR) are allowed. Allowlisted exceptions are generated production seeds `02`–`06` (`runOnChange`), production Postgres `07_sequences.yaml` (`runOnChange`), and development `04_initial_data_dev` (`validCheckSum: ANY`). Adding only `--validCheckSum` lines to `01_schema.*` is also allowed so historical `sitmun:1` hashes can be accepted without rewriting the schema. `check_changelog_integrity.py` is a git-ancestry report on backend-core files. It does not fail CI.
+Applied profile/schema changesets are frozen. `check_changelog_immutability.py` fails a diff that edits a shipped include numbered below the HEAD tip. Includes that were not on the diff base (new incrementals in the same PR) are allowed. Allowlisted exceptions are generated production seeds `02`–`06` (`runOnChange`), production Postgres `07_sequences.yaml` (`runOnChange`), and development `04_initial_data_dev` (`validCheckSum: ANY`). Adding only `--validCheckSum` lines to `01_schema.*` is also allowed so historical `sitmun:1` hashes can be accepted without rewriting the schema. `check_changelog_integrity.py` is a git-ancestry report on the development changelog. It does not fail CI.
 
 ### Version and release
 
@@ -125,7 +125,8 @@ Updates admin and viewer `package.json` and README badges, and regenerates those
 | **test_changelog_immutability.py** | Unit tests for the PR-diff Liquibase immutability gate. |
 | **test_prepare_extracted_liquibase.py** | Unit tests for 1.2.6 CSV width rewrite and case-alias copies. |
 | **test_seed_identity_swap.py** | Unit tests for the STM_CODELIST unique-key swap gate (`#45`). |
-| **test_liquibase_1.2.7_to_head_upgrade.sh** | Tag → HEAD upgrade. CI jobs `postgres-12-from`, `postgres-16-from`, `oracle-11-from`, `oracle-19-from`, and `oracle-23-from` each upgrade 1.2.6, 1.2.7, and 1.2.8. `oracle-23-from` is the forward-compatibility check on Oracle Free 23; no install runs 23. `oracle-19-from` uses `gvenzl/oracle-xe:21-slim` as the 19c stand-in (`#74`). Development jobs upgrade 1.2.6. `SITMUN_ORACLE_IMAGE` (default `gvenzl/oracle-free:23-slim`) and `SITMUN_POSTGRES_IMAGE` (default `postgres:16-alpine`) pick the server. `SITMUN_ORACLE_WAIT_TRIES` is the Oracle readiness budget. `gvenzl/oracle-xe:21-slim` and `gvenzl/oracle-xe:11` are amd64 only. `oracle-11-from` uses service `XE` and does not set `ORACLE_DATABASE`. The other Oracle jobs keep database `sitmun_upgrade`. Do not run the 11 image on an Apple M1. |
+| **test_liquibase_upgrade_from_1.2.9.sh** | Upgrade tagged 1.2.9 to the shipped master, and refuse 1.2.8. Engines are `postgres-16`, `postgres-12`, `oracle-23`, `oracle-21`, and `oracle-11`. On Darwin, Oracle 11 and 21 use Colima profile `oracle-xe`. Elsewhere they use Docker. CI jobs `postgres-12-from`, `postgres-16-from`, `oracle-11-from`, `oracle-19-from`, and `oracle-23-from` call this script. The Oracle 21c job passes `oracle-21`. |
+| **test_liquibase_1.2.7_to_head_upgrade.sh** | Older tag to HEAD upgrade. CI jobs `dev-postgres-from` and `dev-oracle-from` still call it for the development profile. `SITMUN_ORACLE_IMAGE` (default `gvenzl/oracle-free:23-slim`) and `SITMUN_POSTGRES_IMAGE` (default `postgres:16-alpine`) pick the server. `SITMUN_ORACLE_WAIT_TRIES` is the Oracle readiness budget. `gvenzl/oracle-xe:21-slim` and `gvenzl/oracle-xe:11` are amd64 only. Do not run the 11 image on an Apple M1. |
 | **test_liquibase_codelist_auth_mode_swap.sh** | Docker fixture for the 1.2.6→1.2.7 auth-mode ID swap. CI job `postgres-auth-mode-swap`. |
 | **test_backend_db_boot.sh** | Boots the backend jar on an empty schema. `SITMUN_DB` is `oracle-11`, `oracle-19`, `postgres-12`, or `postgres-16`. Checks Liquibase, the Hibernate dialect (`SitmunOracleLegacyDialect`, `SitmunOracleDialect`, or `PostgreSQLDialect`), the database version, health, startup, and the public application list. CI workflows `Test Oracle 11`, `Test Oracle 19`, `Test PostgreSQL 12`, and `Test PostgreSQL 16` then run `testOracle11`, `testOracle19`, `testPostgres12`, or `testPostgres16` on the same container. `SITMUN_DB_KEEP=1` keeps it running. On an Apple M1, run `gvenzl/oracle-xe` in an x86_64 Colima profile and set `SITMUN_DB_URL`. |
 
@@ -167,7 +168,7 @@ See [seed-data/README.md](seed-data/README.md) for the full workflow.
 | **check_changelog_immutability.py** | Fail if a diff edits a Liquibase include below the tree tip. `--base` for CI. | `--tree`; `--changed-file`; `--base`; `--no-git` |
 | **prepare_extracted_liquibase.py** | Rewrite pre-1.2.7 CSV width; copy case-mismatched CSV names for Linux. Used by the upgrade harness on extracted tags. | `--csv-width DIR`; `--alias-case DIR` |
 | **check_seed_identity_swap.py** | Fail a PR diff that moves an `STM_CODELIST` unique key `(COD_LIST, COD_VALUE)` onto a different `COD_ID`. | `--base`; `--changed-file`; `--no-git` |
-| **check_changelog_integrity.py** | Git-ancestry report (backend-core default). Prints violations. Does not exit 1. | — |
+| **check_changelog_integrity.py** | Git-ancestry report (development changelog by default). Prints violations. Does not exit 1. | — |
 | **report_schema_drift.py** | Compare schema dumps; emit PROBLEM/INFO report + draft Liquibase YAML. | `--out-dir`; `--fail-on`; `--dbms` |
 | **extract_jpa_column_hints.py** | Scan domain entities for java defaults / validation / auditing → JSON hints. | `--out` |
 

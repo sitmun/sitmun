@@ -111,10 +111,10 @@ class ProfileMapperTest {
   void jacksonOmitsNullDenominators() throws Exception {
     CartographyDto dto =
         CartographyDto.builder()
-            .id("layer/1")
+            .id("layer/10001")
             .title("t")
             .layers(List.of("a"))
-            .service("service/1")
+            .service("service/10001")
             .minScaleDenominator(null)
             .maxScaleDenominator(null)
             .build();
@@ -129,10 +129,10 @@ class ProfileMapperTest {
   void jacksonSerializesPositiveDenominators() throws Exception {
     CartographyDto dto =
         CartographyDto.builder()
-            .id("layer/1")
+            .id("layer/10001")
             .title("t")
             .layers(List.of("a"))
-            .service("service/1")
+            .service("service/10001")
             .minScaleDenominator(500)
             .maxScaleDenominator(1000000)
             .build();
@@ -168,10 +168,10 @@ class ProfileMapperTest {
   void jacksonOmitsNullTransparency() throws Exception {
     CartographyDto dto =
         CartographyDto.builder()
-            .id("layer/1")
+            .id("layer/10001")
             .title("t")
             .layers(List.of("a"))
-            .service("service/1")
+            .service("service/10001")
             .build();
 
     String json = objectMapper.writeValueAsString(dto);
@@ -218,10 +218,10 @@ class ProfileMapperTest {
   void jacksonSerializesZeroTransparency() throws Exception {
     CartographyDto dto =
         CartographyDto.builder()
-            .id("layer/1")
+            .id("layer/10001")
             .title("t")
             .layers(List.of("a"))
-            .service("service/1")
+            .service("service/10001")
             .transparency(0)
             .build();
 

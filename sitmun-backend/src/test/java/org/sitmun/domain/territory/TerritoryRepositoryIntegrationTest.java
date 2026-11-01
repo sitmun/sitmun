@@ -25,7 +25,7 @@ class TerritoryRepositoryIntegrationTest {
   @WithMockUser(roles = "ADMIN")
   void requestMembers() throws Exception {
     String body =
-        mvc.perform(get(TERRITORIES_URI + "/1/members"))
+        mvc.perform(get(TERRITORIES_URI + "/10001/members"))
             .andExpect(status().isOk())
             .andReturn()
             .getResponse()
@@ -39,7 +39,7 @@ class TerritoryRepositoryIntegrationTest {
   @WithMockUser(roles = "ADMIN")
   void requestMemberOf() throws Exception {
     String body =
-        mvc.perform(get(TERRITORIES_URI + "/2/memberOf"))
+        mvc.perform(get(TERRITORIES_URI + "/10002/memberOf"))
             .andExpect(status().isOk())
             .andReturn()
             .getResponse()

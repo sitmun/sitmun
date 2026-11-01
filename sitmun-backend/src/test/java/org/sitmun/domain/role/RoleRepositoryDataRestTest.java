@@ -25,26 +25,26 @@ class RoleRepositoryDataRestTest {
   @DisplayName("GET: Retrieve all applications for a role")
   @WithMockUser(roles = "ADMIN")
   void getApplicationsOfARole() throws Exception {
-    mvc.perform(get("http://localhost/api/roles/{0}/applications", 1))
+    mvc.perform(get("http://localhost/api/roles/{0}/applications", 10001))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$._embedded.applications", hasSize(4)))
-        .andExpect(jsonPath("$._embedded.applications[0].id").value(1));
+        .andExpect(jsonPath("$._embedded.applications[0].id").value(10001));
   }
 
   @Test
   @DisplayName("GET: Retrieve all tasks for a role")
   @WithMockUser(roles = "ADMIN")
   void getTasksOfARole() throws Exception {
-    mvc.perform(get("http://localhost/api/roles/{0}/tasks", 1))
+    mvc.perform(get("http://localhost/api/roles/{0}/tasks", 10001))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$._embedded.tasks", hasSize(43)));
+        .andExpect(jsonPath("$._embedded.tasks", hasSize(46)));
   }
 
   @Test
   @DisplayName("GET: Retrieve all permissions for a role")
   @WithMockUser(roles = "ADMIN")
   void getPermissionsOfARole() throws Exception {
-    mvc.perform(get(ROLE_PERMISSIONS_URI, 1))
+    mvc.perform(get(ROLE_PERMISSIONS_URI, 10001))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$._embedded.cartography-groups", hasSize(3)));
   }

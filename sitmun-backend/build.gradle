@@ -183,38 +183,6 @@ dependencies {
 // Configuration: docker/test-postgres-compose.yml
 // ============================================================================
 
-// Shared Liquibase steps live under config/; copy non-divergent files onto the test
-// classpath so dialect masters can use relativeToChangelogFile consistently (no file:config).
-tasks.named('processTestResources', Copy).configure {
-  from('config/db/changelog') {
-    include '01_schema.*.sql'
-    include '09_application_responsible_institution.yaml'
-    include '10_application_tree_order.yaml'
-    include '11_language_order_enabled_and_labels.yaml'
-    include '12_task_relation_reference_alias.yaml'
-    include '13_literal_translations.yaml'
-    include '14_add_translation_sequences.sql'
-    include '15_literal_translation_source_language.yaml'
-    include '16_template_task_type.yaml'
-    include '17_more_info_advanced_e2e.yaml'
-    include '18_literal_translations_varchar.yaml'
-    include '31_literal_translation_literal_unique_oracle11.yaml'
-    include '19_mia_chrome_literals.yaml'
-    include '21_align_schema_dialects.yaml'
-    include '22_align_nullability.yaml'
-    include '23_feature_info_field_format.yaml'
-    include '24_add_tree_node_default.yaml'
-    include '25_service_check.yaml'
-    include '26_cartography_service_parameter.yaml'
-    include '27_parameter_operation_scope.yaml'
-    include '28_parameter_type_translations.yaml'
-    include '30_cartography_style_name_unique.yaml'
-    include '31_literal_translation_literal_unique.yaml'
-    include '30_geometry_code_lists.yaml'
-    into 'db/changelog'
-  }
-}
-
 // Test configuration
 tasks.withType(Test).configureEach {
   useJUnitPlatform()
@@ -232,6 +200,7 @@ tasks.withType(Test).configureEach {
   systemProperty 'sitmun.proxy-middleware.secret', 'test-only-insecure-middleware-secret'
   // Forward opt-in Liquibase seed sequence canary (exact STM_SEQUENCE baselines)
   systemProperty 'sitmun.seed-canary.sequences', System.getProperty('sitmun.seed-canary.sequences', '')
+  systemProperty 'sitmun.test.changelog', System.getProperty('sitmun.test.changelog', '')
 
   reports.junitXml.includeSystemOutLog = false
   reports.junitXml.includeSystemErrLog = false
@@ -377,16 +346,107 @@ tasks.register('testPostgres16', Test) {
   }
 }
 
+tasks.register('testRequiredCodeListsPostgres', Test) {
+  group = 'verification'
+  description = 'Production PostgreSQL master must contain every code-list value the code reads'
+  testClassesDirs = sourceSets.test.output.classesDirs
+  classpath = sourceSets.test.runtimeClasspath
+  systemProperty 'spring.profiles.active', 'test,postgres'
+  systemProperty 'sitmun.test.database.enabled', 'true'
+  systemProperty 'sitmun.test.database.product', 'postgres'
+  systemProperty 'sitmun.test.database.version', '16'
+  systemProperty 'sitmun.test.required-codelists', 'true'
+  systemProperty 'sitmun.user.secret', 'test-only-insecure-user-secret-32-bytes'
+  systemProperty 'sitmun.proxy-middleware.secret', 'test-only-insecure-middleware-secret'
+  filter {
+    includeTestsMatching 'org.sitmun.infrastructure.persistence.type.codelist.RequiredCodeListsTest'
+  }
+  testLogging {
+    events "passed", "skipped", "failed"
+    exceptionFormat = 'full'
+  }
+}
+
+tasks.register('testRequiredCodeListsOracle', Test) {
+  group = 'verification'
+  description = 'Production Oracle master must contain every code-list value the code reads'
+  testClassesDirs = sourceSets.test.output.classesDirs
+  classpath = sourceSets.test.runtimeClasspath
+  systemProperty 'spring.profiles.active', 'test,oracle'
+  systemProperty 'sitmun.test.database.enabled', 'true'
+  systemProperty 'sitmun.test.database.product', 'oracle'
+  systemProperty 'sitmun.test.database.version', '23'
+  systemProperty 'sitmun.test.required-codelists', 'true'
+  systemProperty 'sitmun.test.changelog', System.getProperty('sitmun.test.changelog', 'shipped')
+  systemProperty 'sitmun.user.secret', 'test-only-insecure-user-secret-32-bytes'
+  systemProperty 'sitmun.proxy-middleware.secret', 'test-only-insecure-middleware-secret'
+  filter {
+    includeTestsMatching 'org.sitmun.infrastructure.persistence.type.codelist.RequiredCodeListsTest'
+  }
+  testLogging {
+    events "failed"
+    exceptionFormat = 'full'
+  }
+  doFirst {
+    sleep(3000)
+  }
+}
+
+def registerRequiredCodeLists = { String name, String profiles, String product, String version, String urlEnv, String urlDefault, boolean oracle11 ->
+  tasks.register(name, Test) {
+    group = 'verification'
+    description = 'Production master must contain every code-list value the code reads'
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    def jdbcUrl = System.getenv(urlEnv) ?: urlDefault
+    systemProperty 'spring.profiles.active', profiles
+    systemProperty 'spring.datasource.url', jdbcUrl
+    systemProperty 'spring.liquibase.url', jdbcUrl
+    systemProperty 'sitmun.test.database.enabled', 'true'
+    systemProperty 'sitmun.test.database.product', product
+    systemProperty 'sitmun.test.database.version', version
+    systemProperty 'sitmun.test.required-codelists', 'true'
+    systemProperty 'sitmun.test.changelog', System.getProperty('sitmun.test.changelog', 'shipped')
+    systemProperty 'sitmun.user.secret', 'test-only-insecure-user-secret-32-bytes'
+    systemProperty 'sitmun.proxy-middleware.secret', 'test-only-insecure-middleware-secret'
+    if (oracle11) {
+      systemProperty 'oracle.jdbc.timezoneAsRegion', 'false'
+    }
+    filter {
+      includeTestsMatching 'org.sitmun.infrastructure.persistence.type.codelist.RequiredCodeListsTest'
+    }
+    testLogging {
+      events "failed"
+      exceptionFormat = 'full'
+    }
+  }
+}
+
+registerRequiredCodeLists(
+  'testRequiredCodeListsPostgres12', 'test,postgres', 'postgres', '12',
+  'SITMUN_POSTGRES_URL', 'jdbc:postgresql://127.0.0.1:54312/sitmun3', false)
+registerRequiredCodeLists(
+  'testRequiredCodeListsPostgres16', 'test,postgres', 'postgres', '16',
+  'SITMUN_POSTGRES_URL', 'jdbc:postgresql://127.0.0.1:54316/sitmun3', false)
+registerRequiredCodeLists(
+  'testRequiredCodeListsOracle11', 'test,oracle,oracle-11', 'oracle', '11',
+  'SITMUN_ORACLE_URL', 'jdbc:oracle:thin:@//127.0.0.1:15211/XE', true)
+registerRequiredCodeLists(
+  'testRequiredCodeListsOracle19', 'test,oracle', 'oracle', '19',
+  'SITMUN_ORACLE_URL', 'jdbc:oracle:thin:@//127.0.0.1:15219/sitmun3', false)
+
 // Docker Compose configuration for PostgreSQL testing
 dockerCompose {
   projectName = 'sitmun-backend-core'
   postgres {
     useComposeFiles = ['docker/postgres/test-docker-compose.yml']
     isRequiredBy(project.tasks.testPostgres)
+    isRequiredBy(project.tasks.testRequiredCodeListsPostgres)
   }
   oracle {
     useComposeFiles = ['docker/oracle/test-docker-compose.yml']
     isRequiredBy(project.tasks.testOracle)
+    isRequiredBy(project.tasks.testRequiredCodeListsOracle)
     // Oracle needs up to 160s (60s start_period + 20 retries x 5s)
     waitForHealthyStateTimeout = java.time.Duration.ofMinutes(5)
     retainContainersOnStartupFailure = true
