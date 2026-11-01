@@ -223,7 +223,7 @@ pnpm exec playwright show-report
 
 ## Limitations
 
-- Default database is in-memory H2. `SITMUN_E2E_DATASOURCE_URL` points this admin backend at an existing database, runs the test changelog with `drop-first` false, and is the upgraded PostgreSQL 16 run. Viewer, mia-cross, application-contact, and mobile stay on H2; do not set the variable for those suites.
+- Default database is in-memory H2. `SITMUN_E2E_DATASOURCE_URL` points this admin backend at an existing database, runs the test changelog with `drop-first` false, and is the upgraded PostgreSQL 16 run. The PostgreSQL 16 upgrade job sets that URL and runs `pnpm run e2e`. Viewer, mia-cross, application-contact, and mobile stay on H2; do not set the variable for those suites.
 - No OIDC login
 - Admin suite does not cover Application / Layer `app-relation-grid` **CRUD** except MIA Parameters add+reload in `mia-form.spec.ts` and Plantilla Roles/Territories add+reload in `template-task-relations.spec.ts`. Layers form now asserts lazy association GETs for Territories / Permissions / Trees (not grid CRUD). Role/User/Territory/MIA Details create/edit and application-contact (Application Details field) are separate and do not exercise relation-grid CRUD
 - Viewer suite covers configuration + proxy GetCapabilities, plus layer-catalog radio/`loadData` DOM contracts; not full SITNA tile painting

@@ -407,6 +407,7 @@ def registerRequiredCodeLists = { String name, String profiles, String product, 
     systemProperty 'sitmun.test.database.version', version
     systemProperty 'sitmun.test.required-codelists', 'true'
     systemProperty 'sitmun.test.changelog', System.getProperty('sitmun.test.changelog', 'shipped')
+    systemProperty 'sitmun.test.liquibase.drop-first', System.getProperty('sitmun.test.liquibase.drop-first', 'true')
     systemProperty 'sitmun.user.secret', 'test-only-insecure-user-secret-32-bytes'
     systemProperty 'sitmun.proxy-middleware.secret', 'test-only-insecure-middleware-secret'
     if (oracle11) {
@@ -434,6 +435,9 @@ registerRequiredCodeLists(
 registerRequiredCodeLists(
   'testRequiredCodeListsOracle19', 'test,oracle', 'oracle', '19',
   'SITMUN_ORACLE_URL', 'jdbc:oracle:thin:@//127.0.0.1:15219/sitmun3', false)
+registerRequiredCodeLists(
+  'testRequiredCodeListsOracle23', 'test,oracle', 'oracle', '23',
+  'SITMUN_ORACLE_URL', 'jdbc:oracle:thin:@//127.0.0.1:15230/sitmun3', false)
 
 // Docker Compose configuration for PostgreSQL testing
 dockerCompose {

@@ -46,7 +46,9 @@ class RequiredCodeListsTest {
               .resolve("master.xml");
     }
     registry.add("spring.liquibase.change-log", () -> "file:" + master.toAbsolutePath());
-    registry.add("spring.liquibase.drop-first", () -> "true");
+    registry.add(
+        "spring.liquibase.drop-first",
+        () -> System.getProperty("sitmun.test.liquibase.drop-first", "true"));
   }
 
   private static final long APPLICATION_ID_FLOOR = 100_000L;
@@ -123,7 +125,10 @@ class RequiredCodeListsTest {
   @Test
   @DisplayName("a fresh install leaves application ids at or above 100000")
   void freshInstallFloorsEverySequence() throws Exception {
-    Assumptions.assumeTrue("shipped".equals(System.getProperty("sitmun.test.changelog")));
+    Assumptions.assumeTrue(
+        "shipped".equals(System.getProperty("sitmun.test.changelog"))
+            && !"false".equals(System.getProperty("sitmun.test.liquibase.drop-first", "true")),
+        "sequence floor applies to a fresh shipped install");
     try (Connection connection = dataSource.getConnection()) {
       assertSoftly(
           softly ->
