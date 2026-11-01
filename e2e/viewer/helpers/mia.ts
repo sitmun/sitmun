@@ -6,6 +6,7 @@ import {
   MENORCA_TERRITORY_ID,
   MIA_PARENT_TASK_ID,
   NON_RADIO_ROOT_FOLDER_TITLE,
+  QUERYABLE_LEAF_CARTOGRAPHY_ID,
   QUERYABLE_LEAF_NODE_ID,
   RADIO_FOLDER_TITLE,
   readViewerCredentials,
@@ -20,7 +21,7 @@ export async function loginAndOpenMap(
   options?: {
     appId?: number;
     territoryId?: number;
-    /** Cartography id of the expected type-16 MIA parent (default Toponímia 6). */
+    /** Cartography id of the expected type-16 MIA parent (default Toponímia). */
     miaCartographyId?: number | string;
     /** Set false when the spec removes that MIA parent so the attribute popup can render. */
     requireMiaParent?: boolean;
@@ -28,7 +29,7 @@ export async function loginAndOpenMap(
 ): Promise<void> {
   const appId = options?.appId ?? APP_ID;
   const territoryId = options?.territoryId ?? TERRITORY_ID;
-  const miaCartographyId = String(options?.miaCartographyId ?? 6);
+  const miaCartographyId = String(options?.miaCartographyId ?? QUERYABLE_LEAF_CARTOGRAPHY_ID);
   const credentials = await readViewerCredentials();
 
   await page.addInitScript(() => {
