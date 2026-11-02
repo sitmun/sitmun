@@ -7,10 +7,10 @@
 #
 # Usage:
 #   bash tools/scripts/apply-seed-data.sh --db-type postgres --url jdbc:postgresql://host:5432/dbname \
-#       --username user --password pass [--baseline en] [--skip-generate]
+#       --username user --password pass [--generate]
 #
 #   bash tools/scripts/apply-seed-data.sh --db-type oracle --url jdbc:oracle:thin:@//host:1521/service \
-#       --username user --password pass [--baseline es]
+#       --username user --password pass
 #
 # Options:
 #   --db-type          postgres | oracle  (required)
@@ -25,14 +25,12 @@
 set -uo pipefail
 
 REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
-TOOLS_DIR="$REPO_ROOT/tools/bin"
 
 # ── defaults ────────────────────────────────────────────────────────────────
 DB_TYPE=""
 JDBC_URL=""
 DB_USER=""
 DB_PASS=""
-BASELINE="en"
 GENERATE=0
 DRY_RUN=0
 
@@ -41,18 +39,17 @@ usage() {
   cat <<'EOF'
 Usage:
   bash tools/scripts/apply-seed-data.sh --db-type postgres --url jdbc:postgresql://host:5432/dbname \
-      --username user --password pass [--baseline en] [--generate] [--dry-run]
+      --username user --password pass [--generate] [--dry-run]
 
   bash tools/scripts/apply-seed-data.sh --db-type oracle --url jdbc:oracle:thin:@//host:1521/service \
-      --username user --password pass [--baseline es]
+      --username user --password pass
 
 Options:
   --db-type          postgres | oracle  (required)
   --url              JDBC URL of the target database  (required)
   --username         Database username  (required)
   --password         Database password  (required)
-  --baseline         i18n baseline language code, e.g. en, es, ca  (default: en)
-  --generate         Regenerate seed files before applying (modifies tracked files in profiles/)
+  --generate         Regenerate the shipped seed SQL before applying
   --dry-run          Run Liquibase in updateSQL mode (prints SQL, no changes applied)
   -h, --help         Show this help
 EOF
@@ -65,7 +62,6 @@ while [[ $# -gt 0 ]]; do
     --url)           JDBC_URL="$2";   shift 2 ;;
     --username)      DB_USER="$2";    shift 2 ;;
     --password)      DB_PASS="$2";    shift 2 ;;
-    --baseline)      BASELINE="$2";   shift 2 ;;
     --generate)      GENERATE=1;      shift   ;;
     --dry-run)       DRY_RUN=1;       shift   ;;
     -h|--help)       usage ;;
@@ -91,10 +87,9 @@ PROFILE_DIR="$REPO_ROOT/profiles/$DB_TYPE"
 
 # ── generate seed files ──────────────────────────────────────────────────────
 if [[ $GENERATE -eq 1 ]]; then
-  echo "── Generating seed files (scenario=$DB_TYPE, baseline=$BASELINE) ──"
-  (cd "$TOOLS_DIR" && python3 generate_all_seed_outputs.py \
-      --scenarios "$DB_TYPE" \
-      --baseline  "$BASELINE") \
+  echo "── Generating shipped seed SQL ──"
+  python3 "$REPO_ROOT/tools/bin/generate_baseline_seed.py" \
+    && python3 "$REPO_ROOT/tools/bin/generate_legacy_upgrade.py" \
     || error "Seed generation failed"
   echo "  ✓ Seed files generated"
 else

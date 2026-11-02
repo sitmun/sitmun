@@ -5,6 +5,8 @@ from __future__ import annotations
 
 import csv
 import importlib.util
+import subprocess
+import sys
 import unittest
 from pathlib import Path
 
@@ -63,6 +65,34 @@ class SeedTranslationTest(unittest.TestCase):
         for oracle, name in ((False, "postgresql"), (True, "oracle")):
             shipped = (BASELINE / f"02-codelists.{name}.sql").read_text()
             self.assertEqual("\n".join(generator.codelist_statements(oracle)) + "\n", shipped)
+
+    def test_tools_do_not_read_the_retired_json_baselines(self) -> None:
+        forbidden = (
+            "master-" + "i18n",
+            "i18n-active-" + "baseline.json",
+            "generate_all_" + "seed_outputs.py",
+        )
+        hits = []
+        for path in (ROOT / "tools").rglob("*"):
+            if not path.is_file() or "out" in path.relative_to(ROOT / "tools").parts:
+                continue
+            try:
+                text = path.read_text(encoding="utf-8")
+            except UnicodeDecodeError:
+                continue
+            for token in forbidden:
+                if token in text:
+                    hits.append(f"{path.relative_to(ROOT)}: {token}")
+        self.assertEqual(hits, [])
+
+    def test_translation_report_exits_zero(self) -> None:
+        completed = subprocess.run(
+            [sys.executable, str(ROOT / "tools/bin/check_translations.py")],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+        )
+        self.assertEqual(completed.returncode, 0, completed.stdout + completed.stderr)
 
 
 if __name__ == "__main__":

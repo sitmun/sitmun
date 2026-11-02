@@ -154,17 +154,9 @@ See [seed-data/README.md](seed-data/README.md) for the full workflow.
 
 | Script | Purpose | Key flags |
 |--------|---------|-----------|
-| **generate_all_seed_outputs.py** | Orchestrator: run translation + seed generation for all production profiles. | `--scenarios` (default: postgres,oracle); `--baseline` |
-| **generate_seed_files.py** | Generate non-translation seed CSVs + loadUpdateData YAMLs. | `--scenario` |
-| **generate_translation_files.py** | Generate Liquibase translation CSVs + changelog from baseline. | `--scenario`; `--baseline` |
-| **switch_default_language.py** | Non-destructive baseline selection + production regeneration. | positional lang; `--dry-run` |
-| **check_translations.py** | Report missing translations. | `--baseline` |
-| **import_missing_translations.py** | Merge completed rows from `missing-translations.csv` into a baseline. | `--baseline` |
-| **extract_seed_data.py** | Extract non-translation seed rows from dev CSVs → `master-seed-data.json`. | — |
-| **extract_translatable.py** | Extract from seed CSVs + dev translations → baseline JSON. | `--scenario`; `--baseline` |
-| **import_from_csv.py** | One-time import from legacy Liquibase translation CSVs into a baseline. | `--scenario`; `--baseline` |
-| **import_from_generated_csvs.py** | Import from generated `STM_TRANSLATION_*.csv` into a baseline. | `--scenario`; `--baseline` |
-| **sort_codelist.py** | Sort and renumber `STM_CODELIST.csv`. | pass input file path |
+| **generate_baseline_seed.py** | Write the shipped code-list and translation SQL from `seed-data/baseline`. | — |
+| **generate_legacy_upgrade.py** | Write the 1.2.9 upgrade SQL from the same CSV files. | — |
+| **check_translations.py** | List code values, tasks, territory types, and task groups with no translation outside the default language. Exits 0. | — |
 | **check_changelog_immutability.py** | Fail if a diff edits a Liquibase include below the tree tip. `--base` for CI. | `--tree`; `--changed-file`; `--base`; `--no-git` |
 | **prepare_extracted_liquibase.py** | Rewrite pre-1.2.7 CSV width; copy case-mismatched CSV names for Linux. Used by the upgrade harness on extracted tags. | `--csv-width DIR`; `--alias-case DIR` |
 | **check_seed_identity_swap.py** | Fail a PR diff that moves an `STM_CODELIST` unique key `(COD_LIST, COD_VALUE)` onto a different `COD_ID`. | `--base`; `--changed-file`; `--no-git` |
@@ -173,21 +165,9 @@ See [seed-data/README.md](seed-data/README.md) for the full workflow.
 | **extract_jpa_column_hints.py** | Scan domain entities for java defaults / validation / auditing → JSON hints. | `--out` |
 
 ```bash
-# Generate translation + seed files for both production profiles (default baseline)
-python3 tools/bin/generate_all_seed_outputs.py
-
-# Explicit English baseline, both profiles
-python3 tools/bin/generate_all_seed_outputs.py --baseline en --scenarios postgres,oracle
-
-# Only translation files for oracle
-python3 tools/bin/generate_translation_files.py --scenario oracle --baseline en
-
-# Switch default language to Spanish (non-destructive, regenerates postgres + oracle)
-python3 tools/bin/switch_default_language.py es --dry-run
-python3 tools/bin/switch_default_language.py es
-
-# Sort a codelist CSV
-python3 tools/bin/sort_codelist.py profiles/postgres/liquibase/changelog/02_codelists/STM_CODELIST.csv
+python3 tools/bin/generate_baseline_seed.py
+python3 tools/bin/generate_legacy_upgrade.py
+python3 tools/bin/check_translations.py
 
 # Check changelog immutability (also run by .github/workflows/liquibase-immutability.yml)
 python3 tools/bin/check_changelog_immutability.py
