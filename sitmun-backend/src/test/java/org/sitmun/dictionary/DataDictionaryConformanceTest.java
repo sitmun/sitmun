@@ -148,34 +148,42 @@ class DataDictionaryConformanceTest {
 
   private List<String> scanH2(JsonNode document) throws Exception {
     List<String> rows = new ArrayList<>();
-    try (Connection connection = dataSource.getConnection();
-        var statement = connection.createStatement();
-        var result =
-            statement.executeQuery(
-                """
-                SELECT UPPER(TABLE_NAME), UPPER(COLUMN_NAME), DATA_TYPE, CHARACTER_MAXIMUM_LENGTH, IS_NULLABLE
-                FROM INFORMATION_SCHEMA.COLUMNS
-                WHERE TABLE_SCHEMA = 'PUBLIC' AND UPPER(TABLE_NAME) LIKE 'STM_%'
-                """)) {
-      while (result.next()) {
-        String key = result.getString(1) + "." + result.getString(2);
-        JsonNode row = document.path("columns").path(key);
-        if (row.isMissingNode() || !"string".equals(row.path("type").asText())) {
-          continue;
-        }
-        int observed = result.getInt(4);
-        if (result.wasNull()) {
-          continue;
-        }
-        if (row.hasNonNull("length") && row.get("length").asInt() != observed) {
-          rows.add(
-              DictionaryComparison.line("length", key, "h2", row.get("length").asInt(), observed));
-        }
-        boolean required = "NO".equalsIgnoreCase(result.getString(5));
-        if (row.path("required").asBoolean(false) != required) {
-          rows.add(
-              DictionaryComparison.line(
-                  "required", key, "h2", row.path("required").asBoolean(false), required));
+    try (Connection connection = dataSource.getConnection()) {
+      // INFORMATION_SCHEMA.COLUMNS is the H2 catalog. Oracle has no such view, and the
+      // Oracle and PostgreSQL test jobs still run this class. Those catalogs are checked
+      // from the fresh dump.
+      if (!"H2".equalsIgnoreCase(connection.getMetaData().getDatabaseProductName())) {
+        return rows;
+      }
+      try (var statement = connection.createStatement();
+          var result =
+              statement.executeQuery(
+                  """
+                  SELECT UPPER(TABLE_NAME), UPPER(COLUMN_NAME), DATA_TYPE, CHARACTER_MAXIMUM_LENGTH, IS_NULLABLE
+                  FROM INFORMATION_SCHEMA.COLUMNS
+                  WHERE TABLE_SCHEMA = 'PUBLIC' AND UPPER(TABLE_NAME) LIKE 'STM_%'
+                  """)) {
+        while (result.next()) {
+          String key = result.getString(1) + "." + result.getString(2);
+          JsonNode row = document.path("columns").path(key);
+          if (row.isMissingNode() || !"string".equals(row.path("type").asText())) {
+            continue;
+          }
+          int observed = result.getInt(4);
+          if (result.wasNull()) {
+            continue;
+          }
+          if (row.hasNonNull("length") && row.get("length").asInt() != observed) {
+            rows.add(
+                DictionaryComparison.line(
+                    "length", key, "h2", row.get("length").asInt(), observed));
+          }
+          boolean required = "NO".equalsIgnoreCase(result.getString(5));
+          if (row.path("required").asBoolean(false) != required) {
+            rows.add(
+                DictionaryComparison.line(
+                    "required", key, "h2", row.path("required").asBoolean(false), required));
+          }
         }
       }
     }
