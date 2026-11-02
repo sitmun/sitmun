@@ -229,8 +229,8 @@ class CodeListsTest {
   }
 
   @Test
-  @DisplayName("Drivers stay below the fixture id band and are not system rows")
-  void driversAreDeletable() {
+  @DisplayName("Drivers stay below the fixture id band and are system rows")
+  void driversAreSystem() {
     var drivers =
         StreamSupport.stream(
                 codeListValueRepository
@@ -246,7 +246,7 @@ class CodeListsTest {
             "org.postgresql.Driver",
             "oracle.jdbc.OracleDriver",
             "com.microsoft.sqlserver.jdbc.SQLServerDriver");
-    assertThat(drivers).allSatisfy(row -> assertThat(row.getSystem()).isFalse());
+    assertThat(drivers).allSatisfy(row -> assertThat(row.getSystem()).isTrue());
     assertThat(drivers).allSatisfy(row -> assertThat(row.getId()).isLessThan(10000));
   }
 

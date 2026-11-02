@@ -1,4 +1,7 @@
 databaseChangeLog:
+  - property:
+      name: upgrade.defaultLanguage
+      value: ""
   - changeSet:
       id: legacy-1.2.9-version-check-postgresql
       author: sitmun

@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+- **Database**: An upgrade from 1.2.9 requires `SITMUN_UPGRADE_DEFAULT_LANGUAGE`. It must match `STM_CONF` `language.default`, and that language must be in `STM_LANGUAGE`. Otherwise the upgrade stops before it changes anything.
 - **Tests**: `testOracle11`, `testOracle19`, `testPostgres12`, and `testPostgres16` run the suite against a database that is already running. Workflows `Test Oracle 11g`, `Test Oracle 21c (stand-in for 19c)`, `Test PostgreSQL 12`, and `Test PostgreSQL 16` boot that database with the production changelog, then run the matching task. `testOracle11` uses `OracleLegacyDialect`. `testOracle19` uses `OracleDialect`. Both PostgreSQL tasks use `PostgreSQLDialect`.
 - **Cartography**: The cartography `view` projection includes `serviceType`, copied from the linked service protocol ([sitmun-admin-app#498](https://github.com/sitmun/sitmun-admin-app/issues/498)).
 - **Code lists**: `cartographyParameter.geometryKind` and `cartographyParameter.preferredGeometryType` store English descriptions. Spanish, Catalan, Aranese, and French labels, including format `Geometry`, come from `STM_TRANSLATION`.
@@ -19,11 +20,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Removed
 
-- **Code lists**: The backend no longer inserts code-list rows at startup. `sitmun.startup.code-lists` is removed. Readiness no longer waits for that step. JDBC driver rows stay in the test fixtures. A new database does not create them.
+- **Code lists**: The backend no longer inserts code-list rows at startup. `sitmun.startup.code-lists` is removed. Readiness no longer waits for that step. The four JDBC drivers are rows in the shipped seed.
 - **Database**: `sitmun-backend/config` is no longer the development changelog. A local boot loads the test changelog. Production profiles load the shipped master.
 
 ### Changed
 
+- **Code lists**: Shipped values an administrator could delete are now system, including the four JDBC drivers. `downloadTask.scope` `A`, `U`, and `C` stay removable. An upgrade sets the system flag and restores a deleted value in the database's default language. It does not change the description of a value that is already there, and it keeps a partner's default on the newly fixed values.
+- **i18n**: English code-value labels are the base description. An upgrade corrects an English label only when it still holds the wrong text shipped earlier, and it does not insert a translation in the database's default language.
 - **Database**: An upgrade from 1.2.9 widens `use_email` to 250 characters. A fresh PostgreSQL, Oracle, and H2 database already creates that column at 250.
 - **Database**: An upgrade from 1.2.9 fills an empty tree type with `cartography` when the tree has a layer and no task. On a cartography or edition tree, an empty node type becomes `cartography` when the node has a layer, and `folder` when it has neither a layer nor a task. A type that is already set stays.
 - **Database**: The Oracle JDBC driver is `ojdbc10` 19.32.0.0. Profile `oracle` sets `org.hibernate.dialect.OracleDialect`. Profile `oracle-11` sets `org.hibernate.community.dialect.OracleLegacyDialect`. Task paging does not read a version property.

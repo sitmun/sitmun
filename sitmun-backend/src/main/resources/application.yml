@@ -21,6 +21,8 @@ spring:
     enabled: false
   liquibase:
     change-log: file:./src/test/resources/db/changelog-test/db.changelog-master.yaml
+    parameters:
+      "[upgrade.defaultLanguage]": ${SITMUN_UPGRADE_DEFAULT_LANGUAGE:}
   jpa:
     hibernate:
       ddl-auto: none
