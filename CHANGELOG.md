@@ -151,6 +151,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 #### Stack-level
 
+- **Seed**: The per-language translation JSON files and the scripts that read them are removed. Seed text is edited in `tools/seed-data/baseline`.
 - **Docker**: `profiles/postgres/docker-compose.yml` and `profiles/oracle/docker-compose.yml` are removed. PostgreSQL and Oracle start from the root Compose file after copying `profiles/postgres.env` or `profiles/oracle.env` to `.env` ([#110](https://github.com/sitmun/sitmun-application-stack/issues/110)).
 
 ## [1.2.9] - 2026-09-19
