@@ -16,6 +16,7 @@ on:
       - 'tools/scripts/fresh-vs-upgraded.sh'
       - 'tools/bin/compare_fresh_vs_upgraded.py'
       - 'tools/bin/generate_legacy_upgrade.py'
+      - 'tools/tests/test_generate_legacy_upgrade.py'
       - '.github/workflows/fresh-vs-upgraded.yml'
   workflow_dispatch:
     inputs:
@@ -33,6 +34,16 @@ on:
           - oracle-23
 
 jobs:
+  version-check:
+    name: Version check generator
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+      - name: Check the version check generator
+        run: python3 tools/tests/test_generate_legacy_upgrade.py
+
   postgres-12:
     name: Fresh versus upgraded PostgreSQL 12
     if: github.event_name != 'workflow_dispatch' || inputs.db == 'all' || inputs.db == 'postgres-12'

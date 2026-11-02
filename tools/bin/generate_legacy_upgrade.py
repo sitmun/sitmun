@@ -3,6 +3,8 @@
 
 The schema files are handwritten. This script writes the version check, the
 system code-list repair, the missing translations, and the counter advance.
+The version check refuses a database that is neither empty nor 1.2.9, and a
+1.2.9 database whose cartography rows share a style.
 """
 
 from __future__ import annotations
@@ -45,6 +47,7 @@ def version_check_postgres(rows: list[tuple[str, str, str]]) -> str:
     return f"""DO $$
 DECLARE
   present integer;
+  shared_styles text;
 BEGIN
   SELECT COUNT(*) INTO present
   FROM databasechangelog d
@@ -57,10 +60,24 @@ BEGIN
       AND required.filename = d.filename
   );
   IF present = 0 THEN
+    IF to_regclass('stm_app') IS NOT NULL THEN
+      RAISE EXCEPTION 'upgrade to 1.2.9 first';
+    END IF;
     RETURN;
   END IF;
   IF present < {len(rows)} THEN
     RAISE EXCEPTION 'upgrade to 1.2.9 first';
+  END IF;
+  SELECT string_agg(geo_id::text, ', ' ORDER BY geo_id) INTO shared_styles
+  FROM stm_geoinfo
+  WHERE geo_styid IN (
+    SELECT geo_styid FROM stm_geoinfo
+    WHERE geo_styid IS NOT NULL
+    GROUP BY geo_styid
+    HAVING COUNT(*) > 1
+  );
+  IF shared_styles IS NOT NULL THEN
+    RAISE EXCEPTION 'shared geo_styid on cartography ids %', shared_styles;
   END IF;
 END $$;
 """
@@ -94,6 +111,8 @@ def version_check_oracle(rows: list[tuple[str, str, str]]) -> str:
   present_23 NUMBER;
   present_pre23 NUMBER;
   known NUMBER;
+  app_exists NUMBER;
+  shared_styles VARCHAR2(4000);
 BEGIN
   SELECT COUNT(*) INTO present_23
   FROM databasechangelog d
@@ -116,6 +135,14 @@ BEGIN
       AND required.filename = d.filename
   );
   IF present_23 = {len(rows)} OR present_pre23 = {len(pre23)} THEN
+    -- Dynamic SQL: a fresh database has no stm_geoinfo, and Oracle compiles
+    -- static queries in this block before that table exists.
+    EXECUTE IMMEDIATE
+      'SELECT LISTAGG(geo_id, '', '') WITHIN GROUP (ORDER BY geo_id) FROM stm_geoinfo WHERE geo_styid IN (SELECT geo_styid FROM stm_geoinfo WHERE geo_styid IS NOT NULL GROUP BY geo_styid HAVING COUNT(*) > 1)'
+      INTO shared_styles;
+    IF shared_styles IS NOT NULL THEN
+      RAISE_APPLICATION_ERROR(-20002, 'shared geo_styid on cartography ids ' || shared_styles);
+    END IF;
     RETURN;
   END IF;
   SELECT COUNT(*) INTO known
@@ -131,6 +158,10 @@ BEGIN
       AND required.filename = d.filename
   );
   IF known = 0 THEN
+    SELECT COUNT(*) INTO app_exists FROM user_tables WHERE table_name = 'STM_APP';
+    IF app_exists > 0 THEN
+      RAISE_APPLICATION_ERROR(-20001, 'upgrade to 1.2.9 first');
+    END IF;
     RETURN;
   END IF;
   RAISE_APPLICATION_ERROR(-20001, 'upgrade to 1.2.9 first');

@@ -24,6 +24,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Changed
 
+- **Database**: An upgrade from 1.2.9 widens `use_email` to 250 characters. A fresh PostgreSQL, Oracle, and H2 database already creates that column at 250.
+- **Database**: An upgrade from 1.2.9 fills an empty tree type with `cartography` when the tree has a layer and no task. On a cartography or edition tree, an empty node type becomes `cartography` when the node has a layer, and `folder` when it has neither a layer nor a task. A type that is already set stays.
 - **Database**: The Oracle JDBC driver is `ojdbc10` 19.32.0.0. Profile `oracle` sets `org.hibernate.dialect.OracleDialect`. Profile `oracle-11` sets `org.hibernate.community.dialect.OracleLegacyDialect`. Task paging does not read a version property.
 - **Build**: Spring Boot is 4.1.1; springdoc-openapi is 3.1.1; Liquibase via `spring-boot-starter-liquibase`; OIDC via `spring-boot-starter-security-oauth2-client`.
 - **Build**: `setupGitHooks` is no longer a dependency of `build` (submodule-safe / opt-in via `./gradlew setupGitHooks`).
@@ -61,6 +63,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+- **Service usage**: A usage day keeps its civil date on H2, PostgreSQL, and Oracle. Hibernate binds `LocalDate` with JDBC 4.2 (`hibernate.type.java_time_use_direct_jdbc`). The previous `java.sql.Date` write moved that day back when the JDBC zone was UTC and the JVM zone was ahead of UTC. Rows already stored stay on the day that was written.
 - **Database**: `SitmunOracleDialect` and `SitmunOracleLegacyDialect` take the connected database version. With only a no-argument constructor, Hibernate configured them as Oracle 19 and Oracle 8, so Oracle 11 got SQL generated for Oracle 8.
 - **Grants**: On Oracle, a user position created today grants access today. JPQL `cast(... as date)` kept the time of day there, so `cast(pos.createdDate as date) <= current_date` was false until the next day. The Oracle dialects truncate a cast to date.
 - **i18n**: Creating a task whose template has a new literal no longer returns HTTP 500 on Oracle. The literal insert no longer calls `releaseSavepoint`, which the Oracle JDBC driver does not support. The savepoint ends with the transaction.

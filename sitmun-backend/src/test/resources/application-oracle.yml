@@ -29,6 +29,7 @@ spring:
     properties.hibernate:
       dialect: org.sitmun.infrastructure.persistence.dialect.SitmunOracleDialect
       jdbc.time_zone: UTC
+      type.java_time_use_direct_jdbc: true
       type.preferred_boolean_jdbc_type: SMALLINT
       connection.provider_disables_autocommit: true
 

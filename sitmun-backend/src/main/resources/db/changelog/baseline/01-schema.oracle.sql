@@ -503,7 +503,7 @@ CREATE TABLE stm_user (
     use_surname VARCHAR2(50 CHAR),
     use_ident VARCHAR2(50 CHAR),
     use_identtype VARCHAR2(50 CHAR),
-    use_email VARCHAR2(50 CHAR),
+    use_email VARCHAR2(250 CHAR),
     use_adm NUMBER(1, 0) NOT NULL,
     use_blocked NUMBER(1, 0) NOT NULL,
     use_created TIMESTAMP(6),

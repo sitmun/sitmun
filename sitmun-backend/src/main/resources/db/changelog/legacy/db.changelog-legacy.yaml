@@ -157,3 +157,37 @@ databaseChangeLog:
             splitStatements: true
             stripComments: false
             endDelimiter: ";"
+  - changeSet:
+      id: legacy-1.2.9-tree-node-type-postgresql
+      author: sitmun
+      dbms: postgresql
+      logicalFilePath: db/changelog/legacy/06-tree-node-type.sql
+      preConditions:
+        - onFail: MARK_RAN
+        - sqlCheck:
+            expectedResult: "1"
+            sql: SELECT COUNT(*) FROM databasechangelog WHERE id = '1' AND filename = 'changelog/01_schema.postgresql.sql'
+      changes:
+        - sqlFile:
+            path: 06-tree-node-type.sql
+            relativeToChangelogFile: true
+            splitStatements: true
+            stripComments: false
+            endDelimiter: ";"
+  - changeSet:
+      id: legacy-1.2.9-tree-node-type-oracle
+      author: sitmun
+      dbms: oracle
+      logicalFilePath: db/changelog/legacy/06-tree-node-type.sql
+      preConditions:
+        - onFail: MARK_RAN
+        - sqlCheck:
+            expectedResult: "1"
+            sql: SELECT COUNT(*) FROM databasechangelog WHERE id = '1' AND filename = 'changelog/01_schema.oracle.sql'
+      changes:
+        - sqlFile:
+            path: 06-tree-node-type.sql
+            relativeToChangelogFile: true
+            splitStatements: true
+            stripComments: false
+            endDelimiter: ";"

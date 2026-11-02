@@ -232,35 +232,35 @@ INSERT INTO stm_avail_gi (agi_id, agi_terid, agi_giid, agi_created) VALUES (1001
 --end
 INSERT INTO stm_avail_gi (agi_id, agi_terid, agi_giid, agi_created) VALUES (10011, 10001, 10011, TIMESTAMP '2011-04-29 11:41:57')
 --end
-INSERT INTO stm_tree_nod (tno_id, tno_parentid, tno_name, tno_tooltip, tno_default, tno_order, tno_treeid, tno_giid, tno_radio, tno_active, tno_load_data) VALUES (10001, NULL, 'Topográficos', 'Topográficos', 0, '2', 10001, NULL, 0, 1, 0)
+INSERT INTO stm_tree_nod (tno_id, tno_parentid, tno_name, tno_tooltip, tno_default, tno_order, tno_treeid, tno_giid, tno_radio, tno_active, tno_load_data, tno_type) VALUES (10001, NULL, 'Topográficos', 'Topográficos', 0, '2', 10001, NULL, 0, 1, 0, 'folder')
 --end
-INSERT INTO stm_tree_nod (tno_id, tno_parentid, tno_name, tno_tooltip, tno_default, tno_order, tno_treeid, tno_giid, tno_radio, tno_active, tno_load_data) VALUES (10002, 10001, 'Topográfico 1:50.000', 'Topográfico 1:50.000', 0, '1', 10001, NULL, 0, 1, 0)
+INSERT INTO stm_tree_nod (tno_id, tno_parentid, tno_name, tno_tooltip, tno_default, tno_order, tno_treeid, tno_giid, tno_radio, tno_active, tno_load_data, tno_type) VALUES (10002, 10001, 'Topográfico 1:50.000', 'Topográfico 1:50.000', 0, '1', 10001, NULL, 0, 1, 0, 'folder')
 --end
-INSERT INTO stm_tree_nod (tno_id, tno_parentid, tno_name, tno_tooltip, tno_default, tno_order, tno_treeid, tno_giid, tno_radio, tno_active, tno_load_data) VALUES (10003, 10002, 'Toponímia', 'Toponímia', 0, '1', 10001, 10006, NULL, 1, 0)
+INSERT INTO stm_tree_nod (tno_id, tno_parentid, tno_name, tno_tooltip, tno_default, tno_order, tno_treeid, tno_giid, tno_radio, tno_active, tno_load_data, tno_type) VALUES (10003, 10002, 'Toponímia', 'Toponímia', 0, '1', 10001, 10006, NULL, 1, 0, 'cartography')
 --end
-INSERT INTO stm_tree_nod (tno_id, tno_parentid, tno_name, tno_tooltip, tno_default, tno_order, tno_treeid, tno_giid, tno_radio, tno_active, tno_load_data) VALUES (10004, 10002, 'Altimetría', 'Altimetría', 0, '2', 10001, 10007, NULL, 1, 0)
+INSERT INTO stm_tree_nod (tno_id, tno_parentid, tno_name, tno_tooltip, tno_default, tno_order, tno_treeid, tno_giid, tno_radio, tno_active, tno_load_data, tno_type) VALUES (10004, 10002, 'Altimetría', 'Altimetría', 0, '2', 10001, 10007, NULL, 1, 0, 'cartography')
 --end
-INSERT INTO stm_tree_nod (tno_id, tno_parentid, tno_name, tno_tooltip, tno_default, tno_order, tno_treeid, tno_giid, tno_radio, tno_active, tno_load_data) VALUES (10005, 10001, 'Topográfico 1:25.000', 'Topográfico 1:25.000', 0, '2', 10001, NULL, 0, 1, 0)
+INSERT INTO stm_tree_nod (tno_id, tno_parentid, tno_name, tno_tooltip, tno_default, tno_order, tno_treeid, tno_giid, tno_radio, tno_active, tno_load_data, tno_type) VALUES (10005, 10001, 'Topográfico 1:25.000', 'Topográfico 1:25.000', 0, '2', 10001, NULL, 0, 1, 0, 'folder')
 --end
-INSERT INTO stm_tree_nod (tno_id, tno_parentid, tno_name, tno_tooltip, tno_default, tno_order, tno_treeid, tno_giid, tno_radio, tno_active, tno_load_data) VALUES (10006, 10005, '1:25.000 ICGC', '1:25.000 ICGC', 0, '0', 10001, 10005, NULL, 1, 0)
+INSERT INTO stm_tree_nod (tno_id, tno_parentid, tno_name, tno_tooltip, tno_default, tno_order, tno_treeid, tno_giid, tno_radio, tno_active, tno_load_data, tno_type) VALUES (10006, 10005, '1:25.000 ICGC', '1:25.000 ICGC', 0, '0', 10001, 10005, NULL, 1, 0, 'cartography')
 --end
-INSERT INTO stm_tree_nod (tno_id, tno_parentid, tno_name, tno_tooltip, tno_default, tno_order, tno_treeid, tno_giid, tno_radio, tno_active, tno_load_data) VALUES (10007, NULL, 'Ortofotos', 'Ortofotos', 0, '1', 10001, NULL, 1, 1, 1)
+INSERT INTO stm_tree_nod (tno_id, tno_parentid, tno_name, tno_tooltip, tno_default, tno_order, tno_treeid, tno_giid, tno_radio, tno_active, tno_load_data, tno_type) VALUES (10007, NULL, 'Ortofotos', 'Ortofotos', 0, '1', 10001, NULL, 1, 1, 1, 'folder')
 --end
-INSERT INTO stm_tree_nod (tno_id, tno_parentid, tno_name, tno_tooltip, tno_default, tno_order, tno_treeid, tno_giid, tno_radio, tno_active, tno_load_data) VALUES (10008, 10007, 'Actual', 'Actual', 0, '2', 10001, 10008, NULL, 1, 0)
+INSERT INTO stm_tree_nod (tno_id, tno_parentid, tno_name, tno_tooltip, tno_default, tno_order, tno_treeid, tno_giid, tno_radio, tno_active, tno_load_data, tno_type) VALUES (10008, 10007, 'Actual', 'Actual', 0, '2', 10001, 10008, NULL, 1, 0, 'cartography')
 --end
-INSERT INTO stm_tree_nod (tno_id, tno_parentid, tno_name, tno_tooltip, tno_default, tno_order, tno_treeid, tno_giid, tno_radio, tno_active, tno_load_data) VALUES (10009, 10007, 'Infrarrojo', 'Infrarrojo', 1, '1', 10001, 10009, NULL, 1, 0)
+INSERT INTO stm_tree_nod (tno_id, tno_parentid, tno_name, tno_tooltip, tno_default, tno_order, tno_treeid, tno_giid, tno_radio, tno_active, tno_load_data, tno_type) VALUES (10009, 10007, 'Infrarrojo', 'Infrarrojo', 1, '1', 10001, 10009, NULL, 1, 0, 'cartography')
 --end
-INSERT INTO stm_tree_nod (tno_id, tno_parentid, tno_name, tno_tooltip, tno_default, tno_order, tno_treeid, tno_giid, tno_radio, tno_active, tno_load_data) VALUES (10010, 10007, 'Blocked Service Layer', 'Blocked Service Layer', 0, '3', 10001, 10010, NULL, 1, 0)
+INSERT INTO stm_tree_nod (tno_id, tno_parentid, tno_name, tno_tooltip, tno_default, tno_order, tno_treeid, tno_giid, tno_radio, tno_active, tno_load_data, tno_type) VALUES (10010, 10007, 'Blocked Service Layer', 'Blocked Service Layer', 0, '3', 10001, 10010, NULL, 1, 0, 'cartography')
 --end
-INSERT INTO stm_tree_nod (tno_id, tno_parentid, tno_name, tno_tooltip, tno_default, tno_order, tno_treeid, tno_giid, tno_radio, tno_active, tno_load_data) VALUES (10011, 10007, 'Geo-Blocked Layer', 'Geo-Blocked Layer', 0, '4', 10001, 10011, NULL, 1, 0)
+INSERT INTO stm_tree_nod (tno_id, tno_parentid, tno_name, tno_tooltip, tno_default, tno_order, tno_treeid, tno_giid, tno_radio, tno_active, tno_load_data, tno_type) VALUES (10011, 10007, 'Geo-Blocked Layer', 'Geo-Blocked Layer', 0, '4', 10001, 10011, NULL, 1, 0, 'cartography')
 --end
-INSERT INTO stm_tree_nod (tno_id, tno_parentid, tno_name, tno_tooltip, tno_default, tno_order, tno_treeid, tno_giid, tno_radio, tno_active, tno_load_data) VALUES (10012, 10007, 'Inactive visible leaf', 'Inactive visible leaf', 0, '5', 10001, 10008, NULL, 0, 0)
+INSERT INTO stm_tree_nod (tno_id, tno_parentid, tno_name, tno_tooltip, tno_default, tno_order, tno_treeid, tno_giid, tno_radio, tno_active, tno_load_data, tno_type) VALUES (10012, 10007, 'Inactive visible leaf', 'Inactive visible leaf', 0, '5', 10001, 10008, NULL, 0, 0, 'cartography')
 --end
-INSERT INTO stm_tree_nod (tno_id, tno_parentid, tno_name, tno_tooltip, tno_default, tno_order, tno_treeid, tno_giid, tno_radio, tno_active, tno_load_data) VALUES (10013, 10001, 'Inactive folder subtree', 'Inactive folder subtree', 0, '3', 10001, NULL, 0, 0, 0)
+INSERT INTO stm_tree_nod (tno_id, tno_parentid, tno_name, tno_tooltip, tno_default, tno_order, tno_treeid, tno_giid, tno_radio, tno_active, tno_load_data, tno_type) VALUES (10013, 10001, 'Inactive folder subtree', 'Inactive folder subtree', 0, '3', 10001, NULL, 0, 0, 0, 'folder')
 --end
-INSERT INTO stm_tree_nod (tno_id, tno_parentid, tno_name, tno_tooltip, tno_default, tno_order, tno_treeid, tno_giid, tno_radio, tno_active, tno_load_data) VALUES (10014, 10013, 'Child under inactive folder', 'Child under inactive folder', 1, '1', 10001, NULL, 0, 1, 0)
+INSERT INTO stm_tree_nod (tno_id, tno_parentid, tno_name, tno_tooltip, tno_default, tno_order, tno_treeid, tno_giid, tno_radio, tno_active, tno_load_data, tno_type) VALUES (10014, 10013, 'Child under inactive folder', 'Child under inactive folder', 1, '1', 10001, NULL, 0, 1, 0, 'folder')
 --end
-INSERT INTO stm_tree_nod (tno_id, tno_parentid, tno_name, tno_tooltip, tno_default, tno_order, tno_treeid, tno_giid, tno_radio, tno_active, tno_load_data) VALUES (10015, NULL, 'Municipal root', 'Municipal root', 0, '0', 10002, NULL, 0, 1, 0)
+INSERT INTO stm_tree_nod (tno_id, tno_parentid, tno_name, tno_tooltip, tno_default, tno_order, tno_treeid, tno_giid, tno_radio, tno_active, tno_load_data, tno_type) VALUES (10015, NULL, 'Municipal root', 'Municipal root', 0, '0', 10002, NULL, 0, 1, 0, 'folder')
 --end
 INSERT INTO stm_tree_rol (tro_treeid, tro_roleid) VALUES (10001, 10001)
 --end

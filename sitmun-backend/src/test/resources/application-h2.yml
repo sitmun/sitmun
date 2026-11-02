@@ -26,6 +26,8 @@ spring:
     properties:
       dialect: org.hibernate.dialect.H2Dialect
       hibernate:
+        type:
+          java_time_use_direct_jdbc: true
         # Disable CLOB creation for better database compatibility
         jdbc:
           lob:
