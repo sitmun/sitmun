@@ -234,8 +234,12 @@ BEGIN
   );
   IF present_23 = 52 OR present_pre23 = 52 THEN
     confirmed := '${upgrade.defaultLanguage}';
+    -- Dynamic SQL: a fresh database has no stm_conf or stm_language yet.
+    -- Oracle compiles static queries in this block before those tables exist.
     BEGIN
-      SELECT cnf_value INTO stored FROM stm_conf WHERE cnf_name = 'language.default';
+      EXECUTE IMMEDIATE
+        'SELECT cnf_value FROM stm_conf WHERE cnf_name = ''language.default'''
+        INTO stored;
     EXCEPTION
       WHEN NO_DATA_FOUND THEN
         stored := NULL;
@@ -249,7 +253,10 @@ BEGIN
     IF stored <> confirmed THEN
       RAISE_APPLICATION_ERROR(-20003, 'SITMUN_UPGRADE_DEFAULT_LANGUAGE is ' || confirmed || ' but STM_CONF language.default is ' || stored || '; fix STM_CONF or the variable');
     END IF;
-    SELECT COUNT(*) INTO lang_known FROM stm_language WHERE lan_shortname = confirmed;
+    EXECUTE IMMEDIATE
+      'SELECT COUNT(*) FROM stm_language WHERE lan_shortname = :confirmed'
+      INTO lang_known
+      USING confirmed;
     IF lang_known = 0 THEN
       RAISE_APPLICATION_ERROR(-20003, 'SITMUN_UPGRADE_DEFAULT_LANGUAGE ' || confirmed || ' is not in STM_LANGUAGE; fix STM_CONF or the variable');
     END IF;
