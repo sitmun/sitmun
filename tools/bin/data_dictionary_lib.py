@@ -247,8 +247,6 @@ def empty_document() -> dict:
         "codelists": {},
         "fields": {},
         "projections": {
-            "boolean": {"h2": "boolean", "oracle": "NUMBER(1,0)", "postgresql": "boolean"},
-            "system_key_names": "SYS_C names on Oracle 1.2.9 keys",
             "unique_function_index": {
                 "STM_LITERAL_TRANSLATION.LTR_LITERAL": "stm_ltr_literal_uk"
             },
@@ -257,21 +255,20 @@ def empty_document() -> dict:
     }
 
 
-def _column_row(obs: ColumnObs, *, status: str, candidates: dict | None, decision: str) -> dict:
-    return {
-        "api": {},
-        "candidates": candidates or {},
+def _column_row(obs: ColumnObs, *, status: str, candidates: dict | None = None) -> dict:
+    row = {
         "codelist": None,
         "consumers": {},
-        "decision": decision,
         "default": obs.default,
         "enforcement": "truncate" if obs.logical == "string" else None,
         "length": obs.length,
         "required": obs.required,
         "status": status,
         "type": obs.logical,
-        "unique": None,
     }
+    if status == "open":
+        row["candidates"] = candidates or {}
+    return row
 
 
 def _disagree(pg: ColumnObs, ora: ColumnObs) -> dict[str, dict]:
@@ -310,19 +307,9 @@ def build_document(
             document["columns"][ident] = previous[ident]
             continue
         if candidates:
-            document["columns"][ident] = _column_row(
-                obs,
-                status="open",
-                candidates=candidates,
-                decision="",
-            )
+            document["columns"][ident] = _column_row(obs, status="open", candidates=candidates)
         else:
-            document["columns"][ident] = _column_row(
-                obs,
-                status="decided",
-                candidates={},
-                decision="both baseline catalogs agree",
-            )
+            document["columns"][ident] = _column_row(obs, status="decided")
     document["uniques"] = {
         table: sorted(",".join(sorted(cols)) for cols in sets)
         for table, sets in sorted(pg_uniques.items())
@@ -389,7 +376,7 @@ def apply_java_consumers(document: dict, java_root: Path) -> None:
                 document.setdefault("fields", {})[f"{qualified}#{name}"] = {"same_as": matches[0]}
 
 
-def decide_open_rows(document: dict, *, rule: str) -> int:
+def decide_open_rows(document: dict) -> int:
     changed = 0
     for row in document["columns"].values():
         if row.get("status") != "open":
@@ -399,7 +386,7 @@ def decide_open_rows(document: dict, *, rule: str) -> int:
             if "postgresql" in sides:
                 row[attr] = sides["postgresql"]
         row["status"] = "decided"
-        row["decision"] = rule
+        row.pop("candidates", None)
         changed += 1
     return changed
 

@@ -103,94 +103,6 @@ tra_id,tra_column,element,element_value,lan_shortname,tra_name
 148,Language.name,ca,,en,Catalan
 149,Language.name,oc-aranes,,en,Aranese
 150,Language.name,fr,,en,French
-151,CodeListValue.description,application.type,ED,en,External
-152,CodeListValue.description,application.type,E,en,Internal
-153,CodeListValue.description,application.type,I,en,Mobile app parameter
-154,CodeListValue.description,application.type,T,en,Nomenclator parameter
-155,CodeListValue.description,applicationParameter.type,MOBILE,en,Print template
-156,CodeListValue.description,applicationParameter.type,Nomenclator,en,Line
-157,CodeListValue.description,applicationParameter.type,PRINT_TEMPLATE,en,Point
-158,CodeListValue.description,cartography.geometryType,LINE,en,Polygon
-159,CodeListValue.description,cartography.geometryType,POINT,en,GetCapabilities
-160,CodeListValue.description,cartography.geometryType,POLYGON,en,Get Legend Graphic
-161,CodeListValue.description,cartography.legendType,LEGENDGRAPHIC,en,Static link
-162,CodeListValue.description,cartography.legendType,CAPABILITIES,en,Custom
-163,CodeListValue.description,cartography.legendType,LINK,en,Defined
-164,CodeListValue.description,cartographyFilter.type,C,en,Alphanumeric
-165,CodeListValue.description,cartographyFilter.type,D,en,Date
-166,CodeListValue.description,cartographyFilter.valueType,A,en,Number
-167,CodeListValue.description,cartographyFilter.valueType,D,en,Date
-168,CodeListValue.description,cartographyFilter.valueType,N,en,Image
-169,CodeListValue.description,cartographyParameter.format,F,en,Number
-170,CodeListValue.description,cartographyParameter.format,I,en,Percentage
-171,CodeListValue.description,cartographyParameter.format,N,en,Text
-172,CodeListValue.description,cartographyParameter.format,P,en,URL
-173,CodeListValue.description,cartographyParameter.format,T,en,EDIT
-177,CodeListValue.description,cartographyPermission.type,C,en,INFO
-179,CodeListValue.description,cartographyPermission.type,I,en,SELECT
-180,CodeListValue.description,cartographySpatialSelectionParameter.format,F,en,Cartography group
-181,CodeListValue.description,cartographySpatialSelectionParameter.format,I,en,Background map
-182,CodeListValue.description,cartographySpatialSelectionParameter.format,N,en,Report
-183,CodeListValue.description,cartographySpatialSelectionParameter.format,P,en,Location map
-184,CodeListValue.description,cartographySpatialSelectionParameter.format,T,en,Application
-185,CodeListValue.description,cartographySpatialSelectionParameter.format,U,en,Layer
-186,CodeListValue.description,cartographySpatialSelectionParameter.type,EDIT,en,Isolated
-188,CodeListValue.description,downloadTask.scope,A,en,SQL Query
-190,CodeListValue.description,downloadTask.scope,C,en,Web API Query
-191,CodeListValue.description,editTask.fieldType,date,en,Cartography Query
-192,CodeListValue.description,editTask.fieldType,image,en,AIMS
-193,CodeListValue.description,editTask.fieldType,listbox,en,FME
-194,CodeListValue.description,editTask.fieldType,number,en,TC
-195,CodeListValue.description,editTask.fieldType,text,en,WFS
-196,CodeListValue.description,editTask.scope,db-edit,en,WMS
-197,CodeListValue.description,editTask.scope,feat-edit,en,GetFeatureInfo
-198,CodeListValue.description,queryTask.parameterType,query,en,OpenLayers
-199,CodeListValue.description,queryTask.parameterType,template,en,GetMap
-200,CodeListValue.description,queryTask.scope,cartography-query,en,Database (trigger)
-201,CodeListValue.description,queryTask.scope,sql-query,en,Email
-202,CodeListValue.description,queryTask.scope,web-api-query,en,Date
-203,CodeListValue.description,service.authenticationMode,HTTP Basic authentication,en,Image
-204,CodeListValue.description,service.authenticationMode,None,en,List (from a query)
-205,CodeListValue.description,service.type,WFS,en,Number
-206,CodeListValue.description,service.type,WMS,en,Relation attribute between tables
-207,CodeListValue.description,service.type,WMTS,en,Select for assigning a value
-208,CodeListValue.description,serviceParameter.type,INFO,en,Text
-209,CodeListValue.description,serviceParameter.type,WMS,en,URL
-210,CodeListValue.description,serviceParameter.type,OLPARAM,en,CAMPO
-211,CodeListValue.description,serviceParameter.type,WMTS,en,CAPA
-212,CodeListValue.description,taskEntity.jsonParamType,__NULL_VALUE__,en,DATAINPUT
-213,CodeListValue.description,taskEntity.jsonParamType,array,en,EDIT
-214,CodeListValue.description,taskEntity.jsonParamType,boolean,en,FILTRO
-215,CodeListValue.description,taskEntity.jsonParamType,number,en,FME
-216,CodeListValue.description,taskEntity.jsonParamType,object,en,GEOM
-217,CodeListValue.description,taskEntity.jsonParamType,string,en,LABEL
-218,CodeListValue.description,territory.scope,M,en,RELM
-219,CodeListValue.description,territory.scope,R,en,RELS
-220,CodeListValue.description,territory.scope,T,en,SQL
-221,CodeListValue.description,tree.type,cartography,en,TIPO
-222,CodeListValue.description,tree.type,edition,en,VALOR
-223,CodeListValue.description,tree.type,touristic,en,VISTA
-224,CodeListValue.description,treenode.viewmode,dl,en,Unique values
-225,CodeListValue.description,treenode.viewmode,evt,en,Double
-226,CodeListValue.description,treenode.viewmode,evtcat,en,String
-227,CodeListValue.description,treenode.viewmode,evtloc,en,DNI
-228,CodeListValue.description,treenode.viewmode,gallery,en,NIE
-229,CodeListValue.description,treenode.viewmode,ms,en,Passport
-230,CodeListValue.description,treenode.viewmode,ne,en,City Council
-231,CodeListValue.description,treenode.viewmode,rt,en,City Council SITMUN point of contact
-232,CodeListValue.description,treenode.viewmode,sch,en,Diputació de Barcelona
-233,CodeListValue.description,user.identificationType,DNI,en,Demo
-234,CodeListValue.description,user.identificationType,NIE,en,Company
-235,CodeListValue.description,user.identificationType,PAS,en,Territorial Entity  (no City Council)
-236,CodeListValue.description,userPosition.type,POC,en,Territorial Entity  (no City Council) point of contact
-237,CodeListValue.description,treenode.node.type,cartography,en,Cartography
-238,CodeListValue.description,treenode.node.type,folder,en,Folder
-239,CodeListValue.description,treenode.node.type,list,en,List
-240,CodeListValue.description,treenode.node.type,menu,en,Menu
-241,CodeListValue.description,treenode.node.type,task,en,Task
-242,CodeListValue.description,treenode.node.type,fav,en,Favorites
-243,CodeListValue.description,treenode.node.type,map,en,Map
-244,CodeListValue.description,treenode.node.type,nm,en,Near me
 291,Language.name,en,,es,Inglés
 292,Language.name,es,,es,Español
 293,Language.name,ca,,es,Catalán
@@ -764,3 +676,19 @@ tra_id,tra_column,element,element_value,lan_shortname,tra_name
 953,TerritoryType.name,Sub-municipal Entity,,es,Entidad de Ámbito Inferior al Municipio
 954,TerritoryType.name,Sub-municipal Entity,,fr,Entité sous-municipale
 955,TerritoryType.name,Sub-municipal Entity,,oc-aranes,Entitat d'Ambit Inferior ath Municipi
+956,CodeListValue.description,databaseConnection.driver,org.h2.Driver,ca,Controlador JDBC H2
+957,CodeListValue.description,databaseConnection.driver,org.h2.Driver,es,Controlador JDBC H2
+958,CodeListValue.description,databaseConnection.driver,org.h2.Driver,fr,Pilote JDBC H2
+959,CodeListValue.description,databaseConnection.driver,org.h2.Driver,oc-aranes,Controlador JDBC H2
+960,CodeListValue.description,databaseConnection.driver,org.postgresql.Driver,ca,Controlador JDBC PostgreSQL
+961,CodeListValue.description,databaseConnection.driver,org.postgresql.Driver,es,Controlador JDBC PostgreSQL
+962,CodeListValue.description,databaseConnection.driver,org.postgresql.Driver,fr,Pilote JDBC PostgreSQL
+963,CodeListValue.description,databaseConnection.driver,org.postgresql.Driver,oc-aranes,Controlador JDBC PostgreSQL
+964,CodeListValue.description,databaseConnection.driver,oracle.jdbc.OracleDriver,ca,Controlador JDBC Oracle
+965,CodeListValue.description,databaseConnection.driver,oracle.jdbc.OracleDriver,es,Controlador JDBC Oracle
+966,CodeListValue.description,databaseConnection.driver,oracle.jdbc.OracleDriver,fr,Pilote JDBC Oracle
+967,CodeListValue.description,databaseConnection.driver,oracle.jdbc.OracleDriver,oc-aranes,Controlador JDBC Oracle
+968,CodeListValue.description,databaseConnection.driver,com.microsoft.sqlserver.jdbc.SQLServerDriver,ca,Controlador JDBC Microsoft SQL Server
+969,CodeListValue.description,databaseConnection.driver,com.microsoft.sqlserver.jdbc.SQLServerDriver,es,Controlador JDBC Microsoft SQL Server
+970,CodeListValue.description,databaseConnection.driver,com.microsoft.sqlserver.jdbc.SQLServerDriver,fr,Pilote JDBC Microsoft SQL Server
+971,CodeListValue.description,databaseConnection.driver,com.microsoft.sqlserver.jdbc.SQLServerDriver,oc-aranes,Controlador JDBC Microsoft SQL Server

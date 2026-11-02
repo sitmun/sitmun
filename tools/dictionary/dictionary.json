@@ -43,6 +43,224 @@
         "system": "true"
       }
     },
+    "applicationParameter.type": {
+      "MOBILE": {
+        "default": "false",
+        "description": "Mobile app parameter",
+        "system": "true"
+      },
+      "Nomenclator": {
+        "default": "false",
+        "description": "Nomenclator parameter",
+        "system": "true"
+      },
+      "PRINT_TEMPLATE": {
+        "default": "false",
+        "description": "Print template",
+        "system": "true"
+      }
+    },
+    "cartography.geometryType": {
+      "LINE": {
+        "default": "false",
+        "description": "Line",
+        "system": "true"
+      },
+      "POINT": {
+        "default": "false",
+        "description": "Point",
+        "system": "true"
+      },
+      "POLYGON": {
+        "default": "false",
+        "description": "Polygon",
+        "system": "true"
+      }
+    },
+    "cartography.legendType": {
+      "CAPABILITIES": {
+        "default": "false",
+        "description": "GetCapabilities",
+        "system": "true"
+      },
+      "LEGENDGRAPHIC": {
+        "default": "false",
+        "description": "Get Legend Graphic",
+        "system": "true"
+      },
+      "LINK": {
+        "default": "false",
+        "description": "Static link",
+        "system": "true"
+      }
+    },
+    "cartographyFilter.type": {
+      "C": {
+        "default": "false",
+        "description": "Custom",
+        "system": "true"
+      },
+      "D": {
+        "default": "false",
+        "description": "Defined",
+        "system": "true"
+      }
+    },
+    "cartographyFilter.valueType": {
+      "A": {
+        "default": "false",
+        "description": "Alphanumeric",
+        "system": "true"
+      },
+      "D": {
+        "default": "false",
+        "description": "Date",
+        "system": "true"
+      },
+      "N": {
+        "default": "false",
+        "description": "Number",
+        "system": "true"
+      }
+    },
+    "cartographyParameter.format": {
+      "AUTO": {
+        "default": "false",
+        "description": "Automatic",
+        "system": "true"
+      },
+      "F": {
+        "default": "false",
+        "description": "Date",
+        "system": "true"
+      },
+      "Geometry": {
+        "default": "false",
+        "description": "Geometry",
+        "system": "true"
+      },
+      "I": {
+        "default": "false",
+        "description": "Image",
+        "system": "true"
+      },
+      "N": {
+        "default": "false",
+        "description": "Number",
+        "system": "true"
+      },
+      "P": {
+        "default": "false",
+        "description": "Percentage",
+        "system": "true"
+      },
+      "T": {
+        "default": "false",
+        "description": "Text",
+        "system": "true"
+      },
+      "U": {
+        "default": "false",
+        "description": "URL",
+        "system": "true"
+      }
+    },
+    "cartographyParameter.geometryKind": {
+      "Curve": {
+        "default": "false",
+        "description": "Curve",
+        "system": "true"
+      },
+      "Geometry": {
+        "default": "false",
+        "description": "Geometry",
+        "system": "true"
+      },
+      "LineString": {
+        "default": "false",
+        "description": "Line",
+        "system": "true"
+      },
+      "MultiCurve": {
+        "default": "false",
+        "description": "Multicurve",
+        "system": "true"
+      },
+      "MultiLineString": {
+        "default": "false",
+        "description": "Multiline",
+        "system": "true"
+      },
+      "MultiPoint": {
+        "default": "false",
+        "description": "Multipoint",
+        "system": "true"
+      },
+      "MultiPolygon": {
+        "default": "false",
+        "description": "Multipolygon",
+        "system": "true"
+      },
+      "MultiSurface": {
+        "default": "false",
+        "description": "Multisurface",
+        "system": "true"
+      },
+      "Point": {
+        "default": "false",
+        "description": "Point",
+        "system": "true"
+      },
+      "Polygon": {
+        "default": "false",
+        "description": "Polygon",
+        "system": "true"
+      },
+      "Surface": {
+        "default": "false",
+        "description": "Surface",
+        "system": "true"
+      }
+    },
+    "cartographyParameter.preferredGeometryType": {
+      "multipoint": {
+        "default": "false",
+        "description": "Multipoint",
+        "system": "true"
+      },
+      "multipolygon": {
+        "default": "false",
+        "description": "Multipolygon",
+        "system": "true"
+      },
+      "multipolyline": {
+        "default": "false",
+        "description": "Multipolyline",
+        "system": "true"
+      },
+      "point": {
+        "default": "false",
+        "description": "Point",
+        "system": "true"
+      },
+      "polygon": {
+        "default": "false",
+        "description": "Polygon",
+        "system": "true"
+      },
+      "polyline": {
+        "default": "false",
+        "description": "Polyline",
+        "system": "true"
+      }
+    },
+    "cartographyParameter.type": {
+      "INFO": {
+        "default": "true",
+        "description": "INFO",
+        "system": "true"
+      }
+    },
     "cartographyPermission.type": {
       "C": {
         "default": "false",
@@ -62,6 +280,104 @@
       "M": {
         "default": "false",
         "description": "Location map",
+        "system": "true"
+      }
+    },
+    "cartographyServiceParameter.type": {
+      "GETMAP": {
+        "default": "false",
+        "description": "GetMap",
+        "system": "true"
+      },
+      "INFO": {
+        "default": "false",
+        "description": "GetFeatureInfo",
+        "system": "true"
+      },
+      "OLPARAM": {
+        "default": "false",
+        "description": "OpenLayers",
+        "system": "true"
+      },
+      "WFS": {
+        "default": "false",
+        "description": "All WFS operations",
+        "system": "true"
+      },
+      "WMS": {
+        "default": "false",
+        "description": "All WMS operations",
+        "system": "true"
+      },
+      "WMTS": {
+        "default": "false",
+        "description": "Viewer tile settings",
+        "system": "true"
+      }
+    },
+    "cartographySpatialSelectionParameter.format": {
+      "F": {
+        "default": "false",
+        "description": "Date",
+        "system": "true"
+      },
+      "I": {
+        "default": "false",
+        "description": "Image",
+        "system": "true"
+      },
+      "N": {
+        "default": "false",
+        "description": "Number",
+        "system": "true"
+      },
+      "P": {
+        "default": "false",
+        "description": "Percentage",
+        "system": "true"
+      },
+      "T": {
+        "default": "false",
+        "description": "Text",
+        "system": "true"
+      },
+      "U": {
+        "default": "false",
+        "description": "URL",
+        "system": "true"
+      }
+    },
+    "cartographySpatialSelectionParameter.type": {
+      "EDIT": {
+        "default": "true",
+        "description": "EDIT",
+        "system": "true"
+      },
+      "SELECT": {
+        "default": "false",
+        "description": "SELECT",
+        "system": "true"
+      }
+    },
+    "databaseConnection.driver": {
+      "com.microsoft.sqlserver.jdbc.SQLServerDriver": {
+        "default": "false",
+        "description": "Microsoft SQL Server JDBC Driver",
+        "system": "true"
+      },
+      "oracle.jdbc.OracleDriver": {
+        "default": "false",
+        "description": "Oracle JDBC driver",
+        "system": "true"
+      },
+      "org.h2.Driver": {
+        "default": "false",
+        "description": "H2 JDBC Driver",
+        "system": "true"
+      },
+      "org.postgresql.Driver": {
+        "default": "false",
+        "description": "PostgreSQL JDBC Driver",
         "system": "true"
       }
     },
@@ -275,6 +591,38 @@
         "system": "true"
       }
     },
+    "serviceParameter.type": {
+      "GETMAP": {
+        "default": "false",
+        "description": "GetMap",
+        "system": "true"
+      },
+      "INFO": {
+        "default": "false",
+        "description": "GetFeatureInfo",
+        "system": "true"
+      },
+      "OLPARAM": {
+        "default": "false",
+        "description": "OpenLayers",
+        "system": "true"
+      },
+      "WFS": {
+        "default": "false",
+        "description": "All WFS operations",
+        "system": "true"
+      },
+      "WMS": {
+        "default": "false",
+        "description": "GetMap",
+        "system": "true"
+      },
+      "WMTS": {
+        "default": "false",
+        "description": "WMTS",
+        "system": "true"
+      }
+    },
     "taskEntity.jsonParamType": {
       "__NULL_VALUE__": {
         "default": "false",
@@ -309,6 +657,23 @@
       "string": {
         "default": "false",
         "description": "string",
+        "system": "true"
+      }
+    },
+    "territory.scope": {
+      "M": {
+        "default": "false",
+        "description": "Municipality",
+        "system": "true"
+      },
+      "R": {
+        "default": "false",
+        "description": "Regional",
+        "system": "true"
+      },
+      "T": {
+        "default": "false",
+        "description": "Total",
         "system": "true"
       }
     },
@@ -417,5724 +782,4272 @@
         "description": "Schedule",
         "system": "true"
       }
+    },
+    "user.identificationType": {
+      "DNI": {
+        "default": "false",
+        "description": "DNI",
+        "system": "true"
+      },
+      "NIE": {
+        "default": "false",
+        "description": "NIE",
+        "system": "true"
+      },
+      "PAS": {
+        "default": "false",
+        "description": "Passport",
+        "system": "true"
+      }
+    },
+    "userPosition.type": {
+      "POC": {
+        "default": "false",
+        "description": "Point of contact",
+        "system": "true"
+      }
     }
   },
   "columns": {
     "STM_APP.APP_CREATED": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.application.Application#createdDate"
       },
-      "decision": "both baseline catalogs agree",
       "default": "current_timestamp",
       "enforcement": null,
       "length": null,
       "required": true,
       "status": "decided",
-      "type": "timestamp",
-      "unique": null
+      "type": "timestamp"
     },
     "STM_APP.APP_CREATORID": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {},
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": false,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_APP.APP_DESCRIPTION": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.application.Application#description"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "truncate",
       "length": 4000,
       "required": false,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_APP.APP_ENTRYM": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {},
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": false,
       "status": "decided",
-      "type": "boolean",
-      "unique": null
+      "type": "boolean"
     },
     "STM_APP.APP_ENTRYS": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {},
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": false,
       "status": "decided",
-      "type": "boolean",
-      "unique": null
+      "type": "boolean"
     },
     "STM_APP.APP_GGIID": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {},
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": false,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_APP.APP_HEADERPARAMS": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {},
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "truncate",
       "length": null,
       "required": false,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_APP.APP_ID": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.application.Application#id"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": true,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_APP.APP_LAST_UPDATE": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.application.Application#lastUpdate"
       },
-      "decision": "both baseline catalogs agree",
       "default": "current_timestamp",
       "enforcement": null,
       "length": null,
       "required": true,
       "status": "decided",
-      "type": "timestamp",
-      "unique": null
+      "type": "timestamp"
     },
     "STM_APP.APP_LOGO": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.application.Application#logo"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "truncate",
       "length": 4000,
       "required": false,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_APP.APP_MAINTENANCE_INFORMATION": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.application.Application#maintenanceInformation"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "truncate",
       "length": 4000,
       "required": false,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_APP.APP_NAME": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.application.Application#name"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "reject",
       "length": 80,
       "required": true,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_APP.APP_PRIVATE": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {},
-      "decision": "both baseline catalogs agree",
       "default": "false",
       "enforcement": null,
       "length": null,
       "required": true,
       "status": "decided",
-      "type": "boolean",
-      "unique": null
+      "type": "boolean"
     },
     "STM_APP.APP_PROJECT": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.application.Application#srs"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "reject",
       "length": 250,
       "required": false,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_APP.APP_REFRESH": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {},
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": false,
       "status": "decided",
-      "type": "boolean",
-      "unique": null
+      "type": "boolean"
     },
     "STM_APP.APP_RESPONSIBLE_INSTITUTION": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.application.Application#responsibleInstitutionName"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "reject",
       "length": 250,
       "required": false,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_APP.APP_SCALES": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.application.Application#scales"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "truncate",
       "length": 250,
       "required": false,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_APP.APP_TEMPLATE": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.application.Application#jspTemplate"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "truncate",
       "length": 250,
       "required": false,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_APP.APP_THEME": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.application.Application#theme"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "truncate",
       "length": 30,
       "required": false,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_APP.APP_TITLE": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.application.Application#title"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "truncate",
       "length": 250,
       "required": false,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_APP.APP_TYPE": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.application.Application#type"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "reject",
       "length": 250,
       "required": false,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_APP.APP_UNAVAILABLE": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {},
-      "decision": "both baseline catalogs agree",
       "default": "false",
       "enforcement": null,
       "length": null,
       "required": true,
       "status": "decided",
-      "type": "boolean",
-      "unique": null
+      "type": "boolean"
     },
     "STM_APP_BCKG.ABC_APPID": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {},
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": true,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_APP_BCKG.ABC_BACKID": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {},
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": true,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_APP_BCKG.ABC_ID": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.application.background.ApplicationBackground#id"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": true,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_APP_BCKG.ABC_ORDER": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {},
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": false,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_APP_ROL.ARO_APPID": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {},
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": true,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_APP_ROL.ARO_ROLEID": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {},
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": true,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_APP_TER.ATE_APPID": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {},
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": true,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_APP_TER.ATE_ID": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.application.territory.ApplicationTerritory#id"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": true,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_APP_TER.ATE_INIEXT": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.application.territory.ApplicationTerritory#initialExtent"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "truncate",
       "length": 250,
       "required": false,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_APP_TER.ATE_TERID": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {},
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": true,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_APP_TREE.ATR_APPID": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {},
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": true,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_APP_TREE.ATR_ID": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.application.tree.ApplicationTree#id"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": true,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_APP_TREE.ATR_ORDER": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {},
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": false,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_APP_TREE.ATR_TREEID": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {},
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": true,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_AVAIL_GI.AGI_CREATED": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.cartography.availability.CartographyAvailability#createdDate"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": false,
       "status": "decided",
-      "type": "timestamp",
-      "unique": null
+      "type": "timestamp"
     },
     "STM_AVAIL_GI.AGI_GIID": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {},
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": true,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_AVAIL_GI.AGI_ID": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.cartography.availability.CartographyAvailability#id"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": true,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_AVAIL_GI.AGI_OWNER": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.cartography.availability.CartographyAvailability#owner"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "truncate",
       "length": 50,
       "required": false,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_AVAIL_GI.AGI_TERID": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {},
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": true,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_AVAIL_TSK.ATS_CREATED": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.task.availability.TaskAvailability#createdDate"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": false,
       "status": "decided",
-      "type": "timestamp",
-      "unique": null
+      "type": "timestamp"
     },
     "STM_AVAIL_TSK.ATS_ID": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.task.availability.TaskAvailability#id"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": true,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_AVAIL_TSK.ATS_TASKID": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {},
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": true,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_AVAIL_TSK.ATS_TERID": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {},
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": true,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_BACKGRD.BAC_ACTIVE": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.background.Background#active"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": false,
       "status": "decided",
-      "type": "boolean",
-      "unique": null
+      "type": "boolean"
     },
     "STM_BACKGRD.BAC_CREATED": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.background.Background#createdDate"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": false,
       "status": "decided",
-      "type": "timestamp",
-      "unique": null
+      "type": "timestamp"
     },
     "STM_BACKGRD.BAC_DESC": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.background.Background#description"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "truncate",
       "length": 250,
       "required": false,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_BACKGRD.BAC_GGIID": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {},
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": false,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_BACKGRD.BAC_ID": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.background.Background#id"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": true,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_BACKGRD.BAC_IMAGE": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.background.Background#image"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "truncate",
       "length": 4000,
       "required": false,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_BACKGRD.BAC_NAME": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.background.Background#name"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "truncate",
       "length": 50,
       "required": true,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_CODELIST.COD_DEFAULT": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.infrastructure.persistence.type.codelist.CodeListValue#defaultCode"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": true,
       "status": "decided",
-      "type": "boolean",
-      "unique": null
+      "type": "boolean"
     },
     "STM_CODELIST.COD_DESCRIPTION": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.infrastructure.persistence.type.codelist.CodeListValue#description"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "truncate",
       "length": 250,
       "required": true,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_CODELIST.COD_ID": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.infrastructure.persistence.type.codelist.CodeListValue#id"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": true,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_CODELIST.COD_LIST": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.infrastructure.persistence.type.codelist.CodeListValue#codeListName"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "reject",
       "length": 250,
       "required": true,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_CODELIST.COD_SYSTEM": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.infrastructure.persistence.type.codelist.CodeListValue#system"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": true,
       "status": "decided",
-      "type": "boolean",
-      "unique": null
+      "type": "boolean"
     },
     "STM_CODELIST.COD_VALUE": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.infrastructure.persistence.type.codelist.CodeListValue#value"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "reject",
       "length": 250,
       "required": true,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_COMMENT.COM_APPID": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {},
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": true,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_COMMENT.COM_COORD_X": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.comment.Comment#coordinateX"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": true,
       "status": "decided",
-      "type": "other",
-      "unique": null
+      "type": "other"
     },
     "STM_COMMENT.COM_COORD_Y": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.comment.Comment#coordinateY"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": true,
       "status": "decided",
-      "type": "other",
-      "unique": null
+      "type": "other"
     },
     "STM_COMMENT.COM_CREATED": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.comment.Comment#createdDate"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": false,
       "status": "decided",
-      "type": "timestamp",
-      "unique": null
+      "type": "timestamp"
     },
     "STM_COMMENT.COM_DESC": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.comment.Comment#description"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "truncate",
       "length": 1000,
       "required": false,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_COMMENT.COM_EMAIL": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.comment.Comment#email"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "truncate",
       "length": 250,
       "required": false,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_COMMENT.COM_ID": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.comment.Comment#id"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": true,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_COMMENT.COM_NAME": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.comment.Comment#name"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "truncate",
       "length": 250,
       "required": false,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_COMMENT.COM_TITLE": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.comment.Comment#title"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "truncate",
       "length": 500,
       "required": false,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_COMMENT.COM_USERID": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {},
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": true,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_CONF.CNF_ID": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.configuration.ConfigurationParameter#id"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": true,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_CONF.CNF_NAME": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.configuration.ConfigurationParameter#name"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "truncate",
       "length": 50,
       "required": true,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_CONF.CNF_VALUE": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.configuration.ConfigurationParameter#value"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "truncate",
       "length": 250,
       "required": false,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_CONNECT.CON_CONNECTION": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.database.DatabaseConnection#url"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "truncate",
       "length": 250,
       "required": false,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_CONNECT.CON_DRIVER": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.database.DatabaseConnection#driver"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "truncate",
       "length": 50,
       "required": true,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_CONNECT.CON_ID": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.database.DatabaseConnection#id"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": true,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_CONNECT.CON_NAME": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.database.DatabaseConnection#name"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "reject",
       "length": 80,
       "required": true,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_CONNECT.CON_PWD": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.database.DatabaseConnection#password"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "truncate",
       "length": 50,
       "required": false,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_CONNECT.CON_USER": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.database.DatabaseConnection#user"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "truncate",
       "length": 50,
       "required": false,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_FIL_GI.FGI_COLUMN": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.cartography.filter.CartographyFilter#column"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "reject",
       "length": 250,
       "required": false,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_FIL_GI.FGI_GIID": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {},
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": true,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_FIL_GI.FGI_ID": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.cartography.filter.CartographyFilter#id"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": true,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_FIL_GI.FGI_NAME": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.cartography.filter.CartographyFilter#name"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "reject",
       "length": 80,
       "required": true,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_FIL_GI.FGI_REQUIRED": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.cartography.filter.CartographyFilter#required"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": true,
       "status": "decided",
-      "type": "boolean",
-      "unique": null
+      "type": "boolean"
     },
     "STM_FIL_GI.FGI_TYPE": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.cartography.filter.CartographyFilter#type"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "truncate",
       "length": 50,
       "required": true,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_FIL_GI.FGI_TYPID": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {},
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": false,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_FIL_GI.FGI_VALUE": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.cartography.filter.CartographyFilter#values"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "truncate",
       "length": 4000,
       "required": false,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_FIL_GI.FGI_VALUETYPE": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.cartography.filter.CartographyFilter#valueType"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "truncate",
       "length": 50,
       "required": false,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_GEOINFO.GEO_ABSTRACT": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.cartography.Cartography#description"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "truncate",
       "length": 4000,
       "required": false,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_GEOINFO.GEO_BLOCKED": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.cartography.Cartography#blocked"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": true,
       "status": "decided",
-      "type": "boolean",
-      "unique": null
+      "type": "boolean"
     },
     "STM_GEOINFO.GEO_CONNID": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {},
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": false,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_GEOINFO.GEO_CREATED": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.cartography.Cartography#createdDate"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": false,
       "status": "decided",
-      "type": "timestamp",
-      "unique": null
+      "type": "timestamp"
     },
     "STM_GEOINFO.GEO_DATAURL": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.cartography.Cartography#datasetURL"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "truncate",
       "length": 4000,
       "required": false,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_GEOINFO.GEO_FILTER_GFI": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.cartography.Cartography#applyFilterToGetFeatureInfo"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": false,
       "status": "decided",
-      "type": "boolean",
-      "unique": null
+      "type": "boolean"
     },
     "STM_GEOINFO.GEO_FILTER_GM": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.cartography.Cartography#applyFilterToGetMap"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": false,
       "status": "decided",
-      "type": "boolean",
-      "unique": null
+      "type": "boolean"
     },
     "STM_GEOINFO.GEO_FILTER_SS": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.cartography.Cartography#applyFilterToSpatialSelection"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": false,
       "status": "decided",
-      "type": "boolean",
-      "unique": null
+      "type": "boolean"
     },
     "STM_GEOINFO.GEO_GEOMTYPE": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.cartography.Cartography#geometryType"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "truncate",
       "length": 50,
       "required": false,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_GEOINFO.GEO_ID": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.cartography.Cartography#id"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": true,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_GEOINFO.GEO_LAYERS": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.cartography.Cartography#layersSearchString"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "truncate",
       "length": 800,
       "required": true,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_GEOINFO.GEO_LEGENDTIP": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.cartography.Cartography#legendType"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "truncate",
       "length": 50,
       "required": false,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_GEOINFO.GEO_LEGENDURL": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.cartography.Cartography#legendURL"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "truncate",
       "length": 4000,
       "required": false,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_GEOINFO.GEO_MAXSCALE": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.cartography.Cartography#maximumScale"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": false,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_GEOINFO.GEO_METAURL": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.cartography.Cartography#metadataURL"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "truncate",
       "length": 4000,
       "required": false,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_GEOINFO.GEO_MINSCALE": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.cartography.Cartography#minimumScale"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": false,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_GEOINFO.GEO_NAME": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.cartography.Cartography#name"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "truncate",
       "length": 100,
       "required": true,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_GEOINFO.GEO_ORDER": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.cartography.Cartography#order"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": false,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_GEOINFO.GEO_QUERYABL": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.cartography.Cartography#queryableFeatureAvailable"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": true,
       "status": "decided",
-      "type": "boolean",
-      "unique": null
+      "type": "boolean"
     },
     "STM_GEOINFO.GEO_QUERYACT": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.cartography.Cartography#queryableFeatureEnabled"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": true,
       "status": "decided",
-      "type": "boolean",
-      "unique": null
+      "type": "boolean"
     },
     "STM_GEOINFO.GEO_QUERYLAY": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.cartography.Cartography#queryableLayers"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "truncate",
       "length": 500,
       "required": false,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_GEOINFO.GEO_SELECTABL": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.cartography.Cartography#selectableFeatureEnabled"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": false,
       "status": "decided",
-      "type": "boolean",
-      "unique": null
+      "type": "boolean"
     },
     "STM_GEOINFO.GEO_SELECTLAY": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.cartography.Cartography#selectableLayers"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "truncate",
       "length": 500,
       "required": false,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_GEOINFO.GEO_SERID": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {},
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": false,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_GEOINFO.GEO_SERSELID": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {},
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": false,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_GEOINFO.GEO_SOURCE": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.cartography.Cartography#source"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "reject",
       "length": 80,
       "required": false,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_GEOINFO.GEO_STYID": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {},
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": false,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_GEOINFO.GEO_STYUSEALL": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {},
-      "decision": "both baseline catalogs agree",
       "default": "false",
       "enforcement": null,
       "length": null,
       "required": true,
       "status": "decided",
-      "type": "boolean",
-      "unique": null
+      "type": "boolean"
     },
     "STM_GEOINFO.GEO_THEMATIC": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.cartography.Cartography#thematic"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": false,
       "status": "decided",
-      "type": "boolean",
-      "unique": null
+      "type": "boolean"
     },
     "STM_GEOINFO.GEO_TRANSP": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.cartography.Cartography#transparency"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": false,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_GEOINFO.GEO_TYPE": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.cartography.Cartography#type"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "truncate",
       "length": 50,
       "required": false,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_GGI_GI.GGG_GGIID": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {},
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": true,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_GGI_GI.GGG_GIID": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {},
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": true,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_GRP_GI.GGI_ID": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.cartography.permission.CartographyPermission#id"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": true,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_GRP_GI.GGI_NAME": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.cartography.permission.CartographyPermission#name"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "reject",
       "length": 80,
       "required": true,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_GRP_GI.GGI_TYPE": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.cartography.permission.CartographyPermission#type"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "truncate",
       "length": 50,
       "required": false,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_GRP_TER.GTE_TERID": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {},
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": true,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_GRP_TER.GTE_TERMID": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {},
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": true,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_GRP_TSK.GTS_ID": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.task.group.TaskGroup#id"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": true,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_GRP_TSK.GTS_NAME": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.task.group.TaskGroup#name"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "reject",
       "length": 80,
       "required": true,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_GTER_TYP.GTT_ID": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.territory.type.TerritoryGroupType#id"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": true,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_GTER_TYP.GTT_NAME": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.territory.type.TerritoryGroupType#name"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "truncate",
       "length": 250,
       "required": true,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_LANGUAGE.LAN_ENABLED": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.infrastructure.persistence.type.i18n.Language#enabled"
       },
-      "decision": "both baseline catalogs agree",
       "default": "true",
       "enforcement": null,
       "length": null,
       "required": true,
       "status": "decided",
-      "type": "boolean",
-      "unique": null
+      "type": "boolean"
     },
     "STM_LANGUAGE.LAN_ID": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.infrastructure.persistence.type.i18n.Language#id"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": true,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_LANGUAGE.LAN_NAME": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.infrastructure.persistence.type.i18n.Language#name"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "truncate",
       "length": 50,
       "required": true,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_LANGUAGE.LAN_ORDER": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.infrastructure.persistence.type.i18n.Language#order"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": false,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_LANGUAGE.LAN_SHORTNAME": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.infrastructure.persistence.type.i18n.Language#shortname"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "truncate",
       "length": 20,
       "required": true,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_LITERAL_TRANSLATION.LTR_ID": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.infrastructure.persistence.type.i18n.LiteralTranslation#id"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": true,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_LITERAL_TRANSLATION.LTR_LANID": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {},
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": true,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_LITERAL_TRANSLATION.LTR_LITERAL": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.infrastructure.persistence.type.i18n.LiteralTranslation#literal"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "reject",
       "length": 4000,
       "required": true,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_LITERAL_TRANSLATION_VALUE.LTV_ID": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.infrastructure.persistence.type.i18n.LiteralTranslationValue#id"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": true,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_LITERAL_TRANSLATION_VALUE.LTV_LANID": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {},
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": true,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_LITERAL_TRANSLATION_VALUE.LTV_LTRID": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {},
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": true,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_LITERAL_TRANSLATION_VALUE.LTV_VALUE": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.infrastructure.persistence.type.i18n.LiteralTranslationValue#value"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "reject",
       "length": 4000,
       "required": true,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_LOG.LOG_APPID": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {},
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": false,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_LOG.LOG_BUFFER": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.log.Log#buffer"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": false,
       "status": "decided",
-      "type": "boolean",
-      "unique": null
+      "type": "boolean"
     },
     "STM_LOG.LOG_COUNT": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.log.Log#counter"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": false,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_LOG.LOG_DATA": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.log.Log#data"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "truncate",
       "length": 250,
       "required": false,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_LOG.LOG_DATE": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.log.Log#date"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": false,
       "status": "decided",
-      "type": "timestamp",
-      "unique": null
+      "type": "timestamp"
     },
     "STM_LOG.LOG_EMAIL": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.log.Log#email"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "truncate",
       "length": 250,
       "required": false,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_LOG.LOG_FORMAT": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.log.Log#format"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "reject",
       "length": 250,
       "required": false,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_LOG.LOG_GIID": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {},
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": false,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_LOG.LOG_ID": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.log.Log#id"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": true,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_LOG.LOG_OTHER": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.log.Log#other"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "truncate",
       "length": 4000,
       "required": false,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_LOG.LOG_SRS": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.log.Log#srs"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "reject",
       "length": 250,
       "required": false,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_LOG.LOG_TASKID": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {},
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": false,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_LOG.LOG_TER": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.log.Log#territoryCode"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "reject",
       "length": 250,
       "required": false,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_LOG.LOG_TEREXT": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.log.Log#territories"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "truncate",
       "length": 250,
       "required": false,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_LOG.LOG_TERID": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {},
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": false,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_LOG.LOG_TYPE": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.log.Log#type"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "truncate",
       "length": 50,
       "required": false,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_LOG.LOG_USERID": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {},
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": false,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_PAR_APP.PAP_APPID": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {},
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": false,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_PAR_APP.PAP_ID": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.application.parameter.ApplicationParameter#id"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": true,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_PAR_APP.PAP_NAME": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.application.parameter.ApplicationParameter#name"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "truncate",
       "length": 50,
       "required": true,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_PAR_APP.PAP_TYPE": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.application.parameter.ApplicationParameter#type"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "reject",
       "length": 250,
       "required": true,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_PAR_APP.PAP_VALUE": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.application.parameter.ApplicationParameter#value"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "truncate",
       "length": 250,
       "required": true,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_PAR_GI.PGI_FORMAT": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.cartography.parameter.CartographyParameter#format"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "reject",
       "length": 250,
       "required": false,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_PAR_GI.PGI_GIID": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {},
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": true,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_PAR_GI.PGI_ID": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.cartography.parameter.CartographyParameter#id"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": true,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_PAR_GI.PGI_NAME": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.cartography.parameter.CartographyParameter#name"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "reject",
       "length": 250,
       "required": true,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_PAR_GI.PGI_OPTIONS": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.cartography.parameter.CartographyParameter#options"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "truncate",
       "length": null,
       "required": false,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_PAR_GI.PGI_ORDER": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.cartography.parameter.CartographyParameter#order"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": false,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_PAR_GI.PGI_TYPE": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.cartography.parameter.CartographyParameter#type"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "reject",
       "length": 250,
       "required": true,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_PAR_GI.PGI_VALUE": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.cartography.parameter.CartographyParameter#value"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "truncate",
       "length": 250,
       "required": true,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_PAR_GS.GS_GEOID": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {},
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": true,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_PAR_GS.GS_ID": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.cartography.parameter.CartographyServiceParameter#id"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": true,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_PAR_GS.GS_NAME": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.cartography.parameter.CartographyServiceParameter#name"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "truncate",
       "length": 50,
       "required": true,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_PAR_GS.GS_TYPE": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.cartography.parameter.CartographyServiceParameter#type"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "truncate",
       "length": 50,
       "required": true,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_PAR_GS.GS_VALUE": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.cartography.parameter.CartographyServiceParameter#value"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "truncate",
       "length": 250,
       "required": false,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_PAR_SER.PSE_ID": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.service.parameter.ServiceParameter#id"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": true,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_PAR_SER.PSE_NAME": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.service.parameter.ServiceParameter#name"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "truncate",
       "length": 50,
       "required": true,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_PAR_SER.PSE_SERID": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {},
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": true,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_PAR_SER.PSE_TYPE": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.service.parameter.ServiceParameter#type"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "reject",
       "length": 250,
       "required": false,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_PAR_SER.PSE_VALUE": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.service.parameter.ServiceParameter#value"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "truncate",
       "length": 250,
       "required": true,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_PAR_SGI.PSG_FORMAT": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.cartography.parameter.CartographySpatialSelectionParameter#format"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "reject",
       "length": 250,
       "required": false,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_PAR_SGI.PSG_GIID": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {},
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": true,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_PAR_SGI.PSG_ID": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.cartography.parameter.CartographySpatialSelectionParameter#id"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": true,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_PAR_SGI.PSG_NAME": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.cartography.parameter.CartographySpatialSelectionParameter#name"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "reject",
       "length": 250,
       "required": true,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_PAR_SGI.PSG_ORDER": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.cartography.parameter.CartographySpatialSelectionParameter#order"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": false,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_PAR_SGI.PSG_TYPE": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.cartography.parameter.CartographySpatialSelectionParameter#type"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "reject",
       "length": 250,
       "required": true,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_PAR_SGI.PSG_VALUE": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.cartography.parameter.CartographySpatialSelectionParameter#value"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "truncate",
       "length": 250,
       "required": true,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_POST.POS_CREATED": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.user.position.UserPosition#createdDate"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": false,
       "status": "decided",
-      "type": "timestamp",
-      "unique": null
+      "type": "timestamp"
     },
     "STM_POST.POS_EMAIL": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.user.position.UserPosition#email"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "truncate",
       "length": 250,
       "required": false,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_POST.POS_EXPIRATION": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.user.position.UserPosition#expirationDate"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": false,
       "status": "decided",
-      "type": "timestamp",
-      "unique": null
+      "type": "timestamp"
     },
     "STM_POST.POS_ID": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.user.position.UserPosition#id"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": true,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_POST.POS_ORG": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.user.position.UserPosition#organization"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "truncate",
       "length": 250,
       "required": false,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_POST.POS_POST": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.user.position.UserPosition#name"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "truncate",
       "length": 250,
       "required": false,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_POST.POS_TERID": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {},
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": true,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_POST.POS_TYPE": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.user.position.UserPosition#type"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "truncate",
       "length": 50,
       "required": false,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_POST.POS_UPDATED": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.user.position.UserPosition#lastModifiedDate"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": false,
       "status": "decided",
-      "type": "timestamp",
-      "unique": null
+      "type": "timestamp"
     },
     "STM_POST.POS_USERID": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {},
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": true,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_ROLE.ROL_ID": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.role.Role#id"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": true,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_ROLE.ROL_NAME": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.role.Role#name"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "reject",
       "length": 250,
       "required": true,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_ROLE.ROL_NOTE": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.role.Role#description"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "truncate",
       "length": 500,
       "required": false,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_ROL_GGI.RGG_GGIID": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {},
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": true,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_ROL_GGI.RGG_ROLEID": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {},
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": true,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_ROL_TSK.RTS_ROLEID": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {},
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": true,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_ROL_TSK.RTS_TASKID": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {},
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": true,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_SEQUENCE.SEQ_COUNT": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {},
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": false,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_SEQUENCE.SEQ_NAME": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {},
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "truncate",
       "length": 255,
       "required": true,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_SERVICE.SER_ABSTRACT": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.service.Service#description"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "truncate",
       "length": 4000,
       "required": false,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_SERVICE.SER_AUTH_MOD": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.service.Service#authenticationMode"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "truncate",
       "length": 50,
       "required": false,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_SERVICE.SER_BLOCKED": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.service.Service#blocked"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": true,
       "status": "decided",
-      "type": "boolean",
-      "unique": null
+      "type": "boolean"
     },
     "STM_SERVICE.SER_CREATED": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.service.Service#createdDate"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": false,
       "status": "decided",
-      "type": "timestamp",
-      "unique": null
+      "type": "timestamp"
     },
     "STM_SERVICE.SER_ID": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.service.Service#id"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": true,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_SERVICE.SER_INFOURL": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.service.Service#getInformationURL"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "truncate",
       "length": 4000,
       "required": false,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_SERVICE.SER_LEGEND": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.service.Service#legendURL"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "truncate",
       "length": 4000,
       "required": false,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_SERVICE.SER_NAME": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.service.Service#name"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "truncate",
       "length": 60,
       "required": true,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_SERVICE.SER_NAT_PROT": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.service.Service#nativeProtocol"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "truncate",
       "length": 50,
       "required": false,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_SERVICE.SER_PROJECTS": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.service.Service#supportedSRS"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "truncate",
       "length": 1000,
       "required": false,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_SERVICE.SER_PROTOCOL": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.service.Service#type"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "truncate",
       "length": 50,
       "required": true,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_SERVICE.SER_PROXIED": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {},
-      "decision": "both baseline catalogs agree",
       "default": "false",
       "enforcement": null,
       "length": null,
       "required": true,
       "status": "decided",
-      "type": "boolean",
-      "unique": null
+      "type": "boolean"
     },
     "STM_SERVICE.SER_PWD": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.service.Service#password"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "truncate",
       "length": 50,
       "required": false,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_SERVICE.SER_URL": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.service.Service#serviceURL"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "truncate",
       "length": 4000,
       "required": true,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_SERVICE.SER_USER": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.service.Service#user"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "truncate",
       "length": 50,
       "required": false,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_SERVICE_CHECK.SEC_DETAIL": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.service.check.ServiceCheck#detail"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "truncate",
       "length": 4000,
       "required": false,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_SERVICE_CHECK.SEC_ELAPSED": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.service.check.ServiceCheck#elapsedMs"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": true,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_SERVICE_CHECK.SEC_ID": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.service.check.ServiceCheck#id"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": true,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_SERVICE_CHECK.SEC_OBSERVED": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.service.check.ServiceCheck#observedAt"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": true,
       "status": "decided",
-      "type": "timestamp",
-      "unique": null
+      "type": "timestamp"
     },
     "STM_SERVICE_CHECK.SEC_OBSERVER": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.service.check.ServiceCheck#observer"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "truncate",
       "length": 16,
       "required": true,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_SERVICE_CHECK.SEC_RANK": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.service.check.ServiceCheck#statusRank"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": true,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_SERVICE_CHECK.SEC_SERID": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {},
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": true,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_SERVICE_CHECK.SEC_STATUS": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.service.check.ServiceCheck#status"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "truncate",
       "length": 50,
       "required": true,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_SERVICE_CHECK_SAMPLE.SCS_ELAPSED": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.service.check.ServiceCheckSample#elapsedMs"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": true,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_SERVICE_CHECK_SAMPLE.SCS_ID": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.service.check.ServiceCheckSample#id"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": true,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_SERVICE_CHECK_SAMPLE.SCS_OBSERVED": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.service.check.ServiceCheckSample#observedAt"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": true,
       "status": "decided",
-      "type": "timestamp",
-      "unique": null
+      "type": "timestamp"
     },
     "STM_SERVICE_CHECK_SAMPLE.SCS_OBSERVER": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.service.check.ServiceCheckSample#observer"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "truncate",
       "length": 16,
       "required": true,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_SERVICE_CHECK_SAMPLE.SCS_RANK": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.service.check.ServiceCheckSample#statusRank"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": true,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_SERVICE_CHECK_SAMPLE.SCS_SERID": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {},
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": true,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_SERVICE_CHECK_SAMPLE.SCS_STATUS": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.service.check.ServiceCheckSample#status"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "truncate",
       "length": 50,
       "required": true,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_SERVICE_USAGE.SUS_APPID": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {},
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": true,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_SERVICE_USAGE.SUS_DAY": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {},
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": true,
       "status": "decided",
-      "type": "timestamp",
-      "unique": null
+      "type": "timestamp"
     },
     "STM_SERVICE_USAGE.SUS_FAILED": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.service.usage.ServiceUsage#failed"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": true,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_SERVICE_USAGE.SUS_OPERATION": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {},
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "truncate",
       "length": 32,
       "required": true,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_SERVICE_USAGE.SUS_REQUESTS": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.service.usage.ServiceUsage#requests"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": true,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_SERVICE_USAGE.SUS_SERID": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {},
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": true,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_STY_GI.SGI_ABSTRACT": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.cartography.style.CartographyStyle#description"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "truncate",
       "length": 250,
       "required": false,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_STY_GI.SGI_DEFAULT": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.cartography.style.CartographyStyle#defaultStyle"
       },
-      "decision": "both baseline catalogs agree",
       "default": "false",
       "enforcement": null,
       "length": null,
       "required": true,
       "status": "decided",
-      "type": "boolean",
-      "unique": null
+      "type": "boolean"
     },
     "STM_STY_GI.SGI_GIID": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {},
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": false,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_STY_GI.SGI_ID": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.cartography.style.CartographyStyle#id"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": true,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_STY_GI.SGI_LURL_FORMAT": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {},
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "truncate",
       "length": 255,
       "required": false,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_STY_GI.SGI_LURL_HEIGHT": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {},
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": false,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_STY_GI.SGI_LURL_URL": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {},
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "truncate",
       "length": 4000,
       "required": false,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_STY_GI.SGI_LURL_WIDTH": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {},
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": false,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_STY_GI.SGI_NAME": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.cartography.style.CartographyStyle#name"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "reject",
       "length": 80,
       "required": true,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_STY_GI.SGI_TITLE": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.cartography.style.CartographyStyle#title"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "reject",
       "length": 250,
       "required": false,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_TASK.TAS_CONNID": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {},
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": false,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_TASK.TAS_CREATED": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.task.Task#createdDate"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": false,
       "status": "decided",
-      "type": "timestamp",
-      "unique": null
+      "type": "timestamp"
     },
     "STM_TASK.TAS_GIID": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {},
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": false,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_TASK.TAS_GTASKID": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {},
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": false,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_TASK.TAS_ID": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.task.Task#id"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": true,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_TASK.TAS_NAME": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.task.Task#name"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "truncate",
       "length": 512,
       "required": true,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_TASK.TAS_ORDER": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.task.Task#order"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": false,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_TASK.TAS_PARAMS": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.task.Task#properties"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "truncate",
       "length": null,
       "required": false,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_TASK.TAS_SERID": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {},
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": false,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_TASK.TAS_TTASKID": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {},
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": false,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_TASK.TAS_TUIID": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {},
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": false,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_TASKREL.TAR_ALIAS": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.task.relation.TaskRelation#referenceAlias"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "truncate",
       "length": 50,
       "required": false,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_TASKREL.TAR_ID": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.task.relation.TaskRelation#id"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": true,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_TASKREL.TAR_TASKID": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {},
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": true,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_TASKREL.TAR_TASKRELID": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {},
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": true,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_TASKREL.TAR_TYPE": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.task.relation.TaskRelation#relationType"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "truncate",
       "length": 50,
       "required": true,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_TERRITORY.TER_ADDRESS": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.territory.Territory#territorialAuthorityAddress"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "truncate",
       "length": 250,
       "required": false,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_TERRITORY.TER_ADMNAME": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.territory.Territory#territorialAuthorityName"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "truncate",
       "length": 250,
       "required": false,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_TERRITORY.TER_BLOCKED": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.territory.Territory#blocked"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": true,
       "status": "decided",
-      "type": "boolean",
-      "unique": null
+      "type": "boolean"
     },
     "STM_TERRITORY.TER_CENTER": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.territory.Territory#center"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "truncate",
       "length": 250,
       "required": false,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_TERRITORY.TER_CODTER": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.territory.Territory#code"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "truncate",
       "length": 50,
       "required": true,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_TERRITORY.TER_CREATED": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.territory.Territory#createdDate"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": false,
       "status": "decided",
-      "type": "timestamp",
-      "unique": null
+      "type": "timestamp"
     },
     "STM_TERRITORY.TER_DESCRIPTION": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.territory.Territory#description"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "truncate",
       "length": 4000,
       "required": false,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_TERRITORY.TER_EMAIL": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.territory.Territory#territorialAuthorityEmail"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "reject",
       "length": 250,
       "required": false,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_TERRITORY.TER_EXTENT": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.territory.Territory#extent"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "truncate",
       "length": 250,
       "required": false,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_TERRITORY.TER_GTYPID": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {},
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": false,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_TERRITORY.TER_ID": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.territory.Territory#id"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": true,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_TERRITORY.TER_LEGAL": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.territory.Territory#legal"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "truncate",
       "length": 50,
       "required": false,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_TERRITORY.TER_LOGO": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.territory.Territory#territorialAuthorityLogo"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "truncate",
       "length": 4000,
       "required": false,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_TERRITORY.TER_NAME": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.territory.Territory#name"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "truncate",
       "length": 250,
       "required": true,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_TERRITORY.TER_NOTE": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.territory.Territory#note"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "truncate",
       "length": 250,
       "required": false,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_TERRITORY.TER_PROJECT": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.territory.Territory#srs"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "reject",
       "length": 250,
       "required": false,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_TERRITORY.TER_SCOPE": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.territory.Territory#scope"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "reject",
       "length": 250,
       "required": false,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_TERRITORY.TER_TYPID": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {},
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": false,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_TERRITORY.TER_ZOOM": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.territory.Territory#defaultZoomLevel"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": false,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_TER_TYP.TET_BOTTOM": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {},
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": true,
       "status": "decided",
-      "type": "boolean",
-      "unique": null
+      "type": "boolean"
     },
     "STM_TER_TYP.TET_ID": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.territory.type.TerritoryType#id"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": true,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_TER_TYP.TET_NAME": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.territory.type.TerritoryType#name"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "reject",
       "length": 250,
       "required": true,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_TER_TYP.TET_OFFICIAL": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {},
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": true,
       "status": "decided",
-      "type": "boolean",
-      "unique": null
+      "type": "boolean"
     },
     "STM_TER_TYP.TET_TOP": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {},
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": true,
       "status": "decided",
-      "type": "boolean",
-      "unique": null
+      "type": "boolean"
     },
     "STM_TOKEN_USER.ACTIVE": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.user.token.UserToken#active"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": true,
       "status": "decided",
-      "type": "boolean",
-      "unique": null
+      "type": "boolean"
     },
     "STM_TOKEN_USER.ATTEMPT_COUNTER": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.user.token.UserToken#attemptCounter"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": true,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_TOKEN_USER.CODE_OTP": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.user.token.UserToken#codeOTP"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "truncate",
       "length": 255,
       "required": true,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_TOKEN_USER.EXPIRE_AT": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.user.token.UserToken#expireAt"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": false,
       "status": "decided",
-      "type": "timestamp",
-      "unique": null
+      "type": "timestamp"
     },
     "STM_TOKEN_USER.USER_ID": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.user.token.UserToken#userID"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": true,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_TOKEN_USER.USER_TOKEN_ID": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.user.token.UserToken#id"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": true,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_TRANSLATION.TRA_COLUMN": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.infrastructure.persistence.type.i18n.Translation#column"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "reject",
       "length": 100,
       "required": true,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_TRANSLATION.TRA_ELEID": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.infrastructure.persistence.type.i18n.Translation#element"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": true,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_TRANSLATION.TRA_ID": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.infrastructure.persistence.type.i18n.Translation#id"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": true,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_TRANSLATION.TRA_LANID": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {},
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": true,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_TRANSLATION.TRA_NAME": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.infrastructure.persistence.type.i18n.Translation#translation"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "truncate",
       "length": 4000,
       "required": true,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_TREE.TRE_ABSTRACT": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.tree.Tree#description"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "truncate",
       "length": 250,
       "required": false,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_TREE.TRE_ID": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.tree.Tree#id"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": true,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_TREE.TRE_IMAGE": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.tree.Tree#image"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "truncate",
       "length": null,
       "required": false,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_TREE.TRE_IMAGE_NAME": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.tree.Tree#imageName"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "truncate",
       "length": 255,
       "required": false,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_TREE.TRE_NAME": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.tree.Tree#name"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "reject",
       "length": 100,
       "required": true,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_TREE.TRE_TYPE": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.tree.Tree#type"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "truncate",
       "length": 50,
       "required": false,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_TREE.TRE_USERID": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {},
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": false,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_TREE_NOD.TNO_ABSTRACT": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.tree.node.TreeNode#description"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "truncate",
       "length": 250,
       "required": false,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_TREE_NOD.TNO_ACTIVE": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.tree.node.TreeNode#visible"
       },
-      "decision": "both baseline catalogs agree",
       "default": "true",
       "enforcement": null,
       "length": null,
       "required": true,
       "status": "decided",
-      "type": "boolean",
-      "unique": null
+      "type": "boolean"
     },
     "STM_TREE_NOD.TNO_DATAURL": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.tree.node.TreeNode#datasetURL"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "truncate",
       "length": 4000,
       "required": false,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_TREE_NOD.TNO_DEFAULT": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.tree.node.TreeNode#active"
       },
-      "decision": "both baseline catalogs agree",
       "default": "false",
       "enforcement": null,
       "length": null,
       "required": true,
       "status": "decided",
-      "type": "boolean",
-      "unique": null
+      "type": "boolean"
     },
     "STM_TREE_NOD.TNO_FILTERABLE": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.tree.node.TreeNode#filterable"
       },
-      "decision": "both baseline catalogs agree",
       "default": "false",
       "enforcement": null,
       "length": null,
       "required": false,
       "status": "decided",
-      "type": "boolean",
-      "unique": null
+      "type": "boolean"
     },
     "STM_TREE_NOD.TNO_FILTER_GFI": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.tree.node.TreeNode#filterGetFeatureInfo"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": false,
       "status": "decided",
-      "type": "boolean",
-      "unique": null
+      "type": "boolean"
     },
     "STM_TREE_NOD.TNO_FILTER_GM": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.tree.node.TreeNode#filterGetMap"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": false,
       "status": "decided",
-      "type": "boolean",
-      "unique": null
+      "type": "boolean"
     },
     "STM_TREE_NOD.TNO_FILTER_SE": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.tree.node.TreeNode#filterSelectable"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": false,
       "status": "decided",
-      "type": "boolean",
-      "unique": null
+      "type": "boolean"
     },
     "STM_TREE_NOD.TNO_GIID": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {},
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": false,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_TREE_NOD.TNO_ID": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.tree.node.TreeNode#id"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": true,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_TREE_NOD.TNO_IMAGE": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.tree.node.TreeNode#image"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "truncate",
       "length": null,
       "required": false,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_TREE_NOD.TNO_IMAGE_NAME": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.tree.node.TreeNode#imageName"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "reject",
       "length": 4000,
       "required": false,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_TREE_NOD.TNO_LOAD_DATA": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.tree.node.TreeNode#loadData"
       },
-      "decision": "both baseline catalogs agree",
       "default": "false",
       "enforcement": null,
       "length": null,
       "required": true,
       "status": "decided",
-      "type": "boolean",
-      "unique": null
+      "type": "boolean"
     },
     "STM_TREE_NOD.TNO_MAPPING": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.tree.node.TreeNode#mapping"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "truncate",
       "length": null,
       "required": false,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_TREE_NOD.TNO_METAURL": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.tree.node.TreeNode#metadataURL"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "truncate",
       "length": 4000,
       "required": false,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_TREE_NOD.TNO_NAME": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.tree.node.TreeNode#name"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "truncate",
       "length": 80,
       "required": true,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_TREE_NOD.TNO_ORDER": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.tree.node.TreeNode#order"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": false,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_TREE_NOD.TNO_PARENTID": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {},
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": false,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_TREE_NOD.TNO_QUERYACT": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.tree.node.TreeNode#queryableActive"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": false,
       "status": "decided",
-      "type": "boolean",
-      "unique": null
+      "type": "boolean"
     },
     "STM_TREE_NOD.TNO_RADIO": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.tree.node.TreeNode#radio"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": false,
       "status": "decided",
-      "type": "boolean",
-      "unique": null
+      "type": "boolean"
     },
     "STM_TREE_NOD.TNO_STYLE": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.tree.node.TreeNode#style"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "truncate",
       "length": 255,
       "required": false,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_TREE_NOD.TNO_TASKID": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {},
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": false,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_TREE_NOD.TNO_TOOLTIP": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.tree.node.TreeNode#tooltip"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "truncate",
       "length": 100,
       "required": false,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_TREE_NOD.TNO_TREEID": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {},
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": true,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_TREE_NOD.TNO_TYPE": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.tree.node.TreeNode#type"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "truncate",
       "length": 50,
       "required": false,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_TREE_NOD.TNO_VIEW_MODE": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.tree.node.TreeNode#viewMode"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "truncate",
       "length": 255,
       "required": false,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_TREE_ROL.TRO_ROLEID": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {},
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": true,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_TREE_ROL.TRO_TREEID": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {},
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": true,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_TSK_TYP.TTY_ENABLED": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.task.type.TaskType#enabled"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": true,
       "status": "decided",
-      "type": "boolean",
-      "unique": null
+      "type": "boolean"
     },
     "STM_TSK_TYP.TTY_ID": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.task.type.TaskType#id"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": true,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_TSK_TYP.TTY_NAME": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.task.type.TaskType#name"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "truncate",
       "length": 50,
       "required": false,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_TSK_TYP.TTY_ORDER": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.task.type.TaskType#order"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": false,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_TSK_TYP.TTY_PARENTID": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {},
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": false,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_TSK_TYP.TTY_SPEC": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.task.type.TaskType#specification"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "truncate",
       "length": null,
       "required": false,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_TSK_TYP.TTY_TITLE": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.task.type.TaskType#title"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "truncate",
       "length": 50,
       "required": false,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_TSK_UI.TUI_ID": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.task.ui.TaskUI#id"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": true,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_TSK_UI.TUI_NAME": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.task.ui.TaskUI#name"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "truncate",
       "length": 50,
       "required": true,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_TSK_UI.TUI_ORDER": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.task.ui.TaskUI#order"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": false,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_TSK_UI.TUI_TOOLTIP": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.task.ui.TaskUI#tooltip"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "truncate",
       "length": 100,
       "required": false,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_TSK_UI.TUI_TYPE": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.task.ui.TaskUI#type"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "truncate",
       "length": 30,
       "required": false,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_USER.USE_ADM": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.user.User#administrator"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": true,
       "status": "decided",
-      "type": "boolean",
-      "unique": null
+      "type": "boolean"
     },
     "STM_USER.USE_BLOCKED": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.user.User#blocked"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": true,
       "status": "decided",
-      "type": "boolean",
-      "unique": null
+      "type": "boolean"
     },
     "STM_USER.USE_CREATED": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.user.User#createdDate"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": false,
       "status": "decided",
-      "type": "timestamp",
-      "unique": null
+      "type": "timestamp"
     },
     "STM_USER.USE_EMAIL": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.user.User#email"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "reject",
       "length": 250,
       "required": false,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_USER.USE_ID": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.user.User#id"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": true,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_USER.USE_IDENT": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.user.User#identificationNumber"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "truncate",
       "length": 50,
       "required": false,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_USER.USE_IDENTTYPE": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.user.User#identificationType"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "truncate",
       "length": 50,
       "required": false,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_USER.USE_LAST_PASSWORD_CHANGE": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.user.User#lastPasswordChange"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": false,
       "status": "decided",
-      "type": "timestamp",
-      "unique": null
+      "type": "timestamp"
     },
     "STM_USER.USE_NAME": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.user.User#firstName"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "truncate",
       "length": 50,
       "required": false,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_USER.USE_PWD": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.user.User#password"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "truncate",
       "length": 128,
       "required": false,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_USER.USE_SURNAME": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.user.User#lastName"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "truncate",
       "length": 50,
       "required": false,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_USER.USE_UPDATED": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.user.User#lastModifiedDate"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": false,
       "status": "decided",
-      "type": "timestamp",
-      "unique": null
+      "type": "timestamp"
     },
     "STM_USER.USE_USER": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.user.User#username"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": "truncate",
       "length": 50,
       "required": false,
       "status": "decided",
-      "type": "string",
-      "unique": null
+      "type": "string"
     },
     "STM_USR_CONF.UCO_CREATED": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.user.configuration.UserConfiguration#createdDate"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": false,
       "status": "decided",
-      "type": "timestamp",
-      "unique": null
+      "type": "timestamp"
     },
     "STM_USR_CONF.UCO_ID": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.user.configuration.UserConfiguration#id"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": true,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_USR_CONF.UCO_ROLEID": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {},
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": true,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_USR_CONF.UCO_ROLEM": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {
         "jpa": "org.sitmun.domain.user.configuration.UserConfiguration#appliesToChildrenTerritories"
       },
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": true,
       "status": "decided",
-      "type": "boolean",
-      "unique": null
+      "type": "boolean"
     },
     "STM_USR_CONF.UCO_TERID": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {},
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": true,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     },
     "STM_USR_CONF.UCO_USERID": {
-      "api": {},
-      "candidates": {},
       "codelist": null,
       "consumers": {},
-      "decision": "both baseline catalogs agree",
       "default": null,
       "enforcement": null,
       "length": null,
       "required": true,
       "status": "decided",
-      "type": "integer",
-      "unique": null
+      "type": "integer"
     }
   },
   "fields": {
@@ -6142,7 +5055,7 @@
       "same_as": "STM_USER.USE_USER"
     },
     "org.sitmun.domain.user.UserDTO#email": {
-      "same_as": "STM_COMMENT.COM_EMAIL"
+      "same_as": "STM_USER.USE_EMAIL"
     },
     "org.sitmun.domain.user.UserDTO#firstName": {
       "same_as": "STM_USER.USE_NAME"
@@ -6160,16 +5073,10 @@
       "same_as": "STM_USER.USE_USER"
     },
     "org.sitmun.infrastructure.security.password.dto.RequestNewPassword#email": {
-      "same_as": "STM_COMMENT.COM_EMAIL"
+      "same_as": "STM_USER.USE_EMAIL"
     }
   },
   "projections": {
-    "boolean": {
-      "h2": "boolean",
-      "oracle": "NUMBER(1,0)",
-      "postgresql": "boolean"
-    },
-    "system_key_names": "SYS_C names on Oracle 1.2.9 keys",
     "unique_function_index": {
       "STM_LITERAL_TRANSLATION.LTR_LITERAL": "stm_ltr_literal_uk"
     }
