@@ -46,7 +46,7 @@ public class Application {
 
   /** Application unique identifier. */
   @Id
-  @Column(name = "APP_ID")
+  @Column(name = "APP_ID", nullable = false)
   @GeneratedValue(strategy = GenerationType.TABLE, generator = "STM_APP_GEN")
   @TableGenerator(
       name = "STM_APP_GEN",
@@ -62,9 +62,9 @@ public class Application {
   private Integer id;
 
   /** Application name. */
-  @Column(name = "APP_NAME", length = PersistenceConstants.IDENTIFIER)
+  @Column(name = "APP_NAME", length = 80, nullable = false)
   @NotBlank
-  @Size(max = PersistenceConstants.IDENTIFIER)
+  @Size(max = 80)
   @I18n
   private String name;
 
@@ -79,9 +79,8 @@ public class Application {
   private String logo;
 
   /** Application type (external or internal). */
-  @Column(name = "APP_TYPE", length = PersistenceConstants.IDENTIFIER)
-  @NotNull
-  @Size(max = PersistenceConstants.IDENTIFIER)
+  @Column(name = "APP_TYPE", length = 250)
+  @Size(max = 250)
   @CodeList(CodeListsConstants.APPLICATION_TYPE)
   @JsonView(ClientConfigurationViews.ApplicationTerritory.class)
   private String type;
@@ -102,9 +101,9 @@ public class Application {
   private List<String> scales;
 
   /** Projection to be used in this application when it is internal. */
-  @Column(name = "APP_PROJECT", length = PersistenceConstants.IDENTIFIER)
+  @Column(name = "APP_PROJECT", length = 250)
   @Srs
-  @Size(max = PersistenceConstants.IDENTIFIER)
+  @Size(max = 250)
   private String srs;
 
   /**
@@ -137,17 +136,17 @@ public class Application {
   @I18n
   private String maintenanceInformation;
 
-  @Column(name = "APP_UNAVAILABLE")
+  @Column(name = "APP_UNAVAILABLE", nullable = false)
   @Builder.Default
   private Boolean isUnavailable = false;
 
-  @Column(name = "APP_LAST_UPDATE")
+  @Column(name = "APP_LAST_UPDATE", nullable = false)
   @Temporal(TemporalType.TIMESTAMP)
   @LastModifiedDate
   private Date lastUpdate;
 
   /** Application privacy setting. */
-  @Column(name = "APP_PRIVATE")
+  @Column(name = "APP_PRIVATE", nullable = false)
   @Builder.Default
   @NotNull
   private Boolean appPrivate = false;
@@ -167,7 +166,7 @@ public class Application {
   private CartographyPermission situationMap;
 
   /** Created date. */
-  @Column(name = "APP_CREATED")
+  @Column(name = "APP_CREATED", nullable = false)
   @Temporal(TemporalType.TIMESTAMP)
   @CreatedDate
   private Date createdDate;

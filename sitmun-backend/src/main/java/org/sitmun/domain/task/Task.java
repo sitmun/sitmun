@@ -43,12 +43,12 @@ public class Task {
       allocationSize = 1)
   @Id
   @GeneratedValue(strategy = GenerationType.TABLE, generator = "STM_TASK_GEN")
-  @Column(name = "TAS_ID")
+  @Column(name = "TAS_ID", nullable = false)
   @JsonView(ClientConfigurationViews.ApplicationTerritory.class)
   private Integer id;
 
   /** Name. */
-  @Column(name = "TAS_NAME", length = 512)
+  @Column(name = "TAS_NAME", length = 512, nullable = false)
   @NotBlank
   @I18n
   @JsonView(ClientConfigurationViews.ApplicationTerritory.class)

@@ -45,17 +45,17 @@ public class CartographyServiceParameter {
       allocationSize = 1)
   @Id
   @GeneratedValue(strategy = GenerationType.TABLE, generator = "STM_PAR_GS_GEN")
-  @Column(name = "GS_ID")
+  @Column(name = "GS_ID", nullable = false)
   private Integer id;
 
-  @Column(name = "GS_NAME", length = PersistenceConstants.IDENTIFIER)
+  @Column(name = "GS_NAME", length = PersistenceConstants.IDENTIFIER, nullable = false)
   @NotBlank
   private String name;
 
   @Column(name = "GS_VALUE", length = PersistenceConstants.VALUE)
   private String value;
 
-  @Column(name = "GS_TYPE", length = PersistenceConstants.IDENTIFIER)
+  @Column(name = "GS_TYPE", length = PersistenceConstants.IDENTIFIER, nullable = false)
   @CodeList(CodeListsConstants.CARTOGRAPHY_SERVICE_PARAMETER_TYPE)
   @NotNull
   private String type;

@@ -35,12 +35,12 @@ public class TerritoryGroupType {
       allocationSize = 1)
   @Id
   @GeneratedValue(strategy = GenerationType.TABLE, generator = "STM_GTER_TYP_GEN")
-  @Column(name = "GTT_ID")
+  @Column(name = "GTT_ID", nullable = false)
   private Integer id;
 
   /** Name. */
   @NotBlank
-  @Column(name = "GTT_NAME", length = PersistenceConstants.SHORT_DESCRIPTION)
+  @Column(name = "GTT_NAME", length = PersistenceConstants.SHORT_DESCRIPTION, nullable = false)
   @JsonView(ClientConfigurationViews.ApplicationTerritory.class)
   private String name;
 

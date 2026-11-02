@@ -39,30 +39,30 @@ public class CartographyParameter {
       allocationSize = 1)
   @Id
   @GeneratedValue(strategy = GenerationType.TABLE, generator = "STM_PAR_GI_GEN")
-  @Column(name = "PGI_ID")
+  @Column(name = "PGI_ID", nullable = false)
   private Integer id;
 
   /** Name. */
-  @Column(name = "PGI_NAME", length = PersistenceConstants.IDENTIFIER)
-  @Size(max = PersistenceConstants.IDENTIFIER)
+  @Column(name = "PGI_NAME", length = 250, nullable = false)
+  @Size(max = 250)
   @NotBlank
   private String name;
 
   /** Default-language label. Other languages come from STM_TRANSLATION. */
-  @Column(name = "PGI_VALUE", length = PersistenceConstants.VALUE)
+  @Column(name = "PGI_VALUE", length = PersistenceConstants.VALUE, nullable = false)
   @NotNull
   @I18n
   private String value;
 
   /** Format. */
-  @Column(name = "PGI_FORMAT", length = PersistenceConstants.IDENTIFIER)
-  @Size(max = PersistenceConstants.IDENTIFIER)
+  @Column(name = "PGI_FORMAT", length = 250)
+  @Size(max = 250)
   @CodeList(CodeListsConstants.CARTOGRAPHY_PARAMETER_FORMAT)
   private String format;
 
   /** Type. */
-  @Column(name = "PGI_TYPE", length = PersistenceConstants.IDENTIFIER)
-  @Size(max = PersistenceConstants.IDENTIFIER)
+  @Column(name = "PGI_TYPE", length = 250, nullable = false)
+  @Size(max = 250)
   @NotNull
   @CodeList(CodeListsConstants.CARTOGRAPHY_PARAMETER_TYPE)
   private String type;

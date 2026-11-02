@@ -8,7 +8,6 @@ import jakarta.validation.constraints.Size;
 import java.util.Objects;
 import lombok.*;
 import org.sitmun.authorization.client.dto.ClientConfigurationViews;
-import org.sitmun.domain.PersistenceConstants;
 import org.sitmun.domain.StoredFlagListener;
 import org.sitmun.infrastructure.persistence.type.i18n.I18n;
 import org.sitmun.infrastructure.persistence.type.i18n.I18nListener;
@@ -36,33 +35,33 @@ public class TerritoryType {
       allocationSize = 1)
   @Id
   @GeneratedValue(strategy = GenerationType.TABLE, generator = "STM_TER_TYP_GEN")
-  @Column(name = "TET_ID")
+  @Column(name = "TET_ID", nullable = false)
   private Integer id;
 
   /** Name. */
-  @Column(name = "TET_NAME", length = PersistenceConstants.IDENTIFIER)
-  @Size(max = PersistenceConstants.IDENTIFIER)
+  @Column(name = "TET_NAME", length = 250, nullable = false)
+  @Size(max = 250)
   @NotBlank
   @I18n
   @JsonView(ClientConfigurationViews.ApplicationTerritory.class)
   private String name;
 
   /** `true` if this is an official type. */
-  @Column(name = "TET_OFFICIAL")
+  @Column(name = "TET_OFFICIAL", nullable = false)
   @NotNull
   @JsonView(ClientConfigurationViews.ApplicationTerritory.class)
   @Builder.Default
   private Boolean official = false;
 
   /** If {@code true}, the territory is root in the territories' hierarchy. */
-  @Column(name = "TET_TOP")
+  @Column(name = "TET_TOP", nullable = false)
   @NotNull
   @JsonView(ClientConfigurationViews.ApplicationTerritory.class)
   @Builder.Default
   private Boolean topType = false;
 
   /** If {@code true}, the territory is leaf in the territories' hierarchy. */
-  @Column(name = "TET_BOTTOM")
+  @Column(name = "TET_BOTTOM", nullable = false)
   @NotNull
   @JsonView(ClientConfigurationViews.ApplicationTerritory.class)
   @Builder.Default

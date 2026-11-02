@@ -45,7 +45,7 @@ public class TreeNode {
       allocationSize = 1)
   @Id
   @GeneratedValue(strategy = GenerationType.TABLE, generator = "STM_TREE_NOD_GEN")
-  @Column(name = "TNO_ID")
+  @Column(name = "TNO_ID", nullable = false)
   @JsonView(ClientConfigurationViews.ApplicationTerritory.class)
   private Integer id;
 
@@ -55,7 +55,7 @@ public class TreeNode {
   private TreeNode parent;
 
   /** Name. */
-  @Column(name = "TNO_NAME", length = 80)
+  @Column(name = "TNO_NAME", length = 80, nullable = false)
   @NotBlank
   @JsonView(ClientConfigurationViews.ApplicationTerritory.class)
   @I18n
@@ -137,8 +137,8 @@ public class TreeNode {
   private String image;
 
   /** Image name. */
-  @Column(name = "TNO_IMAGE_NAME", length = 255)
-  @Size(max = 255)
+  @Column(name = "TNO_IMAGE_NAME", length = 4000)
+  @Size(max = 4000)
   private String imageName;
 
   /** View mode. */

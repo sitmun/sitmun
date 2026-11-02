@@ -560,9 +560,9 @@ export class TreesFormComponent extends BaseFormComponent<Tree> {
       id: new UntypedFormControl(null, []),
       name: new UntypedFormControl(null, [Validators.required, Validators.maxLength(100)]),
       description: new UntypedFormControl(null, [Validators.maxLength(250)]),
-      type: new UntypedFormControl(null, [Validators.required]),
+      type: new UntypedFormControl(null, [Validators.maxLength(50)]),
       image: new UntypedFormControl(null, []),
-      imageName: new UntypedFormControl(null, [])
+      imageName: new UntypedFormControl(null, [Validators.maxLength(255)])
     })
   }
 

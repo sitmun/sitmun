@@ -35,7 +35,7 @@ public class ApplicationTree {
       allocationSize = 1)
   @Id
   @GeneratedValue(strategy = GenerationType.TABLE, generator = "STM_APP_TREE_GEN")
-  @Column(name = "ATR_ID")
+  @Column(name = "ATR_ID", nullable = false)
   private Integer id;
 
   @ManyToOne

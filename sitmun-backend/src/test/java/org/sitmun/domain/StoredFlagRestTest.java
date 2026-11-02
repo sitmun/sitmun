@@ -149,9 +149,9 @@ class StoredFlagRestTest {
   }
 
   @Test
-  @DisplayName("POST code list rejects a 51 character name")
+  @DisplayName("POST code list rejects a 251 character name")
   @WithMockUser(roles = "ADMIN")
-  void codeListNameOf51IsRejected() throws Exception {
+  void codeListNameOf251IsRejected() throws Exception {
     mvc.perform(
             post(CODELIST_VALUES_URI)
                 .contentType(APPLICATION_JSON)
@@ -163,7 +163,7 @@ class StoredFlagRestTest {
                       "description": "flag",
                       "defaultCode": false
                     }"""
-                        .formatted("n".repeat(51))))
+                        .formatted("n".repeat(251))))
         .andExpect(status().isBadRequest());
   }
 

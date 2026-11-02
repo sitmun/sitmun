@@ -38,12 +38,12 @@ public class CartographyStyle {
       allocationSize = 1)
   @Id
   @GeneratedValue(strategy = GenerationType.TABLE, generator = "STM_STY_GI_GEN")
-  @Column(name = "SGI_ID")
+  @Column(name = "SGI_ID", nullable = false)
   private Integer id;
 
   /** Style name. */
-  @Column(name = "SGI_NAME", length = PersistenceConstants.IDENTIFIER)
-  @Size(max = PersistenceConstants.IDENTIFIER)
+  @Column(name = "SGI_NAME", length = 80, nullable = false)
+  @Size(max = 80)
   @NotBlank
   private String name;
 
@@ -69,7 +69,7 @@ public class CartographyStyle {
    *
    * <p>If more than one is set as preferred, the behaviour is undefined.
    */
-  @Column(name = "SGI_DEFAULT")
+  @Column(name = "SGI_DEFAULT", nullable = false)
   @NotNull
   private Boolean defaultStyle;
 

@@ -44,7 +44,7 @@
           <mat-card-content>
             <mat-form-field appearance="outline" class="full sitmun-cartography-rich-hint-field" subscriptSizing="dynamic">
               <mat-label>{{ 'common.form.name' | translate }} ({{ defaultLang }})</mat-label>
-              <input matInput type="text" formControlName="name" [maxlength]="50" required>
+              <input matInput type="text" formControlName="name" [maxlength]="80" required>
               <mat-hint align="start">{{ 'entity.application.hint.name' | translate }}</mat-hint>
               <mat-hint align="end">{{entityForm.get('name') | characterCount}}</mat-hint>
               <mat-icon matSuffix class="iconTranslate"
@@ -53,7 +53,7 @@
             </mat-form-field>
             <mat-form-field appearance="outline" class="full sitmun-cartography-rich-hint-field" subscriptSizing="dynamic">
               <mat-label>{{ 'common.form.description' | translate }} ({{ defaultLang }})</mat-label>
-              <textarea matInput type="text" formControlName="description" required [maxlength]="4000"></textarea>
+              <textarea matInput type="text" formControlName="description" [maxlength]="4000"></textarea>
               <mat-hint align="start">{{ 'entity.application.hint.description' | translate }}</mat-hint>
               <mat-hint align="end">{{entityForm.get('description') | characterCount}}</mat-hint>
               <mat-icon matSuffix class="iconTranslate"
@@ -216,7 +216,7 @@
               <div class="application-form-field-row application-form-field-row--two-col">
                 <mat-form-field appearance="outline" class="half add-gap sitmun-cartography-rich-hint-field" subscriptSizing="dynamic">
                   <mat-label>{{ 'entity.application.type.generic.srs' | translate }}</mat-label>
-                  <input matInput type="text" formControlName="srs" [maxlength]="50">
+                  <input matInput type="text" formControlName="srs" [maxlength]="250">
                   <mat-hint align="start">{{ 'entity.application.hint.srs' | translate }}</mat-hint>
                   <mat-hint align="end">{{entityForm.get('srs') | characterCount}}</mat-hint>
                 </mat-form-field>

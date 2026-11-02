@@ -2287,7 +2287,7 @@ export class TreeNodesComponent implements OnInit, OnDestroy, OnChanges {
         }
         this.nodeInputsControls.push(control);
         const newGroup = new UntypedFormGroup({
-          value: new UntypedFormControl('', []),
+          value: new UntypedFormControl('', [Validators.required, Validators.maxLength(250)]),
           calculated: new UntypedFormControl(false, { nonNullable: true })
         });
         inputFormGroup.addControl(String(control.name), newGroup);
@@ -2367,7 +2367,7 @@ export class TreeNodesComponent implements OnInit, OnDestroy, OnChanges {
         };
         this.nodeNamespacesControls.push(control);
         const newGroup = new UntypedFormGroup({
-          value: new UntypedFormControl(null, []),
+          value: new UntypedFormControl(null, [Validators.required, Validators.maxLength(250)]),
         });
         namespacesFormGroup.addControl(String(control.name), newGroup);
         const formValue = {

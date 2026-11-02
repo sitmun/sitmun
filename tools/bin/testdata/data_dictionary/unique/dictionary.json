@@ -1,0 +1,6 @@
+{
+  "columns": {},
+  "codelists": {},
+  "projections": {"unique_function_index": {}},
+  "uniques": {"STM_USER": ["USE_USER"]}
+}

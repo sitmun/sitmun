@@ -320,18 +320,18 @@ export class ApplicationFormComponent extends BaseFormComponent<ApplicationProje
     this.entityToEdit.headerParams = this.headerParams;
 
     this.entityForm = new UntypedFormGroup({
-      name: new UntypedFormControl(this.entityToEdit.name, [Validators.required, Validators.maxLength(50)]),
-      description: new UntypedFormControl(this.entityToEdit.description, [Validators.required]),
-      type: new UntypedFormControl(this.entityToEdit.type, [Validators.required,]),
-      title: new UntypedFormControl(this.entityToEdit.title),
+      name: new UntypedFormControl(this.entityToEdit.name, [Validators.required, Validators.maxLength(80)]),
+      description: new UntypedFormControl(this.entityToEdit.description, [Validators.maxLength(4000)]),
+      type: new UntypedFormControl(this.entityToEdit.type, [Validators.maxLength(250)]),
+      title: new UntypedFormControl(this.entityToEdit.title, [Validators.maxLength(250)]),
       jspTemplate: new UntypedFormControl(this.entityToEdit.jspTemplate, [
         Validators.maxLength(250),
         optionalHttpOrHttpsUrlValidator,
       ]),
-      theme: new UntypedFormControl(this.entityToEdit.theme),
+      theme: new UntypedFormControl(this.entityToEdit.theme, [Validators.maxLength(30)]),
       situationMapId: new UntypedFormControl(this.entityToEdit.situationMapId, []),
-      srs: new UntypedFormControl(this.entityToEdit.srs, [Validators.maxLength(50)]),
-      scales: new UntypedFormControl(this.entityToEdit.scales?.join(',')),
+      srs: new UntypedFormControl(this.entityToEdit.srs, [Validators.maxLength(250)]),
+      scales: new UntypedFormControl(this.entityToEdit.scales?.join(','), [Validators.maxLength(250)]),
       treeAutoRefresh: new UntypedFormControl(this.entityToEdit.treeAutoRefresh),
       accessParentTerritory: new UntypedFormControl(this.entityToEdit.accessParentTerritory),
       accessChildrenTerritory: new UntypedFormControl(this.entityToEdit.accessChildrenTerritory),
@@ -345,7 +345,7 @@ export class ApplicationFormComponent extends BaseFormComponent<ApplicationProje
         Validators.maxLength(4000),
         optionalHttpOrHttpsUrlValidator,
       ]),
-      maintenanceInformation: new UntypedFormControl(this.entityToEdit.maintenanceInformation,[]),
+      maintenanceInformation: new UntypedFormControl(this.entityToEdit.maintenanceInformation,[Validators.maxLength(4000)]),
       responsibleInstitutionName: new UntypedFormControl(
         this.entityToEdit.responsibleInstitutionName,
         [Validators.maxLength(250)]

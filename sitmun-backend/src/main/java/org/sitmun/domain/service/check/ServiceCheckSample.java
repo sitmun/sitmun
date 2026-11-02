@@ -12,6 +12,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.TableGenerator;
+import jakarta.validation.constraints.NotNull;
 import java.time.Instant;
 import java.util.Objects;
 import lombok.AccessLevel;
@@ -43,7 +44,7 @@ public class ServiceCheckSample {
       allocationSize = 1)
   @Id
   @GeneratedValue(strategy = GenerationType.TABLE, generator = "STM_SERVICE_CHECK_SAMPLE_GEN")
-  @Column(name = "SCS_ID")
+  @Column(name = "SCS_ID", nullable = false)
   private Integer id;
 
   @ManyToOne(fetch = FetchType.LAZY, optional = false)
@@ -53,9 +54,11 @@ public class ServiceCheckSample {
       foreignKey = @ForeignKey(name = "STM_SCS_FK_SER"))
   private Service service;
 
+  @NotNull
   @Column(name = "SCS_OBSERVER", length = 16, nullable = false)
   private String observer;
 
+  @NotNull
   @Column(name = "SCS_STATUS", length = PersistenceConstants.IDENTIFIER, nullable = false)
   private String status;
 

@@ -43,7 +43,7 @@ public class LiteralTranslationValue {
       allocationSize = 1)
   @Id
   @GeneratedValue(strategy = GenerationType.TABLE, generator = "STM_LITERAL_TRANSLATION_VALUE_GEN")
-  @Column(name = "LTV_ID")
+  @Column(name = "LTV_ID", nullable = false)
   private Integer id;
 
   @ManyToOne(fetch = FetchType.LAZY)

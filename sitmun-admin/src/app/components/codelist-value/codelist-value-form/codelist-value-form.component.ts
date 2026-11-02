@@ -84,13 +84,13 @@ export class CodelistValueFormComponent extends BaseFormComponent<CodeList> {
     this.entityForm = new UntypedFormGroup({
       codeListName: new UntypedFormControl(
         {value: this.entityToEdit.codeListName, disabled: this.isSystemRecord}, 
-        [Validators.required, Validators.maxLength(50)]
+        [Validators.required, Validators.maxLength(250)]
       ),
       value: new UntypedFormControl(
         {value: this.entityToEdit.value, disabled: this.isSystemRecord}, 
-        [Validators.required, Validators.maxLength(50)]
+        [Validators.required, Validators.maxLength(250)]
       ),
-      description: new UntypedFormControl(this.entityToEdit.description, []),
+      description: new UntypedFormControl(this.entityToEdit.description, [Validators.required, Validators.maxLength(250)]),
       defaultCode: new UntypedFormControl(
         {value: this.entityToEdit.defaultCode || false, disabled: this.isSystemRecord}, 
         []

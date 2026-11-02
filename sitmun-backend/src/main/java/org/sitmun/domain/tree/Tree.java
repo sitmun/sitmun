@@ -41,12 +41,12 @@ public class Tree {
       allocationSize = 1)
   @Id
   @GeneratedValue(strategy = GenerationType.TABLE, generator = "STM_TREE_GEN")
-  @Column(name = "TRE_ID")
+  @Column(name = "TRE_ID", nullable = false)
   @JsonView(ClientConfigurationViews.ApplicationTerritory.class)
   private Integer id;
 
   /** Tree name. */
-  @Column(name = "TRE_NAME", length = 100)
+  @Column(name = "TRE_NAME", length = 100, nullable = false)
   @Size(max = 100)
   @NotBlank
   @JsonView(ClientConfigurationViews.ApplicationTerritory.class)

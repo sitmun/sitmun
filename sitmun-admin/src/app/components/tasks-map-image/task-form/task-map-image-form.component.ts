@@ -229,7 +229,7 @@ export class TaskMapImageFormComponent extends BaseFormComponent<TaskProjection>
     const properties = TaskPropertiesContract.fromRaw(this.entityToEdit?.properties);
     this.entityForm = new FormGroup({
       name: new FormControl(this.entityToEdit?.name ?? '', {
-        validators: [Validators.required],
+        validators: [Validators.maxLength(512), Validators.required],
         nonNullable: true,
       }),
       taskGroupId: new FormControl(this.entityToEdit?.groupId ?? null, {

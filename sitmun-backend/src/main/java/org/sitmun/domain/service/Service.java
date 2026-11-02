@@ -44,12 +44,12 @@ public class Service {
       allocationSize = 1)
   @Id
   @GeneratedValue(strategy = GenerationType.TABLE, generator = "STM_SERVICE_GEN")
-  @Column(name = "SER_ID")
+  @Column(name = "SER_ID", nullable = false)
   @JsonView(ClientConfigurationViews.ApplicationTerritory.class)
   private Integer id;
 
   /** Service name. */
-  @Column(name = "SER_NAME", length = 60)
+  @Column(name = "SER_NAME", length = 60, nullable = false)
   @NotBlank
   @I18n
   @JsonView(ClientConfigurationViews.ApplicationTerritory.class)
@@ -61,7 +61,7 @@ public class Service {
   private String description;
 
   /** Service endpoint. */
-  @Column(name = "SER_URL", length = PersistenceConstants.URL)
+  @Column(name = "SER_URL", length = PersistenceConstants.URL, nullable = false)
   @NotNull
   @Http
   @JsonView(ClientConfigurationViews.ApplicationTerritory.class)
@@ -93,7 +93,7 @@ public class Service {
   private Date createdDate;
 
   /** Service type. The protocol that can be used to request the service. */
-  @Column(name = "SER_PROTOCOL", length = PersistenceConstants.IDENTIFIER)
+  @Column(name = "SER_PROTOCOL", length = PersistenceConstants.IDENTIFIER, nullable = false)
   @NotNull
   @CodeList(CodeListsConstants.SERVICE_TYPE)
   @JsonView(ClientConfigurationViews.ApplicationTerritory.class)
@@ -109,7 +109,7 @@ public class Service {
 
   /** <code>true</code> if the service is blocked and cannot be used. */
   @NotNull
-  @Column(name = "SER_BLOCKED")
+  @Column(name = "SER_BLOCKED", nullable = false)
   private Boolean blocked;
 
   /** <code>true</code> if the service is proxied. */

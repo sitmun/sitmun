@@ -29,7 +29,7 @@ public class TaskRelation {
       allocationSize = 1)
   @Id
   @GeneratedValue(strategy = GenerationType.TABLE, generator = "STM_TASKREL_GEN")
-  @Column(name = "TAR_ID")
+  @Column(name = "TAR_ID", nullable = false)
   @JsonView(ClientConfigurationViews.ApplicationTerritory.class)
   private Integer id;
 
@@ -41,7 +41,7 @@ public class TaskRelation {
   private Task task;
 
   /** A string that denotes traits or aspects of the relation */
-  @Column(name = "TAR_TYPE", length = PersistenceConstants.IDENTIFIER)
+  @Column(name = "TAR_TYPE", length = PersistenceConstants.IDENTIFIER, nullable = false)
   @NotNull
   private String relationType;
 

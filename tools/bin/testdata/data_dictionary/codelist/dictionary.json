@@ -1,0 +1,6 @@
+{
+  "columns": {},
+  "codelists": {"application.type": {"I": {"system": "true"}}},
+  "projections": {"unique_function_index": {}},
+  "uniques": {}
+}

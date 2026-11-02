@@ -127,9 +127,53 @@ jobs:
     if: github.event_name == 'workflow_dispatch' || needs.changes.outputs.tier == 'persistence'
     uses: ./.github/workflows/required-codelists.yml
 
+  dictionary:
+    name: Data Dictionary
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+      - name: Set up Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version-file: .java-version
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@ed408507eac070d1f99cc633dbcf757c94c7933a # v4
+        with:
+          cache-read-only: ${{ github.ref != 'refs/heads/dev' }}
+      - name: Set up pnpm
+        uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
+        with:
+          version: 12.15.0
+      - name: Set up Node
+        uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+          cache-dependency-path: sitmun-admin/pnpm-lock.yaml
+      - name: Install admin dependencies
+        working-directory: sitmun-admin
+        run: pnpm ci
+        env:
+          NPM_CONFIG_USERCONFIG: ${{ github.workspace }}/config/npm-userconfig
+      - name: Check baseline catalogs against the data dictionary
+        run: |
+          python3 tools/bin/check_data_dictionary.py \
+            --sql sitmun-backend/src/main/resources/db/changelog/baseline/01-schema.postgresql.sql \
+            --sql sitmun-backend/src/main/resources/db/changelog/baseline/01-schema.oracle.sql \
+            --sql sitmun-backend/src/test/resources/db/changelog-test/01-schema.h2.sql
+      - name: Check admin and viewer forms against the data dictionary
+        run: |
+          node tools/bin/check_data_dictionary_clients.mjs --app sitmun-admin
+          node tools/bin/check_data_dictionary_clients.mjs --app sitmun-viewer
+      - name: Run the Java data dictionary test
+        run: ./gradlew :sitmun-backend:test --tests org.sitmun.dictionary.DataDictionaryConformanceTest -Dsitmun.dictionary.fail=true
+
   ci-gate:
     name: ci-gate
-    needs: [changes, admin, viewer, backend, proxy, mbtiles, shared, docker, e2e-admin, e2e-viewer, e2e-contact, e2e-mia, e2e-mobile-web, e2e-mobile-android, required-codelists]
+    needs: [changes, admin, viewer, backend, proxy, mbtiles, shared, docker, e2e-admin, e2e-viewer, e2e-contact, e2e-mia, e2e-mobile-web, e2e-mobile-android, required-codelists, dictionary]
     if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -151,6 +195,7 @@ jobs:
           E2E_MOBILE_WEB: ${{ needs.e2e-mobile-web.result }}
           E2E_MOBILE_ANDROID: ${{ needs.e2e-mobile-android.result }}
           REQUIRED_CODELISTS: ${{ needs.required-codelists.result }}
+          DICTIONARY: ${{ needs.dictionary.result }}
         run: |
           python3 - << 'PY'
           import os, sys
@@ -160,6 +205,7 @@ jobs:
               "E2E_ADMIN", "E2E_VIEWER", "E2E_CONTACT", "E2E_MIA",
               "E2E_MOBILE_WEB", "E2E_MOBILE_ANDROID",
               "REQUIRED_CODELISTS",
+              "DICTIONARY",
           )
           bad = [name for name in names if os.environ[name] in ("failure", "cancelled")]
           if bad:

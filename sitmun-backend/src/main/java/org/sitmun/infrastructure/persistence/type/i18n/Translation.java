@@ -30,17 +30,17 @@ public class Translation {
       allocationSize = 1)
   @Id
   @GeneratedValue(strategy = GenerationType.TABLE, generator = "STM_TRANSLATION_GEN")
-  @Column(name = "TRA_ID")
+  @Column(name = "TRA_ID", nullable = false)
   private Integer id;
 
   /** Row identifier. */
-  @Column(name = "TRA_ELEID")
+  @Column(name = "TRA_ELEID", nullable = false)
   @NotNull
   private Integer element;
 
   /** Table and Column identifier. */
-  @Column(name = "TRA_COLUMN", length = PersistenceConstants.IDENTIFIER)
-  @Size(max = PersistenceConstants.IDENTIFIER)
+  @Column(name = "TRA_COLUMN", length = 100, nullable = false)
+  @Size(max = 100)
   @NotBlank
   private String column;
 
@@ -51,7 +51,7 @@ public class Translation {
   private Language language;
 
   /** Translation. */
-  @Column(name = "TRA_NAME", length = PersistenceConstants.LONG_DESCRIPTION)
+  @Column(name = "TRA_NAME", length = PersistenceConstants.LONG_DESCRIPTION, nullable = false)
   @NotBlank
   private String translation;
 

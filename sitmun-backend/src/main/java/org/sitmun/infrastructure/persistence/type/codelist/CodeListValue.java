@@ -35,38 +35,42 @@ public class CodeListValue {
       allocationSize = 1)
   @Id
   @GeneratedValue(strategy = GenerationType.TABLE, generator = "STM_CODELIST_GEN")
-  @Column(name = "COD_ID")
+  @Column(name = "COD_ID", nullable = false)
   private Integer id;
 
   /** Code list name. */
-  @Column(name = "COD_LIST", length = PersistenceConstants.IDENTIFIER)
-  @Size(max = PersistenceConstants.IDENTIFIER)
+  @Column(name = "COD_LIST", length = 250, nullable = false)
+  @Size(max = 250)
   @NotBlank
   private String codeListName;
 
   @JsonIgnore @Transient private String storedCodeListName;
 
   /** Value. */
-  @Column(name = "COD_VALUE", length = PersistenceConstants.IDENTIFIER)
-  @Size(max = PersistenceConstants.IDENTIFIER)
+  @Column(name = "COD_VALUE", length = 250, nullable = false)
+  @Size(max = 250)
   @NotBlank
   private String value;
 
   @JsonIgnore @Transient private String storedValue;
 
   /** Value. */
-  @Column(name = "COD_SYSTEM")
+  @Column(name = "COD_SYSTEM", nullable = false)
   private Boolean system;
 
   @JsonIgnore @Transient private Boolean storedSystem;
 
   /** Value description. */
-  @Column(name = "COD_DESCRIPTION", length = PersistenceConstants.SHORT_DESCRIPTION)
+  @Column(
+      name = "COD_DESCRIPTION",
+      length = PersistenceConstants.SHORT_DESCRIPTION,
+      nullable = false)
+  @NotNull
   @I18n
   private String description;
 
   /** The code should be used as a default value. */
-  @Column(name = "COD_DEFAULT")
+  @Column(name = "COD_DEFAULT", nullable = false)
   @NotNull
   private Boolean defaultCode;
 

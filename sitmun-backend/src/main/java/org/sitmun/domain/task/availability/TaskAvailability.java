@@ -38,7 +38,7 @@ public class TaskAvailability {
       allocationSize = 1)
   @Id
   @GeneratedValue(strategy = GenerationType.TABLE, generator = "STM_AVAIL_TSK_GEN")
-  @Column(name = "ATS_ID")
+  @Column(name = "ATS_ID", nullable = false)
   private Integer id;
 
   /** Created date. */

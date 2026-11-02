@@ -197,7 +197,7 @@ export class UserFormComponent extends BaseFormComponent<UserProjection> {
     this.entityForm = new UntypedFormGroup({
       username: new UntypedFormControl(
         {value: this.entityToEdit.username, disabled: this.isBuiltInAdmin || this.isBuiltInPublic},
-        [Validators.required, Validators.maxLength(50)]
+        [Validators.maxLength(50)]
       ),
       firstName: new UntypedFormControl(this.entityToEdit.firstName, [Validators.maxLength(50)]),
       lastName: new UntypedFormControl(this.entityToEdit.lastName, [Validators.maxLength(50)]),

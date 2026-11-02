@@ -185,7 +185,7 @@
                   <mat-label>
                     <app-feature-flag [text]="'entity.cartography.source' | translate" [flag]="'LAYERS_SOURCE_FEATURE'"></app-feature-flag>
                   </mat-label>
-                  <input matInput type="text" formControlName="source" [maxlength]="50">
+                  <input matInput type="text" formControlName="source" [maxlength]="80">
                   <mat-hint align="start">{{ 'entity.cartography.hint.source' | translate }}</mat-hint>
                   <mat-hint align="end">{{ entityForm.get('source') | characterCount }}</mat-hint>
                 </mat-form-field>

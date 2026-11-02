@@ -40,7 +40,7 @@ public class TaskType {
       allocationSize = 1)
   @Id
   @GeneratedValue(strategy = GenerationType.TABLE, generator = "STM_TSK_TYP_GEN")
-  @Column(name = "TTY_ID")
+  @Column(name = "TTY_ID", nullable = false)
   @JsonView(ClientConfigurationViews.ApplicationTerritory.class)
   private Integer id;
 
@@ -56,7 +56,7 @@ public class TaskType {
   private String title;
 
   /** Is active. */
-  @Column(name = "TTY_ENABLED")
+  @Column(name = "TTY_ENABLED", nullable = false)
   private Boolean enabled;
 
   /** Task type parent. */

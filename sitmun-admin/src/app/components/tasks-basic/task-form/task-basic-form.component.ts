@@ -271,7 +271,7 @@ export class TaskBasicFormComponent extends BaseFormComponent<TaskProjection> {
 
     this.entityForm = new FormGroup({
       name: new FormControl(this.entityToEdit.name, {
-        validators: [Validators.required],
+        validators: [Validators.maxLength(512), Validators.required],
         nonNullable: true
       }),
       uiId: new FormControl(this.entityToEdit.uiId, {

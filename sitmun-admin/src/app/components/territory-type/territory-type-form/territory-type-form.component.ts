@@ -86,7 +86,7 @@ export class TerritoryTypeFormComponent extends BaseFormComponent<TerritoryType>
       throw new Error('Cannot initialize form: entity is undefined');
     }
     this.entityForm = new UntypedFormGroup({
-      name: new UntypedFormControl(this.entityToEdit.name, [Validators.required, Validators.maxLength(50)]),
+      name: new UntypedFormControl(this.entityToEdit.name, [Validators.required, Validators.maxLength(250)]),
       official: new UntypedFormControl(this.entityToEdit.official ?? false),
       topType: new UntypedFormControl(this.entityToEdit.topType ?? false),
       bottomType: new UntypedFormControl(this.entityToEdit.bottomType ?? false),

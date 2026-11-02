@@ -55,12 +55,12 @@ public class Cartography {
       allocationSize = 1)
   @Id
   @GeneratedValue(strategy = GenerationType.TABLE, generator = "STM_GEOINFO_GEN")
-  @Column(name = "GEO_ID")
+  @Column(name = "GEO_ID", nullable = false)
   @JsonView(ClientConfigurationViews.ApplicationTerritory.class)
   private Integer id;
 
   /** Cartography name. */
-  @Column(name = "GEO_NAME", length = 100)
+  @Column(name = "GEO_NAME", length = 100, nullable = false)
   @NotBlank
   @JsonView(ClientConfigurationViews.ApplicationTerritory.class)
   @I18n
@@ -73,7 +73,7 @@ public class Cartography {
   private String description;
 
   /** List of layer identifiers. */
-  @Column(name = "GEO_LAYERS", length = 800)
+  @Column(name = "GEO_LAYERS", length = 800, nullable = false)
   @NotNull
   @Convert(converter = StringListAttributeConverter.class)
   @JsonView(ClientConfigurationViews.ApplicationTerritory.class)
@@ -84,7 +84,12 @@ public class Cartography {
    * column as {@link #layers} but without the converter. This allows JPQL queries to search the
    * comma-separated layer string.
    */
-  @Column(name = "GEO_LAYERS", length = 800, insertable = false, updatable = false)
+  @Column(
+      name = "GEO_LAYERS",
+      length = 800,
+      insertable = false,
+      updatable = false,
+      nullable = false)
   private String layersSearchString;
 
   /** Minimum scale visibility. */
@@ -114,7 +119,7 @@ public class Cartography {
   private Boolean applyFilterToGetMap;
 
   /** If <code>true</code>, the layers are queryable. */
-  @Column(name = "GEO_QUERYABL")
+  @Column(name = "GEO_QUERYABL", nullable = false)
   @NotNull
   private Boolean queryableFeatureAvailable;
 
@@ -122,7 +127,7 @@ public class Cartography {
    * If <code>true</code>, the queryable feature is enabled. This only applies if the layers are
    * queryable
    */
-  @Column(name = "GEO_QUERYACT")
+  @Column(name = "GEO_QUERYACT", nullable = false)
   @NotNull
   private Boolean queryableFeatureEnabled;
 
@@ -230,8 +235,8 @@ public class Cartography {
   private String geometryType;
 
   /** Grouping source. */
-  @Column(name = "GEO_SOURCE", length = IDENTIFIER)
-  @Size(max = IDENTIFIER)
+  @Column(name = "GEO_SOURCE", length = 80)
+  @Size(max = 80)
   private String source;
 
   /** Availailability. */
@@ -255,7 +260,7 @@ public class Cartography {
    * a style.
    */
   @NotNull
-  @Column(name = "GEO_STYUSEALL")
+  @Column(name = "GEO_STYUSEALL", nullable = false)
   @Builder.Default
   private Boolean useAllStyles = false;
 
@@ -271,7 +276,7 @@ public class Cartography {
 
   /** <code>true</code> if the cartography is blocked and cannot be used. */
   @NotNull
-  @Column(name = "GEO_BLOCKED")
+  @Column(name = "GEO_BLOCKED", nullable = false)
   private Boolean blocked;
 
   /** Filters. */

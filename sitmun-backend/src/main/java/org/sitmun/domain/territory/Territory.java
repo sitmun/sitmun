@@ -58,7 +58,7 @@ public class Territory {
       allocationSize = 1)
   @Id
   @GeneratedValue(strategy = GenerationType.TABLE, generator = "STM_TERRITORY_GEN")
-  @Column(name = "TER_ID")
+  @Column(name = "TER_ID", nullable = false)
   @JsonView({
     ClientConfigurationViews.Base.class,
     ClientConfigurationViews.ApplicationTerritory.class
@@ -66,12 +66,12 @@ public class Territory {
   private Integer id;
 
   /** Geographic code. */
-  @Column(name = "TER_CODTER", length = PersistenceConstants.IDENTIFIER)
+  @Column(name = "TER_CODTER", length = PersistenceConstants.IDENTIFIER, nullable = false)
   @NotBlank
   private String code;
 
   /** Territory name. */
-  @Column(name = "TER_NAME", length = PersistenceConstants.SHORT_DESCRIPTION)
+  @Column(name = "TER_NAME", length = PersistenceConstants.SHORT_DESCRIPTION, nullable = false)
   @NotBlank
   @I18n
   @JsonView({
@@ -117,8 +117,8 @@ public class Territory {
    *
    * @deprecated
    */
-  @Column(name = "TER_SCOPE", length = PersistenceConstants.IDENTIFIER)
-  @Size(max = PersistenceConstants.IDENTIFIER)
+  @Column(name = "TER_SCOPE", length = 250)
+  @Size(max = 250)
   @CodeList(CodeListsConstants.TERRITORY_SCOPE)
   @JsonView(ClientConfigurationViews.ApplicationTerritory.class)
   @Deprecated(forRemoval = true)
@@ -167,7 +167,7 @@ public class Territory {
   private Integer defaultZoomLevel;
 
   /** <code>true</code> if the territory is blocked. */
-  @Column(name = "TER_BLOCKED")
+  @Column(name = "TER_BLOCKED", nullable = false)
   @NotNull
   private Boolean blocked;
 
@@ -192,8 +192,8 @@ public class Territory {
   private Date createdDate;
 
   /** Projection to be used in this application when it is internal. */
-  @Column(name = "TER_PROJECT", length = PersistenceConstants.IDENTIFIER)
-  @Size(max = PersistenceConstants.IDENTIFIER)
+  @Column(name = "TER_PROJECT", length = 250)
+  @Size(max = 250)
   @Srs
   private String srs;
 

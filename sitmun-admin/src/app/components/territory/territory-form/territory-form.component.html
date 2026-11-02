@@ -159,7 +159,7 @@
               </mat-form-field>
               <mat-form-field appearance="outline" class="quarter">
                 <mat-label>{{ 'entity.application.srs' | translate }}</mat-label>
-                <input matInput type="text" formControlName="srs" [maxlength]="50" title="{{ 'entity.territory.projectionMessage' | translate }}">
+                <input matInput type="text" formControlName="srs" [maxlength]="250" title="{{ 'entity.territory.projectionMessage' | translate }}">
                 @if (entityForm.get('srs')?.hasError('invalidSrs')) {
                   <mat-error>{{ 'entity.territory.error.invalidSrs' | translate }}</mat-error>
                 }

@@ -106,9 +106,9 @@ describe('ApplicationFormComponent', () => {
 
   
 
-  it('requires a name and a description', () => {
+  it('requires a name and not a description', () => {
     expect(component.entityForm.get('name')?.hasError('required')).toBe(true);
-    expect(component.entityForm.get('description')?.hasError('required')).toBe(true);
+    expect(component.entityForm.get('description')?.hasError('required')).toBe(false);
   });
 
   it('requires a name', () => {

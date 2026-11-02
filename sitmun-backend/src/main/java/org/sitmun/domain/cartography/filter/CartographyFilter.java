@@ -38,22 +38,22 @@ public class CartographyFilter {
       allocationSize = 1)
   @Id
   @GeneratedValue(strategy = GenerationType.TABLE, generator = "STM_FIL_GI_GEN")
-  @Column(name = "FGI_ID")
+  @Column(name = "FGI_ID", nullable = false)
   private Integer id;
 
   /** Filter name. */
-  @Column(name = "FGI_NAME", length = PersistenceConstants.IDENTIFIER)
-  @Size(max = PersistenceConstants.IDENTIFIER)
+  @Column(name = "FGI_NAME", length = 80, nullable = false)
+  @Size(max = 80)
   @NotBlank
   private String name;
 
   /** If <code>true</code>, this filter is required. */
-  @Column(name = "FGI_REQUIRED")
+  @Column(name = "FGI_REQUIRED", nullable = false)
   @NotNull
   private Boolean required;
 
   /** Type of filter: custom or required. */
-  @Column(name = "FGI_TYPE", length = PersistenceConstants.IDENTIFIER)
+  @Column(name = "FGI_TYPE", length = PersistenceConstants.IDENTIFIER, nullable = false)
   @NotNull
   @CodeList(CodeListsConstants.CARTOGRAPHY_FILTER_TYPE)
   private String type;
@@ -64,8 +64,8 @@ public class CartographyFilter {
   private TerritoryType territorialLevel;
 
   /** Column where the filter applies. */
-  @Column(name = "FGI_COLUMN", length = PersistenceConstants.IDENTIFIER)
-  @Size(max = PersistenceConstants.IDENTIFIER)
+  @Column(name = "FGI_COLUMN", length = 250)
+  @Size(max = 250)
   private String column;
 
   /** A row is part of the filter if the value of the column is one of these values. */

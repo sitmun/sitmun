@@ -39,7 +39,7 @@ public class UserPosition {
       allocationSize = 1)
   @Id
   @GeneratedValue(strategy = GenerationType.TABLE, generator = "STM_POST_GEN")
-  @Column(name = "POS_ID")
+  @Column(name = "POS_ID", nullable = false)
   private Integer id;
 
   /** Position description. */

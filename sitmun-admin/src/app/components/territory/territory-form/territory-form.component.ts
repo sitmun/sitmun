@@ -322,7 +322,7 @@ export class TerritoryFormComponent extends BaseFormComponent<TerritoryProjectio
       extentMinY: new UntypedFormControl(this.entityToEdit.extent?.minY, []),
       extentMaxY: new UntypedFormControl(this.entityToEdit.extent?.maxY, []),
       note: new UntypedFormControl(this.entityToEdit.note, [Validators.maxLength(250)]),
-      srs: new UntypedFormControl(this.entityToEdit.srs, [Validators.maxLength(50), srsPatternValidator()]),
+      srs: new UntypedFormControl(this.entityToEdit.srs, [Validators.maxLength(250), srsPatternValidator()]),
       blocked: new UntypedFormControl(this.entityToEdit.blocked ?? true, [Validators.required]),
       defaultZoomLevel: new UntypedFormControl(this.entityToEdit.defaultZoomLevel, [integerValidator()]),
       centerPointX: new UntypedFormControl(this.entityToEdit.center?.x, []),
