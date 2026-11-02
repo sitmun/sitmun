@@ -298,6 +298,46 @@ expect_language_refusal() {
   fi
 }
 
+echo "── $ENGINE: Catalan default keeps partner text and restores in Catalan ──"
+start_db
+apply_tag "$TAG_129" "$TMP/129-ca"
+SQLFILE="$TMP/catalan.sql"
+if [[ "$KIND" == "postgres" ]]; then
+  cat >"$SQLFILE" <<'EOF'
+UPDATE stm_conf SET cnf_value = 'ca' WHERE cnf_name = 'language.default';
+UPDATE stm_codelist SET cod_description = 'Text del soci' WHERE cod_list = 'application.type' AND cod_value = 'E';
+DELETE FROM stm_codelist WHERE cod_list = 'cartography.geometryType' AND cod_value = 'LINE';
+EOF
+else
+  cat >"$SQLFILE" <<'EOF'
+UPDATE stm_conf SET cnf_value = 'ca' WHERE cnf_name = 'language.default';
+UPDATE stm_codelist SET cod_description = 'Text del soci' WHERE cod_list = 'application.type' AND cod_value = 'E';
+DELETE FROM stm_codelist WHERE cod_list = 'cartography.geometryType' AND cod_value = 'LINE';
+COMMIT;
+EXIT
+EOF
+fi
+run_sql_file "$SQLFILE"
+boot_backend ca
+if wait_health; then
+  ok "Catalan upgrade health is UP"
+else
+  fail "Catalan upgrade health did not come up"
+  tail -60 "$BACKEND_LOG" || true
+fi
+stop_backend
+system_flag="cod_system"
+[[ "$KIND" != "postgres" ]] && system_flag="cod_system = 1"
+partner=$(sql_count "SELECT COUNT(*) FROM stm_codelist WHERE cod_list = 'application.type' AND cod_value = 'E' AND cod_description = 'Text del soci' AND $system_flag")
+restored_line=$(sql_count "SELECT COUNT(*) FROM stm_codelist WHERE cod_list = 'cartography.geometryType' AND cod_value = 'LINE' AND cod_description = 'Línia' AND $system_flag")
+english_line=$(sql_count "SELECT COUNT(*) FROM stm_translation t JOIN stm_codelist c ON c.cod_id = t.tra_eleid JOIN stm_language lang ON lang.lan_id = t.tra_lanid WHERE c.cod_list = 'cartography.geometryType' AND c.cod_value = 'LINE' AND t.tra_column = 'CodeListValue.description' AND lang.lan_shortname = 'en' AND t.tra_name = 'Line'")
+catalan_line=$(sql_count "SELECT COUNT(*) FROM stm_translation t JOIN stm_codelist c ON c.cod_id = t.tra_eleid JOIN stm_language lang ON lang.lan_id = t.tra_lanid WHERE c.cod_list = 'cartography.geometryType' AND c.cod_value = 'LINE' AND t.tra_column = 'CodeListValue.description' AND lang.lan_shortname = 'ca'")
+if [[ "$partner" == "1" && "$restored_line" == "1" && "$english_line" == "1" && "$catalan_line" == "0" ]]; then
+  ok "Catalan default kept partner text and restored LINE in Catalan"
+else
+  fail "Catalan default partner=$partner line=$restored_line en=$english_line ca=$catalan_line"
+fi
+
 echo "── $ENGINE: 1.2.9 upgrades ──"
 start_db
 apply_tag "$TAG_129" "$TMP/129"
@@ -446,46 +486,6 @@ run_required_code_lists() {
 }
 
 run_required_code_lists
-
-echo "── $ENGINE: Catalan default keeps partner text and restores in Catalan ──"
-start_db
-apply_tag "$TAG_129" "$TMP/129-ca"
-SQLFILE="$TMP/catalan.sql"
-if [[ "$KIND" == "postgres" ]]; then
-  cat >"$SQLFILE" <<'EOF'
-UPDATE stm_conf SET cnf_value = 'ca' WHERE cnf_name = 'language.default';
-UPDATE stm_codelist SET cod_description = 'Text del soci' WHERE cod_list = 'application.type' AND cod_value = 'E';
-DELETE FROM stm_codelist WHERE cod_list = 'cartography.geometryType' AND cod_value = 'LINE';
-EOF
-else
-  cat >"$SQLFILE" <<'EOF'
-UPDATE stm_conf SET cnf_value = 'ca' WHERE cnf_name = 'language.default';
-UPDATE stm_codelist SET cod_description = 'Text del soci' WHERE cod_list = 'application.type' AND cod_value = 'E';
-DELETE FROM stm_codelist WHERE cod_list = 'cartography.geometryType' AND cod_value = 'LINE';
-COMMIT;
-EXIT
-EOF
-fi
-run_sql_file "$SQLFILE"
-boot_backend ca
-if wait_health; then
-  ok "Catalan upgrade health is UP"
-else
-  fail "Catalan upgrade health did not come up"
-  tail -60 "$BACKEND_LOG" || true
-fi
-stop_backend
-system_flag="cod_system"
-[[ "$KIND" != "postgres" ]] && system_flag="cod_system = 1"
-partner=$(sql_count "SELECT COUNT(*) FROM stm_codelist WHERE cod_list = 'application.type' AND cod_value = 'E' AND cod_description = 'Text del soci' AND $system_flag")
-restored_line=$(sql_count "SELECT COUNT(*) FROM stm_codelist WHERE cod_list = 'cartography.geometryType' AND cod_value = 'LINE' AND cod_description = 'Línia' AND $system_flag")
-english_line=$(sql_count "SELECT COUNT(*) FROM stm_translation t JOIN stm_codelist c ON c.cod_id = t.tra_eleid JOIN stm_language lang ON lang.lan_id = t.tra_lanid WHERE c.cod_list = 'cartography.geometryType' AND c.cod_value = 'LINE' AND t.tra_column = 'CodeListValue.description' AND lang.lan_shortname = 'en' AND t.tra_name = 'Line'")
-catalan_line=$(sql_count "SELECT COUNT(*) FROM stm_translation t JOIN stm_codelist c ON c.cod_id = t.tra_eleid JOIN stm_language lang ON lang.lan_id = t.tra_lanid WHERE c.cod_list = 'cartography.geometryType' AND c.cod_value = 'LINE' AND t.tra_column = 'CodeListValue.description' AND lang.lan_shortname = 'ca'")
-if [[ "$partner" == "1" && "$restored_line" == "1" && "$english_line" == "1" && "$catalan_line" == "0" ]]; then
-  ok "Catalan default kept partner text and restored LINE in Catalan"
-else
-  fail "Catalan default partner=$partner line=$restored_line en=$english_line ca=$catalan_line"
-fi
 
 echo ""
 echo "Results: $PASS passed, $FAIL failed"
