@@ -58,6 +58,8 @@ def norm_default(value: str | None) -> str | None:
     if value is None:
         return None
     text = value.strip().rstrip(",")
+    while len(text) >= 2 and text[0] == "(" and text[-1] == ")":
+        text = text[1:-1].strip()
     if not text:
         return None
     low = text.lower()
@@ -159,6 +161,8 @@ def load_columns(path: Path) -> dict[tuple[str, str], ColumnObs]:
         while len(parts) < 6:
             parts.append("")
         table, column, data_type, length, nullable, default = parts[:6]
+        if not re.fullmatch(r"[A-Za-z0-9_$]+", table) or not re.fullmatch(r"[A-Za-z0-9_$]+", column):
+            continue
         logical = logical_type(data_type)
         number = int(length) if length.isdigit() and logical == "string" else None
         found[(table.upper(), column.upper())] = ColumnObs(

@@ -19,6 +19,7 @@ from data_dictionary_lib import (  # noqa: E402
     check_catalog,
     decide_open_rows,
     load_system_codelists,
+    norm_default,
     parse_create_columns,
     parse_uniques,
     read_dictionary,
@@ -154,6 +155,35 @@ class DataDictionaryTest(unittest.TestCase):
         )
         self.assertEqual(completed.returncode, 0, completed.stdout + completed.stderr)
         self.assertIn("open=0", completed.stdout)
+
+    def test_parenthesized_oracle_default_matches_the_dictionary(self):
+        self.assertEqual(norm_default("(SYSTIMESTAMP)"), "current_timestamp")
+        self.assertEqual(norm_default("(0)"), "false")
+        self.assertEqual(norm_default("(1)"), "true")
+
+    def test_oracle_error_dump_is_not_a_catalog(self):
+        folder = FIXTURES / "length"
+        with tempfile.TemporaryDirectory() as tmp:
+            dest = Path(tmp)
+            (dest / "fresh.columns").write_text(
+                "ORA-00932: expression is of data type LONG, which is incompatible\n"
+            )
+            completed = subprocess.run(
+                [
+                    sys.executable,
+                    str(BIN / "check_data_dictionary.py"),
+                    "--dictionary",
+                    str(folder / "dictionary.json"),
+                    "--catalog",
+                    str(dest),
+                ],
+                cwd=ROOT,
+                capture_output=True,
+                text=True,
+            )
+        self.assertEqual(completed.returncode, 1)
+        self.assertIn("has no columns", completed.stderr)
+        self.assertNotIn("absent", completed.stdout)
 
     def test_fresh_dump_prefix_is_a_catalog(self):
         folder = FIXTURES / "length"

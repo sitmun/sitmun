@@ -14,9 +14,11 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from data_dictionary_lib import (
+    catalog_file,
     check_catalog,
     check_sql,
     counts,
+    load_columns,
     open_count,
     read_dictionary,
 )
@@ -32,6 +34,10 @@ def main(argv: list[str] | None = None) -> int:
     document = read_dictionary(args.dictionary)
     drifts = []
     for catalog in args.catalog:
+        columns_path = catalog_file(catalog, "columns")
+        if not columns_path.is_file() or not load_columns(columns_path):
+            print(f"ERROR: {columns_path} has no columns", file=sys.stderr)
+            return 1
         drifts.extend(check_catalog(document, catalog))
     for sql_path in args.sql:
         drifts.extend(check_sql(document, sql_path.read_text(encoding="utf-8"), consumer=sql_path.name))
