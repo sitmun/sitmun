@@ -114,6 +114,16 @@ dump_pg_schema() {
     ORDER BY 1, 6;
   " >> "${out_prefix}.constraints"
 
+  docker exec "$container" psql -U "$user" -d "$db" -v ON_ERROR_STOP=1 -At -F '|' -c "
+    SELECT upper(tablename), upper(indexname),
+           CASE WHEN indexdef ILIKE 'CREATE UNIQUE%' THEN 'YES' ELSE 'NO' END,
+           replace(indexdef, '|', '/')
+    FROM pg_indexes
+    WHERE schemaname = 'public'
+      AND tablename LIKE 'stm_%'
+    ORDER BY 1, 2;
+  " > "${out_prefix}.indexes"
+
   if [[ ! -s "${out_prefix}.columns" ]]; then
     echo "ERROR: empty column dump for ${out_prefix}" >&2
     return 1
@@ -313,7 +323,8 @@ SET PAGESIZE 0 FEEDBACK OFF VERIFY OFF HEADING OFF ECHO OFF LINESIZE 32767 LONG 
 SELECT table_name||'|'||column_name||'|'||data_type||'|'||
        NVL(TO_CHAR(CASE WHEN data_type IN ('VARCHAR2','NVARCHAR2','CHAR','NCHAR')
                         THEN char_length ELSE data_length END),'')||'|'||
-       CASE nullable WHEN 'N' THEN 'NO' WHEN 'Y' THEN 'YES' ELSE nullable END||'|'
+       CASE nullable WHEN 'N' THEN 'NO' WHEN 'Y' THEN 'YES' ELSE nullable END||'|'||
+       NVL(REPLACE(REPLACE(SUBSTR(data_default,1,200), '|', '/'), CHR(10), ' '), '')
 FROM user_tab_columns
 WHERE table_name LIKE 'STM_%'
 ORDER BY table_name, column_name;
@@ -348,6 +359,18 @@ WHERE ac.constraint_type = 'R'
 GROUP BY acc.table_name, r.table_name, ac.constraint_name
 ORDER BY 1;
 \" | sqlplus -s ${connect}" >> "${out_prefix}.constraints"
+
+  docker exec "$container" bash -c "echo \"
+SET PAGESIZE 0 FEEDBACK OFF VERIFY OFF HEADING OFF ECHO OFF LINESIZE 32767 LONG 100000 WRAP OFF
+SELECT i.table_name||'|'||i.index_name||'|'||
+       CASE i.uniqueness WHEN 'UNIQUE' THEN 'YES' ELSE 'NO' END||'|'||
+       LISTAGG(ic.column_name, ',') WITHIN GROUP (ORDER BY ic.column_position)
+FROM user_indexes i
+JOIN user_ind_columns ic ON i.index_name = ic.index_name
+WHERE i.table_name LIKE 'STM_%'
+GROUP BY i.table_name, i.index_name, i.uniqueness
+ORDER BY 1;
+\" | sqlplus -s ${connect}" > "${out_prefix}.indexes"
 
   if ! grep -q '^STM_' "${out_prefix}.columns" 2>/dev/null; then
     echo "ERROR: oracle column dump failed for ${out_prefix}:" >&2

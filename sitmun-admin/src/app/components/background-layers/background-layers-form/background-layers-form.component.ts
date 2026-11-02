@@ -235,8 +235,8 @@ export class BackgroundLayersFormComponent extends BaseFormComponent<BackgroundP
     }
 
     this.entityForm = new UntypedFormGroup({
-      name: new UntypedFormControl(this.entityToEdit.name, [Validators.required]),
-      description: new UntypedFormControl(this.entityToEdit.description),
+      name: new UntypedFormControl(this.entityToEdit.name, [Validators.maxLength(50), Validators.required]),
+      description: new UntypedFormControl(this.entityToEdit.description, [Validators.maxLength(250)]),
       image: new UntypedFormControl(this.entityToEdit.image, [
         Validators.maxLength(4000),
         optionalHttpOrHttpsUrlValidator,

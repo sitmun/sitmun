@@ -85,11 +85,13 @@ describe('TaskTypeFormComponent', () => {
 
   
 
-  it('requires title in the form', () => {
+  it('limits title to 50 characters', () => {
     component.entityForm.get('title')?.setValue('');
-    expect(component.entityForm.valid).toBe(false);
+    expect(component.entityForm.get('title')?.hasError('required')).toBe(false);
+    component.entityForm.get('title')?.setValue('Q'.repeat(51));
+    expect(component.entityForm.get('title')?.hasError('maxlength')).toBe(true);
     component.entityForm.get('title')?.setValue('Query');
-    expect(component.entityForm.valid).toBe(true);
+    expect(component.entityForm.get('title')?.valid).toBe(true);
   });
 
   it('keeps save disabled until the form is loaded and changed', () => {

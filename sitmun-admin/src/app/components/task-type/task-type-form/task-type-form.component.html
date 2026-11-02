@@ -30,7 +30,7 @@
           <mat-card-content>
             <mat-form-field appearance="outline" class="full">
               <mat-label>{{ 'entity.taskType.title' | translate }} ({{ defaultLang }})</mat-label>
-              <input matInput type="text" formControlName="title" [maxlength]="250" required>
+              <input matInput type="text" formControlName="title" [maxlength]="50">
               <mat-hint align="start">{{ 'entity.taskType.labelsReadOnly' | translate }}</mat-hint>
               <mat-hint align="end">{{entityForm.get('title') | characterCount}}</mat-hint>
               <mat-icon matSuffix class="iconTranslate"

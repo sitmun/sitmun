@@ -83,9 +83,9 @@ export class LanguageFormComponent extends BaseFormComponent<Language> {
     this.entityForm = new UntypedFormGroup({
       shortname: new UntypedFormControl(
         {value: this.entityToEdit.shortname, disabled: !this.isNewOrDuplicated()},
-        [Validators.required]
+        [Validators.maxLength(20), Validators.required]
       ),
-      name: new UntypedFormControl(this.entityToEdit.name, [Validators.required]),
+      name: new UntypedFormControl(this.entityToEdit.name, [Validators.maxLength(50), Validators.required]),
       order: new UntypedFormControl(this.entityToEdit.order ?? 0, [Validators.required]),
       enabled: new UntypedFormControl(
         {value: enabled, disabled: this.isDefaultLanguage},

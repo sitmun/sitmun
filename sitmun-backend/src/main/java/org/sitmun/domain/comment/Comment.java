@@ -34,16 +34,16 @@ public class Comment {
       allocationSize = 1)
   @Id
   @GeneratedValue(strategy = GenerationType.TABLE, generator = "STM_COMMENT_GEN")
-  @Column(name = "COM_ID")
+  @Column(name = "COM_ID", nullable = false)
   private Integer id;
 
   /** Coordinate X of the place. */
-  @Column(name = "COM_COORD_X")
+  @Column(name = "COM_COORD_X", nullable = false)
   @NotNull
   private Double coordinateX;
 
   /** Coordinate Y of the place. */
-  @Column(name = "COM_COORD_Y")
+  @Column(name = "COM_COORD_Y", nullable = false)
   @NotNull
   private Double coordinateY;
 

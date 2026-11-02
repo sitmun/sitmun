@@ -30,7 +30,7 @@
           <mat-card-content class="sitmun-service-form-stack">
             <mat-form-field appearance="outline" class="full sitmun-cartography-rich-hint-field" subscriptSizing="dynamic">
               <mat-label> {{ 'common.form.name' | translate }}</mat-label>
-              <input matInput type="text" formControlName="name" required [maxlength]="50">
+              <input matInput type="text" formControlName="name" required [maxlength]="80">
               <mat-hint align="start">{{ 'entity.connection.hint.name' | translate }}</mat-hint>
               <mat-hint align="end">
                 {{ entityForm.get('name') | characterCount }}
@@ -77,7 +77,7 @@
             <div class="sitmun-connection-form-url-section">
               <mat-form-field appearance="outline" class="full sitmun-cartography-rich-hint-field" subscriptSizing="dynamic">
                 <mat-label>{{ 'entity.connection.url' | translate }}</mat-label>
-                <input matInput type="text" formControlName="url" required [maxlength]="250">
+                <input matInput type="text" formControlName="url" [maxlength]="250">
                 <mat-hint align="start">{{ 'entity.connection.hint.url' | translate }}</mat-hint>
                 <mat-hint align="end">
                   {{ entityForm.get('url') | characterCount }}

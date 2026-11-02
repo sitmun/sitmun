@@ -9,7 +9,6 @@ import java.util.Objects;
 import java.util.Set;
 import lombok.*;
 import org.sitmun.authorization.client.dto.ClientConfigurationViews;
-import org.sitmun.domain.PersistenceConstants;
 import org.sitmun.domain.application.Application;
 import org.sitmun.domain.cartography.permission.CartographyPermission;
 import org.sitmun.domain.task.Task;
@@ -38,7 +37,7 @@ public class Role {
       allocationSize = 1)
   @Id
   @GeneratedValue(strategy = GenerationType.TABLE, generator = "STM_ROLE_GEN")
-  @Column(name = "ROL_ID")
+  @Column(name = "ROL_ID", nullable = false)
   @JsonView({
     ClientConfigurationViews.Base.class,
     ClientConfigurationViews.ApplicationTerritory.class
@@ -46,8 +45,8 @@ public class Role {
   private Integer id;
 
   /** Role name. Role names are unique and cannot be shared across applications. */
-  @Column(name = "ROL_NAME", length = PersistenceConstants.IDENTIFIER)
-  @Size(max = PersistenceConstants.IDENTIFIER)
+  @Column(name = "ROL_NAME", length = 250, nullable = false)
+  @Size(max = 250)
   @NotBlank
   @JsonView({
     ClientConfigurationViews.Base.class,

@@ -39,7 +39,7 @@ public class ApplicationTerritory {
       allocationSize = 1)
   @Id
   @GeneratedValue(strategy = GenerationType.TABLE, generator = "STM_APP_TER_GEN")
-  @Column(name = "ATE_ID")
+  @Column(name = "ATE_ID", nullable = false)
   private Integer id;
 
   /** Application. */

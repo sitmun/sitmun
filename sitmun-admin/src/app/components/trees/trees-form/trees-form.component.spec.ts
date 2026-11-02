@@ -100,9 +100,9 @@ describe('TreesFormComponent', () => {
 
   
 
-  it('requires a name and a type', () => {
+  it('requires a name and not a type', () => {
     expect(component.entityForm.get('name')?.hasError('required')).toBe(true);
-    expect(component.entityForm.get('type')?.hasError('required')).toBe(true);
+    expect(component.entityForm.get('type')?.hasError('required')).toBe(false);
   });
 
   it('requires a name', () => {

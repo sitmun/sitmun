@@ -1,0 +1,6 @@
+{
+  "columns": {},
+  "codelists": {},
+  "projections": {"system_key_names": "SYS_C names on Oracle 1.2.9 keys", "unique_function_index": {}},
+  "uniques": {"STM_USER": ["USE_USER"]}
+}

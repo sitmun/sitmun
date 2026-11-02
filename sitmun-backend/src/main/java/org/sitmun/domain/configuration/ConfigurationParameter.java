@@ -32,11 +32,11 @@ public class ConfigurationParameter {
       allocationSize = 1)
   @Id
   @GeneratedValue(strategy = GenerationType.TABLE, generator = "STM_CONF_GEN")
-  @Column(name = "CNF_ID")
+  @Column(name = "CNF_ID", nullable = false)
   private Integer id;
 
   /** Parameter name. */
-  @Column(name = "CNF_NAME", length = PersistenceConstants.IDENTIFIER)
+  @Column(name = "CNF_NAME", length = PersistenceConstants.IDENTIFIER, nullable = false)
   @NotBlank
   @JsonView({
     ClientConfigurationViews.Base.class,

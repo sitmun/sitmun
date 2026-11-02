@@ -103,9 +103,9 @@ describe('ServiceFormComponent', () => {
 
   
 
-  it('requires a name, an authentication mode, a type, and a service URL', () => {
+  it('requires a name, a type, and a service URL', () => {
     expect(component.entityForm.get('name')?.hasError('required')).toBe(true);
-    expect(component.entityForm.get('authenticationMode')?.hasError('required')).toBe(true);
+    expect(component.entityForm.get('authenticationMode')?.hasError('required')).toBe(false);
     expect(component.entityForm.get('type')?.hasError('required')).toBe(true);
     expect(component.entityForm.get('serviceURL')?.hasError('required')).toBe(true);
   });

@@ -66,7 +66,7 @@
               <div class="appearance-input-section">
                 <mat-form-field appearance="outline" class="appearance-form-field">
                   <mat-label>{{ 'entity.tree.image' | translate }}</mat-label>
-                  <input #treeImageNameInput matInput type="text" formControlName="imageName"
+                  <input #treeImageNameInput matInput type="text" formControlName="imageName" [maxlength]="255"
                     (keyup)="onImageChange('tree', $event)" readonly
                     [placeholder]="'entity.tree.imagePlaceHolder' | translate">
                 </mat-form-field>

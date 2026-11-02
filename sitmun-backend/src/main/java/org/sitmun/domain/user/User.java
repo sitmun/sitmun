@@ -43,7 +43,7 @@ public class User {
       allocationSize = 1)
   @Id
   @GeneratedValue(strategy = GenerationType.TABLE, generator = "STM_USER_GEN")
-  @Column(name = "USE_ID")
+  @Column(name = "USE_ID", nullable = false)
   private Integer id;
 
   /** User login. */
@@ -75,12 +75,12 @@ public class User {
   private String identificationType;
 
   /** If <code>true</code>, the user is a system administrator. */
-  @Column(name = "USE_ADM")
+  @Column(name = "USE_ADM", nullable = false)
   @NotNull
   private Boolean administrator;
 
   /** If <code>true</code>, the user is blocked and cannot log to the system. */
-  @Column(name = "USE_BLOCKED")
+  @Column(name = "USE_BLOCKED", nullable = false)
   @NotNull
   private Boolean blocked;
 

@@ -43,7 +43,7 @@ public class UserConfiguration {
       allocationSize = 1)
   @Id
   @GeneratedValue(strategy = GenerationType.TABLE, generator = "STM_USR_CONF_GEN")
-  @Column(name = "UCO_ID")
+  @Column(name = "UCO_ID", nullable = false)
   @JsonView(ClientConfigurationViews.Base.class)
   private Integer id;
 
@@ -76,7 +76,7 @@ public class UserConfiguration {
    * <p>This role only applies when {@link Application#getAccessChildrenTerritory()} is {@code
    * true}.
    */
-  @Column(name = "UCO_ROLEM")
+  @Column(name = "UCO_ROLEM", nullable = false)
   @NotNull
   private Boolean appliesToChildrenTerritories;
 

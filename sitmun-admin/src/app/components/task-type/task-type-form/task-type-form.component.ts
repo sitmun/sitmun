@@ -105,7 +105,7 @@ export class TaskTypeFormComponent extends BaseFormComponent<TaskType> {
     }
 
     this.entityForm = new UntypedFormGroup({
-      title: new UntypedFormControl(this.entityToEdit.title, [Validators.required]),
+      title: new UntypedFormControl(this.entityToEdit.title, [Validators.maxLength(50)]),
     });
   }
 

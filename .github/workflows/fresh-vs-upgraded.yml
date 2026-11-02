@@ -17,6 +17,11 @@ on:
       - 'tools/bin/compare_fresh_vs_upgraded.py'
       - 'tools/bin/generate_legacy_upgrade.py'
       - 'tools/tests/test_generate_legacy_upgrade.py'
+      - 'tools/dictionary/**'
+      - 'tools/bin/check_data_dictionary.py'
+      - 'tools/bin/data_dictionary_lib.py'
+      - 'tools/bin/seed_data_dictionary.py'
+      - 'tools/bin/check_data_dictionary_clients.mjs'
       - '.github/workflows/fresh-vs-upgraded.yml'
   workflow_dispatch:
     inputs:
@@ -59,6 +64,8 @@ jobs:
         run: git fetch --no-tags origin tag legacy/sitmun-application-stack/sitmun-application-stack/1.2.9
       - name: Compare a fresh database with an upgraded 1.2.9 database
         run: bash tools/scripts/fresh-vs-upgraded.sh postgres-12
+      - name: Check the fresh catalog against the data dictionary
+        run: python3 tools/bin/check_data_dictionary.py --catalog tools/out/schema-drift/fresh-vs-upgraded/postgres-12
 
   postgres-16:
     name: Fresh versus upgraded PostgreSQL 16
@@ -75,6 +82,8 @@ jobs:
         run: git fetch --no-tags origin tag legacy/sitmun-application-stack/sitmun-application-stack/1.2.9
       - name: Compare a fresh database with an upgraded 1.2.9 database
         run: bash tools/scripts/fresh-vs-upgraded.sh postgres-16
+      - name: Check the fresh catalog against the data dictionary
+        run: python3 tools/bin/check_data_dictionary.py --catalog tools/out/schema-drift/fresh-vs-upgraded/postgres-16
 
   oracle-23:
     name: Fresh versus upgraded Oracle 23ai
@@ -91,6 +100,8 @@ jobs:
         run: git fetch --no-tags origin tag legacy/sitmun-application-stack/sitmun-application-stack/1.2.9
       - name: Compare a fresh database with an upgraded 1.2.9 database
         run: bash tools/scripts/fresh-vs-upgraded.sh oracle-23
+      - name: Check the fresh catalog against the data dictionary
+        run: python3 tools/bin/check_data_dictionary.py --catalog tools/out/schema-drift/fresh-vs-upgraded/oracle-23
 
   oracle-19:
     name: Fresh versus upgraded Oracle 21c (stand-in for 19c)
@@ -107,6 +118,8 @@ jobs:
         run: git fetch --no-tags origin tag legacy/sitmun-application-stack/sitmun-application-stack/1.2.9
       - name: Compare a fresh database with an upgraded 1.2.9 database
         run: bash tools/scripts/fresh-vs-upgraded.sh oracle-21
+      - name: Check the fresh catalog against the data dictionary
+        run: python3 tools/bin/check_data_dictionary.py --catalog tools/out/schema-drift/fresh-vs-upgraded/oracle-21
 
   oracle-11:
     name: Fresh versus upgraded Oracle 11g
@@ -123,3 +136,5 @@ jobs:
         run: git fetch --no-tags origin tag legacy/sitmun-application-stack/sitmun-application-stack/1.2.9
       - name: Compare a fresh database with an upgraded 1.2.9 database
         run: bash tools/scripts/fresh-vs-upgraded.sh oracle-11
+      - name: Check the fresh catalog against the data dictionary
+        run: python3 tools/bin/check_data_dictionary.py --catalog tools/out/schema-drift/fresh-vs-upgraded/oracle-11

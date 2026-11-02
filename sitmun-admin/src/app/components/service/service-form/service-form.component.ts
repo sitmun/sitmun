@@ -343,19 +343,19 @@ export class ServiceFormComponent extends BaseFormComponent<Service> implements 
 
     this.entityForm = new UntypedFormGroup({
       name: new UntypedFormControl(this.entityToEdit.name, [Validators.required, Validators.maxLength(60)]),
-      user: new UntypedFormControl(this.entityToEdit.user),
-      password: new UntypedFormControl(this.entityToEdit.password),
-      authenticationMode: new UntypedFormControl(this.entityToEdit.authenticationMode, [Validators.required]),
+      user: new UntypedFormControl(this.entityToEdit.user, [Validators.maxLength(50)]),
+      password: new UntypedFormControl(this.entityToEdit.password, [Validators.maxLength(50)]),
+      authenticationMode: new UntypedFormControl(this.entityToEdit.authenticationMode, [Validators.maxLength(50)]),
       description: new UntypedFormControl(this.entityToEdit.description, [Validators.maxLength(4000)]),
-      type: new UntypedFormControl(this.entityToEdit.type, [
+      type: new UntypedFormControl(this.entityToEdit.type, [Validators.maxLength(50), 
         Validators.required,
       ]),
-      serviceURL: new UntypedFormControl(this.entityToEdit.serviceURL, [
+      serviceURL: new UntypedFormControl(this.entityToEdit.serviceURL, [Validators.maxLength(4000), 
         Validators.required,
       ]),
       proxyUrl: new UntypedFormControl(this.entityToEdit.proxyUrl,),
-      supportedSRS: new UntypedFormControl(this.entityToEdit.supportedSRS),
-      getInformationURL: new UntypedFormControl(this.entityToEdit.getInformationURL,),
+      supportedSRS: new UntypedFormControl(this.entityToEdit.supportedSRS, [Validators.maxLength(1000)]),
+      getInformationURL: new UntypedFormControl(this.entityToEdit.getInformationURL, [Validators.maxLength(4000)]),
       blocked: new UntypedFormControl(this.entityToEdit.blocked, []),
       isProxied: new UntypedFormControl(this.entityToEdit.isProxied, []),
     });

@@ -1,0 +1,14 @@
+{
+  "columns": {
+    "STM_APP.APP_PRIVATE": {
+      "default": "false",
+      "length": null,
+      "required": true,
+      "status": "decided",
+      "type": "boolean"
+    }
+  },
+  "codelists": {},
+  "projections": {"unique_function_index": {}},
+  "uniques": {}
+}

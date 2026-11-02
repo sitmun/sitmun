@@ -14,7 +14,7 @@ public class RequestNewPassword {
       description = "User identifier. It cannot be empty",
       example = "some_user or some_user@mail.com")
   @NotNull
-  @Size(min = 1, max = 50)
+  @Size(min = 1, max = 250)
   private String email;
 
   @Override

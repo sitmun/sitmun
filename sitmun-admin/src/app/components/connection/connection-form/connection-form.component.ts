@@ -105,14 +105,14 @@ export class ConnectionFormComponent extends BaseFormComponent<Connection> {
     }
     this.resetPasswordFieldState();
     this.entityForm = new UntypedFormGroup({
-      name: new UntypedFormControl(this.entityToEdit.name, [Validators.required, Validators.maxLength(50)]),
-      driver: new UntypedFormControl(this.entityToEdit.driver, [Validators.required]),
-      user: new UntypedFormControl(this.entityToEdit.user),
+      name: new UntypedFormControl(this.entityToEdit.name, [Validators.required, Validators.maxLength(80)]),
+      driver: new UntypedFormControl(this.entityToEdit.driver, [Validators.maxLength(50), Validators.required]),
+      user: new UntypedFormControl(this.entityToEdit.user, [Validators.maxLength(50)]),
       newPassword: new UntypedFormControl(
         this.passwordSet ? ConnectionFormComponent.PASSWORD_PLACEHOLDER : '',
         []
       ),
-      url: new UntypedFormControl(this.entityToEdit.url, [Validators.required]),
+      url: new UntypedFormControl(this.entityToEdit.url, [Validators.maxLength(250)]),
     });
   }
 

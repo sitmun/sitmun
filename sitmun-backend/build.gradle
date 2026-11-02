@@ -201,6 +201,7 @@ tasks.withType(Test).configureEach {
   // Forward opt-in Liquibase seed sequence canary (exact STM_SEQUENCE baselines)
   systemProperty 'sitmun.seed-canary.sequences', System.getProperty('sitmun.seed-canary.sequences', '')
   systemProperty 'sitmun.test.changelog', System.getProperty('sitmun.test.changelog', '')
+  systemProperty 'sitmun.dictionary.fail', System.getProperty('sitmun.dictionary.fail', 'false')
 
   reports.junitXml.includeSystemOutLog = false
   reports.junitXml.includeSystemErrLog = false

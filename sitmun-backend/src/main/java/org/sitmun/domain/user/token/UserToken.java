@@ -1,6 +1,7 @@
 package org.sitmun.domain.user.token;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import java.util.Date;
 import lombok.*;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -23,16 +24,17 @@ public class UserToken {
       allocationSize = 1)
   @Id
   @GeneratedValue(strategy = GenerationType.TABLE, generator = "STM_USER_TOKEN_GEN")
-  @Column(name = "USER_TOKEN_ID")
+  @Column(name = "USER_TOKEN_ID", nullable = false)
   private Integer id;
 
   @Column(name = "USER_ID", nullable = false)
   private Integer userID;
 
+  @NotNull
   @Column(name = "CODE_OTP", nullable = false)
   private String codeOTP;
 
-  @Column(name = "EXPIRE_AT", nullable = false)
+  @Column(name = "EXPIRE_AT")
   private Date expireAt;
 
   @Column(name = "ATTEMPT_COUNTER", nullable = false)

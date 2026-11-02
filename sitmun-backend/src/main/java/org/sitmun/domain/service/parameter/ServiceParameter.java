@@ -35,26 +35,26 @@ public class ServiceParameter {
       allocationSize = 1)
   @Id
   @GeneratedValue(strategy = GenerationType.TABLE, generator = "STM_PAR_SER_GEN")
-  @Column(name = "PSE_ID")
+  @Column(name = "PSE_ID", nullable = false)
   @JsonView(ClientConfigurationViews.ApplicationTerritory.class)
   private Integer id;
 
   /** Parameter name. */
-  @Column(name = "PSE_NAME", length = PersistenceConstants.IDENTIFIER)
+  @Column(name = "PSE_NAME", length = PersistenceConstants.IDENTIFIER, nullable = false)
   @NotBlank
   @JsonView(ClientConfigurationViews.ApplicationTerritory.class)
   private String name;
 
   /** Parameter value. */
-  @Column(name = "PSE_VALUE", length = PersistenceConstants.VALUE)
+  @NotNull
+  @Column(name = "PSE_VALUE", length = PersistenceConstants.VALUE, nullable = false)
   @JsonView(ClientConfigurationViews.ApplicationTerritory.class)
   private String value;
 
   /** Parameter type. */
-  @Column(name = "PSE_TYPE", length = PersistenceConstants.IDENTIFIER)
-  @Size(max = PersistenceConstants.IDENTIFIER)
+  @Column(name = "PSE_TYPE", length = 250)
+  @Size(max = 250)
   @CodeList(CodeListsConstants.SERVICE_PARAMETER_TYPE)
-  @NotNull
   @JsonView(ClientConfigurationViews.ApplicationTerritory.class)
   private String type;
 

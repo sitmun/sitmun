@@ -196,6 +196,24 @@ python3 tools/bin/check_changelog_integrity.py
 
 ---
 
+## Data dictionary
+
+`tools/dictionary/dictionary.json` is the authored column contract. The path has no release number. A row is decided when both baseline catalogs agree, or when a later change records one value. Checkers fail when SQL, a post-Liquibase catalog dump, JPA, a request DTO, a checked-in OpenAPI document, or an admin or viewer form disagrees.
+
+```bash
+python3 tools/bin/check_data_dictionary.py \
+  --sql sitmun-backend/src/main/resources/db/changelog/baseline/01-schema.postgresql.sql \
+  --sql sitmun-backend/src/main/resources/db/changelog/baseline/01-schema.oracle.sql \
+  --sql sitmun-backend/src/test/resources/db/changelog-test/01-schema.h2.sql
+node tools/bin/check_data_dictionary_clients.mjs --app sitmun-admin
+node tools/bin/check_data_dictionary_clients.mjs --app sitmun-viewer
+./gradlew :sitmun-backend:test --tests org.sitmun.dictionary.DataDictionaryConformanceTest -Dsitmun.dictionary.fail=true
+```
+
+`--fail-on problem` is the default. `--fail-on none` prints the same lines and exits 0.
+
+When a release changes a column, edit the dictionary row and the Liquibase changeset in the same pull request. Before 1.3.0 is released, that changeset is the unreleased baseline or legacy file under `sitmun-backend/src/main/resources/db/changelog/`. After the release, add a new file under `db/changelog/releases/`. Do not edit a changeset that a shipped release already applied, and do not add `validCheckSum: ANY`. A database that already applied a changed unreleased changeset has to be rebuilt, because the checksum changes. Regenerate the H2 test schema with `tools/bin/generate_test_fixtures.py` instead of editing `01-schema.h2.sql` by hand.
+
 ## tools/examples/ — Ejemplos ilustrativos
 
 | Path | Purpose |

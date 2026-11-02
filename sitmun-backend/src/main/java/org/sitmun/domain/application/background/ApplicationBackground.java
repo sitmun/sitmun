@@ -36,7 +36,7 @@ public class ApplicationBackground {
       allocationSize = 1)
   @Id
   @GeneratedValue(strategy = GenerationType.TABLE, generator = "STM_APP_BCKG_GEN")
-  @Column(name = "ABC_ID")
+  @Column(name = "ABC_ID", nullable = false)
   private Integer id;
 
   /** Application. */

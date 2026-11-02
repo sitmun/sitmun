@@ -1,0 +1,1 @@
+STM_LITERAL_TRANSLATION|stm_ltr_literal_uk|YES|CREATE UNIQUE INDEX stm_ltr_literal_uk ON stm_literal_translation (md5(ltr_literal))

@@ -70,8 +70,8 @@ export class ConfigurationParameterFormComponent extends BaseFormComponent<Confi
     this.isProtectedParameter = this.entityToEdit.name === 'language.default';
 
     this.entityForm = new UntypedFormGroup({
-      name: new UntypedFormControl(this.entityToEdit.name, [Validators.required]),
-      value: new UntypedFormControl(this.entityToEdit.value, []),
+      name: new UntypedFormControl(this.entityToEdit.name, [Validators.maxLength(50), Validators.required]),
+      value: new UntypedFormControl(this.entityToEdit.value, [Validators.maxLength(250)]),
     });
 
     // Disable form fields for protected parameters

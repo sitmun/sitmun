@@ -38,7 +38,7 @@ public class Log {
       allocationSize = 1)
   @Id
   @GeneratedValue(strategy = GenerationType.TABLE, generator = "STM_LOG_GEN")
-  @Column(name = "LOG_ID")
+  @Column(name = "LOG_ID", nullable = false)
   private Integer id;
 
   /** Action date. */
@@ -80,8 +80,8 @@ public class Log {
   private Integer counter;
 
   /** Territory code. */
-  @Column(name = "LOG_TER", length = PersistenceConstants.IDENTIFIER)
-  @Size(max = PersistenceConstants.IDENTIFIER)
+  @Column(name = "LOG_TER", length = 250)
+  @Size(max = 250)
   private String territoryCode;
 
   /**
@@ -97,14 +97,14 @@ public class Log {
   private String data;
 
   /** SRS requested. */
-  @Column(name = "LOG_SRS", length = PersistenceConstants.IDENTIFIER)
-  @Size(max = PersistenceConstants.IDENTIFIER)
+  @Column(name = "LOG_SRS", length = 250)
+  @Size(max = 250)
   @Srs
   private String srs;
 
   /** Format requested. */
-  @Column(name = "LOG_FORMAT", length = PersistenceConstants.IDENTIFIER)
-  @Size(max = PersistenceConstants.IDENTIFIER)
+  @Column(name = "LOG_FORMAT", length = 250)
+  @Size(max = 250)
   private String format;
 
   /** True if the user used the add buffer option. */

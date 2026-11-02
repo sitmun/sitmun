@@ -39,7 +39,7 @@ public class CartographyAvailability {
       allocationSize = 1)
   @Id
   @GeneratedValue(strategy = GenerationType.TABLE, generator = "STM_AVAIL_GI_GEN")
-  @Column(name = "AGI_ID")
+  @Column(name = "AGI_ID", nullable = false)
   private Integer id;
 
   /** Creation date. */

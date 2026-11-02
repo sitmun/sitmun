@@ -43,13 +43,13 @@ public class CartographyPermission {
       allocationSize = 1)
   @Id
   @GeneratedValue(strategy = GenerationType.TABLE, generator = "STM_GRP_GI_GEN")
-  @Column(name = "GGI_ID")
+  @Column(name = "GGI_ID", nullable = false)
   @JsonView(ClientConfigurationViews.ApplicationTerritory.class)
   private Integer id;
 
   /** Permissions name. */
-  @Column(name = "GGI_NAME", length = PersistenceConstants.IDENTIFIER)
-  @Size(max = PersistenceConstants.IDENTIFIER)
+  @Column(name = "GGI_NAME", length = 80, nullable = false)
+  @Size(max = 80)
   @NotBlank
   @JsonView(ClientConfigurationViews.ApplicationTerritory.class)
   private String name;

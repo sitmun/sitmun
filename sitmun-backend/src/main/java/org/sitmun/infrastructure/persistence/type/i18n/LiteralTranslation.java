@@ -40,7 +40,7 @@ public class LiteralTranslation {
       allocationSize = 1)
   @Id
   @GeneratedValue(strategy = GenerationType.TABLE, generator = "STM_LITERAL_TRANSLATION_GEN")
-  @Column(name = "LTR_ID")
+  @Column(name = "LTR_ID", nullable = false)
   private Integer id;
 
   @Column(name = "LTR_LITERAL", nullable = false, length = LONG_DESCRIPTION)

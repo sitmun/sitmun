@@ -30,11 +30,14 @@ public class Language {
       allocationSize = 1)
   @Id
   @GeneratedValue(strategy = GenerationType.TABLE, generator = "STM_LANGUAGE_GEN")
-  @Column(name = "LAN_ID")
+  @Column(name = "LAN_ID", nullable = false)
   private Integer id;
 
   /** BCP 47 language tag. */
-  @Column(name = "LAN_SHORTNAME", length = PersistenceConstants.BCP47_LANGUAGE_TAG)
+  @Column(
+      name = "LAN_SHORTNAME",
+      length = PersistenceConstants.BCP47_LANGUAGE_TAG,
+      nullable = false)
   @NotBlank
   private String shortname;
 
@@ -44,7 +47,7 @@ public class Language {
    * Endonym ({@code LAN_NAME}). Not subject to {@code @I18n} overlay: database/UI language switch
    * must not rewrite this value (toolbar and Languages form use it as the own name).
    */
-  @Column(name = "LAN_NAME", length = PersistenceConstants.IDENTIFIER)
+  @Column(name = "LAN_NAME", length = PersistenceConstants.IDENTIFIER, nullable = false)
   @NotBlank
   private String name;
 

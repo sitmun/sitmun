@@ -98,10 +98,10 @@ describe('ConnectionFormComponent', () => {
 
   
 
-  it('requires a name, a driver, and a url', () => {
+  it('requires a name and a driver', () => {
     expect(component.entityForm.get('name')?.hasError('required')).toBe(true);
     expect(component.entityForm.get('driver')?.hasError('required')).toBe(true);
-    expect(component.entityForm.get('url')?.hasError('required')).toBe(true);
+    expect(component.entityForm.get('url')?.hasError('required')).toBe(false);
   });
 
   it('accepts a name, a driver, and a url', () => {

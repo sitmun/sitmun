@@ -43,7 +43,7 @@ public class UserDTO {
   private String identificationNumber;
 
   /** User identification type. */
-  @Size(max = 20, message = "Identification type must not exceed 20 characters")
+  @Size(max = 50, message = "Identification type must not exceed 50 characters")
   private String identificationType;
 
   /** If <code>true</code>, the user is a system administrator. */

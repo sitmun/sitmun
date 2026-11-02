@@ -267,11 +267,11 @@ describe('TerritoryFormComponent', () => {
         expect(component.entityForm.get('territorialAuthorityLogo')?.hasError('maxlength')).toBeTruthy();
       });
 
-      it('should reject srs longer than 50 characters', () => {
+      it('should reject srs longer than 250 characters', () => {
         component.entityForm.patchValue({ 
           code: '1', 
           name: 'Test',
-          srs: 'EPSG:' + '1'.repeat(50),
+          srs: 'EPSG:' + '1'.repeat(246),
           typeId: 1 
         });
         expect(component.entityForm.get('srs')?.hasError('maxlength')).toBeTruthy();
