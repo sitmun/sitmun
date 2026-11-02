@@ -2,7 +2,7 @@
 """Seed tools/dictionary/dictionary.json from the PostgreSQL and Oracle baselines.
 
 A second run keeps every row that is already decided. Use --decide to close
-remaining open rows with the PostgreSQL value and record that rule.
+remaining open rows with the PostgreSQL value.
 """
 
 from __future__ import annotations
@@ -23,12 +23,6 @@ from data_dictionary_lib import (
     read_dictionary,
     write_dictionary,
 )
-
-DECISION = (
-    "dict-3 rule: catalogs disagreed and the PostgreSQL baseline value was kept; "
-    "edit this row before changing consumers"
-)
-
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
@@ -62,7 +56,7 @@ def main(argv: list[str] | None = None) -> int:
     )
     apply_java_consumers(document, root / "sitmun-backend/src/main/java")
     if args.decide:
-        decide_open_rows(document, rule=DECISION)
+        decide_open_rows(document)
     if args.check and existing is not None:
         for ident, row in existing.get("columns", {}).items():
             if row.get("status") == "decided" and document["columns"].get(ident) != row:

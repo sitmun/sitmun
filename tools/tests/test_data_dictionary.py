@@ -155,6 +155,20 @@ class DataDictionaryTest(unittest.TestCase):
         )
         self.assertEqual(completed.returncode, 0, completed.stdout + completed.stderr)
         self.assertIn("open=0", completed.stdout)
+        leftover = {"api", "candidates", "decision", "unique"}
+        for ident, row in document["columns"].items():
+            present = leftover & row.keys()
+            self.assertFalse(present, f"{ident} still has {sorted(present)}")
+        self.assertEqual(set(document["projections"]), {"unique_function_index"})
+        fields = document["fields"]
+        self.assertEqual(
+            fields["org.sitmun.domain.user.UserDTO#email"]["same_as"],
+            "STM_USER.USE_EMAIL",
+        )
+        self.assertEqual(
+            fields["org.sitmun.infrastructure.security.password.dto.RequestNewPassword#email"]["same_as"],
+            "STM_USER.USE_EMAIL",
+        )
 
     def test_parenthesized_oracle_default_matches_the_dictionary(self):
         self.assertEqual(norm_default("(SYSTIMESTAMP)"), "current_timestamp")
@@ -198,15 +212,20 @@ class DataDictionaryTest(unittest.TestCase):
         ora = parse_create_columns("CREATE TABLE stm_app (app_name VARCHAR2(50 CHAR) NOT NULL);")
         document = build_document(pg, ora, {}, {})
         self.assertEqual(document["columns"]["STM_APP.APP_NAME"]["status"], "open")
-        decide_open_rows(document, rule="postgresql")
-        self.assertEqual(document["columns"]["STM_APP.APP_NAME"]["status"], "decided")
-        self.assertEqual(document["columns"]["STM_APP.APP_NAME"]["length"], 80)
+        decide_open_rows(document)
+        closed = document["columns"]["STM_APP.APP_NAME"]
+        self.assertEqual(closed["status"], "decided")
+        self.assertEqual(closed["length"], 80)
+        self.assertNotIn("decision", closed)
+        self.assertNotIn("candidates", closed)
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "dictionary.json"
             write_dictionary(path, document)
-            again = build_document(pg, ora, parse_uniques(""), load_system_codelists(CSV) if False else {}, document)
+            again = build_document(pg, ora, parse_uniques(""), {}, document)
             self.assertEqual(again["columns"]["STM_APP.APP_NAME"]["length"], 80)
-            self.assertEqual(json.loads(path.read_text())["columns"]["STM_APP.APP_NAME"]["decision"], "postgresql")
+            stored = json.loads(path.read_text())["columns"]["STM_APP.APP_NAME"]
+            self.assertNotIn("decision", stored)
+            self.assertNotIn("candidates", stored)
 
 
 if __name__ == "__main__":
