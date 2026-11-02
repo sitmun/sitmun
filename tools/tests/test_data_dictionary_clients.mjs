@@ -41,6 +41,15 @@ test('viewer email input length follows the column', () => {
   assert.match(rows[0], /\|250\|50$/);
 });
 
+test('apply inserts a validator at the first bracket only', () => {
+  const text = `
+    import {Background} from '@app/domain';
+    const form = { name: new FormControl(null, [Validators.required, extra('[')]) };
+  `;
+  const out = checker.applySource(text, 'form.ts', document);
+  assert.match(out, /\[Validators\.maxLength\(20\), Validators\.required, extra\('\['\)\]/);
+});
+
 test('a missing maxLength is wider than the column', () => {
   const dir = mkdtempSync(join(tmpdir(), 'dict-'));
   const file = join(dir, 'form.ts');

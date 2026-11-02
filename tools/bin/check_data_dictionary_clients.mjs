@@ -256,20 +256,21 @@ export function checkHtml(text, file, document) {
   return rows;
 }
 
+function insertFirstValidator(slice, validator) {
+  const at = slice.indexOf('[');
+  if (at === -1) return slice.replace(/\)\s*$/, `, [${validator}])`);
+  return `${slice.slice(0, at + 1)}${validator}, ${slice.slice(at + 1)}`;
+}
+
 function rewrittenControl(slice, row, facts) {
   let next = slice;
   if (row.type === 'string' && row.length != null && facts.maxLength !== row.length) {
     if (facts.maxLength != null) next = next.replace(`maxLength(${facts.maxLength})`, `maxLength(${row.length})`);
-    else if (next.includes('[')) next = next.replace('[', `[Validators.maxLength(${row.length}), `);
-    else next = next.replace(/\)\s*$/, `, [Validators.maxLength(${row.length})])`);
+    else next = insertFirstValidator(next, `Validators.maxLength(${row.length})`);
   }
   if (row.type === 'string' && Boolean(row.required) !== facts.required) {
-    if (row.required) {
-      if (next.includes('[')) next = next.replace('[', '[Validators.required, ');
-      else next = next.replace(/\)\s*$/, `, [Validators.required])`);
-    } else {
-      next = next.replace(/Validators\.required\s*,\s*/, '').replace(/,\s*Validators\.required/, '');
-    }
+    if (row.required) next = insertFirstValidator(next, 'Validators.required');
+    else next = next.replace(/Validators\.required\s*,\s*/, '').replace(/,\s*Validators\.required/, '');
   }
   return next.replace(/\[,[ \t]*/g, '[').replace(/,[ \t]*,/g, ',').replace(/,[ \t]*\]/g, ']');
 }
