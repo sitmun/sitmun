@@ -3,7 +3,9 @@
 
 from __future__ import annotations
 
+import csv
 import json
+import re
 import subprocess
 import sys
 import tempfile
@@ -169,6 +171,33 @@ class DataDictionaryTest(unittest.TestCase):
             fields["org.sitmun.infrastructure.security.password.dto.RequestNewPassword#email"]["same_as"],
             "STM_USER.USE_EMAIL",
         )
+
+    def test_shipped_code_values_are_system_except_download_task_scope(self):
+        with (ROOT / "tools/seed-data/baseline/codelists.csv").open(newline="") as handle:
+            rows = list(csv.DictReader(handle))
+        deletable = {
+            (row["cod_list"], row["cod_value"])
+            for row in rows
+            if row["cod_system"] != "true"
+        }
+        self.assertEqual(
+            deletable,
+            {("downloadTask.scope", "A"), ("downloadTask.scope", "U"), ("downloadTask.scope", "C")},
+        )
+        with (ROOT / "tools/seed-data/baseline/codelists-promoted-1.3.0.csv").open(newline="") as handle:
+            promoted = list(csv.DictReader(handle))
+        self.assertEqual(len(promoted), 71)
+        promoted_keys = {(row["cod_list"], row["cod_value"]) for row in promoted}
+        system = {(row["cod_list"], row["cod_value"]) for row in rows if row["cod_system"] == "true"}
+        self.assertTrue(promoted_keys <= system)
+        inventory = (ROOT / "sitmun-backend/src/test/resources/required-codelists.yaml").read_text()
+        reads = re.findall(r"(?m)^  - list: (.+)\n    value: (.+)$", inventory)
+        self.assertTrue(reads)
+        for code_list, value in reads:
+            value = value.strip("'\"")
+            self.assertIn((code_list, value), system, f"{code_list}.{value} is read and not system")
+        document = read_dictionary(ROOT / "tools/dictionary/dictionary.json")
+        self.assertEqual(document["codelists"], load_system_codelists(CSV))
 
     def test_parenthesized_oracle_default_matches_the_dictionary(self):
         self.assertEqual(norm_default("(SYSTIMESTAMP)"), "current_timestamp")

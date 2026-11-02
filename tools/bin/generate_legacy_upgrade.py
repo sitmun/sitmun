@@ -48,6 +48,8 @@ def version_check_postgres(rows: list[tuple[str, str, str]]) -> str:
 DECLARE
   present integer;
   shared_styles text;
+  confirmed text;
+  stored text;
 BEGIN
   SELECT COUNT(*) INTO present
   FROM databasechangelog d
@@ -67,6 +69,20 @@ BEGIN
   END IF;
   IF present < {len(rows)} THEN
     RAISE EXCEPTION 'upgrade to 1.2.9 first';
+  END IF;
+  confirmed := '${{upgrade.defaultLanguage}}';
+  SELECT cnf_value INTO stored FROM stm_conf WHERE cnf_name = 'language.default';
+  IF confirmed IS NULL OR btrim(confirmed) = '' THEN
+    RAISE EXCEPTION 'set SITMUN_UPGRADE_DEFAULT_LANGUAGE to the language the database text is written in, and set STM_CONF language.default to the same value';
+  END IF;
+  IF stored IS NULL THEN
+    RAISE EXCEPTION 'STM_CONF language.default is missing and SITMUN_UPGRADE_DEFAULT_LANGUAGE is %; set STM_CONF language.default to that value', confirmed;
+  END IF;
+  IF stored <> confirmed THEN
+    RAISE EXCEPTION 'SITMUN_UPGRADE_DEFAULT_LANGUAGE is % but STM_CONF language.default is %; fix STM_CONF or the variable', confirmed, stored;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM stm_language WHERE lan_shortname = confirmed) THEN
+    RAISE EXCEPTION 'SITMUN_UPGRADE_DEFAULT_LANGUAGE % is not in STM_LANGUAGE; fix STM_CONF or the variable', confirmed;
   END IF;
   SELECT string_agg(geo_id::text, ', ' ORDER BY geo_id) INTO shared_styles
   FROM stm_geoinfo
@@ -113,6 +129,9 @@ def version_check_oracle(rows: list[tuple[str, str, str]]) -> str:
   known NUMBER;
   app_exists NUMBER;
   shared_styles VARCHAR2(4000);
+  confirmed VARCHAR2(20);
+  stored VARCHAR2(20);
+  lang_known NUMBER;
 BEGIN
   SELECT COUNT(*) INTO present_23
   FROM databasechangelog d
@@ -135,6 +154,26 @@ BEGIN
       AND required.filename = d.filename
   );
   IF present_23 = {len(rows)} OR present_pre23 = {len(pre23)} THEN
+    confirmed := '${{upgrade.defaultLanguage}}';
+    BEGIN
+      SELECT cnf_value INTO stored FROM stm_conf WHERE cnf_name = 'language.default';
+    EXCEPTION
+      WHEN NO_DATA_FOUND THEN
+        stored := NULL;
+    END;
+    IF confirmed IS NULL OR LENGTH(TRIM(confirmed)) IS NULL OR LENGTH(TRIM(confirmed)) = 0 THEN
+      RAISE_APPLICATION_ERROR(-20003, 'set SITMUN_UPGRADE_DEFAULT_LANGUAGE to the language the database text is written in, and set STM_CONF language.default to the same value');
+    END IF;
+    IF stored IS NULL THEN
+      RAISE_APPLICATION_ERROR(-20003, 'STM_CONF language.default is missing and SITMUN_UPGRADE_DEFAULT_LANGUAGE is ' || confirmed || '; set STM_CONF language.default to that value');
+    END IF;
+    IF stored <> confirmed THEN
+      RAISE_APPLICATION_ERROR(-20003, 'SITMUN_UPGRADE_DEFAULT_LANGUAGE is ' || confirmed || ' but STM_CONF language.default is ' || stored || '; fix STM_CONF or the variable');
+    END IF;
+    SELECT COUNT(*) INTO lang_known FROM stm_language WHERE lan_shortname = confirmed;
+    IF lang_known = 0 THEN
+      RAISE_APPLICATION_ERROR(-20003, 'SITMUN_UPGRADE_DEFAULT_LANGUAGE ' || confirmed || ' is not in STM_LANGUAGE; fix STM_CONF or the variable');
+    END IF;
     -- Dynamic SQL: a fresh database has no stm_geoinfo, and Oracle compiles
     -- static queries in this block before that table exists.
     EXECUTE IMMEDIATE
@@ -169,33 +208,80 @@ END;
 """
 
 
+PROMOTED = SEED / "codelists-promoted-1.3.0.csv"
+REPAIR = SEED / "translations-en-repair-1.3.0.csv"
+DEFAULT_LANGUAGE = (
+    "COALESCE((SELECT cnf_value FROM stm_conf WHERE cnf_name = 'language.default'), 'en')"
+)
+
+
+def read_csv(path: Path) -> list[dict[str, str]]:
+    with path.open(newline="") as handle:
+        return list(csv.DictReader(handle))
+
+
+def load_promoted() -> set[tuple[str, str]]:
+    return {(row["cod_list"], row["cod_value"]) for row in read_csv(PROMOTED)}
+
+
+def description_sql(row: dict[str, str], translated: dict[str, str]) -> str:
+    fallback = sql_text(row["cod_description"])
+    arms = [
+        f"WHEN {sql_text(lang)} THEN {sql_text(text)}"
+        for lang, text in sorted(translated.items())
+        if lang != "en"
+    ]
+    if not arms:
+        return fallback
+    return f"CASE {DEFAULT_LANGUAGE} " + " ".join(arms) + f" ELSE {fallback} END"
+
+
 def codelists(oracle: bool) -> str:
     true = "1" if oracle else "true"
     false = "0" if oracle else "false"
+    promoted = load_promoted()
+    rows = read_csv(SEED / "codelists.csv")
+    by_key = {(row["cod_list"], row["cod_value"]): row for row in rows}
+    for key in sorted(promoted):
+        row = by_key.get(key)
+        if row is None or row["cod_system"] != "true":
+            raise SystemExit(f"promoted code value is not a system row: {key[0]}.{key[1]}")
+    translated: dict[tuple[str, str], dict[str, str]] = {}
+    for row in read_csv(SEED / "translations.csv"):
+        if row["tra_column"] != "CodeListValue.description" or row["lan_shortname"] == "en":
+            continue
+        translated.setdefault((row["element"], row["element_value"]), {})[row["lan_shortname"]] = row["tra_name"]
     lines: list[str] = []
-    with (SEED / "codelists.csv").open(newline="") as handle:
-        for row in csv.DictReader(handle):
-            if row["cod_system"] != "true":
-                continue
-            flag = true if row["cod_default"] == "true" else false
-            description = sql_text(row["cod_description"])
-            code_list = sql_text(row["cod_list"])
-            value = sql_text(row["cod_value"])
-            lines.append(
-                "UPDATE stm_codelist "
-                f"SET cod_system = {true}, cod_default = {flag}, cod_description = {description} "
-                f"WHERE cod_list = {code_list} AND cod_value = {value}"
-            )
-            from_dual = " FROM dual" if oracle else ""
-            lines.append(
-                "INSERT INTO stm_codelist "
-                "(cod_id, cod_list, cod_value, cod_system, cod_default, cod_description) "
-                "SELECT COALESCE((SELECT MAX(cod_id) FROM stm_codelist), 0) + 1, "
-                f"{code_list}, {value}, {true}, {flag}, {description}{from_dual} "
-                "WHERE NOT EXISTS (SELECT 1 FROM stm_codelist "
-                f"WHERE cod_list = {code_list} AND cod_value = {value})"
-            )
+    for row in rows:
+        if row["cod_system"] != "true":
+            continue
+        key = (row["cod_list"], row["cod_value"])
+        flag = true if row["cod_default"] == "true" else false
+        code_list = sql_text(row["cod_list"])
+        value = sql_text(row["cod_value"])
+        assignment = f"cod_system = {true}"
+        if key not in promoted:
+            assignment += f", cod_default = {flag}"
+        lines.append(
+            "UPDATE stm_codelist "
+            f"SET {assignment} "
+            f"WHERE cod_list = {code_list} AND cod_value = {value}"
+        )
+        description = description_sql(row, translated.get(key, {}))
+        lines.append(insert_codelist(oracle, code_list, value, true, flag, description))
     return ";\n".join(lines) + ";\n"
+
+
+def insert_codelist(oracle: bool, code_list: str, value: str, system: str, flag: str, description: str) -> str:
+    from_dual = " FROM dual" if oracle else ""
+    return (
+        "INSERT INTO stm_codelist "
+        "(cod_id, cod_list, cod_value, cod_system, cod_default, cod_description) "
+        "SELECT COALESCE((SELECT MAX(cod_id) FROM stm_codelist), 0) + 1, "
+        f"{code_list}, {value}, {system}, {flag}, {description}{from_dual} "
+        "WHERE NOT EXISTS (SELECT 1 FROM stm_codelist "
+        f"WHERE cod_list = {code_list} AND cod_value = {value})"
+    )
 
 
 def translation_insert(row: dict[str, str], oracle: bool) -> str:
@@ -236,8 +322,57 @@ def translation_insert(row: dict[str, str], oracle: bool) -> str:
         f"WHERE {where} "
         "AND NOT EXISTS (SELECT 1 FROM stm_translation t "
         f"WHERE t.tra_eleid = {eleid} AND t.tra_column = {sql_text(column)} "
-        "AND t.tra_lanid = lang.lan_id)"
+        "AND t.tra_lanid = lang.lan_id) "
+        f"AND {DEFAULT_LANGUAGE} <> {language}"
     )
+
+
+def english_repairs() -> list[str]:
+    descriptions = {
+        (row["cod_list"], row["cod_value"]): row["cod_description"]
+        for row in read_csv(SEED / "codelists.csv")
+    }
+    lines = []
+    for row in read_csv(REPAIR):
+        key = (row["cod_list"], row["cod_value"])
+        right = descriptions.get(key)
+        if right is None:
+            raise SystemExit(f"repair row has no code value: {key[0]}.{key[1]}")
+        lines.append(
+            "UPDATE stm_translation SET tra_name = "
+            f"{sql_text(right)} WHERE tra_column = 'CodeListValue.description' "
+            f"AND tra_name = {sql_text(row['wrong'])} "
+            "AND tra_lanid = (SELECT lan_id FROM stm_language WHERE lan_shortname = 'en') "
+            "AND tra_eleid = (SELECT cod_id FROM stm_codelist "
+            f"WHERE cod_list = {sql_text(key[0])} AND cod_value = {sql_text(key[1])})"
+        )
+    return lines
+
+
+def derived_english_rows() -> list[dict[str, str]]:
+    codelists = read_csv(SEED / "codelists.csv")
+    translations = read_csv(SEED / "translations.csv")
+    description = {(row["cod_list"], row["cod_value"]): row for row in codelists}
+    translated = {
+        (row["element"], row["element_value"])
+        for row in translations
+        if row["tra_column"] == "CodeListValue.description" and row["lan_shortname"] != "en"
+    }
+    next_id = max(int(row["tra_id"]) for row in translations) + 1
+    rows = []
+    for key in sorted(translated, key=lambda item: int(description[item]["cod_id"])):
+        rows.append(
+            {
+                "tra_id": str(next_id),
+                "tra_column": "CodeListValue.description",
+                "element": key[0],
+                "element_value": key[1],
+                "lan_shortname": "en",
+                "tra_name": description[key]["cod_description"],
+            }
+        )
+        next_id += 1
+    return rows
 
 
 def translations(oracle: bool) -> str:
@@ -245,9 +380,11 @@ def translations(oracle: bool) -> str:
         "DELETE FROM stm_translation WHERE tra_column = 'CodeListValue.description' "
         "AND NOT EXISTS (SELECT 1 FROM stm_codelist c WHERE c.cod_id = stm_translation.tra_eleid)"
     ]
-    with (SEED / "translations.csv").open(newline="") as handle:
-        for row in csv.DictReader(handle):
-            lines.append(translation_insert(row, oracle))
+    lines.extend(english_repairs())
+    for row in read_csv(SEED / "translations.csv"):
+        lines.append(translation_insert(row, oracle))
+    for row in derived_english_rows():
+        lines.append(translation_insert(row, oracle))
     return ";\n".join(lines) + ";\n"
 
 

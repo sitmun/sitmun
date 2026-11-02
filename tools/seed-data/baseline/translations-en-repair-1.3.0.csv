@@ -1,0 +1,89 @@
+cod_list,cod_value,wrong
+application.type,ED,External
+application.type,E,Internal
+application.type,I,Mobile app parameter
+application.type,T,Nomenclator parameter
+applicationParameter.type,MOBILE,Print template
+applicationParameter.type,Nomenclator,Line
+applicationParameter.type,PRINT_TEMPLATE,Point
+cartography.geometryType,LINE,Polygon
+cartography.geometryType,POINT,GetCapabilities
+cartography.geometryType,POLYGON,Get Legend Graphic
+cartography.legendType,LEGENDGRAPHIC,Static link
+cartography.legendType,CAPABILITIES,Custom
+cartography.legendType,LINK,Defined
+cartographyFilter.type,C,Alphanumeric
+cartographyFilter.type,D,Date
+cartographyFilter.valueType,A,Number
+cartographyFilter.valueType,D,Date
+cartographyFilter.valueType,N,Image
+cartographyParameter.format,F,Number
+cartographyParameter.format,I,Percentage
+cartographyParameter.format,N,Text
+cartographyParameter.format,P,URL
+cartographyParameter.format,T,EDIT
+cartographyPermission.type,C,INFO
+cartographyPermission.type,I,SELECT
+cartographySpatialSelectionParameter.format,F,Cartography group
+cartographySpatialSelectionParameter.format,I,Background map
+cartographySpatialSelectionParameter.format,N,Report
+cartographySpatialSelectionParameter.format,P,Location map
+cartographySpatialSelectionParameter.format,T,Application
+cartographySpatialSelectionParameter.format,U,Layer
+cartographySpatialSelectionParameter.type,EDIT,Isolated
+downloadTask.scope,A,SQL Query
+downloadTask.scope,C,Web API Query
+editTask.fieldType,date,Cartography Query
+editTask.fieldType,image,AIMS
+editTask.fieldType,listbox,FME
+editTask.fieldType,number,TC
+editTask.fieldType,text,WFS
+editTask.scope,db-edit,WMS
+editTask.scope,feat-edit,GetFeatureInfo
+queryTask.parameterType,query,OpenLayers
+queryTask.parameterType,template,GetMap
+queryTask.scope,cartography-query,Database (trigger)
+queryTask.scope,sql-query,Email
+queryTask.scope,web-api-query,Date
+service.authenticationMode,HTTP Basic authentication,Image
+service.authenticationMode,None,List (from a query)
+service.type,WFS,Number
+service.type,WMS,Relation attribute between tables
+service.type,WMTS,Select for assigning a value
+serviceParameter.type,INFO,Text
+serviceParameter.type,WMS,URL
+serviceParameter.type,OLPARAM,CAMPO
+serviceParameter.type,WMTS,CAPA
+taskEntity.jsonParamType,__NULL_VALUE__,DATAINPUT
+taskEntity.jsonParamType,array,EDIT
+taskEntity.jsonParamType,boolean,FILTRO
+taskEntity.jsonParamType,number,FME
+taskEntity.jsonParamType,object,GEOM
+taskEntity.jsonParamType,string,LABEL
+territory.scope,M,RELM
+territory.scope,R,RELS
+territory.scope,T,SQL
+tree.type,cartography,TIPO
+tree.type,edition,VALOR
+tree.type,touristic,VISTA
+treenode.viewmode,dl,Unique values
+treenode.viewmode,evt,Double
+treenode.viewmode,evtcat,String
+treenode.viewmode,evtloc,DNI
+treenode.viewmode,gallery,NIE
+treenode.viewmode,ms,Passport
+treenode.viewmode,ne,City Council
+treenode.viewmode,rt,City Council SITMUN point of contact
+treenode.viewmode,sch,Diputació de Barcelona
+user.identificationType,DNI,Demo
+user.identificationType,NIE,Company
+user.identificationType,PAS,Territorial Entity  (no City Council)
+userPosition.type,POC,Territorial Entity  (no City Council) point of contact
+treenode.node.type,cartography,Cartography
+treenode.node.type,folder,Folder
+treenode.node.type,list,List
+treenode.node.type,menu,Menu
+treenode.node.type,task,Task
+treenode.node.type,fav,Favorites
+treenode.node.type,map,Map
+treenode.node.type,nm,Near me

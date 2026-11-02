@@ -2,6 +2,8 @@ DO $$
 DECLARE
   present integer;
   shared_styles text;
+  confirmed text;
+  stored text;
 BEGIN
   SELECT COUNT(*) INTO present
   FROM databasechangelog d
@@ -125,6 +127,20 @@ BEGIN
   END IF;
   IF present < 53 THEN
     RAISE EXCEPTION 'upgrade to 1.2.9 first';
+  END IF;
+  confirmed := '${upgrade.defaultLanguage}';
+  SELECT cnf_value INTO stored FROM stm_conf WHERE cnf_name = 'language.default';
+  IF confirmed IS NULL OR btrim(confirmed) = '' THEN
+    RAISE EXCEPTION 'set SITMUN_UPGRADE_DEFAULT_LANGUAGE to the language the database text is written in, and set STM_CONF language.default to the same value';
+  END IF;
+  IF stored IS NULL THEN
+    RAISE EXCEPTION 'STM_CONF language.default is missing and SITMUN_UPGRADE_DEFAULT_LANGUAGE is %; set STM_CONF language.default to that value', confirmed;
+  END IF;
+  IF stored <> confirmed THEN
+    RAISE EXCEPTION 'SITMUN_UPGRADE_DEFAULT_LANGUAGE is % but STM_CONF language.default is %; fix STM_CONF or the variable', confirmed, stored;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM stm_language WHERE lan_shortname = confirmed) THEN
+    RAISE EXCEPTION 'SITMUN_UPGRADE_DEFAULT_LANGUAGE % is not in STM_LANGUAGE; fix STM_CONF or the variable', confirmed;
   END IF;
   SELECT string_agg(geo_id::text, ', ' ORDER BY geo_id) INTO shared_styles
   FROM stm_geoinfo

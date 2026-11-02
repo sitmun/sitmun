@@ -88,7 +88,8 @@ PY
     "${cmd[@]}" -v "$dir:/liquibase/changelog:ro" liquibase/liquibase:4.29 \
       --search-path=/liquibase/changelog \
       --url="$url" --username=sitmun3 --password=sitmun3 \
-      --changeLogFile="$file" update
+      --changeLogFile="$file" update \
+      -D=upgrade.defaultLanguage=en
   }
 
   reset_user_tables() {
@@ -120,7 +121,7 @@ SQL
     if [[ "$kind" == "postgres" ]]; then
       dump_pg_schema "$container" sitmun3 sitmun3 "$prefix"
       docker exec "$container" psql -U sitmun3 -d sitmun3 -v ON_ERROR_STOP=1 -At -F '|' -c \
-        "SELECT cod_list, cod_value, CASE WHEN cod_default THEN 'true' ELSE 'false' END, cod_description FROM stm_codelist WHERE cod_system AND cod_list <> 'databaseConnection.driver' ORDER BY 1, 2" \
+        "SELECT cod_list, cod_value, CASE WHEN cod_default THEN 'true' ELSE 'false' END FROM stm_codelist WHERE cod_system AND cod_list <> 'databaseConnection.driver' ORDER BY 1, 2" \
         > "${prefix}.codelists"
       docker exec "$container" psql -U sitmun3 -d sitmun3 -v ON_ERROR_STOP=1 -At -c \
         "SELECT COUNT(*) FROM stm_translation t WHERE t.tra_column = 'CodeListValue.description' AND NOT EXISTS (SELECT 1 FROM stm_codelist c WHERE c.cod_id = t.tra_eleid)" \
@@ -130,7 +131,7 @@ SQL
       local connect="sitmun3/sitmun3@//localhost:1521/${service}"
       docker exec "$container" bash -c "echo \"
 SET PAGESIZE 0 FEEDBACK OFF HEADING OFF LINESIZE 400 TRIMSPOOL ON
-SELECT cod_list||'|'||cod_value||'|'||CASE cod_default WHEN 1 THEN 'true' ELSE 'false' END||'|'||cod_description
+SELECT cod_list||'|'||cod_value||'|'||CASE cod_default WHEN 1 THEN 'true' ELSE 'false' END
 FROM stm_codelist WHERE cod_system = 1 AND cod_list <> 'databaseConnection.driver' ORDER BY cod_list, cod_value;
 EXIT
 \" | sqlplus -s ${connect}" | sed '/^$/d' > "${prefix}.codelists"

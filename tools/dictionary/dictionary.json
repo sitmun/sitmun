@@ -43,6 +43,224 @@
         "system": "true"
       }
     },
+    "applicationParameter.type": {
+      "MOBILE": {
+        "default": "false",
+        "description": "Mobile app parameter",
+        "system": "true"
+      },
+      "Nomenclator": {
+        "default": "false",
+        "description": "Nomenclator parameter",
+        "system": "true"
+      },
+      "PRINT_TEMPLATE": {
+        "default": "false",
+        "description": "Print template",
+        "system": "true"
+      }
+    },
+    "cartography.geometryType": {
+      "LINE": {
+        "default": "false",
+        "description": "Line",
+        "system": "true"
+      },
+      "POINT": {
+        "default": "false",
+        "description": "Point",
+        "system": "true"
+      },
+      "POLYGON": {
+        "default": "false",
+        "description": "Polygon",
+        "system": "true"
+      }
+    },
+    "cartography.legendType": {
+      "CAPABILITIES": {
+        "default": "false",
+        "description": "GetCapabilities",
+        "system": "true"
+      },
+      "LEGENDGRAPHIC": {
+        "default": "false",
+        "description": "Get Legend Graphic",
+        "system": "true"
+      },
+      "LINK": {
+        "default": "false",
+        "description": "Static link",
+        "system": "true"
+      }
+    },
+    "cartographyFilter.type": {
+      "C": {
+        "default": "false",
+        "description": "Custom",
+        "system": "true"
+      },
+      "D": {
+        "default": "false",
+        "description": "Defined",
+        "system": "true"
+      }
+    },
+    "cartographyFilter.valueType": {
+      "A": {
+        "default": "false",
+        "description": "Alphanumeric",
+        "system": "true"
+      },
+      "D": {
+        "default": "false",
+        "description": "Date",
+        "system": "true"
+      },
+      "N": {
+        "default": "false",
+        "description": "Number",
+        "system": "true"
+      }
+    },
+    "cartographyParameter.format": {
+      "AUTO": {
+        "default": "false",
+        "description": "Automatic",
+        "system": "true"
+      },
+      "F": {
+        "default": "false",
+        "description": "Date",
+        "system": "true"
+      },
+      "Geometry": {
+        "default": "false",
+        "description": "Geometry",
+        "system": "true"
+      },
+      "I": {
+        "default": "false",
+        "description": "Image",
+        "system": "true"
+      },
+      "N": {
+        "default": "false",
+        "description": "Number",
+        "system": "true"
+      },
+      "P": {
+        "default": "false",
+        "description": "Percentage",
+        "system": "true"
+      },
+      "T": {
+        "default": "false",
+        "description": "Text",
+        "system": "true"
+      },
+      "U": {
+        "default": "false",
+        "description": "URL",
+        "system": "true"
+      }
+    },
+    "cartographyParameter.geometryKind": {
+      "Curve": {
+        "default": "false",
+        "description": "Curve",
+        "system": "true"
+      },
+      "Geometry": {
+        "default": "false",
+        "description": "Geometry",
+        "system": "true"
+      },
+      "LineString": {
+        "default": "false",
+        "description": "Line",
+        "system": "true"
+      },
+      "MultiCurve": {
+        "default": "false",
+        "description": "Multicurve",
+        "system": "true"
+      },
+      "MultiLineString": {
+        "default": "false",
+        "description": "Multiline",
+        "system": "true"
+      },
+      "MultiPoint": {
+        "default": "false",
+        "description": "Multipoint",
+        "system": "true"
+      },
+      "MultiPolygon": {
+        "default": "false",
+        "description": "Multipolygon",
+        "system": "true"
+      },
+      "MultiSurface": {
+        "default": "false",
+        "description": "Multisurface",
+        "system": "true"
+      },
+      "Point": {
+        "default": "false",
+        "description": "Point",
+        "system": "true"
+      },
+      "Polygon": {
+        "default": "false",
+        "description": "Polygon",
+        "system": "true"
+      },
+      "Surface": {
+        "default": "false",
+        "description": "Surface",
+        "system": "true"
+      }
+    },
+    "cartographyParameter.preferredGeometryType": {
+      "multipoint": {
+        "default": "false",
+        "description": "Multipoint",
+        "system": "true"
+      },
+      "multipolygon": {
+        "default": "false",
+        "description": "Multipolygon",
+        "system": "true"
+      },
+      "multipolyline": {
+        "default": "false",
+        "description": "Multipolyline",
+        "system": "true"
+      },
+      "point": {
+        "default": "false",
+        "description": "Point",
+        "system": "true"
+      },
+      "polygon": {
+        "default": "false",
+        "description": "Polygon",
+        "system": "true"
+      },
+      "polyline": {
+        "default": "false",
+        "description": "Polyline",
+        "system": "true"
+      }
+    },
+    "cartographyParameter.type": {
+      "INFO": {
+        "default": "true",
+        "description": "INFO",
+        "system": "true"
+      }
+    },
     "cartographyPermission.type": {
       "C": {
         "default": "false",
@@ -62,6 +280,104 @@
       "M": {
         "default": "false",
         "description": "Location map",
+        "system": "true"
+      }
+    },
+    "cartographyServiceParameter.type": {
+      "GETMAP": {
+        "default": "false",
+        "description": "GetMap",
+        "system": "true"
+      },
+      "INFO": {
+        "default": "false",
+        "description": "GetFeatureInfo",
+        "system": "true"
+      },
+      "OLPARAM": {
+        "default": "false",
+        "description": "OpenLayers",
+        "system": "true"
+      },
+      "WFS": {
+        "default": "false",
+        "description": "All WFS operations",
+        "system": "true"
+      },
+      "WMS": {
+        "default": "false",
+        "description": "All WMS operations",
+        "system": "true"
+      },
+      "WMTS": {
+        "default": "false",
+        "description": "Viewer tile settings",
+        "system": "true"
+      }
+    },
+    "cartographySpatialSelectionParameter.format": {
+      "F": {
+        "default": "false",
+        "description": "Date",
+        "system": "true"
+      },
+      "I": {
+        "default": "false",
+        "description": "Image",
+        "system": "true"
+      },
+      "N": {
+        "default": "false",
+        "description": "Number",
+        "system": "true"
+      },
+      "P": {
+        "default": "false",
+        "description": "Percentage",
+        "system": "true"
+      },
+      "T": {
+        "default": "false",
+        "description": "Text",
+        "system": "true"
+      },
+      "U": {
+        "default": "false",
+        "description": "URL",
+        "system": "true"
+      }
+    },
+    "cartographySpatialSelectionParameter.type": {
+      "EDIT": {
+        "default": "true",
+        "description": "EDIT",
+        "system": "true"
+      },
+      "SELECT": {
+        "default": "false",
+        "description": "SELECT",
+        "system": "true"
+      }
+    },
+    "databaseConnection.driver": {
+      "com.microsoft.sqlserver.jdbc.SQLServerDriver": {
+        "default": "false",
+        "description": "Microsoft SQL Server JDBC Driver",
+        "system": "true"
+      },
+      "oracle.jdbc.OracleDriver": {
+        "default": "false",
+        "description": "Oracle JDBC driver",
+        "system": "true"
+      },
+      "org.h2.Driver": {
+        "default": "false",
+        "description": "H2 JDBC Driver",
+        "system": "true"
+      },
+      "org.postgresql.Driver": {
+        "default": "false",
+        "description": "PostgreSQL JDBC Driver",
         "system": "true"
       }
     },
@@ -275,6 +591,38 @@
         "system": "true"
       }
     },
+    "serviceParameter.type": {
+      "GETMAP": {
+        "default": "false",
+        "description": "GetMap",
+        "system": "true"
+      },
+      "INFO": {
+        "default": "false",
+        "description": "GetFeatureInfo",
+        "system": "true"
+      },
+      "OLPARAM": {
+        "default": "false",
+        "description": "OpenLayers",
+        "system": "true"
+      },
+      "WFS": {
+        "default": "false",
+        "description": "All WFS operations",
+        "system": "true"
+      },
+      "WMS": {
+        "default": "false",
+        "description": "GetMap",
+        "system": "true"
+      },
+      "WMTS": {
+        "default": "false",
+        "description": "WMTS",
+        "system": "true"
+      }
+    },
     "taskEntity.jsonParamType": {
       "__NULL_VALUE__": {
         "default": "false",
@@ -309,6 +657,23 @@
       "string": {
         "default": "false",
         "description": "string",
+        "system": "true"
+      }
+    },
+    "territory.scope": {
+      "M": {
+        "default": "false",
+        "description": "Municipality",
+        "system": "true"
+      },
+      "R": {
+        "default": "false",
+        "description": "Regional",
+        "system": "true"
+      },
+      "T": {
+        "default": "false",
+        "description": "Total",
         "system": "true"
       }
     },
@@ -415,6 +780,30 @@
       "sch": {
         "default": "false",
         "description": "Schedule",
+        "system": "true"
+      }
+    },
+    "user.identificationType": {
+      "DNI": {
+        "default": "false",
+        "description": "DNI",
+        "system": "true"
+      },
+      "NIE": {
+        "default": "false",
+        "description": "NIE",
+        "system": "true"
+      },
+      "PAS": {
+        "default": "false",
+        "description": "Passport",
+        "system": "true"
+      }
+    },
+    "userPosition.type": {
+      "POC": {
+        "default": "false",
+        "description": "Point of contact",
         "system": "true"
       }
     }

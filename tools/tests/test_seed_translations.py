@@ -1,0 +1,69 @@
+#!/usr/bin/env python3
+"""English code-value labels are derived from the base description."""
+
+from __future__ import annotations
+
+import csv
+import importlib.util
+import unittest
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[2]
+SEED = ROOT / "tools/seed-data/baseline"
+BASELINE = ROOT / "sitmun-backend/src/main/resources/db/changelog/baseline"
+GENERATOR = ROOT / "tools/bin/generate_baseline_seed.py"
+
+
+def load_generator():
+    spec = importlib.util.spec_from_file_location("generate_baseline_seed", GENERATOR)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+class SeedTranslationTest(unittest.TestCase):
+    def test_csv_stores_no_english_code_value(self) -> None:
+        with (SEED / "translations.csv").open(newline="") as handle:
+            stored = [
+                row
+                for row in csv.DictReader(handle)
+                if row["tra_column"] == "CodeListValue.description" and row["lan_shortname"] == "en"
+            ]
+        self.assertEqual(stored, [])
+
+    def test_baseline_sql_derives_english_from_the_description(self) -> None:
+        generator = load_generator()
+        shipped = (BASELINE / "04-translations.sql").read_text()
+        self.assertEqual("\n".join(generator.translation_statements()) + "\n", shipped)
+        with (SEED / "codelists.csv").open(newline="") as handle:
+            codelists = {
+                (row["cod_list"], row["cod_value"]): row["cod_description"]
+                for row in csv.DictReader(handle)
+            }
+        with (SEED / "translations.csv").open(newline="") as handle:
+            translated = {
+                (row["element"], row["element_value"])
+                for row in csv.DictReader(handle)
+                if row["tra_column"] == "CodeListValue.description"
+            }
+        english = {}
+        for line in shipped.splitlines():
+            if "lan_shortname = 'en'" not in line or "CodeListValue.description" not in line:
+                continue
+            code_list = line.split("c.cod_list = ", 1)[1].split(" AND ", 1)[0].strip("'")
+            value = line.split("c.cod_value = ", 1)[1].split(";", 1)[0].strip("'")
+            text = line.split("lang.lan_id, ", 1)[1].split(" FROM ", 1)[0].strip("'")
+            english[(code_list, value)] = text
+        self.assertEqual(set(english), translated)
+        for key, text in english.items():
+            self.assertEqual(text, codelists[key], key)
+
+    def test_baseline_code_lists_match_the_generator(self) -> None:
+        generator = load_generator()
+        for oracle, name in ((False, "postgresql"), (True, "oracle")):
+            shipped = (BASELINE / f"02-codelists.{name}.sql").read_text()
+            self.assertEqual("\n".join(generator.codelist_statements(oracle)) + "\n", shipped)
+
+
+if __name__ == "__main__":
+    unittest.main()

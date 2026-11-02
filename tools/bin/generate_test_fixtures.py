@@ -377,38 +377,11 @@ def demo_sql_tasks() -> list[str]:
 
 
 def fixture_codelists(oracle: bool) -> list[str]:
-    system = "1" if oracle else "true"
     off = "0" if oracle else "false"
-    drivers = [
-        (19002, "org.h2.Driver", "H2 JDBC Driver"),
-        (19003, "org.postgresql.Driver", "PostgreSQL JDBC Driver"),
-        (19004, "oracle.jdbc.OracleDriver", "Oracle JDBC driver"),
-        (19005, "com.microsoft.sqlserver.jdbc.SQLServerDriver", "Microsoft SQL Server JDBC Driver"),
-    ]
-    labels = {
-        19002: ("Controlador JDBC H2", "Pilote JDBC H2"),
-        19003: ("Controlador JDBC PostgreSQL", "Pilote JDBC PostgreSQL"),
-        19004: ("Controlador JDBC Oracle", "Pilote JDBC Oracle"),
-        19005: ("Controlador JDBC Microsoft SQL Server", "Pilote JDBC Microsoft SQL Server"),
-    }
-    statements = [
+    return [
         "INSERT INTO stm_codelist (cod_id, cod_list, cod_value, cod_system, cod_default, cod_description) "
         f"VALUES (19001, 'service.nativeProtocol', 'NONE', {off}, {off}, 'NONE')"
     ]
-    translation_id = 19201
-    for code_id, value, description in drivers:
-        statements.append(
-            "INSERT INTO stm_codelist (cod_id, cod_list, cod_value, cod_system, cod_default, cod_description) "
-            f"VALUES ({code_id}, 'databaseConnection.driver', '{value}', {system}, {off}, '{description}')"
-        )
-        spanish, french = labels[code_id]
-        for language_id, label in ((2, spanish), (3, spanish), (4, spanish), (5, french)):
-            statements.append(
-                "INSERT INTO stm_translation (tra_id, tra_eleid, tra_column, tra_lanid, tra_name) "
-                f"VALUES ({translation_id}, {code_id}, 'CodeListValue.description', {language_id}, '{label}')"
-            )
-            translation_id += 1
-    return statements
 
 
 def write_h2_schema() -> None:

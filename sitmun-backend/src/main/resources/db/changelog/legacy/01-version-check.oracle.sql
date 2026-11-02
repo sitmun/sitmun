@@ -4,6 +4,9 @@ DECLARE
   known NUMBER;
   app_exists NUMBER;
   shared_styles VARCHAR2(4000);
+  confirmed VARCHAR2(20);
+  stored VARCHAR2(20);
+  lang_known NUMBER;
 BEGIN
   SELECT COUNT(*) INTO present_23
   FROM databasechangelog d
@@ -230,6 +233,26 @@ BEGIN
       AND required.filename = d.filename
   );
   IF present_23 = 52 OR present_pre23 = 52 THEN
+    confirmed := '${upgrade.defaultLanguage}';
+    BEGIN
+      SELECT cnf_value INTO stored FROM stm_conf WHERE cnf_name = 'language.default';
+    EXCEPTION
+      WHEN NO_DATA_FOUND THEN
+        stored := NULL;
+    END;
+    IF confirmed IS NULL OR LENGTH(TRIM(confirmed)) IS NULL OR LENGTH(TRIM(confirmed)) = 0 THEN
+      RAISE_APPLICATION_ERROR(-20003, 'set SITMUN_UPGRADE_DEFAULT_LANGUAGE to the language the database text is written in, and set STM_CONF language.default to the same value');
+    END IF;
+    IF stored IS NULL THEN
+      RAISE_APPLICATION_ERROR(-20003, 'STM_CONF language.default is missing and SITMUN_UPGRADE_DEFAULT_LANGUAGE is ' || confirmed || '; set STM_CONF language.default to that value');
+    END IF;
+    IF stored <> confirmed THEN
+      RAISE_APPLICATION_ERROR(-20003, 'SITMUN_UPGRADE_DEFAULT_LANGUAGE is ' || confirmed || ' but STM_CONF language.default is ' || stored || '; fix STM_CONF or the variable');
+    END IF;
+    SELECT COUNT(*) INTO lang_known FROM stm_language WHERE lan_shortname = confirmed;
+    IF lang_known = 0 THEN
+      RAISE_APPLICATION_ERROR(-20003, 'SITMUN_UPGRADE_DEFAULT_LANGUAGE ' || confirmed || ' is not in STM_LANGUAGE; fix STM_CONF or the variable');
+    END IF;
     -- Dynamic SQL: a fresh database has no stm_geoinfo, and Oracle compiles
     -- static queries in this block before that table exists.
     EXECUTE IMMEDIATE

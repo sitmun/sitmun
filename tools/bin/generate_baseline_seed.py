@@ -441,10 +441,69 @@ def lookup_insert(table, columns, select_list, joins, where):
     )
 
 
+def derive_english_code_values(codelists, translations):
+    """English code-value labels are the base description, never a stored row."""
+    description = {
+        (row["cod_list"], row["cod_value"]): row
+        for row in codelists
+    }
+    translated = {
+        (row["element"], row["element_value"])
+        for row in translations
+        if row["tra_column"] == "CodeListValue.description" and row["lan_shortname"] != "en"
+    }
+    stored_english = [
+        row
+        for row in translations
+        if row["tra_column"] == "CodeListValue.description" and row["lan_shortname"] == "en"
+    ]
+    if stored_english:
+        raise SystemExit("translations.csv stores English code-value rows; derive them instead")
+    next_id = max(int(row["tra_id"]) for row in translations) + 1
+    derived = []
+    for key in sorted(translated, key=lambda item: int(description[item]["cod_id"])):
+        derived.append(
+            {
+                "tra_id": str(next_id),
+                "tra_column": "CodeListValue.description",
+                "element": key[0],
+                "element_value": key[1],
+                "lan_shortname": "en",
+                "tra_name": description[key]["cod_description"],
+            }
+        )
+        next_id += 1
+    return translations + derived
+
+
+def codelist_statements(oracle):
+    codelists = read_seed("codelists.csv")
+    return [
+        values_insert(
+            "stm_codelist",
+            ["cod_id", "cod_list", "cod_value", "cod_system", "cod_default", "cod_description"],
+            row,
+            {
+                "cod_id": "num",
+                "cod_list": "text",
+                "cod_value": "text",
+                "cod_system": "bool",
+                "cod_default": "bool",
+                "cod_description": "text",
+            },
+            oracle,
+        )
+        for row in codelists
+    ]
+
+
+def translation_statements():
+    rows = derive_english_code_values(read_seed("codelists.csv"), read_seed("translations.csv"))
+    return [translation_statement(row) for row in rows]
+
+
 def generate():
     languages = read_seed("languages.csv")
-    codelists = read_seed("codelists.csv")
-    translations = read_seed("translations.csv")
     for oracle, suffix in ((False, "postgresql"), (True, "oracle")):
         language_sql = [
             values_insert(
@@ -463,27 +522,9 @@ def generate():
             for row in languages
         ]
         (BASELINE / f"03-languages.{suffix}.sql").write_text("\n".join(language_sql) + "\n")
-        codelist_sql = [
-            values_insert(
-                "stm_codelist",
-                ["cod_id", "cod_list", "cod_value", "cod_system", "cod_default", "cod_description"],
-                row,
-                {
-                    "cod_id": "num",
-                    "cod_list": "text",
-                    "cod_value": "text",
-                    "cod_system": "bool",
-                    "cod_default": "bool",
-                    "cod_description": "text",
-                },
-                oracle,
-            )
-            for row in codelists
-        ]
-        (BASELINE / f"02-codelists.{suffix}.sql").write_text("\n".join(codelist_sql) + "\n")
+        (BASELINE / f"02-codelists.{suffix}.sql").write_text("\n".join(codelist_statements(oracle)) + "\n")
 
-    translation_sql = [translation_statement(row) for row in translations]
-    (BASELINE / "04-translations.sql").write_text("\n".join(translation_sql) + "\n")
+    (BASELINE / "04-translations.sql").write_text("\n".join(translation_statements()) + "\n")
 
     seed_pg = seed_statements(False)
     seed_ora = seed_statements(True)
