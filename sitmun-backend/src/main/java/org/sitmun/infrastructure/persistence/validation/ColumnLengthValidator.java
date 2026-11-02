@@ -2,6 +2,7 @@ package org.sitmun.infrastructure.persistence.validation;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Lob;
+import jakarta.validation.constraints.Size;
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.Field;
 import java.util.Optional;
@@ -96,6 +97,11 @@ public class ColumnLengthValidator implements Validator {
       if (lob == null && column != null && column.length() > 0) {
         String value = (String) beanWrapper.getPropertyValue(propertyName);
         if (value != null && value.length() > column.length()) {
+          Size size = field.getAnnotation(Size.class);
+          // Leave a @Size violation intact so the repository validator can reject it.
+          if (size != null && value.length() > size.max()) {
+            return;
+          }
           beanWrapper.setPropertyValue(propertyName, value.substring(0, column.length()));
           log.info(
               "Truncated field {} from {} to {} characters",

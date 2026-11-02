@@ -18,7 +18,7 @@ public class UserDTO {
 
   /** User mail */
   @Email(message = "Email should be valid")
-  @Size(max = 50, message = "Email must not exceed 50 characters")
+  @Size(max = 250, message = "Email must not exceed 250 characters")
   private String email;
 
   /** User login. */

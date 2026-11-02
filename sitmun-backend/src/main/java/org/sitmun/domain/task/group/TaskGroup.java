@@ -3,6 +3,7 @@ package org.sitmun.domain.task.group;
 import com.fasterxml.jackson.annotation.JsonView;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import java.util.Objects;
 import lombok.*;
 import org.sitmun.authorization.client.dto.ClientConfigurationViews;
@@ -37,6 +38,7 @@ public class TaskGroup {
 
   /** Task group name. */
   @Column(name = "GTS_NAME", length = PersistenceConstants.IDENTIFIER)
+  @Size(max = PersistenceConstants.IDENTIFIER)
   @NotBlank
   @I18n
   @JsonView(ClientConfigurationViews.ApplicationTerritory.class)

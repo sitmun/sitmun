@@ -11,6 +11,7 @@ import lombok.*;
 import org.sitmun.authorization.client.dto.ClientConfigurationViews;
 import org.sitmun.domain.CodeListsConstants;
 import org.sitmun.domain.PersistenceConstants;
+import org.sitmun.domain.StoredFlagListener;
 import org.sitmun.domain.cartography.Cartography;
 import org.sitmun.domain.service.parameter.ServiceParameter;
 import org.sitmun.infrastructure.persistence.type.basic.Http;
@@ -24,7 +25,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 /** Service. */
 @Entity
-@EntityListeners({AuditingEntityListener.class, I18nListener.class})
+@EntityListeners({AuditingEntityListener.class, I18nListener.class, StoredFlagListener.class})
 @Table(name = "STM_SERVICE")
 @Builder
 @Getter
@@ -112,7 +113,6 @@ public class Service {
   private Boolean blocked;
 
   /** <code>true</code> if the service is proxied. */
-  @NotNull
   @Column(name = "SER_PROXIED", nullable = false)
   @Builder.Default
   private Boolean isProxied = false;

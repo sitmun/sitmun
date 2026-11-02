@@ -14,6 +14,7 @@ import org.hibernate.Length;
 import org.sitmun.authorization.client.dto.ClientConfigurationViews;
 import org.sitmun.domain.CodeListsConstants;
 import org.sitmun.domain.PersistenceConstants;
+import org.sitmun.domain.StoredFlagListener;
 import org.sitmun.domain.application.background.ApplicationBackground;
 import org.sitmun.domain.application.parameter.ApplicationParameter;
 import org.sitmun.domain.application.territory.ApplicationTerritory;
@@ -33,7 +34,7 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 @Entity
-@EntityListeners({AuditingEntityListener.class, I18nListener.class})
+@EntityListeners({AuditingEntityListener.class, I18nListener.class, StoredFlagListener.class})
 @Table(name = "STM_APP")
 @ValidExternalApplicationUrl
 @Builder
@@ -63,6 +64,7 @@ public class Application {
   /** Application name. */
   @Column(name = "APP_NAME", length = PersistenceConstants.IDENTIFIER)
   @NotBlank
+  @Size(max = PersistenceConstants.IDENTIFIER)
   @I18n
   private String name;
 
@@ -79,6 +81,7 @@ public class Application {
   /** Application type (external or internal). */
   @Column(name = "APP_TYPE", length = PersistenceConstants.IDENTIFIER)
   @NotNull
+  @Size(max = PersistenceConstants.IDENTIFIER)
   @CodeList(CodeListsConstants.APPLICATION_TYPE)
   @JsonView(ClientConfigurationViews.ApplicationTerritory.class)
   private String type;
@@ -101,6 +104,7 @@ public class Application {
   /** Projection to be used in this application when it is internal. */
   @Column(name = "APP_PROJECT", length = PersistenceConstants.IDENTIFIER)
   @Srs
+  @Size(max = PersistenceConstants.IDENTIFIER)
   private String srs;
 
   /**

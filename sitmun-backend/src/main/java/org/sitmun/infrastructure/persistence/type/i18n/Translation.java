@@ -3,6 +3,7 @@ package org.sitmun.infrastructure.persistence.type.i18n;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import java.util.Objects;
 import lombok.*;
 import org.sitmun.domain.PersistenceConstants;
@@ -39,6 +40,7 @@ public class Translation {
 
   /** Table and Column identifier. */
   @Column(name = "TRA_COLUMN", length = PersistenceConstants.IDENTIFIER)
+  @Size(max = PersistenceConstants.IDENTIFIER)
   @NotBlank
   private String column;
 

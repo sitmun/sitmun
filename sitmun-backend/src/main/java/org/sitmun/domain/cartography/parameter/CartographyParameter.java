@@ -5,6 +5,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import java.util.Objects;
 import lombok.*;
 import org.hibernate.Length;
@@ -43,6 +44,7 @@ public class CartographyParameter {
 
   /** Name. */
   @Column(name = "PGI_NAME", length = PersistenceConstants.IDENTIFIER)
+  @Size(max = PersistenceConstants.IDENTIFIER)
   @NotBlank
   private String name;
 
@@ -54,11 +56,13 @@ public class CartographyParameter {
 
   /** Format. */
   @Column(name = "PGI_FORMAT", length = PersistenceConstants.IDENTIFIER)
+  @Size(max = PersistenceConstants.IDENTIFIER)
   @CodeList(CodeListsConstants.CARTOGRAPHY_PARAMETER_FORMAT)
   private String format;
 
   /** Type. */
   @Column(name = "PGI_TYPE", length = PersistenceConstants.IDENTIFIER)
+  @Size(max = PersistenceConstants.IDENTIFIER)
   @NotNull
   @CodeList(CodeListsConstants.CARTOGRAPHY_PARAMETER_TYPE)
   private String type;

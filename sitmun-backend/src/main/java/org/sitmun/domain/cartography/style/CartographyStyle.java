@@ -3,15 +3,18 @@ package org.sitmun.domain.cartography.style;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import java.util.Objects;
 import lombok.*;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 import org.sitmun.domain.PersistenceConstants;
+import org.sitmun.domain.StoredFlagListener;
 import org.sitmun.domain.cartography.Cartography;
 
 /** Geographic Information style. */
 @Entity
+@EntityListeners(StoredFlagListener.class)
 @Table(
     name = "STM_STY_GI",
     uniqueConstraints =
@@ -40,11 +43,13 @@ public class CartographyStyle {
 
   /** Style name. */
   @Column(name = "SGI_NAME", length = PersistenceConstants.IDENTIFIER)
+  @Size(max = PersistenceConstants.IDENTIFIER)
   @NotBlank
   private String name;
 
   /** Style title. */
-  @Column(name = "SGI_TITLE", length = PersistenceConstants.TITLE)
+  @Column(name = "SGI_TITLE", length = PersistenceConstants.SHORT_DESCRIPTION)
+  @Size(max = PersistenceConstants.SHORT_DESCRIPTION)
   private String title;
 
   /** Style abstract. */

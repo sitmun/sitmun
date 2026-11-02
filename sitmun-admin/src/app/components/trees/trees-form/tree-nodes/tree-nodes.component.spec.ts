@@ -317,6 +317,12 @@ describe('TreeNodesComponent', () => {
       expect(component.treeNodeForm.valid).toBeFalsy();
     });
 
+    it('defaults the three filters to false', () => {
+      expect(component.treeNodeForm.get('filterGetMap')?.value).toBe(false);
+      expect(component.treeNodeForm.get('filterGetFeatureInfo')?.value).toBe(false);
+      expect(component.treeNodeForm.get('filterSelectable')?.value).toBe(false);
+    });
+
     it('is invalid when name is missing', () => {
       component.treeNodeForm.patchValue({
         tooltip: true,

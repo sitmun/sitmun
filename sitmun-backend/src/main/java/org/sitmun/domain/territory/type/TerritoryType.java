@@ -4,16 +4,18 @@ import com.fasterxml.jackson.annotation.JsonView;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import java.util.Objects;
 import lombok.*;
 import org.sitmun.authorization.client.dto.ClientConfigurationViews;
 import org.sitmun.domain.PersistenceConstants;
+import org.sitmun.domain.StoredFlagListener;
 import org.sitmun.infrastructure.persistence.type.i18n.I18n;
 import org.sitmun.infrastructure.persistence.type.i18n.I18nListener;
 
 /** Type of territorial entities. */
 @Entity
-@EntityListeners(I18nListener.class)
+@EntityListeners({I18nListener.class, StoredFlagListener.class})
 @Table(
     name = "STM_TER_TYP",
     uniqueConstraints = @UniqueConstraint(name = "STM_TET_NOM_UK", columnNames = "TET_NAME"))
@@ -39,6 +41,7 @@ public class TerritoryType {
 
   /** Name. */
   @Column(name = "TET_NAME", length = PersistenceConstants.IDENTIFIER)
+  @Size(max = PersistenceConstants.IDENTIFIER)
   @NotBlank
   @I18n
   @JsonView(ClientConfigurationViews.ApplicationTerritory.class)

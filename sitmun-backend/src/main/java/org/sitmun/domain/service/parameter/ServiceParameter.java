@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonView;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import java.util.Objects;
 import lombok.*;
 import org.hibernate.annotations.OnDelete;
@@ -51,6 +52,7 @@ public class ServiceParameter {
 
   /** Parameter type. */
   @Column(name = "PSE_TYPE", length = PersistenceConstants.IDENTIFIER)
+  @Size(max = PersistenceConstants.IDENTIFIER)
   @CodeList(CodeListsConstants.SERVICE_PARAMETER_TYPE)
   @NotNull
   @JsonView(ClientConfigurationViews.ApplicationTerritory.class)

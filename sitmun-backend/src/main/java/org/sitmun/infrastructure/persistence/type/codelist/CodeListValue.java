@@ -4,9 +4,11 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import java.util.Objects;
 import lombok.*;
 import org.sitmun.domain.PersistenceConstants;
+import org.sitmun.domain.StoredFlagListener;
 import org.sitmun.infrastructure.persistence.type.i18n.I18n;
 import org.sitmun.infrastructure.persistence.type.i18n.I18nListener;
 
@@ -20,7 +22,7 @@ import org.sitmun.infrastructure.persistence.type.i18n.I18nListener;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-@EntityListeners(I18nListener.class)
+@EntityListeners({I18nListener.class, StoredFlagListener.class})
 public class CodeListValue {
 
   /** Unique identifier. */
@@ -38,6 +40,7 @@ public class CodeListValue {
 
   /** Code list name. */
   @Column(name = "COD_LIST", length = PersistenceConstants.IDENTIFIER)
+  @Size(max = PersistenceConstants.IDENTIFIER)
   @NotBlank
   private String codeListName;
 
@@ -45,6 +48,7 @@ public class CodeListValue {
 
   /** Value. */
   @Column(name = "COD_VALUE", length = PersistenceConstants.IDENTIFIER)
+  @Size(max = PersistenceConstants.IDENTIFIER)
   @NotBlank
   private String value;
 

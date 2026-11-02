@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Objects;
@@ -12,6 +13,7 @@ import java.util.Set;
 import lombok.*;
 import org.sitmun.domain.CodeListsConstants;
 import org.sitmun.domain.PersistenceConstants;
+import org.sitmun.domain.StoredFlagListener;
 import org.sitmun.domain.user.configuration.UserConfiguration;
 import org.sitmun.domain.user.position.UserPosition;
 import org.sitmun.infrastructure.persistence.type.codelist.CodeList;
@@ -21,7 +23,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 /** User. */
 @Entity
-@EntityListeners(AuditingEntityListener.class)
+@EntityListeners({AuditingEntityListener.class, StoredFlagListener.class})
 @Table(
     name = "STM_USER",
     uniqueConstraints = @UniqueConstraint(name = "STM_USU_USU_UK", columnNames = "USE_USER"))
@@ -83,7 +85,8 @@ public class User {
   private Boolean blocked;
 
   /** User email. */
-  @Column(name = "USE_EMAIL", length = PersistenceConstants.IDENTIFIER)
+  @Column(name = "USE_EMAIL", length = PersistenceConstants.SHORT_DESCRIPTION)
+  @Size(max = PersistenceConstants.SHORT_DESCRIPTION)
   @Email
   private String email;
 

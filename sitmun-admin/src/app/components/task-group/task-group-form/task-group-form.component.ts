@@ -122,7 +122,7 @@ export class TaskGroupFormComponent extends BaseFormComponent<TaskGroup> {
 
     this.entityForm = new FormGroup({
       name: new FormControl(this.entityToEdit.name, {
-        validators: [Validators.required],
+        validators: [Validators.required, Validators.maxLength(50)],
         nonNullable: true
       }),
     });

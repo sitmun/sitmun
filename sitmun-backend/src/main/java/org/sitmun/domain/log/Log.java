@@ -2,11 +2,13 @@ package org.sitmun.domain.log;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.Size;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import lombok.*;
 import org.sitmun.domain.PersistenceConstants;
+import org.sitmun.domain.StoredFlagListener;
 import org.sitmun.domain.application.Application;
 import org.sitmun.domain.cartography.Cartography;
 import org.sitmun.domain.task.Task;
@@ -17,6 +19,7 @@ import org.sitmun.infrastructure.persistence.type.srs.Srs;
 
 /** Log. */
 @Entity
+@EntityListeners(StoredFlagListener.class)
 @Table(name = "STM_LOG")
 @Builder
 @Getter
@@ -78,6 +81,7 @@ public class Log {
 
   /** Territory code. */
   @Column(name = "LOG_TER", length = PersistenceConstants.IDENTIFIER)
+  @Size(max = PersistenceConstants.IDENTIFIER)
   private String territoryCode;
 
   /**
@@ -94,11 +98,13 @@ public class Log {
 
   /** SRS requested. */
   @Column(name = "LOG_SRS", length = PersistenceConstants.IDENTIFIER)
+  @Size(max = PersistenceConstants.IDENTIFIER)
   @Srs
   private String srs;
 
   /** Format requested. */
   @Column(name = "LOG_FORMAT", length = PersistenceConstants.IDENTIFIER)
+  @Size(max = PersistenceConstants.IDENTIFIER)
   private String format;
 
   /** True if the user used the add buffer option. */
