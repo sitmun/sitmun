@@ -29,6 +29,8 @@ spring:
       # Disable auto-commit to allow lazy collection loading
       hibernate.connection.provider_disables_autocommit: true
       hibernate.jdbc.time_zone: UTC
+      # LocalDate is bound with JDBC 4.2 setObject. java.sql.Date shifts the civil day when this zone is UTC.
+      hibernate.type.java_time_use_direct_jdbc: true
       # Disable CLOB creation for better database compatibility
       jdbc.lob.non_contextual_creation: true
   data:

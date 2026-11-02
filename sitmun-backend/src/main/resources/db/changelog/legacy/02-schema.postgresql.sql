@@ -86,4 +86,6 @@ ALTER TABLE stm_tree_nod ALTER COLUMN tno_style TYPE character varying(255);
 
 ALTER TABLE stm_tree_nod ALTER COLUMN tno_view_mode TYPE character varying(255);
 
+ALTER TABLE stm_user ALTER COLUMN use_email TYPE character varying(250);
+
 ALTER TABLE stm_geoinfo ADD CONSTRAINT stm_geo_uk_styid UNIQUE (geo_styid);

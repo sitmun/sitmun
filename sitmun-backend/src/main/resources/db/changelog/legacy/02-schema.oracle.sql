@@ -140,4 +140,6 @@ ALTER TABLE stm_tree_nod MODIFY (tno_style VARCHAR2(255 CHAR));
 
 ALTER TABLE stm_tree_nod MODIFY (tno_view_mode VARCHAR2(255 CHAR));
 
+ALTER TABLE stm_user MODIFY (use_email VARCHAR2(250 CHAR));
+
 ALTER TABLE stm_geoinfo ADD CONSTRAINT stm_geo_uk_styid UNIQUE (geo_styid);

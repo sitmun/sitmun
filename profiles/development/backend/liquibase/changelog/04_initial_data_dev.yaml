@@ -222,6 +222,9 @@ databaseChangeLog:
               - column:
                   name: TRE_USERID
                   type: NUMERIC
+              - column:
+                  name: TRE_TYPE
+                  type: STRING
         - loadData:
             encoding: UTF-8
             file: 04_initial_data_dev/stm_tree_rol.csv
@@ -662,6 +665,9 @@ databaseChangeLog:
               - column:
                   name: tno_queryact
                   type: BOOLEAN
+              - column:
+                  name: TNO_TYPE
+                  type: STRING
 
         - sql:
             sql: ALTER TABLE STM_TREE_NOD ADD CONSTRAINT STM_TNO_FK_TNO FOREIGN KEY (TNO_PARENTID) REFERENCES STM_TREE_NOD (TNO_ID);

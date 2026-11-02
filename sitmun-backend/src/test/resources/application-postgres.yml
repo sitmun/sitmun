@@ -32,6 +32,7 @@ spring:
   jpa:
     properties.hibernate:
       dialect: org.hibernate.dialect.PostgreSQLDialect
+      type.java_time_use_direct_jdbc: true
       connection:
         provider_disables_autocommit: true
       # Disable CLOB creation for PostgreSQL
