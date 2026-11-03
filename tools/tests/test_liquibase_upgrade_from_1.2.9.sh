@@ -40,6 +40,9 @@ KEEP_DB="${SITMUN_UPGRADE_KEEP_DB:-}"
 TMP="$REPO_ROOT/build/upgrade-1.2.9-$ENGINE"
 BACKEND_LOG="$REPO_ROOT/build/upgrade-1.2.9-$ENGINE-backend.log"
 BACKEND_PID=""
+# Host-wide: runs from any worktree share container names, host ports, and
+# backend port 9011, so an overlap replaces the other run's database.
+LOCK="${SITMUN_UPGRADE_LOCK:-/tmp/sitmun-upgrade-harness.lock}"
 
 container_rm() { "${DOCKER[@]}" rm -f "$CONTAINER" >/dev/null 2>&1 || true; }
 network_rm() { "${DOCKER[@]}" network rm "$NETWORK" >/dev/null 2>&1 || true; }
@@ -52,6 +55,7 @@ stop_backend() {
 }
 cleanup() {
   stop_backend
+  rm -rf "$LOCK"
   if [[ -n "$KEEP_DB" && "$FAIL" == "0" ]]; then
     echo "Keeping $CONTAINER on port $PORT"
     return
@@ -59,6 +63,17 @@ cleanup() {
   container_rm
   network_rm
 }
+
+if ! mkdir "$LOCK" 2>/dev/null; then
+  holder=$(cat "$LOCK/pid" 2>/dev/null || true)
+  if [[ -n "$holder" ]] && kill -0 "$holder" 2>/dev/null; then
+    echo "another upgrade harness (pid $holder) holds $LOCK; run suites one at a time" >&2
+    exit 2
+  fi
+  rm -rf "$LOCK"
+  mkdir "$LOCK" || { echo "cannot take $LOCK" >&2; exit 2; }
+fi
+echo "$$" >"$LOCK/pid"
 trap cleanup EXIT
 
 sql_count() {
@@ -193,7 +208,7 @@ wait_health() {
 }
 
 echo "── Build backend jar ──"
-(cd "$REPO_ROOT" && ./gradlew --no-daemon -q :sitmun-backend:bootJar)
+(cd "$REPO_ROOT" && ./gradlew --no-daemon -q :sitmun-backend:bootJar) || { echo "bootJar failed" >&2; exit 1; }
 JAR=$(ls "$REPO_ROOT"/sitmun-backend/build/libs/*.jar | grep -v -- '-plain\.jar$' | head -1)
 
 echo "── $ENGINE: a database that is not 1.2.9 must be refused ──"
