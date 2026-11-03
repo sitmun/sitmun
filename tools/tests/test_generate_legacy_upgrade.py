@@ -94,6 +94,48 @@ class VersionCheckGeneratorTest(unittest.TestCase):
         self.assertIn("lang.lan_shortname = 'oc-aranes'", generated)
         self.assertIn("'Cap de donades'", generated)
 
+    def test_prefix_rule_accepts_128_full_129_stopped_22c_and_pre23(self) -> None:
+        generator = load_generator()
+        for fixture in ("postgres-16.csv", "oracle-23.csv"):
+            rows = generator.load_fixture(fixture)
+            base, extra = generator.split_history(rows)
+            self.assertTrue(generator.history_accepted(set(rows), rows), fixture)
+            self.assertTrue(generator.history_accepted(set(base), rows), fixture)
+            stopped = {
+                row
+                for row in rows
+                if row[2]
+                not in {
+                    "changelog/23_add_document_export_tasks.yaml",
+                    "changelog/24_add_default_template_regions.yaml",
+                }
+            }
+            self.assertTrue(generator.history_accepted(stopped, rows), fixture)
+            self.assertFalse(generator.history_accepted(set(rows) - {base[0]}, rows), fixture)
+            without_20 = {row for row in rows if not row[0].startswith("20_")}
+            self.assertFalse(generator.history_accepted(without_20, rows), fixture)
+            pre23 = set(base)
+            for row in extra:
+                alternate = generator.PRE23_SLOT.get(row[0])
+                if alternate is not None:
+                    pre23.add(alternate)
+                else:
+                    pre23.add(row)
+            self.assertTrue(generator.history_accepted(pre23, rows), fixture)
+
+    def test_catch_up_skips_22c_and_guards_each_step(self) -> None:
+        generator = load_generator()
+        for dialect in ("postgresql", "oracle"):
+            generated = generator.catch_up(dialect)
+            shipped = (UPGRADE / "1.2.8-to-1.2.9" / f"01-catch-up.{dialect}.sql").read_text()
+            self.assertEqual(generated, shipped)
+            self.assertNotIn("22c_document_export", generated)
+            self.assertIn("STM_LOG orphan count", generated)
+            self.assertIn("Exportar PDF A3 Vertical", generated)
+            self.assertEqual(generated.count("INSERT INTO stm_task"), 6)
+            self.assertIn("expectedResult:0", generated)
+            self.assertIn("user_constraints" if dialect == "oracle" else "stm_atr_pk", generated)
+
 
 if __name__ == "__main__":
     unittest.main()

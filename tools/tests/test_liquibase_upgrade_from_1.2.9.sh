@@ -7,7 +7,7 @@ ENGINE="${1:?usage: postgres-16|postgres-12|oracle-23|oracle-21|oracle-11 [sourc
 SOURCE="${2:-1.2.9}"
 REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 TAG_129="legacy/sitmun-application-stack/sitmun-application-stack/${SOURCE}"
-TAG_128="legacy/sitmun-application-stack/sitmun-application-stack/1.2.8"
+TAG_127="legacy/sitmun-application-stack/sitmun-application-stack/1.2.7"
 MASTER="$REPO_ROOT/profiles/postgres/liquibase/master.xml"
 PROFILE=postgres
 DB_USER=sitmun3
@@ -211,7 +211,7 @@ echo "── Build backend jar ──"
 (cd "$REPO_ROOT" && ./gradlew --no-daemon -q :sitmun-backend:bootJar) || { echo "bootJar failed" >&2; exit 1; }
 JAR=$(ls "$REPO_ROOT"/sitmun-backend/build/libs/*.jar | grep -v -- '-plain\.jar$' | head -1)
 
-echo "── $ENGINE: a database that is not 1.2.9 must be refused ──"
+echo "── $ENGINE: a database that is not 1.2.8 must be refused ──"
 start_db
 if [[ "$KIND" == "postgres" ]]; then
   "${DOCKER[@]}" exec "$CONTAINER" psql -U "$DB_USER" -d sitmun3 -v ON_ERROR_STOP=1 \
@@ -226,7 +226,7 @@ before=0
 boot_backend
 refused=0
 for _ in $(seq 1 40); do
-  if grep -q "upgrade to 1.2.9 first" "$BACKEND_LOG"; then
+  if grep -q "upgrade to 1.2.8 first" "$BACKEND_LOG"; then
     refused=1
     break
   fi
@@ -238,20 +238,20 @@ done
 stop_backend
 after=$(sql_count "SELECT COUNT(*) FROM databasechangelog" 2>/dev/null || echo 0)
 if [[ "$refused" == "1" && "$after" == "$before" ]]; then
-  ok "non-1.2.9 database refused and changelog stayed at $after rows"
+  ok "non-1.2.8 database refused and changelog stayed at $after rows"
 else
-  fail "non-1.2.9 refusal refused=$refused rows $before -> $after"
+  fail "non-1.2.8 refusal refused=$refused rows $before -> $after"
   tail -40 "$BACKEND_LOG" || true
 fi
 
-echo "── $ENGINE: 1.2.8 must be refused ──"
+echo "── $ENGINE: 1.2.7 must be refused ──"
 start_db
-apply_tag "$TAG_128" "$TMP/128"
+apply_tag "$TAG_127" "$TMP/127"
 before=$(sql_count "SELECT COUNT(*) FROM databasechangelog")
 boot_backend
 refused=0
 for _ in $(seq 1 40); do
-  if grep -q "upgrade to 1.2.9 first" "$BACKEND_LOG"; then
+  if grep -q "upgrade to 1.2.8 first" "$BACKEND_LOG"; then
     refused=1
     break
   fi
@@ -263,9 +263,9 @@ done
 stop_backend
 after=$(sql_count "SELECT COUNT(*) FROM databasechangelog")
 if [[ "$refused" == "1" && "$before" == "$after" ]]; then
-  ok "1.2.8 refused and changelog stayed at $after rows"
+  ok "1.2.7 refused and changelog stayed at $after rows"
 else
-  fail "1.2.8 refusal refused=$refused rows $before -> $after"
+  fail "1.2.7 refusal refused=$refused rows $before -> $after"
   tail -40 "$BACKEND_LOG" || true
 fi
 
