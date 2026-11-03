@@ -1,6 +1,6 @@
 # Release
 
-Release mechanics for one shared version are pending the One version step. Do not follow the old per-repository release runbook.
+This repository has one version in the root `gradle.properties` file. `tools/scripts/bump-version.sh` bumps it, and `mise.toml` wires that script as the `bump-version` task. The old per-repository release runbook no longer applies.
 
 This repository is [sitmun/sitmun](https://github.com/sitmun/sitmun). Components are directories in this repository. `dev` is the integration branch. `main` receives release pull requests from `dev`.
 

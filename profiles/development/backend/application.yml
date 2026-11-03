@@ -4,7 +4,6 @@
 
 sitmun:
   module: SITMUN Core
-  version: 3.0-SNAPSHOT
   language:
   user:
     secret: dev-only-insecure-user-secret-32-bytes

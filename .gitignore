@@ -29,6 +29,7 @@ sitmun.github.io/
 
 # Root E2E (Playwright)
 node_modules/
+.pnpm-store/
 e2e/.auth/
 playwright-report/
 test-results/
