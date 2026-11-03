@@ -94,7 +94,7 @@ class VersionCheckGeneratorTest(unittest.TestCase):
         self.assertIn("lang.lan_shortname = 'oc-aranes'", generated)
         self.assertIn("'Cap de donades'", generated)
 
-    def test_prefix_rule_accepts_128_full_129_stopped_22c_and_pre23(self) -> None:
+    def test_prefix_rule_accepts_128_full_129_and_stopped_22c(self) -> None:
         generator = load_generator()
         for fixture in ("postgres-16.csv", "oracle-23.csv"):
             rows = generator.load_fixture(fixture)
@@ -114,14 +114,30 @@ class VersionCheckGeneratorTest(unittest.TestCase):
             self.assertFalse(generator.history_accepted(set(rows) - {base[0]}, rows), fixture)
             without_20 = {row for row in rows if not row[0].startswith("20_")}
             self.assertFalse(generator.history_accepted(without_20, rows), fixture)
-            pre23 = set(base)
+            through_22b = {
+                row
+                for row in rows
+                if row[0] != "22c_document_export_codelists"
+                and row[2]
+                not in {
+                    "changelog/23_add_document_export_tasks.yaml",
+                    "changelog/24_add_default_template_regions.yaml",
+                }
+            }
+            self.assertTrue(generator.history_accepted(through_22b, rows), fixture)
+            rewritten = set(base)
             for row in extra:
-                alternate = generator.PRE23_SLOT.get(row[0])
-                if alternate is not None:
-                    pre23.add(alternate)
+                if row[0].startswith("22"):
+                    rewritten.add(
+                        (
+                            "26" + row[0][2:],
+                            row[1],
+                            "changelog/26_map_image_task_type_pre23.yaml",
+                        )
+                    )
                 else:
-                    pre23.add(row)
-            self.assertTrue(generator.history_accepted(pre23, rows), fixture)
+                    rewritten.add(row)
+            self.assertFalse(generator.history_accepted(rewritten, rows), fixture)
 
     def test_catch_up_skips_22c_and_guards_each_step(self) -> None:
         generator = load_generator()

@@ -180,7 +180,7 @@ jobs:
         run: bash tools/tests/test_liquibase_upgrade_from_1.2.9.sh oracle-23
 
   oracle-19-from:
-    name: Upgrade Oracle 21c (stand-in for 19c) from 1.2.9
+    name: Upgrade Oracle 21c (stand-in for 19c) stopped at 22c
     if: github.event_name != 'workflow_dispatch' || inputs.db == 'all' || inputs.db == 'oracle-19'
     runs-on: ubuntu-latest
     timeout-minutes: 90
@@ -200,11 +200,11 @@ jobs:
           git fetch --no-tags origin tag legacy/sitmun-application-stack/sitmun-application-stack/1.2.7
           git fetch --no-tags origin tag legacy/sitmun-application-stack/sitmun-application-stack/1.2.8
           git fetch --no-tags origin tag legacy/sitmun-application-stack/sitmun-application-stack/1.2.9
-      - name: Upgrade 1.2.9 to the shipped master
-        run: bash tools/tests/test_liquibase_upgrade_from_1.2.9.sh oracle-21
+      - name: Install 1.2.9 until changeset 22c, then upgrade
+        run: bash tools/tests/test_liquibase_upgrade_from_1.2.9.sh oracle-21 1.2.9 stopped-22c
 
   oracle-11-from:
-    name: Upgrade Oracle 11g from 1.2.9
+    name: Upgrade Oracle 11g stopped at 22c
     if: github.event_name != 'workflow_dispatch' || inputs.db == 'all' || inputs.db == 'oracle-11'
     runs-on: ubuntu-latest
     timeout-minutes: 90
@@ -224,8 +224,8 @@ jobs:
           git fetch --no-tags origin tag legacy/sitmun-application-stack/sitmun-application-stack/1.2.7
           git fetch --no-tags origin tag legacy/sitmun-application-stack/sitmun-application-stack/1.2.8
           git fetch --no-tags origin tag legacy/sitmun-application-stack/sitmun-application-stack/1.2.9
-      - name: Upgrade 1.2.9 to the shipped master
-        run: bash tools/tests/test_liquibase_upgrade_from_1.2.9.sh oracle-11
+      - name: Install 1.2.9 until changeset 22c, then upgrade
+        run: bash tools/tests/test_liquibase_upgrade_from_1.2.9.sh oracle-11 1.2.9 stopped-22c
 
   postgres-16-from-128:
     name: Upgrade PostgreSQL 16 from 1.2.8

@@ -12,7 +12,6 @@ on:
     branches: [dev]
     paths:
       - 'sitmun-backend/src/main/resources/db/changelog/**'
-      - 'tools/tests/26_map_image_task_type_pre23.yaml'
       - 'tools/scripts/fresh-vs-upgraded.sh'
       - 'tools/bin/compare_fresh_vs_upgraded.py'
       - 'tools/bin/generate_legacy_upgrade.py'
@@ -34,8 +33,6 @@ on:
           - all
           - postgres-12
           - postgres-16
-          - oracle-11
-          - oracle-19
           - oracle-23
 
 jobs:
@@ -102,42 +99,6 @@ jobs:
         run: bash tools/scripts/fresh-vs-upgraded.sh oracle-23
       - name: Check the fresh catalog against the data dictionary
         run: python3 tools/bin/check_data_dictionary.py --catalog tools/out/schema-drift/fresh-vs-upgraded/oracle-23
-
-  oracle-19:
-    name: Fresh versus upgraded Oracle 21c (stand-in for 19c)
-    if: github.event_name != 'workflow_dispatch' || inputs.db == 'all' || inputs.db == 'oracle-19'
-    runs-on: ubuntu-latest
-    timeout-minutes: 90
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v5
-        with:
-          fetch-depth: 0
-          fetch-tags: true
-      - name: Fetch the 1.2.9 tag
-        run: git fetch --no-tags origin tag legacy/sitmun-application-stack/sitmun-application-stack/1.2.9
-      - name: Compare a fresh database with an upgraded 1.2.9 database
-        run: bash tools/scripts/fresh-vs-upgraded.sh oracle-21
-      - name: Check the fresh catalog against the data dictionary
-        run: python3 tools/bin/check_data_dictionary.py --catalog tools/out/schema-drift/fresh-vs-upgraded/oracle-21
-
-  oracle-11:
-    name: Fresh versus upgraded Oracle 11g
-    if: github.event_name != 'workflow_dispatch' || inputs.db == 'all' || inputs.db == 'oracle-11'
-    runs-on: ubuntu-latest
-    timeout-minutes: 90
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v5
-        with:
-          fetch-depth: 0
-          fetch-tags: true
-      - name: Fetch the 1.2.9 tag
-        run: git fetch --no-tags origin tag legacy/sitmun-application-stack/sitmun-application-stack/1.2.9
-      - name: Compare a fresh database with an upgraded 1.2.9 database
-        run: bash tools/scripts/fresh-vs-upgraded.sh oracle-11
-      - name: Check the fresh catalog against the data dictionary
-        run: python3 tools/bin/check_data_dictionary.py --catalog tools/out/schema-drift/fresh-vs-upgraded/oracle-11
 
   postgres-16-from-128:
     name: Fresh versus upgraded PostgreSQL 16 from 1.2.8

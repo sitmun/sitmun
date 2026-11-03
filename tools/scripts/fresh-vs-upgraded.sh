@@ -25,17 +25,6 @@ run_fresh_vs_upgraded() {
   mkdir -p "$out" "$src"
   git -C "$REPO_ROOT" archive "$tag" "profiles/${profile}/liquibase" | tar -x -C "$src"
   local changelog="$src/profiles/${profile}/liquibase"
-  if [[ "$kind" == "oracle11" || "$engine" == "oracle-21" ]] && grep -q '22_add_map_image_task_type.yaml' "$changelog/master.xml"; then
-    cp "$REPO_ROOT/tools/tests/26_map_image_task_type_pre23.yaml" "$changelog/changelog/"
-    python3 - "$changelog/master.xml" <<'PY'
-import pathlib, sys
-path = pathlib.Path(sys.argv[1])
-path.write_text(path.read_text().replace(
-    "changelog/22_add_map_image_task_type.yaml",
-    "changelog/26_map_image_task_type_pre23.yaml",
-))
-PY
-  fi
 
   if [[ "$use_colima" == "1" && "$(uname -s)" == "Darwin" ]]; then
     docker() { colima ssh --profile oracle-xe -- sudo docker "$@"; }

@@ -85,13 +85,13 @@ BEGIN
   UNION ALL
   SELECT 19, CASE WHEN EXISTS (SELECT 1 FROM databasechangelog d WHERE (d.id = '21-align-tet-name-postgresql' AND d.author = 'sitmun' AND d.filename = 'changelog/21_align_schema_with_development.yaml')) THEN 1 ELSE 0 END
   UNION ALL
-  SELECT 20, CASE WHEN EXISTS (SELECT 1 FROM databasechangelog d WHERE (d.id = '22_document_export_task_type' AND d.author = 'sitmun' AND d.filename = 'changelog/22_add_map_image_task_type.yaml') OR (d.id = '26_document_export_task_type' AND d.author = 'sitmun' AND d.filename = 'changelog/26_map_image_task_type_pre23.yaml')) THEN 1 ELSE 0 END
+  SELECT 20, CASE WHEN EXISTS (SELECT 1 FROM databasechangelog d WHERE (d.id = '22_document_export_task_type' AND d.author = 'sitmun' AND d.filename = 'changelog/22_add_map_image_task_type.yaml')) THEN 1 ELSE 0 END
   UNION ALL
-  SELECT 21, CASE WHEN EXISTS (SELECT 1 FROM databasechangelog d WHERE (d.id = '22_map_image_task_type' AND d.author = 'sitmun' AND d.filename = 'changelog/22_add_map_image_task_type.yaml') OR (d.id = '26_map_image_task_type' AND d.author = 'sitmun' AND d.filename = 'changelog/26_map_image_task_type_pre23.yaml')) THEN 1 ELSE 0 END
+  SELECT 21, CASE WHEN EXISTS (SELECT 1 FROM databasechangelog d WHERE (d.id = '22_map_image_task_type' AND d.author = 'sitmun' AND d.filename = 'changelog/22_add_map_image_task_type.yaml')) THEN 1 ELSE 0 END
   UNION ALL
-  SELECT 22, CASE WHEN EXISTS (SELECT 1 FROM databasechangelog d WHERE (d.id = '22b_map_image_task_type_seq' AND d.author = 'sitmun' AND d.filename = 'changelog/22_add_map_image_task_type.yaml') OR (d.id = '26b_map_image_task_type_seq' AND d.author = 'sitmun' AND d.filename = 'changelog/26_map_image_task_type_pre23.yaml')) THEN 1 ELSE 0 END
+  SELECT 22, CASE WHEN EXISTS (SELECT 1 FROM databasechangelog d WHERE (d.id = '22b_map_image_task_type_seq' AND d.author = 'sitmun' AND d.filename = 'changelog/22_add_map_image_task_type.yaml')) THEN 1 ELSE 0 END
   UNION ALL
-  SELECT 23, CASE WHEN EXISTS (SELECT 1 FROM databasechangelog d WHERE (d.id = '22c_document_export_codelists' AND d.author = 'sitmun' AND d.filename = 'changelog/22_add_map_image_task_type.yaml') OR (d.id = '26c_document_export_codelists' AND d.author = 'sitmun' AND d.filename = 'changelog/26_map_image_task_type_pre23.yaml')) THEN 1 ELSE 0 END
+  SELECT 23, CASE WHEN EXISTS (SELECT 1 FROM databasechangelog d WHERE (d.id = '22c_document_export_codelists' AND d.author = 'sitmun' AND d.filename = 'changelog/22_add_map_image_task_type.yaml')) THEN 1 ELSE 0 END
   UNION ALL
   SELECT 24, CASE WHEN EXISTS (SELECT 1 FROM databasechangelog d WHERE (d.id = '23_document_export_tasks' AND d.author = 'sitmun' AND d.filename = 'changelog/23_add_document_export_tasks.yaml')) THEN 1 ELSE 0 END
   UNION ALL
