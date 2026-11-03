@@ -365,6 +365,7 @@ SQLFILE="$TMP/mutate.sql"
 if [[ "$KIND" == "postgres" ]]; then
   cat >"$SQLFILE" <<EOF
 DELETE FROM stm_codelist WHERE cod_list = 'application.type' AND cod_value = 'I';
+UPDATE stm_literal_translation_value SET ltv_value = 'Text del soci' WHERE ltv_ltrid = (SELECT ltr_id FROM stm_literal_translation WHERE ltr_literal = 'No data') AND ltv_lanid = (SELECT lan_id FROM stm_language WHERE lan_shortname = 'ca');
 INSERT INTO databasechangelog (id, author, filename, dateexecuted, orderexecuted, exectype, md5sum, description, liquibase, deployment_id)
 SELECT 'partner-extra', 'partner', 'changelog/partner.xml', dateexecuted, 10000, 'EXECUTED', '9:partner', 'sql', liquibase, deployment_id
 FROM databasechangelog WHERE orderexecuted = 1;
@@ -372,6 +373,7 @@ EOF
 else
   cat >"$SQLFILE" <<EOF
 DELETE FROM stm_codelist WHERE cod_list = 'application.type' AND cod_value = 'I';
+UPDATE stm_literal_translation_value SET ltv_value = 'Text del soci' WHERE ltv_ltrid = (SELECT ltr_id FROM stm_literal_translation WHERE ltr_literal = 'No data') AND ltv_lanid = (SELECT lan_id FROM stm_language WHERE lan_shortname = 'ca');
 INSERT INTO databasechangelog (id, author, filename, dateexecuted, orderexecuted, exectype, md5sum, description, liquibase, deployment_id)
 SELECT 'partner-extra', 'partner', 'changelog/partner.xml', dateexecuted, 10000, 'EXECUTED', '9:partner', 'sql', liquibase, deployment_id
 FROM databasechangelog WHERE orderexecuted = 1;
@@ -404,6 +406,32 @@ if [[ "$dangling" == "0" ]]; then
   ok "code-list translation ids point at code-list rows"
 else
   fail "dangling code-list translations: $dangling"
+fi
+partner_literal=$(sql_count "SELECT COUNT(*) FROM stm_literal_translation_value v JOIN stm_literal_translation ltr ON ltr.ltr_id = v.ltv_ltrid JOIN stm_language lang ON lang.lan_id = v.ltv_lanid WHERE ltr.ltr_literal = 'No data' AND lang.lan_shortname = 'ca' AND v.ltv_value = 'Text del soci'")
+if [[ "$partner_literal" == "1" ]]; then
+  ok "partner Catalan No data text unchanged"
+else
+  fail "partner Catalan No data text count=$partner_literal"
+fi
+aranes_ok=0
+while IFS='|' read -r literal expected; do
+  count=$(sql_count "SELECT COUNT(*) FROM stm_literal_translation_value v JOIN stm_literal_translation ltr ON ltr.ltr_id = v.ltv_ltrid JOIN stm_language lang ON lang.lan_id = v.ltv_lanid WHERE ltr.ltr_literal = '${literal}' AND lang.lan_shortname = 'oc-aranes' AND v.ltv_value = '${expected}'")
+  if [[ "$count" == "1" ]]; then
+    aranes_ok=$((aranes_ok + 1))
+  else
+    fail "oc-aranes '${literal}' count=${count}"
+  fi
+done <<'EOF'
+No data|Cap de donades
+Error executing task|Error en executar era tasca
+Query|Consulta
+Invalid child task id|Identificador de tasca hilha non valid
+task not executed|Cau executar era tasca
+Binary content cannot be embedded: server authentication required|Contengut binari non incrustable: cau autenticacion deth servidor
+[binary content]|[contengut binari]
+EOF
+if [[ "$aranes_ok" == "7" ]]; then
+  ok "seven oc-aranes template sentences inserted"
 fi
 rows_after=$(sql_count "SELECT COUNT(*) FROM databasechangelog")
 new_md5=$(sql_count "SELECT md5sum FROM databasechangelog WHERE id = '1' AND filename = '${SCHEMA_FILE}'")

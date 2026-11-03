@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import csv
 import importlib.util
 import unittest
 from pathlib import Path
@@ -76,6 +77,22 @@ class VersionCheckGeneratorTest(unittest.TestCase):
         )
         self.assertIn("<> 'en'", postgres)
         self.assertIn("lan_shortname = 'en'", postgres)
+
+    def test_literal_upgrade_inserts_missing_values_without_updating(self) -> None:
+        generator = load_generator()
+        generated = generator.literal_values()
+        for name in ("postgresql", "oracle"):
+            shipped = (HOP / f"04b-literal-values.{name}.sql").read_text()
+            self.assertEqual(generated, shipped)
+        self.assertNotIn("UPDATE", generated)
+        with (ROOT / "tools/seed-data/baseline/literal_translation_values.csv").open(
+            newline=""
+        ) as handle:
+            rows = list(csv.DictReader(handle))
+        self.assertEqual(generated.count("INSERT INTO stm_literal_translation_value"), len(rows))
+        self.assertIn("ltr.ltr_literal = 'No data'", generated)
+        self.assertIn("lang.lan_shortname = 'oc-aranes'", generated)
+        self.assertIn("'Cap de donades'", generated)
 
 
 if __name__ == "__main__":

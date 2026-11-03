@@ -395,6 +395,38 @@ def translations(oracle: bool) -> str:
     return ";\n".join(lines) + ";\n"
 
 
+def literal_values() -> str:
+    sentences = {
+        row["ltr_id"]: row["ltr_literal"]
+        for row in read_csv(SEED / "literal_translations.csv")
+    }
+    lines: list[str] = []
+    for row in read_csv(SEED / "literal_translation_values.csv"):
+        literal = sql_text(sentences[row["ltr_id"]])
+        language = sql_text(row["lan_shortname"])
+        value = sql_text(row["ltv_value"])
+        lines.append(
+            "INSERT INTO stm_literal_translation_value (ltv_id, ltv_ltrid, ltv_lanid, ltv_value) "
+            "SELECT COALESCE((SELECT MAX(ltv_id) FROM stm_literal_translation_value), 0) + 1, "
+            f"ltr.ltr_id, lang.lan_id, {value} "
+            "FROM stm_literal_translation ltr "
+            f"JOIN stm_language lang ON lang.lan_shortname = {language} "
+            f"WHERE ltr.ltr_literal = {literal} "
+            "AND NOT EXISTS ("
+            "SELECT 1 FROM stm_literal_translation_value existing "
+            "WHERE existing.ltv_ltrid = ltr.ltr_id AND existing.ltv_lanid = lang.lan_id)"
+        )
+    return ";\n".join(lines) + ";\n"
+
+
+def sequence_preamble() -> str:
+    shipped = (LEGACY / "05-sequences.postgresql.sql").read_text()
+    marker = "INSERT INTO stm_sequence"
+    if marker not in shipped:
+        raise SystemExit("05-sequences.postgresql.sql lost the task renumber")
+    return shipped.split(marker, 1)[0]
+
+
 def sequences(oracle: bool) -> str:
     pairs = FLOOR_ROW.findall(FLOOR.read_text())
     if len(pairs) < 40:
@@ -420,7 +452,7 @@ def sequences(oracle: bool) -> str:
                 f"COALESCE((SELECT MAX({column}) FROM {table}), 0) + 1) "
                 f"WHERE seq_name = '{seq}'"
             )
-    return ";\n".join(lines) + ";\n"
+    return sequence_preamble() + ";\n".join(lines) + ";\n"
 
 
 def main() -> None:
@@ -435,6 +467,8 @@ def main() -> None:
     (LEGACY / "03-codelists.oracle.sql").write_text(codelists(True))
     (LEGACY / "04-translations.postgresql.sql").write_text(translations(False))
     (LEGACY / "04-translations.oracle.sql").write_text(translations(True))
+    (LEGACY / "04b-literal-values.postgresql.sql").write_text(literal_values())
+    (LEGACY / "04b-literal-values.oracle.sql").write_text(literal_values())
     (LEGACY / "05-sequences.postgresql.sql").write_text(sequences(False))
     (LEGACY / "05-sequences.oracle.sql").write_text(sequences(True))
     print(f"wrote upgrade SQL under {version_check}")

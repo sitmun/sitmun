@@ -5,8 +5,10 @@ from __future__ import annotations
 
 import csv
 import importlib.util
+import shutil
 import subprocess
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -93,6 +95,36 @@ class SeedTranslationTest(unittest.TestCase):
             text=True,
         )
         self.assertEqual(completed.returncode, 0, completed.stdout + completed.stderr)
+        self.assertNotIn("literal ", completed.stdout)
+
+    def test_literal_gap_is_listed_until_the_value_exists(self) -> None:
+        script = ROOT / "tools/bin/check_translations.py"
+        with tempfile.TemporaryDirectory() as tmp:
+            seed = Path(tmp) / "baseline"
+            shutil.copytree(SEED, seed)
+            values = seed / "literal_translation_values.csv"
+            kept = [
+                line
+                for line in values.read_text().splitlines()
+                if not line.startswith("4,1,fr,")
+            ]
+            values.write_text("\n".join(kept) + "\n")
+            missing = subprocess.run(
+                [sys.executable, str(script), str(seed)],
+                cwd=ROOT,
+                capture_output=True,
+                text=True,
+            )
+        self.assertEqual(missing.returncode, 0, missing.stdout + missing.stderr)
+        self.assertIn("fr literal No data", missing.stdout)
+        present = subprocess.run(
+            [sys.executable, str(script)],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+        )
+        self.assertEqual(present.returncode, 0, present.stdout + present.stderr)
+        self.assertNotIn("fr literal No data", present.stdout)
 
 
 if __name__ == "__main__":

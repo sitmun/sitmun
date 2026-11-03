@@ -127,6 +127,40 @@ databaseChangeLog:
             stripComments: false
             endDelimiter: ";"
   - changeSet:
+      id: upgrade-1.2.9-to-1.3.0-literal-values-postgresql
+      author: sitmun
+      dbms: postgresql
+      logicalFilePath: db/changelog/upgrade/1.2.9-to-1.3.0/04b-literal-values.postgresql.sql
+      preConditions:
+        - onFail: MARK_RAN
+        - sqlCheck:
+            expectedResult: "1"
+            sql: SELECT COUNT(*) FROM databasechangelog WHERE id = '1' AND filename = 'changelog/01_schema.postgresql.sql'
+      changes:
+        - sqlFile:
+            path: 1.2.9-to-1.3.0/04b-literal-values.postgresql.sql
+            relativeToChangelogFile: true
+            splitStatements: true
+            stripComments: false
+            endDelimiter: ";"
+  - changeSet:
+      id: upgrade-1.2.9-to-1.3.0-literal-values-oracle
+      author: sitmun
+      dbms: oracle
+      logicalFilePath: db/changelog/upgrade/1.2.9-to-1.3.0/04b-literal-values.oracle.sql
+      preConditions:
+        - onFail: MARK_RAN
+        - sqlCheck:
+            expectedResult: "1"
+            sql: SELECT COUNT(*) FROM databasechangelog WHERE id = '1' AND filename = 'changelog/01_schema.oracle.sql'
+      changes:
+        - sqlFile:
+            path: 1.2.9-to-1.3.0/04b-literal-values.oracle.sql
+            relativeToChangelogFile: true
+            splitStatements: true
+            stripComments: false
+            endDelimiter: ";"
+  - changeSet:
       id: upgrade-1.2.9-to-1.3.0-sequences-postgresql
       author: sitmun
       dbms: postgresql
