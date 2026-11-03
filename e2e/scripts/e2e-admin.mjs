@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { attachChildLifecycle, fail, isWindows, spawnDetached } from './e2e-process.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const stackRoot = resolve(__dirname, '..');
+const stackRoot = resolve(__dirname, '../..');
 const adminRoot = join(stackRoot, 'sitmun-admin');
 const prefix = 'e2e-admin';
 const pnpmCmd = isWindows ? 'pnpm.cmd' : 'pnpm';

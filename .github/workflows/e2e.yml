@@ -158,7 +158,7 @@ jobs:
           case "$SUITE" in
             admin) pnpm run e2e ;;
             viewer) pnpm run e2e:viewer ;;
-            contact) pnpm exec playwright test --config=playwright.application-contact.config.ts ;;
+            contact) pnpm exec playwright test --config=e2e/playwright.application-contact.config.ts ;;
             mia) pnpm run e2e:mia-cross ;;
             mobile_web) pnpm run e2e:mobile:web ;;
             *) echo "unknown suite: $SUITE" >&2; exit 1 ;;

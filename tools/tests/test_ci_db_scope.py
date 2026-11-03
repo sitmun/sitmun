@@ -147,6 +147,16 @@ class FlagTest(unittest.TestCase):
         self.assertFalse(flags["e2e_viewer"])
         self.assertFalse(flags["admin"])
 
+    def test_wms_stub_script_selects_viewer_and_mia_only(self):
+        flags = scope.flags_for(["e2e/scripts/e2e-wms-stub.mjs"])
+        selected = {name for name, value in flags.items() if value}
+        self.assertEqual(selected, {"e2e_viewer", "e2e_mia"})
+
+    def test_viewer_playwright_config_selects_viewer_suite_only(self):
+        flags = scope.flags_for(["e2e/playwright.viewer.config.ts"])
+        selected = {name for name, value in flags.items() if value}
+        self.assertEqual(selected, {"e2e_viewer"})
+
 
 class DeletedFileTest(unittest.TestCase):
     def test_cli_reads_a_deleted_java_file_from_the_base_commit(self):

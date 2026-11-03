@@ -12,7 +12,7 @@ import {
 /**
  * Map Legend task (#164): DiBa/ArcGIS-style WMS exposes Style/LegendURL (Capas “i”
  * works) but denies DescribeLayer so native sitna.legend getLegend stays empty.
- * Stub mirrors CAE1M/PCE5M; see scripts/e2e-wms-stub.mjs.
+ * Stub mirrors CAE1M/PCE5M; see e2e/scripts/e2e-wms-stub.mjs.
  */
 async function loginAndOpenMap(page: Page): Promise<void> {
   const credentials = await readViewerCredentials();
