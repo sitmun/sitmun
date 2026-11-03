@@ -65,6 +65,30 @@ databaseChangeLog:
             stripComments: false
             endDelimiter: ";"
   - changeSet:
+      id: upgrade-1.2.9-to-1.3.0-tno-active-oracle
+      author: sitmun
+      dbms: oracle
+      logicalFilePath: db/changelog/upgrade/1.2.9-to-1.3.0/02b-tno-active.oracle.sql
+      preConditions:
+        - onFail: MARK_RAN
+        - sqlCheck:
+            expectedResult: "1"
+            sql: SELECT COUNT(*) FROM databasechangelog WHERE id = '1' AND filename = 'changelog/01_schema.oracle.sql'
+      changes:
+        - sql:
+            splitStatements: false
+            stripComments: false
+            sql: |
+              DECLARE
+                nullable_flag VARCHAR2(1);
+              BEGIN
+                SELECT nullable INTO nullable_flag FROM user_tab_columns
+                WHERE table_name = 'STM_TREE_NOD' AND column_name = 'TNO_ACTIVE';
+                IF nullable_flag = 'Y' THEN
+                  EXECUTE IMMEDIATE 'ALTER TABLE stm_tree_nod MODIFY (tno_active NUMBER(1, 0) DEFAULT 1 NOT NULL)';
+                END IF;
+              END;
+  - changeSet:
       id: upgrade-1.2.9-to-1.3.0-codelists-postgresql
       author: sitmun
       dbms: postgresql

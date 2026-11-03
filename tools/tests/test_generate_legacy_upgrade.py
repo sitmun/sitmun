@@ -139,6 +139,14 @@ class VersionCheckGeneratorTest(unittest.TestCase):
                 self.assertIn("nullable_flag = 'Y'", generated)
                 self.assertIn("pk_on_id <> 1", generated)
 
+    def test_oracle_tree_node_active_is_set_only_when_nullable(self) -> None:
+        schema = (UPGRADE / "1.2.9-to-1.3.0" / "02-schema.oracle.sql").read_text()
+        upgrade = (UPGRADE / "db.changelog-upgrade.yaml").read_text()
+        self.assertNotIn("MODIFY (tno_active", schema)
+        self.assertIn("upgrade-1.2.9-to-1.3.0-tno-active-oracle", upgrade)
+        self.assertIn("column_name = 'TNO_ACTIVE'", upgrade)
+        self.assertIn("nullable_flag = 'Y'", upgrade)
+
 
 if __name__ == "__main__":
     unittest.main()
