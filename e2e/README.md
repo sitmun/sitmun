@@ -58,7 +58,7 @@ Browser E2E against backend-core. The default database is in-memory H2. No Docke
 Starts admin, viewer, proxy, and the WMS stub on one H2.
 
 - TipTap Plantilla HTML marker + CSV Catalan literal → simulated GFI → overlay (`e2e/mia-cross/mia-template-viewer.spec.ts`)
-- Overlay type-17 PDF export: disposable document-export task, `.sitmun-mia-download-bar`, `POST /api/tasks/template/export` PDF + filename (`e2e/mia-cross/mia-template-viewer.spec.ts`). H2 `bootRun` loads the test changelog (shipped master, then fixture rows in the 10000 band) and includes `e2e/fixtures/ensure-document-export-task-type.yaml` afterwards. Task type 17 is already in the shipped seed, so that changeset is marked ran.
+- Overlay type-17 PDF export: disposable document-export task, `.sitmun-mia-download-bar`, `POST /api/tasks/template/export` PDF + filename (`e2e/mia-cross/mia-template-viewer.spec.ts`). H2 `bootRun` loads the test changelog (shipped master, then fixture rows in the 10000 band). Task type 17 is already in the shipped seed.
 - Enroll-on-save `<t>` → API translation for UI lang → overlay; same value after `language.default` change; enroll-only opaque-key fallback in overlay (`e2e/mia-cross/mia-template-viewer.spec.ts`)
 - MIA parameter mapping feature attr → Plantilla `$param` in overlay (`e2e/mia-cross/mia-mapping.spec.ts`)
 - Nested Plantilla A→B composition in viewer overlay; nested child `<t>` + Catalan value in overlay for UI lang (`e2e/mia-cross/mia-nested-viewer.spec.ts`)
