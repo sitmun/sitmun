@@ -241,7 +241,7 @@ def relocated_ids(kept: dict[str, set[int]]) -> dict[str, set[int]]:
                 if number >= FLOOR:
                     continue
                 shipped = number in kept.get(kind, set())
-                collides = kind == "task" and number >= 34 and number != 32306
+                collides = kind == "task" and number >= 34
                 if shipped and not collides:
                     continue
                 found.setdefault(kind, set()).add(number)

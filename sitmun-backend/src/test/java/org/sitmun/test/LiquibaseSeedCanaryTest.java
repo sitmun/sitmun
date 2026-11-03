@@ -156,8 +156,8 @@ class LiquibaseSeedCanaryTest {
   }
 
   @Test
-  @DisplayName("Seed: baseline task ids are 1 through 36")
-  void baselineTaskIdsAreOneThroughThirtySix() {
+  @DisplayName("Seed: baseline task ids are 1 through 37")
+  void baselineTaskIdsAreOneThroughThirtySeven() {
     // Fixture rows use ids 10000 through 19999. Every other id is shipped seed.
     List<Integer> ids =
         jdbc.query(
@@ -165,7 +165,10 @@ class LiquibaseSeedCanaryTest {
             (rs, rowNum) -> rs.getInt(1));
     assertThat(ids)
         .as(POLLUTION + " (baseline STM_TASK ids)")
-        .containsExactlyElementsOf(IntStream.rangeClosed(1, 36).boxed().toList());
+        .containsExactlyElementsOf(IntStream.rangeClosed(1, 37).boxed().toList());
+    String name =
+        jdbc.queryForObject("SELECT TAS_NAME FROM STM_TASK WHERE TAS_ID = 37", String.class);
+    assertThat(name).as(POLLUTION + " (task 37)").isEqualTo("More Info Advanced");
   }
 
   /**
