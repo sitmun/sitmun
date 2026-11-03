@@ -3,32 +3,32 @@ databaseChangeLog:
       name: upgrade.defaultLanguage
       value: ""
   - changeSet:
-      id: legacy-1.2.9-version-check-postgresql
+      id: upgrade-version-check-postgresql
       author: sitmun
       dbms: postgresql
-      logicalFilePath: db/changelog/legacy/01-version-check.postgresql.sql
+      logicalFilePath: db/changelog/upgrade/00-version-check.postgresql.sql
       changes:
         - sqlFile:
-            path: 01-version-check.postgresql.sql
+            path: 00-version-check.postgresql.sql
             relativeToChangelogFile: true
             splitStatements: false
             stripComments: false
   - changeSet:
-      id: legacy-1.2.9-version-check-oracle
+      id: upgrade-version-check-oracle
       author: sitmun
       dbms: oracle
-      logicalFilePath: db/changelog/legacy/01-version-check.oracle.sql
+      logicalFilePath: db/changelog/upgrade/00-version-check.oracle.sql
       changes:
         - sqlFile:
-            path: 01-version-check.oracle.sql
+            path: 00-version-check.oracle.sql
             relativeToChangelogFile: true
             splitStatements: false
             stripComments: false
   - changeSet:
-      id: legacy-1.2.9-schema-postgresql
+      id: upgrade-1.2.9-to-1.3.0-schema-postgresql
       author: sitmun
       dbms: postgresql
-      logicalFilePath: db/changelog/legacy/02-schema.postgresql.sql
+      logicalFilePath: db/changelog/upgrade/1.2.9-to-1.3.0/02-schema.postgresql.sql
       preConditions:
         - onFail: MARK_RAN
         - sqlCheck:
@@ -36,16 +36,16 @@ databaseChangeLog:
             sql: SELECT COUNT(*) FROM databasechangelog WHERE id = '1' AND filename = 'changelog/01_schema.postgresql.sql'
       changes:
         - sqlFile:
-            path: 02-schema.postgresql.sql
+            path: 1.2.9-to-1.3.0/02-schema.postgresql.sql
             relativeToChangelogFile: true
             splitStatements: true
             stripComments: false
             endDelimiter: ";"
   - changeSet:
-      id: legacy-1.2.9-schema-oracle
+      id: upgrade-1.2.9-to-1.3.0-schema-oracle
       author: sitmun
       dbms: oracle
-      logicalFilePath: db/changelog/legacy/02-schema.oracle.sql
+      logicalFilePath: db/changelog/upgrade/1.2.9-to-1.3.0/02-schema.oracle.sql
       preConditions:
         - onFail: MARK_RAN
         - sqlCheck:
@@ -53,16 +53,16 @@ databaseChangeLog:
             sql: SELECT COUNT(*) FROM databasechangelog WHERE id = '1' AND filename = 'changelog/01_schema.oracle.sql'
       changes:
         - sqlFile:
-            path: 02-schema.oracle.sql
+            path: 1.2.9-to-1.3.0/02-schema.oracle.sql
             relativeToChangelogFile: true
             splitStatements: true
             stripComments: false
             endDelimiter: ";"
   - changeSet:
-      id: legacy-1.2.9-codelists-postgresql
+      id: upgrade-1.2.9-to-1.3.0-codelists-postgresql
       author: sitmun
       dbms: postgresql
-      logicalFilePath: db/changelog/legacy/03-codelists.postgresql.sql
+      logicalFilePath: db/changelog/upgrade/1.2.9-to-1.3.0/03-codelists.postgresql.sql
       preConditions:
         - onFail: MARK_RAN
         - sqlCheck:
@@ -70,16 +70,16 @@ databaseChangeLog:
             sql: SELECT COUNT(*) FROM databasechangelog WHERE id = '1' AND filename = 'changelog/01_schema.postgresql.sql'
       changes:
         - sqlFile:
-            path: 03-codelists.postgresql.sql
+            path: 1.2.9-to-1.3.0/03-codelists.postgresql.sql
             relativeToChangelogFile: true
             splitStatements: true
             stripComments: false
             endDelimiter: ";"
   - changeSet:
-      id: legacy-1.2.9-codelists-oracle
+      id: upgrade-1.2.9-to-1.3.0-codelists-oracle
       author: sitmun
       dbms: oracle
-      logicalFilePath: db/changelog/legacy/03-codelists.oracle.sql
+      logicalFilePath: db/changelog/upgrade/1.2.9-to-1.3.0/03-codelists.oracle.sql
       preConditions:
         - onFail: MARK_RAN
         - sqlCheck:
@@ -87,16 +87,16 @@ databaseChangeLog:
             sql: SELECT COUNT(*) FROM databasechangelog WHERE id = '1' AND filename = 'changelog/01_schema.oracle.sql'
       changes:
         - sqlFile:
-            path: 03-codelists.oracle.sql
+            path: 1.2.9-to-1.3.0/03-codelists.oracle.sql
             relativeToChangelogFile: true
             splitStatements: true
             stripComments: false
             endDelimiter: ";"
   - changeSet:
-      id: legacy-1.2.9-translations-postgresql
+      id: upgrade-1.2.9-to-1.3.0-translations-postgresql
       author: sitmun
       dbms: postgresql
-      logicalFilePath: db/changelog/legacy/04-translations.postgresql.sql
+      logicalFilePath: db/changelog/upgrade/1.2.9-to-1.3.0/04-translations.postgresql.sql
       preConditions:
         - onFail: MARK_RAN
         - sqlCheck:
@@ -104,16 +104,16 @@ databaseChangeLog:
             sql: SELECT COUNT(*) FROM databasechangelog WHERE id = '1' AND filename = 'changelog/01_schema.postgresql.sql'
       changes:
         - sqlFile:
-            path: 04-translations.postgresql.sql
+            path: 1.2.9-to-1.3.0/04-translations.postgresql.sql
             relativeToChangelogFile: true
             splitStatements: true
             stripComments: false
             endDelimiter: ";"
   - changeSet:
-      id: legacy-1.2.9-translations-oracle
+      id: upgrade-1.2.9-to-1.3.0-translations-oracle
       author: sitmun
       dbms: oracle
-      logicalFilePath: db/changelog/legacy/04-translations.oracle.sql
+      logicalFilePath: db/changelog/upgrade/1.2.9-to-1.3.0/04-translations.oracle.sql
       preConditions:
         - onFail: MARK_RAN
         - sqlCheck:
@@ -121,16 +121,16 @@ databaseChangeLog:
             sql: SELECT COUNT(*) FROM databasechangelog WHERE id = '1' AND filename = 'changelog/01_schema.oracle.sql'
       changes:
         - sqlFile:
-            path: 04-translations.oracle.sql
+            path: 1.2.9-to-1.3.0/04-translations.oracle.sql
             relativeToChangelogFile: true
             splitStatements: true
             stripComments: false
             endDelimiter: ";"
   - changeSet:
-      id: legacy-1.2.9-sequences-postgresql
+      id: upgrade-1.2.9-to-1.3.0-sequences-postgresql
       author: sitmun
       dbms: postgresql
-      logicalFilePath: db/changelog/legacy/05-sequences.postgresql.sql
+      logicalFilePath: db/changelog/upgrade/1.2.9-to-1.3.0/05-sequences.postgresql.sql
       preConditions:
         - onFail: MARK_RAN
         - sqlCheck:
@@ -138,16 +138,16 @@ databaseChangeLog:
             sql: SELECT COUNT(*) FROM databasechangelog WHERE id = '1' AND filename = 'changelog/01_schema.postgresql.sql'
       changes:
         - sqlFile:
-            path: 05-sequences.postgresql.sql
+            path: 1.2.9-to-1.3.0/05-sequences.postgresql.sql
             relativeToChangelogFile: true
             splitStatements: true
             stripComments: false
             endDelimiter: ";"
   - changeSet:
-      id: legacy-1.2.9-sequences-oracle
+      id: upgrade-1.2.9-to-1.3.0-sequences-oracle
       author: sitmun
       dbms: oracle
-      logicalFilePath: db/changelog/legacy/05-sequences.oracle.sql
+      logicalFilePath: db/changelog/upgrade/1.2.9-to-1.3.0/05-sequences.oracle.sql
       preConditions:
         - onFail: MARK_RAN
         - sqlCheck:
@@ -155,16 +155,16 @@ databaseChangeLog:
             sql: SELECT COUNT(*) FROM databasechangelog WHERE id = '1' AND filename = 'changelog/01_schema.oracle.sql'
       changes:
         - sqlFile:
-            path: 05-sequences.oracle.sql
+            path: 1.2.9-to-1.3.0/05-sequences.oracle.sql
             relativeToChangelogFile: true
             splitStatements: true
             stripComments: false
             endDelimiter: ";"
   - changeSet:
-      id: legacy-1.2.9-tree-node-type-postgresql
+      id: upgrade-1.2.9-to-1.3.0-tree-node-type-postgresql
       author: sitmun
       dbms: postgresql
-      logicalFilePath: db/changelog/legacy/06-tree-node-type.sql
+      logicalFilePath: db/changelog/upgrade/1.2.9-to-1.3.0/06-tree-node-type.sql
       preConditions:
         - onFail: MARK_RAN
         - sqlCheck:
@@ -172,16 +172,16 @@ databaseChangeLog:
             sql: SELECT COUNT(*) FROM databasechangelog WHERE id = '1' AND filename = 'changelog/01_schema.postgresql.sql'
       changes:
         - sqlFile:
-            path: 06-tree-node-type.sql
+            path: 1.2.9-to-1.3.0/06-tree-node-type.sql
             relativeToChangelogFile: true
             splitStatements: true
             stripComments: false
             endDelimiter: ";"
   - changeSet:
-      id: legacy-1.2.9-tree-node-type-oracle
+      id: upgrade-1.2.9-to-1.3.0-tree-node-type-oracle
       author: sitmun
       dbms: oracle
-      logicalFilePath: db/changelog/legacy/06-tree-node-type.sql
+      logicalFilePath: db/changelog/upgrade/1.2.9-to-1.3.0/06-tree-node-type.sql
       preConditions:
         - onFail: MARK_RAN
         - sqlCheck:
@@ -189,7 +189,7 @@ databaseChangeLog:
             sql: SELECT COUNT(*) FROM databasechangelog WHERE id = '1' AND filename = 'changelog/01_schema.oracle.sql'
       changes:
         - sqlFile:
-            path: 06-tree-node-type.sql
+            path: 1.2.9-to-1.3.0/06-tree-node-type.sql
             relativeToChangelogFile: true
             splitStatements: true
             stripComments: false

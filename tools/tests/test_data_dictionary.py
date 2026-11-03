@@ -184,7 +184,7 @@ class DataDictionaryTest(unittest.TestCase):
             deletable,
             {("downloadTask.scope", "A"), ("downloadTask.scope", "U"), ("downloadTask.scope", "C")},
         )
-        with (ROOT / "tools/seed-data/baseline/codelists-promoted-1.3.0.csv").open(newline="") as handle:
+        with (ROOT / "tools/seed-data/upgrade/1.2.9-to-1.3.0/codelists-promoted.csv").open(newline="") as handle:
             promoted = list(csv.DictReader(handle))
         self.assertEqual(len(promoted), 71)
         promoted_keys = {(row["cod_list"], row["cod_value"]) for row in promoted}

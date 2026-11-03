@@ -3,6 +3,7 @@
 
 run_fresh_vs_upgraded() {
   local engine="$1"
+  local source_tag="${2:-1.2.9}"
   local image port kind profile service
   local use_colima=0
   case "$engine" in
@@ -18,7 +19,7 @@ run_fresh_vs_upgraded() {
   local network="sitmun_fvu_${engine//-/}"
   local out="${OUT_ROOT}/fresh-vs-upgraded/${engine}"
   local src="$REPO_ROOT/build/fvu-${engine}"
-  local tag="legacy/sitmun-application-stack/sitmun-application-stack/1.2.9"
+  local tag="legacy/sitmun-application-stack/sitmun-application-stack/${source_tag}"
   local shipped="$REPO_ROOT/sitmun-backend/src/main/resources/db/changelog"
   rm -rf "$out" "$src"
   mkdir -p "$out" "$src"
@@ -190,6 +191,7 @@ EXIT
 }
 
 if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
-  engine="${1:?usage: $0 postgres-16|postgres-12|oracle-23|oracle-21|oracle-11}"
-  exec bash "$(cd "$(dirname "$0")" && pwd)/compare-schema-drift.sh" fresh-vs-upgraded "$engine"
+  engine="${1:?usage: $0 postgres-16|postgres-12|oracle-23|oracle-21|oracle-11 [source-tag]}"
+  source_tag="${2:-1.2.9}"
+  exec bash "$(cd "$(dirname "$0")" && pwd)/compare-schema-drift.sh" fresh-vs-upgraded "$engine" "$source_tag"
 fi

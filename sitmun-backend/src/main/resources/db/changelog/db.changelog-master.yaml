@@ -1,6 +1,6 @@
 databaseChangeLog:
   - include:
-      file: legacy/db.changelog-legacy.yaml
+      file: upgrade/db.changelog-upgrade.yaml
       relativeToChangelogFile: true
   - changeSet:
       id: baseline-schema-postgresql
