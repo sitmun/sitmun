@@ -1,12 +1,13 @@
 #!/usr/bin/env bash
-# Apply the 1.2.9 production profile changelog and dump DATABASECHANGELOG.
-# Usage: dump_1_2_9_databasechangelog.sh postgres-12|postgres-16|oracle-23|oracle-21|oracle-11
+# Apply a tagged production profile changelog and dump DATABASECHANGELOG.
+# Usage: dump_1_2_9_databasechangelog.sh postgres-12|postgres-16|oracle-23|oracle-21|oracle-11 [1.2.9]
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 ENGINE="${1:?engine}"
-TAG="legacy/sitmun-application-stack/sitmun-application-stack/1.2.9"
-OUT="$REPO_ROOT/sitmun-backend/src/test/resources/db/databasechangelog/1.2.9/${ENGINE}.csv"
+VERSION="${2:-1.2.9}"
+TAG="legacy/sitmun-application-stack/sitmun-application-stack/${VERSION}"
+OUT="$REPO_ROOT/sitmun-backend/src/test/resources/db/databasechangelog/${VERSION}/${ENGINE}.csv"
 mkdir -p "$(dirname "$OUT")"
 
 case "$ENGINE" in
@@ -111,7 +112,7 @@ else
 fi
 
 if grep -q 'changelog/changelog/' "$OUT"; then
-  echo "FILENAME is doubled (changelog/changelog/); dump does not match a 1.2.9 install" >&2
+  echo "FILENAME is doubled (changelog/changelog/); dump does not match a ${VERSION} install" >&2
   exit 1
 fi
 echo "wrote $OUT ($(wc -l < "$OUT") lines)"

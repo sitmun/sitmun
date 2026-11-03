@@ -799,8 +799,8 @@ DOCKEREOF
     print_lb_errors
   fi
   liquibase_ora "HEAD" "$LB_HEAD"
-  if echo "$LB_OUTPUT" | grep -q "upgrade to 1.2.9 first"; then
-    ok "Phase2 refused a database that is not 1.2.9"
+  if echo "$LB_OUTPUT" | grep -q "upgrade to 1.2.8 first"; then
+    ok "Phase2 refused a database that is not 1.2.8"
   else
     fail "Phase2 did not refuse the database (exit $LB_RC)"
     print_lb_errors
@@ -908,8 +908,8 @@ run_dev_postgres_from() {
     print_lb_errors
   fi
   liquibase_pg "HEAD" "$LB_HEAD"
-  if echo "$LB_OUTPUT" | grep -q "upgrade to 1.2.9 first"; then
-    ok "Phase2 refused a database that is not 1.2.9"
+  if echo "$LB_OUTPUT" | grep -q "upgrade to 1.2.8 first"; then
+    ok "Phase2 refused a database that is not 1.2.8"
   else
     fail "Phase2 did not refuse the database (exit $LB_RC)"
     print_lb_errors

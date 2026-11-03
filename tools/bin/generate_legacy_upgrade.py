@@ -40,35 +40,37 @@ def load_fixture(name: str) -> list[tuple[str, str, str]]:
 
 
 def version_check_postgres(rows: list[tuple[str, str, str]]) -> str:
-    unions = "\n    UNION ALL\n".join(
-        f"    SELECT {sql_text(i)} AS id, {sql_text(a)} AS author, {sql_text(f)} AS filename"
-        for i, a, f in rows
-    )
+    base, extra = split_history(rows)
     return f"""DO $$
 DECLARE
-  present integer;
+  base_present integer;
+  hole integer;
   shared_styles text;
   confirmed text;
   stored text;
 BEGIN
-  SELECT COUNT(*) INTO present
+  SELECT COUNT(*) INTO base_present
   FROM databasechangelog d
-  WHERE EXISTS (
-    SELECT 1 FROM (
-{unions}
-    ) required
-    WHERE required.id = d.id
-      AND required.author = d.author
-      AND required.filename = d.filename
-  );
-  IF present = 0 THEN
+  WHERE
+{base_match(base)};
+  IF base_present = 0 THEN
     IF to_regclass('stm_app') IS NOT NULL THEN
-      RAISE EXCEPTION 'upgrade to 1.2.9 first';
+      RAISE EXCEPTION 'upgrade to 1.2.8 first';
     END IF;
     RETURN;
   END IF;
-  IF present < {len(rows)} THEN
-    RAISE EXCEPTION 'upgrade to 1.2.9 first';
+  IF base_present < {len(base)} THEN
+    RAISE EXCEPTION 'upgrade to 1.2.8 first';
+  END IF;
+  WITH slots(pos, filled) AS (
+{slot_query(extra, "")}
+  )
+  SELECT COUNT(*) INTO hole
+  FROM slots later
+  JOIN slots earlier ON earlier.pos = later.pos - 1
+  WHERE later.filled = 1 AND earlier.filled = 0;
+  IF hole > 0 THEN
+    RAISE EXCEPTION 'upgrade to 1.2.8 first';
   END IF;
   confirmed := '${{upgrade.defaultLanguage}}';
   SELECT cnf_value INTO stored FROM stm_conf WHERE cnf_name = 'language.default';
@@ -99,118 +101,164 @@ END $$;
 """
 
 
-PRE23_INSTEAD_OF_22 = {
-    "22_document_export_task_type",
-    "22_map_image_task_type",
-    "22b_map_image_task_type_seq",
-    "22c_document_export_codelists",
+ONLY_129_FILES = {
+    "changelog/25_fix_auth_mode_swap.yaml",
+    "changelog/19_add_tree_node_default.yaml",
+    "changelog/20_application_tree_order.yaml",
+    "changelog/21_align_schema_with_development.yaml",
+    "changelog/22_add_map_image_task_type.yaml",
+    "changelog/23_add_document_export_tasks.yaml",
+    "changelog/24_add_default_template_regions.yaml",
 }
-PRE23_CHANGESETS = (
-    ("26_document_export_task_type", "sitmun", "changelog/26_map_image_task_type_pre23.yaml"),
-    ("26_map_image_task_type", "sitmun", "changelog/26_map_image_task_type_pre23.yaml"),
-    ("26b_map_image_task_type_seq", "sitmun", "changelog/26_map_image_task_type_pre23.yaml"),
-    ("26c_document_export_codelists", "sitmun", "changelog/26_map_image_task_type_pre23.yaml"),
-)
+PRE23_SLOT = {
+    "22_document_export_task_type": (
+        "26_document_export_task_type",
+        "sitmun",
+        "changelog/26_map_image_task_type_pre23.yaml",
+    ),
+    "22_map_image_task_type": (
+        "26_map_image_task_type",
+        "sitmun",
+        "changelog/26_map_image_task_type_pre23.yaml",
+    ),
+    "22b_map_image_task_type_seq": (
+        "26b_map_image_task_type_seq",
+        "sitmun",
+        "changelog/26_map_image_task_type_pre23.yaml",
+    ),
+    "22c_document_export_codelists": (
+        "26c_document_export_codelists",
+        "sitmun",
+        "changelog/26_map_image_task_type_pre23.yaml",
+    ),
+}
 
 
-def oracle_union(rows: list[tuple[str, str, str]]) -> str:
-    return "\n    UNION ALL\n".join(
-        f"    SELECT {sql_text(i)} AS id, {sql_text(a)} AS author, {sql_text(f)} AS filename FROM dual"
-        for i, a, f in rows
+def split_history(
+    rows: list[tuple[str, str, str]],
+) -> tuple[list[tuple[str, str, str]], list[tuple[str, str, str]]]:
+    base: list[tuple[str, str, str]] = []
+    extra: list[tuple[str, str, str]] = []
+    for row in rows:
+        (extra if row[2] in ONLY_129_FILES else base).append(row)
+    return base, extra
+
+
+def history_accepted(present: set[tuple[str, str, str]], rows: list[tuple[str, str, str]]) -> bool:
+    """Every 1.2.8 row is present, and the 1.2.9-only rows form a prefix."""
+    base, extra = split_history(rows)
+    if any(row not in present for row in base):
+        return False
+    gap = False
+    for row in extra:
+        alternate = PRE23_SLOT.get(row[0])
+        filled = row in present or (alternate is not None and alternate in present)
+        if not filled:
+            gap = True
+        elif gap:
+            return False
+    return True
+
+
+def row_match(alias: str, row: tuple[str, str, str]) -> str:
+    changeset_id, author, filename = row
+    return (
+        f"{alias}.id = {sql_text(changeset_id)} AND {alias}.author = {sql_text(author)} "
+        f"AND {alias}.filename = {sql_text(filename)}"
     )
 
 
+def filled_sql(row: tuple[str, str, str]) -> str:
+    parts = [f"({row_match('d', row)})"]
+    alternate = PRE23_SLOT.get(row[0])
+    if alternate is not None:
+        parts.append(f"({row_match('d', alternate)})")
+    return " OR ".join(parts)
+
+
+def slot_query(extra: list[tuple[str, str, str]], from_dual: str) -> str:
+    return "\n  UNION ALL\n".join(
+        "  SELECT "
+        f"{pos}, CASE WHEN EXISTS (SELECT 1 FROM databasechangelog d WHERE {filled_sql(row)}) "
+        f"THEN 1 ELSE 0 END{from_dual}"
+        for pos, row in enumerate(extra, start=1)
+    )
+
+
+def base_match(base: list[tuple[str, str, str]]) -> str:
+    return "\n    OR ".join(f"({row_match('d', row)})" for row in base)
+
+
 def version_check_oracle(rows: list[tuple[str, str, str]]) -> str:
-    pre23 = [row for row in rows if row[0] not in PRE23_INSTEAD_OF_22]
-    pre23.extend(PRE23_CHANGESETS)
+    base, extra = split_history(rows)
     return f"""DECLARE
-  present_23 NUMBER;
-  present_pre23 NUMBER;
-  known NUMBER;
+  base_present NUMBER;
+  hole NUMBER;
   app_exists NUMBER;
   shared_styles VARCHAR2(4000);
   confirmed VARCHAR2(20);
   stored VARCHAR2(20);
   lang_known NUMBER;
 BEGIN
-  SELECT COUNT(*) INTO present_23
+  SELECT COUNT(*) INTO base_present
   FROM databasechangelog d
-  WHERE EXISTS (
-    SELECT 1 FROM (
-{oracle_union(rows)}
-    ) required
-    WHERE required.id = d.id
-      AND required.author = d.author
-      AND required.filename = d.filename
-  );
-  SELECT COUNT(*) INTO present_pre23
-  FROM databasechangelog d
-  WHERE EXISTS (
-    SELECT 1 FROM (
-{oracle_union(pre23)}
-    ) required
-    WHERE required.id = d.id
-      AND required.author = d.author
-      AND required.filename = d.filename
-  );
-  IF present_23 = {len(rows)} OR present_pre23 = {len(pre23)} THEN
-    confirmed := '${{upgrade.defaultLanguage}}';
-    -- Dynamic SQL: a fresh database has no stm_conf or stm_language yet.
-    -- Oracle compiles static queries in this block before those tables exist.
-    BEGIN
-      EXECUTE IMMEDIATE
-        'SELECT cnf_value FROM stm_conf WHERE cnf_name = ''language.default'''
-        INTO stored;
-    EXCEPTION
-      WHEN NO_DATA_FOUND THEN
-        stored := NULL;
-    END;
-    IF confirmed IS NULL OR LENGTH(TRIM(confirmed)) IS NULL OR LENGTH(TRIM(confirmed)) = 0 THEN
-      RAISE_APPLICATION_ERROR(-20003, 'set SITMUN_UPGRADE_DEFAULT_LANGUAGE to the language the database text is written in, and set STM_CONF language.default to the same value');
-    END IF;
-    IF stored IS NULL THEN
-      RAISE_APPLICATION_ERROR(-20003, 'STM_CONF language.default is missing and SITMUN_UPGRADE_DEFAULT_LANGUAGE is ' || confirmed || '; set STM_CONF language.default to that value');
-    END IF;
-    IF stored <> confirmed THEN
-      RAISE_APPLICATION_ERROR(-20003, 'SITMUN_UPGRADE_DEFAULT_LANGUAGE is ' || confirmed || ' but STM_CONF language.default is ' || stored || '; fix STM_CONF or the variable');
-    END IF;
-    EXECUTE IMMEDIATE
-      'SELECT COUNT(*) FROM stm_language WHERE lan_shortname = :confirmed'
-      INTO lang_known
-      USING confirmed;
-    IF lang_known = 0 THEN
-      RAISE_APPLICATION_ERROR(-20003, 'SITMUN_UPGRADE_DEFAULT_LANGUAGE ' || confirmed || ' is not in STM_LANGUAGE; fix STM_CONF or the variable');
-    END IF;
-    -- Dynamic SQL: a fresh database has no stm_geoinfo, and Oracle compiles
-    -- static queries in this block before that table exists.
-    EXECUTE IMMEDIATE
-      'SELECT LISTAGG(geo_id, '', '') WITHIN GROUP (ORDER BY geo_id) FROM stm_geoinfo WHERE geo_styid IN (SELECT geo_styid FROM stm_geoinfo WHERE geo_styid IS NOT NULL GROUP BY geo_styid HAVING COUNT(*) > 1)'
-      INTO shared_styles;
-    IF shared_styles IS NOT NULL THEN
-      RAISE_APPLICATION_ERROR(-20002, 'shared geo_styid on cartography ids ' || shared_styles);
-    END IF;
-    RETURN;
-  END IF;
-  SELECT COUNT(*) INTO known
-  FROM databasechangelog d
-  WHERE EXISTS (
-    SELECT 1 FROM (
-{oracle_union(rows)}
-    UNION ALL
-{oracle_union(PRE23_CHANGESETS)}
-    ) required
-    WHERE required.id = d.id
-      AND required.author = d.author
-      AND required.filename = d.filename
-  );
-  IF known = 0 THEN
+  WHERE
+{base_match(base)};
+  IF base_present = 0 THEN
     SELECT COUNT(*) INTO app_exists FROM user_tables WHERE table_name = 'STM_APP';
     IF app_exists > 0 THEN
-      RAISE_APPLICATION_ERROR(-20001, 'upgrade to 1.2.9 first');
+      RAISE_APPLICATION_ERROR(-20001, 'upgrade to 1.2.8 first');
     END IF;
     RETURN;
   END IF;
-  RAISE_APPLICATION_ERROR(-20001, 'upgrade to 1.2.9 first');
+  IF base_present < {len(base)} THEN
+    RAISE_APPLICATION_ERROR(-20001, 'upgrade to 1.2.8 first');
+  END IF;
+  WITH slots(pos, filled) AS (
+{slot_query(extra, " FROM dual")}
+  )
+  SELECT COUNT(*) INTO hole
+  FROM slots later
+  JOIN slots earlier ON earlier.pos = later.pos - 1
+  WHERE later.filled = 1 AND earlier.filled = 0;
+  IF hole > 0 THEN
+    RAISE_APPLICATION_ERROR(-20001, 'upgrade to 1.2.8 first');
+  END IF;
+  confirmed := '${{upgrade.defaultLanguage}}';
+  -- Dynamic SQL: a fresh database has no stm_conf or stm_language yet.
+  -- Oracle compiles static queries in this block before those tables exist.
+  BEGIN
+    EXECUTE IMMEDIATE
+      'SELECT cnf_value FROM stm_conf WHERE cnf_name = ''language.default'''
+      INTO stored;
+  EXCEPTION
+    WHEN NO_DATA_FOUND THEN
+      stored := NULL;
+  END;
+  IF confirmed IS NULL OR LENGTH(TRIM(confirmed)) IS NULL OR LENGTH(TRIM(confirmed)) = 0 THEN
+    RAISE_APPLICATION_ERROR(-20003, 'set SITMUN_UPGRADE_DEFAULT_LANGUAGE to the language the database text is written in, and set STM_CONF language.default to the same value');
+  END IF;
+  IF stored IS NULL THEN
+    RAISE_APPLICATION_ERROR(-20003, 'STM_CONF language.default is missing and SITMUN_UPGRADE_DEFAULT_LANGUAGE is ' || confirmed || '; set STM_CONF language.default to that value');
+  END IF;
+  IF stored <> confirmed THEN
+    RAISE_APPLICATION_ERROR(-20003, 'SITMUN_UPGRADE_DEFAULT_LANGUAGE is ' || confirmed || ' but STM_CONF language.default is ' || stored || '; fix STM_CONF or the variable');
+  END IF;
+  EXECUTE IMMEDIATE
+    'SELECT COUNT(*) FROM stm_language WHERE lan_shortname = :confirmed'
+    INTO lang_known
+    USING confirmed;
+  IF lang_known = 0 THEN
+    RAISE_APPLICATION_ERROR(-20003, 'SITMUN_UPGRADE_DEFAULT_LANGUAGE ' || confirmed || ' is not in STM_LANGUAGE; fix STM_CONF or the variable');
+  END IF;
+  -- Dynamic SQL: a fresh database has no stm_geoinfo, and Oracle compiles
+  -- static queries in this block before that table exists.
+  EXECUTE IMMEDIATE
+    'SELECT LISTAGG(geo_id, '', '') WITHIN GROUP (ORDER BY geo_id) FROM stm_geoinfo WHERE geo_styid IN (SELECT geo_styid FROM stm_geoinfo WHERE geo_styid IS NOT NULL GROUP BY geo_styid HAVING COUNT(*) > 1)'
+    INTO shared_styles;
+  IF shared_styles IS NOT NULL THEN
+    RAISE_APPLICATION_ERROR(-20002, 'shared geo_styid on cartography ids ' || shared_styles);
+  END IF;
 END;
 """
 
@@ -455,14 +503,376 @@ def sequences(oracle: bool) -> str:
     return sequence_preamble() + ";\n".join(lines) + ";\n"
 
 
+CATCH_UP = LEGACY.parent / "1.2.8-to-1.2.9"
+PG_WIDEN = (
+    ("stm_fil_gi", "fgi_valuetype", 50),
+    ("stm_geoinfo", "geo_type", 50),
+    ("stm_grp_gi", "ggi_type", 50),
+    ("stm_par_ser", "pse_name", 50),
+    ("stm_service", "ser_protocol", 50),
+    ("stm_sty_gi", "sgi_lurl_format", 255),
+    ("stm_app", "app_name", 80),
+    ("stm_app", "app_project", 250),
+    ("stm_app", "app_type", 250),
+    ("stm_geoinfo", "geo_source", 80),
+    ("stm_ter_typ", "tet_name", 250),
+)
+ORA_WIDEN = (
+    ("stm_backgrd", "bac_name", 50),
+    ("stm_par_app", "pap_name", 50),
+    *PG_WIDEN,
+    ("stm_par_gi", "pgi_type", 250),
+)
+LOG_FOREIGN_KEYS = (
+    ("stm_log_fk_appid", "log_appid", "stm_app", "app_id"),
+    ("stm_log_fk_giid", "log_giid", "stm_geoinfo", "geo_id"),
+    ("stm_log_fk_taskid", "log_taskid", "stm_task", "tas_id"),
+    ("stm_log_fk_terid", "log_terid", "stm_territory", "ter_id"),
+    ("stm_log_fk_userid", "log_userid", "stm_user", "use_id"),
+)
+
+
+DELIMITER = "@sitmun-end"
+
+
+def statement(sql: str) -> str:
+    if DELIMITER in sql:
+        raise SystemExit("catch-up SQL contains the statement delimiter")
+    return sql + "\n" + DELIMITER
+
+
+def changeset(step: str, dialect: str, guards: list[str], statements: list[str]) -> str:
+    dbms = "oracle" if dialect == "oracle" else "postgresql"
+    schema = "changelog/01_schema.oracle.sql" if dialect == "oracle" else "changelog/01_schema.postgresql.sql"
+    header = (
+        f"--changeset sitmun:upgrade-1.2.8-to-1.2.9-{step}-{dbms} "
+        f"dbms:{dbms} splitStatements:true endDelimiter:{DELIMITER} stripComments:false"
+    )
+    lines = [
+        header,
+        "--preconditions onFail:MARK_RAN",
+        "--precondition-sql-check expectedResult:1 "
+        f"SELECT COUNT(*) FROM databasechangelog WHERE id = '1' AND filename = '{schema}'",
+    ]
+    lines.extend(f"--precondition-sql-check expectedResult:0 {guard}" for guard in guards)
+    lines.extend(statement(sql) for sql in statements)
+    return "\n".join(lines)
+
+
+def changelog_absent(changeset_id: str, filename: str) -> str:
+    return (
+        "SELECT COUNT(*) FROM databasechangelog WHERE id = "
+        f"{sql_text(changeset_id)} AND author = 'sitmun' AND filename = {sql_text(filename)}"
+    )
+
+
+def widen_and_log_keys(oracle: bool) -> str:
+    widens = ORA_WIDEN if oracle else PG_WIDEN
+    if oracle:
+        lines = ["DECLARE", "  width NUMBER;", "  orphans NUMBER;", "  already NUMBER;", "BEGIN"]
+        for table, column, size in widens:
+            lines.append(
+                "  SELECT char_length INTO width FROM user_tab_columns "
+                f"WHERE table_name = '{table.upper()}' AND column_name = '{column.upper()}';"
+            )
+            lines.append(f"  IF width IS NOT NULL AND width < {size} THEN")
+            lines.append(
+                "    EXECUTE IMMEDIATE "
+                f"'ALTER TABLE {table} MODIFY {column} VARCHAR2({size} CHAR)';"
+            )
+            lines.append("  END IF;")
+        for name, column, parent, parent_column in LOG_FOREIGN_KEYS:
+            lines.append(
+                f"  SELECT COUNT(*) INTO orphans FROM stm_log child WHERE child.{column} IS NOT NULL "
+                f"AND NOT EXISTS (SELECT 1 FROM {parent} parent WHERE parent.{parent_column} = child.{column});"
+            )
+            lines.append("  IF orphans > 0 THEN")
+            lines.append("    RAISE_APPLICATION_ERROR(-20004, 'STM_LOG orphan count ' || orphans);")
+            lines.append("  END IF;")
+            lines.append(
+                f"  SELECT COUNT(*) INTO already FROM user_constraints WHERE constraint_name = '{name.upper()}';"
+            )
+            lines.append("  IF already = 0 THEN")
+            lines.append(
+                "    EXECUTE IMMEDIATE "
+                f"'ALTER TABLE stm_log ADD CONSTRAINT {name} FOREIGN KEY ({column}) "
+                f"REFERENCES {parent} ({parent_column})';"
+            )
+            lines.append("  END IF;")
+        lines.append("END;")
+        return "\n".join(lines)
+    lines = ["DO $$", "DECLARE", "  width integer;", "  orphans integer;", "BEGIN"]
+    for table, column, size in widens:
+        lines.append(
+            "  SELECT character_maximum_length INTO width FROM information_schema.columns "
+            f"WHERE table_schema = 'public' AND table_name = '{table}' AND column_name = '{column}';"
+        )
+        lines.append(f"  IF width IS NOT NULL AND width < {size} THEN")
+        lines.append(f"    ALTER TABLE {table} ALTER COLUMN {column} TYPE varchar({size});")
+        lines.append("  END IF;")
+    for name, column, parent, parent_column in LOG_FOREIGN_KEYS:
+        lines.append(
+            f"  SELECT COUNT(*) INTO orphans FROM stm_log child WHERE child.{column} IS NOT NULL "
+            f"AND NOT EXISTS (SELECT 1 FROM {parent} parent WHERE parent.{parent_column} = child.{column});"
+        )
+        lines.append("  IF orphans > 0 THEN")
+        lines.append("    RAISE EXCEPTION 'STM_LOG orphan count %', orphans;")
+        lines.append("  END IF;")
+        lines.append(
+            "  IF NOT EXISTS (SELECT 1 FROM information_schema.table_constraints "
+            f"WHERE table_schema = 'public' AND constraint_name = '{name}') THEN"
+        )
+        lines.append(
+            f"    ALTER TABLE stm_log ADD CONSTRAINT {name} FOREIGN KEY ({column}) "
+            f"REFERENCES {parent} ({parent_column});"
+        )
+        lines.append("  END IF;")
+    lines.append("END $$;")
+    return "\n".join(lines)
+
+
+def task_type_insert(row: dict[str, str], oracle: bool) -> str:
+    enabled = ("1" if oracle else "true") if row["tty_enabled"] == "true" else ("0" if oracle else "false")
+    spec = "NULL" if row["tty_spec"] == "" else sql_text(row["tty_spec"])
+    parent = "NULL" if row["tty_parentid"] == "" else row["tty_parentid"]
+    source = " FROM dual" if oracle else ""
+    return (
+        "INSERT INTO stm_tsk_typ (tty_id, tty_name, tty_title, tty_enabled, tty_parentid, tty_order, tty_spec) "
+        f"SELECT {row['tty_id']}, {sql_text(row['tty_name'])}, {sql_text(row['tty_title'])}, {enabled}, "
+        f"{parent}, {row['tty_order']}, {spec}{source} "
+        f"WHERE NOT EXISTS (SELECT 1 FROM stm_tsk_typ WHERE tty_id = {row['tty_id']})"
+    )
+
+
+def task_insert(row: dict[str, str]) -> str:
+    name = sql_text(row["tas_name"])
+    task_type = row["tas_ttaskid"]
+    params = sql_text(row["tas_params"])
+    if task_type == "15":
+        columns = "tas_id, tas_name, tas_gtaskid, tas_ttaskid, tas_params"
+        values = f"next_id, {name}, {row['tas_gtaskid']}, {task_type}, {params}"
+    else:
+        columns = "tas_id, tas_name, tas_ttaskid, tas_tuiid, tas_params"
+        values = f"next_id, {name}, {task_type}, {row['tas_tuiid']}, {params}"
+    return (
+        f"INSERT INTO stm_task ({columns}) "
+        f"SELECT {values} FROM (SELECT COALESCE(MAX(tas_id), 0) + 1 AS next_id FROM stm_task) ids "
+        "WHERE NOT EXISTS (SELECT 1 FROM stm_task "
+        f"WHERE tas_name = {name} AND tas_ttaskid = {task_type})"
+    )
+
+
+def app_tree_order(oracle: bool) -> str:
+    if oracle:
+        return """DECLARE
+  pk_name VARCHAR2(128);
+  column_count NUMBER;
+  pk_columns NUMBER;
+  pk_on_id NUMBER;
+  nullable_flag VARCHAR2(1);
+BEGIN
+  SELECT COUNT(*) INTO column_count FROM user_tab_columns
+  WHERE table_name = 'STM_APP_TREE' AND column_name = 'ATR_ID';
+  IF column_count = 0 THEN
+    EXECUTE IMMEDIATE 'ALTER TABLE stm_app_tree ADD (atr_id NUMBER, atr_order NUMBER)';
+  END IF;
+  UPDATE stm_app_tree SET atr_id = (
+    SELECT new_id FROM (
+      SELECT atr_appid, atr_treeid, ROW_NUMBER() OVER (ORDER BY atr_appid, atr_treeid) AS new_id
+      FROM stm_app_tree
+    ) numbered
+    WHERE numbered.atr_appid = stm_app_tree.atr_appid AND numbered.atr_treeid = stm_app_tree.atr_treeid
+  ) WHERE atr_id IS NULL;
+  UPDATE stm_app_tree SET atr_order = 0 WHERE atr_order IS NULL;
+  SELECT constraint_name INTO pk_name FROM user_constraints
+  WHERE table_name = 'STM_APP_TREE' AND constraint_type = 'P';
+  SELECT COUNT(*) INTO pk_columns FROM user_cons_columns WHERE constraint_name = pk_name;
+  SELECT COUNT(*) INTO pk_on_id FROM user_cons_columns
+  WHERE constraint_name = pk_name AND column_name = 'ATR_ID';
+  IF pk_on_id <> 1 OR pk_columns <> 1 THEN
+    EXECUTE IMMEDIATE 'ALTER TABLE stm_app_tree DROP CONSTRAINT ' || pk_name;
+    SELECT nullable INTO nullable_flag FROM user_tab_columns
+    WHERE table_name = 'STM_APP_TREE' AND column_name = 'ATR_ID';
+    IF nullable_flag = 'Y' THEN
+      EXECUTE IMMEDIATE 'ALTER TABLE stm_app_tree MODIFY atr_id NOT NULL';
+    END IF;
+    EXECUTE IMMEDIATE 'ALTER TABLE stm_app_tree ADD CONSTRAINT stm_atr_pk PRIMARY KEY (atr_id)';
+  END IF;
+  SELECT COUNT(*) INTO column_count FROM user_constraints WHERE constraint_name = 'STM_ATR_UK';
+  IF column_count = 0 THEN
+    EXECUTE IMMEDIATE 'ALTER TABLE stm_app_tree ADD CONSTRAINT stm_atr_uk UNIQUE (atr_appid, atr_treeid)';
+  END IF;
+  UPDATE stm_sequence SET seq_count = GREATEST(seq_count, (SELECT COALESCE(MAX(atr_id), 0) + 1 FROM stm_app_tree))
+  WHERE seq_name = 'ATR_ID';
+  INSERT INTO stm_sequence (seq_name, seq_count)
+  SELECT 'ATR_ID', COALESCE((SELECT MAX(atr_id) FROM stm_app_tree), 0) + 1 FROM dual
+  WHERE NOT EXISTS (SELECT 1 FROM stm_sequence WHERE seq_name = 'ATR_ID');
+END;"""
+    return """DO $$
+DECLARE
+  pk_name text;
+BEGIN
+  ALTER TABLE stm_app_tree ADD COLUMN IF NOT EXISTS atr_id integer;
+  ALTER TABLE stm_app_tree ADD COLUMN IF NOT EXISTS atr_order integer;
+  UPDATE stm_app_tree SET atr_id = (
+    SELECT new_id FROM (
+      SELECT atr_appid, atr_treeid, ROW_NUMBER() OVER (ORDER BY atr_appid, atr_treeid) AS new_id
+      FROM stm_app_tree
+    ) numbered
+    WHERE numbered.atr_appid = stm_app_tree.atr_appid AND numbered.atr_treeid = stm_app_tree.atr_treeid
+  ) WHERE atr_id IS NULL;
+  UPDATE stm_app_tree SET atr_order = 0 WHERE atr_order IS NULL;
+  SELECT constraint_name INTO pk_name FROM information_schema.table_constraints
+  WHERE table_schema = 'public' AND table_name = 'stm_app_tree' AND constraint_type = 'PRIMARY KEY';
+  IF pk_name IS DISTINCT FROM 'stm_atr_pk' THEN
+    EXECUTE 'ALTER TABLE stm_app_tree DROP CONSTRAINT ' || quote_ident(pk_name);
+    ALTER TABLE stm_app_tree ALTER COLUMN atr_id SET NOT NULL;
+    ALTER TABLE stm_app_tree ADD CONSTRAINT stm_atr_pk PRIMARY KEY (atr_id);
+  END IF;
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.table_constraints
+    WHERE table_schema = 'public' AND constraint_name = 'stm_atr_uk'
+  ) THEN
+    ALTER TABLE stm_app_tree ADD CONSTRAINT stm_atr_uk UNIQUE (atr_appid, atr_treeid);
+  END IF;
+  UPDATE stm_sequence SET seq_count = GREATEST(seq_count, (SELECT COALESCE(MAX(atr_id), 0) + 1 FROM stm_app_tree))
+  WHERE seq_name = 'ATR_ID';
+  INSERT INTO stm_sequence (seq_name, seq_count)
+  SELECT 'ATR_ID', COALESCE((SELECT MAX(atr_id) FROM stm_app_tree), 0) + 1
+  WHERE NOT EXISTS (SELECT 1 FROM stm_sequence WHERE seq_name = 'ATR_ID');
+END $$;"""
+
+
+def catch_up(dialect: str) -> str:
+    oracle = dialect == "oracle"
+    suffix = "oracle" if oracle else "postgresql"
+    tree_column = (
+        "SELECT COUNT(*) FROM user_tab_columns WHERE table_name = 'STM_TREE_NOD' AND column_name = 'TNO_DEFAULT'"
+        if oracle
+        else "SELECT COUNT(*) FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'stm_tree_nod' AND column_name = 'tno_default'"
+    )
+    tree_column_sql = (
+        "ALTER TABLE stm_tree_nod ADD tno_default NUMBER(1,0) DEFAULT 0 NOT NULL"
+        if oracle
+        else "ALTER TABLE stm_tree_nod ADD COLUMN tno_default boolean DEFAULT false NOT NULL"
+    )
+    types = {
+        row["tty_id"]: row
+        for row in read_csv(SEED / "task_types.csv")
+        if row["tty_id"] in {"17", "18"}
+    }
+    tasks = [
+        row
+        for row in read_csv(SEED / "tasks.csv")
+        if row["tas_id"] in {"31", "32", "33", "34", "35", "36"}
+    ]
+    blocks = [
+        "--liquibase formatted sql",
+        changeset(
+            "19",
+            dialect,
+            [
+                changelog_absent(f"19-add-tno-default-{suffix}", "changelog/19_add_tree_node_default.yaml"),
+                tree_column,
+            ],
+            [tree_column_sql],
+        ),
+        changeset(
+            "20",
+            dialect,
+            [
+                changelog_absent(
+                    f"20_application_tree_order_{suffix}",
+                    "changelog/20_application_tree_order.yaml",
+                )
+            ],
+            [app_tree_order(oracle)],
+        ),
+        changeset(
+            "21",
+            dialect,
+            [
+                changelog_absent(
+                    "21-align-pgi-type-oracle" if oracle else "21-align-tet-name-postgresql",
+                    "changelog/21_align_schema_with_development.yaml",
+                )
+            ],
+            [widen_and_log_keys(oracle)],
+        ),
+        changeset(
+            "22",
+            dialect,
+            [changelog_absent("22_document_export_task_type", "changelog/22_add_map_image_task_type.yaml")],
+            [task_type_insert(types["17"], oracle), task_type_insert(types["18"], oracle)],
+        ),
+        changeset(
+            "22b",
+            dialect,
+            [changelog_absent("22b_map_image_task_type_seq", "changelog/22_add_map_image_task_type.yaml")],
+            [
+                "UPDATE stm_sequence SET seq_count = GREATEST(seq_count, "
+                "(SELECT COALESCE(MAX(tty_id), 0) + 1 FROM stm_tsk_typ)) WHERE seq_name = 'TTY_ID'"
+            ],
+        ),
+        changeset(
+            "23",
+            dialect,
+            [changelog_absent("23_document_export_tasks", "changelog/23_add_document_export_tasks.yaml")],
+            [task_insert(row) for row in tasks if row["tas_ttaskid"] == "17"]
+            + [
+                "UPDATE stm_sequence SET seq_count = GREATEST(seq_count, "
+                "(SELECT COALESCE(MAX(tas_id), 0) + 1 FROM stm_task)) WHERE seq_name = 'TAS_ID'"
+            ],
+        ),
+        changeset(
+            "24",
+            dialect,
+            [changelog_absent("24_default_template_regions", "changelog/24_add_default_template_regions.yaml")],
+            [task_insert(row) for row in tasks if row["tas_ttaskid"] == "15"]
+            + [
+                "UPDATE stm_sequence SET seq_count = GREATEST(seq_count, "
+                "(SELECT COALESCE(MAX(tas_id), 0) + 1 FROM stm_task)) WHERE seq_name = 'TAS_ID'"
+            ],
+        ),
+        changeset(
+            "25",
+            dialect,
+            [changelog_absent("25-fix-auth-mode-swap", "changelog/25_fix_auth_mode_swap.yaml")],
+            [
+                "UPDATE stm_codelist SET cod_value = '__sitmun_tmp_auth_mode__', "
+                "cod_description = '__sitmun_tmp_auth_mode__' WHERE cod_id = 53 "
+                "AND cod_list = 'service.authenticationMode' AND cod_value = 'None'",
+                "UPDATE stm_codelist SET cod_value = 'None', cod_description = 'None' "
+                "WHERE cod_id = 54 AND cod_list = 'service.authenticationMode' "
+                "AND cod_value = 'HTTP Basic authentication' AND EXISTS (SELECT 1 FROM stm_codelist t "
+                "WHERE t.cod_id = 53 AND t.cod_list = 'service.authenticationMode' "
+                "AND t.cod_value = '__sitmun_tmp_auth_mode__')",
+                "UPDATE stm_codelist SET cod_value = 'HTTP Basic authentication', "
+                "cod_description = 'HTTP Basic authentication' WHERE cod_id = 53 "
+                "AND cod_list = 'service.authenticationMode' AND cod_value = '__sitmun_tmp_auth_mode__'",
+            ],
+        ),
+        changeset(
+            "admin",
+            dialect,
+            [],
+            ["UPDATE stm_user SET use_user = 'admin' WHERE use_id = 1 AND use_user IS NULL"],
+        ),
+    ]
+    return "\n\n".join(blocks) + "\n"
+
+
 def main() -> None:
     version_check = LEGACY.parent
     version_check.mkdir(parents=True, exist_ok=True)
     LEGACY.mkdir(parents=True, exist_ok=True)
+    CATCH_UP.mkdir(parents=True, exist_ok=True)
     postgres_rows = load_fixture("postgres-16.csv")
     oracle_rows = load_fixture("oracle-23.csv")
     (version_check / "00-version-check.postgresql.sql").write_text(version_check_postgres(postgres_rows))
     (version_check / "00-version-check.oracle.sql").write_text(version_check_oracle(oracle_rows))
+    (CATCH_UP / "01-catch-up.postgresql.sql").write_text(catch_up("postgresql"))
+    (CATCH_UP / "01-catch-up.oracle.sql").write_text(catch_up("oracle"))
     (LEGACY / "03-codelists.postgresql.sql").write_text(codelists(False))
     (LEGACY / "03-codelists.oracle.sql").write_text(codelists(True))
     (LEGACY / "04-translations.postgresql.sql").write_text(translations(False))

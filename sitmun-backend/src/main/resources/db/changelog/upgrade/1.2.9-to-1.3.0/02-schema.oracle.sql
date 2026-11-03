@@ -72,8 +72,6 @@ ALTER TABLE stm_service_usage
 
 UPDATE stm_tree_nod SET tno_active = 1 WHERE tno_active IS NULL;
 
-ALTER TABLE stm_tree_nod MODIFY (tno_active NUMBER(1, 0) DEFAULT 1 NOT NULL);
-
 CREATE UNIQUE INDEX stm_ltr_literal_uk ON stm_literal_translation (ORA_HASH(ltr_literal), LENGTH(ltr_literal), SUBSTR(ltr_literal, 1, 1000));
 
 UPDATE stm_app SET app_name = TO_CHAR(app_id) WHERE app_name IS NULL;

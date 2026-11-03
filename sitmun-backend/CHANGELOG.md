@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+- **Database**: An upgrade from 1.2.8 reaches 1.3.0 directly. It applies the 1.2.9 steps that are missing, then the 1.2.9 hop. A 1.2.7 database stops with `upgrade to 1.2.8 first`. Oracle 19c was not tested; Oracle 21 is the stand-in ([#87](https://github.com/sitmun/sitmun/issues/87)).
 - **Database**: An upgrade from 1.2.9 requires `SITMUN_UPGRADE_DEFAULT_LANGUAGE`. It must match `STM_CONF` `language.default`, and that language must be in `STM_LANGUAGE`. Otherwise the upgrade stops before it changes anything.
 - **Tests**: `testOracle11`, `testOracle19`, `testPostgres12`, and `testPostgres16` run the suite against a database that is already running. Workflows `Test Oracle 11g`, `Test Oracle 21c (stand-in for 19c)`, `Test PostgreSQL 12`, and `Test PostgreSQL 16` boot that database with the production changelog, then run the matching task. `testOracle11` uses `OracleLegacyDialect`. `testOracle19` uses `OracleDialect`. Both PostgreSQL tasks use `PostgreSQLDialect`.
 - **Cartography**: The cartography `view` projection includes `serviceType`, copied from the linked service protocol ([sitmun-admin-app#498](https://github.com/sitmun/sitmun-admin-app/issues/498)).

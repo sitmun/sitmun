@@ -67,8 +67,9 @@ jobs:
         with:
           distribution: temurin
           java-version-file: .java-version
-      - name: Fetch the 1.2.8 and 1.2.9 tags
+      - name: Fetch the 1.2.7, 1.2.8, and 1.2.9 tags
         run: |
+          git fetch --no-tags origin tag legacy/sitmun-application-stack/sitmun-application-stack/1.2.7
           git fetch --no-tags origin tag legacy/sitmun-application-stack/sitmun-application-stack/1.2.8
           git fetch --no-tags origin tag legacy/sitmun-application-stack/sitmun-application-stack/1.2.9
       - name: Upgrade 1.2.9 to the shipped master
@@ -90,8 +91,9 @@ jobs:
         with:
           distribution: temurin
           java-version-file: .java-version
-      - name: Fetch the 1.2.8 and 1.2.9 tags
+      - name: Fetch the 1.2.7, 1.2.8, and 1.2.9 tags
         run: |
+          git fetch --no-tags origin tag legacy/sitmun-application-stack/sitmun-application-stack/1.2.7
           git fetch --no-tags origin tag legacy/sitmun-application-stack/sitmun-application-stack/1.2.8
           git fetch --no-tags origin tag legacy/sitmun-application-stack/sitmun-application-stack/1.2.9
       - name: Upgrade 1.2.9 to the shipped master
@@ -169,8 +171,9 @@ jobs:
         with:
           distribution: temurin
           java-version-file: .java-version
-      - name: Fetch the 1.2.8 and 1.2.9 tags
+      - name: Fetch the 1.2.7, 1.2.8, and 1.2.9 tags
         run: |
+          git fetch --no-tags origin tag legacy/sitmun-application-stack/sitmun-application-stack/1.2.7
           git fetch --no-tags origin tag legacy/sitmun-application-stack/sitmun-application-stack/1.2.8
           git fetch --no-tags origin tag legacy/sitmun-application-stack/sitmun-application-stack/1.2.9
       - name: Upgrade 1.2.9 to the shipped master
@@ -192,8 +195,9 @@ jobs:
         with:
           distribution: temurin
           java-version-file: .java-version
-      - name: Fetch the 1.2.8 and 1.2.9 tags
+      - name: Fetch the 1.2.7, 1.2.8, and 1.2.9 tags
         run: |
+          git fetch --no-tags origin tag legacy/sitmun-application-stack/sitmun-application-stack/1.2.7
           git fetch --no-tags origin tag legacy/sitmun-application-stack/sitmun-application-stack/1.2.8
           git fetch --no-tags origin tag legacy/sitmun-application-stack/sitmun-application-stack/1.2.9
       - name: Upgrade 1.2.9 to the shipped master
@@ -215,12 +219,85 @@ jobs:
         with:
           distribution: temurin
           java-version-file: .java-version
-      - name: Fetch the 1.2.8 and 1.2.9 tags
+      - name: Fetch the 1.2.7, 1.2.8, and 1.2.9 tags
         run: |
+          git fetch --no-tags origin tag legacy/sitmun-application-stack/sitmun-application-stack/1.2.7
           git fetch --no-tags origin tag legacy/sitmun-application-stack/sitmun-application-stack/1.2.8
           git fetch --no-tags origin tag legacy/sitmun-application-stack/sitmun-application-stack/1.2.9
       - name: Upgrade 1.2.9 to the shipped master
         run: bash tools/tests/test_liquibase_upgrade_from_1.2.9.sh oracle-11
+
+  postgres-16-from-128:
+    name: Upgrade PostgreSQL 16 from 1.2.8
+    if: github.event_name != 'workflow_dispatch' || inputs.db == 'all' || inputs.db == 'postgres-16'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+      - name: Set up Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version-file: .java-version
+      - name: Fetch the 1.2.7, 1.2.8, and 1.2.9 tags
+        run: |
+          git fetch --no-tags origin tag legacy/sitmun-application-stack/sitmun-application-stack/1.2.7
+          git fetch --no-tags origin tag legacy/sitmun-application-stack/sitmun-application-stack/1.2.8
+          git fetch --no-tags origin tag legacy/sitmun-application-stack/sitmun-application-stack/1.2.9
+      - name: Upgrade 1.2.8 to the shipped master
+        run: bash tools/tests/test_liquibase_upgrade_from_1.2.9.sh postgres-16 1.2.8
+
+  oracle-11-from-128:
+    name: Upgrade Oracle 11g from 1.2.8
+    if: github.event_name != 'workflow_dispatch' || inputs.db == 'all' || inputs.db == 'oracle-11'
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+      - name: Set up Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version-file: .java-version
+      - name: Fetch the 1.2.7, 1.2.8, and 1.2.9 tags
+        run: |
+          git fetch --no-tags origin tag legacy/sitmun-application-stack/sitmun-application-stack/1.2.7
+          git fetch --no-tags origin tag legacy/sitmun-application-stack/sitmun-application-stack/1.2.8
+          git fetch --no-tags origin tag legacy/sitmun-application-stack/sitmun-application-stack/1.2.9
+      - name: Upgrade 1.2.8 to the shipped master
+        run: bash tools/tests/test_liquibase_upgrade_from_1.2.9.sh oracle-11 1.2.8
+
+  oracle-19-from-128:
+    name: Upgrade Oracle 21c (stand-in for 19c) from 1.2.8
+    if: github.event_name != 'workflow_dispatch' || inputs.db == 'all' || inputs.db == 'oracle-19'
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+      - name: Set up Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version-file: .java-version
+      - name: Fetch the 1.2.7, 1.2.8, and 1.2.9 tags
+        run: |
+          git fetch --no-tags origin tag legacy/sitmun-application-stack/sitmun-application-stack/1.2.7
+          git fetch --no-tags origin tag legacy/sitmun-application-stack/sitmun-application-stack/1.2.8
+          git fetch --no-tags origin tag legacy/sitmun-application-stack/sitmun-application-stack/1.2.9
+      - name: Upgrade 1.2.8 to the shipped master
+        run: bash tools/tests/test_liquibase_upgrade_from_1.2.9.sh oracle-21 1.2.8
 
   dev-postgres-from:
     name: Upgrade development PostgreSQL from 1.2.6
