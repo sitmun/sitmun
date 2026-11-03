@@ -53,7 +53,6 @@ To choose a profile yourself, copy one file to `.env` and append the same three 
 | --- | --- |
 | `profiles/development-postgres.env` | Development PostgreSQL. This is what `setup.sh` copies. |
 | `profiles/development-oracle.env` | Development Oracle |
-| `profiles/development.env` | Development PostgreSQL |
 | `profiles/development-lvh.env` | Development PostgreSQL announced as `http://lvh.me:9000` |
 | `profiles/postgres.env` | Production PostgreSQL (`ENVIRONMENT=production`, minimal seed) |
 | `profiles/oracle.env` | Production Oracle (`ENVIRONMENT=production`, minimal seed) |

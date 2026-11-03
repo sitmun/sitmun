@@ -48,7 +48,7 @@ spring:
       hibernate.query.in_clause_parameter_padding: true
       javax.persistence.validation.mode: none
   liquibase:
-    change-log: classpath:/db/changelog/db.changelog-master.yaml
+    change-log: file:/usr/src/config/liquibase/master.xml
   task:
     execution:
       thread-name-prefix: sample-task-

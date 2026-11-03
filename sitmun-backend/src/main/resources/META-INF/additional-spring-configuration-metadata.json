@@ -6,11 +6,6 @@
       "description": "SITMUN module name."
     },
     {
-      "name": "sitmun.version",
-      "type": "java.lang.String",
-      "description": "SITMUN version."
-    },
-    {
       "name": "sitmun.language",
       "type": "java.lang.String",
       "description": "Default language for the application."
