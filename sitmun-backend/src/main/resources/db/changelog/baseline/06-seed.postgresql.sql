@@ -184,7 +184,7 @@ INSERT INTO stm_task (tas_id, tas_name, tas_created, tas_order, tas_giid, tas_se
 --end
 INSERT INTO stm_task (tas_id, tas_name, tas_created, tas_order, tas_giid, tas_serid, tas_gtaskid, tas_ttaskid, tas_tuiid, tas_connid, tas_params) VALUES (36, 'Peu de pàgina per defecte', NULL, NULL, NULL, NULL, 1, 15, NULL, NULL, '{"parameters":[],"templateHtml":"<table class=\"sitmun-pdf-footer-full-bleed\" style=\"width:100%;border-collapse:collapse\"><tbody><tr><td style=\"width:25%;text-align:left\">&nbsp;</td><td style=\"width:50%;text-align:center\">Peu de pàgina per defecte</td><td style=\"width:25%;text-align:right;padding-right:8mm\"><p class=\"sitmun-pdf-page-number\">&nbsp;</p></td></tr></tbody></table>"}')
 --end
-INSERT INTO stm_task (tas_id, tas_name, tas_created, tas_order, tas_giid, tas_serid, tas_gtaskid, tas_ttaskid, tas_tuiid, tas_connid, tas_params) VALUES (32306, 'More Info Advanced', TIMESTAMP '2026-05-04 18:38:16', NULL, NULL, NULL, 1, 1, 34, NULL, '{"parameters":[]}')
+INSERT INTO stm_task (tas_id, tas_name, tas_created, tas_order, tas_giid, tas_serid, tas_gtaskid, tas_ttaskid, tas_tuiid, tas_connid, tas_params) VALUES (37, 'More Info Advanced', TIMESTAMP '2026-05-04 18:38:16', NULL, NULL, NULL, 1, 1, 34, NULL, '{"parameters":[]}')
 --end
 INSERT INTO stm_conf (cnf_id, cnf_name, cnf_value) VALUES (1, 'language.default', 'en')
 --end

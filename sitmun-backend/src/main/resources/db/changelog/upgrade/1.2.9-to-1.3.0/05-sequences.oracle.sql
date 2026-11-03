@@ -1,3 +1,32 @@
+-- Renumber sample task 32306 (More Info Advanced) to 37 before the sequence floor reads MAX(tas_id). Skip when 37 is already a different task.
+INSERT INTO stm_task (tas_id, tas_name, tas_created, tas_order, tas_giid, tas_serid, tas_gtaskid, tas_ttaskid, tas_tuiid, tas_connid, tas_params)
+SELECT 37, tas_name, tas_created, tas_order, tas_giid, tas_serid, tas_gtaskid, tas_ttaskid, tas_tuiid, tas_connid, tas_params
+FROM stm_task
+WHERE tas_id = 32306
+  AND NOT EXISTS (SELECT 1 FROM stm_task WHERE tas_id = 37);
+UPDATE stm_avail_tsk SET ats_taskid = 37 WHERE ats_taskid = 32306 AND EXISTS (SELECT 1 FROM stm_task WHERE tas_id = 37 AND tas_name = 'More Info Advanced');
+UPDATE stm_log SET log_taskid = 37 WHERE log_taskid = 32306 AND EXISTS (SELECT 1 FROM stm_task WHERE tas_id = 37 AND tas_name = 'More Info Advanced');
+UPDATE stm_rol_tsk SET rts_taskid = 37 WHERE rts_taskid = 32306 AND EXISTS (SELECT 1 FROM stm_task WHERE tas_id = 37 AND tas_name = 'More Info Advanced');
+UPDATE stm_taskrel SET tar_taskid = 37 WHERE tar_taskid = 32306 AND EXISTS (SELECT 1 FROM stm_task WHERE tas_id = 37 AND tas_name = 'More Info Advanced');
+UPDATE stm_taskrel SET tar_taskrelid = 37 WHERE tar_taskrelid = 32306 AND EXISTS (SELECT 1 FROM stm_task WHERE tas_id = 37 AND tas_name = 'More Info Advanced');
+UPDATE stm_tree_nod SET tno_taskid = 37 WHERE tno_taskid = 32306 AND EXISTS (SELECT 1 FROM stm_task WHERE tas_id = 37 AND tas_name = 'More Info Advanced');
+DELETE FROM stm_translation
+WHERE tra_eleid = 32306
+  AND tra_column LIKE 'Task.%'
+  AND EXISTS (SELECT 1 FROM stm_task WHERE tas_id = 37 AND tas_name = 'More Info Advanced')
+  AND EXISTS (
+    SELECT 1 FROM stm_translation kept
+    WHERE kept.tra_eleid = 37
+      AND kept.tra_column = stm_translation.tra_column
+      AND kept.tra_lanid = stm_translation.tra_lanid
+  );
+UPDATE stm_translation SET tra_eleid = 37
+WHERE tra_eleid = 32306
+  AND tra_column LIKE 'Task.%'
+  AND EXISTS (SELECT 1 FROM stm_task WHERE tas_id = 37 AND tas_name = 'More Info Advanced');
+DELETE FROM stm_task
+WHERE tas_id = 32306
+  AND EXISTS (SELECT 1 FROM stm_task kept WHERE kept.tas_id = 37 AND kept.tas_name = 'More Info Advanced');
 MERGE INTO stm_sequence t USING (SELECT 'ABC_ID' n, COALESCE(MAX(abc_id), 0) + 1 v FROM stm_app_bckg) s ON (t.seq_name = s.n) WHEN MATCHED THEN UPDATE SET t.seq_count = GREATEST(t.seq_count, s.v) WHEN NOT MATCHED THEN INSERT (seq_name, seq_count) VALUES (s.n, s.v);
 MERGE INTO stm_sequence t USING (SELECT 'AGI_ID' n, COALESCE(MAX(agi_id), 0) + 1 v FROM stm_avail_gi) s ON (t.seq_name = s.n) WHEN MATCHED THEN UPDATE SET t.seq_count = GREATEST(t.seq_count, s.v) WHEN NOT MATCHED THEN INSERT (seq_name, seq_count) VALUES (s.n, s.v);
 MERGE INTO stm_sequence t USING (SELECT 'APP_ID' n, COALESCE(MAX(app_id), 0) + 1 v FROM stm_app) s ON (t.seq_name = s.n) WHEN MATCHED THEN UPDATE SET t.seq_count = GREATEST(t.seq_count, s.v) WHEN NOT MATCHED THEN INSERT (seq_name, seq_count) VALUES (s.n, s.v);

@@ -7,6 +7,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -152,6 +153,22 @@ class LiquibaseSeedCanaryTest {
     List<CartographyPermission> permissions =
         cartographyPermissionRepository.findByRolesAndTerritory(roles, 10001);
     assertThat(permissions).as(POLLUTION + " (app/ter 1 permissions)").hasSize(3);
+  }
+
+  @Test
+  @DisplayName("Seed: baseline task ids are 1 through 37")
+  void baselineTaskIdsAreOneThroughThirtySeven() {
+    // Fixture rows use ids 10000 through 19999. Every other id is shipped seed.
+    List<Integer> ids =
+        jdbc.query(
+            "SELECT TAS_ID FROM STM_TASK WHERE TAS_ID NOT BETWEEN 10000 AND 19999 ORDER BY TAS_ID",
+            (rs, rowNum) -> rs.getInt(1));
+    assertThat(ids)
+        .as(POLLUTION + " (baseline STM_TASK ids)")
+        .containsExactlyElementsOf(IntStream.rangeClosed(1, 37).boxed().toList());
+    String name =
+        jdbc.queryForObject("SELECT TAS_NAME FROM STM_TASK WHERE TAS_ID = 37", String.class);
+    assertThat(name).as(POLLUTION + " (task 37)").isEqualTo("More Info Advanced");
   }
 
   /**
