@@ -135,6 +135,9 @@ class VersionCheckGeneratorTest(unittest.TestCase):
             self.assertEqual(generated.count("INSERT INTO stm_task"), 6)
             self.assertIn("expectedResult:0", generated)
             self.assertIn("user_constraints" if dialect == "oracle" else "stm_atr_pk", generated)
+            if dialect == "oracle":
+                self.assertIn("nullable_flag = 'Y'", generated)
+                self.assertIn("pk_on_id <> 1", generated)
 
 
 if __name__ == "__main__":

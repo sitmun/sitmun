@@ -15,6 +15,9 @@ ALTER TABLE stm_tree_nod ADD tno_default NUMBER(1,0) DEFAULT 0 NOT NULL
 DECLARE
   pk_name VARCHAR2(128);
   column_count NUMBER;
+  pk_columns NUMBER;
+  pk_on_id NUMBER;
+  nullable_flag VARCHAR2(1);
 BEGIN
   SELECT COUNT(*) INTO column_count FROM user_tab_columns
   WHERE table_name = 'STM_APP_TREE' AND column_name = 'ATR_ID';
@@ -31,9 +34,16 @@ BEGIN
   UPDATE stm_app_tree SET atr_order = 0 WHERE atr_order IS NULL;
   SELECT constraint_name INTO pk_name FROM user_constraints
   WHERE table_name = 'STM_APP_TREE' AND constraint_type = 'P';
-  IF pk_name <> 'STM_ATR_PK' THEN
+  SELECT COUNT(*) INTO pk_columns FROM user_cons_columns WHERE constraint_name = pk_name;
+  SELECT COUNT(*) INTO pk_on_id FROM user_cons_columns
+  WHERE constraint_name = pk_name AND column_name = 'ATR_ID';
+  IF pk_on_id <> 1 OR pk_columns <> 1 THEN
     EXECUTE IMMEDIATE 'ALTER TABLE stm_app_tree DROP CONSTRAINT ' || pk_name;
-    EXECUTE IMMEDIATE 'ALTER TABLE stm_app_tree MODIFY atr_id NOT NULL';
+    SELECT nullable INTO nullable_flag FROM user_tab_columns
+    WHERE table_name = 'STM_APP_TREE' AND column_name = 'ATR_ID';
+    IF nullable_flag = 'Y' THEN
+      EXECUTE IMMEDIATE 'ALTER TABLE stm_app_tree MODIFY atr_id NOT NULL';
+    END IF;
     EXECUTE IMMEDIATE 'ALTER TABLE stm_app_tree ADD CONSTRAINT stm_atr_pk PRIMARY KEY (atr_id)';
   END IF;
   SELECT COUNT(*) INTO column_count FROM user_constraints WHERE constraint_name = 'STM_ATR_UK';
