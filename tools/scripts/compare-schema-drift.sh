@@ -12,7 +12,7 @@
 #   bash tools/scripts/compare-schema-drift.sh postgres --against jpa
 #   bash tools/scripts/compare-schema-drift.sh postgres --out /tmp/drift-pg
 #   bash tools/scripts/compare-schema-drift.sh postgres --fail-on none
-#   bash tools/scripts/compare-schema-drift.sh fresh-vs-upgraded postgres-16
+#   bash tools/scripts/compare-schema-drift.sh fresh-vs-upgraded postgres-16 [1.2.9]
 
 set -euo pipefail
 
@@ -20,9 +20,14 @@ REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 TARGET="${1:-postgres}"
 shift || true
 FVU_ENGINE=""
+FVU_SOURCE="1.2.9"
 if [[ "$TARGET" == "fresh-vs-upgraded" ]]; then
-  FVU_ENGINE="${1:?usage: $0 fresh-vs-upgraded postgres-16|postgres-12|oracle-23|oracle-21|oracle-11}"
+  FVU_ENGINE="${1:?usage: $0 fresh-vs-upgraded postgres-16|postgres-12|oracle-23|oracle-21|oracle-11 [source-tag]}"
   shift
+  if [[ $# -gt 0 && "$1" != --* ]]; then
+    FVU_SOURCE="$1"
+    shift
+  fi
 fi
 
 AGAINST="profiles"
@@ -636,12 +641,12 @@ case "$TARGET" in
   fresh-vs-upgraded)
     # shellcheck source=fresh-vs-upgraded.sh
     source "$REPO_ROOT/tools/scripts/fresh-vs-upgraded.sh"
-    run_fresh_vs_upgraded "$FVU_ENGINE" || OVERALL=$?
+    run_fresh_vs_upgraded "$FVU_ENGINE" "$FVU_SOURCE" || OVERALL=$?
     exit "$OVERALL"
     ;;
   *)
     echo "Usage: $0 postgres|oracle|both|dev-dialects [--against profiles|jpa] [--out DIR] [--fail-on problem|any|none]" >&2
-    echo "       $0 fresh-vs-upgraded postgres-16|postgres-12|oracle-23|oracle-21|oracle-11" >&2
+    echo "       $0 fresh-vs-upgraded postgres-16|postgres-12|oracle-23|oracle-21|oracle-11 [source-tag]" >&2
     exit 2
     ;;
 esac

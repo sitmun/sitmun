@@ -1,11 +1,12 @@
 #!/usr/bin/env bash
-# Upgrade a 1.2.9 database to the shipped 1.3.0 master.
-# Usage: bash tools/tests/test_liquibase_upgrade_from_1.2.9.sh postgres-16
+# Upgrade a tagged source database to the shipped 1.3.0 master.
+# Usage: bash tools/tests/test_liquibase_upgrade_from_1.2.9.sh postgres-16 [1.2.9]
 set -uo pipefail
 
-ENGINE="${1:?usage: postgres-16|postgres-12|oracle-23|oracle-21|oracle-11}"
+ENGINE="${1:?usage: postgres-16|postgres-12|oracle-23|oracle-21|oracle-11 [source-tag]}"
+SOURCE="${2:-1.2.9}"
 REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
-TAG_129="legacy/sitmun-application-stack/sitmun-application-stack/1.2.9"
+TAG_129="legacy/sitmun-application-stack/sitmun-application-stack/${SOURCE}"
 TAG_128="legacy/sitmun-application-stack/sitmun-application-stack/1.2.8"
 MASTER="$REPO_ROOT/profiles/postgres/liquibase/master.xml"
 PROFILE=postgres

@@ -9,7 +9,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 GENERATOR = ROOT / "tools" / "bin" / "generate_legacy_upgrade.py"
-LEGACY = ROOT / "sitmun-backend/src/main/resources/db/changelog/legacy"
+UPGRADE = ROOT / "sitmun-backend/src/main/resources/db/changelog/upgrade"
+HOP = UPGRADE / "1.2.9-to-1.3.0"
 
 
 def load_generator():
@@ -23,13 +24,13 @@ class VersionCheckGeneratorTest(unittest.TestCase):
     def test_postgres_version_check_matches_shipped_sql(self) -> None:
         generator = load_generator()
         generated = generator.version_check_postgres(generator.load_fixture("postgres-16.csv"))
-        shipped = (LEGACY / "01-version-check.postgresql.sql").read_text()
+        shipped = (UPGRADE / "00-version-check.postgresql.sql").read_text()
         self.assertEqual(generated, shipped)
 
     def test_oracle_version_check_matches_shipped_sql(self) -> None:
         generator = load_generator()
         generated = generator.version_check_oracle(generator.load_fixture("oracle-23.csv"))
-        shipped = (LEGACY / "01-version-check.oracle.sql").read_text()
+        shipped = (UPGRADE / "00-version-check.oracle.sql").read_text()
         self.assertEqual(generated, shipped)
 
     def test_version_check_refuses_an_unconfirmed_default_language(self) -> None:
@@ -47,7 +48,7 @@ class VersionCheckGeneratorTest(unittest.TestCase):
         generator = load_generator()
         for oracle, name in ((False, "postgresql"), (True, "oracle")):
             generated = generator.codelists(oracle)
-            shipped = (LEGACY / f"03-codelists.{name}.sql").read_text()
+            shipped = (HOP / f"03-codelists.{name}.sql").read_text()
             self.assertEqual(generated, shipped)
             for statement in generated.split(";\n"):
                 if statement.lstrip().startswith("UPDATE"):
@@ -65,7 +66,7 @@ class VersionCheckGeneratorTest(unittest.TestCase):
         generator = load_generator()
         for oracle, name in ((False, "postgresql"), (True, "oracle")):
             generated = generator.translations(oracle)
-            shipped = (LEGACY / f"04-translations.{name}.sql").read_text()
+            shipped = (HOP / f"04-translations.{name}.sql").read_text()
             self.assertEqual(generated, shipped)
         postgres = generator.translations(False)
         self.assertIn(

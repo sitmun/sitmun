@@ -14,7 +14,7 @@ import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-LEGACY = ROOT / "sitmun-backend/src/main/resources/db/changelog/legacy"
+LEGACY = ROOT / "sitmun-backend/src/main/resources/db/changelog/upgrade/1.2.9-to-1.3.0"
 FIXTURES = ROOT / "sitmun-backend/src/test/resources/db/databasechangelog/1.2.9"
 SEED = ROOT / "tools/seed-data/baseline"
 FLOOR = (
@@ -215,8 +215,8 @@ END;
 """
 
 
-PROMOTED = SEED / "codelists-promoted-1.3.0.csv"
-REPAIR = SEED / "translations-en-repair-1.3.0.csv"
+PROMOTED = ROOT / "tools/seed-data/upgrade/1.2.9-to-1.3.0/codelists-promoted.csv"
+REPAIR = ROOT / "tools/seed-data/upgrade/1.2.9-to-1.3.0/translations-en-repair.csv"
 DEFAULT_LANGUAGE = (
     "COALESCE((SELECT cnf_value FROM stm_conf WHERE cnf_name = 'language.default'), 'en')"
 )
@@ -424,18 +424,20 @@ def sequences(oracle: bool) -> str:
 
 
 def main() -> None:
+    version_check = LEGACY.parent
+    version_check.mkdir(parents=True, exist_ok=True)
     LEGACY.mkdir(parents=True, exist_ok=True)
     postgres_rows = load_fixture("postgres-16.csv")
     oracle_rows = load_fixture("oracle-23.csv")
-    (LEGACY / "01-version-check.postgresql.sql").write_text(version_check_postgres(postgres_rows))
-    (LEGACY / "01-version-check.oracle.sql").write_text(version_check_oracle(oracle_rows))
+    (version_check / "00-version-check.postgresql.sql").write_text(version_check_postgres(postgres_rows))
+    (version_check / "00-version-check.oracle.sql").write_text(version_check_oracle(oracle_rows))
     (LEGACY / "03-codelists.postgresql.sql").write_text(codelists(False))
     (LEGACY / "03-codelists.oracle.sql").write_text(codelists(True))
     (LEGACY / "04-translations.postgresql.sql").write_text(translations(False))
     (LEGACY / "04-translations.oracle.sql").write_text(translations(True))
     (LEGACY / "05-sequences.postgresql.sql").write_text(sequences(False))
     (LEGACY / "05-sequences.oracle.sql").write_text(sequences(True))
-    print(f"wrote upgrade SQL under {LEGACY}")
+    print(f"wrote upgrade SQL under {version_check}")
 
 
 if __name__ == "__main__":
