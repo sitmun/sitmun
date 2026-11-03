@@ -20,7 +20,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const GFI_XML_PATH = join(__dirname, '../e2e/mia-cross/fixtures/gfi-34_TOPO_TX.xml');
+const GFI_XML_PATH = join(__dirname, '../mia-cross/fixtures/gfi-34_TOPO_TX.xml');
 /** GML2 FeatureCollection — id prefix 34_TOPO_TX. maps to the queryable layer. */
 const GFI_GML = `<?xml version="1.0" encoding="UTF-8"?>
 <wfs:FeatureCollection xmlns:wfs="http://www.opengis.net/wfs" xmlns:gml="http://www.opengis.net/gml" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">

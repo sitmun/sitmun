@@ -11,7 +11,7 @@ import {
 } from './e2e-process.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const stackRoot = resolve(__dirname, '..');
+const stackRoot = resolve(__dirname, '../..');
 const proxyRoot = join(stackRoot, 'sitmun-proxy');
 const prefix = 'e2e-proxy-mobile';
 const gradlew = join(stackRoot, isWindows ? 'gradlew.bat' : 'gradlew');

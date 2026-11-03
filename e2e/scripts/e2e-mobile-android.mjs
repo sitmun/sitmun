@@ -20,7 +20,7 @@ import { basename, dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const stackRoot = resolve(__dirname, '..');
+const stackRoot = resolve(__dirname, '../..');
 const artifactDir = join(stackRoot, 'test-results', 'mobile-android');
 const editionSrc = join(stackRoot, 'sitmun-mobile', 'sitmun-edition');
 const touristicSrc = join(stackRoot, 'sitmun-mobile', 'sitmun-touristic');

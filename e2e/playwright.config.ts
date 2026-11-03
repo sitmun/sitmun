@@ -1,10 +1,12 @@
 import { defineConfig, devices } from '@playwright/test';
 import path from 'node:path';
 
-const adminAuthFile = path.join(process.cwd(), 'e2e/.auth/admin.json');
+const repoRoot = path.resolve(__dirname, '..');
+const adminAuthFile = path.join(__dirname, '.auth/admin.json');
 
 export default defineConfig({
-  testDir: './e2e',
+  testDir: '.',
+  outputDir: path.join(repoRoot, 'test-results'),
   fullyParallel: false,
   workers: 1,
   forbidOnly: !!process.env.CI,
@@ -14,8 +16,8 @@ export default defineConfig({
     timeout: 10_000,
   },
   reporter: process.env.CI
-    ? [['line'], ['html', { open: 'never' }]]
-    : [['list'], ['html', { open: 'never' }]],
+    ? [['line'], ['html', { open: 'never', outputFolder: path.join(repoRoot, 'playwright-report') }]]
+    : [['list'], ['html', { open: 'never', outputFolder: path.join(repoRoot, 'playwright-report') }]],
   use: {
     baseURL: 'http://localhost:4300',
     trace: 'retain-on-failure',
@@ -25,6 +27,7 @@ export default defineConfig({
   webServer: [
     {
       command: 'pnpm run e2e:backend',
+      cwd: repoRoot,
       url: 'http://localhost:18080/api/dashboard/health',
       timeout: process.env.SITMUN_E2E_DATASOURCE_URL ? 600_000 : 180_000,
       reuseExistingServer: false,
@@ -32,6 +35,7 @@ export default defineConfig({
     },
     {
       command: 'pnpm run e2e:admin',
+      cwd: repoRoot,
       url: 'http://localhost:4300',
       timeout: 120_000,
       reuseExistingServer: false,

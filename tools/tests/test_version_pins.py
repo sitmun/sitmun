@@ -263,11 +263,11 @@ def _failures_postgres_floor(_root: Path) -> list[str]:
 
 
 def _failures_viewer_nvmrc(_root: Path) -> list[str]:
-    text = _read(ROOT / "scripts/e2e-viewer.mjs")
+    text = _read(ROOT / "e2e/scripts/e2e-viewer.mjs")
     if "join(viewerRoot, '.nvmrc')" in text:
-        return ["scripts/e2e-viewer.mjs still reads sitmun-viewer/.nvmrc"]
+        return ["e2e/scripts/e2e-viewer.mjs still reads sitmun-viewer/.nvmrc"]
     if "join(stackRoot, '.nvmrc')" not in text:
-        return ["scripts/e2e-viewer.mjs does not read the root .nvmrc"]
+        return ["e2e/scripts/e2e-viewer.mjs does not read the root .nvmrc"]
     return []
 
 

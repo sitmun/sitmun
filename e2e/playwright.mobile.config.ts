@@ -1,7 +1,11 @@
 import { defineConfig, devices } from '@playwright/test';
+import path from 'node:path';
+
+const repoRoot = path.resolve(__dirname, '..');
 
 export default defineConfig({
-  testDir: './e2e/mobile',
+  testDir: './mobile',
+  outputDir: path.join(repoRoot, 'test-results'),
   fullyParallel: false,
   workers: 1,
   forbidOnly: !!process.env.CI,
@@ -11,8 +15,8 @@ export default defineConfig({
     timeout: 20_000,
   },
   reporter: process.env.CI
-    ? [['line'], ['html', { open: 'never' }]]
-    : [['list'], ['html', { open: 'never' }]],
+    ? [['line'], ['html', { open: 'never', outputFolder: path.join(repoRoot, 'playwright-report') }]]
+    : [['list'], ['html', { open: 'never', outputFolder: path.join(repoRoot, 'playwright-report') }]],
   use: {
     baseURL: 'http://localhost:18081',
     trace: 'retain-on-failure',
@@ -22,6 +26,7 @@ export default defineConfig({
   webServer: [
     {
       command: 'pnpm run e2e:backend:mobile',
+      cwd: repoRoot,
       url: 'http://localhost:18080/api/dashboard/health',
       timeout: 180_000,
       reuseExistingServer: false,
@@ -29,6 +34,7 @@ export default defineConfig({
     },
     {
       command: 'pnpm run e2e:mbtiles',
+      cwd: repoRoot,
       url: 'http://127.0.0.1:18084/actuator/health',
       timeout: 180_000,
       reuseExistingServer: false,
@@ -36,6 +42,7 @@ export default defineConfig({
     },
     {
       command: 'pnpm run e2e:proxy:mobile',
+      cwd: repoRoot,
       url: 'http://localhost:18082/actuator/health',
       timeout: 120_000,
       reuseExistingServer: false,
@@ -43,6 +50,7 @@ export default defineConfig({
     },
     {
       command: 'pnpm run e2e:wmts-stub',
+      cwd: repoRoot,
       url: 'http://127.0.0.1:18094/health',
       timeout: 30_000,
       reuseExistingServer: false,
@@ -50,6 +58,7 @@ export default defineConfig({
     },
     {
       command: 'pnpm run e2e:mobile:gateway',
+      cwd: repoRoot,
       url: 'http://127.0.0.1:18081/health',
       timeout: 30_000,
       reuseExistingServer: false,

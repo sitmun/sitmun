@@ -225,7 +225,7 @@ pnpm start
 ./gradlew :sitmun-proxy:bootRun --args='--spring.profiles.active=dev'
 ```
 
-Backend has no `application-dev.yml`. Supply `SITMUN_USER_SECRET`, `SITMUN_PROXY_MIDDLEWARE_SECRET`, and a datasource. The H2 arguments used by Playwright are in `scripts/e2e-backend.mjs`.
+Backend has no `application-dev.yml`. Supply `SITMUN_USER_SECRET`, `SITMUN_PROXY_MIDDLEWARE_SECRET`, and a datasource. The H2 arguments used by Playwright are in `e2e/scripts/e2e-backend.mjs`.
 
 ### Checks
 

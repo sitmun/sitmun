@@ -428,7 +428,7 @@ databaseChangeLog:
               - column: { name: CON_DRIVER, value: org.h2.Driver }
               - column: { name: CON_USER, value: sa }
               - column: { name: CON_PWD, value: "" }
-              # Must match scripts/e2e-backend.mjs spring.datasource.url (not application-h2 testdb).
+              # Must match e2e/scripts/e2e-backend.mjs spring.datasource.url (not application-h2 testdb).
               - column: { name: CON_CONNECTION, value: "jdbc:h2:mem:sitmun-e2e;DB_CLOSE_DELAY=-1" }
 
   - changeSet:
