@@ -11,12 +11,7 @@ export function writeH2Changelog(stackRoot) {
     'sitmun-backend/src/test/resources/db/changelog-test',
   );
   const menorca = join(stackRoot, 'e2e/fixtures/20_menorca_solrustic_mia_e2e.yaml');
-  const documentExport = join(stackRoot, 'e2e/fixtures/ensure-document-export-task-type.yaml');
-  const documentExportSpec = join(
-    stackRoot,
-    'e2e/fixtures/ensure-document-export-task-type',
-  );
-  for (const file of [testDir, menorca, documentExport, documentExportSpec]) {
+  for (const file of [testDir, menorca]) {
     if (!existsSync(file)) {
       throw new Error(`Liquibase changelog missing at ${file}`);
     }
@@ -26,8 +21,6 @@ export function writeH2Changelog(stackRoot) {
   mkdirSync(dir, { recursive: true });
   cpSync(testDir, join(dir, 'changelog-test'), { recursive: true });
   cpSync(menorca, join(dir, '20_menorca_solrustic_mia_e2e.yaml'));
-  cpSync(documentExport, join(dir, 'ensure-document-export-task-type.yaml'));
-  cpSync(documentExportSpec, join(dir, 'ensure-document-export-task-type'), { recursive: true });
   const wrapper = join(dir, 'db.changelog-e2e.yaml');
   writeFileSync(
     wrapper,
@@ -38,9 +31,6 @@ export function writeH2Changelog(stackRoot) {
       '      relativeToChangelogFile: true',
       '  - include:',
       '      file: 20_menorca_solrustic_mia_e2e.yaml',
-      '      relativeToChangelogFile: true',
-      '  - include:',
-      '      file: ensure-document-export-task-type.yaml',
       '      relativeToChangelogFile: true',
       '',
     ].join('\n'),

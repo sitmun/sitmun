@@ -4,15 +4,27 @@ Helpers for codelists, Liquibase changelogs, seed data, and translations.
 
 ## Layout
 
+Run a file in `bin` with `python3` or `node`. Run a file in `scripts` with `bash`. A purpose folder holds one whole job. `tools/monorepo/` and `tools/i18n-utils/` are purpose folders. The seed is CSV. `bin` has no database importer.
+
+`bin/dump_1_2_9_databasechangelog.sh` is a bash script. It stays in `bin`, next to the upgrade generators.
+
 ```
 tools/
-├── seed-data/        source-of-truth JSON/CSV data (never edit generated files)
-├── bin/              Python tooling — generators, importers, utilities
-├── scripts/          operational shell scripts (apply, validate)
-├── tests/            integration test scripts (Docker-based Liquibase tests)
+├── seed-data/        source-of-truth CSV (do not edit generated SQL)
+├── bin/              tools run with python3 or node
+├── scripts/          tools run with bash
+├── tests/            Liquibase and seed checks
 ├── examples/         illustrative ops samples (not production ETL)
-└── i18n-utils/       frontend i18n helpers
+├── monorepo/         pins and message rewrite for a later import
+├── i18n-utils/       one job for frontend i18n JSON
+└── dictionary/       authored column contract
 ```
+
+`tools/monorepo/` stays so a later import can reuse `pins.txt`, `tag-map.tsv`, and `rewrite_message.py` in one place. This folder does not run the import.
+
+`tools/i18n-utils/` stays because sorting frontend JSON keys and filling missing keys is one job, separate from the database seed CSV.
+
+`tools/tests/test_liquibase_codelist_auth_mode_swap.sh` stays as the local check for the 1.2.6 to 1.2.7 auth-mode id swap. The shipped master does not include changeset `25-fix-auth-mode-swap`, so CI does not run the script.
 
 ## Scenario selection
 
