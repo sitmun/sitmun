@@ -266,3 +266,17 @@ INSERT INTO stm_literal_translation_value (ltv_id, ltv_ltrid, ltv_lanid, ltv_val
 --end
 INSERT INTO stm_literal_translation_value (ltv_id, ltv_ltrid, ltv_lanid, ltv_value) SELECT 28, 7, lang.lan_id, '[contenu binaire]' FROM stm_language lang WHERE lang.lan_shortname = 'fr'
 --end
+INSERT INTO stm_literal_translation_value (ltv_id, ltv_ltrid, ltv_lanid, ltv_value) SELECT 29, 1, lang.lan_id, 'Cap de donades' FROM stm_language lang WHERE lang.lan_shortname = 'oc-aranes'
+--end
+INSERT INTO stm_literal_translation_value (ltv_id, ltv_ltrid, ltv_lanid, ltv_value) SELECT 30, 2, lang.lan_id, 'Error en executar era tasca' FROM stm_language lang WHERE lang.lan_shortname = 'oc-aranes'
+--end
+INSERT INTO stm_literal_translation_value (ltv_id, ltv_ltrid, ltv_lanid, ltv_value) SELECT 31, 3, lang.lan_id, 'Consulta' FROM stm_language lang WHERE lang.lan_shortname = 'oc-aranes'
+--end
+INSERT INTO stm_literal_translation_value (ltv_id, ltv_ltrid, ltv_lanid, ltv_value) SELECT 32, 4, lang.lan_id, 'Identificador de tasca hilha non valid' FROM stm_language lang WHERE lang.lan_shortname = 'oc-aranes'
+--end
+INSERT INTO stm_literal_translation_value (ltv_id, ltv_ltrid, ltv_lanid, ltv_value) SELECT 33, 5, lang.lan_id, 'Cau executar era tasca' FROM stm_language lang WHERE lang.lan_shortname = 'oc-aranes'
+--end
+INSERT INTO stm_literal_translation_value (ltv_id, ltv_ltrid, ltv_lanid, ltv_value) SELECT 34, 6, lang.lan_id, 'Contengut binari non incrustable: cau autenticacion deth servidor' FROM stm_language lang WHERE lang.lan_shortname = 'oc-aranes'
+--end
+INSERT INTO stm_literal_translation_value (ltv_id, ltv_ltrid, ltv_lanid, ltv_value) SELECT 35, 7, lang.lan_id, '[contengut binari]' FROM stm_language lang WHERE lang.lan_shortname = 'oc-aranes'
+--end

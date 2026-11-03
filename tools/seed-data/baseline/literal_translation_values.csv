@@ -27,3 +27,10 @@ ltv_id,ltr_id,lan_shortname,ltv_value
 26,7,es,[contenido binario]
 27,7,en,[binary content]
 28,7,fr,[contenu binaire]
+29,1,oc-aranes,Cap de donades
+30,2,oc-aranes,Error en executar era tasca
+31,3,oc-aranes,Consulta
+32,4,oc-aranes,Identificador de tasca hilha non valid
+33,5,oc-aranes,Cau executar era tasca
+34,6,oc-aranes,Contengut binari non incrustable: cau autenticacion deth servidor
+35,7,oc-aranes,[contengut binari]

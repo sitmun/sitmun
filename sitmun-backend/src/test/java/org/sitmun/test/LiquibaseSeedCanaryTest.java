@@ -78,7 +78,7 @@ class LiquibaseSeedCanaryTest {
           Map.entry("GTT_ID", 4L),
           Map.entry("LAN_ID", 5L),
           Map.entry("LTR_ID", 8L),
-          Map.entry("LTV_ID", 29L),
+          Map.entry("LTV_ID", 36L),
           Map.entry("PAP_ID", 22L),
           Map.entry("POS_ID", 1485L),
           Map.entry("PSE_ID", 533L),
