@@ -40,6 +40,7 @@ public class LiteralTranslationCsvService extends AbstractOpenCsvService {
   private final LiteralTranslationRepository literalTranslationRepository;
   private final LiteralTranslationValueRepository literalTranslationValueRepository;
   private final LanguageRepository languageRepository;
+  private final LiteralTranslationWriteLock literalTranslationWriteLock;
   private final PlatformTransactionManager transactionManager;
 
   @Transactional(readOnly = true)
@@ -321,6 +322,12 @@ public class LiteralTranslationCsvService extends AbstractOpenCsvService {
   }
 
   private ExistingLiteral createLiteral(ValidatedCsvRow row) {
+    literalTranslationWriteLock.acquire();
+    Optional<LiteralTranslation> already =
+        literalTranslationRepository.findByLiteral(row.literal());
+    if (already.isPresent()) {
+      return toExisting(already.get());
+    }
     Language sourceLanguage =
         languageRepository
             .findById(row.sourceLanguageId())

@@ -5,6 +5,7 @@ import static org.mockito.Mockito.CALLS_REAL_METHODS;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 
+import jakarta.persistence.Timeout;
 import org.hibernate.dialect.Dialect;
 import org.hibernate.engine.jdbc.dialect.spi.DialectResolutionInfo;
 import org.hibernate.query.sqm.CastType;
@@ -31,6 +32,18 @@ class SitmunOracleDialectTest {
 
     assertThat(dialect.getVersion().getMajor()).isEqualTo(21);
     assertThat(dialect.currentDate()).isEqualTo("trunc(current_date)");
+  }
+
+  @Test
+  @DisplayName("A 10 second lock wait is FOR UPDATE WAIT 10 on Oracle 11 and 21")
+  void lockTimeoutIsForUpdateWait() throws Exception {
+    for (Dialect dialect :
+        new Dialect[] {
+          build(SitmunOracleLegacyDialect.class, 11, 2), build(SitmunOracleDialect.class, 21, 0)
+        }) {
+      assertThat(dialect.getWriteLockString(Timeout.milliseconds(10_000)))
+          .isEqualTo(" for update wait 10");
+    }
   }
 
   @Test

@@ -1,17 +1,15 @@
 package org.sitmun.administration.service.i18n;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
+import org.sitmun.administration.controller.dto.LiteralTranslationUpsertRequestDto;
 import org.sitmun.infrastructure.persistence.type.i18n.Language;
 import org.sitmun.infrastructure.persistence.type.i18n.LanguageRepository;
 import org.sitmun.infrastructure.persistence.type.i18n.LiteralTranslation;
@@ -23,6 +21,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
+import org.springframework.web.server.ResponseStatusException;
 
 @SpringBootTest
 @EnabledIfSystemProperty(named = "spring.profiles.active", matches = ".*\\bh2\\b.*")
@@ -36,6 +35,7 @@ class LiteralTranslationLiteralUniqueIT {
 
   @Autowired private LiteralTranslationRepository literalTranslationRepository;
   @Autowired private LiteralTranslationEnsureService literalTranslationEnsureService;
+  @Autowired private LiteralTranslationCrudService literalTranslationCrudService;
   @Autowired private LanguageRepository languageRepository;
   @Autowired private PlatformTransactionManager transactionManager;
   @Autowired private JdbcTemplate jdbcTemplate;
@@ -69,9 +69,8 @@ class LiteralTranslationLiteralUniqueIT {
               try {
                 tx.executeWithoutResult(
                     status -> {
-                      Language source = languageRepository.findByShortname("en").orElseThrow();
-                      literalTranslationRepository.saveAndFlush(
-                          LiteralTranslation.builder().literal(key).sourceLanguage(source).build());
+                      literalTranslationEnsureService.ensureLiteralsFromTemplateHtml(
+                          "<p><t>" + key + "</t></p>");
                       inserted.countDown();
                       awaitRelease(release);
                     });
@@ -84,26 +83,165 @@ class LiteralTranslationLiteralUniqueIT {
     assertThat(inserted.await(20, TimeUnit.SECONDS)).isTrue();
     assertThat(winnerFailure.get()).isNull();
 
-    ExecutorService pool = Executors.newSingleThreadExecutor();
+    AtomicReference<Exception> loserFailure = new AtomicReference<>();
+    Thread loser =
+        new Thread(
+            () -> {
+              try {
+                literalTranslationEnsureService.ensureLiteralsFromTemplateHtml(
+                    "<p><t>" + key + "</t></p>");
+              } catch (Exception ex) {
+                loserFailure.set(ex);
+              }
+            });
+    loser.start();
     try {
-      var ensure =
-          pool.submit(
-              () ->
-                  literalTranslationEnsureService.ensureLiteralsFromTemplateHtml(
-                      "<p><t>" + key + "</t></p>"));
-      // Loser must reach the insert while the winner still holds the row.
-      Thread.sleep(300);
+      awaitBlocked(loser);
       release.countDown();
-      assertThatCode(() -> ensure.get(20, TimeUnit.SECONDS)).doesNotThrowAnyException();
+      loser.join(20000);
+      assertThat(loserFailure.get()).isNull();
     } finally {
       release.countDown();
-      pool.shutdownNow();
+      loser.join(5000);
       winner.join(5000);
     }
 
     assertThat(winnerFailure.get()).isNull();
     assertThat(countLiterals(key)).isEqualTo(1);
     assertThat(literalTranslationRepository.findByLiteral(key)).isPresent();
+  }
+
+  @Test
+  @DisplayName("a manual create of a sentence an uncommitted ensure holds is a conflict")
+  void manualCreateOfUncommittedEnsureIsAConflict() throws Exception {
+    String key = "crud-race-" + System.nanoTime();
+    CountDownLatch inserted = new CountDownLatch(1);
+    CountDownLatch release = new CountDownLatch(1);
+    AtomicReference<Exception> ensureFailure = new AtomicReference<>();
+    TransactionTemplate tx = new TransactionTemplate(transactionManager);
+
+    Thread winner =
+        new Thread(
+            () -> {
+              try {
+                tx.executeWithoutResult(
+                    status -> {
+                      literalTranslationEnsureService.ensureLiteralsFromTemplateHtml(
+                          "<p><t>" + key + "</t></p>");
+                      inserted.countDown();
+                      awaitRelease(release);
+                    });
+              } catch (Exception ex) {
+                ensureFailure.set(ex);
+                inserted.countDown();
+              }
+            });
+    winner.start();
+    assertThat(inserted.await(20, TimeUnit.SECONDS)).isTrue();
+    assertThat(ensureFailure.get()).isNull();
+
+    AtomicReference<Exception> createFailure = new AtomicReference<>();
+    Thread create =
+        new Thread(
+            () -> {
+              try {
+                LiteralTranslationUpsertRequestDto request =
+                    new LiteralTranslationUpsertRequestDto();
+                request.setLiteral(key);
+                request.setLanguage("en");
+                request.setSourceLanguage("en");
+                request.setTranslation(key);
+                literalTranslationCrudService.create(request);
+              } catch (Exception ex) {
+                createFailure.set(ex);
+              }
+            });
+    create.start();
+    try {
+      awaitBlocked(create);
+      release.countDown();
+      create.join(20000);
+      assertThat(createFailure.get()).isInstanceOf(ResponseStatusException.class);
+    } finally {
+      release.countDown();
+      create.join(5000);
+      winner.join(5000);
+    }
+
+    assertThat(ensureFailure.get()).isNull();
+    assertThat(countLiterals(key)).isEqualTo(1);
+  }
+
+  @Test
+  @DisplayName("a second ensure fills a source value the first ensure has not committed")
+  void secondEnsureFillsUncommittedSourceValue() throws Exception {
+    String key = "refill-race-" + System.nanoTime();
+    Language english = languageRepository.findByShortname("en").orElseThrow();
+    literalTranslationRepository.saveAndFlush(
+        LiteralTranslation.builder().literal(key).sourceLanguage(english).build());
+
+    CountDownLatch inserted = new CountDownLatch(1);
+    CountDownLatch release = new CountDownLatch(1);
+    AtomicReference<Exception> winnerFailure = new AtomicReference<>();
+    TransactionTemplate tx = new TransactionTemplate(transactionManager);
+    Thread winner =
+        new Thread(
+            () -> {
+              try {
+                tx.executeWithoutResult(
+                    status -> {
+                      literalTranslationEnsureService.ensureLiteralsFromTemplateHtml(
+                          "<p><t>" + key + "</t></p>");
+                      inserted.countDown();
+                      awaitRelease(release);
+                    });
+              } catch (Exception ex) {
+                winnerFailure.set(ex);
+                inserted.countDown();
+              }
+            });
+    winner.start();
+    assertThat(inserted.await(20, TimeUnit.SECONDS)).isTrue();
+    assertThat(winnerFailure.get()).isNull();
+
+    AtomicReference<Exception> refillFailure = new AtomicReference<>();
+    Thread refill =
+        new Thread(
+            () -> {
+              try {
+                literalTranslationEnsureService.ensureLiteralsFromTemplateHtml(
+                    "<p><t>" + key + "</t></p>");
+              } catch (Exception ex) {
+                refillFailure.set(ex);
+              }
+            });
+    refill.start();
+    try {
+      awaitBlocked(refill);
+      release.countDown();
+      refill.join(20000);
+      assertThat(refillFailure.get()).isNull();
+      assertThat(winnerFailure.get()).isNull();
+      assertThat(countLiterals(key)).isEqualTo(1);
+      assertThat(
+              jdbcTemplate.queryForObject(
+                  """
+                  SELECT COUNT(*) FROM STM_LITERAL_TRANSLATION_VALUE v
+                  JOIN STM_LITERAL_TRANSLATION t ON t.LTR_ID = v.LTV_LTRID
+                  WHERE t.LTR_LITERAL = ?
+                  """,
+                  Integer.class,
+                  key))
+          .isEqualTo(1);
+    } finally {
+      release.countDown();
+      refill.join(5000);
+      winner.join(5000);
+      jdbcTemplate.update(
+          "DELETE FROM STM_LITERAL_TRANSLATION_VALUE WHERE LTV_LTRID IN (SELECT LTR_ID FROM STM_LITERAL_TRANSLATION WHERE LTR_LITERAL = ?)",
+          key);
+      jdbcTemplate.update("DELETE FROM STM_LITERAL_TRANSLATION WHERE LTR_LITERAL = ?", key);
+    }
   }
 
   @Test
@@ -164,6 +302,23 @@ class LiteralTranslationLiteralUniqueIT {
                   "ALTER TABLE STM_LITERAL_TRANSLATION ADD CONSTRAINT STM_LTR_LITERAL_UK UNIQUE (LTR_LITERAL)");
             }
           });
+    }
+  }
+
+  private static void awaitBlocked(Thread thread) {
+    long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(15);
+    while (thread.getState() != Thread.State.WAITING
+        && thread.getState() != Thread.State.BLOCKED
+        && thread.getState() != Thread.State.TIMED_WAITING) {
+      if (!thread.isAlive() || System.nanoTime() > deadline) {
+        throw new IllegalStateException("thread never blocked: " + thread.getState());
+      }
+      try {
+        Thread.sleep(20);
+      } catch (InterruptedException ex) {
+        Thread.currentThread().interrupt();
+        throw new IllegalStateException("interrupted while waiting for the other save", ex);
+      }
     }
   }
 
