@@ -18,8 +18,13 @@
 #    - oracle.env: Production with Oracle (minimal seed data)
 #    - Optional profiles: ,demo (example demo DB; ,dev is a deprecated alias), ,mbtiles
 #
-# Docker Compose reads files in this order (last wins):
-#   .env → .env.local → Environment variables
+# Compose reads `.env` in this directory when it interpolates ${VAR}.
+# It does not read `.env.local`.
+# A variable set in the shell wins over `.env`.
+# `--env-file` replaces that automatic `.env` read.
+# Pass `--env-file .env` as well when another file should add to `.env`.
+# For each variable, the last `--env-file` wins.
+# No service sets `env_file`. That would load variables inside the container, not for interpolation.
 #
 # ============================================================================
 # Quick Start
@@ -33,17 +38,18 @@
 #   cp profiles/postgres.env .env
 #   docker compose up -d
 #
-# Local customization:
-#   echo "PUBLIC_PORT=8080" >> .env.local
+# Host port published by nginx. PUBLIC_PORT is only the port in generated URLs.
+#   echo "LOCAL_PORT=8080" >> .env
 #   docker compose up -d
 #
 # ============================================================================
-# Default Configuration (from committed .env)
+# Default configuration
 # ============================================================================
 #
 # Frontend:
 #   - ENVIRONMENT=development (shows "development", source maps enabled)
-#   - PUBLIC_PORT=9000 (http://localhost:9000)
+#   - PUBLIC_PORT=9000 (port in generated URLs)
+#   - LOCAL_PORT=9000 (host port nginx publishes)
 #
 # Backend / Compose:
 #   - DATABASE_TYPE=postgres
