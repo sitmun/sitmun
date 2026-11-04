@@ -6,7 +6,12 @@ The CSV files are the source.
 
 import argparse
 import csv
+import sys
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
+import fill_vacant
 
 ROOT = Path(__file__).resolve().parents[2]
 SEED = ROOT / "tools" / "seed-data" / "baseline"
@@ -49,41 +54,6 @@ def lookup_insert(table, columns, select_list, joins, where):
     )
 
 
-def derive_english_code_values(codelists, translations):
-    """English code-value labels are the base description, never a stored row."""
-    description = {
-        (row["cod_list"], row["cod_value"]): row
-        for row in codelists
-    }
-    translated = {
-        (row["element"], row["element_value"])
-        for row in translations
-        if row["tra_column"] == "CodeListValue.description" and row["lan_shortname"] != "en"
-    }
-    stored_english = [
-        row
-        for row in translations
-        if row["tra_column"] == "CodeListValue.description" and row["lan_shortname"] == "en"
-    ]
-    if stored_english:
-        raise SystemExit("translations.csv stores English code-value rows; derive them instead")
-    next_id = max(int(row["tra_id"]) for row in translations) + 1
-    derived = []
-    for key in sorted(translated, key=lambda item: int(description[item]["cod_id"])):
-        derived.append(
-            {
-                "tra_id": str(next_id),
-                "tra_column": "CodeListValue.description",
-                "element": key[0],
-                "element_value": key[1],
-                "lan_shortname": "en",
-                "tra_name": description[key]["cod_description"],
-            }
-        )
-        next_id += 1
-    return translations + derived
-
-
 def codelist_statements(oracle):
     codelists = read_seed("codelists.csv")
     return [
@@ -106,8 +76,10 @@ def codelist_statements(oracle):
 
 
 def translation_statements():
-    rows = derive_english_code_values(read_seed("codelists.csv"), read_seed("translations.csv"))
-    return [translation_statement(row) for row in rows]
+    text = fill_vacant.baseline_translation_sql()
+    if text.endswith("\n"):
+        text = text[:-1]
+    return text.split("\n") if text else []
 
 
 def generate():
@@ -139,42 +111,6 @@ def generate():
     (BASELINE / "06-seed.postgresql.sql").write_text("\n".join(seed_pg) + "\n")
     (BASELINE / "06-seed.oracle.sql").write_text("\n".join(seed_ora) + "\n")
     print("generated baseline SQL")
-
-
-def translation_statement(row):
-    name = sql_string(row["tra_name"])
-    column = sql_string(row["tra_column"])
-    language = sql_string(row["lan_shortname"])
-    tra_id = row["tra_id"]
-    if row["tra_column"] == "Language.name":
-        element = sql_string(row["element"])
-        return (
-            "INSERT INTO stm_translation (tra_id, tra_eleid, tra_column, tra_lanid, tra_name) "
-            f"SELECT {tra_id}, ele.lan_id, {column}, lang.lan_id, {name} "
-            "FROM stm_language ele JOIN stm_language lang ON lang.lan_shortname = "
-            f"{language} WHERE ele.lan_shortname = {element};"
-        )
-    if row["tra_column"] == "CodeListValue.description":
-        cod_list = sql_string(row["element"])
-        cod_value = sql_string(row["element_value"])
-        return (
-            "INSERT INTO stm_translation (tra_id, tra_eleid, tra_column, tra_lanid, tra_name) "
-            f"SELECT {tra_id}, c.cod_id, {column}, lang.lan_id, {name} "
-            "FROM stm_codelist c JOIN stm_language lang ON lang.lan_shortname = "
-            f"{language} WHERE c.cod_list = {cod_list} AND c.cod_value = {cod_value};"
-        )
-    table, id_column, name_column = {
-        "Task.name": ("stm_task", "tas_id", "tas_name"),
-        "TerritoryType.name": ("stm_ter_typ", "tet_id", "tet_name"),
-        "TaskGroup.name": ("stm_grp_tsk", "gts_id", "gts_name"),
-    }[row["tra_column"]]
-    element = sql_string(row["element"])
-    return (
-        "INSERT INTO stm_translation (tra_id, tra_eleid, tra_column, tra_lanid, tra_name) "
-        f"SELECT {tra_id}, entity.{id_column}, {column}, lang.lan_id, {name} "
-        f"FROM {table} entity JOIN stm_language lang ON lang.lan_shortname = {language} "
-        f"WHERE entity.{name_column} = {element};"
-    )
 
 
 def seed_statements(oracle):
@@ -322,22 +258,7 @@ def seed_statements(oracle):
                 oracle,
             )
         )
-    for row in read_seed("literal_translations.csv"):
-        literal_text = sql_string(row["ltr_literal"])
-        shortname = sql_string(row["lan_shortname"])
-        statements.append(
-            "INSERT INTO stm_literal_translation (ltr_id, ltr_literal, ltr_lanid) "
-            f"SELECT {row['ltr_id']}, {literal_text}, lang.lan_id "
-            f"FROM stm_language lang WHERE lang.lan_shortname = {shortname};"
-        )
-    for row in read_seed("literal_translation_values.csv"):
-        value = sql_string(row["ltv_value"])
-        shortname = sql_string(row["lan_shortname"])
-        statements.append(
-            "INSERT INTO stm_literal_translation_value (ltv_id, ltv_ltrid, ltv_lanid, ltv_value) "
-            f"SELECT {row['ltv_id']}, {row['ltr_id']}, lang.lan_id, {value} "
-            f"FROM stm_language lang WHERE lang.lan_shortname = {shortname};"
-        )
+    statements.extend(fill_vacant.baseline_literal_sql(oracle))
     # Oracle JDBC rejects a trailing semicolon (ORA-00911). Liquibase strips --end, not the semicolon.
     return [statement.rstrip(";") + "\n--end" for statement in statements]
 
