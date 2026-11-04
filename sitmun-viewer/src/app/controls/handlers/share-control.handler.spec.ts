@@ -273,6 +273,59 @@ describe('ShareControlHandler', () => {
       expect(setBaseLayer).toHaveBeenCalledWith('sitmun-no-base-map');
     });
 
+    it('stores a sublayer list only when it differs from the profile', async () => {
+      await handler.loadPatches({
+        ...mockAppCfg,
+        layers: [
+          {
+            id: '2',
+            title: 'Roads',
+            layers: ['a', 'b'],
+            service: 'service/1'
+          }
+        ],
+        trees: [
+          {
+            nodes: {
+              roads: { loadByDefault: true, resource: '2' }
+            }
+          }
+        ]
+      } as AppCfg);
+      const workLayer = (
+        names: string[]
+      ): {
+        options: { profileLayerId: string; layerNames: string[] };
+        names: string[];
+        getOpacity: () => number;
+        getVisibility: () => boolean;
+      } => ({
+        options: { profileLayerId: '2', layerNames: ['a', 'b'] },
+        names,
+        getOpacity: () => 1,
+        getVisibility: () => true
+      });
+      const changed = handler.capture({
+        generateLink: async () => '',
+        map: {
+          getExtent: () => [1, 2, 3, 4],
+          workLayers: [workLayer(['a'])]
+        }
+      });
+      const unchanged = handler.capture({
+        generateLink: async () => '',
+        map: {
+          getExtent: () => [1, 2, 3, 4],
+          workLayers: [workLayer(['a', 'b'])]
+        }
+      });
+
+      expect(changed.layers).toEqual([{ id: '2', sublayers: ['a'] }]);
+      expect(
+        unchanged.layers?.find((layer) => layer.id === '2')?.sublayers
+      ).toBeUndefined();
+    });
+
     it('omits empty measurement, feature-info, and draw exports', async () => {
       await handler.loadPatches(mockAppCfg);
       const snapshot = handler.capture({

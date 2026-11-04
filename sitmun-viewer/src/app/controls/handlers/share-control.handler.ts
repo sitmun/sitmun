@@ -314,10 +314,16 @@ function isRadioFolder(node: AppNodeInfo): boolean {
 }
 
 function defaultWorkingLayers(cfg: AppCfg | null): LayerOnMap[] {
-  return defaultProfileLayerIds(cfg).map((profileLayerId) => ({
-    profileLayerId,
-    visible: true
-  }));
+  const byId = new Map((cfg?.layers ?? []).map((layer) => [layer.id, layer]));
+  return defaultProfileLayerIds(cfg).map((profileLayerId) => {
+    const names = byId.get(profileLayerId)?.layers;
+    const sublayers = names?.filter((name) => name.length > 0);
+    return {
+      profileLayerId,
+      visible: true,
+      ...(sublayers && sublayers.length > 0 ? { sublayers } : {})
+    };
+  });
 }
 
 function readExtent(map: SitnaMapInfo['map']): MapExtent {
@@ -337,7 +343,7 @@ function toLayerOnMap(layer: SitnaWorkLayer): LayerOnMap | null {
   if (!id) {
     return null;
   }
-  const names = layer.options?.layerNames;
+  const names = layer.names ?? layer.options?.layerNames;
   return {
     profileLayerId: id,
     opacity: layer.getOpacity?.(),
@@ -422,6 +428,7 @@ function watchLoadedLayerList(
 interface SitnaWorkLayer {
   id?: string;
   isBase?: boolean;
+  names?: string | string[];
   options?: { profileLayerId?: string; layerNames?: string | string[] };
   getOpacity?: () => number;
   getVisibility?: () => boolean;
