@@ -692,3 +692,7 @@ tra_id,tra_column,element,element_value,lan_shortname,tra_name
 969,CodeListValue.description,databaseConnection.driver,com.microsoft.sqlserver.jdbc.SQLServerDriver,es,Controlador JDBC Microsoft SQL Server
 970,CodeListValue.description,databaseConnection.driver,com.microsoft.sqlserver.jdbc.SQLServerDriver,fr,Pilote JDBC Microsoft SQL Server
 971,CodeListValue.description,databaseConnection.driver,com.microsoft.sqlserver.jdbc.SQLServerDriver,oc-aranes,Controlador JDBC Microsoft SQL Server
+972,Task.name,More Info Advanced,,ca,Informació avançada
+973,Task.name,More Info Advanced,,es,Información avanzada
+974,Task.name,More Info Advanced,,fr,Informations avancées
+975,Task.name,More Info Advanced,,oc-aranes,Informacion avançada

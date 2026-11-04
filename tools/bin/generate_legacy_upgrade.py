@@ -11,7 +11,12 @@ from __future__ import annotations
 
 import csv
 import re
+import sys
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
+import fill_vacant
 
 ROOT = Path(__file__).resolve().parents[2]
 LEGACY = ROOT / "sitmun-backend/src/main/resources/db/changelog/upgrade/1.2.9-to-1.3.0"
@@ -311,49 +316,6 @@ def insert_codelist(oracle: bool, code_list: str, value: str, system: str, flag:
     )
 
 
-def translation_insert(row: dict[str, str], oracle: bool) -> str:
-    column = row["tra_column"]
-    element = sql_text(row["element"])
-    language = sql_text(row["lan_shortname"])
-    name = sql_text(row["tra_name"])
-    tra_id = int(row["tra_id"])
-    if column == "CodeListValue.description":
-        source = "stm_codelist ele"
-        where = f"ele.cod_list = {element} AND ele.cod_value = {sql_text(row['element_value'])}"
-        eleid = "ele.cod_id"
-    elif column == "Language.name":
-        source = "stm_language ele"
-        where = f"ele.lan_shortname = {element}"
-        eleid = "ele.lan_id"
-    elif column == "Task.name":
-        source = "stm_task ele"
-        where = f"ele.tas_name = {element}"
-        eleid = "ele.tas_id"
-    elif column == "TaskGroup.name":
-        source = "stm_grp_tsk ele"
-        where = f"ele.gts_name = {element}"
-        eleid = "ele.gts_id"
-    elif column == "TerritoryType.name":
-        source = "stm_ter_typ ele"
-        where = f"ele.tet_name = {element}"
-        eleid = "ele.tet_id"
-    else:
-        raise SystemExit(f"unknown translation column {column}")
-    return (
-        "INSERT INTO stm_translation (tra_id, tra_eleid, tra_column, tra_lanid, tra_name) "
-        "SELECT CASE WHEN NOT EXISTS (SELECT 1 FROM stm_translation WHERE tra_id = "
-        f"{tra_id}) THEN {tra_id} ELSE COALESCE((SELECT MAX(tra_id) FROM stm_translation), 0) + 1 END, "
-        f"{eleid}, {sql_text(column)}, lang.lan_id, {name} "
-        f"FROM {source} "
-        f"JOIN stm_language lang ON lang.lan_shortname = {language} "
-        f"WHERE {where} "
-        "AND NOT EXISTS (SELECT 1 FROM stm_translation t "
-        f"WHERE t.tra_eleid = {eleid} AND t.tra_column = {sql_text(column)} "
-        "AND t.tra_lanid = lang.lan_id) "
-        f"AND {DEFAULT_LANGUAGE} <> {language}"
-    )
-
-
 def english_repairs() -> list[str]:
     descriptions = {
         (row["cod_list"], row["cod_value"]): row["cod_description"]
@@ -376,67 +338,18 @@ def english_repairs() -> list[str]:
     return lines
 
 
-def derived_english_rows() -> list[dict[str, str]]:
-    codelists = read_csv(SEED / "codelists.csv")
-    translations = read_csv(SEED / "translations.csv")
-    description = {(row["cod_list"], row["cod_value"]): row for row in codelists}
-    translated = {
-        (row["element"], row["element_value"])
-        for row in translations
-        if row["tra_column"] == "CodeListValue.description" and row["lan_shortname"] != "en"
-    }
-    next_id = max(int(row["tra_id"]) for row in translations) + 1
-    rows = []
-    for key in sorted(translated, key=lambda item: int(description[item]["cod_id"])):
-        rows.append(
-            {
-                "tra_id": str(next_id),
-                "tra_column": "CodeListValue.description",
-                "element": key[0],
-                "element_value": key[1],
-                "lan_shortname": "en",
-                "tra_name": description[key]["cod_description"],
-            }
-        )
-        next_id += 1
-    return rows
-
-
 def translations(oracle: bool) -> str:
+    del oracle  # catalog inserts are the same string in both dialect files
     lines = [
         "DELETE FROM stm_translation WHERE tra_column = 'CodeListValue.description' "
         "AND NOT EXISTS (SELECT 1 FROM stm_codelist c WHERE c.cod_id = stm_translation.tra_eleid)"
     ]
     lines.extend(english_repairs())
-    for row in read_csv(SEED / "translations.csv"):
-        lines.append(translation_insert(row, oracle))
-    for row in derived_english_rows():
-        lines.append(translation_insert(row, oracle))
-    return ";\n".join(lines) + ";\n"
+    return ";\n".join(lines) + ";\n" + fill_vacant.upgrade_catalog_sql()
 
 
 def literal_values() -> str:
-    sentences = {
-        row["ltr_id"]: row["ltr_literal"]
-        for row in read_csv(SEED / "literal_translations.csv")
-    }
-    lines: list[str] = []
-    for row in read_csv(SEED / "literal_translation_values.csv"):
-        literal = sql_text(sentences[row["ltr_id"]])
-        language = sql_text(row["lan_shortname"])
-        value = sql_text(row["ltv_value"])
-        lines.append(
-            "INSERT INTO stm_literal_translation_value (ltv_id, ltv_ltrid, ltv_lanid, ltv_value) "
-            "SELECT COALESCE((SELECT MAX(ltv_id) FROM stm_literal_translation_value), 0) + 1, "
-            f"ltr.ltr_id, lang.lan_id, {value} "
-            "FROM stm_literal_translation ltr "
-            f"JOIN stm_language lang ON lang.lan_shortname = {language} "
-            f"WHERE ltr.ltr_literal = {literal} "
-            "AND NOT EXISTS ("
-            "SELECT 1 FROM stm_literal_translation_value existing "
-            "WHERE existing.ltv_ltrid = ltr.ltr_id AND existing.ltv_lanid = lang.lan_id)"
-        )
-    return ";\n".join(lines) + ";\n"
+    return fill_vacant.upgrade_literal_sql()
 
 
 def sequence_preamble() -> str:

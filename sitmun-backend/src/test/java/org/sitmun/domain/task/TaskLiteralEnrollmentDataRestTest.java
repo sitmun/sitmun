@@ -8,6 +8,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -86,5 +87,31 @@ class TaskLiteralEnrollmentDataRestTest extends BaseTest {
 
     assertThat(taskRepository.findAll()).noneMatch(task -> taskName.equals(task.getName()));
     assertThat(literalTranslationRepository.findByLiteral(key)).isEmpty();
+  }
+
+  @Test
+  @Transactional
+  @DisplayName("a new placeholder persists the inner HTML for every language")
+  void newPlaceholderPersistsInnerHtmlForEveryLanguage() {
+    String key = "Inner sentence " + System.nanoTime();
+    literalTranslationEnsureService.ensureLiteralsFromTemplateHtml("<p><t>" + key + "</t></p>");
+
+    LiteralTranslation enrolled = literalTranslationRepository.findByLiteral(key).orElseThrow();
+    for (String language : List.of("ca", "es", "en", "fr", "oc-aranes")) {
+      assertThat(
+              literalTranslationValueRepository.findValueByLiteralIdAndLanguage(
+                  enrolled.getId(), language))
+          .contains(key);
+    }
+
+    LiteralTranslation noData = literalTranslationRepository.findByLiteral("No data").orElseThrow();
+    literalTranslationEnsureService.ensureLiteralsFromTemplateHtml("<p><t>No data</t></p>");
+    assertThat(
+            literalTranslationValueRepository.findValueByLiteralIdAndLanguage(noData.getId(), "ca"))
+        .contains("Sense dades");
+    assertThat(
+            literalTranslationValueRepository.findValueByLiteralIdAndLanguage(
+                noData.getId(), "oc-aranes"))
+        .contains("Cap de donades");
   }
 }
