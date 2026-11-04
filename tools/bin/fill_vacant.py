@@ -25,7 +25,7 @@ __all__ = [
 ]
 
 
-class CatalogCell(NamedTuple):
+class _CatalogCell(NamedTuple):
     """One stm_translation insert. Upgrade SQL skips the database default language."""
 
     tra_id: int
@@ -36,7 +36,7 @@ class CatalogCell(NamedTuple):
     text: str
 
 
-class LiteralCell(NamedTuple):
+class _LiteralCell(NamedTuple):
     """One stm_literal_translation_value insert. Includes the database default language."""
 
     ltv_id: int
@@ -70,7 +70,7 @@ def _load_seed() -> _Seed:
     )
 
 
-def _catalog_cells(seed: _Seed) -> tuple[CatalogCell, ...]:
+def _catalog_cells(seed: _Seed) -> tuple[_CatalogCell, ...]:
     translations = seed.catalog_rows
     stored_english = [
         row
@@ -80,7 +80,7 @@ def _catalog_cells(seed: _Seed) -> tuple[CatalogCell, ...]:
     if stored_english:
         raise SystemExit("translations.csv stores English code-value rows; derive them instead")
     cells = [
-        CatalogCell(
+        _CatalogCell(
             tra_id=int(row["tra_id"]),
             column=row["tra_column"],
             parent=row["element"],
@@ -97,10 +97,10 @@ def _catalog_cells(seed: _Seed) -> tuple[CatalogCell, ...]:
         if row["tra_column"] == "CodeListValue.description" and row["lan_shortname"] != "en"
     }
     next_id = max(cell.tra_id for cell in cells) + 1
-    derived: list[CatalogCell] = []
+    derived: list[_CatalogCell] = []
     for key in sorted(translated, key=lambda item: int(description[item]["cod_id"])):
         derived.append(
-            CatalogCell(
+            _CatalogCell(
                 tra_id=next_id,
                 column="CodeListValue.description",
                 parent=key[0],
@@ -113,10 +113,10 @@ def _catalog_cells(seed: _Seed) -> tuple[CatalogCell, ...]:
     return tuple(cells + derived)
 
 
-def _literal_cells(seed: _Seed) -> tuple[LiteralCell, ...]:
+def _literal_cells(seed: _Seed) -> tuple[_LiteralCell, ...]:
     sentences = {row["ltr_id"]: row["ltr_literal"] for row in seed.sentences}
     return tuple(
-        LiteralCell(
+        _LiteralCell(
             ltv_id=int(row["ltv_id"]),
             literal=sentences[row["ltr_id"]],
             language=row["lan_shortname"],
@@ -126,7 +126,7 @@ def _literal_cells(seed: _Seed) -> tuple[LiteralCell, ...]:
     )
 
 
-def _catalog_target(cell: CatalogCell) -> tuple[str, str, str]:
+def _catalog_target(cell: _CatalogCell) -> tuple[str, str, str]:
     element = _sql(cell.parent)
     if cell.column == "CodeListValue.description":
         return (
@@ -145,9 +145,9 @@ def _catalog_target(cell: CatalogCell) -> tuple[str, str, str]:
     raise SystemExit(f"unknown translation column {cell.column}")
 
 
-def fill_vacant(cell: CatalogCell | LiteralCell) -> str:
+def _absent_clause(cell: _CatalogCell | _LiteralCell) -> str:
     """Upgrade AND clause. A second run inserts nothing and does not change text."""
-    if isinstance(cell, CatalogCell):
+    if isinstance(cell, _CatalogCell):
         _source, _where, eleid = _catalog_target(cell)
         return (
             "AND NOT EXISTS (SELECT 1 FROM stm_translation t "
@@ -162,7 +162,7 @@ def fill_vacant(cell: CatalogCell | LiteralCell) -> str:
     )
 
 
-def _baseline_catalog_insert(cell: CatalogCell) -> str:
+def _baseline_catalog_insert(cell: _CatalogCell) -> str:
     name = _sql(cell.text)
     column = _sql(cell.column)
     language = _sql(cell.language)
@@ -195,7 +195,7 @@ def _baseline_catalog_insert(cell: CatalogCell) -> str:
     )
 
 
-def _upgrade_catalog_insert(cell: CatalogCell) -> str:
+def _upgrade_catalog_insert(cell: _CatalogCell) -> str:
     source, where, eleid = _catalog_target(cell)
     return (
         "INSERT INTO stm_translation (tra_id, tra_eleid, tra_column, tra_lanid, tra_name) "
@@ -205,7 +205,7 @@ def _upgrade_catalog_insert(cell: CatalogCell) -> str:
         f"FROM {source} "
         f"JOIN stm_language lang ON lang.lan_shortname = {_sql(cell.language)} "
         f"WHERE {where} "
-        + fill_vacant(cell)
+        + _absent_clause(cell)
     )
 
 
@@ -217,7 +217,7 @@ def _literal_parent_insert(row: dict[str, str]) -> str:
     )
 
 
-def _baseline_literal_insert(cell: LiteralCell, ltr_id: str) -> str:
+def _baseline_literal_insert(cell: _LiteralCell, ltr_id: str) -> str:
     return (
         "INSERT INTO stm_literal_translation_value (ltv_id, ltv_ltrid, ltv_lanid, ltv_value) "
         f"SELECT {cell.ltv_id}, {ltr_id}, lang.lan_id, {_sql(cell.text)} "
@@ -225,7 +225,7 @@ def _baseline_literal_insert(cell: LiteralCell, ltr_id: str) -> str:
     )
 
 
-def _upgrade_literal_insert(cell: LiteralCell) -> str:
+def _upgrade_literal_insert(cell: _LiteralCell) -> str:
     return (
         "INSERT INTO stm_literal_translation_value (ltv_id, ltv_ltrid, ltv_lanid, ltv_value) "
         "SELECT COALESCE((SELECT MAX(ltv_id) FROM stm_literal_translation_value), 0) + 1, "
@@ -233,7 +233,7 @@ def _upgrade_literal_insert(cell: LiteralCell) -> str:
         "FROM stm_literal_translation ltr "
         f"JOIN stm_language lang ON lang.lan_shortname = {_sql(cell.language)} "
         f"WHERE ltr.ltr_literal = {_sql(cell.literal)} "
-        + fill_vacant(cell)
+        + _absent_clause(cell)
     )
 
 
