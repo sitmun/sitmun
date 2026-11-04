@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Upgrade a tagged source database to the shipped 1.3.0 master.
 # Usage: bash tools/tests/test_liquibase_upgrade_from_1.2.9.sh postgres-16 [1.2.9]
+#        bash tools/tests/test_liquibase_upgrade_from_1.2.9.sh oracle-11 1.2.9 stopped-22c
 set -uo pipefail
 
 ENGINE="${1:?usage: postgres-16|postgres-12|oracle-23|oracle-21|oracle-11 [source-tag]}"
@@ -94,21 +95,6 @@ apply_tag() {
   mkdir -p "$dest"
   git -C "$REPO_ROOT" archive "$tag" "profiles/$LIQUIBASE_PROFILE/liquibase" | tar -x -C "$dest"
   local changelog="$dest/profiles/$LIQUIBASE_PROFILE/liquibase"
-  # Changelog 22c does not parse before Oracle 23. Oracle 11 and 21 use the
-  # pre-23 restatement, which keeps the same task and code-list rows.
-  if [[ "$KIND" == "oracle11" || "$ENGINE" == "oracle-21" ]] && grep -q '22_add_map_image_task_type.yaml' "$changelog/master.xml"; then
-    cp "$REPO_ROOT/tools/tests/26_map_image_task_type_pre23.yaml" "$changelog/changelog/"
-    python3 - "$changelog/master.xml" <<'PY'
-import pathlib, sys
-path = pathlib.Path(sys.argv[1])
-text = path.read_text()
-text = text.replace(
-    "changelog/22_add_map_image_task_type.yaml",
-    "changelog/26_map_image_task_type_pre23.yaml",
-)
-path.write_text(text)
-PY
-  fi
   local url
   if [[ "$KIND" == "postgres" ]]; then
     url="jdbc:postgresql://${CONTAINER}:5432/sitmun3"
@@ -207,9 +193,54 @@ wait_health() {
   return 1
 }
 
+run_stopped_at_22c() {
+  if [[ "$ENGINE" != "oracle-11" && "$ENGINE" != "oracle-21" ]]; then
+    echo "stopped-22c runs on oracle-11 or oracle-21" >&2
+    exit 2
+  fi
+  echo "── $ENGINE: unmodified 1.2.9 stops at changeset 22c ──"
+  start_db
+  local apply_output apply_rc
+  apply_output=$(apply_tag "$TAG_129" "$TMP/129" 2>&1)
+  apply_rc=$?
+  printf '%s\n' "$apply_output"
+  if [[ "$apply_rc" -eq 0 ]]; then
+    fail "unmodified 1.2.9 installed"
+  elif printf '%s\n' "$apply_output" | grep -q "22c_document_export_codelists"; then
+    ok "unmodified 1.2.9 stopped at changeset 22c"
+  else
+    fail "unmodified 1.2.9 failed before changeset 22c"
+  fi
+  local present_22 absent_22c absent_23
+  present_22=$(sql_count "SELECT COUNT(*) FROM databasechangelog WHERE id = '22_map_image_task_type'")
+  absent_22c=$(sql_count "SELECT COUNT(*) FROM databasechangelog WHERE id = '22c_document_export_codelists'")
+  absent_23=$(sql_count "SELECT COUNT(*) FROM databasechangelog WHERE filename LIKE '%23_add_document_export_tasks%'")
+  if [[ "$present_22" == "1" && "$absent_22c" == "0" && "$absent_23" == "0" ]]; then
+    ok "changelog has changeset 22 and not 22c or 23"
+  else
+    fail "changelog 22=$present_22 22c=$absent_22c 23=$absent_23"
+  fi
+  boot_backend
+  if wait_health; then
+    ok "stopped-at-22c upgrade health is UP"
+  else
+    fail "stopped-at-22c upgrade health did not come up"
+    tail -60 "$BACKEND_LOG" || true
+  fi
+  stop_backend
+}
+
 echo "── Build backend jar ──"
 (cd "$REPO_ROOT" && ./gradlew --no-daemon -q :sitmun-backend:bootJar) || { echo "bootJar failed" >&2; exit 1; }
 JAR=$(ls "$REPO_ROOT"/sitmun-backend/build/libs/*.jar | grep -v -- '-plain\.jar$' | head -1)
+
+if [[ "${3:-}" == "stopped-22c" ]]; then
+  run_stopped_at_22c
+  echo ""
+  printf " Results: %d passed, %d failed\n" "$PASS" "$FAIL"
+  [[ "$FAIL" -eq 0 ]]
+  exit
+fi
 
 echo "── $ENGINE: a database that is not 1.2.8 must be refused ──"
 start_db

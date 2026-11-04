@@ -110,28 +110,6 @@ ONLY_129_FILES = {
     "changelog/23_add_document_export_tasks.yaml",
     "changelog/24_add_default_template_regions.yaml",
 }
-PRE23_SLOT = {
-    "22_document_export_task_type": (
-        "26_document_export_task_type",
-        "sitmun",
-        "changelog/26_map_image_task_type_pre23.yaml",
-    ),
-    "22_map_image_task_type": (
-        "26_map_image_task_type",
-        "sitmun",
-        "changelog/26_map_image_task_type_pre23.yaml",
-    ),
-    "22b_map_image_task_type_seq": (
-        "26b_map_image_task_type_seq",
-        "sitmun",
-        "changelog/26_map_image_task_type_pre23.yaml",
-    ),
-    "22c_document_export_codelists": (
-        "26c_document_export_codelists",
-        "sitmun",
-        "changelog/26_map_image_task_type_pre23.yaml",
-    ),
-}
 
 
 def split_history(
@@ -151,9 +129,7 @@ def history_accepted(present: set[tuple[str, str, str]], rows: list[tuple[str, s
         return False
     gap = False
     for row in extra:
-        alternate = PRE23_SLOT.get(row[0])
-        filled = row in present or (alternate is not None and alternate in present)
-        if not filled:
+        if row not in present:
             gap = True
         elif gap:
             return False
@@ -169,11 +145,7 @@ def row_match(alias: str, row: tuple[str, str, str]) -> str:
 
 
 def filled_sql(row: tuple[str, str, str]) -> str:
-    parts = [f"({row_match('d', row)})"]
-    alternate = PRE23_SLOT.get(row[0])
-    if alternate is not None:
-        parts.append(f"({row_match('d', alternate)})")
-    return " OR ".join(parts)
+    return f"({row_match('d', row)})"
 
 
 def slot_query(extra: list[tuple[str, str, str]], from_dual: str) -> str:
