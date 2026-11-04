@@ -529,6 +529,10 @@ def task_type_insert(row: dict[str, str], oracle: bool) -> str:
     )
 
 
+def sql_id(value: str) -> str:
+    return "NULL" if value == "" else value
+
+
 def task_insert(row: dict[str, str]) -> str:
     name = sql_text(row["tas_name"])
     task_type = row["tas_ttaskid"]
@@ -537,8 +541,11 @@ def task_insert(row: dict[str, str]) -> str:
         columns = "tas_id, tas_name, tas_gtaskid, tas_ttaskid, tas_params"
         values = f"next_id, {name}, {row['tas_gtaskid']}, {task_type}, {params}"
     else:
-        columns = "tas_id, tas_name, tas_ttaskid, tas_tuiid, tas_params"
-        values = f"next_id, {name}, {task_type}, {row['tas_tuiid']}, {params}"
+        columns = "tas_id, tas_name, tas_gtaskid, tas_ttaskid, tas_tuiid, tas_params"
+        values = (
+            f"next_id, {name}, {sql_id(row['tas_gtaskid'])}, {task_type}, "
+            f"{sql_id(row['tas_tuiid'])}, {params}"
+        )
     return (
         f"INSERT INTO stm_task ({columns}) "
         f"SELECT {values} FROM (SELECT COALESCE(MAX(tas_id), 0) + 1 AS next_id FROM stm_task) ids "
