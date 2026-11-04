@@ -18,8 +18,7 @@
 #    - oracle.env: Production with Oracle (minimal seed data)
 #    - Optional profiles: ,demo (example demo DB; ,dev is a deprecated alias), ,mbtiles
 #
-# Docker Compose reads files in this order (last wins):
-#   .env → .env.local → Environment variables
+# `--env-file` replaces the automatic `.env` read.
 #
 # ============================================================================
 # Quick Start
@@ -33,17 +32,18 @@
 #   cp profiles/postgres.env .env
 #   docker compose up -d
 #
-# Local customization:
-#   echo "PUBLIC_PORT=8080" >> .env.local
+# Host port:
+#   echo "LOCAL_PORT=8080" >> .env
 #   docker compose up -d
 #
 # ============================================================================
-# Default Configuration (from committed .env)
+# Default configuration
 # ============================================================================
 #
 # Frontend:
 #   - ENVIRONMENT=development (shows "development", source maps enabled)
-#   - PUBLIC_PORT=9000 (http://localhost:9000)
+#   - PUBLIC_PORT=9000
+#   - LOCAL_PORT=9000
 #
 # Backend / Compose:
 #   - DATABASE_TYPE=postgres
