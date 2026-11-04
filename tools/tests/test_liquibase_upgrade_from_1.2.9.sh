@@ -193,6 +193,61 @@ wait_health() {
   return 1
 }
 
+run_sql_file() {
+  local file="$1"
+  if [[ "$KIND" == "postgres" ]]; then
+    "${DOCKER[@]}" exec -i "$CONTAINER" psql -U "$DB_USER" -d sitmun3 -v ON_ERROR_STOP=1 <"$file"
+  else
+    local service=sitmun3
+    [[ "$KIND" == "oracle11" ]] && service=XE
+    "${DOCKER[@]}" exec -i "$CONTAINER" bash -c "sqlplus -s ${DB_USER}/${DB_PASS}@//localhost:1521/${service}" <"$file"
+  fi
+}
+
+inject_duplicate_literal() {
+  local enabled=true
+  local sql="$TMP/duplicate-literal.sql"
+  [[ "$KIND" != "postgres" ]] && enabled=1
+  mkdir -p "$TMP"
+  cat >"$sql" <<EOF
+INSERT INTO stm_language (lan_id, lan_name, lan_shortname, lan_order, lan_enabled)
+SELECT next_id, 'Duplicate probe', 'xx', 99, ${enabled}
+FROM (SELECT COALESCE(MAX(lan_id), 0) + 1 AS next_id FROM stm_language) ids;
+INSERT INTO stm_literal_translation (ltr_id, ltr_literal, ltr_lanid)
+SELECT next_id, 'No data',
+       (SELECT MIN(ltr_lanid) FROM stm_literal_translation WHERE ltr_literal = 'No data')
+FROM (SELECT COALESCE(MAX(ltr_id), 0) + 1 AS next_id FROM stm_literal_translation) ids;
+INSERT INTO stm_literal_translation_value (ltv_id, ltv_ltrid, ltv_lanid, ltv_value)
+SELECT next_id,
+       (SELECT MAX(ltr_id) FROM stm_literal_translation WHERE ltr_literal = 'No data'),
+       (SELECT lan_id FROM stm_language WHERE lan_shortname = 'ca'),
+       'dropped duplicate'
+FROM (SELECT COALESCE(MAX(ltv_id), 0) + 1 AS next_id FROM stm_literal_translation_value) ids;
+INSERT INTO stm_literal_translation_value (ltv_id, ltv_ltrid, ltv_lanid, ltv_value)
+SELECT next_id,
+       (SELECT MAX(ltr_id) FROM stm_literal_translation WHERE ltr_literal = 'No data'),
+       (SELECT lan_id FROM stm_language WHERE lan_shortname = 'xx'),
+       'moved value'
+FROM (SELECT COALESCE(MAX(ltv_id), 0) + 1 AS next_id FROM stm_literal_translation_value) ids;
+EOF
+  if [[ "$KIND" != "postgres" ]]; then
+    printf 'COMMIT;\nEXIT\n' >>"$sql"
+  fi
+  run_sql_file "$sql"
+}
+
+assert_duplicate_literal_merged() {
+  local rows moved dropped
+  rows=$(sql_count "SELECT COUNT(*) FROM stm_literal_translation WHERE ltr_literal = 'No data'")
+  moved=$(sql_count "SELECT COUNT(*) FROM stm_literal_translation_value v JOIN stm_literal_translation ltr ON ltr.ltr_id = v.ltv_ltrid JOIN stm_language lang ON lang.lan_id = v.ltv_lanid WHERE ltr.ltr_literal = 'No data' AND lang.lan_shortname = 'xx' AND v.ltv_value = 'moved value'")
+  dropped=$(sql_count "SELECT COUNT(*) FROM stm_literal_translation_value WHERE ltv_value = 'dropped duplicate'")
+  if [[ "$rows" == "1" && "$moved" == "1" && "$dropped" == "0" ]]; then
+    ok "duplicate No data merged onto the lowest id"
+  else
+    fail "duplicate No data rows=$rows moved=$moved dropped=$dropped"
+  fi
+}
+
 run_stopped_at_22c() {
   if [[ "$ENGINE" != "oracle-11" && "$ENGINE" != "oracle-21" ]]; then
     echo "stopped-22c runs on oracle-11 or oracle-21" >&2
@@ -220,6 +275,7 @@ run_stopped_at_22c() {
   else
     fail "changelog 22=$present_22 22c=$absent_22c 23=$absent_23"
   fi
+  inject_duplicate_literal
   boot_backend
   if wait_health; then
     ok "stopped-at-22c upgrade health is UP"
@@ -227,6 +283,7 @@ run_stopped_at_22c() {
     fail "stopped-at-22c upgrade health did not come up"
     tail -60 "$BACKEND_LOG" || true
   fi
+  assert_duplicate_literal_merged
   stop_backend
 }
 
@@ -305,17 +362,6 @@ schema_filename() {
     echo "changelog/01_schema.postgresql.sql"
   else
     echo "changelog/01_schema.oracle.sql"
-  fi
-}
-
-run_sql_file() {
-  local file="$1"
-  if [[ "$KIND" == "postgres" ]]; then
-    "${DOCKER[@]}" exec -i "$CONTAINER" psql -U "$DB_USER" -d sitmun3 -v ON_ERROR_STOP=1 <"$file"
-  else
-    local service=sitmun3
-    [[ "$KIND" == "oracle11" ]] && service=XE
-    "${DOCKER[@]}" exec -i "$CONTAINER" bash -c "sqlplus -s ${DB_USER}/${DB_PASS}@//localhost:1521/${service}" <"$file"
   fi
 }
 
@@ -413,6 +459,7 @@ EXIT
 EOF
 fi
 run_sql_file "$SQLFILE"
+inject_duplicate_literal
 old_md5=$(sql_count "SELECT md5sum FROM databasechangelog WHERE id = '1' AND filename = '${SCHEMA_FILE}'")
 boot_backend
 if wait_health; then
@@ -444,6 +491,7 @@ if [[ "$partner_literal" == "1" ]]; then
 else
   fail "partner Catalan No data text count=$partner_literal"
 fi
+assert_duplicate_literal_merged
 aranes_ok=0
 while IFS='|' read -r literal expected; do
   count=$(sql_count "SELECT COUNT(*) FROM stm_literal_translation_value v JOIN stm_literal_translation ltr ON ltr.ltr_id = v.ltv_ltrid JOIN stm_language lang ON lang.lan_id = v.ltv_lanid WHERE ltr.ltr_literal = '${literal}' AND lang.lan_shortname = 'oc-aranes' AND v.ltv_value = '${expected}'")

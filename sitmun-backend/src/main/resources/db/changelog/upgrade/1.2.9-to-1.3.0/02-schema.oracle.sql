@@ -72,6 +72,53 @@ ALTER TABLE stm_service_usage
 
 UPDATE stm_tree_nod SET tno_active = 1 WHERE tno_active IS NULL;
 
+DELETE FROM stm_literal_translation_value extra
+WHERE EXISTS (
+    SELECT 1
+    FROM stm_literal_translation dup
+    WHERE dup.ltr_id = extra.ltv_ltrid
+      AND EXISTS (
+        SELECT 1
+        FROM stm_literal_translation earlier
+        WHERE earlier.ltr_literal = dup.ltr_literal
+          AND earlier.ltr_id < dup.ltr_id
+          AND EXISTS (
+            SELECT 1
+            FROM stm_literal_translation_value kept
+            WHERE kept.ltv_ltrid = earlier.ltr_id
+              AND kept.ltv_lanid = extra.ltv_lanid
+          )
+      )
+);
+
+UPDATE stm_literal_translation_value extra
+SET ltv_ltrid = (
+    SELECT MIN(keeper.ltr_id)
+    FROM stm_literal_translation keeper
+    WHERE keeper.ltr_literal = (
+        SELECT dup.ltr_literal
+        FROM stm_literal_translation dup
+        WHERE dup.ltr_id = extra.ltv_ltrid
+    )
+)
+WHERE EXISTS (
+    SELECT 1
+    FROM stm_literal_translation dup
+    WHERE dup.ltr_id = extra.ltv_ltrid
+      AND dup.ltr_id > (
+        SELECT MIN(keeper.ltr_id)
+        FROM stm_literal_translation keeper
+        WHERE keeper.ltr_literal = dup.ltr_literal
+      )
+);
+
+DELETE FROM stm_literal_translation dup
+WHERE dup.ltr_id > (
+    SELECT MIN(keeper.ltr_id)
+    FROM stm_literal_translation keeper
+    WHERE keeper.ltr_literal = dup.ltr_literal
+);
+
 CREATE UNIQUE INDEX stm_ltr_literal_uk ON stm_literal_translation (ORA_HASH(ltr_literal), LENGTH(ltr_literal), SUBSTR(ltr_literal, 1, 1000));
 
 UPDATE stm_app SET app_name = TO_CHAR(app_id) WHERE app_name IS NULL;

@@ -76,6 +76,53 @@ ALTER TABLE stm_tree_nod ALTER COLUMN tno_active SET DEFAULT true;
 
 ALTER TABLE stm_tree_nod ALTER COLUMN tno_active SET NOT NULL;
 
+DELETE FROM stm_literal_translation_value extra
+WHERE EXISTS (
+    SELECT 1
+    FROM stm_literal_translation dup
+    WHERE dup.ltr_id = extra.ltv_ltrid
+      AND EXISTS (
+        SELECT 1
+        FROM stm_literal_translation earlier
+        WHERE earlier.ltr_literal = dup.ltr_literal
+          AND earlier.ltr_id < dup.ltr_id
+          AND EXISTS (
+            SELECT 1
+            FROM stm_literal_translation_value kept
+            WHERE kept.ltv_ltrid = earlier.ltr_id
+              AND kept.ltv_lanid = extra.ltv_lanid
+          )
+      )
+);
+
+UPDATE stm_literal_translation_value extra
+SET ltv_ltrid = (
+    SELECT MIN(keeper.ltr_id)
+    FROM stm_literal_translation keeper
+    WHERE keeper.ltr_literal = (
+        SELECT dup.ltr_literal
+        FROM stm_literal_translation dup
+        WHERE dup.ltr_id = extra.ltv_ltrid
+    )
+)
+WHERE EXISTS (
+    SELECT 1
+    FROM stm_literal_translation dup
+    WHERE dup.ltr_id = extra.ltv_ltrid
+      AND dup.ltr_id > (
+        SELECT MIN(keeper.ltr_id)
+        FROM stm_literal_translation keeper
+        WHERE keeper.ltr_literal = dup.ltr_literal
+      )
+);
+
+DELETE FROM stm_literal_translation dup
+WHERE dup.ltr_id > (
+    SELECT MIN(keeper.ltr_id)
+    FROM stm_literal_translation keeper
+    WHERE keeper.ltr_literal = dup.ltr_literal
+);
+
 CREATE UNIQUE INDEX stm_ltr_literal_uk ON stm_literal_translation (md5(ltr_literal));
 
 ALTER TABLE stm_token_user ALTER COLUMN code_otp TYPE character varying(255);
