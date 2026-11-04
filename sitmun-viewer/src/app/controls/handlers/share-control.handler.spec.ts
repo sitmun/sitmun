@@ -273,6 +273,45 @@ describe('ShareControlHandler', () => {
       expect(setBaseLayer).toHaveBeenCalledWith('sitmun-no-base-map');
     });
 
+    it('omits empty measurement, feature-info, and draw exports', async () => {
+      await handler.loadPatches(mockAppCfg);
+      const snapshot = handler.capture({
+        generateLink: async () => '',
+        map: {
+          getExtent: () => [1, 2, 3, 4],
+          workLayers: [],
+          controls: [
+            { exportState: () => ({ id: 'meas-1', layer: { features: [] } }) },
+            { exportState: () => ({ id: 'finfo-1', layer: {} }) },
+            { exportState: () => ({ id: 'dmm-1', layer: { features: [] } }) }
+          ]
+        }
+      });
+
+      expect(snapshot.draw).toBeUndefined();
+    });
+
+    it('keeps a drawing, a measurement, and an imported file', async () => {
+      await handler.loadPatches(mockAppCfg);
+      const drawing = { id: 'dmm-1', layer: { features: ['line'] } };
+      const measurement = { id: 'meas-1', layer: { features: ['segment'] } };
+      const file = { id: 'file-1', layers: [{ title: 'parcels.geojson' }] };
+      const snapshot = handler.capture({
+        generateLink: async () => '',
+        map: {
+          getExtent: () => [1, 2, 3, 4],
+          workLayers: [],
+          controls: [
+            { exportState: () => drawing },
+            { exportState: () => measurement },
+            { exportState: () => file }
+          ]
+        }
+      });
+
+      expect(snapshot.draw).toEqual([drawing, measurement, file]);
+    });
+
     it('stores a drawing and a feature share, then puts both back', async () => {
       await handler.loadPatches(mockAppCfg);
       const drawing = { id: 'draw', layer: { features: ['line'] } };
