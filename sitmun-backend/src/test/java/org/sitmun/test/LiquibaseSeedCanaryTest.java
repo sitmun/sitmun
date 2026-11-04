@@ -171,6 +171,22 @@ class LiquibaseSeedCanaryTest {
     assertThat(name).as(POLLUTION + " (task 37)").isEqualTo("More Info Advanced");
   }
 
+  @Test
+  @DisplayName("Seed: document export tasks 31-34 are in group 1 with no UI control")
+  void documentExportTasksHaveGroupAndNoUiControl() {
+    List<Map<String, Object>> rows =
+        jdbc.queryForList(
+            "SELECT TAS_ID, TAS_GTASKID, TAS_TUIID FROM STM_TASK"
+                + " WHERE TAS_ID BETWEEN 31 AND 34 ORDER BY TAS_ID");
+    assertThat(rows).as(POLLUTION + " (tasks 31-34)").hasSize(4);
+    assertThat(rows)
+        .as(POLLUTION + " (tasks 31-34 group)")
+        .allSatisfy(row -> assertThat(asInt(row.get("TAS_GTASKID"))).isEqualTo(1));
+    assertThat(rows)
+        .as(POLLUTION + " (tasks 31-34 UI control)")
+        .allSatisfy(row -> assertThat(row.get("TAS_TUIID")).isNull());
+  }
+
   /**
    * Exact sequence watermarks. Enable with {@code -Dsitmun.seed-canary.sequences=exact} for
    * clean-DB checks and post-flake diagnosis. Disabled in the default suite because allocates
