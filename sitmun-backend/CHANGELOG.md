@@ -73,6 +73,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+- **Database**: The four seeded Export PDF tasks belong to task group Basic and have no UI control. An upgrade from 1.2.8 or 1.2.9 sets group 1 and clears UI control 1 on those named tasks when a group is still missing or that control is still Attribution. A group an administrator already chose stays ([#109](https://github.com/sitmun/sitmun/issues/109)).
 - **Service usage**: A usage day keeps its civil date on H2, PostgreSQL, and Oracle. Hibernate binds `LocalDate` with JDBC 4.2 (`hibernate.type.java_time_use_direct_jdbc`). The previous `java.sql.Date` write moved that day back when the JDBC zone was UTC and the JVM zone was ahead of UTC. Rows already stored stay on the day that was written.
 - **Database**: `SitmunOracleDialect` and `SitmunOracleLegacyDialect` take the connected database version. With only a no-argument constructor, Hibernate configured them as Oracle 19 and Oracle 8, so Oracle 11 got SQL generated for Oracle 8.
 - **Grants**: On Oracle, a user position created today grants access today. JPQL `cast(... as date)` kept the time of day there, so `cast(pos.createdDate as date) <= current_date` was false until the next day. The Oracle dialects truncate a cast to date.
