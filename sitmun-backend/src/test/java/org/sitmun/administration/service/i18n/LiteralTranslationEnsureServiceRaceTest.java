@@ -61,10 +61,12 @@ class LiteralTranslationEnsureServiceRaceTest {
         .thenReturn(Optional.empty())
         .thenReturn(Optional.of(existing));
     doThrow(new DataIntegrityViolationException("unique constraint")).when(session).doWork(any());
+    when(databaseDefaultLanguageResolver.requireLanguage()).thenReturn(english);
     when(literalTranslationValueRepository.findByLiteralTranslationIdAndLanguageShortname(42, "en"))
         .thenReturn(Optional.of(new LiteralTranslationValue()));
 
-    assertThatCode(() -> service.ensureLiteral(key, english)).doesNotThrowAnyException();
+    assertThatCode(() -> service.ensureLiteralsFromTemplateHtml("<p><t>" + key + "</t></p>"))
+        .doesNotThrowAnyException();
 
     verify(session, times(1)).doWork(any());
     verify(literalTranslationRepository, times(2)).findByLiteral(key);

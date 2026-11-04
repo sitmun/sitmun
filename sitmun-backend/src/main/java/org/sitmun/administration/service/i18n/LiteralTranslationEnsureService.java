@@ -6,7 +6,9 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Savepoint;
+import java.util.ArrayList;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -76,8 +78,7 @@ public class LiteralTranslationEnsureService {
     }
   }
 
-  @Transactional
-  public void ensureLiteral(String literal, Language sourceLanguage) {
+  private void ensureLiteral(String literal, Language sourceLanguage) {
     if (!StringUtils.hasText(literal) || sourceLanguage == null) {
       return;
     }
@@ -113,15 +114,17 @@ public class LiteralTranslationEnsureService {
               insert.setInt(3, sourceLanguage.getId());
               insert.executeUpdate();
             }
-            int valueId = nextSequenceValue(connection, "LTV_ID");
-            try (PreparedStatement insert =
-                connection.prepareStatement(
-                    "INSERT INTO STM_LITERAL_TRANSLATION_VALUE (LTV_ID, LTV_LTRID, LTV_LANID, LTV_VALUE) VALUES (?, ?, ?, ?)")) {
-              insert.setInt(1, valueId);
-              insert.setInt(2, literalId);
-              insert.setInt(3, sourceLanguage.getId());
-              insert.setString(4, literal);
-              insert.executeUpdate();
+            for (int languageId : languageIds(connection)) {
+              int valueId = nextSequenceValue(connection, "LTV_ID");
+              try (PreparedStatement insert =
+                  connection.prepareStatement(
+                      "INSERT INTO STM_LITERAL_TRANSLATION_VALUE (LTV_ID, LTV_LTRID, LTV_LANID, LTV_VALUE) VALUES (?, ?, ?, ?)")) {
+                insert.setInt(1, valueId);
+                insert.setInt(2, literalId);
+                insert.setInt(3, languageId);
+                insert.setString(4, literal);
+                insert.executeUpdate();
+              }
             }
             // Not released: the Oracle driver rejects releaseSavepoint. It ends with the
             // transaction.
@@ -136,6 +139,20 @@ public class LiteralTranslationEnsureService {
     if (duplicate.get()) {
       throw new DataIntegrityViolationException("literal exists");
     }
+  }
+
+  private static List<Integer> languageIds(Connection connection) throws SQLException {
+    List<Integer> ids = new ArrayList<>();
+    try (PreparedStatement select =
+        connection.prepareStatement(
+            "SELECT LAN_ID FROM STM_LANGUAGE ORDER BY LAN_ORDER, LAN_SHORTNAME")) {
+      try (ResultSet rows = select.executeQuery()) {
+        while (rows.next()) {
+          ids.add(rows.getInt(1));
+        }
+      }
+    }
+    return ids;
   }
 
   private static int nextSequenceValue(Connection connection, String name) throws SQLException {
