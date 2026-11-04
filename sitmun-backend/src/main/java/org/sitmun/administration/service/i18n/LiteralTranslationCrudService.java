@@ -33,6 +33,7 @@ public class LiteralTranslationCrudService {
   private final LiteralTranslationRepository literalTranslationRepository;
   private final LiteralTranslationValueRepository literalTranslationValueRepository;
   private final LanguageRepository languageRepository;
+  private final LiteralTranslationWriteLock literalTranslationWriteLock;
   private final ObjectMapper objectMapper;
 
   @Transactional(readOnly = true)
@@ -60,6 +61,7 @@ public class LiteralTranslationCrudService {
     String literal = requireLiteral(requestDto.getLiteral());
     String language = requireLanguage(requestDto.getLanguage());
     Language sourceLanguage = requireSourceLanguage(requestDto.getSourceLanguage());
+    literalTranslationWriteLock.acquire();
     rejectDuplicateLiteral(literal, null);
 
     LiteralTranslation saved =
@@ -75,6 +77,7 @@ public class LiteralTranslationCrudService {
     String literal = requireLiteral(requestDto.getLiteral());
     String language = requireLanguage(requestDto.getLanguage());
     Language sourceLanguage = requireSourceLanguage(requestDto.getSourceLanguage());
+    literalTranslationWriteLock.acquire();
     rejectDuplicateLiteral(literal, id);
     validateSourceLanguageChange(literalTranslation, sourceLanguage);
 

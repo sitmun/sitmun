@@ -34,7 +34,11 @@ class LiteralTranslationCrudServiceTest {
     languageRepository = mock(LanguageRepository.class);
     service =
         new LiteralTranslationCrudService(
-            literalRepository, valueRepository, languageRepository, new ObjectMapper());
+            literalRepository,
+            valueRepository,
+            languageRepository,
+            mock(LiteralTranslationWriteLock.class),
+            new ObjectMapper());
   }
 
   @Test

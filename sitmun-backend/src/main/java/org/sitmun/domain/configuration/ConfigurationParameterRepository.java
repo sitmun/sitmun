@@ -2,12 +2,14 @@ package org.sitmun.domain.configuration;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.persistence.LockModeType;
+import jakarta.persistence.QueryHint;
 import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.jpa.repository.QueryHints;
 import org.springframework.data.repository.query.Param;
 import org.springframework.data.rest.core.annotation.RepositoryRestResource;
 import org.springframework.data.rest.core.annotation.RestResource;
@@ -44,6 +46,7 @@ public interface ConfigurationParameterRepository
    * @return Configuration parameter if found
    */
   @Lock(LockModeType.PESSIMISTIC_WRITE)
+  @QueryHints(@QueryHint(name = "jakarta.persistence.lock.timeout", value = "10000"))
   @Query("select cp from ConfigurationParameter cp where cp.name = :name")
   Optional<ConfigurationParameter> findByNameForUpdate(@Param("name") String name);
 }

@@ -1,54 +1,44 @@
 package org.sitmun.administration.service.i18n;
 
-import jakarta.persistence.EntityManager;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Savepoint;
-import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import lombok.extern.slf4j.Slf4j;
-import org.hibernate.Session;
 import org.sitmun.infrastructure.persistence.type.i18n.DatabaseDefaultLanguageResolver;
 import org.sitmun.infrastructure.persistence.type.i18n.Language;
+import org.sitmun.infrastructure.persistence.type.i18n.LanguageRepository;
 import org.sitmun.infrastructure.persistence.type.i18n.LiteralTranslation;
 import org.sitmun.infrastructure.persistence.type.i18n.LiteralTranslationRepository;
 import org.sitmun.infrastructure.persistence.type.i18n.LiteralTranslationValue;
 import org.sitmun.infrastructure.persistence.type.i18n.LiteralTranslationValueRepository;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 @Service
-@Slf4j
 public class LiteralTranslationEnsureService {
 
   private static final Pattern TAG_PATTERN = Pattern.compile("<t>(.*?)</t>", Pattern.DOTALL);
 
-  private static final String INSERT_SAVEPOINT = "stm_ltr_insert";
-
   private final LiteralTranslationRepository literalTranslationRepository;
   private final LiteralTranslationValueRepository literalTranslationValueRepository;
   private final DatabaseDefaultLanguageResolver databaseDefaultLanguageResolver;
-  private final EntityManager entityManager;
+  private final LiteralTranslationWriteLock literalTranslationWriteLock;
+  private final LanguageRepository languageRepository;
 
   public LiteralTranslationEnsureService(
       LiteralTranslationRepository literalTranslationRepository,
       LiteralTranslationValueRepository literalTranslationValueRepository,
       DatabaseDefaultLanguageResolver databaseDefaultLanguageResolver,
-      EntityManager entityManager) {
+      LiteralTranslationWriteLock literalTranslationWriteLock,
+      LanguageRepository languageRepository) {
     this.literalTranslationRepository = literalTranslationRepository;
     this.literalTranslationValueRepository = literalTranslationValueRepository;
     this.databaseDefaultLanguageResolver = databaseDefaultLanguageResolver;
-    this.entityManager = entityManager;
+    this.literalTranslationWriteLock = literalTranslationWriteLock;
+    this.languageRepository = languageRepository;
   }
 
   public static Set<String> extractLiteralKeys(String html) {
@@ -69,130 +59,47 @@ public class LiteralTranslationEnsureService {
   @Transactional
   public void ensureLiteralsFromTemplateHtml(String templateHtml) {
     Set<String> keys = extractLiteralKeys(templateHtml);
-    if (keys.isEmpty()) {
+    if (keys.isEmpty() || ready(keys)) {
       return;
     }
+    literalTranslationWriteLock.acquire();
     Language sourceLanguage = databaseDefaultLanguageResolver.requireLanguage();
+    List<LiteralTranslation> stored = literalTranslationRepository.findByLiteralIn(keys);
     for (String key : keys) {
-      ensureLiteral(key, sourceLanguage);
+      Optional<LiteralTranslation> existing =
+          stored.stream().filter(row -> key.equals(row.getLiteral())).findFirst();
+      if (existing.isEmpty()) {
+        insertLiteral(key, sourceLanguage);
+      } else {
+        syncSourceValueIfMissing(existing.get(), key);
+      }
     }
   }
 
-  private void ensureLiteral(String literal, Language sourceLanguage) {
-    if (!StringUtils.hasText(literal) || sourceLanguage == null) {
-      return;
+  private boolean ready(Set<String> keys) {
+    List<LiteralTranslation> rows = literalTranslationRepository.findByLiteralIn(keys);
+    if (rows.size() != keys.size()) {
+      return false;
     }
-    Optional<LiteralTranslation> existing = literalTranslationRepository.findByLiteral(literal);
-    if (existing.isPresent()) {
-      syncSourceValueIfMissing(existing.get(), literal);
-      return;
+    for (LiteralTranslation row : rows) {
+      if (sourceValue(row).isEmpty()) {
+        return false;
+      }
     }
-    try {
-      insertLiteral(literal, sourceLanguage);
-    } catch (DataIntegrityViolationException ex) {
-      log.debug("Literal already exists concurrently: {}", literal);
-      literalTranslationRepository
-          .findByLiteral(literal)
-          .ifPresent(found -> syncSourceValueIfMissing(found, literal));
-    }
+    return true;
   }
 
   private void insertLiteral(String literal, Language sourceLanguage) {
-    Session session = entityManager.unwrap(Session.class);
-    AtomicBoolean duplicate = new AtomicBoolean();
-    session.doWork(
-        connection -> {
-          // A SQLException that leaves doWork marks this Hibernate transaction rollback-only.
-          Savepoint savepoint = connection.setSavepoint(INSERT_SAVEPOINT);
-          try {
-            int literalId = nextSequenceValue(connection, "LTR_ID");
-            try (PreparedStatement insert =
-                connection.prepareStatement(
-                    "INSERT INTO STM_LITERAL_TRANSLATION (LTR_ID, LTR_LITERAL, LTR_LANID) VALUES (?, ?, ?)")) {
-              insert.setInt(1, literalId);
-              insert.setString(2, literal);
-              insert.setInt(3, sourceLanguage.getId());
-              insert.executeUpdate();
-            }
-            for (int languageId : languageIds(connection)) {
-              int valueId = nextSequenceValue(connection, "LTV_ID");
-              try (PreparedStatement insert =
-                  connection.prepareStatement(
-                      "INSERT INTO STM_LITERAL_TRANSLATION_VALUE (LTV_ID, LTV_LTRID, LTV_LANID, LTV_VALUE) VALUES (?, ?, ?, ?)")) {
-                insert.setInt(1, valueId);
-                insert.setInt(2, literalId);
-                insert.setInt(3, languageId);
-                insert.setString(4, literal);
-                insert.executeUpdate();
-              }
-            }
-            // Not released: the Oracle driver rejects releaseSavepoint. It ends with the
-            // transaction.
-          } catch (SQLException ex) {
-            connection.rollback(savepoint);
-            if (!isUniqueViolation(ex)) {
-              throw ex;
-            }
-            duplicate.set(true);
-          }
-        });
-    if (duplicate.get()) {
-      throw new DataIntegrityViolationException("literal exists");
+    LiteralTranslation saved =
+        literalTranslationRepository.saveAndFlush(
+            LiteralTranslation.builder().literal(literal).sourceLanguage(sourceLanguage).build());
+    for (Language language : languageRepository.findAll()) {
+      LiteralTranslationValue row = new LiteralTranslationValue();
+      row.setLiteralTranslation(saved);
+      row.setLanguage(language);
+      row.setValue(literal);
+      literalTranslationValueRepository.save(row);
     }
-  }
-
-  private static List<Integer> languageIds(Connection connection) throws SQLException {
-    List<Integer> ids = new ArrayList<>();
-    try (PreparedStatement select =
-        connection.prepareStatement(
-            "SELECT LAN_ID FROM STM_LANGUAGE ORDER BY LAN_ORDER, LAN_SHORTNAME")) {
-      try (ResultSet rows = select.executeQuery()) {
-        while (rows.next()) {
-          ids.add(rows.getInt(1));
-        }
-      }
-    }
-    return ids;
-  }
-
-  private static int nextSequenceValue(Connection connection, String name) throws SQLException {
-    while (true) {
-      int current;
-      try (PreparedStatement select =
-          connection.prepareStatement(
-              "SELECT SEQ_COUNT FROM STM_SEQUENCE WHERE SEQ_NAME = ? FOR UPDATE")) {
-        select.setString(1, name);
-        try (ResultSet rows = select.executeQuery()) {
-          if (!rows.next()) {
-            throw new SQLException("Missing sequence " + name);
-          }
-          current = rows.getInt(1);
-        }
-      }
-      int next = current + 1;
-      try (PreparedStatement update =
-          connection.prepareStatement(
-              "UPDATE STM_SEQUENCE SET SEQ_COUNT = ? WHERE SEQ_NAME = ? AND SEQ_COUNT = ?")) {
-        update.setInt(1, next);
-        update.setString(2, name);
-        update.setInt(3, current);
-        if (update.executeUpdate() == 1) {
-          return next;
-        }
-      }
-    }
-  }
-
-  private static boolean isUniqueViolation(SQLException failure) {
-    SQLException current = failure;
-    while (current != null) {
-      if ("23505".equals(current.getSQLState())
-          || (current.getErrorCode() == 1 && "23000".equals(current.getSQLState()))) {
-        return true;
-      }
-      current = current.getNextException();
-    }
-    return false;
   }
 
   private void syncSourceValueIfMissing(LiteralTranslation literalTranslation, String literal) {
@@ -200,12 +107,18 @@ public class LiteralTranslationEnsureService {
     if (source == null || !StringUtils.hasText(source.getShortname())) {
       return;
     }
-    Optional<LiteralTranslationValue> existing =
-        literalTranslationValueRepository.findByLiteralTranslationIdAndLanguageShortname(
-            literalTranslation.getId(), source.getShortname());
-    if (existing.isEmpty()) {
+    if (sourceValue(literalTranslation).isEmpty()) {
       upsertValue(literalTranslation, source, literal);
     }
+  }
+
+  private Optional<LiteralTranslationValue> sourceValue(LiteralTranslation literalTranslation) {
+    Language source = literalTranslation.getSourceLanguage();
+    if (source == null || !StringUtils.hasText(source.getShortname())) {
+      return Optional.empty();
+    }
+    return literalTranslationValueRepository.findByLiteralTranslationIdAndLanguageShortname(
+        literalTranslation.getId(), source.getShortname());
   }
 
   private void upsertValue(LiteralTranslation literalTranslation, Language language, String value) {
