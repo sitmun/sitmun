@@ -234,6 +234,45 @@ describe('ShareControlHandler', () => {
       );
     });
 
+    it('stores an empty background and puts that background back', async () => {
+      await handler.loadPatches({
+        ...mockAppCfg,
+        layers: [
+          {
+            id: '20',
+            title: 'Ortofoto',
+            layers: [],
+            service: 'service/1'
+          }
+        ]
+      } as AppCfg);
+      const snapshot = handler.capture({
+        generateLink: async () => '',
+        map: {
+          getExtent: () => [1, 2, 3, 4],
+          baseLayer: { id: 'sitmun-no-base-map' },
+          options: { defaultBaseLayer: 'Ortofoto' },
+          workLayers: []
+        }
+      });
+
+      expect(snapshot.base).toBe('sitmun-no-base-map');
+
+      const setBaseLayer = jest.fn();
+      const restored = await handler.restore(
+        {
+          setBaseLayer,
+          setExtent: jest.fn(),
+          workLayers: [],
+          controls: []
+        },
+        encodeMapState(snapshot)
+      );
+
+      expect(restored).toBe(true);
+      expect(setBaseLayer).toHaveBeenCalledWith('sitmun-no-base-map');
+    });
+
     it('stores a drawing and a feature share, then puts both back', async () => {
       await handler.loadPatches(mockAppCfg);
       const drawing = { id: 'draw', layer: { features: ['line'] } };
