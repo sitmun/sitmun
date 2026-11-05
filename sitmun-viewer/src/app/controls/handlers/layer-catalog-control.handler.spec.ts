@@ -818,6 +818,63 @@ describe('LayerCatalogControlHandler', () => {
       expect(addedLayer.renderOptions.opacity).toBe(0.5);
     });
 
+    async function displayedTitles(type: 'WMS' | 'WFS'): Promise<{
+      workLayerRow: string;
+      legendHeading: string;
+    }> {
+      const capabilitiesTitle = 'CAE1M (Guia de carrers) - Illes urbanes';
+      const serviceLayerName = 'CAE1M_141A';
+      const treeNodeTitle = 'Adreça';
+      const addedLayer: any = {};
+      const { TC } = buildMockTC(addedLayer);
+      mockSitnaApi.getTC.mockReturnValue(TC as any);
+      mockVirtualCapabilities.findRealLayerConfig = jest.fn().mockReturnValue({
+        url: 'https://sitmun.diba.cat/wms/servlet/CAE1M',
+        type,
+        layerNames: [serviceLayerName],
+        serviceId: 'service/cae'
+      });
+      mockConfigLookup.findNode.mockImplementation((nodeId: string) =>
+        nodeId === 'node/adreca'
+          ? ({ title: treeNodeTitle, resource: 'layer/cae' } as AppNodeInfo)
+          : undefined
+      );
+      mockSitnaApi.setGlobal('currentAppCfg', minimalContext);
+      await handler['patchLayerCatalogAddLayerToMap']();
+      const addLayer = jest.fn().mockResolvedValue(addedLayer);
+      await TC.control.LayerCatalog.prototype.addLayerToMap.call(
+        {
+          map: { crs: 'EPSG:25831', addLayer },
+          getUID: () => 'uid-1',
+          showProjectionChangeDialog: () => undefined
+        },
+        {
+          title: capabilitiesTitle,
+          url: 'virtual://sitmun/node-adreca',
+          type: 'WMS',
+          options: {}
+        },
+        'node/adreca'
+      );
+      const layerTitle = addLayer.mock.calls[0][0].title as string | undefined;
+      return {
+        workLayerRow: layerTitle || serviceLayerName,
+        legendHeading: layerTitle || capabilitiesTitle
+      };
+    }
+
+    it('shows the tree node title on the working-layers row and the legend for WMS', async () => {
+      const titles = await displayedTitles('WMS');
+      expect(titles.workLayerRow).toBe('Adreça');
+      expect(titles.legendHeading).toBe('Adreça');
+    });
+
+    it('shows the tree node title on the working-layers row and the legend for WFS', async () => {
+      const titles = await displayedTitles('WFS');
+      expect(titles.workLayerRow).toBe('Adreça');
+      expect(titles.legendHeading).toBe('Adreça');
+    });
+
     it('skips setOpacity when transparency is 0 (default opaque)', async () => {
       const setOpacityMock = jest.fn();
       const addedLayer: any = { setOpacity: setOpacityMock };
