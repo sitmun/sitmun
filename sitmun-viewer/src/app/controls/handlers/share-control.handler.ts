@@ -219,10 +219,18 @@ function isDrawState(state: unknown): boolean {
     return false;
   }
   const record = state as { layer?: unknown; layers?: unknown };
-  if (record.layer != null) {
+  if (hasDrawnFeatures(record.layer)) {
     return true;
   }
   return Array.isArray(record.layers) && record.layers.length > 0;
+}
+
+function hasDrawnFeatures(layer: unknown): boolean {
+  if (!layer || typeof layer !== 'object') {
+    return false;
+  }
+  const features = (layer as { features?: unknown }).features;
+  return Array.isArray(features) && features.length > 0;
 }
 
 function defaultProfileLayerIds(cfg: AppCfg | null): string[] {
