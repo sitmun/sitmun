@@ -25,7 +25,9 @@ describe('AuthenticationGuard', () => {
           provide: AuthenticationService,
           useValue: {
             isLoggedIn,
-            getAuthConfig: () => CustomAuthConfig
+            getAuthConfig: () => CustomAuthConfig,
+            rememberReturnUrl: jest.fn(),
+            takeReturnUrl: jest.fn()
           }
         },
         {
@@ -45,12 +47,18 @@ describe('AuthenticationGuard', () => {
   it('blocks unauthenticated access to private routes and sends user to login', () => {
     isLoggedIn.mockReturnValue(false);
 
-    expect(activate('/user/dashboard')).toBe(false);
+    expect(activate('/user/map/12/4?mapState=tok')).toBe(false);
     expect(navigate).toHaveBeenCalledWith([NavigationPath.Auth.Login], {
       queryParams: {
-        [CustomAuthConfig.routes.loginQueryParam]: '/user/dashboard'
+        [CustomAuthConfig.routes.loginQueryParam]: '/user/map/12/4?mapState=tok'
       }
     });
+    const auth = TestBed.inject(AuthenticationService) as unknown as {
+      rememberReturnUrl: jest.Mock;
+    };
+    expect(auth.rememberReturnUrl).toHaveBeenCalledWith(
+      '/user/map/12/4?mapState=tok'
+    );
   });
 
   it('allows unauthenticated access to public routes', () => {
@@ -75,6 +83,23 @@ describe('AuthenticationGuard', () => {
     expect(result).not.toBe(true);
     expect(String(result)).toContain(NavigationPath.Section.User.Dashboard);
     expect(navigate).not.toHaveBeenCalled();
+  });
+
+  it('sends an already signed-in person from the login page back to the shared map', () => {
+    isLoggedIn.mockReturnValue(true);
+    const auth = TestBed.inject(AuthenticationService) as unknown as {
+      takeReturnUrl: jest.Mock;
+    };
+    auth.takeReturnUrl.mockReturnValue('/user/map/12/4?mapState=tok');
+    const parseUrl = jest.fn(
+      (url: string) => ({ toString: () => url }) as UrlTree
+    );
+    const router = TestBed.inject(Router) as unknown as { parseUrl: jest.Mock };
+    router.parseUrl = parseUrl;
+
+    const result = activate('/auth/login');
+
+    expect(String(result)).toBe('/user/map/12/4?mapState=tok');
   });
 
   it('allows authenticated access to private user routes', () => {

@@ -30,7 +30,7 @@ export class AuthenticationGuard {
     if (!isPublicUrl && !isAuthenticated) {
       // Remove any floating MIA popups before redirecting to login
       document.querySelectorAll('.sitmun-mia-popup-overlay').forEach((el) => el.remove());
-      // Sent to login (+ url to redirect after successfully)
+      this.authenticationService.rememberReturnUrl(state.url);
       this.router
         .navigate([AUTH_CONFIG.routes.loginPath], {
           queryParams: {
@@ -42,8 +42,18 @@ export class AuthenticationGuard {
     }
 
     if (isAuthenticated && url.startsWith(NavigationPath.Auth.Base)) {
-      // Authenticated users must not activate auth pages; public routes clear session via publicAuthClearGuard.
-      return this.router.createUrlTree([NavigationPath.Section.User.Dashboard]);
+      const onLogin =
+        url === NavigationPath.Auth.Login ||
+        url.startsWith(`${NavigationPath.Auth.Login}?`);
+      const returnUrl = onLogin
+        ? this.authenticationService.takeReturnUrl()
+        : null;
+      if (returnUrl) {
+        return this.router.parseUrl(returnUrl);
+      }
+      return this.router.createUrlTree([
+        NavigationPath.Section.User.Dashboard
+      ]);
     }
 
     //  isAuthenticated && !isPublicUrl => OK

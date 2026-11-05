@@ -169,6 +169,7 @@
   "map.error.baseLayers": "No hay capas definidas como base. Por favor, añada al menos una capa base e inténtelo de nuevo.",
   "map.error.config.empty": "La configuración del mapa está vacía. Por favor, revise la configuración de la aplicación.",
   "map.error.config.fetch.failed": "Error al cargar la configuración del mapa. Por favor, inténtelo de nuevo.",
+  "map.error.access.denied": "No puede abrir este mapa.",
   "map.error.config.invalid": "La configuración del mapa no es válida.",
   "map.error.config.processing.failed": "Error al procesar la configuración del mapa. Por favor, revise la configuración de la aplicación.",
   "map.error.config.undefined": "La configuración del mapa no está definida.",

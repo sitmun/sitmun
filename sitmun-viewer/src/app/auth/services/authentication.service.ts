@@ -41,12 +41,17 @@ import { NotificationService } from '../../notifications/services/NotificationSe
 
 const PROXY_ERROR_THRESHOLD = 3;
 
+function isAppReturnPath(url: unknown): url is string {
+  return typeof url === 'string' && url.startsWith('/') && !url.startsWith('//');
+}
+
 @Injectable({
   providedIn: 'root'
 })
 export class AuthenticationService<T> {
   // sessionStorage keys
   private readonly USERNAME_KEY: string;
+  private readonly RETURN_URL_KEY: string;
 
   private proxyRefreshSubscription: Subscription | null = null;
   private sessionRefreshSubscription: Subscription | null = null;
@@ -68,6 +73,7 @@ export class AuthenticationService<T> {
     @Inject(AUTH_CONFIG_DI) private readonly config: AuthConfig<T>
   ) {
     this.USERNAME_KEY = this.config.localStoragePrefix + '_username';
+    this.RETURN_URL_KEY = this.config.localStoragePrefix + '_return_url';
     this.setupServiceWorkerListener();
   }
 
@@ -123,17 +129,35 @@ export class AuthenticationService<T> {
       );
   }
 
-  loginRedirect(route: ActivatedRoute) {
-    // Check for redirect query parameter
-    const redirectUrl =
-      route.snapshot.queryParams[QueryParam.Login.RedirectAfterLogin];
-
-    if (redirectUrl) {
-      // Redirect to the originally requested URL
-      void this.router.navigateByUrl(redirectUrl);
-    } else {
-      void this.router.navigateByUrl(NavigationPath.Section.User.Dashboard);
+  rememberReturnUrl(url: string | null | undefined): void {
+    if (!isAppReturnPath(url)) {
+      return;
     }
+    sessionStorage.setItem(this.RETURN_URL_KEY, url);
+  }
+
+  retainReturnUrl(url: string | null | undefined): void {
+    if (!isAppReturnPath(url)) {
+      sessionStorage.removeItem(this.RETURN_URL_KEY);
+    }
+  }
+
+  takeReturnUrl(): string | null {
+    const stored = sessionStorage.getItem(this.RETURN_URL_KEY);
+    sessionStorage.removeItem(this.RETURN_URL_KEY);
+    return isAppReturnPath(stored) ? stored : null;
+  }
+
+  loginRedirect(route: ActivatedRoute) {
+    const fromQuery =
+      route.snapshot.queryParams[QueryParam.Login.RedirectAfterLogin];
+    const redirectUrl = isAppReturnPath(fromQuery)
+      ? fromQuery
+      : this.takeReturnUrl();
+    sessionStorage.removeItem(this.RETURN_URL_KEY);
+    void this.router.navigateByUrl(
+      redirectUrl ?? NavigationPath.Section.User.Dashboard
+    );
   }
 
   clearAuthentication(): Observable<void> {
