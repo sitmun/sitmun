@@ -169,6 +169,7 @@
   "map.error.baseLayers": "There are no layers defined as background. Please add at least one base layer and try again.",
   "map.error.config.empty": "Map configuration is empty. Please check the application settings.",
   "map.error.config.fetch.failed": "Failed to load map configuration. Please try again.",
+  "map.error.access.denied": "You cannot open this map.",
   "map.error.config.invalid": "Map configuration is invalid.",
   "map.error.config.processing.failed": "Failed to process map configuration. Please check the application settings.",
   "map.error.config.undefined": "Map configuration is undefined.",

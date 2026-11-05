@@ -39,6 +39,8 @@ import { MoreInfoAdvancedService } from 'src/app/services/more-info-advanced.ser
 import { SitnaApiService } from 'src/app/services/sitna-api.service';
 import { ToolsPanelSplitterService } from 'src/app/services/tools-panel-splitter.service';
 
+import { mapConfigurationErrorKey } from './map-configuration-error';
+
 const MAP_LOAD_TIMEOUT_MS = 30_000;
 
 type LoadingState =
@@ -169,7 +171,7 @@ export abstract class AbstractMapComponent implements OnInit, OnDestroy {
           );
 
           this.dialog.open(ErrorModalComponent, {
-            data: { message: 'map.error.config.fetch.failed' },
+            data: { message: mapConfigurationErrorKey(error?.status) },
             role: 'alertdialog',
             injector: this.injector
           });
@@ -240,7 +242,7 @@ export abstract class AbstractMapComponent implements OnInit, OnDestroy {
               error
             );
             this.dialog.open(ErrorModalComponent, {
-              data: { message: 'map.error.config.fetch.failed' },
+              data: { message: mapConfigurationErrorKey(error?.status) },
               role: 'alertdialog',
               injector: this.injector
             });

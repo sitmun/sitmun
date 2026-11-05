@@ -53,7 +53,11 @@ describe('LoginComponent', () => {
             isLoggedIn: jest.fn(),
             getAuthConfig: jest.fn(),
             getAuthMethods: jest.fn().mockReturnValue(of([])),
-            getLoggedDetails: jest.fn()
+            getLoggedDetails: jest.fn(),
+            rememberReturnUrl: jest.fn(),
+            retainReturnUrl: jest.fn(),
+            initOidcAuth: jest.fn(),
+            loginRedirect: jest.fn()
           }
         },
         {
@@ -75,6 +79,23 @@ describe('LoginComponent', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('keeps the shared map when the external login starts', () => {
+    const route = TestBed.inject(ActivatedRoute);
+    route.snapshot.queryParams['redirect-after-login'] =
+      '/user/map/12/4?mapState=tok';
+    const auth = TestBed.inject(AuthenticationService) as unknown as {
+      rememberReturnUrl: jest.Mock;
+      initOidcAuth: jest.Mock;
+    };
+
+    component.initAuth('oidc-provider');
+
+    expect(auth.rememberReturnUrl).toHaveBeenCalledWith(
+      '/user/map/12/4?mapState=tok'
+    );
+    expect(auth.initOidcAuth).toHaveBeenCalledWith('oidc-provider');
   });
 
   it('publicDashboard navigates to the public dashboard URL', () => {
@@ -118,7 +139,9 @@ describe('LoginComponent', () => {
             isLoggedIn: jest.fn().mockReturnValue(false),
             getAuthConfig: jest.fn(),
             getAuthMethods: jest.fn().mockReturnValue(of([])),
-            getLoggedDetails: jest.fn()
+            getLoggedDetails: jest.fn(),
+            retainReturnUrl: jest.fn(),
+            loginRedirect: jest.fn()
           }
         },
         {

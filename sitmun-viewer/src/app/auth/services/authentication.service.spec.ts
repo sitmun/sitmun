@@ -358,6 +358,23 @@ describe('AuthenticationService (FS-03)', () => {
     expect(warning).toHaveBeenCalledTimes(1);
   });
 
+  it('returns to the stored map after an external login and forgets it', () => {
+    service.rememberReturnUrl('/user/map/12/4?mapState=tok');
+    service.rememberReturnUrl('//evil.example');
+
+    service.loginRedirect({ snapshot: { queryParams: {} } } as never);
+
+    expect(router.navigateByUrl).toHaveBeenCalledWith(
+      '/user/map/12/4?mapState=tok'
+    );
+
+    service.loginRedirect({ snapshot: { queryParams: {} } } as never);
+
+    expect(router.navigateByUrl).toHaveBeenLastCalledWith(
+      NavigationPath.Section.User.Dashboard
+    );
+  });
+
   it('deduplicates repeated proxy denial warnings', () => {
     const warning = jest.spyOn(notificationService, 'warning');
 

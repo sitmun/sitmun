@@ -79,7 +79,7 @@ export default defineConfig({
     },
     {
       name: 'viewer-password',
-      testMatch: /(password-access|profile-positions)\.spec\.ts/,
+      testMatch: /(password-access|profile-positions|restricted-share-link)\.spec\.ts/,
       dependencies: ['viewer-setup'],
       use: { ...devices['Desktop Chrome'] },
     },

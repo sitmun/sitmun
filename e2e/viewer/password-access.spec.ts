@@ -158,7 +158,7 @@ test.describe('Viewer password access', () => {
 
     await page.goto(`/user/map/${APP_ID}/${MENORCA_TERRITORY_ID}`);
     await expect(page.getByRole('alertdialog')).toContainText(
-      'Failed to load map configuration. Please try again.',
+      'You cannot open this map.',
     );
     await savePositionEvidence(page, '184-profile-denied.png');
   });

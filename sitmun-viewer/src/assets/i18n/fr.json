@@ -169,6 +169,7 @@
   "map.error.baseLayers": "Aucune couche de fond définie. Veuillez en ajouter au moins une et réessayer.",
   "map.error.config.empty": "La configuration de la carte est vide. Veuillez vérifier les paramètres de l'application.",
   "map.error.config.fetch.failed": "Échec du chargement de la configuration de la carte. Veuillez réessayer.",
+  "map.error.access.denied": "Vous ne pouvez pas ouvrir cette carte.",
   "map.error.config.invalid": "La configuration de la carte n'est pas valide.",
   "map.error.config.processing.failed": "Échec du traitement de la configuration de la carte. Veuillez vérifier les paramètres de l'application.",
   "map.error.config.undefined": "La configuration de la carte n'est pas définie.",

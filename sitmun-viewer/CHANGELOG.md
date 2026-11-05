@@ -22,6 +22,7 @@ All notable changes to this project will be documented in this file. The format 
 
 ### Fixed
 
+- **Map**: A restricted share link keeps `mapState` through the password form and the external login button. A person who cannot open that application and territory sees `map.error.access.denied`, and the map does not start ([#221](https://github.com/sitmun/sitmun-viewer-app/issues/221)).
 - **Map**: A share link stores an empty background and opens with no background. The profile default background stays out of the link ([#196](https://github.com/sitmun/sitmun-viewer-app/issues/196)).
 - **Map**: A share link omits an empty measurement, feature-info, or draw layer. A drawing, a measurement, or an imported file is still stored and restored ([#194](https://github.com/sitmun/sitmun-viewer-app/issues/194)).
 - **Map**: A share link stores the WMS sublayers that differ from the profile and restores that list. A layer whose sublayers still match the profile omits the list ([#195](https://github.com/sitmun/sitmun-viewer-app/issues/195)).
