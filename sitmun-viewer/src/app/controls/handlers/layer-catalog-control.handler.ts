@@ -702,13 +702,13 @@ export class LayerCatalogControlHandler extends ControlHandlerBase {
                 );
                 return joinPoint.proceed();
               }
-              const nodeTitle = handler.getNodeTitle(layerName, appCfgAdd);
 
-              if (nodeTitle && newLayer.Capability?.Layer) {
+              const capabilityRoot = newLayer.capabilities?.Capability?.Layer;
+              if (treeNodeTitle && capabilityRoot) {
                 handler.updateLayerTitleInCapabilities(
-                  newLayer.Capability.Layer,
+                  capabilityRoot,
                   effectiveLayerNames,
-                  nodeTitle
+                  treeNodeTitle
                 );
               }
 
@@ -2712,28 +2712,6 @@ export class LayerCatalogControlHandler extends ControlHandlerBase {
   // ============================================================================
 
   /**
-   * Get the title of a node from apiConfig by nodeId.
-   */
-  private getNodeTitle(nodeId: string, apiConfig: AppCfg): string | null {
-    if (!apiConfig?.trees) {
-      return null;
-    }
-
-    for (const tree of apiConfig.trees) {
-      if (!tree.nodes) {
-        continue;
-      }
-
-      const node = tree.nodes[nodeId];
-      if (node?.title) {
-        return node.title;
-      }
-    }
-
-    return null;
-  }
-
-  /**
    * Get the Raster prototype from SITNA/TC, if present.
    */
   private getRasterPrototype(TC: any): any {
@@ -2757,6 +2735,7 @@ export class LayerCatalogControlHandler extends ControlHandlerBase {
 
     if (layer.Name && layerNames.includes(layer.Name)) {
       layer.Title = newTitle;
+      layer.title = newTitle;
     }
 
     if (layer.Layer) {

@@ -821,12 +821,19 @@ describe('LayerCatalogControlHandler', () => {
     async function displayedTitles(type: 'WMS' | 'WFS'): Promise<{
       workLayerRow: string;
       legendHeading: string;
+      legendSymbolTitle: string;
     }> {
       const capabilitiesTitle = 'CAE1M (Guia de carrers) - Illes urbanes';
       const serviceLayerName = 'CAE1M_141A';
       const treeNodeTitle = 'Adreça';
       const addedLayer: any = {};
-      const { TC } = buildMockTC(addedLayer);
+      const { TC, newLayerInstance } = buildMockTC(addedLayer);
+      const legendNode = {
+        Name: serviceLayerName,
+        Title: capabilitiesTitle,
+        title: capabilitiesTitle
+      };
+      newLayerInstance.capabilities = { Capability: { Layer: legendNode } };
       mockSitnaApi.getTC.mockReturnValue(TC as any);
       mockVirtualCapabilities.findRealLayerConfig = jest.fn().mockReturnValue({
         url: 'https://sitmun.diba.cat/wms/servlet/CAE1M',
@@ -859,7 +866,8 @@ describe('LayerCatalogControlHandler', () => {
       const layerTitle = addLayer.mock.calls[0][0].title as string | undefined;
       return {
         workLayerRow: layerTitle || serviceLayerName,
-        legendHeading: layerTitle || capabilitiesTitle
+        legendHeading: layerTitle || capabilitiesTitle,
+        legendSymbolTitle: legendNode.title || legendNode.Title
       };
     }
 
@@ -867,6 +875,7 @@ describe('LayerCatalogControlHandler', () => {
       const titles = await displayedTitles('WMS');
       expect(titles.workLayerRow).toBe('Adreça');
       expect(titles.legendHeading).toBe('Adreça');
+      expect(titles.legendSymbolTitle).toBe('Adreça');
     });
 
     it('shows the tree node title on the working-layers row and the legend for WFS', async () => {
