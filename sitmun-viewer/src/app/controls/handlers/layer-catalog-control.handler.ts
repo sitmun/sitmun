@@ -529,6 +529,11 @@ export class LayerCatalogControlHandler extends ControlHandlerBase {
             layerOptions.layerNames = layerName;
           }
 
+          const treeNodeTitle = catalogNode?.title?.trim();
+          if (treeNodeTitle) {
+            layerOptions.title = treeNodeTitle;
+          }
+
           if (resource) {
             layerOptions['profileLayerId'] = resource;
           }
@@ -596,10 +601,6 @@ export class LayerCatalogControlHandler extends ControlHandlerBase {
               }
 
               if (realLayerConfig?.type === 'WFS') {
-                const leafTitle = catalogNode?.title?.trim();
-                if (leafTitle) {
-                  layerOptions.title = leafTitle;
-                }
                 const featureType = realLayerConfig.layerNames[0];
                 layerOptions.type = 'WFS';
                 if (featureType) {
