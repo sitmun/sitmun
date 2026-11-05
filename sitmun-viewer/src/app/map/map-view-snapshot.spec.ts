@@ -77,7 +77,36 @@ describe('map view snapshot', () => {
     const layers = [{ id: '20', title: 'Ortofoto' }];
     expect(profileLayerIdForBase(layers, 'Ortofoto')).toBe('20');
     expect(sitnaBaseIdForProfile(layers, '20')).toBe('Ortofoto');
-    expect(profileLayerIdForBase(layers, 'sitmun-no-base-map')).toBeUndefined();
+    expect(profileLayerIdForBase(layers, 'sitmun-no-base-map')).toBe(
+      'sitmun-no-base-map'
+    );
+  });
+
+  it('stores an empty background and leaves the profile default out', () => {
+    expect(
+      snapshotFrom({
+        extent,
+        baseLayerId: 'sitmun-no-base-map',
+        defaultBaseLayerId: '20'
+      }).base
+    ).toBe('sitmun-no-base-map');
+    expect(
+      snapshotFrom({
+        extent,
+        baseLayerId: '20',
+        defaultBaseLayerId: '20'
+      }).base
+    ).toBeUndefined();
+  });
+
+  it('applies an empty background', () => {
+    const setBaseLayer = jest.fn();
+    applyMapSnapshot(
+      { setBaseLayer },
+      { ext: extent, base: 'sitmun-no-base-map' },
+      'sitmun-no-base-map'
+    );
+    expect(setBaseLayer).toHaveBeenCalledWith('sitmun-no-base-map');
   });
 
   it('omits stacking order when extras stay above the profile layers that remain', () => {

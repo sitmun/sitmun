@@ -22,6 +22,7 @@ import {
   snapshotFrom
 } from '../../map/map-view-snapshot';
 import { SitnaApiService } from '../../services/sitna-api.service';
+import { NO_BASE_MAP_LAYER_ID } from '../../utils/no-base-map.util';
 import { ControlHandlerBase } from '../control-handler-base';
 
 const SHORT_URL_PATH = '/api/config/client/short-url';
@@ -153,9 +154,12 @@ export class ShareControlHandler extends ControlHandlerBase {
         }
       }
     }
-    const sitnaBaseId = snapshot.base
-      ? sitnaBaseIdForProfile(this.appCfg?.layers ?? [], snapshot.base)
-      : undefined;
+    const sitnaBaseId =
+      snapshot.base === NO_BASE_MAP_LAYER_ID
+        ? NO_BASE_MAP_LAYER_ID
+        : snapshot.base
+          ? sitnaBaseIdForProfile(this.appCfg?.layers ?? [], snapshot.base)
+          : undefined;
     applyMapSnapshot(map, snapshot, sitnaBaseId);
     try {
       await applyLayerOrder(map, snapshot.order);

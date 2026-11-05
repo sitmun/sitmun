@@ -1,3 +1,5 @@
+import { NO_BASE_MAP_LAYER_ID } from '../utils/no-base-map.util';
+
 export type MapExtent = [number, number, number, number];
 
 export interface LayerDelta {
@@ -29,8 +31,6 @@ export interface ProfileLayerRef {
   title: string;
   sublayers?: string[];
 }
-
-const NO_BASE_MAP_LAYER_ID = 'sitmun-no-base-map';
 
 export function encodeMapState(snapshot: MapViewSnapshot): string {
   const binary = unescape(encodeURIComponent(JSON.stringify(snapshot)));
@@ -111,8 +111,11 @@ export function profileLayerIdForBase(
   layers: ProfileLayerRef[],
   sitnaBaseId: string | undefined
 ): string | undefined {
-  if (!sitnaBaseId || sitnaBaseId === NO_BASE_MAP_LAYER_ID) {
+  if (!sitnaBaseId) {
     return undefined;
+  }
+  if (sitnaBaseId === NO_BASE_MAP_LAYER_ID) {
+    return NO_BASE_MAP_LAYER_ID;
   }
   return layers.find((layer) => layer.title === sitnaBaseId)?.id;
 }
