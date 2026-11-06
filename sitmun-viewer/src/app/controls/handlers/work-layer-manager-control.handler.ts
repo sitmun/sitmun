@@ -7,13 +7,13 @@ import { Subscription } from 'rxjs';
 
 import { catalogLayerPathTitles } from './catalog-layer-path';
 import {
-  collectionOrderFromList,
-  showWorkLayerStackTopFirst
-} from './work-layer-stack-order';
-import {
   collapseCatalogCompositeWorkLayerPath,
   removeOrphanWorkLayerElements
 } from './work-layer-display-path';
+import {
+  collectionOrderFromList,
+  showWorkLayerStackTopFirst
+} from './work-layer-stack-order';
 import { ConfigLookupService } from '../../services/config-lookup.service';
 import { SitnaApiService } from '../../services/sitna-api.service';
 import type { Meld, MeldJoinPoint } from '../../types/meld.types';
