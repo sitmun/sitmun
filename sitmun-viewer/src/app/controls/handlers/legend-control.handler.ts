@@ -7,6 +7,12 @@ import { UIStateService } from '../../services/ui-state.service';
 import type { Meld, MeldJoinPoint } from '../../types/meld.types';
 import { ControlHandlerBase } from '../control-handler-base';
 import { SitnaControlConfig } from '../control-handler.interface';
+import {
+  isLegendHeadingToggleTarget,
+  shouldRefreshLegendOnPanelClick,
+  syncLegendSymbolCollapse,
+  toggleLegendSymbols
+} from './legend-symbol-collapse';
 
 declare function require(module: string): unknown;
 const meld = require('meld') as Meld;
@@ -166,6 +172,7 @@ export class LegendControlHandler extends ControlHandlerBase {
       // Issue repro opens Legend after LAYERADD. LayerLegend.getLegend no-ops while
       // the left drawer is off-screen; refresh tree + symbology when it expands.
       this.wireLegendPanelOpenRefresh(TC);
+      this.wireLegendSymbolCollapse();
     });
   }
 
@@ -237,6 +244,13 @@ export class LegendControlHandler extends ControlHandlerBase {
       refreshTimer = setTimeout(() => refresh(attachedPanel!), 150);
     };
 
+    const onPanelClick = (event: Event): void => {
+      if (!shouldRefreshLegendOnPanelClick(event.target)) {
+        return;
+      }
+      scheduleRefresh();
+    };
+
     const attach = (leftPanel: HTMLElement): void => {
       if ((leftPanel as any).__sitmunLegendPanelRefresh) {
         return;
@@ -247,7 +261,7 @@ export class LegendControlHandler extends ControlHandlerBase {
         attributes: true,
         attributeFilter: ['class']
       });
-      leftPanel.addEventListener('click', scheduleRefresh, true);
+      leftPanel.addEventListener('click', onPanelClick, true);
       (leftPanel as any).__sitmunLegendPanelRefresh = true;
       waitObserver?.disconnect();
       waitObserver = null;
@@ -277,13 +291,87 @@ export class LegendControlHandler extends ControlHandlerBase {
       panelObserver?.disconnect();
       waitObserver?.disconnect();
       if (attachedPanel) {
-        attachedPanel.removeEventListener('click', scheduleRefresh, true);
+        attachedPanel.removeEventListener('click', onPanelClick, true);
         delete (attachedPanel as any).__sitmunLegendPanelRefresh;
       }
       if (refreshTimer) {
         clearTimeout(refreshTimer);
       }
       delete (document as any).__sitmunLegendPanelRefreshPending;
+    });
+  }
+
+  private wireLegendSymbolCollapse(): void {
+    if ((document as Document & { __sitmunLegendSymbolCollapse?: boolean })
+      .__sitmunLegendSymbolCollapse) {
+      return;
+    }
+    (
+      document as Document & { __sitmunLegendSymbolCollapse?: boolean }
+    ).__sitmunLegendSymbolCollapse = true;
+
+    const knownIds = new Set<string>();
+    let slot: HTMLElement | null = null;
+    let listObserver: MutationObserver | null = null;
+    let waitObserver: MutationObserver | null = null;
+
+    const sync = (): void => {
+      if (!slot) {
+        return;
+      }
+      syncLegendSymbolCollapse(
+        Array.from(slot.querySelectorAll('sitna-layer-legend')),
+        knownIds
+      );
+    };
+
+    const onClick = (event: Event): void => {
+      if (!isLegendHeadingToggleTarget(event.target)) {
+        return;
+      }
+      const entry = (event.target as Element).closest('sitna-layer-legend');
+      if (entry instanceof HTMLElement) {
+        toggleLegendSymbols(entry);
+      }
+    };
+
+    const attach = (next: HTMLElement): void => {
+      if (slot === next) {
+        return;
+      }
+      slot?.removeEventListener('click', onClick);
+      listObserver?.disconnect();
+      slot = next;
+      slot.addEventListener('click', onClick);
+      listObserver = new MutationObserver(sync);
+      listObserver.observe(slot, { childList: true, subtree: true });
+      sync();
+    };
+
+    const existing = document.getElementById('tc-slot-legend');
+    if (existing) {
+      attach(existing);
+    } else {
+      waitObserver = new MutationObserver(() => {
+        const found = document.getElementById('tc-slot-legend');
+        if (found) {
+          attach(found);
+          waitObserver?.disconnect();
+          waitObserver = null;
+        }
+      });
+      waitObserver.observe(document.documentElement, {
+        childList: true,
+        subtree: true
+      });
+    }
+
+    this.patchManager.add(() => {
+      listObserver?.disconnect();
+      waitObserver?.disconnect();
+      slot?.removeEventListener('click', onClick);
+      delete (document as Document & { __sitmunLegendSymbolCollapse?: boolean })
+        .__sitmunLegendSymbolCollapse;
     });
   }
 

@@ -30,9 +30,50 @@ type CatalogLegendNode = {
   title?: string;
   name?: string;
   uid?: unknown;
+  visibilityState?: number;
   children?: CatalogLegendNode[];
   legend?: unknown;
 };
+
+/** SITNA Consts.visibility.HAS_VISIBLE. A catalog folder is not a capabilities node. */
+const CATALOG_FOLDER_VISIBILITY = 2;
+const WLM_PATH_SEPARATOR = ' \u203A ';
+
+function catalogLegendFolderUid(titles: string[], index: number): string {
+  return `sitmun-catalog:${titles.slice(0, index + 1).join('::')}`;
+}
+
+function legendLayerNames(layer: { names?: string[] }): string[] {
+  return (layer.names ?? []).filter((name) => name.length > 0);
+}
+
+function matchesLegendName(nodeName: string, names: Set<string>): boolean {
+  if (names.has(nodeName)) {
+    return true;
+  }
+  const separator = nodeName.indexOf(':');
+  const bare = separator >= 0 ? nodeName.slice(separator + 1) : nodeName;
+  return bare !== nodeName && names.has(bare);
+}
+
+function findNamedLegendNodes(
+  tree: CatalogLegendNode,
+  names: string[]
+): CatalogLegendNode[] {
+  const wanted = new Set(names);
+  const found: CatalogLegendNode[] = [];
+  const walk = (node: CatalogLegendNode): void => {
+    if (typeof node.name === 'string' && matchesLegendName(node.name, wanted)) {
+      found.push(node);
+      return;
+    }
+    for (const child of node.children ?? []) {
+      walk(child);
+    }
+  };
+  walk(tree);
+  return found;
+}
 
 function nestCatalogLegendTree(
   leaf: CatalogLegendNode | null | undefined,
@@ -41,23 +82,62 @@ function nestCatalogLegendTree(
   if (!leaf || titles.length <= 1) {
     return leaf;
   }
-  const leafTitle = titles[titles.length - 1];
-  let node: CatalogLegendNode = {
+  const breadcrumb = titles.slice(1).join(WLM_PATH_SEPARATOR);
+  const symbolRow: CatalogLegendNode = {
     ...leaf,
-    title: leafTitle,
-    name: typeof leaf.name === 'string' ? leaf.name : leafTitle,
+    title: breadcrumb,
+    name: typeof leaf.name === 'string' ? leaf.name : breadcrumb,
+    // SITNA refreshes the single legend row whose id equals the layer id.
+    // A catalog row keeps its own id so that refresh does not paste the tree inside it.
+    uid: catalogLegendFolderUid(titles, titles.length - 1),
+    // Keep the capabilities VISIBLE state. HAS_VISIBLE makes Legend.updateScale
+    // skip this leaf and hide the whole entry as out of scale.
     children: Array.isArray(leaf.children) ? leaf.children.slice() : []
   };
-  for (let index = titles.length - 2; index >= 0; index -= 1) {
-    const isRoot = index === 0;
-    node = {
-      title: titles[index],
-      name: titles[index],
-      uid: isRoot ? leaf.uid : undefined,
-      children: [node]
+  const wrapped: CatalogLegendNode = {
+    title: titles[0],
+    name: titles[0],
+    uid: catalogLegendFolderUid(titles, 0),
+    visibilityState: CATALOG_FOLDER_VISIBILITY,
+    children: [symbolRow]
+  };
+  return wrapped;
+}
+
+function catalogNestedLegend(
+  layer: {
+    names?: string[];
+    options?: { nodeId?: string };
+    __sitmunNestedLegend?: {
+      source: CatalogLegendNode;
+      key: string;
+      tree: CatalogLegendNode;
     };
+  },
+  tree: CatalogLegendNode | null | undefined,
+  appCfg: AppCfg | undefined
+): CatalogLegendNode | null | undefined {
+  const nodeId = layer.options?.nodeId;
+  if (!nodeId || !tree || !appCfg) {
+    return tree;
   }
-  return node;
+  const titles = catalogLayerPathTitles(nodeId, appCfg);
+  if (titles.length <= 1) {
+    return tree;
+  }
+  const names = legendLayerNames(layer);
+  const key = `${titles.join('\0')}::${names.join('\0')}`;
+  const cached = layer.__sitmunNestedLegend;
+  if (cached && cached.source === tree && cached.key === key) {
+    return cached.tree;
+  }
+  const named = names.length > 0 ? findNamedLegendNodes(tree, names) : [];
+  const leaf = named.length === 1 ? named[0] : tree;
+  const nested = nestCatalogLegendTree(leaf, titles);
+  if (nested && nested !== tree) {
+    layer.__sitmunNestedLegend = { source: tree, key, tree: nested };
+  }
+  return nested ?? tree;
 }
 
 function wfsLegendSources(legend: unknown): string[] {
@@ -105,8 +185,6 @@ function setFeatureShowsPopup(
   }
 }
 
-const WLM_PATH_SEPARATOR = ' \u203A ';
-
 const GFI_I18N = {
   label: 'workLayerManager.gfi.label',
   on: 'workLayerManager.gfi.on',
@@ -151,7 +229,7 @@ export class WorkLayerManagerControlHandler extends ControlHandlerBase {
 
     await this.patchCatalogCompositeDisplayPath();
     await this.patchWfsScaleRow();
-    await this.patchWfsLegendTree();
+    await this.patchCatalogLegendTree();
     await this.patchWlmGfiDecoration();
     this.langChangeSub = this.translate.onLangChange.subscribe(() => {
       for (const control of this.wlmGfiControls) {
@@ -320,75 +398,70 @@ export class WorkLayerManagerControlHandler extends ControlHandlerBase {
     });
   }
 
-  private async patchWfsLegendTree(): Promise<void> {
+  private async patchCatalogLegendTree(): Promise<void> {
     await this.withTCAsync(async (TC) => {
-      const vectorProto = TC?.layer?.Vector?.prototype as
-        | {
-            getTree?: () => unknown;
-            __sitmunWfsLegendTree?: boolean;
-          }
-        | undefined;
-      if (
-        !vectorProto ||
-        typeof vectorProto.getTree !== 'function' ||
-        vectorProto.__sitmunWfsLegendTree
-      ) {
-        return;
-      }
-
-      // eslint-disable-next-line @typescript-eslint/no-this-alias
-      const handler = this;
-      const advice = meld.around(
-        vectorProto,
-        'getTree',
-        function (
-          this: {
-            type?: string;
-            options?: { type?: string; nodeId?: string };
-            __sitmunNestedLegend?: {
-              source: CatalogLegendNode;
-              key: string;
-              tree: CatalogLegendNode;
-            };
-          },
-          joinPoint: MeldJoinPoint
-        ): unknown {
-          const tree = joinPoint.proceed() as
-            | CatalogLegendNode
-            | null
-            | undefined;
-          if (this.type !== 'WFS' && this.options?.type !== 'WFS') {
-            return tree;
-          }
-          const nodeId = this.options?.nodeId;
-          if (!nodeId || !tree) {
-            return tree;
-          }
-          const appCfg = handler.sitnaApi.getGlobal('currentAppCfg');
-          if (!appCfg) {
-            return tree;
-          }
-          const titles = catalogLayerPathTitles(nodeId, appCfg);
-          if (titles.length <= 1) {
-            return tree;
-          }
-          const key = titles.join('\0');
-          const cached = this.__sitmunNestedLegend;
-          if (cached && cached.source === tree && cached.key === key) {
-            return cached.tree;
-          }
-          const nested = nestCatalogLegendTree(tree, titles);
-          if (nested && nested !== tree) {
-            this.__sitmunNestedLegend = { source: tree, key, tree: nested };
-          }
-          return nested;
-        }
-      );
-      vectorProto.__sitmunWfsLegendTree = true;
-      this.patchManager.add(() => {
-        advice.remove();
-        delete vectorProto.__sitmunWfsLegendTree;
+      this.adviseCatalogLegendTree(TC?.layer?.Vector?.prototype, (layer) => {
+        return layer.type === 'WFS' || layer.options?.type === 'WFS';
       });
+      this.adviseCatalogLegendTree(TC?.layer?.Raster?.prototype, () => true);
+    });
+  }
+
+  private adviseCatalogLegendTree(
+    proto:
+      | {
+          getTree?: () => unknown;
+          __sitmunCatalogLegendTree?: boolean;
+        }
+      | undefined,
+    applies: (layer: {
+      type?: string;
+      options?: { type?: string };
+    }) => boolean
+  ): void {
+    if (
+      !proto ||
+      typeof proto.getTree !== 'function' ||
+      proto.__sitmunCatalogLegendTree
+    ) {
+      return;
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
+    const handler = this;
+    const advice = meld.around(
+      proto,
+      'getTree',
+      function (
+        this: {
+          type?: string;
+          options?: { type?: string; nodeId?: string };
+          __sitmunNestedLegend?: {
+            source: CatalogLegendNode;
+            key: string;
+            tree: CatalogLegendNode;
+          };
+        },
+        joinPoint: MeldJoinPoint
+      ): unknown {
+        const tree = joinPoint.proceed() as
+          | CatalogLegendNode
+          | null
+          | undefined;
+        if (!applies(this)) {
+          return tree;
+        }
+        return catalogNestedLegend(
+          this,
+          tree,
+          handler.sitnaApi.getGlobal('currentAppCfg') ?? undefined
+        );
+      }
+    );
+    proto.__sitmunCatalogLegendTree = true;
+    this.patchManager.add(() => {
+      advice.remove();
+      delete proto.__sitmunCatalogLegendTree;
     });
   }
 

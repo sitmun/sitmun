@@ -530,8 +530,11 @@ export class LayerCatalogControlHandler extends ControlHandlerBase {
           }
 
           const treeNodeTitle = catalogNode?.title?.trim();
-          if (treeNodeTitle) {
-            layerOptions.title = treeNodeTitle;
+          const pathTitles = catalogLayerPathTitles(layerName, appCfgAdd);
+          const topTitle =
+            pathTitles.length > 0 ? pathTitles[0] : treeNodeTitle;
+          if (topTitle) {
+            layerOptions.title = topTitle;
           }
 
           if (resource) {
