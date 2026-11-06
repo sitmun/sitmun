@@ -820,14 +820,156 @@ describe('WorkLayerManagerControlHandler', () => {
       const tree = layer.getTree();
       expect(legendTitles(tree)).toEqual([
         'Turisme i patrimoni',
-        'Rutes turístiques',
-        'Fars'
+        'Rutes turístiques \u203A Fars'
       ]);
       expect(tree.legend).toBeUndefined();
-      expect(tree.children?.[0]?.children?.[0]?.legend).toEqual([
+      expect(tree.children).toHaveLength(1);
+      expect(tree.children?.[0]?.legend).toEqual([
         { src: 'data:image/png;base64,fars-point' }
       ]);
-      expect(tree.children?.[0]?.children?.[0]?.children).toEqual([]);
+      expect(tree.children?.[0]?.children).toEqual([]);
+    });
+
+    it('nests the top folder above a WMS layer and keeps its child symbols', async () => {
+      const tramsTree = {
+        trees: [
+          {
+            id: 'tree',
+            title: 'Tree',
+            image: null,
+            rootNode: 'root',
+            nodes: {
+              root: { title: 'Menorca', children: ['folder-turisme'] },
+              'folder-turisme': {
+                title: 'Turisme i patrimoni',
+                children: ['folder-rutes']
+              },
+              'folder-rutes': {
+                title: 'Rutes turístiques',
+                children: ['node/trams']
+              },
+              'node/trams': {
+                title: 'Trams del camí de cavalls',
+                children: []
+              }
+            }
+          }
+        ]
+      };
+      const TC = mockSitnaApi.getTC() as {
+        layer?: { Raster: { prototype: { getTree: () => unknown } } };
+      };
+      function Raster(this: { title?: string }) {
+        this.title = undefined;
+      }
+      Raster.prototype.getTree = function (this: { title?: string }) {
+        return {
+          title: this.title,
+          uid: 'wms-root',
+          children: [
+            {
+              title: 'Capabilities group',
+              name: 'TU_rutesturisme',
+              uid: 'wms-group',
+              children: [
+                {
+                  title: 'GetCapabilities title',
+                  name: 'tu007rts_ccavalls',
+                  uid: 'wms-trams',
+                  visibilityState: 4,
+                  legend: [{ src: 'route-symbol' }],
+                  children: [
+                    { title: '01.- Maó - Es Grau', uid: 'wms-01', children: [] }
+                  ]
+                }
+              ]
+            }
+          ]
+        };
+      };
+      TC.layer = {
+        Raster: Raster as unknown as { prototype: { getTree: () => unknown } }
+      };
+      mockSitnaApi.getGlobal.mockImplementation((key: string) =>
+        key === 'currentAppCfg' ? (tramsTree as never) : undefined
+      );
+      await handler.loadPatches({} as AppCfg);
+
+      const layer = Object.create(TC.layer!.Raster.prototype) as {
+        title: string;
+        type: string;
+        names: string[];
+        options: { nodeId: string };
+        getTree: () => {
+          title?: string;
+          children?: Array<{ title?: string; children?: unknown[] }>;
+        };
+      };
+      layer.title = 'Turisme i patrimoni';
+      layer.type = 'WMS';
+      layer.names = ['tu007rts_ccavalls'];
+      layer.options = { nodeId: 'node/trams' };
+
+      const tree = layer.getTree() as {
+        title?: string;
+        uid?: string;
+        children?: Array<{
+          title?: string;
+          uid?: string;
+          legend?: unknown;
+          children?: Array<{ title?: string; uid?: string }>;
+        }>;
+      };
+      expect(legendTitles(tree)).toEqual([
+        'Turisme i patrimoni',
+        'Rutes turístiques \u203A Trams del camí de cavalls',
+        '01.- Maó - Es Grau'
+      ]);
+      expect(tree.children).toHaveLength(1);
+
+      type LegendUidNode = {
+        uid?: string;
+        children?: LegendUidNode[];
+      };
+      const findLegendNode = (id: string, node: LegendUidNode): LegendUidNode | null => {
+        if (node.uid == id) {
+          return node;
+        }
+        for (const child of node.children ?? []) {
+          const found = findLegendNode(id, child);
+          if (found) {
+            return found;
+          }
+        }
+        return null;
+      };
+      const breadcrumb = tree.children?.[0] as {
+        legend?: unknown;
+        children?: Array<{ uid?: string }>;
+        uid?: string;
+        visibilityState?: number;
+      };
+      expect(breadcrumb?.legend).toEqual([{ src: 'route-symbol' }]);
+      expect(breadcrumb?.visibilityState).toBe(4);
+      expect(
+        (tree as { visibilityState?: number }).visibilityState
+      ).toBe(2);
+      expect(breadcrumb?.children?.[0]?.uid).toBe('wms-01');
+      expect(tree.uid).toEqual(expect.any(String));
+      expect(breadcrumb?.uid).toEqual(expect.any(String));
+      expect(tree.uid).not.toBe('wms-trams');
+      expect(breadcrumb?.uid).not.toBe('wms-trams');
+      expect(breadcrumb?.uid).not.toBe(tree.uid);
+      const uidHolder = document.createElement('li');
+      uidHolder.setAttribute('data-layer-uid', breadcrumb?.uid as string);
+      expect(uidHolder.getAttribute('data-layer-uid')).toBe(breadcrumb?.uid);
+      expect(findLegendNode(tree.uid as string, tree as LegendUidNode)).toBe(tree);
+      expect(findLegendNode(breadcrumb?.uid as string, tree as LegendUidNode)?.uid).toBe(
+        breadcrumb?.uid
+      );
+      const again = layer.getTree() as { uid?: string; children?: Array<{ uid?: string }> };
+      expect(again.uid).toBe(tree.uid);
+      expect(again.children?.[0]?.uid).toBe(breadcrumb?.uid);
     });
   });
 

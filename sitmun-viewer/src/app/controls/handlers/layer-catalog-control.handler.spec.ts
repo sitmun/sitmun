@@ -10,6 +10,7 @@ import type { AppCfg, AppTasks, AppTree, AppNodeInfo } from '@api/model/app-cfg'
 import { TranslateService } from '@ngx-translate/core';
 import { Subject } from 'rxjs';
 
+import { catalogLayerPathTitles } from './catalog-layer-path';
 import { LayerCatalogControlHandler } from './layer-catalog-control.handler';
 import { AppConfigService } from '../../services/app-config.service';
 import { CatalogLayerSelectionService } from '../../services/catalog-layer-selection.service';
@@ -882,6 +883,73 @@ describe('LayerCatalogControlHandler', () => {
       const titles = await displayedTitles('WFS');
       expect(titles.workLayerRow).toBe('Adreça');
       expect(titles.legendHeading).toBe('Adreça');
+    });
+
+    it('uses the top folder as the loaded-layers title when the layer sits under that folder', async () => {
+      const layerTitle = 'Trams del camí de cavalls';
+      const appCfg = {
+        ...minimalContext,
+        trees: [
+          {
+            id: 'tree',
+            title: 'Tree',
+            image: null,
+            rootNode: 'root',
+            nodes: {
+              root: { title: 'Menorca', children: ['folder-turisme'] },
+              'folder-turisme': {
+                title: 'Turisme i patrimoni',
+                children: ['folder-rutes']
+              },
+              'folder-rutes': {
+                title: 'Rutes turístiques',
+                children: ['node/trams']
+              },
+              'node/trams': {
+                title: layerTitle,
+                children: [],
+                resource: 'layer/trams'
+              }
+            }
+          }
+        ]
+      } as AppCfg;
+      const addedLayer: any = {};
+      const { TC, newLayerInstance } = buildMockTC(addedLayer);
+      const legendNode = {
+        Name: 'TRAMS',
+        Title: 'Capabilities title',
+        title: 'Capabilities title'
+      };
+      newLayerInstance.capabilities = { Capability: { Layer: legendNode } };
+      mockSitnaApi.getTC.mockReturnValue(TC as any);
+      mockVirtualCapabilities.findRealLayerConfig = jest.fn().mockReturnValue({
+        url: 'https://wms.example/trams',
+        type: 'WMS',
+        layerNames: ['TRAMS'],
+        serviceId: 'service/trams'
+      });
+      mockConfigLookup.findNode.mockImplementation((nodeId: string) =>
+        nodeId === 'node/trams'
+          ? ({ title: layerTitle, resource: 'layer/trams' } as AppNodeInfo)
+          : undefined
+      );
+      mockSitnaApi.setGlobal('currentAppCfg', appCfg);
+      await handler['patchLayerCatalogAddLayerToMap']();
+      const addLayer = jest.fn().mockResolvedValue(addedLayer);
+      await TC.control.LayerCatalog.prototype.addLayerToMap.call(
+        {
+          map: { crs: 'EPSG:25831', addLayer },
+          getUID: () => 'uid-1',
+          showProjectionChangeDialog: () => undefined
+        },
+        { title: 'Capabilities title', options: {} },
+        'node/trams'
+      );
+      const path = catalogLayerPathTitles('node/trams', appCfg);
+      expect(addLayer.mock.calls[0][0].title).toBe('Turisme i patrimoni');
+      expect(path.slice(1)).toEqual(['Rutes turístiques', layerTitle]);
+      expect(legendNode.title).toBe(layerTitle);
     });
 
     it('skips setOpacity when transparency is 0 (default opaque)', async () => {

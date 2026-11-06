@@ -195,4 +195,57 @@ test.describe('Map Legend task (#164)', () => {
     expect(src, 'legend task must show a non-empty image src').toBeTruthy();
     expect(src!).toMatch(/legend|data:image|\.png|base64|18093/i);
   });
+
+  test('folds legend symbols from the heading without redrawing the entry', async ({
+    page,
+  }) => {
+    await loginAndOpenMap(page);
+    await loadNonRadioLeafIntoCapas(page);
+    await openLegendPanel(page);
+
+    const entry = page.locator('#tc-slot-legend sitna-layer-legend').first();
+    await expect(entry).toBeAttached({ timeout: 60_000 });
+    const watch = entry.locator('.tc-ctl-legend-watch').first();
+    await expect(watch).toBeAttached({ timeout: 60_000 });
+    const title = entry.locator(
+      ':scope > .tc-ctl-legend-node > .tc-ctl-legend-title',
+    );
+    await expect(title).toBeVisible();
+    const heading = (await title.innerText()).trim();
+    expect(heading.length).toBeGreaterThan(0);
+
+    await entry.evaluate((el) => {
+      el.firstElementChild?.setAttribute('data-sitmun-probe', '1');
+    });
+    const htmlLength = await entry.evaluate((el) => el.innerHTML.length);
+
+    await title.click();
+    await expect(entry).toHaveClass(/sitmun-legend-symbols-collapsed/);
+    await expect(entry).toHaveAttribute('aria-expanded', 'false');
+    await expect(entry.locator('[data-sitmun-probe="1"]')).toBeAttached();
+    await expect
+      .poll(async () => entry.evaluate((el) => el.innerHTML.length), {
+        timeout: 2_000,
+      })
+      .toBe(htmlLength);
+    await expect
+      .poll(
+        async () =>
+          watch.evaluate((el) => {
+            const style = getComputedStyle(el);
+            return {
+              height: el.getBoundingClientRect().height,
+              margin:
+                parseFloat(style.marginTop) + parseFloat(style.marginBottom),
+            };
+          }),
+        { timeout: 2_000 },
+      )
+      .toEqual({ height: 0, margin: 0 });
+    await expect(title).toHaveText(heading);
+
+    await title.click();
+    await expect(entry).not.toHaveClass(/sitmun-legend-symbols-collapsed/);
+    await expect(entry.locator('.tc-ctl-legend-watch img').first()).toBeAttached();
+  });
 });
