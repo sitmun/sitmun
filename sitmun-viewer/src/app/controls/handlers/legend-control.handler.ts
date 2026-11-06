@@ -13,6 +13,7 @@ import {
   syncLegendSymbolCollapse,
   toggleLegendSymbols
 } from './legend-symbol-collapse';
+import { syncLegendOrder } from './legend-work-layer-order';
 
 declare function require(module: string): unknown;
 const meld = require('meld') as Meld;
@@ -173,6 +174,7 @@ export class LegendControlHandler extends ControlHandlerBase {
       // the left drawer is off-screen; refresh tree + symbology when it expands.
       this.wireLegendPanelOpenRefresh(TC);
       this.wireLegendSymbolCollapse();
+      this.wireLegendWorkLayerOrder();
     });
   }
 
@@ -372,6 +374,79 @@ export class LegendControlHandler extends ControlHandlerBase {
       slot?.removeEventListener('click', onClick);
       delete (document as Document & { __sitmunLegendSymbolCollapse?: boolean })
         .__sitmunLegendSymbolCollapse;
+    });
+  }
+
+  private wireLegendWorkLayerOrder(): void {
+    const doc = document as Document & { __sitmunLegendWorkLayerOrder?: boolean };
+    if (doc.__sitmunLegendWorkLayerOrder) {
+      return;
+    }
+    doc.__sitmunLegendWorkLayerOrder = true;
+
+    let scheduled = false;
+    let wlmList: HTMLElement | null = null;
+    let legendList: HTMLElement | null = null;
+    let wlmObserver: MutationObserver | null = null;
+    let legendObserver: MutationObserver | null = null;
+    let waitObserver: MutationObserver | null = null;
+
+    const sync = (): void => {
+      scheduled = false;
+      if (!wlmList || !legendList) {
+        return;
+      }
+      syncLegendOrder(legendList, wlmList);
+    };
+
+    const schedule = (): void => {
+      if (scheduled) {
+        return;
+      }
+      scheduled = true;
+      queueMicrotask(sync);
+    };
+
+    const attach = (): void => {
+      const nextWlm = document.querySelector(
+        '.tc-ctl-wlm .tc-ctl-wlm-content > ul'
+      ) as HTMLElement | null;
+      const nextLegend = document.querySelector(
+        '#tc-slot-legend ul.tc-ctl-legend-branch'
+      ) as HTMLElement | null;
+      if (nextWlm && nextWlm !== wlmList) {
+        wlmObserver?.disconnect();
+        wlmList = nextWlm;
+        wlmObserver = new MutationObserver(schedule);
+        wlmObserver.observe(wlmList, { childList: true });
+      }
+      if (nextLegend && nextLegend !== legendList) {
+        legendObserver?.disconnect();
+        legendList = nextLegend;
+        legendObserver = new MutationObserver(schedule);
+        legendObserver.observe(legendList, { childList: true });
+      }
+      if (wlmList && legendList) {
+        schedule();
+        waitObserver?.disconnect();
+        waitObserver = null;
+      }
+    };
+
+    attach();
+    if (!wlmList || !legendList) {
+      waitObserver = new MutationObserver(attach);
+      waitObserver.observe(document.documentElement, {
+        childList: true,
+        subtree: true
+      });
+    }
+
+    this.patchManager.add(() => {
+      wlmObserver?.disconnect();
+      legendObserver?.disconnect();
+      waitObserver?.disconnect();
+      delete doc.__sitmunLegendWorkLayerOrder;
     });
   }
 

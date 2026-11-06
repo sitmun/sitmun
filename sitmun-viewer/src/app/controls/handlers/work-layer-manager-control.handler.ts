@@ -7,6 +7,10 @@ import { Subscription } from 'rxjs';
 
 import { catalogLayerPathTitles } from './catalog-layer-path';
 import {
+  collectionOrderFromList,
+  showWorkLayerStackTopFirst
+} from './work-layer-stack-order';
+import {
   collapseCatalogCompositeWorkLayerPath,
   removeOrphanWorkLayerElements
 } from './work-layer-display-path';
@@ -230,6 +234,7 @@ export class WorkLayerManagerControlHandler extends ControlHandlerBase {
     await this.patchCatalogCompositeDisplayPath();
     await this.patchWfsScaleRow();
     await this.patchCatalogLegendTree();
+    await this.patchWorkLayerStackOrder();
     await this.patchWlmGfiDecoration();
     this.langChangeSub = this.translate.onLangChange.subscribe(() => {
       for (const control of this.wlmGfiControls) {
@@ -462,6 +467,111 @@ export class WorkLayerManagerControlHandler extends ControlHandlerBase {
     this.patchManager.add(() => {
       advice.remove();
       delete proto.__sitmunCatalogLegendTree;
+    });
+  }
+
+  private async patchWorkLayerStackOrder(): Promise<void> {
+    await this.withTCAsync(async (TC) => {
+      const wlmProto = TC?.control?.WorkLayerManager?.prototype as
+        | {
+            updateLayerOrder?: () => void;
+            __sitmunWorkLayerStackOrder?: boolean;
+          }
+        | undefined;
+      if (
+        !wlmProto ||
+        typeof wlmProto.updateLayerOrder !== 'function' ||
+        wlmProto.__sitmunWorkLayerStackOrder
+      ) {
+        return;
+      }
+      const advice = meld.around(
+        wlmProto,
+        'updateLayerOrder',
+        function (
+          this: {
+            div?: HTMLElement;
+            map?: {
+              layers?: Array<{
+                id?: string;
+                isBase?: boolean;
+                wrap?: { layer?: object };
+              }>;
+              workLayers?: Array<{ id?: string }>;
+              wrap?: {
+                getLayerIndex?: (olLayer: object) => number;
+                insertLayer?: (olLayer: object, index: number) => void;
+                map?: {
+                  getLayers?: () => {
+                    remove?: (olLayer: object) => void;
+                  };
+                };
+              };
+            };
+          },
+          joinPoint: MeldJoinPoint
+        ): void {
+          const list = this.div?.querySelector('ul');
+          const listedIds = list
+            ? [...list.children].map(
+                (row) => (row as HTMLElement).dataset['layerId'] ?? ''
+              )
+            : [];
+          const desiredBottomToTop = collectionOrderFromList(listedIds);
+          const map = this.map;
+          const layers = map?.layers;
+          if (desiredBottomToTop.length > 1 && layers && map?.wrap) {
+            const byId = new Map(layers.map((layer) => [layer.id ?? '', layer]));
+            const collection = map.wrap.map?.getLayers?.();
+            const getLayerIndex = map.wrap.getLayerIndex;
+            const insertLayer = map.wrap.insertLayer;
+            if (collection?.remove && getLayerIndex && insertLayer) {
+              const placed = desiredBottomToTop
+                .map((id) => byId.get(id))
+                .filter((layer) => !!layer?.wrap?.layer)
+                .map((layer) => ({
+                  ol: layer!.wrap!.layer as object,
+                  idx: getLayerIndex.call(map.wrap, layer!.wrap!.layer as object)
+                }))
+                .filter((item) => item.idx >= 0);
+              if (placed.length > 1) {
+                const start = Math.min(...placed.map((item) => item.idx));
+                for (const item of [...placed].sort((a, b) => b.idx - a.idx)) {
+                  collection.remove?.(item.ol);
+                }
+                desiredBottomToTop.forEach((id, offset) => {
+                  const olLayer = byId.get(id)?.wrap?.layer;
+                  if (olLayer) {
+                    insertLayer.call(map.wrap, olLayer, start + offset);
+                  }
+                });
+              }
+            }
+            const slots: number[] = [];
+            layers.forEach((layer, index) => {
+              if (layer.id && desiredBottomToTop.includes(layer.id)) {
+                slots.push(index);
+              }
+            });
+            slots.forEach((index, offset) => {
+              const next = byId.get(desiredBottomToTop[offset]);
+              if (next) {
+                layers[index] = next;
+              }
+            });
+            map.workLayers = layers.filter((layer) => !layer.isBase);
+          }
+          joinPoint.proceed();
+          if (list instanceof HTMLElement) {
+            showWorkLayerStackTopFirst(list);
+          }
+        }
+      );
+      wlmProto.__sitmunWorkLayerStackOrder = true;
+      this.patchManager.add(() => {
+        advice.remove();
+        delete wlmProto.__sitmunWorkLayerStackOrder;
+      });
     });
   }
 

@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file. The format 
 
 ### Added
 
+- **Map**: A drag in Loaded Layers writes that list into the map stack. The first row is the layer drawn on top. The profile order still applies only when a layer is added. The legend follows the same list.
 - **Map**: Each legend entry folds its symbol rows from either catalog heading and leaves those two lines visible. The only open legend starts expanded. Opening another legend collapses the ones already listed, and a later redraw keeps a heading that was toggled by hand. The click does not reload the legend. A folded row drops its margin. Reduced motion turns the fold animation off. `e2e/viewer/legend.spec.ts` covers the painted entry.
 - **Map**: A folder with a description, a metadata URL, or a dataset URL shows the same information button as a layer. The window shows the folder name, the description, and those links. An empty folder has no button ([#173](https://github.com/sitmun/sitmun-viewer-app/issues/173)).
 - **Map**: Adding a WFS layer passes `geometryName` to SITNA when the profile publishes one, and passes `geometryType` only when the profile publishes `preferredGeometryType`. A specific DescribeFeatureType kind is left for SITNA to read. The identify table skips a feature-information field whose format is `Geometry`. The geometry-property contract is the operator's change on top of [sitmun-admin-app#499](https://github.com/sitmun/sitmun-admin-app/issues/499).
@@ -23,6 +24,7 @@ All notable changes to this project will be documented in this file. The format 
 
 ### Fixed
 
+- **Map**: The Loaded Layers drag handle shows a six-dot grip. The previous mark is a character this font does not draw.
 - **Map**: A restricted share link keeps `mapState` through the password form and the external login button. A person who cannot open that application and territory sees `map.error.access.denied`, and the map does not start ([#221](https://github.com/sitmun/sitmun-viewer-app/issues/221)).
 - **Map**: A share link stores an empty background and opens with no background. The profile default background stays out of the link ([#196](https://github.com/sitmun/sitmun-viewer-app/issues/196)).
 - **Map**: A share link omits an empty measurement, feature-info, or draw layer. A drawing, a measurement, or an imported file is still stored and restored ([#194](https://github.com/sitmun/sitmun-viewer-app/issues/194)).
