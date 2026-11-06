@@ -1007,4 +1007,39 @@ describe('WorkLayerManagerControlHandler', () => {
       expect(img?.getAttribute('data-img')).toBe(src);
     });
   });
+
+  describe('stack order', () => {
+    it('keeps the first row as the layer drawn on top', async () => {
+      const wlmProto = mockSitnaApi.getTC().control.WorkLayerManager.prototype as {
+        updateLayerOrder?: (this: { div: HTMLElement }) => void;
+      };
+      wlmProto.updateLayerOrder = function () {
+        const list = this.div.querySelector('ul');
+        list?.replaceChildren(
+          ...['bottom', 'middle', 'top'].map((id) => {
+            const li = document.createElement('li');
+            li.dataset['layerId'] = id;
+            return li;
+          })
+        );
+      };
+
+      await handler.loadPatches({} as AppCfg);
+
+      const div = document.createElement('div');
+      div.append(document.createElement('ul'));
+      const control = Object.create(wlmProto) as {
+        div: HTMLElement;
+        updateLayerOrder: () => void;
+      };
+      control.div = div;
+      control.updateLayerOrder();
+
+      expect([...div.querySelectorAll('li')].map((li) => li.dataset['layerId'])).toEqual([
+        'top',
+        'middle',
+        'bottom'
+      ]);
+    });
+  });
 });

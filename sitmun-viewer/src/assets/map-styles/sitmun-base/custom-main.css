@@ -1449,6 +1449,20 @@ sitna-layer-legend.sitmun-legend-symbols-collapsed .tc-ctl-legend-branch .tc-ctl
   width: 12px;
 }
 
+/* SITNA paints the drag handle with U+2B7F, which this font does not draw. */
+.tc-ctl-wlm .tc-ctl-wlm-dd:after {
+  content: "";
+  width: 0.55em;
+  height: 0.9em;
+  left: 50%;
+  right: auto;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  background-image: radial-gradient(currentColor 1.15px, transparent 1.3px);
+  background-size: 0.28em 0.3em;
+  background-repeat: round;
+}
+
 .tc-map.tc-ctl-prnmap-printing {
   position: relative !important;
   top: auto !important;
