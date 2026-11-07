@@ -93,6 +93,14 @@ function parseFractionDigits(raw: string): number | null | undefined {
   return Number(text);
 }
 
+function requiredTrimmedText(control: AbstractControl): ValidationErrors | null {
+  const value = control.value;
+  if (typeof value !== 'string' || value.trim() === '') {
+    return { required: true };
+  }
+  return null;
+}
+
 function parseImageLimit(raw: string): number | null | undefined {
   const text = raw.trim();
   if (text === '') {
@@ -134,12 +142,12 @@ export class LayersFormComponent extends BaseFormComponent<CartographyProjection
   territorialTypes: any[] = [];
   featureInfoSeedMessage = '';
   readonly preferredGeometryTypes = [
-    'point',
-    'multipoint',
-    'polyline',
-    'polygon',
-    'multipolyline',
-    'multipolygon',
+    this.codeValues.preferredGeometryType.point,
+    this.codeValues.preferredGeometryType.multipoint,
+    this.codeValues.preferredGeometryType.polyline,
+    this.codeValues.preferredGeometryType.polygon,
+    this.codeValues.preferredGeometryType.multipolyline,
+    this.codeValues.preferredGeometryType.multipolygon,
   ];
 
   private readonly getInfoService = inject(GetInfoService);
@@ -415,6 +423,7 @@ export class LayersFormComponent extends BaseFormComponent<CartographyProjection
       selectableLayers: this.parseLayerList(formValues.joinedSelectableLayers),
       service: this.serviceService.createProxy(formValues.serviceId),
       spatialSelectionService: this.serviceService.createProxy(formValues.spatialSelectionServiceId),
+      legendURL: formValues.legendType === this.codeValues.legendType.link ? formValues.legendURL : null,
     });
     return Cartography.fromObject(safeToEdit);
   }
@@ -490,26 +499,27 @@ export class LayersFormComponent extends BaseFormComponent<CartographyProjection
           editable: (params: { data?: CartographyParameter }) => !this.formatIsFixed(params.data),
           valueGetter: (params: { data?: CartographyParameter }) => {
             const format = params.data?.format;
-            return !format || format === 'AUTO' ? '' : format;
+            return !format || format === this.codeValues.cartographyParameterFormat.auto ? '' : format;
           },
           valueSetter: (params: { data: CartographyParameter; newValue: string | null }) => {
             if (this.formatIsFixed(params.data)) {
               return false;
             }
             const format = params.newValue || null;
-            const current = !params.data.format || params.data.format === 'AUTO' ? null : params.data.format;
+            const current = !params.data.format || params.data.format === this.codeValues.cartographyParameterFormat.auto ? null : params.data.format;
             if (current === format) {
               return false;
             }
             params.data.format = format;
-            if (format !== 'N' && format !== 'P') {
+            const parameterFormat = this.codeValues.cartographyParameterFormat;
+            if (format !== parameterFormat.number && format !== parameterFormat.percentage) {
               params.data.fractionDigits = null;
               params.data.padFractionDigits = false;
             }
-            if (format !== 'F') {
+            if (format !== parameterFormat.date) {
               params.data.dateStyle = null;
             }
-            if (format !== 'I') {
+            if (format !== parameterFormat.image) {
               params.data.maxWidth = null;
               params.data.maxHeight = null;
             }
@@ -551,12 +561,12 @@ export class LayersFormComponent extends BaseFormComponent<CartographyProjection
         const rows = cartographyParameters;
         this.loggerService.debug('cartographyParameters', rows);
         await onCreate(rows).forEach(item => {
-          item.type = 'INFO';
+          item.type = this.codeValues.cartographyParameterType.info;
           item.cartography = this.cartographyService.createProxy(this.entityID);
           return this.cartographyParameterService.create(persistedCartographyParameter(item));
         });
         await onUpdate(rows).forEach(item => {
-          item.type = 'INFO';
+          item.type = this.codeValues.cartographyParameterType.info;
           item.cartography = this.cartographyService.createProxy(this.entityID);
           return this.cartographyParameterService.update(persistedCartographyParameter(item));
         });
@@ -582,7 +592,7 @@ export class LayersFormComponent extends BaseFormComponent<CartographyProjection
         })).withPreOpenFunction((form: FormGroup) => {
           const defaultFormat = this.defaultValueOrNull('cartographyParameter.format');
           form.reset({
-            type: 'INFO',
+            type: this.codeValues.cartographyParameterType.info,
             format: defaultFormat?.value || null,
             padFractionDigits: false,
             fractionDigits: null,
@@ -893,34 +903,48 @@ export class LayersFormComponent extends BaseFormComponent<CartographyProjection
 
   legendChoices(): CodeList[] {
     const type = this.getServiceType(this.entityForm?.get('serviceId')?.value);
-    const allowed = type === 'WMS'
-      ? ['LEGENDGRAPHIC', 'LEGENDURL', 'LINK']
-      : type === 'WMTS'
-        ? ['LINK']
-        : [];
+    const allowed = this.legendCodesFor(type);
     return this.codeList('cartography.legendType').filter((item) => allowed.includes(item.value));
   }
 
   showsLegendFields(): boolean {
     const type = this.getServiceType(this.entityForm?.get('serviceId')?.value);
-    return type === 'WMS' || type === 'WMTS';
+    const protocol = this.codeValues.serviceType;
+    return type === protocol.wms || type === protocol.wmts;
+  }
+
+  legendHintKey(): string {
+    const legend = this.codeValues.legendType;
+    const value = this.entityForm?.get('legendType')?.value;
+    const known = [legend.legendGraphic, legend.legendUrl, legend.link];
+    const choice = known.includes(value) ? value : 'none';
+    return `entity.cartography.legend.sitnaControlCapabilities.${choice}`;
+  }
+
+  private legendCodesFor(type: string): string[] {
+    const legend = this.codeValues.legendType;
+    const protocol = this.codeValues.serviceType;
+    if (type === protocol.wms) {
+      return [legend.legendGraphic, legend.legendUrl, legend.link];
+    }
+    if (type === protocol.wmts) {
+      return [legend.link];
+    }
+    return [];
   }
 
   private syncLegendChoice(): void {
     const type = this.getServiceType(this.entityForm.get('serviceId')?.value);
     const control = this.entityForm.get('legendType');
     const current = control?.value as string | null;
-    const allowed = type === 'WMS'
-      ? ['LEGENDGRAPHIC', 'LEGENDURL', 'LINK']
-      : type === 'WMTS'
-        ? ['LINK']
-        : [];
-    if (type === 'WFS' || (current && !allowed.includes(current))) {
+    const allowed = this.legendCodesFor(type);
+    const protocol = this.codeValues.serviceType;
+    if (type === protocol.wfs || (current && !allowed.includes(current))) {
       if (current) {
         control.setValue(null, { emitEvent: false });
       }
-    } else if (this.isNew() && type === 'WMS' && !current) {
-      control.setValue('LEGENDGRAPHIC', { emitEvent: false });
+    } else if (this.isNew() && type === protocol.wms && !current) {
+      control.setValue(this.codeValues.legendType.legendGraphic, { emitEvent: false });
     }
     this.syncLegendAddress();
   }
@@ -930,16 +954,22 @@ export class LayersFormComponent extends BaseFormComponent<CartographyProjection
     if (!address) {
       return;
     }
-    if (this.entityForm.get('legendType')?.value === 'LINK') {
+    const length = Validators.maxLength(4000);
+    if (this.entityForm.get('legendType')?.value === this.codeValues.legendType.link) {
+      address.setValidators([requiredTrimmedText, length]);
       address.enable({ emitEvent: false });
     } else {
+      address.setValue(null, { emitEvent: false });
+      address.setValidators([length]);
+      address.updateValueAndValidity({ emitEvent: false });
       address.disable({ emitEvent: false });
     }
+    address.updateValueAndValidity({ emitEvent: false });
   }
 
   cartographyCopyKey(key: string): string {
     const service = this.services.find((item) => item.id === this.entityForm?.get('serviceId')?.value);
-    return service?.type === 'WFS' ? `${key}.wfs` : key;
+    return service?.type === this.codeValues.serviceType.wfs ? `${key}.wfs` : key;
   }
 
   serviceIsProxied(): boolean {
@@ -1023,16 +1053,18 @@ export class LayersFormComponent extends BaseFormComponent<CartographyProjection
   private formatChoices(): string[] {
     const values = this.codeList('cartographyParameter.format')
       .map((item) => item.value)
-      .filter((value) => value && value !== 'AUTO' && value !== 'Geometry');
+      .filter((value) => value
+        && value !== this.codeValues.cartographyParameterFormat.auto
+        && value !== this.codeValues.cartographyParameterFormat.geometry);
     return ['', ...values];
   }
 
   private formatIsFixed(row: CartographyParameter | null | undefined): boolean {
-    return this.geometryKind(row) !== null || row?.format === 'Geometry';
+    return this.geometryKind(row) !== null || row?.format === this.codeValues.cartographyParameterFormat.geometry;
   }
 
   formatLabel(value: string | null | undefined): string {
-    const code = value || 'AUTO';
+    const code = value || this.codeValues.cartographyParameterFormat.auto;
     const list = this.codeList('cartographyParameter.format');
     return list.find((item) => item.value === code)?.description
       || list.find((item) => item.value === value)?.description
@@ -1046,15 +1078,16 @@ export class LayersFormComponent extends BaseFormComponent<CartographyProjection
 
   parameterFormatShowsDigits(): boolean {
     const format = this.parameterDialogValue('format');
-    return format === 'N' || format === 'P';
+    const parameterFormat = this.codeValues.cartographyParameterFormat;
+    return format === parameterFormat.number || format === parameterFormat.percentage;
   }
 
   parameterFormatShowsDateStyle(): boolean {
-    return this.parameterDialogValue('format') === 'F';
+    return this.parameterDialogValue('format') === this.codeValues.cartographyParameterFormat.date;
   }
 
   parameterFormatShowsImageSize(): boolean {
-    return this.parameterDialogValue('format') === 'I';
+    return this.parameterDialogValue('format') === this.codeValues.cartographyParameterFormat.image;
   }
 
   parameterFormatPreview(): string {
@@ -1150,7 +1183,7 @@ export class LayersFormComponent extends BaseFormComponent<CartographyProjection
       const options = {...(item.options ?? {})};
       if (item.name === row.name) {
         options.layerGeometry = true;
-        if (options.geometryKind !== 'Geometry') {
+        if (options.geometryKind !== this.codeValues.geometryKind.geometry) {
           delete options.preferredGeometryType;
         }
       } else {
@@ -1167,7 +1200,7 @@ export class LayersFormComponent extends BaseFormComponent<CartographyProjection
     type: string,
     params: FormatOptionsCellParams
   ): void {
-    if (this.geometryKind(row) !== 'Geometry' || row.options?.preferredGeometryType === type) {
+    if (this.geometryKind(row) !== this.codeValues.geometryKind.geometry || row.options?.preferredGeometryType === type) {
       return;
     }
     for (const item of this.parameterRows(row)) {
@@ -1221,9 +1254,9 @@ export class LayersFormComponent extends BaseFormComponent<CartographyProjection
     return {
       name,
       value: name,
-      type: 'INFO',
+      type: this.codeValues.cartographyParameterType.info,
       order,
-      format: geometryKind ? 'Geometry' : null,
+      format: geometryKind ? this.codeValues.cartographyParameterFormat.geometry : null,
       options: geometryKind ? {geometryKind} : null,
       fractionDigits: null,
       padFractionDigits: false,
@@ -1296,7 +1329,7 @@ export class LayersFormComponent extends BaseFormComponent<CartographyProjection
       const row = existing.get(property.name);
       if (row) {
         const options = {...(row.options ?? {}), geometryKind: property.kind};
-        if (property.kind !== 'Geometry') {
+        if (property.kind !== this.codeValues.geometryKind.geometry) {
           delete options.preferredGeometryType;
         }
         row.options = options;
@@ -1352,16 +1385,21 @@ export class LayersFormComponent extends BaseFormComponent<CartographyProjection
     if (!row) {
       return root;
     }
-    if (row.format === 'I') {
+    const parameterFormat = this.codeValues.cartographyParameterFormat;
+    if (row.format === parameterFormat.image) {
       root.append(
         this.imageLimitControl(row, params, 'maxWidth', 'entity.cartography.parameters.maxWidth'),
         this.imageLimitControl(row, params, 'maxHeight', 'entity.cartography.parameters.maxHeight')
       );
-    } else if (row.format === 'N' || row.format === 'P' || row.format === 'F') {
+    } else if (
+      row.format === parameterFormat.number
+      || row.format === parameterFormat.percentage
+      || row.format === parameterFormat.date
+    ) {
       const preview = document.createElement('span');
       preview.className = 'sitmun-format-preview';
       preview.textContent = this.formatOptionsPreview(row);
-      if (row.format === 'F') {
+      if (row.format === parameterFormat.date) {
         root.append(this.dateStyleControl(row, params, preview), preview);
       } else {
         root.append(
@@ -1404,7 +1442,7 @@ export class LayersFormComponent extends BaseFormComponent<CartographyProjection
       }
       const options = {...(row.options ?? {})};
       delete options.layerGeometry;
-      if (options.geometryKind !== 'Geometry') {
+      if (options.geometryKind !== this.codeValues.geometryKind.geometry) {
         delete options.preferredGeometryType;
       }
       row.options = options;
@@ -1417,7 +1455,7 @@ export class LayersFormComponent extends BaseFormComponent<CartographyProjection
       )
     );
     root.append(kindLabel, mark);
-    if (kind !== 'Geometry') {
+    if (kind !== this.codeValues.geometryKind.geometry) {
       return;
     }
     const select = document.createElement('select');
