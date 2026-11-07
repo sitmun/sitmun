@@ -62,6 +62,8 @@ class VersionCheckGeneratorTest(unittest.TestCase):
             )
             self.assertIn("cod_default", generated)
             self.assertIn("language.default", generated)
+            self.assertIn("cod_value = 'CAPABILITIES'", generated)
+            self.assertNotIn("cod_value = 'LEGENDURL'", generated)
 
     def test_translation_upgrade_matches_shipped_sql(self) -> None:
         generator = load_generator()
@@ -77,6 +79,8 @@ class VersionCheckGeneratorTest(unittest.TestCase):
         )
         self.assertIn("<> 'en'", postgres)
         self.assertIn("lan_shortname = 'en'", postgres)
+        self.assertIn("ele.cod_value = 'CAPABILITIES'", postgres)
+        self.assertNotIn("ele.cod_value = 'LEGENDURL'", postgres)
 
     def test_literal_upgrade_inserts_missing_values_without_updating(self) -> None:
         generator = load_generator()
