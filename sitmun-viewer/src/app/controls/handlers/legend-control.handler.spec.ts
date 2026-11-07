@@ -193,6 +193,7 @@ describe('LegendControlHandler', () => {
       await handler.loadPatches(mockAppCfg);
 
       const layer = Object.create(TC.layer.Raster.prototype);
+      layer.options = { legendType: 'LEGENDGRAPHIC' };
       layer.availableNames = ['CAE1M_141A'];
       layer.getInfo = jest.fn().mockReturnValue({
         legend: [{ src: 'http://127.0.0.1:18093/legend?layer=CAE1M_141A' }]
@@ -216,6 +217,7 @@ describe('LegendControlHandler', () => {
       await handler.loadPatches(mockAppCfg);
 
       const layer = Object.create(TC.layer.Raster.prototype);
+      layer.options = { legendType: 'LEGENDGRAPHIC' };
       layer.availableNames = ['L1'];
       layer.getInfo = jest.fn().mockReturnValue({
         legend: [{ src: 'http://example.com/legend.png' }]
@@ -234,11 +236,65 @@ describe('LegendControlHandler', () => {
       await handler.loadPatches(mockAppCfg);
 
       const layer = Object.create(TC.layer.Raster.prototype);
+      layer.options = { legendType: 'LEGENDGRAPHIC' };
       layer.availableNames = ['L1'];
       layer.getInfo = jest.fn();
 
       const result = await layer.getLegend(true);
       expect(result).toBe(native);
+      expect(layer.getInfo).not.toHaveBeenCalled();
+    });
+
+    it('returns the capabilities image for LEGENDURL and does not call native getLegend', async () => {
+      const native = TC.layer.Raster.prototype.getLegend;
+      await handler.loadPatches(mockAppCfg);
+
+      const layer = Object.create(TC.layer.Raster.prototype);
+      layer.options = { legendType: 'LEGENDURL' };
+      layer.availableNames = ['L1'];
+      layer.getInfo = jest.fn().mockReturnValue({
+        legend: [{ src: 'http://example.com/capabilities.png' }]
+      });
+
+      const result = await layer.getLegend(true);
+      expect(result).toEqual([
+        [{ layerName: 'L1', src: 'http://example.com/capabilities.png' }]
+      ]);
+      expect(native).not.toHaveBeenCalled();
+    });
+
+    it('returns the static address for LINK and does not call native getLegend', async () => {
+      const native = TC.layer.Raster.prototype.getLegend;
+      await handler.loadPatches(mockAppCfg);
+
+      const layer = Object.create(TC.layer.Raster.prototype);
+      layer.options = {
+        legendType: 'LINK',
+        legendURL: 'http://example.com/static.png'
+      };
+      layer.availableNames = ['L1'];
+
+      const result = await layer.getLegend(true);
+      expect(result).toEqual([
+        [{ layerName: 'L1', src: 'http://example.com/static.png' }]
+      ]);
+      expect(layer.customLegend).toContain('http://example.com/static.png');
+      expect(native).not.toHaveBeenCalled();
+    });
+
+    it('returns no image for a blank WMS or WMTS legend type', async () => {
+      const native = TC.layer.Raster.prototype.getLegend;
+      await handler.loadPatches(mockAppCfg);
+
+      const layer = Object.create(TC.layer.Raster.prototype);
+      layer.availableNames = ['L1'];
+      layer.getInfo = jest.fn().mockReturnValue({
+        legend: [{ src: 'http://example.com/legend.png' }]
+      });
+
+      const result = await layer.getLegend(true);
+      expect(result).toEqual([]);
+      expect(native).not.toHaveBeenCalled();
       expect(layer.getInfo).not.toHaveBeenCalled();
     });
 
@@ -277,7 +333,7 @@ describe('LegendControlHandler', () => {
       const layer = {
         id: 'wl-1',
         isBase: false,
-        options: {},
+        options: { legendType: 'LEGENDGRAPHIC' },
         availableNames: ['L1'],
         getInfo: jest.fn().mockReturnValue({
           legend: [{ src: 'http://example.com/legend.png' }]

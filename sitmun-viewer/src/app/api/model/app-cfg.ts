@@ -127,6 +127,10 @@ export interface AppLayer {
    * (non-empty replaces, empty removes, omitted unchanged).
    */
   datasetURL?: string;
+  /** Stored legend choice. Omitted when the administrator chose none. */
+  legendType?: string;
+  /** Image address used when legendType is LINK. */
+  legendURL?: string;
   /**
    * When false, merged WMS GetCapabilities set `queryable` false for this profile layer.
    * Omitted or undefined: legacy profiles behave as queryable (true).

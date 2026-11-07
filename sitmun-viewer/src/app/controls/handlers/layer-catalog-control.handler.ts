@@ -543,6 +543,12 @@ export class LayerCatalogControlHandler extends ControlHandlerBase {
           const appLayer = resource
             ? appCfgAdd.layers.find((l) => l.id === resource)
             : undefined;
+          if (appLayer?.legendType) {
+            layerOptions['legendType'] = appLayer.legendType;
+          }
+          if (appLayer?.legendURL) {
+            layerOptions['legendURL'] = appLayer.legendURL;
+          }
           const queryableLeaf =
             typeof handler.configLookup.isQueryableLeaf === 'function' &&
             handler.configLookup.isQueryableLeaf(layerName);
