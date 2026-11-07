@@ -1361,6 +1361,19 @@ sitna-hello-world {
   -webkit-animation: none !important;
 }
 
+/* A static legend bitmap at intrinsic size stretches #tc-slot-legend past the
+   viewport. Legend.isVisible() then stays false, and LayerLegend.getLegend
+   clears every entry after emptying its contents. */
+sitna-layer-legend {
+  display: block;
+  max-width: 100%;
+}
+
+sitna-layer-legend .tc-ctl-legend-watch img {
+  max-width: 100%;
+  height: auto;
+}
+
 /* Make legend tree fill available vertical space */
 .tc-ctl-legend-tree {
   flex-grow: 1;

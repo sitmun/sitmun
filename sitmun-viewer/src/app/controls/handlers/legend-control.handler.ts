@@ -53,14 +53,6 @@ function legendChoice(layer: {
   return { kind: 'none' };
 }
 
-function legendImageHtml(url: string): string {
-  const safe = url
-    .replace(/&/g, '&amp;')
-    .replace(/"/g, '&quot;')
-    .replace(/</g, '&lt;');
-  return `<img src="${safe}" alt="">`;
-}
-
 /**
  * Handler for the native SITNA legend control.
  *
@@ -136,10 +128,14 @@ export class LegendControlHandler extends ControlHandlerBase {
               return buildFromCapabilities();
             }
             if (choice.kind === 'static') {
-              this.customLegend = legendImageHtml(choice.url);
+              delete this.customLegend;
               const names = Array.isArray(this.availableNames)
                 ? this.availableNames
-                : [];
+                : Array.isArray(this.names)
+                  ? this.names
+                  : typeof this.names === 'string' && this.names
+                    ? [this.names]
+                    : [];
               return Promise.resolve(
                 names.map((name) => [{ layerName: name, src: choice.url }])
               );
@@ -185,8 +181,8 @@ export class LegendControlHandler extends ControlHandlerBase {
             };
             const choice = layer ? legendChoice(layer) : ({ kind: 'none' } as const);
             const restore: Array<() => void> = [];
-            if (choice.kind === 'static') {
-              layer.customLegend = legendImageHtml(choice.url);
+            if (choice.kind === 'static' && layer) {
+              delete layer.customLegend;
             }
             if (choice.kind === 'none' && layer) {
               const originalInfo = layer.getInfo;
