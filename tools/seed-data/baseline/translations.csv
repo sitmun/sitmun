@@ -14,9 +14,9 @@ tra_id,tra_column,element,element_value,lan_shortname,tra_name
 13,CodeListValue.description,cartography.geometryType,LINE,ca,Línia
 14,CodeListValue.description,cartography.geometryType,POINT,ca,Punt
 15,CodeListValue.description,cartography.geometryType,POLYGON,ca,Polígon
-16,CodeListValue.description,cartography.legendType,LEGENDGRAPHIC,ca,Get Legend Graphic
-17,CodeListValue.description,cartography.legendType,CAPABILITIES,ca,GetCapabilities
-18,CodeListValue.description,cartography.legendType,LINK,ca,Enllaç estàtic
+16,CodeListValue.description,cartography.legendType,LEGENDGRAPHIC,ca,Prioritza Get Legend Graphic
+17,CodeListValue.description,cartography.legendType,LEGENDURL,ca,URL de llegenda
+18,CodeListValue.description,cartography.legendType,LINK,ca,URL de llegenda estàtica
 19,CodeListValue.description,cartographyFilter.type,C,ca,Personalitzat
 20,CodeListValue.description,cartographyFilter.type,D,ca,Definit
 21,CodeListValue.description,cartographyFilter.valueType,A,ca,Alfanumèric
@@ -118,9 +118,9 @@ tra_id,tra_column,element,element_value,lan_shortname,tra_name
 303,CodeListValue.description,cartography.geometryType,LINE,es,Línea
 304,CodeListValue.description,cartography.geometryType,POINT,es,Punto
 305,CodeListValue.description,cartography.geometryType,POLYGON,es,Polígono
-306,CodeListValue.description,cartography.legendType,LEGENDGRAPHIC,es,Get Legend Graphic
-307,CodeListValue.description,cartography.legendType,CAPABILITIES,es,GetCapabilities
-308,CodeListValue.description,cartography.legendType,LINK,es,Enlace estático
+306,CodeListValue.description,cartography.legendType,LEGENDGRAPHIC,es,Priorizar Get Legend Graphic
+307,CodeListValue.description,cartography.legendType,LEGENDURL,es,URL de leyenda
+308,CodeListValue.description,cartography.legendType,LINK,es,URL de leyenda estática
 309,CodeListValue.description,cartographyFilter.type,C,es,Personalizado
 310,CodeListValue.description,cartographyFilter.type,D,es,Definido
 311,CodeListValue.description,cartographyFilter.valueType,A,es,Alfanumérico
@@ -217,9 +217,9 @@ tra_id,tra_column,element,element_value,lan_shortname,tra_name
 448,CodeListValue.description,cartography.geometryType,LINE,fr,Ligne
 449,CodeListValue.description,cartography.geometryType,POINT,fr,Point
 450,CodeListValue.description,cartography.geometryType,POLYGON,fr,Polygone
-451,CodeListValue.description,cartography.legendType,LEGENDGRAPHIC,fr,Get Legend Graphic
-452,CodeListValue.description,cartography.legendType,CAPABILITIES,fr,GetCapabilities
-453,CodeListValue.description,cartography.legendType,LINK,fr,Lien statique
+451,CodeListValue.description,cartography.legendType,LEGENDGRAPHIC,fr,Prioriser Get Legend Graphic
+452,CodeListValue.description,cartography.legendType,LEGENDURL,fr,URL de légende
+453,CodeListValue.description,cartography.legendType,LINK,fr,URL de légende statique
 454,CodeListValue.description,cartographyFilter.type,C,fr,Personnalisé
 455,CodeListValue.description,cartographyFilter.type,D,fr,Défini
 456,CodeListValue.description,cartographyFilter.valueType,A,fr,Alphanumérique
@@ -316,9 +316,9 @@ tra_id,tra_column,element,element_value,lan_shortname,tra_name
 593,CodeListValue.description,cartography.geometryType,LINE,oc-aranes,Linha
 594,CodeListValue.description,cartography.geometryType,POINT,oc-aranes,Punt
 595,CodeListValue.description,cartography.geometryType,POLYGON,oc-aranes,Poligòn
-596,CodeListValue.description,cartography.legendType,LEGENDGRAPHIC,oc-aranes,Get Legend Graphic
-597,CodeListValue.description,cartography.legendType,CAPABILITIES,oc-aranes,GetCapabilities
-598,CodeListValue.description,cartography.legendType,LINK,oc-aranes,Ligam static
+596,CodeListValue.description,cartography.legendType,LEGENDGRAPHIC,oc-aranes,Priorizar Get Legend Graphic
+597,CodeListValue.description,cartography.legendType,LEGENDURL,oc-aranes,URL de legenda
+598,CodeListValue.description,cartography.legendType,LINK,oc-aranes,URL de legenda estatica
 599,CodeListValue.description,cartographyFilter.type,C,oc-aranes,Personalizat
 600,CodeListValue.description,cartographyFilter.type,D,oc-aranes,Definit
 601,CodeListValue.description,cartographyFilter.valueType,A,oc-aranes,Alfanumeric

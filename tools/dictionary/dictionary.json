@@ -78,19 +78,19 @@
       }
     },
     "cartography.legendType": {
-      "CAPABILITIES": {
-        "default": "false",
-        "description": "GetCapabilities",
-        "system": "true"
-      },
       "LEGENDGRAPHIC": {
         "default": "false",
-        "description": "Get Legend Graphic",
+        "description": "Prioritize Get Legend Graphic",
+        "system": "true"
+      },
+      "LEGENDURL": {
+        "default": "false",
+        "description": "Legend URL",
         "system": "true"
       },
       "LINK": {
         "default": "false",
-        "description": "Static link",
+        "description": "Static legend URL",
         "system": "true"
       }
     },

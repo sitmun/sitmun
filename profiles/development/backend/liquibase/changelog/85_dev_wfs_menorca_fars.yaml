@@ -35,7 +35,7 @@ databaseChangeLog:
                 GEO_QUERYACT, GEO_SERID, GEO_STYUSEALL
               ) VALUES (
                 9401, FALSE, FALSE, FALSE, FALSE, CURRENT_TIMESTAMP,
-                'turisme:tu007poi_fars', 'CAPABILITIES', 'Fars', TRUE, TRUE, 9401, FALSE
+                'turisme:tu007poi_fars', NULL, 'Fars', TRUE, TRUE, 9401, FALSE
               );
               INSERT INTO STM_GGI_GI (GGG_GGIID, GGG_GIID) VALUES (1, 9401);
               INSERT INTO STM_AVAIL_GI (AGI_ID, AGI_CREATED, AGI_GIID, AGI_TERID)
@@ -111,7 +111,7 @@ databaseChangeLog:
                 GEO_QUERYACT, GEO_SERID, GEO_STYUSEALL
               ) VALUES (
                 9401, 0, 0, 0, 0, CURRENT_TIMESTAMP,
-                'turisme:tu007poi_fars', 'CAPABILITIES', 'Fars', 1, 1, 9401, 0
+                'turisme:tu007poi_fars', NULL, 'Fars', 1, 1, 9401, 0
               );
               INSERT INTO STM_GGI_GI (GGG_GGIID, GGG_GIID) VALUES (1, 9401);
               INSERT INTO STM_AVAIL_GI (AGI_ID, AGI_CREATED, AGI_GIID, AGI_TERID)

@@ -103,7 +103,7 @@ class CodeListsTest {
   @DisplayName("Verify cartography.legendType code list values")
   void checkCartographyLegendType() {
     assertThat(select(CARTOGRAPHY_LEGEND_TYPE))
-        .containsExactlyInAnyOrder("LINK", "LEGENDGRAPHIC", "CAPABILITIES");
+        .containsExactlyInAnyOrder("LINK", "LEGENDGRAPHIC", "LEGENDURL");
   }
 
   @Test
