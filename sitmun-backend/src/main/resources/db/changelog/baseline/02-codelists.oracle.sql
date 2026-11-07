@@ -8,8 +8,8 @@ INSERT INTO stm_codelist (cod_id, cod_list, cod_value, cod_system, cod_default, 
 INSERT INTO stm_codelist (cod_id, cod_list, cod_value, cod_system, cod_default, cod_description) VALUES (8, 'cartography.geometryType', 'LINE', 1, 0, 'Line');
 INSERT INTO stm_codelist (cod_id, cod_list, cod_value, cod_system, cod_default, cod_description) VALUES (9, 'cartography.geometryType', 'POINT', 1, 0, 'Point');
 INSERT INTO stm_codelist (cod_id, cod_list, cod_value, cod_system, cod_default, cod_description) VALUES (10, 'cartography.geometryType', 'POLYGON', 1, 0, 'Polygon');
-INSERT INTO stm_codelist (cod_id, cod_list, cod_value, cod_system, cod_default, cod_description) VALUES (11, 'cartography.legendType', 'LEGENDGRAPHIC', 1, 0, 'Prioritize Get Legend Graphic');
-INSERT INTO stm_codelist (cod_id, cod_list, cod_value, cod_system, cod_default, cod_description) VALUES (12, 'cartography.legendType', 'LEGENDURL', 1, 0, 'Legend URL');
+INSERT INTO stm_codelist (cod_id, cod_list, cod_value, cod_system, cod_default, cod_description) VALUES (11, 'cartography.legendType', 'LEGENDGRAPHIC', 1, 0, 'Prioritize Get Legend Graphic (capabilities)');
+INSERT INTO stm_codelist (cod_id, cod_list, cod_value, cod_system, cod_default, cod_description) VALUES (12, 'cartography.legendType', 'LEGENDURL', 1, 0, 'Legend URL (capabilities)');
 INSERT INTO stm_codelist (cod_id, cod_list, cod_value, cod_system, cod_default, cod_description) VALUES (13, 'cartography.legendType', 'LINK', 1, 0, 'Static legend URL');
 INSERT INTO stm_codelist (cod_id, cod_list, cod_value, cod_system, cod_default, cod_description) VALUES (14, 'cartographyFilter.type', 'C', 1, 0, 'Custom');
 INSERT INTO stm_codelist (cod_id, cod_list, cod_value, cod_system, cod_default, cod_description) VALUES (15, 'cartographyFilter.type', 'D', 1, 0, 'Defined');

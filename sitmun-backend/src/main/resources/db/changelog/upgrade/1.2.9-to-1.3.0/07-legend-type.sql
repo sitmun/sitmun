@@ -1,9 +1,9 @@
 UPDATE stm_codelist
-SET cod_value = 'LEGENDURL', cod_description = 'Legend URL'
+SET cod_value = 'LEGENDURL', cod_description = 'Legend URL (capabilities)'
 WHERE cod_list = 'cartography.legendType' AND cod_value = 'CAPABILITIES';
 
 UPDATE stm_codelist
-SET cod_description = 'Prioritize Get Legend Graphic'
+SET cod_description = 'Prioritize Get Legend Graphic (capabilities)'
 WHERE cod_list = 'cartography.legendType' AND cod_value = 'LEGENDGRAPHIC';
 
 UPDATE stm_codelist
@@ -11,61 +11,61 @@ SET cod_description = 'Static legend URL'
 WHERE cod_list = 'cartography.legendType' AND cod_value = 'LINK';
 
 UPDATE stm_translation
-SET tra_name = 'Prioritza Get Legend Graphic'
+SET tra_name = 'Prioritza Get Legend Graphic (capabilities)'
 WHERE tra_column = 'CodeListValue.description'
   AND tra_eleid = (SELECT cod_id FROM stm_codelist WHERE cod_list = 'cartography.legendType' AND cod_value = 'LEGENDGRAPHIC')
   AND tra_lanid = (SELECT lan_id FROM stm_language WHERE lan_shortname = 'ca');
 
 UPDATE stm_translation
-SET tra_name = 'Priorizar Get Legend Graphic'
+SET tra_name = 'Priorizar Get Legend Graphic (capabilities)'
 WHERE tra_column = 'CodeListValue.description'
   AND tra_eleid = (SELECT cod_id FROM stm_codelist WHERE cod_list = 'cartography.legendType' AND cod_value = 'LEGENDGRAPHIC')
   AND tra_lanid = (SELECT lan_id FROM stm_language WHERE lan_shortname = 'es');
 
 UPDATE stm_translation
-SET tra_name = 'Prioriser Get Legend Graphic'
+SET tra_name = 'Prioriser Get Legend Graphic (capabilities)'
 WHERE tra_column = 'CodeListValue.description'
   AND tra_eleid = (SELECT cod_id FROM stm_codelist WHERE cod_list = 'cartography.legendType' AND cod_value = 'LEGENDGRAPHIC')
   AND tra_lanid = (SELECT lan_id FROM stm_language WHERE lan_shortname = 'fr');
 
 UPDATE stm_translation
-SET tra_name = 'Priorizar Get Legend Graphic'
+SET tra_name = 'Priorizar Get Legend Graphic (capabilities)'
 WHERE tra_column = 'CodeListValue.description'
   AND tra_eleid = (SELECT cod_id FROM stm_codelist WHERE cod_list = 'cartography.legendType' AND cod_value = 'LEGENDGRAPHIC')
   AND tra_lanid = (SELECT lan_id FROM stm_language WHERE lan_shortname = 'oc-aranes');
 
 UPDATE stm_translation
-SET tra_name = 'Prioritize Get Legend Graphic'
+SET tra_name = 'Prioritize Get Legend Graphic (capabilities)'
 WHERE tra_column = 'CodeListValue.description'
   AND tra_eleid = (SELECT cod_id FROM stm_codelist WHERE cod_list = 'cartography.legendType' AND cod_value = 'LEGENDGRAPHIC')
   AND tra_lanid = (SELECT lan_id FROM stm_language WHERE lan_shortname = 'en');
 
 UPDATE stm_translation
-SET tra_name = 'URL de llegenda'
+SET tra_name = 'Legend URL (capabilities)'
 WHERE tra_column = 'CodeListValue.description'
   AND tra_eleid = (SELECT cod_id FROM stm_codelist WHERE cod_list = 'cartography.legendType' AND cod_value = 'LEGENDURL')
   AND tra_lanid = (SELECT lan_id FROM stm_language WHERE lan_shortname = 'ca');
 
 UPDATE stm_translation
-SET tra_name = 'URL de leyenda'
+SET tra_name = 'Legend URL (capabilities)'
 WHERE tra_column = 'CodeListValue.description'
   AND tra_eleid = (SELECT cod_id FROM stm_codelist WHERE cod_list = 'cartography.legendType' AND cod_value = 'LEGENDURL')
   AND tra_lanid = (SELECT lan_id FROM stm_language WHERE lan_shortname = 'es');
 
 UPDATE stm_translation
-SET tra_name = 'URL de légende'
+SET tra_name = 'Legend URL (capabilities)'
 WHERE tra_column = 'CodeListValue.description'
   AND tra_eleid = (SELECT cod_id FROM stm_codelist WHERE cod_list = 'cartography.legendType' AND cod_value = 'LEGENDURL')
   AND tra_lanid = (SELECT lan_id FROM stm_language WHERE lan_shortname = 'fr');
 
 UPDATE stm_translation
-SET tra_name = 'URL de legenda'
+SET tra_name = 'Legend URL (capabilities)'
 WHERE tra_column = 'CodeListValue.description'
   AND tra_eleid = (SELECT cod_id FROM stm_codelist WHERE cod_list = 'cartography.legendType' AND cod_value = 'LEGENDURL')
   AND tra_lanid = (SELECT lan_id FROM stm_language WHERE lan_shortname = 'oc-aranes');
 
 UPDATE stm_translation
-SET tra_name = 'Legend URL'
+SET tra_name = 'Legend URL (capabilities)'
 WHERE tra_column = 'CodeListValue.description'
   AND tra_eleid = (SELECT cod_id FROM stm_codelist WHERE cod_list = 'cartography.legendType' AND cod_value = 'LEGENDURL')
   AND tra_lanid = (SELECT lan_id FROM stm_language WHERE lan_shortname = 'en');

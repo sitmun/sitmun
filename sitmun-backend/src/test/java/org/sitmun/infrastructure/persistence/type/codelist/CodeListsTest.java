@@ -104,6 +104,10 @@ class CodeListsTest {
   void checkCartographyLegendType() {
     assertThat(select(CARTOGRAPHY_LEGEND_TYPE))
         .containsExactlyInAnyOrder("LINK", "LEGENDGRAPHIC", "LEGENDURL");
+    assertThat(descriptions(CARTOGRAPHY_LEGEND_TYPE))
+        .containsEntry("LEGENDGRAPHIC", "Prioritize Get Legend Graphic (capabilities)")
+        .containsEntry("LEGENDURL", "Legend URL (capabilities)")
+        .containsEntry("LINK", "Static legend URL");
   }
 
   @Test

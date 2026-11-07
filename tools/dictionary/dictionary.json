@@ -80,12 +80,12 @@
     "cartography.legendType": {
       "LEGENDGRAPHIC": {
         "default": "false",
-        "description": "Prioritize Get Legend Graphic",
+        "description": "Prioritize Get Legend Graphic (capabilities)",
         "system": "true"
       },
       "LEGENDURL": {
         "default": "false",
-        "description": "Legend URL",
+        "description": "Legend URL (capabilities)",
         "system": "true"
       },
       "LINK": {
