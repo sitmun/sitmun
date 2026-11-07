@@ -411,30 +411,32 @@
         </mat-card>
         @if (dataLoaded) {
           <form [formGroup]="entityForm">
-            <mat-card appearance="outlined" class="sitmun-mat-card-margin">
-              <mat-card-content class="sitmun-service-form-stack">
-                <mat-form-field appearance="outline" class="half">
-                  <mat-label>{{ 'entity.cartography.styles.legendType' | translate }}</mat-label>
-                  <mat-select formControlName="legendType" [placeholder]="'common.form.none' | translate">
-                    <mat-option [value]="null">{{ 'common.form.none' | translate }}</mat-option>
-                    @for (legendType of this.codeList('cartography.legendType'); track legendType) {
-                      <mat-option [value]="legendType.value">
-                        {{ legendType.description }}
-                      </mat-option>
-                    }
-                  </mat-select>
-                </mat-form-field>
-                <mat-form-field appearance="outline" class="full">
-                  <mat-label>{{ 'entity.cartography.styles.legendURL' | translate }}</mat-label>
-                  <input formControlName="legendURL" matInput type="text" [maxlength]="4000">
-                  <app-external-url-link
-                    matSuffix
-                    [url]="$safeNavigationMigration(entityForm.get('legendURL')?.value)">
-                  </app-external-url-link>
-                  <mat-hint align="end">{{ entityForm.get('legendURL') | characterCount }}</mat-hint>
-                </mat-form-field>
-              </mat-card-content>
-            </mat-card>
+            @if (showsLegendFields()) {
+              <mat-card appearance="outlined" class="sitmun-mat-card-margin">
+                <mat-card-content class="sitmun-service-form-stack">
+                  <mat-form-field appearance="outline" class="half">
+                    <mat-label>{{ 'entity.cartography.styles.legendType' | translate }}</mat-label>
+                    <mat-select formControlName="legendType" [placeholder]="'common.form.none' | translate">
+                      <mat-option [value]="null">{{ 'common.form.none' | translate }}</mat-option>
+                      @for (legendType of legendChoices(); track legendType) {
+                        <mat-option [value]="legendType.value">
+                          {{ legendType.description }}
+                        </mat-option>
+                      }
+                    </mat-select>
+                  </mat-form-field>
+                  <mat-form-field appearance="outline" class="full">
+                    <mat-label>{{ 'entity.cartography.styles.legendURL' | translate }}</mat-label>
+                    <input formControlName="legendURL" matInput type="text" [maxlength]="4000">
+                    <app-external-url-link
+                      matSuffix
+                      [url]="$safeNavigationMigration(entityForm.get('legendURL')?.value)">
+                    </app-external-url-link>
+                    <mat-hint align="end">{{ entityForm.get('legendURL') | characterCount }}</mat-hint>
+                  </mat-form-field>
+                </mat-card-content>
+              </mat-card>
+            }
           </form>
         }
       </ng-template>

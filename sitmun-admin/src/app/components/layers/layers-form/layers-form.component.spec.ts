@@ -982,6 +982,43 @@ describe('LayersFormComponent', () => {
         .toBe('entity.cartography.styles.useAllStyles');
     });
 
+    it('filters the legend choice by service and enables the address only for a static legend', () => {
+      const codeLists = (component as unknown as {
+        codelists: Map<string, { value: string; description: string }[]>;
+      }).codelists;
+      codeLists.set('cartography.legendType', [
+        { value: 'LEGENDGRAPHIC', description: 'Prioritize Get Legend Graphic' },
+        { value: 'LEGENDURL', description: 'Legend URL' },
+        { value: 'LINK', description: 'Static legend URL' },
+      ]);
+      component.services = [
+        { id: 1, type: 'WMS' },
+        { id: 2, type: 'WMTS' },
+        { id: 3, type: 'WFS' },
+      ];
+
+      component.entityForm.patchValue({ serviceId: 1 });
+      expect(component.showsLegendFields()).toBe(true);
+      expect(component.legendChoices().map((item) => item.value))
+        .toEqual(['LEGENDGRAPHIC', 'LEGENDURL', 'LINK']);
+      expect(component.entityForm.get('legendType').value).toBe('LEGENDGRAPHIC');
+      expect(component.entityForm.get('legendURL').disabled).toBe(true);
+
+      component.entityForm.get('legendType').setValue('LINK');
+      expect(component.entityForm.get('legendURL').disabled).toBe(false);
+
+      component.entityForm.patchValue({ serviceId: 2, legendType: null });
+      expect(component.legendChoices().map((item) => item.value)).toEqual(['LINK']);
+      expect(component.entityForm.get('legendType').value).toBeNull();
+
+      component.entityForm.patchValue({ serviceId: 3 });
+      expect(component.showsLegendFields()).toBe(false);
+      expect(component.legendChoices()).toEqual([]);
+      expect(layersFormTemplate).toContain('showsLegendFields()');
+      expect(layersFormTemplate).toContain('legendChoices()');
+      expect(layersFormTemplate).not.toContain("codeList('cartography.legendType')");
+    });
+
     it('wraps Permissions and Trees relation grids in matTabContent', () => {
       const permissionsTab = layersFormTemplate.match(
         /entity\.cartography\.permissions\.header[\s\S]*?<\/mat-tab>/,

@@ -148,6 +148,7 @@ export class LayersFormComponent extends BaseFormComponent<CartographyProjection
   private parametersGrid?: RelationGridComponent;
 
   private joinedLayersValidationSub?: Subscription;
+  private legendChoiceSub?: Subscription;
 
   @ViewChild('newParameterDialog', {
     static: true
@@ -197,7 +198,10 @@ export class LayersFormComponent extends BaseFormComponent<CartographyProjection
     this.territorialFiltersTable = this.defineTerritorialFiltersTable();
     this.parametersTable = this.defineParametersTable();
     this.serviceParametersTable = this.defineServiceParametersTable();
-    this.destroyRef.onDestroy(() => this.joinedLayersValidationSub?.unsubscribe());
+    this.destroyRef.onDestroy(() => {
+      this.joinedLayersValidationSub?.unsubscribe();
+      this.legendChoiceSub?.unsubscribe();
+    });
   }
 
   /**
@@ -382,6 +386,15 @@ export class LayersFormComponent extends BaseFormComponent<CartographyProjection
     this.joinedLayersValidationSub = this.entityForm.get('joinedLayers')?.valueChanges.subscribe(() => {
       this.entityForm.get('joinedQueryableLayers')?.updateValueAndValidity({ emitEvent: false });
     });
+    this.legendChoiceSub?.unsubscribe();
+    this.legendChoiceSub = new Subscription();
+    this.legendChoiceSub.add(this.entityForm.get('serviceId')?.valueChanges.subscribe(() => {
+      this.syncLegendChoice();
+    }));
+    this.legendChoiceSub.add(this.entityForm.get('legendType')?.valueChanges.subscribe(() => {
+      this.syncLegendAddress();
+    }));
+    this.syncLegendChoice();
   }
 
   /**
@@ -876,6 +889,52 @@ export class LayersFormComponent extends BaseFormComponent<CartographyProjection
     const service = this.services.find((item) => item.id === this.entityForm?.get('serviceId')?.value);
     const protocol = parameterLeadProtocol(service?.type);
     return protocol == null ? null : `entity.cartography.serviceParameters.${audience}.${protocol}`;
+  }
+
+  legendChoices(): CodeList[] {
+    const type = this.getServiceType(this.entityForm?.get('serviceId')?.value);
+    const allowed = type === 'WMS'
+      ? ['LEGENDGRAPHIC', 'LEGENDURL', 'LINK']
+      : type === 'WMTS'
+        ? ['LINK']
+        : [];
+    return this.codeList('cartography.legendType').filter((item) => allowed.includes(item.value));
+  }
+
+  showsLegendFields(): boolean {
+    const type = this.getServiceType(this.entityForm?.get('serviceId')?.value);
+    return type === 'WMS' || type === 'WMTS';
+  }
+
+  private syncLegendChoice(): void {
+    const type = this.getServiceType(this.entityForm.get('serviceId')?.value);
+    const control = this.entityForm.get('legendType');
+    const current = control?.value as string | null;
+    const allowed = type === 'WMS'
+      ? ['LEGENDGRAPHIC', 'LEGENDURL', 'LINK']
+      : type === 'WMTS'
+        ? ['LINK']
+        : [];
+    if (type === 'WFS' || (current && !allowed.includes(current))) {
+      if (current) {
+        control.setValue(null, { emitEvent: false });
+      }
+    } else if (this.isNew() && type === 'WMS' && !current) {
+      control.setValue('LEGENDGRAPHIC', { emitEvent: false });
+    }
+    this.syncLegendAddress();
+  }
+
+  private syncLegendAddress(): void {
+    const address = this.entityForm.get('legendURL');
+    if (!address) {
+      return;
+    }
+    if (this.entityForm.get('legendType')?.value === 'LINK') {
+      address.enable({ emitEvent: false });
+    } else {
+      address.disable({ emitEvent: false });
+    }
   }
 
   cartographyCopyKey(key: string): string {
