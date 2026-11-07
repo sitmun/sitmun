@@ -129,7 +129,7 @@
               @if (entityForm.get('legendType')?.value === codeValues.legendType.link) {
                 <mat-form-field appearance="outline" class="full">
                   <mat-label>{{ 'entity.cartography.styles.legendURL' | translate }}</mat-label>
-                  <input formControlName="legendURL" matInput type="text" [maxlength]="4000">
+                  <input formControlName="legendURL" matInput type="text" [maxlength]="4000" required>
                   <app-external-url-link
                     matSuffix
                     [url]="$safeNavigationMigration(entityForm.get('legendURL')?.value)">

@@ -1918,7 +1918,7 @@
       "type": "string"
     },
     "STM_GEOINFO.GEO_LEGENDTIP": {
-      "codelist": null,
+      "codelist": "cartography.legendType",
       "consumers": {
         "jpa": "org.sitmun.domain.cartography.Cartography#legendType"
       },
