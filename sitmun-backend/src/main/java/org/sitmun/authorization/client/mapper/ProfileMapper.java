@@ -92,6 +92,8 @@ public abstract class ProfileMapper {
         .order(cartography.getOrder())
         .metadataURL(cartography.getMetadataURL())
         .datasetURL(cartography.getDatasetURL())
+        .legendType(cartography.getLegendType())
+        .legendURL(cartography.getLegendURL())
         .queryableFeatureEnabled(cartography.getQueryableFeatureEnabled())
         .featureInfoFields(mapFeatureInfoFields(cartography))
         .parameters(mapServiceParameters(cartography))
