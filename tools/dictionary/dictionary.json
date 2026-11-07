@@ -78,19 +78,19 @@
       }
     },
     "cartography.legendType": {
-      "CAPABILITIES": {
-        "default": "false",
-        "description": "GetCapabilities",
-        "system": "true"
-      },
       "LEGENDGRAPHIC": {
         "default": "false",
-        "description": "Get Legend Graphic",
+        "description": "Prioritize Get Legend Graphic (capabilities)",
+        "system": "true"
+      },
+      "LEGENDURL": {
+        "default": "false",
+        "description": "Legend URL (capabilities)",
         "system": "true"
       },
       "LINK": {
         "default": "false",
-        "description": "Static link",
+        "description": "Static legend URL",
         "system": "true"
       }
     },
@@ -1918,7 +1918,7 @@
       "type": "string"
     },
     "STM_GEOINFO.GEO_LEGENDTIP": {
-      "codelist": null,
+      "codelist": "cartography.legendType",
       "consumers": {
         "jpa": "org.sitmun.domain.cartography.Cartography#legendType"
       },

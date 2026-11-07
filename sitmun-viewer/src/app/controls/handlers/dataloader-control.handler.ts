@@ -12,8 +12,10 @@ import { SitnaControlConfig } from '../control-handler.interface';
  * Allows users to load data layers via WMS suggestions and drag-and-drop.
  *
  * Control Type: sitna.dataLoader
- * Patches: None (native SITNA control)
- * Configuration: div + optional wmsSuggestions and enableDragAndDrop parameters
+ * Patches: scripts/patch-dataloader-legacy-controls.js
+ * Configuration: div, wmsSuggestions, and enableDragAndDrop.
+ * Nullish modern options are filled in so DataLoader does not read the obsolete
+ * externalWMS / fileImport children.
  */
 @Injectable({
   providedIn: 'root'
@@ -38,10 +40,15 @@ export class DataLoaderControlHandler extends ControlHandlerBase {
     task: AppTasks,
     _context: AppCfg
   ): SitnaControlConfig | null {
-    const config = this.mergeWithParameters(
-      this.getDefaultConfig(),
-      task.parameters
-    );
+    const config: SitnaControlConfig = {
+      ...this.mergeWithParameters(this.getDefaultConfig(), task.parameters)
+    };
+    if (config['wmsSuggestions'] == null) {
+      config['wmsSuggestions'] = [];
+    }
+    if (config['enableDragAndDrop'] == null) {
+      config['enableDragAndDrop'] = false;
+    }
     this.uiStateService.enableToolsButton();
     return config;
   }

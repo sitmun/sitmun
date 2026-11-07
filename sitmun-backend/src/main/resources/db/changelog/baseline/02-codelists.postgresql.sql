@@ -8,9 +8,9 @@ INSERT INTO stm_codelist (cod_id, cod_list, cod_value, cod_system, cod_default, 
 INSERT INTO stm_codelist (cod_id, cod_list, cod_value, cod_system, cod_default, cod_description) VALUES (8, 'cartography.geometryType', 'LINE', true, false, 'Line');
 INSERT INTO stm_codelist (cod_id, cod_list, cod_value, cod_system, cod_default, cod_description) VALUES (9, 'cartography.geometryType', 'POINT', true, false, 'Point');
 INSERT INTO stm_codelist (cod_id, cod_list, cod_value, cod_system, cod_default, cod_description) VALUES (10, 'cartography.geometryType', 'POLYGON', true, false, 'Polygon');
-INSERT INTO stm_codelist (cod_id, cod_list, cod_value, cod_system, cod_default, cod_description) VALUES (11, 'cartography.legendType', 'LEGENDGRAPHIC', true, false, 'Get Legend Graphic');
-INSERT INTO stm_codelist (cod_id, cod_list, cod_value, cod_system, cod_default, cod_description) VALUES (12, 'cartography.legendType', 'CAPABILITIES', true, false, 'GetCapabilities');
-INSERT INTO stm_codelist (cod_id, cod_list, cod_value, cod_system, cod_default, cod_description) VALUES (13, 'cartography.legendType', 'LINK', true, false, 'Static link');
+INSERT INTO stm_codelist (cod_id, cod_list, cod_value, cod_system, cod_default, cod_description) VALUES (11, 'cartography.legendType', 'LEGENDGRAPHIC', true, false, 'Prioritize Get Legend Graphic (capabilities)');
+INSERT INTO stm_codelist (cod_id, cod_list, cod_value, cod_system, cod_default, cod_description) VALUES (12, 'cartography.legendType', 'LEGENDURL', true, false, 'Legend URL (capabilities)');
+INSERT INTO stm_codelist (cod_id, cod_list, cod_value, cod_system, cod_default, cod_description) VALUES (13, 'cartography.legendType', 'LINK', true, false, 'Static legend URL');
 INSERT INTO stm_codelist (cod_id, cod_list, cod_value, cod_system, cod_default, cod_description) VALUES (14, 'cartographyFilter.type', 'C', true, false, 'Custom');
 INSERT INTO stm_codelist (cod_id, cod_list, cod_value, cod_system, cod_default, cod_description) VALUES (15, 'cartographyFilter.type', 'D', true, false, 'Defined');
 INSERT INTO stm_codelist (cod_id, cod_list, cod_value, cod_system, cod_default, cod_description) VALUES (16, 'cartographyFilter.valueType', 'A', true, false, 'Alphanumeric');

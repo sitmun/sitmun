@@ -197,7 +197,7 @@ class CartographyRepositoryDataRestTest {
           "order": 3577,
           "transparency": 0,
           "metadataURL": "http://sitmun.diba.cat/sitmun2/metadada.jsp?title=SE${MUN_INE}&lang=${LANG}",
-          "legendType": "CAPABILITIES",
+          "legendType": "LEGENDURL",
           "legendURL": null,
           "description": null,
           "datasetURL": null,

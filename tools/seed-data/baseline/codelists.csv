@@ -9,9 +9,9 @@ cod_id,cod_list,cod_value,cod_system,cod_default,cod_description
 8,cartography.geometryType,LINE,true,false,Line
 9,cartography.geometryType,POINT,true,false,Point
 10,cartography.geometryType,POLYGON,true,false,Polygon
-11,cartography.legendType,LEGENDGRAPHIC,true,false,Get Legend Graphic
-12,cartography.legendType,CAPABILITIES,true,false,GetCapabilities
-13,cartography.legendType,LINK,true,false,Static link
+11,cartography.legendType,LEGENDGRAPHIC,true,false,Prioritize Get Legend Graphic (capabilities)
+12,cartography.legendType,LEGENDURL,true,false,Legend URL (capabilities)
+13,cartography.legendType,LINK,true,false,Static legend URL
 14,cartographyFilter.type,C,true,false,Custom
 15,cartographyFilter.type,D,true,false,Defined
 16,cartographyFilter.valueType,A,true,false,Alphanumeric

@@ -189,6 +189,33 @@ class ProfileMapperTest {
   }
 
   @Test
+  @DisplayName("Maps legendType and legendURL when set")
+  void mapsLegendChoice() {
+    Cartography capabilities = cartography(null, null, null, null, null);
+    capabilities.setLegendType("LEGENDURL");
+    capabilities.setLegendURL("https://example.com/capabilities.png");
+    CartographyDto capabilitiesDto = profileMapper.map(capabilities);
+    assertThat(capabilitiesDto.getLegendType()).isEqualTo("LEGENDURL");
+    assertThat(capabilitiesDto.getLegendURL()).isEqualTo("https://example.com/capabilities.png");
+
+    Cartography link = cartography(null, null, null, null, null);
+    link.setLegendType("LINK");
+    link.setLegendURL("https://example.com/static.png");
+    CartographyDto linkDto = profileMapper.map(link);
+    assertThat(linkDto.getLegendType()).isEqualTo("LINK");
+    assertThat(linkDto.getLegendURL()).isEqualTo("https://example.com/static.png");
+  }
+
+  @Test
+  @DisplayName("Jackson omits a null legend type and legend URL")
+  void jacksonOmitsNullLegendChoice() throws Exception {
+    CartographyDto dto = profileMapper.map(cartography(null, null, null, null, null));
+    String json = objectMapper.writeValueAsString(dto);
+    assertThat(json).doesNotContain("legendType");
+    assertThat(json).doesNotContain("legendURL");
+  }
+
+  @Test
   @DisplayName("Jackson omits null metadataURL and datasetURL keys")
   void jacksonOmitsNullMetadataAndDatasetUrls() throws Exception {
     CartographyDto dto = profileMapper.map(cartography(null, null, null, null, null));

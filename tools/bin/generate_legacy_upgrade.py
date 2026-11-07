@@ -245,6 +245,11 @@ REPAIR = ROOT / "tools/seed-data/upgrade/1.2.9-to-1.3.0/translations-en-repair.c
 DEFAULT_LANGUAGE = (
     "COALESCE((SELECT cnf_value FROM stm_conf WHERE cnf_name = 'language.default'), 'en')"
 )
+# Current baseline value -> value still stored on a 1.2.9 database.
+# 07-legend-type.sql renames it after this SQL.
+LEGACY_CODE = {
+    ("cartography.legendType", "LEGENDURL"): "CAPABILITIES",
+}
 
 
 def read_csv(path: Path) -> list[dict[str, str]]:
@@ -254,6 +259,19 @@ def read_csv(path: Path) -> list[dict[str, str]]:
 
 def load_promoted() -> set[tuple[str, str]]:
     return {(row["cod_list"], row["cod_value"]) for row in read_csv(PROMOTED)}
+
+
+def baseline_key(code_list: str, value: str) -> tuple[str, str]:
+    """Current system row for a value the upgrade SQL still names."""
+    for (current_list, current_value), legacy in LEGACY_CODE.items():
+        if current_list == code_list and legacy == value:
+            return current_list, current_value
+    return code_list, value
+
+
+def written_value(code_list: str, value: str) -> str:
+    """Value an old database has. A later hand changeset may rename it."""
+    return LEGACY_CODE.get((code_list, value), value)
 
 
 def description_sql(row: dict[str, str], translated: dict[str, str]) -> str:
@@ -275,7 +293,7 @@ def codelists(oracle: bool) -> str:
     rows = read_csv(SEED / "codelists.csv")
     by_key = {(row["cod_list"], row["cod_value"]): row for row in rows}
     for key in sorted(promoted):
-        row = by_key.get(key)
+        row = by_key.get(baseline_key(*key))
         if row is None or row["cod_system"] != "true":
             raise SystemExit(f"promoted code value is not a system row: {key[0]}.{key[1]}")
     translated: dict[tuple[str, str], dict[str, str]] = {}
@@ -290,9 +308,10 @@ def codelists(oracle: bool) -> str:
         key = (row["cod_list"], row["cod_value"])
         flag = true if row["cod_default"] == "true" else false
         code_list = sql_text(row["cod_list"])
-        value = sql_text(row["cod_value"])
+        emitted = written_value(*key)
+        value = sql_text(emitted)
         assignment = f"cod_system = {true}"
-        if key not in promoted:
+        if (row["cod_list"], emitted) not in promoted:
             assignment += f", cod_default = {flag}"
         lines.append(
             "UPDATE stm_codelist "
@@ -324,7 +343,7 @@ def english_repairs() -> list[str]:
     lines = []
     for row in read_csv(REPAIR):
         key = (row["cod_list"], row["cod_value"])
-        right = descriptions.get(key)
+        right = descriptions.get(baseline_key(*key))
         if right is None:
             raise SystemExit(f"repair row has no code value: {key[0]}.{key[1]}")
         lines.append(
@@ -345,7 +364,7 @@ def translations(oracle: bool) -> str:
         "AND NOT EXISTS (SELECT 1 FROM stm_codelist c WHERE c.cod_id = stm_translation.tra_eleid)"
     ]
     lines.extend(english_repairs())
-    return ";\n".join(lines) + ";\n" + fill_vacant.upgrade_catalog_sql()
+    return ";\n".join(lines) + ";\n" + fill_vacant.upgrade_catalog_sql(LEGACY_CODE)
 
 
 def literal_values() -> str:

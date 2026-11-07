@@ -252,8 +252,18 @@ def baseline_literal_sql(oracle: bool) -> list[str]:
     return parents + values
 
 
-def upgrade_catalog_sql() -> str:
-    lines = [_upgrade_catalog_insert(cell) for cell in _catalog_cells(_load_seed())]
+def upgrade_catalog_sql(legacy_codes: dict[tuple[str, str], str] | None = None) -> str:
+    """Insert missing translations. legacy_codes names a current value by the value an old database still has."""
+    cells = []
+    for cell in _catalog_cells(_load_seed()):
+        if (
+            legacy_codes
+            and cell.column == "CodeListValue.description"
+            and (cell.parent, cell.element_value) in legacy_codes
+        ):
+            cell = cell._replace(element_value=legacy_codes[(cell.parent, cell.element_value)])
+        cells.append(cell)
+    lines = [_upgrade_catalog_insert(cell) for cell in cells]
     return ";\n".join(lines) + ";\n"
 
 

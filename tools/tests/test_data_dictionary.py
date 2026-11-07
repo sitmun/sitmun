@@ -16,6 +16,7 @@ ROOT = Path(__file__).resolve().parents[2]
 BIN = ROOT / "tools" / "bin"
 sys.path.insert(0, str(BIN))
 
+import generate_legacy_upgrade as legacy  # noqa: E402
 from data_dictionary_lib import (  # noqa: E402
     build_document,
     check_catalog,
@@ -187,7 +188,9 @@ class DataDictionaryTest(unittest.TestCase):
         with (ROOT / "tools/seed-data/upgrade/1.2.9-to-1.3.0/codelists-promoted.csv").open(newline="") as handle:
             promoted = list(csv.DictReader(handle))
         self.assertEqual(len(promoted), 71)
-        promoted_keys = {(row["cod_list"], row["cod_value"]) for row in promoted}
+        promoted_keys = {
+            legacy.baseline_key(row["cod_list"], row["cod_value"]) for row in promoted
+        }
         system = {(row["cod_list"], row["cod_value"]) for row in rows if row["cod_system"] == "true"}
         self.assertTrue(promoted_keys <= system)
         inventory = (ROOT / "sitmun-backend/src/test/resources/required-codelists.yaml").read_text()

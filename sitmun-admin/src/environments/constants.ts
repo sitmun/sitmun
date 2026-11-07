@@ -30,7 +30,36 @@ const codeValue = {
     public: 'public',
   },
   serviceType: {
-    wms: 'WMS'
+    wms: 'WMS',
+    wmts: 'WMTS',
+    wfs: 'WFS'
+  },
+  legendType: {
+    legendGraphic: 'LEGENDGRAPHIC',
+    legendUrl: 'LEGENDURL',
+    link: 'LINK'
+  },
+  cartographyParameterType: {
+    info: 'INFO'
+  },
+  cartographyParameterFormat: {
+    auto: 'AUTO',
+    geometry: 'Geometry',
+    number: 'N',
+    percentage: 'P',
+    date: 'F',
+    image: 'I'
+  },
+  geometryKind: {
+    geometry: 'Geometry'
+  },
+  preferredGeometryType: {
+    point: 'point',
+    multipoint: 'multipoint',
+    polyline: 'polyline',
+    polygon: 'polygon',
+    multipolyline: 'multipolyline',
+    multipolygon: 'multipolygon'
   }
 };
 
