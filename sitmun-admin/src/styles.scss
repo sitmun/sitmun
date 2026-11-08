@@ -230,6 +230,11 @@ h2 {
   border-radius: 1px 1px 0 0;
 }
 
+.sql-test-dialog-panel .sql-run-grid.ag-theme-material .ag-layout-auto-height .ag-center-cols-viewport,
+.sql-test-dialog-panel .sql-run-grid.ag-theme-material .ag-layout-auto-height .ag-center-cols-container {
+  min-height: 0;
+}
+
 .ag-theme-material {
   --ag-odd-row-background-color: rgba(0, 0, 0, 0.02);
   --ag-row-hover-color: rgba(0, 0, 0, 0.06);
@@ -287,6 +292,54 @@ app-login .mat-app-background {
 .formDialogs mat-dialog-content {
   max-height: min(80vh, 720px);
   overflow-y: auto;
+}
+
+.sql-test-dialog-panel,
+.sql-test-dialog-panel .mat-mdc-dialog-title,
+.sql-test-dialog-panel .mat-mdc-dialog-content,
+.sql-test-dialog-panel .mdc-tab__text-label {
+  font-family: "Open Sans", sans-serif;
+}
+
+.sql-test-dialog-panel .sql-run-card {
+  margin-top: 12px;
+}
+
+.sql-test-dialog-panel .sql-run-card .mat-mdc-form-field {
+  display: block;
+  margin-bottom: 16px;
+}
+
+
+.sql-command-field .mat-mdc-form-field-infix {
+  width: 100%;
+  padding-top: 12px;
+  padding-bottom: 12px;
+}
+
+.sql-command-field textarea.mat-mdc-input-element {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.sql-command-field .sql-editor {
+  border: 0;
+  margin: 0;
+}
+
+.sql-run-field .sql-editor {
+  min-height: 0;
+}
+
+.sql-test-dialog-panel .sql-run-field .mdc-floating-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
 }
 
 

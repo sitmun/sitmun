@@ -18,5 +18,7 @@ public class JdbcRequestDecoratorAddQuery implements RequestDecorator {
     JdbcContext jdbcContext = (JdbcContext) context;
     request.setSql(jdbcContext.getSql());
     request.setParameters(jdbcContext.getParameters());
+    request.setMaxRows(jdbcContext.getMaxRows());
+    request.setTimeoutSeconds(jdbcContext.getTimeoutSeconds());
   }
 }

@@ -7,6 +7,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.sitmun.proxy.contract.JdbcParameter;
 import org.sitmun.proxy.middleware.dto.PayloadDto;
 
 @Getter
@@ -20,7 +21,9 @@ public class JdbcPayloadDto extends PayloadDto implements JdbcContext {
   private String password;
   private String driver;
   private String sql;
-  private List<String> parameters;
+  private List<JdbcParameter> parameters;
+  private Integer maxRows;
+  private Integer timeoutSeconds;
 
   @Builder
   public JdbcPayloadDto(
@@ -30,7 +33,9 @@ public class JdbcPayloadDto extends PayloadDto implements JdbcContext {
       String password,
       String driver,
       String sql,
-      List<String> parameters) {
+      List<JdbcParameter> parameters,
+      Integer maxRows,
+      Integer timeoutSeconds) {
     super(vary);
     this.uri = uri;
     this.user = user;
@@ -38,6 +43,8 @@ public class JdbcPayloadDto extends PayloadDto implements JdbcContext {
     this.driver = driver;
     this.sql = sql;
     this.parameters = parameters != null ? parameters : new ArrayList<>();
+    this.maxRows = maxRows;
+    this.timeoutSeconds = timeoutSeconds;
   }
 
   @Override

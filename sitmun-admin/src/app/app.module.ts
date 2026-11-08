@@ -1,3 +1,4 @@
+import {AgGridModule} from '@ag-grid-community/angular';
 import {NgOptimizedImage} from "@angular/common";
 import { provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/common/http';
 import {ErrorHandler, inject, LOCALE_ID, NgModule, provideAppInitializer} from '@angular/core';
@@ -335,6 +336,7 @@ export function initializeConfiguration(
         DomainModule.forRoot(),
         ServicesModule,
         SitmunFrontendGuiModule,
+        AgGridModule,
         DataGridComponent,
         RelationGridComponent,
         DialogGridComponent,

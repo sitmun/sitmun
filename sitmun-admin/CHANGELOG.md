@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **SQL query tasks**: The SQL field is a CodeMirror editor with formatting, orange placeholders, and a red underline on an invalid placeholder. The parameter grid keeps a data type, Provided, and Optional, and derives Required. Test runs the unsaved form twice and shows the bound SQL, the numbered values, and a truncation notice. Save stays off until that test passes for the current SQL, connection, and parameters.
+
 ### Changed
 
 - **Layers**: Format `Geometry`, the geometry kind, and the preferred geometry type show the code-list description for the current language. A missing format code stays empty. A missing kind or preferred type shows the stored code.

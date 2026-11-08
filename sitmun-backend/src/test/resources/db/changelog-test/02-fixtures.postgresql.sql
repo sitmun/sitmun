@@ -436,13 +436,13 @@ INSERT INTO stm_avail_tsk (ats_id, ats_terid, ats_taskid) VALUES (10101, 10001, 
 --end
 INSERT INTO stm_avail_tsk (ats_id, ats_terid, ats_taskid) VALUES (10100, 10001, 10042)
 --end
-INSERT INTO stm_task (tas_id, tas_name, tas_gtaskid, tas_ttaskid, tas_tuiid, tas_connid, tas_params) VALUES (10023, 'scaleSelector', 1, 1, 23, 10001, '{"parameters":[{"variable":"columnA"},{"variable":"columnB"}],"command": "SELECT * FROM EXAMPLE"}')
+INSERT INTO stm_task (tas_id, tas_name, tas_gtaskid, tas_ttaskid, tas_tuiid, tas_connid, tas_params) VALUES (10023, 'scaleSelector', 1, 1, 23, 10001, '{"parameters":[{"variable":"columnA","optional":true},{"variable":"columnB","optional":true}],"command": "SELECT * FROM EXAMPLE WHERE columnA=${columnA} AND columnB=${columnB}"}')
 --end
 INSERT INTO stm_rol_tsk (rts_roleid, rts_taskid) VALUES (10001, 10023)
 --end
 INSERT INTO stm_avail_tsk (ats_id, ats_terid, ats_taskid) VALUES (10023, 10001, 10023)
 --end
-INSERT INTO stm_task (tas_id, tas_name, tas_gtaskid, tas_ttaskid, tas_tuiid, tas_connid, tas_params) VALUES (10027, 'threed', 1, 1, 27, 10001, '{"parameters":[{"variable":"columnA"}],"command": "SELECT * FROM EXAMPLE WHERE TERR_COD=#{TERR_COD}"}')
+INSERT INTO stm_task (tas_id, tas_name, tas_gtaskid, tas_ttaskid, tas_tuiid, tas_connid, tas_params) VALUES (10027, 'threed', 1, 1, 27, 10001, '{"parameters":[{"variable":"columnA","optional":true}],"command": "SELECT * FROM EXAMPLE WHERE TERR_COD=#{TERR_COD} AND columnA=${columnA}"}')
 --end
 INSERT INTO stm_rol_tsk (rts_roleid, rts_taskid) VALUES (10001, 10027)
 --end

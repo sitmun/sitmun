@@ -2,9 +2,11 @@ package org.sitmun.proxy.middleware.dto;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.sql.Types;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
+import org.sitmun.proxy.contract.JdbcParameter;
 import org.sitmun.proxy.middleware.protocols.jdbc.JdbcPayloadDto;
 import org.sitmun.proxy.middleware.protocols.wms.WmsPayloadDto;
 
@@ -40,7 +42,7 @@ class PayloadLoggingTest {
             .password("db-password")
             .driver("org.postgresql.Driver")
             .sql("select secret from private_table")
-            .parameters(List.of("tenant-secret"))
+            .parameters(List.of(new JdbcParameter(Types.VARCHAR, "tenant-secret")))
             .build();
 
     assertThat(payload.describe())

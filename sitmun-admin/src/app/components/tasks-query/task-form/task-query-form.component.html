@@ -23,7 +23,8 @@
   mat-stretch-tabs="false"
   mat-align-tabs="end"
   [dynamicHeight]="true"
-  preserveContent="true">
+  preserveContent="true"
+  (selectedTabChange)="onFormTabChange($event)">
   <mat-tab label="{{ 'common.form.details' | translate }}">
     @if (dataLoaded) {
       <form [formGroup]='entityForm'>
@@ -124,11 +125,36 @@
                   </a>
                 }
               </mat-form-field>
-              <mat-form-field appearance="outline" class="full">
+              <mat-form-field appearance="outline" class="full sql-command-field" floatLabel="always">
                 <mat-label>{{ 'entity.task.query.sql' | translate }}</mat-label>
-                <textarea matInput type="text" formControlName="command" required [maxlength]="4000" rows="4"></textarea>
-                <mat-hint align="end">{{entityForm.get('command') | characterCount}}</mat-hint>
+                <textarea matInput class="sql-command-source" formControlName="command" required [maxlength]="4000" rows="1" tabindex="-1"></textarea>
+                <div class="sql-editor" #sqlEditorHost data-testid="sql-editor" (click)="$event.stopPropagation()"></div>
+                <mat-hint align="end">{{ entityForm.get('command') | characterCount }}</mat-hint>
               </mat-form-field>
+              <div>
+                <button
+                  mat-raised-button
+                  color="primary"
+                  type="button"
+                  class="add-half-gap sitmun-mat-button-margin"
+                  data-testid="sql-format"
+                  (click)="formatSql()">
+                  {{ 'entity.task.query.format' | translate }}
+                </button>
+                <button
+                  mat-raised-button
+                  color="primary"
+                  type="button"
+                  class="sitmun-mat-button-margin"
+                  data-testid="sql-test"
+                  [disabled]="!canTestSql()"
+                  (click)="openSqlTest()">
+                  {{ 'entity.task.query.test' | translate }}
+                </button>
+              </div>
+              @if (sqlProblems.length > 0) {
+                <p class="sql-problems" data-testid="sql-test-block">{{ 'entity.task.query.testBlocked' | translate:{ parameters: sqlProblems.join(', ') } }}</p>
+              }
               <div style="margin: 12px 0; padding: 8px; background-color: #e3f2fd; border-radius: 4px; font-size: 0.9em; color: #1976d2;">
                 <div>{{ 'entity.task.query.backendVariables.hint' | translate }}</div>
                 <div style="margin-top: 4px;"><strong>{{ 'entity.task.query.backendVariables.example' | translate }}</strong></div>
@@ -354,12 +380,25 @@
 </mat-tab-group>
 
 <ng-template #newParameterDialog>
-  <form [formGroup]="parametersTable.templateDialog('newParameterDialog').form">
+  @let parameterForm = parametersTable.templateDialog('newParameterDialog').form;
+  <form [formGroup]="parameterForm">
     <mat-card appearance="outlined">
       <mat-card-content>
         <mat-form-field appearance="outline" class="full">
           <mat-label>{{ "common.form.name" | translate }}</mat-label>
           <input matInput type="text" formControlName="name" required>
+          @if (parameterForm.get('name')?.hasError('invalidName')) {
+            <mat-error>{{ 'entity.task.query.parameter.invalidName' | translate }}</mat-error>
+          }
+          @if (parameterForm.get('name')?.hasError('reserved')) {
+            <mat-error>{{ 'entity.task.query.parameter.reserved' | translate }}</mat-error>
+          }
+          @if (parameterForm.get('name')?.hasError('systemName')) {
+            <mat-error>{{ 'entity.task.query.parameter.systemName' | translate }}</mat-error>
+          }
+          @if (parameterForm.get('name')?.hasError('duplicate')) {
+            <mat-error>{{ 'entity.task.query.parameter.duplicate' | translate }}</mat-error>
+          }
         </mat-form-field>
         <mat-form-field appearance="outline" class="full">
           <mat-label>{{ "common.form.label" | translate }}</mat-label>
@@ -368,19 +407,44 @@
         <mat-form-field appearance="outline" class="full">
           <mat-label>{{ "common.form.value" | translate }}</mat-label>
           <input matInput type="text" formControlName="value">
-        </mat-form-field>
-        <mat-radio-group formControlName="type" class="full">
-          <mat-label class="requiredInput">{{ 'common.form.type' | translate }}</mat-label>
-          @for (paramType of this.codeList('queryTask.parameterType'); track paramType) {
-            <mat-radio-button [value]="paramType.value">
-              {{ paramType.description }}
-            </mat-radio-button>
+          @if (parameterForm.get('value')?.hasError('noSystemExpression')) {
+            <mat-error>{{ 'entity.task.query.parameter.noSystemExpression' | translate }}</mat-error>
           }
-        </mat-radio-group>
-        <br/>
-        @if (isQueryParameterType()) {
+          @if (parameterForm.get('value')?.hasError('providedNeedsValue')) {
+            <mat-error>{{ 'entity.task.query.parameter.providedNeedsValue' | translate }}</mat-error>
+          }
+          @if (parameterForm.get('value')?.hasError('optionalHasValue')) {
+            <mat-error>{{ 'entity.task.query.parameter.optionalHasValue' | translate }}</mat-error>
+          }
+        </mat-form-field>
+        @if (!isSqlQueryScope()) {
+          <mat-radio-group formControlName="type" class="full">
+            <mat-label class="requiredInput">{{ 'common.form.type' | translate }}</mat-label>
+            @for (paramType of this.codeList('queryTask.parameterType'); track paramType) {
+              <mat-radio-button [value]="paramType.value">
+                {{ paramType.description }}
+              </mat-radio-button>
+            }
+          </mat-radio-group>
+          <br/>
+        }
+        @if (isQueryParameterType() && !isSqlQueryScope()) {
           <mat-label>{{ 'common.form.required' | translate }}</mat-label>
           <mat-checkbox formControlName="required">
+          </mat-checkbox>
+          <br/>
+        }
+        @if (isQueryParameterType()) {
+          <mat-form-field appearance="outline" class="full">
+            <mat-label>{{ 'entity.task.query.dataType' | translate }}</mat-label>
+            <mat-select formControlName="dataType">
+              @for (dataType of sqlDataTypes; track dataType) {
+                <mat-option [value]="dataType">{{ dataType }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+          <mat-label>{{ 'entity.task.query.optional' | translate }}</mat-label>
+          <mat-checkbox formControlName="optional">
           </mat-checkbox>
           <br/>
           <mat-label>{{ 'entity.task.parameters.provided' | translate }}</mat-label>
@@ -395,4 +459,142 @@
       </mat-card-content>
     </mat-card>
   </form>
+</ng-template>
+
+<ng-template #sqlTestDialog>
+  <div data-testid="sql-test-dialog" class="sql-test-dialog">
+    <h2 mat-dialog-title>{{ 'entity.task.query.test' | translate }}</h2>
+    <mat-dialog-content class="mat-typography">
+      <mat-card appearance="outlined">
+        <mat-card-content>
+          @for (parameter of sqlClientParameters(); track parameterName(parameter)) {
+            <mat-form-field appearance="outline" class="full">
+              <mat-label>{{ parameterName(parameter) }}</mat-label>
+              <input
+                matInput
+                [attr.data-testid]="'sql-client-' + parameterName(parameter)"
+                [ngModelOptions]="{standalone: true}"
+                [(ngModel)]="testClientValues[parameterName(parameter)]"
+                [name]="'client-' + parameterName(parameter)" />
+            </mat-form-field>
+          }
+          @for (parameter of sqlProvidedParameters(); track parameterName(parameter)) {
+            <p>{{ parameterName(parameter) }}: {{ parameter['value'] }}</p>
+          }
+          @for (name of sqlSystemNames(); track name) {
+            <mat-form-field appearance="outline" class="full">
+              <mat-label>{{ name }}</mat-label>
+              <input
+                matInput
+                [attr.data-testid]="'sql-system-' + name"
+                [ngModelOptions]="{standalone: true}"
+                [(ngModel)]="testSystemValues[name]"
+                [name]="'system-' + name" />
+            </mat-form-field>
+          }
+          <mat-form-field appearance="outline" class="half add-gap">
+            <mat-label>{{ 'entity.task.query.limit' | translate }}</mat-label>
+            <input matInput data-testid="sql-limit" type="number" [ngModelOptions]="{standalone: true}" [(ngModel)]="testLimit" name="testLimit" />
+          </mat-form-field>
+          <mat-form-field appearance="outline" class="half">
+            <mat-label>{{ 'entity.task.query.offset' | translate }}</mat-label>
+            <input matInput data-testid="sql-offset" type="number" [ngModelOptions]="{standalone: true}" [(ngModel)]="testOffset" name="testOffset" />
+          </mat-form-field>
+          @if (sqlTestError) {
+            <div class="sql-run-banner" role="alert" data-testid="sql-test-error">
+              <mat-icon class="sql-run-banner-icon sql-run-banner-icon--error" fontSet="material-icons-round">error_outline</mat-icon>
+              <span>{{ sqlTestError }}</span>
+            </div>
+          }
+          @if ((sqlTestResult?.runs ?? []).length > 0) {
+            <mat-tab-group [selectedIndex]="sqlRunTab" (selectedIndexChange)="sqlRunTab = $event" (selectedTabChange)="onSqlRunTabChange()">
+              @for (run of sqlTestResult?.runs ?? []; track run['label']; let index = $index) {
+                <mat-tab [label]="sqlRunTabLabel(index)">
+                  <mat-card appearance="outlined" class="sql-run-card">
+                    <mat-card-content>
+                  <article [attr.data-testid]="'sql-run-' + run['label']" [attr.data-ok]="run['ok']">
+                    <mat-form-field appearance="outline" class="full sql-run-field sql-command-field" subscriptSizing="dynamic">
+                      <mat-label>
+                        <mat-icon
+                          class="sql-run-label-icon"
+                          [class.sql-run-banner-icon--ok]="run['ok']"
+                          [class.sql-run-banner-icon--error]="!run['ok']"
+                          fontSet="material-icons-round">{{ run['ok'] ? 'check_circle' : 'error_outline' }}</mat-icon>
+                        {{ 'entity.task.query.sqlSent' | translate }}
+                      </mat-label>
+                      <textarea matInput readonly tabindex="-1" rows="1" [value]="run['sql']"></textarea>
+                      <div class="sql-editor sql-run-editor" [attr.data-sql-run]="run['label']" (click)="$event.stopPropagation()"></div>
+                    </mat-form-field>
+                    @if (runValues(run).length > 0) {
+                      <ag-grid-angular
+                        class="ag-theme-material sql-run-grid"
+                        [rowData]="runValueRows(run)"
+                        [columnDefs]="runValueColumnDefs()"
+                        [domLayout]="'autoHeight'"
+                        [pagination]="false"
+                        [suppressCellFocus]="true">
+                      </ag-grid-angular>
+                    }
+                    @if (!run['ok']) {
+                      <mat-form-field appearance="outline" class="full" subscriptSizing="dynamic">
+                        <mat-label>{{ 'entity.task.query.runError' | translate }}</mat-label>
+                        <textarea matInput readonly [value]="run['error']"></textarea>
+                      </mat-form-field>
+                    }
+                    @if (run['ok']) {
+                      @if (runRows(run).length > 0) {
+                        <ag-grid-angular
+                          class="ag-theme-material sql-run-grid"
+                          [rowData]="runRows(run)"
+                          [columnDefs]="runColumnDefs(run)"
+                          [domLayout]="'autoHeight'"
+                          [pagination]="false"
+                          [suppressCellFocus]="true">
+                        </ag-grid-angular>
+                      } @else {
+                        <div class="sql-run-banner" role="status">
+                          <mat-icon class="sql-run-banner-icon sql-run-banner-icon--info" fontSet="material-icons-round">info</mat-icon>
+                          <span>{{ 'entity.task.query.noRows' | translate }}</span>
+                        </div>
+                      }
+                      @if (run['truncated']) {
+                        <div class="sql-run-banner" role="status" data-testid="sql-truncated">
+                          <mat-icon class="sql-run-banner-icon sql-run-banner-icon--warn" fontSet="material-icons-round">warning_amber</mat-icon>
+                          <span>{{ 'entity.task.query.truncated' | translate }}</span>
+                        </div>
+                      }
+                    }
+                  </article>
+                    </mat-card-content>
+                  </mat-card>
+                </mat-tab>
+              }
+            </mat-tab-group>
+          }
+        </mat-card-content>
+      </mat-card>
+    </mat-dialog-content>
+    <mat-dialog-actions align="end">
+      <button
+        matTooltip="{{ 'common.button.return' | translate }}"
+        [attr.aria-label]="'common.button.return' | translate"
+        mat-dialog-close
+        mat-mini-fab
+        color="primary"
+        type="button">
+        <mat-icon fontSet="material-icons-round">arrow_back</mat-icon>
+      </button>
+      <button
+        matTooltip="{{ 'entity.task.query.run' | translate }}"
+        [attr.aria-label]="'entity.task.query.run' | translate"
+        mat-mini-fab
+        class="add-half-gap"
+        color="primary"
+        type="button"
+        data-testid="sql-test-run"
+        (click)="runSqlTest()">
+        <mat-icon fontSet="material-icons-round">play_arrow</mat-icon>
+      </button>
+    </mat-dialog-actions>
+  </div>
 </ng-template>

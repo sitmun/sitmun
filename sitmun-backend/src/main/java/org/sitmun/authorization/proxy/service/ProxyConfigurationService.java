@@ -22,6 +22,8 @@ import org.sitmun.authorization.proxy.parameter.NamedParameter;
 import org.sitmun.authorization.proxy.parameter.ParameterScopes;
 import org.sitmun.authorization.proxy.protocols.jdbc.JdbcPayloadDto;
 import org.sitmun.authorization.proxy.protocols.wms.WmsPayloadDto;
+import org.sitmun.authorization.proxy.sql.BoundSql;
+import org.sitmun.authorization.proxy.sql.SqlTaskBinder;
 import org.sitmun.authorization.proxy.validator.ResourceAccessValidator;
 import org.sitmun.domain.application.ApplicationRepository;
 import org.sitmun.domain.cartography.CartographyRepository;
@@ -38,6 +40,7 @@ import org.sitmun.domain.task.parameter.TaskParameterProcessor;
 import org.sitmun.domain.territory.TerritoryRepository;
 import org.sitmun.domain.user.UserRepository;
 import org.sitmun.infrastructure.variables.SystemVariableResolver;
+import org.sitmun.proxy.contract.JdbcBindings;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.util.StringUtils;
 
@@ -86,8 +89,16 @@ public class ProxyConfigurationService {
 
   private final CartographyServiceParameterRepository cartographyServiceParameterRepository;
 
+  private final SqlTaskBinder sqlTaskBinder;
+
   @Value("${sitmun.proxy-middleware.config-response-validity-in-seconds:3600}")
   private int responseValidityTime;
+
+  @Value("${sitmun.jdbc.max-rows:1000}")
+  private int jdbcMaxRows = JdbcBindings.DEFAULT_MAX_ROWS;
+
+  @Value("${sitmun.jdbc.query-timeout-seconds:60}")
+  private int jdbcQueryTimeoutSeconds = JdbcBindings.DEFAULT_TIMEOUT_SECONDS;
 
   public ProxyConfigurationService(
       ServiceRepository serviceRepository,
@@ -120,6 +131,7 @@ public class ProxyConfigurationService {
     this.userApplicationAccessPolicy = userApplicationAccessPolicy;
     this.cartographyRepository = cartographyRepository;
     this.cartographyServiceParameterRepository = cartographyServiceParameterRepository;
+    this.sqlTaskBinder = new SqlTaskBinder(systemVariableResolver);
   }
 
   private WmsPayloadDto getOgcWmsConfiguration(
@@ -235,9 +247,6 @@ public class ProxyConfigurationService {
     DatabaseConnection databaseConnection = task.getConnection();
     String sql = getSqlByTask(task);
 
-    // Resolve system variables (#{}) before sending to proxy
-    sql = systemVariableResolver.resolve(sql, coordinates);
-
     if (databaseConnection == null) {
       return null;
     }
@@ -248,6 +257,8 @@ public class ProxyConfigurationService {
         .password(databaseConnection.getPassword())
         .driver(databaseConnection.getDriver())
         .sql(sql)
+        .maxRows(jdbcMaxRows)
+        .timeoutSeconds(jdbcQueryTimeoutSeconds)
         .build();
   }
 
@@ -459,6 +470,13 @@ public class ProxyConfigurationService {
 
     List<TaskParameter> taskParameters = getTaskParametersForRequest(configProxyRequestDto);
 
+    boolean sqlTask =
+        TYPE_SQL.equalsIgnoreCase(configProxyRequestDto.getType())
+            && payload instanceof JdbcPayloadDto;
+    if (sqlTask) {
+      rejectUndeclaredSqlKeys(taskParameters, paramsWithoutPagination.asMap());
+    }
+
     ClientRequestParameters filteredClientParameters;
     if (taskParameters.isEmpty()) {
       // For OGC/WMS/WMTS services (non-task requests), use client parameters directly
@@ -468,6 +486,17 @@ public class ProxyConfigurationService {
       // For task requests (SQL/API), filter client parameters against client-allowed names
       filteredClientParameters =
           paramsWithoutPagination.filterToAllowed(taskParameters, taskParameterProcessor);
+    }
+
+    if (sqlTask) {
+      JdbcPayloadDto jdbc = (JdbcPayloadDto) payload;
+      BoundSql bound =
+          sqlTaskBinder.bind(
+              jdbc.getSql(), taskParameters, filteredClientParameters.asMap(), coordinates);
+      jdbc.setSql(bound.sql());
+      jdbc.setParameters(bound.parameters());
+      jdbc.setMaxRows(jdbcMaxRows);
+      jdbc.setTimeoutSeconds(jdbcQueryTimeoutSeconds);
     }
 
     // Build effectiveParameters with priority: locked > provided > client > literal > empty
@@ -510,6 +539,19 @@ public class ProxyConfigurationService {
    * Gets the parsed task parameters for the current request. Returns empty list for non-task
    * requests (OGC/WMS services).
    */
+  private void rejectUndeclaredSqlKeys(
+      List<TaskParameter> declared, Map<String, String> clientParameters) {
+    Set<String> names = new HashSet<>();
+    for (TaskParameter parameter : declared) {
+      names.add(parameter.name());
+    }
+    for (String key : clientParameters.keySet()) {
+      if (!names.contains(key)) {
+        throw new BadRequestException("Undeclared parameter '" + key + "'");
+      }
+    }
+  }
+
   private List<TaskParameter> getTaskParametersForRequest(
       ConfigProxyRequestDto configProxyRequestDto) {
     if (!TYPE_SQL.equalsIgnoreCase(configProxyRequestDto.getType())

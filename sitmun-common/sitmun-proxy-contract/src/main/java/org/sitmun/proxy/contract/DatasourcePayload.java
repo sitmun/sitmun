@@ -11,7 +11,7 @@ public record DatasourcePayload(
     String password,
     String driver,
     String sql,
-    List<String> parameters)
+    List<JdbcParameter> parameters)
     implements Payload {
 
   @Override

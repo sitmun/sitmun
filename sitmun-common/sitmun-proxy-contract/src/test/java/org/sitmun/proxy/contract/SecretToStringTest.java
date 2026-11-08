@@ -37,7 +37,7 @@ class SecretToStringTest {
             "dbpass",
             "org.postgresql.Driver",
             "SELECT * FROM test_table",
-            List.of("1"));
+            List.of(new JdbcParameter(12, "1")));
 
     assertThat(payload.toString())
         .isEqualTo(
