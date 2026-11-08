@@ -1432,6 +1432,7 @@ export class TaskQueryFormComponent extends BaseFormComponent<TaskProjection> im
         return;
       }
       created = true;
+      host.addEventListener('click', (event) => event.stopPropagation());
       const label = host.getAttribute('data-sql-run');
       const run = (this.sqlTestResult?.runs ?? []).find((item) => item['label'] === label);
       const view = new EditorView({
@@ -1486,6 +1487,7 @@ export class TaskQueryFormComponent extends BaseFormComponent<TaskProjection> im
         }
       }
     }, { decorations: (value) => value.decorations });
+    parent.addEventListener('click', (event) => event.stopPropagation());
     this.sqlEditorView = new EditorView({
       parent,
       state: EditorState.create({

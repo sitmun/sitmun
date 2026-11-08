@@ -128,7 +128,7 @@
               <mat-form-field appearance="outline" class="full sql-command-field" floatLabel="always">
                 <mat-label>{{ 'entity.task.query.sql' | translate }}</mat-label>
                 <textarea matInput class="sql-command-source" formControlName="command" required [maxlength]="4000" rows="1" tabindex="-1"></textarea>
-                <div class="sql-editor" #sqlEditorHost data-testid="sql-editor" (click)="$event.stopPropagation()"></div>
+                <div class="sql-editor" #sqlEditorHost data-testid="sql-editor"></div>
                 <mat-hint align="end">{{ entityForm.get('command') | characterCount }}</mat-hint>
               </mat-form-field>
               <div>
@@ -523,7 +523,7 @@
                         {{ 'entity.task.query.sqlSent' | translate }}
                       </mat-label>
                       <textarea matInput readonly tabindex="-1" rows="1" [value]="run['sql']"></textarea>
-                      <div class="sql-editor sql-run-editor" [attr.data-sql-run]="run['label']" (click)="$event.stopPropagation()"></div>
+                      <div class="sql-editor sql-run-editor" [attr.data-sql-run]="run['label']"></div>
                     </mat-form-field>
                     @if (runValues(run).length > 0) {
                       <ag-grid-angular

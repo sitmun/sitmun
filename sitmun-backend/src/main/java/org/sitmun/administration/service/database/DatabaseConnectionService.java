@@ -100,6 +100,8 @@ public class DatabaseConnectionService {
       List<Map<String, Object>> result,
       boolean[] truncated)
       throws DatabaseSQLException {
+    // The statement text is admin-authored SQL. Values are bound, not concatenated.
+    // codeql[java/sql-injection]
     try (PreparedStatement stmt = connection.prepareStatement(query)) {
       JdbcBindings.applyLimits(stmt, maxRows, queryTimeoutSeconds);
       String product = JdbcBindings.productName(connection);
@@ -116,6 +118,8 @@ public class DatabaseConnectionService {
   private void retrieveResultSetMetadata(
       Statement stmt, String query, List<Map<String, Object>> result, boolean[] truncated)
       throws SQLException {
+    // The statement text is admin-authored SQL. This path has no client values to bind.
+    // codeql[java/sql-injection]
     try (ResultSet resultSet = stmt.executeQuery(query)) {
       appendRows(resultSet, result, truncated);
     }

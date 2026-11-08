@@ -1,4 +1,3 @@
-import {AgGridModule} from '@ag-grid-community/angular';
 import {NgOptimizedImage} from "@angular/common";
 import { provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/common/http';
 import {ErrorHandler, inject, LOCALE_ID, NgModule, provideAppInitializer} from '@angular/core';
@@ -8,6 +7,7 @@ import {BrowserModule} from '@angular/platform-browser';
 import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
 import {RouterModule} from '@angular/router';
 
+import {AgGridModule} from '@ag-grid-community/angular';
 import { provideMissingTranslationHandler, TranslateModule, TranslateService } from '@ngx-translate/core';
 import { provideTranslateHttpLoader } from '@ngx-translate/http-loader';
 import {firstValueFrom} from 'rxjs';

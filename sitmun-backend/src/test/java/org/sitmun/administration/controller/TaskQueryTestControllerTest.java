@@ -60,6 +60,9 @@ class TaskQueryTestControllerTest {
   @AfterEach
   void restoreCap() {
     ReflectionTestUtils.setField(databaseConnectionService, "maxRows", 1000);
+    if (connection != null && connection.getId() != null) {
+      databaseConnectionRepository.deleteById(connection.getId());
+    }
   }
 
   @Test
