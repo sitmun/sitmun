@@ -113,6 +113,38 @@
             <mat-slide-toggle color="primary" formControlName="queryableFeatureEnabled">
               {{ 'entity.cartography.featureInformation.queryable' | translate }}
             </mat-slide-toggle>
+            @if (showsLegendFields()) {
+              <mat-form-field appearance="outline" class="half sitmun-cartography-rich-hint-field" subscriptSizing="dynamic">
+                <mat-label>{{ 'entity.cartography.styles.legendType' | translate }}</mat-label>
+                <mat-select formControlName="legendType" [placeholder]="'common.form.none' | translate">
+                  <mat-option [value]="null">{{ 'common.form.none' | translate }}</mat-option>
+                  @for (legendType of legendChoices(); track legendType) {
+                    <mat-option [value]="legendType.value">
+                      {{ legendType.description }}
+                    </mat-option>
+                  }
+                </mat-select>
+                <mat-hint align="start">{{ legendHintKey() | translate }}</mat-hint>
+              </mat-form-field>
+              @if (entityForm.get('legendType')?.value === codeValues.legendType.link) {
+                <mat-form-field appearance="outline" class="full">
+                  <mat-label>{{ 'entity.cartography.styles.legendURL' | translate }}</mat-label>
+                  <input formControlName="legendURL" matInput type="text" [maxlength]="4000" required>
+                  <app-external-url-link
+                    matSuffix
+                    [url]="$safeNavigationMigration(entityForm.get('legendURL')?.value)">
+                  </app-external-url-link>
+                  <mat-hint align="end">{{ entityForm.get('legendURL') | characterCount }}</mat-hint>
+                  @if (entityForm.get('legendURL')?.hasError('required') && entityForm.get('legendURL')?.touched) {
+                    <mat-error>
+                      {{ 'common.error.required' | translate }}
+                    </mat-error>
+                  }
+                </mat-form-field>
+              }
+            } @else if (getServiceType(entityForm.get('serviceId')?.value) === codeValues.serviceType.wfs) {
+              <p class="sitmun-form-hint-text">{{ 'entity.cartography.legend.sitnaControlCapabilities.wfs' | translate }}</p>
+            }
           </mat-card-content>
         </mat-card>
         <mat-card appearance="outlined" class="sitmun-mat-card-margin">
@@ -275,30 +307,32 @@
     </ng-template>
   </mat-tab>
   <ng-container *appFeatureFlag="'LAYERS_SERVICE_PARAMETERS_FEATURE'">
-    <mat-tab [disabled]="!serviceIsProxied()">
-      <ng-template mat-tab-label>
-        <app-feature-flag [text]="'entity.cartography.serviceParameters.header' | translate" [flag]="'LAYERS_SERVICE_PARAMETERS_FEATURE'"></app-feature-flag>
-      </ng-template>
-      <ng-template matTabContent>
-        <mat-card appearance="outlined" class="sitmun-mat-card-margin">
-          <mat-card-header>
-            <app-card-lead
-              [viewerKey]="serviceParameterLeadKey('viewer')"
-              [proxyKey]="serviceParameterLeadKey('proxy')">
-            </app-card-lead>
-          </mat-card-header>
-          <mat-card-content>
-            @if (dataLoaded && serviceIsProxied()) {
-              <app-relation-grid
-                [table]="serviceParametersTable"
-                [allNewElements]="isNewOrDuplicated()"
-                templateDialogName="newServiceParameterDialog"
-              ></app-relation-grid>
-            }
-          </mat-card-content>
-        </mat-card>
-      </ng-template>
-    </mat-tab>
+    @if (serviceIsProxied()) {
+      <mat-tab>
+        <ng-template mat-tab-label>
+          <app-feature-flag [text]="'entity.cartography.serviceParameters.header' | translate" [flag]="'LAYERS_SERVICE_PARAMETERS_FEATURE'"></app-feature-flag>
+        </ng-template>
+        <ng-template matTabContent>
+          <mat-card appearance="outlined" class="sitmun-mat-card-margin">
+            <mat-card-header>
+              <app-card-lead
+                [viewerKey]="serviceParameterLeadKey('viewer')"
+                [proxyKey]="serviceParameterLeadKey('proxy')">
+              </app-card-lead>
+            </mat-card-header>
+            <mat-card-content>
+              @if (dataLoaded && serviceIsProxied()) {
+                <app-relation-grid
+                  [table]="serviceParametersTable"
+                  [allNewElements]="isNewOrDuplicated()"
+                  templateDialogName="newServiceParameterDialog"
+                ></app-relation-grid>
+              }
+            </mat-card-content>
+          </mat-card>
+        </ng-template>
+      </mat-tab>
+    }
   </ng-container>
   <ng-container *appFeatureFlag="'LAYERS_FEATURE_INFORMATION_TAB_FEATURE'">
     <mat-tab>
@@ -391,52 +425,6 @@
             }
           </mat-card-content>
         </mat-card>
-      </ng-template>
-    </mat-tab>
-  </ng-container>
-  <ng-container *appFeatureFlag="'LAYERS_LEGEND_TAB_FEATURE'">
-    <mat-tab>
-      <ng-template mat-tab-label>
-        <app-feature-flag [text]="'entity.cartography.legend.tab' | translate" [flag]="'LAYERS_LEGEND_TAB_FEATURE'"></app-feature-flag>
-      </ng-template>
-      <ng-template matTabContent>
-        <mat-card appearance="outlined" class="sitmun-mat-card-margin sitmun-experimental-notice-card">
-          <mat-card-content class="sitmun-experimental-notice">
-            <mat-icon aria-hidden="true">info</mat-icon>
-            <div>
-              <p>{{ 'entity.cartography.experimentalSitnaProfileNotice' | translate }}</p>
-              <p class="sitmun-experimental-notice-secondary">{{ cartographyCopyKey('entity.cartography.legend.sitnaControlCapabilities') | translate }}</p>
-            </div>
-          </mat-card-content>
-        </mat-card>
-        @if (dataLoaded) {
-          <form [formGroup]="entityForm">
-            <mat-card appearance="outlined" class="sitmun-mat-card-margin">
-              <mat-card-content class="sitmun-service-form-stack">
-                <mat-form-field appearance="outline" class="half">
-                  <mat-label>{{ 'entity.cartography.styles.legendType' | translate }}</mat-label>
-                  <mat-select formControlName="legendType" [placeholder]="'common.form.none' | translate">
-                    <mat-option [value]="null">{{ 'common.form.none' | translate }}</mat-option>
-                    @for (legendType of this.codeList('cartography.legendType'); track legendType) {
-                      <mat-option [value]="legendType.value">
-                        {{ legendType.description }}
-                      </mat-option>
-                    }
-                  </mat-select>
-                </mat-form-field>
-                <mat-form-field appearance="outline" class="full">
-                  <mat-label>{{ 'entity.cartography.styles.legendURL' | translate }}</mat-label>
-                  <input formControlName="legendURL" matInput type="text" [maxlength]="4000">
-                  <app-external-url-link
-                    matSuffix
-                    [url]="$safeNavigationMigration(entityForm.get('legendURL')?.value)">
-                  </app-external-url-link>
-                  <mat-hint align="end">{{ entityForm.get('legendURL') | characterCount }}</mat-hint>
-                </mat-form-field>
-              </mat-card-content>
-            </mat-card>
-          </form>
-        }
       </ng-template>
     </mat-tab>
   </ng-container>

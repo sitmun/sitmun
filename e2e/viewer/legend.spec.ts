@@ -3,6 +3,7 @@ import {
   APP_ID,
   CHECKBOX_LOAD_FOLDER_TITLE,
   isBackendRequest,
+  NON_RADIO_LEAF_CARTOGRAPHY_ID,
   NON_RADIO_LEAF_NODE_ID,
   NON_RADIO_ROOT_FOLDER_TITLE,
   readViewerCredentials,
@@ -247,5 +248,51 @@ test.describe('Map Legend task (#164)', () => {
     await title.click();
     await expect(entry).not.toHaveClass(/sitmun-legend-symbols-collapsed/);
     await expect(entry.locator('.tc-ctl-legend-watch img').first()).toBeAttached();
+  });
+
+  test('shows a static legend image and does not request GetLegendGraphic', async ({ page, request }) => {
+    const staticLegend = 'http://127.0.0.1:18093/legend?static=link';
+    const login = await request.post('/backend/api/authenticate/admin', {
+      data: { username: 'admin', password: 'admin' },
+    });
+    expect(login.ok(), `admin login failed: ${login.status()}`).toBeTruthy();
+    const patch = await request.patch(
+      `/backend/api/cartographies/${NON_RADIO_LEAF_CARTOGRAPHY_ID}`,
+      {
+        headers: {
+          'X-SITMUN-Client': 'admin',
+          'Content-Type': 'application/merge-patch+json',
+        },
+        data: { legendType: 'LINK', legendURL: staticLegend },
+      },
+    );
+    expect(patch.ok(), `patch legend choice failed: ${patch.status()} ${await patch.text()}`).toBeTruthy();
+
+    const legendGraphic: string[] = [];
+    page.on('request', (req) => {
+      if (/getlegendgraphic/i.test(req.url())) {
+        legendGraphic.push(req.url());
+      }
+    });
+
+    try {
+      await loginAndOpenMap(page);
+      await loadNonRadioLeafIntoCapas(page);
+      await openLegendPanel(page);
+
+      const legendImg = page.locator(
+        '#tc-slot-legend img[src*="static=link"], #tc-slot-legend img[data-img*="static=link"], #tc-slot-wlm img[src*="static=link"], #tc-slot-wlm img[data-img*="static=link"]',
+      );
+      await expect(legendImg.first()).toBeAttached({ timeout: 60_000 });
+      expect(legendGraphic).toEqual([]);
+    } finally {
+      await request.patch(`/backend/api/cartographies/${NON_RADIO_LEAF_CARTOGRAPHY_ID}`, {
+        headers: {
+          'X-SITMUN-Client': 'admin',
+          'Content-Type': 'application/merge-patch+json',
+        },
+        data: { legendType: 'LEGENDGRAPHIC', legendURL: null },
+      });
+    }
   });
 });

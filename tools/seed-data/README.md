@@ -2,7 +2,7 @@
 
 `baseline/` is what every 1.3.0 database needs. Edit a translation by list, value, and language in `baseline/translations.csv`. The database default language is `language.default` in `baseline/configuration.csv`. A code-value label in that language is the `cod_description` in `baseline/codelists.csv` and is not stored again in `translations.csv`. Template sentences are `baseline/literal_translations.csv`. Their text per language is `baseline/literal_translation_values.csv`. An upgrade inserts a missing value and does not change one that is already there.
 
-`upgrade/<from>-to-<to>/` holds facts about one hop that a fresh install never needs. `upgrade/1.2.9-to-1.3.0/codelists-promoted.csv` lists the code values that become system on that hop. `upgrade/1.2.9-to-1.3.0/translations-en-repair.csv` lists the English labels that hop corrects.
+`upgrade/<from>-to-<to>/` holds facts about one hop that a fresh install never needs. `upgrade/1.2.9-to-1.3.0/codelists-promoted.csv` lists the code values that become system on that hop. `upgrade/1.2.9-to-1.3.0/translations-en-repair.csv` lists the English labels that hop corrects. Both files name the value stored on the database being upgraded. Generated SQL for `cartography.legendType` still says `CAPABILITIES`. `07-legend-type.sql` renames that row to `LEGENDURL` afterwards.
 
 Regenerate the shipped SQL after a CSV edit:
 

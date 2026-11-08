@@ -858,6 +858,68 @@ describe('LayersFormComponent', () => {
     });
   });
 
+  describe('static legend address', () => {
+    const legend = constants.codeValue.legendType;
+    const protocol = constants.codeValue.serviceType;
+
+    function fillRequiredFields(): void {
+      component.services = [{ id: 1, type: protocol.wms }];
+      component.entityForm.patchValue({
+        name: 'name',
+        serviceId: 1,
+        joinedLayers: 'layer',
+      });
+    }
+
+    it('rejects an empty or whitespace static legend address and blocks save', () => {
+      fillRequiredFields();
+      expect(component.entityForm.valid).toBe(true);
+
+      component.entityForm.get('legendType').setValue(legend.link);
+      const address = component.entityForm.get('legendURL');
+      expect(address.disabled).toBe(false);
+
+      for (const empty of [null, '', '   ', '\t']) {
+        address.setValue(empty);
+        address.markAsTouched();
+        address.markAsDirty();
+        expect(address.hasError('required')).toBe(true);
+        expect(component.entityForm.valid).toBe(false);
+        expect(component.canSave()).toBe(false);
+        expect(component.canSaveEntity).toBe(false);
+      }
+
+      address.setValue('http://example.com/legend.png');
+      expect(address.hasError('required')).toBe(false);
+      expect(component.entityForm.valid).toBe(true);
+      expect(component.canSave()).toBe(true);
+      expect(component.canSaveEntity).toBe(true);
+      expect(component.createObject(1).legendURL).toBe('http://example.com/legend.png');
+
+      const legendUrlField = layersFormTemplate.match(
+        /formControlName="legendURL"[\s\S]*?<\/mat-form-field>/,
+      )?.[0] ?? '';
+      expect(legendUrlField).toContain("entityForm.get('legendURL')?.hasError('required')");
+      expect(legendUrlField).toContain("'common.error.required' | translate");
+      expect(legendUrlField).not.toMatch(/['"]LINK['"]/);
+    });
+
+    it('clears the address when the legend choice leaves the static one', () => {
+      fillRequiredFields();
+      const address = component.entityForm.get('legendURL');
+
+      for (const choice of [null, legend.legendGraphic, legend.legendUrl]) {
+        component.entityForm.get('legendType').setValue(legend.link);
+        address.setValue('http://example.com/legend.png');
+        component.entityForm.get('legendType').setValue(choice);
+        expect(address.value).toBeNull();
+        expect(address.disabled).toBe(true);
+        expect(component.createObject(1).legendURL).toBeNull();
+        expect(component.entityForm.get('legendURL').hasError('required')).toBe(false);
+      }
+    });
+  });
+
   describe('template markup', () => {
     it('uses the service-form button for loading feature properties', () => {
       expect(layersFormTemplate).toContain('id="featureInfoSeedButton"');
@@ -952,7 +1014,6 @@ describe('LayersFormComponent', () => {
 
     it('uses feature-type wording when the linked service is WFS', () => {
       const flags = TestBed.inject(FeatureFlagService);
-      expect(flags.isFeatureEnabled('LAYERS_LEGEND_TAB_FEATURE')).toBe(true);
       expect(flags.isFeatureEnabled('LAYERS_CARTOGRAPHY_STYLES_TAB_FEATURE')).toBe(true);
       expect(flags.isFeatureEnabled('LAYERS_FILTERS_TAB_FEATURE')).toBe(true);
       expect(flags.isFeatureEnabled('LAYERS_FEATURE_INFORMATION_TAB_FEATURE')).toBe(true);
@@ -971,7 +1032,7 @@ describe('LayersFormComponent', () => {
       expect(layersFormTemplate).toContain("cartographyCopyKey('entity.cartography.styles.useAllStyles')");
       expect(layersFormTemplate).toContain("cartographyCopyKey('entity.cartography.filters.applyFilterToGetMap')");
       expect(layersFormTemplate).toContain("cartographyCopyKey('entity.cartography.featureInformation.layerAll')");
-      expect(layersFormTemplate).toContain("cartographyCopyKey('entity.cartography.legend.sitnaControlCapabilities')");
+      expect(layersFormTemplate).toContain('entity.cartography.legend.sitnaControlCapabilities.wfs');
     });
 
     it('keeps layer wording when the linked service is WMS', () => {
@@ -980,6 +1041,135 @@ describe('LayersFormComponent', () => {
 
       expect(component.cartographyCopyKey('entity.cartography.styles.useAllStyles'))
         .toBe('entity.cartography.styles.useAllStyles');
+    });
+
+    it('filters the legend choice by service and enables the address only for a static legend', () => {
+      const legend = constants.codeValue.legendType;
+      const protocol = constants.codeValue.serviceType;
+      const hintKey = (choice: string) => `entity.cartography.legend.sitnaControlCapabilities.${choice}`;
+      const codeLists = (component as unknown as {
+        codelists: Map<string, { value: string; description: string }[]>;
+      }).codelists;
+      codeLists.set('cartography.legendType', [
+        { value: legend.legendGraphic, description: 'Prioritize Get Legend Graphic (capabilities)' },
+        { value: legend.legendUrl, description: 'Legend URL (capabilities)' },
+        { value: legend.link, description: 'Static legend URL' },
+      ]);
+      component.services = [
+        { id: 1, type: protocol.wms },
+        { id: 2, type: protocol.wmts },
+        { id: 3, type: protocol.wfs },
+      ];
+
+      component.entityForm.patchValue({ serviceId: 1 });
+      expect(component.showsLegendFields()).toBe(true);
+      expect(component.legendChoices().map((item) => item.value))
+        .toEqual([legend.legendGraphic, legend.legendUrl, legend.link]);
+      expect(component.entityForm.get('legendType').value).toBe(legend.legendGraphic);
+      expect(component.legendHintKey()).toBe(hintKey(legend.legendGraphic));
+      expect(component.entityForm.get('legendURL').disabled).toBe(true);
+
+      component.entityForm.get('legendType').setValue(null);
+      expect(component.legendHintKey()).toBe(hintKey('none'));
+      component.entityForm.get('legendType').setValue(legend.legendUrl);
+      expect(component.legendHintKey()).toBe(hintKey(legend.legendUrl));
+      component.entityForm.get('legendURL').setValue('http://example.com/legend.png');
+      expect(component.createObject(1).legendURL).toBeNull();
+
+      component.entityForm.get('legendType').setValue(legend.link);
+      expect(component.legendHintKey()).toBe(hintKey(legend.link));
+      expect(component.entityForm.get('legendURL').disabled).toBe(false);
+      component.entityForm.get('legendURL').setValue('http://example.com/legend.png');
+      expect(component.createObject(1).legendURL).toBe('http://example.com/legend.png');
+
+      component.entityForm.patchValue({ serviceId: 2, legendType: null });
+      expect(component.legendChoices().map((item) => item.value)).toEqual([legend.link]);
+      expect(component.entityForm.get('legendType').value).toBeNull();
+
+      component.entityForm.patchValue({ serviceId: 3 });
+      expect(component.showsLegendFields()).toBe(false);
+      expect(component.legendChoices()).toEqual([]);
+
+      const detailsTab = layersFormTemplate.match(
+        /label="\{\{ 'common\.form\.details' \| translate \}\}"[\s\S]*?(?=<mat-tab label="\{\{ 'entity\.cartography\.territories)/,
+      )?.[0] ?? '';
+      const serviceCard = detailsTab.match(
+        /entity\.service\.type[\s\S]*?<\/mat-card>/,
+      )?.[0] ?? '';
+
+      expect(detailsTab).not.toContain('<mat-tab');
+      expect(serviceCard).toContain('showsLegendFields()');
+      expect(serviceCard).toContain('legendChoices()');
+      expect(serviceCard).toContain('formControlName="legendType"');
+      expect(serviceCard).toContain('formControlName="legendURL"');
+      expect(serviceCard).not.toContain('experimentalSitnaProfileNotice');
+      expect(serviceCard).not.toContain('sitmun-experimental-notice');
+      expect(serviceCard).not.toContain("codeList('cartography.legendType')");
+      expect(layersFormTemplate).not.toContain('LAYERS_LEGEND_TAB_FEATURE');
+      expect(layersFormTemplate).not.toContain('entity.cartography.legend.tab');
+      expect(layersFormTemplate).not.toContain("codeList('cartography.legendType')");
+
+      const legendFields = serviceCard.match(
+        /@if \(showsLegendFields\(\)\)[\s\S]*?@else if/,
+      )?.[0] ?? '';
+      const legendTypeField = legendFields.match(
+        /formControlName="legendType"[\s\S]*?<\/mat-form-field>/,
+      )?.[0] ?? '';
+      expect(legendTypeField).toContain('<mat-hint align="start">{{ legendHintKey() | translate }}</mat-hint>');
+      expect(legendTypeField.indexOf('mat-select')).toBeLessThan(legendTypeField.indexOf('mat-hint'));
+      expect(legendTypeField).not.toContain('sitnaControlCapabilities.wfs');
+      expect(legendTypeField).not.toContain("cartographyCopyKey('entity.cartography.legend.sitnaControlCapabilities')");
+      expect(legendFields.indexOf('formControlName="legendType"'))
+        .toBeLessThan(legendFields.indexOf('formControlName="legendURL"'));
+      expect(legendFields).toContain('codeValues.legendType.link');
+      expect(legendFields.indexOf('codeValues.legendType.link'))
+        .toBeLessThan(legendFields.indexOf('formControlName="legendURL"'));
+      expect(serviceCard).toContain('codeValues.serviceType.wfs');
+      expect(serviceCard).not.toMatch(/['"](?:WMS|WMTS|WFS|LEGENDGRAPHIC|LEGENDURL|LINK)['"]/);
+      expect(serviceCard).toContain(
+        "'entity.cartography.legend.sitnaControlCapabilities.wfs' | translate",
+      );
+      expect(serviceCard.indexOf('sitnaControlCapabilities.wfs'))
+        .toBeGreaterThan(serviceCard.indexOf('@else if'));
+
+      const hintKeys = [
+        hintKey('none'),
+        hintKey(legend.legendGraphic),
+        hintKey(legend.legendUrl),
+        hintKey(legend.link),
+      ];
+      for (const locale of ['en', 'ca', 'es', 'fr', 'oc-aranes']) {
+        const messages = JSON.parse(readFileSync(
+          join(__dirname, '../../../../assets/i18n', `${locale}.json`),
+          'utf8',
+        )) as Record<string, string>;
+        expect(messages['entity.cartography.legend.sitnaControlCapabilities']).toBeUndefined();
+        expect(messages['entity.cartography.legend.sitnaControlCapabilities.wfs'].length).toBeGreaterThan(0);
+        const hints = hintKeys.map((key) => messages[key]);
+        expect(hints.every((hint) => typeof hint === 'string' && hint.length > 0)).toBe(true);
+        expect(new Set(hints).size).toBe(hintKeys.length);
+      }
+      const en = JSON.parse(readFileSync(
+        join(__dirname, '../../../../assets/i18n/en.json'),
+        'utf8',
+      )) as Record<string, string>;
+      expect(en[hintKey('none')]).toBe('No legend image is shown.');
+      expect(en[hintKey(legend.legendGraphic)])
+        .toBe('The legend comes from GetLegendGraphic and, only when that request fails, from the LegendURL.');
+      expect(en[hintKey(legend.legendUrl)])
+        .toBe('The legend comes from the LegendURL.');
+      expect(en[hintKey(legend.link)]).toBe('The legend comes from the specified address.');
+      const es = JSON.parse(readFileSync(
+        join(__dirname, '../../../../assets/i18n/es.json'),
+        'utf8',
+      )) as Record<string, string>;
+      expect(es[hintKey(legend.legendGraphic)])
+        .toBe('La leyenda procede de GetLegendGraphic y, solo cuando esa petición falla, del LegendURL.');
+      expect(es[hintKey(legend.legendUrl)])
+        .toBe('La leyenda procede del LegendURL.');
+      expect(es[hintKey(legend.link)]).toBe('La leyenda procede de la dirección indicada.');
+      expect(es[hintKey('none')]).toBe('No se muestra imagen de leyenda.');
+      expect(es[hintKey('none')].startsWith('La leyenda procede')).toBe(false);
     });
 
     it('wraps Permissions and Trees relation grids in matTabContent', () => {
@@ -994,6 +1184,20 @@ describe('LayersFormComponent', () => {
       expect(permissionsTab).toContain('matTabContent');
       expect(treesTab).toContain('app-relation-grid');
       expect(treesTab).toContain('matTabContent');
+    });
+
+    it('hides the service-parameters tab unless the service is proxied', () => {
+      const serviceParametersBlock = layersFormTemplate.match(
+        /\*appFeatureFlag="'LAYERS_SERVICE_PARAMETERS_FEATURE'"[\s\S]*?<\/ng-container>/,
+      )?.[0] ?? '';
+      const proxiedGate = serviceParametersBlock.indexOf('@if (serviceIsProxied())');
+      const tabStart = serviceParametersBlock.indexOf('<mat-tab');
+
+      expect(serviceParametersBlock).toContain(`[flag]="'LAYERS_SERVICE_PARAMETERS_FEATURE'"`);
+      expect(serviceParametersBlock).not.toContain('[disabled]');
+      expect(serviceParametersBlock).not.toContain('!serviceIsProxied()');
+      expect(proxiedGate).toBeGreaterThanOrEqual(0);
+      expect(tabStart).toBeGreaterThan(proxiedGate);
     });
   });
 

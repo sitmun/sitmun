@@ -38,6 +38,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 @Entity
 @EntityListeners({AuditingEntityListener.class, I18nListener.class, StoredFlagListener.class})
 @Table(name = "STM_GEOINFO")
+@ValidStaticLegendUrl
 @Builder
 @Getter
 @Setter

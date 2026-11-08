@@ -173,17 +173,42 @@ function entityFormSlices(text) {
   return slices;
 }
 
+function insideControlFlow(slice, index) {
+  const before = slice.slice(0, index);
+  let depth = 0;
+  let awaitingBrace = false;
+  const tokens = /@if\b|\{\{|\}\}|[{}]/g;
+  let match = tokens.exec(before);
+  while (match) {
+    const token = match[0];
+    if (token === '@if') awaitingBrace = true;
+    else if (token === '{{' || token === '}}') awaitingBrace = false;
+    else if (token === '{' && awaitingBrace) {
+      depth += 1;
+      awaitingBrace = false;
+    } else if (token === '}' && depth > 0) depth -= 1;
+    match = tokens.exec(before);
+  }
+  return depth > 0;
+}
+
 function templateControls(slice) {
   const found = [];
-  for (const tag of slice.split(/<(?:input|textarea)\b/).slice(1)) {
+  const tags = /<(?:input|textarea)\b/g;
+  let match = tags.exec(slice);
+  while (match) {
+    const tag = slice.slice(match.index);
     const name = tag.match(/formControlName=["']([^"']+)["']/);
     const max = tag.match(/\[maxlength\]="(\d+)"|maxlength="(\d+)"/);
-    if (!name) continue;
-    found.push({
-      name: name[1],
-      maxLength: max ? Number(max[1] || max[2]) : null,
-      required: /(?:^|[\s])required(?:[\s=/>]|$)/.test(tag.split('>')[0]),
-    });
+    if (name) {
+      found.push({
+        name: name[1],
+        maxLength: max ? Number(max[1] || max[2]) : null,
+        required: /(?:^|[\s])required(?:[\s=/>]|$)/.test(tag.split('>')[0]),
+        conditional: insideControlFlow(slice, match.index),
+      });
+    }
+    match = tags.exec(slice);
   }
   return found;
 }
@@ -200,7 +225,7 @@ export function checkFormTemplate(text, file, document, declared) {
       if (row.length != null && control.maxLength !== row.length) {
         rows.push(`length|${key}|${file}#${control.name}|${row.length}|${control.maxLength ?? ''}`);
       }
-      if (Boolean(row.required) !== control.required) {
+      if (Boolean(row.required) !== control.required && !(control.conditional && control.required && !row.required)) {
         rows.push(`required|${key}|${file}#${control.name}|${Boolean(row.required)}|${control.required}`);
       }
     }
@@ -228,7 +253,7 @@ function applyFormTemplate(text, document, declared) {
           `$1${row.length}$2`,
         );
       }
-      if (Boolean(row.required) !== control.required) {
+      if (Boolean(row.required) !== control.required && !(control.conditional && control.required && !row.required)) {
         const tag = new RegExp(`(<(?:input|textarea)\\b[^>]*formControlName=["']${control.name}["'][^>]*)>`);
         body = body.replace(tag, (whole, start) => {
           if (row.required) return `${start} required>`;

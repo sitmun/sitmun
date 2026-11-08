@@ -36,6 +36,8 @@ public class CartographyDto {
   Integer order;
   String metadataURL;
   String datasetURL;
+  String legendType;
+  String legendURL;
   Boolean queryableFeatureEnabled;
   List<FeatureInfoFieldDto> featureInfoFields;
   String url;

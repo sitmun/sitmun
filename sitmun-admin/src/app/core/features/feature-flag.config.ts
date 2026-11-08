@@ -19,8 +19,6 @@ export const FEATURE_FLAGS = {
   SERVICES_CRS_LIST: 'services-crs-list',
   /** Service-level HTTP/query parameters (viewer + proxy); admin UI tab on the service form. */
   SERVICES_PARAMETERS_FEATURE: 'services-parameters-feature',
-  /** Layers form: legend type / legend URL tab (not in SITNA client profile yet). */
-  LAYERS_LEGEND_TAB_FEATURE: 'layers-legend-tab',
   /** Layers form: OGC style names grid and use-all-styles (not in SITNA client profile yet). */
   LAYERS_CARTOGRAPHY_STYLES_TAB_FEATURE: 'layers-cartography-styles-tab',
   /** Layers form: territorial filters and apply-filter toggles (not in viewer client profile yet). */
@@ -64,13 +62,6 @@ export const PROD_FEATURE_FLAGS: Record<FeatureFlagKeys, FeatureFlagConfig> = {
     enabled: true,
     description: 'featureFlags.servicesParametersFeature.description',
     category: 'Services'
-  },
-  LAYERS_LEGEND_TAB_FEATURE: {
-    key: FEATURE_FLAGS.LAYERS_LEGEND_TAB_FEATURE,
-    enabled: false,
-    experimental: true,
-    description: 'featureFlags.layersLegendTab.description',
-    category: 'Layers'
   },
   LAYERS_CARTOGRAPHY_STYLES_TAB_FEATURE: {
     key: FEATURE_FLAGS.LAYERS_CARTOGRAPHY_STYLES_TAB_FEATURE,
@@ -146,13 +137,6 @@ export const DEV_FEATURE_FLAGS: Record<FeatureFlagKeys, FeatureFlagConfig> = {
     experimental: false,
     description: 'featureFlags.servicesParametersFeature.description',
     category: 'Services'
-  },
-  LAYERS_LEGEND_TAB_FEATURE: {
-    key: FEATURE_FLAGS.LAYERS_LEGEND_TAB_FEATURE,
-    enabled: true,
-    experimental: true,
-    description: 'featureFlags.layersLegendTab.description',
-    category: 'Layers'
   },
   LAYERS_CARTOGRAPHY_STYLES_TAB_FEATURE: {
     key: FEATURE_FLAGS.LAYERS_CARTOGRAPHY_STYLES_TAB_FEATURE,

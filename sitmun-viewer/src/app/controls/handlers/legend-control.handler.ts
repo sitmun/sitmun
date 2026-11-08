@@ -23,9 +23,35 @@ type LegendInfo = { legend?: Array<{ src?: string }> };
 type RasterLegendTarget = {
   availableNames?: string[];
   names?: string[] | string;
+  customLegend?: string;
+  options?: { legendType?: string; legendURL?: string; stealth?: boolean };
   getInfo?: (name?: string) => LegendInfo;
   wrap?: { getInfo?: (name?: string) => LegendInfo };
 };
+
+type LegendChoice =
+  | { kind: 'none' }
+  | { kind: 'prioritize' }
+  | { kind: 'legendUrl' }
+  | { kind: 'static'; url: string };
+
+function legendChoice(layer: {
+  options?: { legendType?: string; legendURL?: string };
+}): LegendChoice {
+  const type = layer.options?.legendType;
+  const url =
+    typeof layer.options?.legendURL === 'string' ? layer.options.legendURL.trim() : '';
+  if (type === 'LINK' && url) {
+    return { kind: 'static', url };
+  }
+  if (type === 'LEGENDURL') {
+    return { kind: 'legendUrl' };
+  }
+  if (type === 'LEGENDGRAPHIC') {
+    return { kind: 'prioritize' };
+  }
+  return { kind: 'none' };
+}
 
 /**
  * Handler for the native SITNA legend control.
@@ -94,6 +120,27 @@ export class LegendControlHandler extends ControlHandlerBase {
               );
             };
 
+            const choice = legendChoice(this);
+            if (choice.kind === 'none') {
+              return Promise.resolve([]);
+            }
+            if (choice.kind === 'legendUrl') {
+              return buildFromCapabilities();
+            }
+            if (choice.kind === 'static') {
+              delete this.customLegend;
+              const names = Array.isArray(this.availableNames)
+                ? this.availableNames
+                : Array.isArray(this.names)
+                  ? this.names
+                  : typeof this.names === 'string' && this.names
+                    ? [this.names]
+                    : [];
+              return Promise.resolve(
+                names.map((name) => [{ layerName: name, src: choice.url }])
+              );
+            }
+
             return Promise.resolve(jp.proceed() as Promise<unknown>)
               .then((result) => {
                 if (Array.isArray(result) && result.filter(Boolean).length > 0) {
@@ -127,13 +174,51 @@ export class LegendControlHandler extends ControlHandlerBase {
             const layer = jp.args[0] as {
               id?: string;
               isBase?: boolean;
-              options?: { stealth?: boolean };
+              options?: { stealth?: boolean; legendType?: string; legendURL?: string };
+              customLegend?: string;
               availableNames?: string[];
               getInfo?: (name?: string) => LegendInfo;
             };
+            const choice = layer ? legendChoice(layer) : ({ kind: 'none' } as const);
+            const restore: Array<() => void> = [];
+            if (choice.kind === 'static' && layer) {
+              delete layer.customLegend;
+            }
+            if (choice.kind === 'none' && layer) {
+              const originalInfo = layer.getInfo;
+              const originalNames = layer.availableNames;
+              layer.getInfo = () => ({});
+              layer.availableNames = [];
+              restore.push(() => {
+                layer.getInfo = originalInfo;
+                layer.availableNames = originalNames;
+              });
+            } else if (
+              choice.kind === 'static' &&
+              layer?.availableNames?.length &&
+              !layer.availableNames.some((name) => !!layer.getInfo?.(name)?.legend?.length)
+            ) {
+              const originalInfo = layer.getInfo;
+              layer.getInfo = (name?: string) => {
+                const info = originalInfo?.(name) ?? {};
+                return info.legend?.length
+                  ? info
+                  : { ...info, legend: [{ src: choice.url }] };
+              };
+              restore.push(() => {
+                layer.getInfo = originalInfo;
+              });
+            }
             const shouldShow = (target: typeof layer): boolean => {
               if (!target || target.isBase || target.options?.stealth) {
                 return false;
+              }
+              const targetChoice = legendChoice(target);
+              if (targetChoice.kind === 'none') {
+                return false;
+              }
+              if (targetChoice.kind === 'static' || target.customLegend) {
+                return true;
               }
               if (!target.availableNames) {
                 return true;
@@ -143,7 +228,9 @@ export class LegendControlHandler extends ControlHandlerBase {
               );
             };
 
-            return Promise.resolve(jp.proceed() as Promise<unknown>).then(
+            const pending = Promise.resolve(jp.proceed() as Promise<unknown>);
+            restore.forEach((undo) => undo());
+            return pending.then(
               (result) => {
                 const ul = this.div?.querySelector('ul.tc-ctl-legend-branch');
                 const existing =
