@@ -15,6 +15,9 @@ public interface TaskProjection {
   @Value("#{target.name}")
   String getName();
 
+  @Value("#{target.title}")
+  String getTitle();
+
   @Value("#{target.createdDate}")
   Date getCreatedDate();
 

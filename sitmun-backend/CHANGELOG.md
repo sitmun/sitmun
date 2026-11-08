@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+- **Templates**: A template has an optional title of 250 characters. The More Info Advanced tab shows that title, and a blank title shows the template name. The client profile includes edit, basic, locator, query, more-info, more-info-advanced, and document-export tasks. Template and map-image tasks stay out of the profile. Rendering and PDF export still authorize them through the role and territory assignment ([sitmun-viewer-app#211](https://github.com/sitmun/sitmun-viewer-app/issues/211)).
 - **Database**: An upgrade from 1.2.8 reaches 1.3.0 directly. It applies the 1.2.9 steps that are missing, then the 1.2.9 hop. A 1.2.7 database stops with `upgrade to 1.2.8 first`. Oracle 19c was not tested; Oracle 21 is the stand-in ([#87](https://github.com/sitmun/sitmun/issues/87)).
 - **Database**: Oracle 11 and Oracle 21 no longer treat a rewritten changeset 22 as a finished 1.2.9. A released 1.2.9 install on those engines stops at changeset 22c, and the upgrade continues from that partial history ([#107](https://github.com/sitmun/sitmun/issues/107)).
 - **Database**: An upgrade from 1.2.9 requires `SITMUN_UPGRADE_DEFAULT_LANGUAGE`. It must match `STM_CONF` `language.default`, and that language must be in `STM_LANGUAGE`. Otherwise the upgrade stops before it changes anything.

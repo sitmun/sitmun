@@ -38,6 +38,14 @@
               </mat-hint>
               <mat-icon matSuffix class="iconTranslate" (click)="onTranslated('name')">translate</mat-icon>
             </mat-form-field>
+            <mat-form-field appearance="outline" class="full">
+              <mat-label>{{ 'entity.task.template.title' | translate }}</mat-label>
+              <input matInput type="text" formControlName="title" [maxlength]="250">
+              <mat-hint align="end">
+                {{ entityForm.get('title') | characterCount }}
+              </mat-hint>
+              <mat-icon matSuffix class="iconTranslate" (click)="onTranslated('title')">translate</mat-icon>
+            </mat-form-field>
             <mat-form-field appearance="outline" class="half add-gap">
               <mat-label>{{ 'entity.taskGroup.label' | translate }}</mat-label>
               <mat-select formControlName="taskGroupId" class="form-control">

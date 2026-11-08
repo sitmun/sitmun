@@ -332,4 +332,48 @@ test.describe('MIA TipTap + CSV → viewer overlay', () => {
       expect(xml).toContain(`<taskId>${exportTask.id}</taskId>`);
     });
   });
+
+  test('template title is the MIA tab label', async ({
+    page,
+    browser,
+    request,
+    createdResources,
+  }) => {
+    const marker = uniqueValue('TITLE');
+    const title = `Parcel information ${marker}`;
+    const bodyText = `plantilla-body-${marker}`;
+    const plantilla = await createPlantilla(page, {
+      html: `<p data-e2e-plantilla="${marker}">${bodyText}</p>`,
+      title,
+    });
+    createdResources.push({ collection: 'tasks', id: plantilla.id });
+    await assertPlantillaHtmlPersisted(request, plantilla.id, bodyText);
+    await ensureMiaViewerAccess(request, plantilla.id);
+
+    const mia = await createMiaWithChild(page, {
+      childSearch: plantilla.name,
+      childOption: new RegExp(
+        `${plantilla.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')} \\(ID: ${plantilla.id}\\)`,
+      ),
+      childId: plantilla.id,
+    });
+    createdResources.push({ collection: 'tasks', id: mia.id });
+    await ensureMiaViewerAccess(request, mia.id);
+
+    await withViewerPage(browser, async (viewer) => {
+      await loginAndOpenMap(viewer);
+      await loadQueryableLeafIntoCapas(viewer);
+
+      const render = waitForMiaRender(viewer);
+      await simulateGetFeatureInfo(viewer);
+      const renderResponse = await render;
+      expect(renderResponse.status(), await renderResponse.text()).toBe(200);
+
+      await expectOverlayContains(viewer, { miaName: mia.name, text: bodyText });
+      await expect(viewer.locator('.sitmun-mia-tab', { hasText: title })).toBeVisible({
+        timeout: 15_000,
+      });
+      await expect(viewer.locator('.sitmun-mia-tab', { hasText: plantilla.name })).toHaveCount(0);
+    });
+  });
 });

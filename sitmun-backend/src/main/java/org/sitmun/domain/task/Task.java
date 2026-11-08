@@ -3,10 +3,12 @@ package org.sitmun.domain.task;
 import com.fasterxml.jackson.annotation.JsonView;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import java.util.*;
 import lombok.*;
 import org.hibernate.Length;
 import org.sitmun.authorization.client.dto.ClientConfigurationViews;
+import org.sitmun.domain.PersistenceConstants;
 import org.sitmun.domain.cartography.Cartography;
 import org.sitmun.domain.database.DatabaseConnection;
 import org.sitmun.domain.role.Role;
@@ -53,6 +55,13 @@ public class Task {
   @I18n
   @JsonView(ClientConfigurationViews.ApplicationTerritory.class)
   private String name;
+
+  /** Optional title shown to the user. Templates use it as the MIA tab label. */
+  @Column(name = "TAS_TITLE", length = PersistenceConstants.SHORT_DESCRIPTION)
+  @Size(max = PersistenceConstants.SHORT_DESCRIPTION)
+  @I18n
+  @JsonView(ClientConfigurationViews.ApplicationTerritory.class)
+  private String title;
 
   /** Created date. */
   @Column(name = "TAS_CREATED")

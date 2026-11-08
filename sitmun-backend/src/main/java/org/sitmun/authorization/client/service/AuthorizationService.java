@@ -388,7 +388,10 @@ public class AuthorizationService {
                 .toList());
     layers.forEach(translationService::updateInternationalization);
 
-    List<Task> tasks = findProfileTasks(roles, context.getTerritoryId());
+    List<Task> tasks =
+        findProfileTasks(roles, context.getTerritoryId()).stream()
+            .filter(DomainConstants.Tasks::isIncludedInProfile)
+            .toList();
     tasks.forEach(translationService::updateInternationalization);
 
     List<ApplicationTreeView> treeViews =
