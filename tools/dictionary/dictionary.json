@@ -3761,6 +3761,18 @@
       "status": "decided",
       "type": "string"
     },
+    "STM_TASK.TAS_TITLE": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.task.Task#title"
+      },
+      "default": null,
+      "enforcement": "reject",
+      "length": 250,
+      "required": false,
+      "status": "decided",
+      "type": "string"
+    },
     "STM_TASK.TAS_ORDER": {
       "codelist": null,
       "consumers": {

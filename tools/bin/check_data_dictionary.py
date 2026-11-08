@@ -20,6 +20,7 @@ from data_dictionary_lib import (
     counts,
     load_columns,
     open_count,
+    parse_liquibase_add_columns,
     read_dictionary,
 )
 
@@ -39,8 +40,19 @@ def main(argv: list[str] | None = None) -> int:
             print(f"ERROR: {columns_path} has no columns", file=sys.stderr)
             return 1
         drifts.extend(check_catalog(document, catalog))
+    added = {}
+    changelog = Path("sitmun-backend/src/main/resources/db/changelog/db.changelog-master.yaml")
+    if args.sql and changelog.is_file():
+        added = parse_liquibase_add_columns(changelog.read_text(encoding="utf-8"))
     for sql_path in args.sql:
-        drifts.extend(check_sql(document, sql_path.read_text(encoding="utf-8"), consumer=sql_path.name))
+        drifts.extend(
+            check_sql(
+                document,
+                sql_path.read_text(encoding="utf-8"),
+                consumer=sql_path.name,
+                extra_columns=added,
+            )
+        )
     totals = counts(drifts)
     for name in ("length", "required", "default", "unique", "codelist", "openapi"):
         print(f"{name}={totals[name]}")

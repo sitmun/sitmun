@@ -236,3 +236,19 @@ databaseChangeLog:
             splitStatements: true
             stripComments: false
             endDelimiter: ";"
+  - changeSet:
+      id: stm-task-tas-title
+      author: sitmun
+      preConditions:
+        - onFail: MARK_RAN
+        - not:
+            columnExists:
+              tableName: stm_task
+              columnName: tas_title
+      changes:
+        - addColumn:
+            tableName: stm_task
+            columns:
+              - column:
+                  name: tas_title
+                  type: varchar(250)

@@ -16,6 +16,7 @@ import { Service } from '../../service/models/service.model';
 export class Task extends Resource {
   public override id: number;
   public name?: string;
+  public title?: string;
   public order?: number;
   /** system created date*/
   public createdDate?: any;
@@ -50,7 +51,7 @@ export class Task extends Resource {
     const propertiesToCopy = [
       'proxyUrl', 'rootUrl', '_links', '_subtypes',
       // Task properties
-      'id', 'name', 'order', 'createdDate', 'group', 'type',
+      'id', 'name', 'title', 'order', 'createdDate', 'group', 'type',
       'ui', 'parameters', 'connection', 'roles',
       'availabilities', 'cartography', 'service', 'properties'
     ];
@@ -67,6 +68,7 @@ export class Task extends Resource {
 export class TaskProjection extends Resource {
   override id: number;
   name: string;
+  title?: string;
   createdDate: string;
   order: number;
   groupName: string;
@@ -93,7 +95,7 @@ export class TaskProjection extends Resource {
     const propertiesToCopy = [
       'proxyUrl', 'rootUrl', '_links', '_subtypes',
       // TaskProjection properties
-      'id', 'name', 'createdDate', 'order', 'groupName', 'groupId',
+      'id', 'name', 'title', 'createdDate', 'order', 'groupName', 'groupId',
       'uiId', 'properties', 'serviceId', 'serviceName',
       'cartographyId', 'cartographyName', 'typeId', 'typeName', 'typeTitle',
       'connectionId', 'connectionName'

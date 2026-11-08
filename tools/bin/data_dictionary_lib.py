@@ -483,8 +483,57 @@ def check_codelists(document: dict, values: set[tuple[str, str]], *, consumer: s
     return drifts
 
 
-def check_sql(document: dict, sql: str, *, consumer: str) -> list[Drift]:
-    return check_columns(document, parse_create_columns(sql), consumer=consumer) + check_uniques(
+def parse_liquibase_add_columns(text: str) -> dict[tuple[str, str], ColumnObs]:
+    """Columns added by a later Liquibase addColumn, which baseline CREATE TABLE omits."""
+    found: dict[tuple[str, str], ColumnObs] = {}
+    in_add = False
+    table = None
+    name = None
+    for raw in text.splitlines():
+        line = raw.strip()
+        if line.startswith("- changeSet:") or line == "changeSet:":
+            in_add = False
+            table = None
+            name = None
+            continue
+        if line.startswith("- addColumn:") or line == "addColumn:":
+            in_add = True
+            table = None
+            name = None
+            continue
+        if not in_add:
+            continue
+        if line.startswith("tableName:"):
+            table = line.split(":", 1)[1].strip().strip("\"'")
+            name = None
+        elif line.startswith("name:"):
+            name = line.split(":", 1)[1].strip().strip("\"'")
+        elif line.startswith("type:") and table and name:
+            raw_type = line.split(":", 1)[1].strip().strip("\"'")
+            key = (table.upper(), name.upper())
+            found[key] = ColumnObs(
+                table=key[0],
+                column=key[1],
+                logical=logical_type(raw_type),
+                length=_length_of(raw_type),
+                required=False,
+                default=None,
+            )
+            name = None
+    return found
+
+
+def check_sql(
+    document: dict,
+    sql: str,
+    *,
+    consumer: str,
+    extra_columns: dict[tuple[str, str], ColumnObs] | None = None,
+) -> list[Drift]:
+    columns = parse_create_columns(sql)
+    if extra_columns:
+        columns.update(extra_columns)
+    return check_columns(document, columns, consumer=consumer) + check_uniques(
         document,
         parse_uniques(sql),
         parse_unique_indexes(sql),

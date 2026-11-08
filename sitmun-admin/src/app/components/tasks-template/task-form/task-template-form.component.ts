@@ -149,6 +149,7 @@ export class TaskTemplateFormComponent extends BaseFormComponent<TaskProjection>
   protected readonly taskTypeLabelResolver = (task: TaskProjection): string => this.getTaskTypeLabel(task);
   protected validationFieldLabels: Record<string, string> = {
     name: 'entity.task.template.label',
+    title: 'entity.task.template.title',
     taskGroupId: 'entity.taskGroup.label',
   };
 
@@ -214,7 +215,7 @@ export class TaskTemplateFormComponent extends BaseFormComponent<TaskProjection>
 
   override async preFetchData() {
     const typeId = magic.taskTemplateTypeId;
-    this.initTranslations('Task', ['name']);
+    this.initTranslations('Task', ['name', 'title']);
     await this.initCodeLists(['taskEntity.jsonParamType']);
     try {
       await firstValueFrom(this.languageService.refreshLanguagesToUse());
@@ -306,6 +307,10 @@ export class TaskTemplateFormComponent extends BaseFormComponent<TaskProjection>
     this.entityForm = new FormGroup({
       name: new FormControl(this.entityToEdit?.name ?? '', {
         validators: [Validators.maxLength(512), Validators.required],
+        nonNullable: true,
+      }),
+      title: new FormControl(this.entityToEdit?.title ?? '', {
+        validators: [Validators.maxLength(250)],
         nonNullable: true,
       }),
       taskGroupId: new FormControl(this.entityToEdit?.groupId ?? null, {
@@ -939,6 +944,7 @@ export class TaskTemplateFormComponent extends BaseFormComponent<TaskProjection>
       Object.assign(safeToEdit, formValues, {
         id,
         properties,
+        title: String(formValues.title ?? '').trim(),
       }),
     );
   }

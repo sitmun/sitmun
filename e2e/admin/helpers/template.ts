@@ -61,7 +61,7 @@ export async function setTemplateHtml(page: Page, html: string): Promise<void> {
 
 export async function createPlantilla(
   page: Page,
-  options: { name?: string; html: string },
+  options: { name?: string; html: string; title?: string },
 ): Promise<{ id: number; name: string }> {
   const name = options.name ?? uniqueValue('e2e-plantilla');
   // Hash-route reuse can keep the prior Plantilla form; bounce via list first.
@@ -75,6 +75,9 @@ export async function createPlantilla(
   await waitForFormReady(page, 'name');
   await expect(control(page, 'name')).toHaveValue('');
   await control(page, 'name').fill(name);
+  if (options.title) {
+    await control(page, 'title').fill(options.title);
+  }
   await selectFirstMatOption(page, 'taskGroupId');
   await setTemplateHtml(page, options.html);
   // TipTap HTML mode binds via (input); ensure Angular form control sees the value.

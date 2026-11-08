@@ -30,6 +30,7 @@ import org.sitmun.domain.task.relation.TaskRelation;
 import org.sitmun.domain.task.relation.TaskRelationRepository;
 import org.sitmun.domain.territory.Territory;
 import org.sitmun.domain.user.User;
+import org.sitmun.infrastructure.persistence.type.i18n.TranslationRepository;
 import org.sitmun.infrastructure.variables.SystemVariableResolver;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -39,6 +40,18 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 import tools.jackson.databind.ObjectMapper;
 
 class TemplateExecutionServiceTestFixtures {
+  private TranslationRepository translationRepository;
+
+  protected TranslationRepository translationRepository() {
+    if (translationRepository == null) {
+      translationRepository = mock(TranslationRepository.class);
+      lenient()
+          .when(translationRepository.findTranslation(any(), any(), any()))
+          .thenReturn(List.of());
+    }
+    return translationRepository;
+  }
+
   protected void authenticateAdmin() {
     SecurityContextHolder.getContext()
         .setAuthentication(
@@ -142,7 +155,8 @@ class TemplateExecutionServiceTestFixtures {
         new MiaHtmlRenderer(),
         new MapImageTemplateTaskExecutor(
             new MapImageFeatureBboxResolver(), mapImageTaskExecutionService),
-        objectMapper);
+        objectMapper,
+        translationRepository());
   }
 
   protected static LiteralTranslationResolver chromeLiteralResolver() {
