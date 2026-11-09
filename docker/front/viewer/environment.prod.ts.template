@@ -7,7 +7,7 @@ export const environment = {
   version: '${APP_VERSION}',
   environmentName: '${FRONT_ENV}',
   buildTimestamp: '${BUILD_TIMESTAMP}' as string | undefined,
-  loginBackgroundImageUrl: 'assets/logos/barcelona_background.jpg',
+  loginBackgroundImageUrl: '',
   proxyTokenRefreshIntervalMs: 2 * 60 * 1000,
   sessionTokenRefreshIntervalMs: 2 * 60 * 1000
 };
