@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Http } from '@capacitor-community/http';
+import { CapacitorHttp } from '@capacitor/core';
 import { environment } from 'src/environments/environment';
 
 @Injectable({
@@ -26,7 +26,7 @@ export class InstancesService {
         params: {}
       };
       return new Promise<object>((resolve, reject) => {
-        Http.request(options).then(data => {
+        CapacitorHttp.request(options).then(data => {
           resolve(data.data);
         }).catch(error => {
           reject(error);
