@@ -10,6 +10,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 #### Backend Core
 
+- **Liquibase**: The Portuguese translation edit keeps the checksums already stored for `baseline-languages-postgresql`, `baseline-translations`, and `upgrade-1.2.9-to-1.3.0-translations-postgresql`.
 - **Tests**: A test that must not run on H2 uses `@EnabledOnDatabase`. `atLeast` is inclusive and `before` is exclusive. `@EnabledOnOracleSince11` is that annotation for Oracle 11 and newer. Production-database tasks set `sitmun.test.database.enabled`, `product`, and `version`.
 - **Cartography**: The cartography view includes `serviceType` from the linked service ([sitmun-admin-app#498](https://github.com/sitmun/sitmun-admin-app/issues/498)).
 - **Code lists**: `cartographyParameter.geometryKind` and `cartographyParameter.preferredGeometryType` store English descriptions. Spanish, Catalan, Aranese, and French labels, including format `Geometry`, come from `STM_TRANSLATION`.

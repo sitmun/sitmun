@@ -40,6 +40,7 @@ databaseChangeLog:
       id: baseline-languages-postgresql
       author: sitmun
       logicalFilePath: db/changelog/baseline/03-languages.postgresql.sql
+      validCheckSum: 9:3b411495ba2ca79578e04d00daac6bab
       dbms: postgresql
       preConditions:
         - onFail: MARK_RAN
@@ -142,6 +143,7 @@ databaseChangeLog:
       id: baseline-translations
       author: sitmun
       logicalFilePath: db/changelog/baseline/04-translations.sql
+      validCheckSum: 9:e0c99cd586703c2d58b101c2ade4d44f
       preConditions:
         - onFail: MARK_RAN
         - or:
