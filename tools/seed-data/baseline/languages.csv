@@ -4,3 +4,4 @@ lan_id,lan_shortname,lan_name,lan_order,lan_enabled
 1,en,English,3,true
 4,oc-aranes,Occitan aranés,4,true
 5,fr,Français,5,true
+6,pt-PT,Português,6,true

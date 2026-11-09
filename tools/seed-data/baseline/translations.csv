@@ -696,3 +696,14 @@ tra_id,tra_column,element,element_value,lan_shortname,tra_name
 973,Task.name,More Info Advanced,,es,Información avanzada
 974,Task.name,More Info Advanced,,fr,Informations avancées
 975,Task.name,More Info Advanced,,oc-aranes,Informacion avançada
+976,Language.name,pt-PT,,ca,Portuguès
+977,Language.name,pt-PT,,en,Portuguese
+978,Language.name,pt-PT,,es,Portugués
+979,Language.name,pt-PT,,fr,Portugais
+980,Language.name,pt-PT,,oc-aranes,Portugués
+981,Language.name,en,,pt-PT,Inglês
+982,Language.name,es,,pt-PT,Espanhol
+983,Language.name,ca,,pt-PT,Catalão
+984,Language.name,oc-aranes,,pt-PT,Aranês
+985,Language.name,fr,,pt-PT,Francês
+986,Language.name,pt-PT,,pt-PT,Português

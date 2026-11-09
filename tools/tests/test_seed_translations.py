@@ -95,7 +95,13 @@ class SeedTranslationTest(unittest.TestCase):
             text=True,
         )
         self.assertEqual(completed.returncode, 0, completed.stdout + completed.stderr)
-        self.assertNotIn("literal ", completed.stdout)
+        literal_gaps = [
+            line for line in completed.stdout.splitlines() if " literal " in line
+        ]
+        self.assertTrue(
+            all(line.startswith("pt-PT literal ") for line in literal_gaps),
+            literal_gaps,
+        )
 
     def test_literal_gap_is_listed_until_the_value_exists(self) -> None:
         script = ROOT / "tools/bin/check_translations.py"

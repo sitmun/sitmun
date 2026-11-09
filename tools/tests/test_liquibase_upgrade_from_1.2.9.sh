@@ -479,6 +479,18 @@ if [[ "$restored" == "1" ]]; then
 else
   fail "application.type/I was not restored (count=$restored)"
 fi
+pt_count=$(sql_count "SELECT COUNT(*) FROM stm_language WHERE lan_shortname = 'pt-PT'")
+if [[ "$pt_count" == "1" ]]; then
+  ok "upgrade inserted Portuguese once"
+else
+  fail "Portuguese lan_shortname count=$pt_count"
+fi
+pt_names=$(sql_count "SELECT COUNT(*) FROM stm_translation t JOIN stm_language ele ON ele.lan_id = t.tra_eleid JOIN stm_language lang ON lang.lan_id = t.tra_lanid WHERE t.tra_column = 'Language.name' AND (ele.lan_shortname = 'pt-PT' OR lang.lan_shortname = 'pt-PT')")
+if [[ "$pt_names" -ge 10 ]]; then
+  ok "Portuguese Language.name rows present ($pt_names)"
+else
+  fail "Portuguese Language.name rows=$pt_names"
+fi
 dangling=$(sql_count "SELECT COUNT(*) FROM stm_translation t WHERE t.tra_column = 'CodeListValue.description' AND NOT EXISTS (SELECT 1 FROM stm_codelist c WHERE c.cod_id = t.tra_eleid)")
 if [[ "$dangling" == "0" ]]; then
   ok "code-list translation ids point at code-list rows"
@@ -534,6 +546,40 @@ if [[ "$rows_after" == "$rows_second" && "$new_md5" == "$md5_second" ]]; then
   ok "second start added no changelog rows ($rows_second)"
 else
   fail "second start changed changelog $rows_after/$new_md5 -> $rows_second/$md5_second"
+fi
+
+echo "── $ENGINE: partner Portuguese row kept ──"
+start_db
+apply_tag "$TAG_129" "$TMP/129-pt"
+SQLFILE="$TMP/partner-pt.sql"
+if [[ "$KIND" == "postgres" ]]; then
+  cat >"$SQLFILE" <<'EOF'
+INSERT INTO stm_language (lan_id, lan_shortname, lan_name, lan_order, lan_enabled)
+VALUES (99, 'pt-PT', 'Partner PT', 9, false);
+EOF
+else
+  cat >"$SQLFILE" <<'EOF'
+INSERT INTO stm_language (lan_id, lan_shortname, lan_name, lan_order, lan_enabled)
+VALUES (99, 'pt-PT', 'Partner PT', 9, 0);
+COMMIT;
+EXIT
+EOF
+fi
+run_sql_file "$SQLFILE"
+boot_backend
+if wait_health; then
+  ok "partner Portuguese upgrade health is UP"
+else
+  fail "partner Portuguese upgrade health did not come up"
+  tail -60 "$BACKEND_LOG" || true
+fi
+stop_backend
+pt_kept=$(sql_count "SELECT COUNT(*) FROM stm_language WHERE lan_shortname = 'pt-PT' AND lan_id = 99 AND lan_name = 'Partner PT' AND lan_order = 9")
+pt_dup=$(sql_count "SELECT COUNT(*) FROM stm_language WHERE lan_shortname = 'pt-PT'")
+if [[ "$pt_kept" == "1" && "$pt_dup" == "1" ]]; then
+  ok "partner Portuguese id, name, and order kept"
+else
+  fail "partner Portuguese kept=$pt_kept count=$pt_dup"
 fi
 
 echo "── $ENGINE: liquibase validate ──"

@@ -54,6 +54,7 @@ test.describe('Viewer language chrome', () => {
     await expect(langMenu.getByRole('menuitem', { name: 'English' })).toBeVisible();
     await expect(langMenu.getByRole('menuitem', { name: 'Català' })).toBeVisible();
     await expect(langMenu.getByRole('menuitem', { name: 'Castellano' })).toBeVisible();
+    await expect(langMenu.getByRole('menuitem', { name: 'Português' })).toBeVisible();
     await page.keyboard.press('Escape');
 
     await hamburger.click();
