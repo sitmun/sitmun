@@ -33,7 +33,7 @@ public class DatabaseConnectionService {
   /** Rows plus whether the row cap cut the result. */
   public record BoundedQuery(List<Map<String, Object>> rows, boolean truncated) {}
 
-  /** Execute a query binding positional parameters when the SQL contains '?' placeholders. */
+  /** Execute a query as a prepared statement, binding positional parameters in order. */
   public List<Map<String, Object>> executeQuery(
       @NotNull DatabaseConnection connection,
       @NotNull String query,
@@ -54,11 +54,7 @@ public class DatabaseConnectionService {
       con.setAutoCommit(false);
       con.setReadOnly(true);
       try {
-        if (parameters.isEmpty()) {
-          executeStatement(con, query, result, truncated);
-        } else {
-          executePreparedStatement(con, query, parameters, result, truncated);
-        }
+        executePreparedStatement(con, query, parameters, result, truncated);
       } finally {
         con.rollback();
         con.setReadOnly(false);
@@ -81,18 +77,6 @@ public class DatabaseConnectionService {
         connection.getUrl(), connection.getUser(), connection.getPassword());
   }
 
-  private void executeStatement(
-      Connection connection, String query, List<Map<String, Object>> result, boolean[] truncated)
-      throws DatabaseSQLException {
-    try (Statement stmt = connection.createStatement()) {
-      JdbcBindings.applyLimits(stmt, maxRows, queryTimeoutSeconds);
-      retrieveResultSetMetadata(stmt, query, result, truncated);
-    } catch (SQLException e) {
-      log.error("Error in connection: {}", e.getMessage(), e);
-      throw new DatabaseSQLException(e);
-    }
-  }
-
   private void executePreparedStatement(
       Connection connection,
       String query,
@@ -100,8 +84,6 @@ public class DatabaseConnectionService {
       List<Map<String, Object>> result,
       boolean[] truncated)
       throws DatabaseSQLException {
-    // The statement text is admin-authored SQL. Values are bound, not concatenated.
-    // codeql[java/sql-injection]
     try (PreparedStatement stmt = connection.prepareStatement(query)) {
       JdbcBindings.applyLimits(stmt, maxRows, queryTimeoutSeconds);
       String product = JdbcBindings.productName(connection);
@@ -112,16 +94,6 @@ public class DatabaseConnectionService {
     } catch (SQLException e) {
       log.error("Error in prepared statement: {}", e.getMessage(), e);
       throw new DatabaseSQLException(e);
-    }
-  }
-
-  private void retrieveResultSetMetadata(
-      Statement stmt, String query, List<Map<String, Object>> result, boolean[] truncated)
-      throws SQLException {
-    // The statement text is admin-authored SQL. This path has no client values to bind.
-    // codeql[java/sql-injection]
-    try (ResultSet resultSet = stmt.executeQuery(query)) {
-      appendRows(resultSet, result, truncated);
     }
   }
 
