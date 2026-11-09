@@ -60,7 +60,7 @@ The SITMUN MBTiles Service provides REST API endpoints to:
 - Monitor job progress and status
 - Download completed MBTiles files
 
-This service integrates with the [SITMUN Backend Core](https://github.com/sitmun/sitmun-backend-core) to provide tile generation capabilities for the SITMUN platform.
+This service integrates with the [SITMUN backend](https://github.com/sitmun/sitmun/tree/dev/sitmun-backend) to provide tile generation capabilities for the SITMUN platform.
 
 ## Quick Start
 
@@ -73,24 +73,26 @@ This service integrates with the [SITMUN Backend Core](https://github.com/sitmun
 1. **Clone the repository**
 
    ```bash
-   git clone https://github.com/sitmun/sitmun-mbtiles.git
-   cd sitmun-mbtiles
+   git clone --branch dev https://github.com/sitmun/sitmun.git
+   cd sitmun
    ```
+
+   Gradle runs from this repository root. The boot jar is `sitmun-addons/sitmun-mbtiles/build/libs/sitmun-mbtiles-<version>.jar`, where `<version>` is `version` in `gradle.properties`. Do not run the `-plain` jar.
 
 2. **Build the application**
 
    ```bash
-   ./gradlew build -x test
+   ./gradlew :sitmun-mbtiles:build -x test
    ```
 
 3. **Run the application**
 
    ```bash
    # Run with Java directly (recommended)
-   java -jar build/libs/sitmun-mbtiles.jar --spring.profiles.active=prod
+   java -jar sitmun-addons/sitmun-mbtiles/build/libs/sitmun-mbtiles-$(awk -F= '/^version=/{print $2}' gradle.properties).jar --spring.profiles.active=prod
    
    # Or use Gradle bootRun directly
-   ./gradlew bootRun --args='--spring.profiles.active=prod'
+   ./gradlew :sitmun-mbtiles:bootRun --args='--spring.profiles.active=prod'
   
    ```
 
@@ -112,39 +114,39 @@ This service integrates with the [SITMUN Backend Core](https://github.com/sitmun
 
 ```bash
 # Use different port
-./gradlew bootRun --args='--spring.profiles.active=prod --server.port=8081'
+./gradlew :sitmun-mbtiles:bootRun --args='--spring.profiles.active=prod --server.port=8081'
 ```
 
 #### Memory Issues
 
 ```bash
 # Increase heap size
-./gradlew bootRun --args='--spring.profiles.active=prod -Xmx4g -Xms2g'
+./gradlew :sitmun-mbtiles:bootRun --args='--spring.profiles.active=prod -Xmx4g -Xms2g'
 ```
 
 ### Building
 
 ```bash
 # Build the project
-./gradlew build
+./gradlew :sitmun-mbtiles:build
 
 # Build without tests (faster for development)
-./gradlew build -x test
+./gradlew :sitmun-mbtiles:build -x test
 
 # Run tests
-./gradlew test
+./gradlew :sitmun-mbtiles:test
 
 # Create JAR file
-./gradlew jar
+./gradlew :sitmun-mbtiles:jar
 
 # Format code
-./gradlew spotlessApply
+./gradlew :sitmun-mbtiles:spotlessApply
 
 # Check code coverage
-./gradlew jacocoTestReport
+./gradlew :sitmun-mbtiles:jacocoTestReport
 ```
 
-> **💡 Tip**: For development, use `./gradlew build -x test` for faster builds, then run the JAR directly with `java -jar build/libs/sitmun-mbtiles.jar --spring.profiles.active=dev`
+> **💡 Tip**: For development, use `./gradlew :sitmun-mbtiles:build -x test` for faster builds, then run the JAR directly with `java -jar sitmun-addons/sitmun-mbtiles/build/libs/sitmun-mbtiles-$(awk -F= '/^version=/{print $2}' gradle.properties).jar --spring.profiles.active=dev`
 
 ## Features
 
@@ -662,13 +664,13 @@ For production deployment, use the production profile:
 
 ```bash
 # Build JAR (DevTools automatically excluded in production)
-./gradlew build
+./gradlew :sitmun-mbtiles:build
 
 # Run with production profile (recommended)
-java -jar build/libs/sitmun-mbtiles.jar --spring.profiles.active=prod
+java -jar sitmun-addons/sitmun-mbtiles/build/libs/sitmun-mbtiles-$(awk -F= '/^version=/{print $2}' gradle.properties).jar --spring.profiles.active=prod
 
 # Or use Gradle bootRun directly
-./gradlew bootRun --args='--spring.profiles.active=prod'
+./gradlew :sitmun-mbtiles:bootRun --args='--spring.profiles.active=prod'
 ```
 
 #### Development Deployment
@@ -677,13 +679,13 @@ For development, use the development profile:
 
 ```bash
 # Build JAR (DevTools included for development)
-./gradlew build -x test
+./gradlew :sitmun-mbtiles:build -x test
 
 # Run with development profile (recommended)
-java -jar build/libs/sitmun-mbtiles.jar --spring.profiles.active=dev
+java -jar sitmun-addons/sitmun-mbtiles/build/libs/sitmun-mbtiles-$(awk -F= '/^version=/{print $2}' gradle.properties).jar --spring.profiles.active=dev
 
 # Or use Gradle bootRun directly
-./gradlew bootRun --args='--spring.profiles.active=dev'
+./gradlew :sitmun-mbtiles:bootRun --args='--spring.profiles.active=dev'
 ```
 
 ### Project Structure
@@ -746,13 +748,13 @@ The project includes several code quality tools:
 
 ```bash
 # Format code
-./gradlew spotlessApply
+./gradlew :sitmun-mbtiles:spotlessApply
 
 # Check formatting without applying
-./gradlew spotlessCheck
+./gradlew :sitmun-mbtiles:spotlessCheck
 
 # Check code coverage
-./gradlew jacocoTestReport
+./gradlew :sitmun-mbtiles:jacocoTestReport
 
 # View coverage report
 open build/reports/jacoco/test/html/index.html
@@ -768,22 +770,22 @@ The project includes comprehensive testing:
 
 ```bash
 # Run all tests
-./gradlew test
+./gradlew :sitmun-mbtiles:test
 
 # Run specific test class
-./gradlew test --tests MBTilesServiceTest
+./gradlew :sitmun-mbtiles:test --tests MBTilesServiceTest
 
 # Run integration tests
-./gradlew test --tests *IntegrationTest
+./gradlew :sitmun-mbtiles:test --tests *IntegrationTest
 
 # Run validation tests
-./gradlew test --tests *ValidationTest
+./gradlew :sitmun-mbtiles:test --tests *ValidationTest
 
 # Run error handling tests
-./gradlew test --tests GlobalExceptionHandlerTest
+./gradlew :sitmun-mbtiles:test --tests GlobalExceptionHandlerTest
 
 # Run tests with coverage
-./gradlew test jacocoTestReport
+./gradlew :sitmun-mbtiles:test jacocoTestReport
 ```
 
 #### Test Coverage

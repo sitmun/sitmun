@@ -2,7 +2,7 @@
 
 ## Plataforma de desarrollo
 
-**touristic-mobile-app** ha sido desarrollada
+La aplicación en `sitmun-mobile/sitmun-touristic` ha sido desarrollada
 utilizando el **framework Ionic**, en conjunto con **Angular** para la construcción de la interfaz y lógica de negocio, y **Capacitor** para acceder a funcionalidades nativas de los dispositivos móviles.
 
 
@@ -22,7 +22,7 @@ utilizando el **framework Ionic**, en conjunto con **Angular** para la construcc
 | Dispositivo móvil Android  | Android 13.x          | Para pruebas físicas                                     |
 
 Para que la aplicación funcione correctamente, previamente será
-necesario tener desplegado **sitmun-application-stack** así como el servicio que devuelve la lista de instancias disponibles.
+necesario tener desplegado [sitmun/sitmun](https://github.com/sitmun/sitmun) así como el servicio que devuelve la lista de instancias disponibles.
 
 Para pruebas en local se puede montar de forma muy sencilla con python y Flask el servicio que devuelva un fichero json con la lista de instancias
 ```python
@@ -58,13 +58,13 @@ Formato del json de instancias:
 
 Clonar el proyecto utilizando git en el directorio local deseado:
 ```bash
-git clone https://github.com/sitmun/touristic-mobile-app.git
+git clone --branch dev https://github.com/sitmun/sitmun.git
+cd sitmun/sitmun-mobile/sitmun-touristic
 ```
 ## INSTALACIÓN DE DEPENDENCIAS
 
-Instalar las dependencias necesarias de la aplicación:
+Instalar las dependencias necesarias de la aplicación, desde `sitmun-mobile/sitmun-touristic`:
 ```bash
-cd ./touristic-mobile-app
 pnpm install
 ```
 ## INTEGRACIÓN CON CAPACITOR
