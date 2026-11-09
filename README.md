@@ -45,9 +45,9 @@ cd sitmun
 docker compose up -d
 ```
 
-`./setup.sh` and `./setup.ps1` copy `profiles/development-postgres.env` to `.env` only when `.env` is missing, then append `SITMUN_USER_SECRET`, `MIDDLEWARE_SECRET`, and `SITMUN_MBTILES_JOB_HANDLE_SECRET` when those keys are absent. Do not commit the values.
+`./setup.sh` and `./setup.ps1` copy `profiles/development-postgres.env` to `.env` only when `.env` is missing. They then append `SITMUN_USER_SECRET`, `MIDDLEWARE_SECRET`, and `SITMUN_MBTILES_JOB_HANDLE_SECRET` when those keys are absent, including on an `.env` you already copied from a profile. Do not commit the values.
 
-To choose a profile yourself, copy one file to `.env` and append the same three secrets (each `openssl rand -hex 32`, at least 32 characters). Compose marks them required (`:?`) and refuses to start without them.
+To choose a profile yourself, copy one file to `.env` and run `./setup.sh` (Windows: `./setup.ps1`). Compose marks the three secrets required (`:?`) and refuses to start without them.
 
 | Profile | Use |
 | --- | --- |

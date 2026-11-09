@@ -47,16 +47,17 @@ function Add-ComposeSecretIfMissing {
 }
 
 # Copy default development profile to .env if .env does not exist.
-# Profile files do not store secrets. Generate any of the three that are absent.
+# Profile files do not store secrets. Generate any of the three that are absent,
+# including when .env was copied from a profile by hand.
 function Copy-EnvFileIfMissing {
     if (-Not (Test-Path ".env")) {
         Write-Host "${Yellow}.env file is missing. Copying profiles/development-postgres.env to .env...${Reset}"
         Copy-Item -Path "profiles/development-postgres.env" -Destination ".env"
-        Add-ComposeSecretIfMissing -Key "SITMUN_USER_SECRET"
-        Add-ComposeSecretIfMissing -Key "MIDDLEWARE_SECRET"
-        Add-ComposeSecretIfMissing -Key "SITMUN_MBTILES_JOB_HANDLE_SECRET"
         Write-Host "${Green}.env file created from profiles/development-postgres.env.${Reset}"
     }
+    Add-ComposeSecretIfMissing -Key "SITMUN_USER_SECRET"
+    Add-ComposeSecretIfMissing -Key "MIDDLEWARE_SECRET"
+    Add-ComposeSecretIfMissing -Key "SITMUN_MBTILES_JOB_HANDLE_SECRET"
 }
 
 # Main logic
