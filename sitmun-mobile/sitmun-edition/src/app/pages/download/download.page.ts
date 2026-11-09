@@ -14,7 +14,7 @@ import { Filesystem, Directory } from '@capacitor/filesystem';
 import { InstancesService } from 'src/app/services/instances.service';
 import { MapService } from 'src/app/services/map.service';
 import { resolveAgainstBase } from 'src/app/services/trusted-origin.util';
-import { Device } from '@capacitor/device';
+import { CommunityDevice } from '@capacitor-community/device';
 import { ProfileModalComponent } from 'src/app/components/profile-modal/profile-modal.component';
 
 declare var ol: any;
@@ -156,10 +156,16 @@ export class DownloadPage implements OnInit {
 
       const resp = await this.proxyService.getbgLayerFileWeight(
         bgMapServices, this.extent, this.zoomValue, this.mapProjSelected);
-      this.estimatedSize += Math.round(resp.data.estimatedMbtilesSizeMb * 10) / 10;
+      if (resp.data.estimatedMbtilesSizeMb) {
+        this.estimatedSize += Math.round(resp.data.estimatedMbtilesSizeMb * 10) / 10;
+      } else {
+        console.log('No se pudo obtener el tamaño estimado del archivo MBTiles');
+      }
+
+      console.log('Tamaño estimado:', this.estimatedSize);
 
       //comprobar espacio disponible
-      const info = await Device.getInfo();
+      const info = await CommunityDevice.getInfo();
       if (info.realDiskFree) {
         this.freeSpaceMB = Math.round(info.realDiskFree/ (1024 * 1024) * 10) / 10;  //espacio libre en MB
         console.log('Espacio libre en disco:', this.freeSpaceMB);
@@ -400,11 +406,11 @@ export class DownloadPage implements OnInit {
     const groupLayer = this.profile.groups.find((group: any) => group.id === bg.resource);
     const bgLayers = this.profile.layers.filter((layer: any) => groupLayer.layers.includes(layer.id));
     for (const layer of bgLayers) {
-      const serviceId = layer.service;
+      const serviceId = layer.service.split('/')[1];
       if (!byService.has(serviceId)) {
         byService.set(serviceId, new Set<number>());
       }
-      byService.get(serviceId)!.add(layer.id);
+      byService.get(serviceId)!.add(layer.id.split('/')[1]);
     }
     return Array.from(byService.entries()).map(([serviceId, layerIds]) => ({
       serviceId,
@@ -433,17 +439,8 @@ export class DownloadPage implements OnInit {
     this.treeviewService.toggleCheck(node);
   }
 
-  toggleBgCheck(node: TreeNode, event: any) {
-    const checked = node.checked;
-    if (checked) {
-      this.bgTreeData.forEach(tn => this.treeviewService.toggleCheck(tn));
-      if (event) {
-        const inputs = document.querySelectorAll<HTMLInputElement>('.bg-check');
-        inputs.forEach(i => i.checked = false);
-        event.target.checked = checked;
-      }
-      node.checked = checked;
-    }
+  toggleBgCheck(node: TreeNode) {
+    this.treeviewService.toggleBgCheck(this.bgTreeData, node);
   }
 
 

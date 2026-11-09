@@ -13,6 +13,7 @@ describe('ProxyService', () => {
   };
   let login: {
     ensureProxyToken: jest.Mock;
+    withProxyRetry: jest.Mock;
     getAccessToken: jest.Mock;
     getProxyToken: jest.Mock;
   };
@@ -31,6 +32,7 @@ describe('ProxyService', () => {
     };
     login = {
       ensureProxyToken: jest.fn().mockResolvedValue('proxy-jwt'),
+      withProxyRetry: jest.fn(async (send: () => Promise<any>) => send()),
       getAccessToken: jest.fn().mockReturnValue('access-jwt'),
       getProxyToken: jest.fn().mockReturnValue('proxy-jwt')
     };

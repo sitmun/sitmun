@@ -15,7 +15,9 @@
         "selectTer": "Sélectionner un territoire",
         "openMap": "Ouvrir la carte",
         "openDownload": "Abrir descarga",
-        "cancel": "Annuler"
+        "cancel": "Annuler",
+        "sessionExpired": "Session expirée, veuillez vous reconnecter",
+        "reconnectLogin": "La connexion est rétablie. Reconnectez-vous pour envoyer vos modifications."
     },
     "download": {
         "title": "Télécharger",
@@ -59,15 +61,30 @@
         "locationError": "Erreur lors de l'obtention de l'emplacement",
         "doneText": "Terminé",
         "cancelText": "Annuler",
+        "clearText": "Effacer",
+        "dateNotSet": "Non défini",
         "editGeometryError": "Il faut enregistrer avant de modifier la géométrie",
+        "gettingLocation": "Obtention de la localisation…",
+        "saving": "Enregistrement…",
+        "pointSaved": "Élément enregistré",
         "noEditLayerSelected": "Il faut d’abord sélectionner la couche à modifier",
         "invalidFeatureForm": "Des champs obligatoires ne sont pas remplis",
+        "deletePointTitle": "Supprimer le point",
+        "deletePointMessage": "Supprimer ce point ? S'il est déjà enregistré, la modification sera envoyée au serveur lors du prochain envoi.",
+        "deletePointConfirm": "Supprimer",
         "prompt": {
             "header": "Sélectionner une image",
             "gallery": "Ouvrir la galerie",
             "picture": "Prendre une photo"
         },
-        "downloadLayers": "Couches téléchargées"
+        "downloadLayers": "Couches téléchargées",
+        "sessionExpired": "Session expirée, veuillez vous reconnecter",
+        "saveFeaturesSummary": "Enregistrement réussi : {{inserted}} insérés, {{updated}} mis à jour, {{deleted}} supprimés",
+        "saveErrorTitle": "Erreurs d'enregistrement",
+        "saveSuccessTitle": "Enregistrement réussi",
+        "saveResultTitle": "Résultat de l'enregistrement",
+        "saveErrorsSection": "Erreurs",
+        "saveSuccessSection": "Réussis"
     },
     "exit": {
         "title": "Quitter",

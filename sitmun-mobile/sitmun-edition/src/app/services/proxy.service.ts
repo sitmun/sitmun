@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
-import { Directory } from '@capacitor/filesystem';
-import { Http } from '@capacitor-community/http';
+import { CapacitorHttp } from '@capacitor/core';
+import { Directory, Filesystem } from '@capacitor/filesystem';
+import { FileTransfer } from '@capacitor/file-transfer';
 import { InstancesService } from './instances.service';
 import { LoginService } from './login.service';
 import { authHeadersForUrl } from './trusted-origin.util';
@@ -97,10 +98,13 @@ export class ProxyService {
   async downloadMbtilesFile(jobHandle: string, path: string) {
     await this.loginService.ensureProxyToken();
     const url = await this.instancesService.getMbtilesProxyUrl(`/${jobHandle}/file`);
-    return Http.downloadFile({
+    const { uri } = await Filesystem.getUri({
+      directory: Directory.Data,
+      path
+    });
+    return FileTransfer.downloadFile({
       url,
-      filePath: path,
-      fileDirectory: Directory.Data,
+      path: uri,
       headers: await this.authHeaders(url),
       progress: true
     });
@@ -136,7 +140,13 @@ export class ProxyService {
     );
   }
 
-  private request(options: any) {
-    return Http.request(options);
+  private async request(options: any) {
+    return this.loginService.withProxyRetry(async () => {
+      const headers = {
+        ...options.headers,
+        ...(await this.authHeaders(options.url))
+      };
+      return CapacitorHttp.request({ ...options, headers });
+    });
   }
 }

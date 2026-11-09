@@ -141,6 +141,20 @@ export class TreeviewService {
     this.checkChildren(node, node.checked || false);
   }
 
+  /**
+   * Selección exclusiva de capas de fondo: desmarca el resto y deja solo el nodo activo.
+   * Si el nodo se desmarca, ninguna capa de fondo queda seleccionada.
+   */
+  toggleBgCheck(nodes: TreeNode[], node: TreeNode) {
+    const checked = !!node.checked;
+    nodes.forEach(tn => {
+      tn.checked = false;
+    });
+    if (checked) {
+      node.checked = true;
+    }
+  }
+
   checkChildren(node: TreeNode, checked: boolean) {
     if (node.children) {
       node.children.forEach(child => {
