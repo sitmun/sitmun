@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+- **Service checks**: A blank detail is stored as null. The health API still shows that blank as an empty string. On Oracle, `SEC_OBSERVED` and `SCS_OBSERVED` become `TIMESTAMP(6) WITH TIME ZONE`. Existing values are copied as UTC before the column changes ([sitmun-backend-core#355](https://github.com/sitmun/sitmun-backend-core/pull/355)).
 - **SQL query tasks**: `POST /api/tasks/query/test` is admin-only. It takes a saved task id plus test values, checks the save rules, then runs the task's stored SQL twice on the task's connection: as written, and as one page (`limit` 10 and `offset` 0 unless the request sets them). Each run reports the SQL with `?`, the bound values, the rows, a failure message, and whether the row cap cut the result. A database account that can execute functions can still cause side effects inside a `SELECT`. Use an account that can only read.
 
 ### Changed

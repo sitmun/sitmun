@@ -252,3 +252,6 @@ databaseChangeLog:
               - column:
                   name: tas_title
                   type: varchar(250)
+  - include:
+      file: service-check-observed-timestamptz.oracle.sql
+      relativeToChangelogFile: true

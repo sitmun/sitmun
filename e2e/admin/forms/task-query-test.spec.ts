@@ -199,14 +199,20 @@ test.describe('SQL query task test', () => {
   });
 
   test('the save-first hint has no raw translation key in any locale', async ({ page }) => {
+    const hints = new Set<string>();
     for (const locale of LOCALES) {
       await page.addInitScript((lang) => {
         localStorage.setItem('lang', lang);
       }, locale);
+      // goto to the same hash URL keeps the document, so the locale and connection list would be stale.
+      await page.goto('about:blank');
       await openSqlQuery(page);
-      await expect(page.getByTestId('sql-test-save-first')).toBeVisible();
-      await expect(page.getByTestId('sql-test-save-first')).not.toContainText('entity.task.query.');
+      const hint = page.getByTestId('sql-test-save-first');
+      await expect(hint).toBeVisible();
+      await expect(hint).not.toContainText('entity.task.query.');
+      hints.add((await hint.textContent()) ?? '');
     }
+    expect(hints.size).toBe(LOCALES.length);
   });
 });
 

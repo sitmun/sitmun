@@ -76,6 +76,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 #### Stack-level
 
+- **Docker**: The front server returns the SITMUN icon for `/favicon.ico`, `/viewer/favicon.ico`, and `/admin/favicon.ico`. Those requests no longer fall through to an HTML page.
 - **Database**: A fresh install sets each `STM_SEQUENCE` counter to one past the highest id. Counters are not raised to 100000. The PostgreSQL and Oracle test profiles set Liquibase `drop-first` to false, so those tests do not drop the database they connect to.
 - **MBTiles**: Hibernate `ddl-auto` is `none`. Hibernate does not create or drop the MBTiles database.
 - **Database**: GitHub Actions job `oracle-11-from` upgrades the Oracle schema from 1.2.6, 1.2.7, and 1.2.8 to HEAD on `gvenzl/oracle-xe:11` using service `XE`. That image is amd64 only. The Liquibase container brings its own driver, so the job does not boot the backend. On Oracle 11 it sets `JAVA_TOOL_OPTIONS` to `-Doracle.jdbc.timezoneAsRegion=false` so the session accepts the runner time zone.
@@ -96,6 +97,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 #### Backend Core
 
+- **Service checks**: A blank detail is stored as null. On Oracle, existing `SEC_OBSERVED` and `SCS_OBSERVED` values are copied as UTC before the columns become `TIMESTAMP(6) WITH TIME ZONE` ([sitmun-backend-core#355](https://github.com/sitmun/sitmun-backend-core/pull/355)).
 - **Database**: The Oracle dialects take the connected database version. Oracle 11 was configured as Oracle 8, and Oracle 21 as 19.
 - **Grants**: On Oracle, a user position created today grants access today. A cast to date kept the time of day there.
 - **i18n**: Creating a task with a new template literal no longer returns HTTP 500 on Oracle, whose JDBC driver does not support `releaseSavepoint`.
@@ -108,6 +110,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 #### Stack
 
+- **Setup**: `setup.sh` and `setup.ps1` fill `SITMUN_USER_SECRET`, `MIDDLEWARE_SECRET`, and `SITMUN_MBTILES_JOB_HANDLE_SECRET` when `.env` already exists and a key is missing. A value that is already set stays. Profile templates name the three keys and leave them unset ([sitmun-application-stack#138](https://github.com/sitmun/sitmun-application-stack/issues/138)).
 - **Database**: An upgrade from 1.2.6 on Oracle 11 and on the 19c stand-in rewrites unquoted `TRUE` and `FALSE` in the extracted schema. Those releases reject boolean literals. The run then stores a checksum the current changelog already accepts.
 - **Docker**: The backend and proxy images configure a Gradle project only when its directory was copied into the image.
 - **Viewer**: Jest transforms the pnpm copy of `url-template`. OpenLayers, proj4, and draggabilly are direct dependencies. The About window still reads `ol/package.json`.

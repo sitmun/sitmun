@@ -72,7 +72,7 @@ class ServiceCheckStoreTest {
     assertThat(second.getStatusRank()).isEqualTo(0);
     assertThat(second.getObserver()).isEqualTo("backend");
     assertThat(second.getElapsedMs()).isEqualTo(12L);
-    assertThat(second.getDetail()).isEmpty();
+    assertThat(second.getDetail()).isNull();
     assertThat(second.getObservedAt()).isEqualTo(secondSeen);
 
     List<ServiceCheckSample> samples =
