@@ -68,6 +68,9 @@ RUN if [ "${ENVIRONMENT}" = "development" ]; then \
 
 # Stage 1, based on Nginx, to have only the compiled apps, ready for production with Nginx
 FROM nginx:1.27-alpine
+LABEL org.opencontainers.image.source=https://github.com/sitmun/sitmun
+LABEL org.opencontainers.image.licenses=EUPL-1.2
+LABEL org.opencontainers.image.description="SITMUN admin and viewer"
 COPY --from=build-apps /home/node/app/dist/admin-app/ /usr/share/nginx/html/admin
 COPY --from=build-apps /home/node/app/dist/viewer-app/ /usr/share/nginx/html/viewer
 HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 CMD wget -q --spider http://localhost/admin/ || exit 1

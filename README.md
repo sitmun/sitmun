@@ -45,6 +45,16 @@ cd sitmun
 docker compose up -d
 ```
 
+`docker compose up -d` builds from this checkout. To run the published images instead:
+
+```bash
+docker compose up -d --pull always --no-build
+```
+
+That uses `ghcr.io/sitmun/front`, `backend`, `proxy`, and `mbtiles` at tag `${SITMUN_VERSION:-1.3.0}`. Add `--profile mbtiles` for MBTiles. The checkout still supplies `profiles/` and `docker/front/config`.
+
+A manual run of Publish images pushes the `1.3.0` tag. The git tag `v1.3.0` publishes that same image tag. GitHub creates each package private. After the first push, set `front`, `backend`, `proxy`, and `mbtiles` to public in Package settings. The Packages API cannot change that. The change stays. An anonymous `docker pull ghcr.io/sitmun/front:1.3.0` is the check.
+
 `./setup.sh` and `./setup.ps1` copy `profiles/development-postgres.env` to `.env` only when `.env` is missing. They then append `SITMUN_USER_SECRET`, `MIDDLEWARE_SECRET`, and `SITMUN_MBTILES_JOB_HANDLE_SECRET` when those keys are absent, including on an `.env` you already copied from a profile. Do not commit the values.
 
 To choose a profile yourself, copy one file to `.env` and run `./setup.sh` (Windows: `./setup.ps1`). Compose marks the three secrets required (`:?`) and refuses to start without them.

@@ -1,0 +1,59 @@
+#!/usr/bin/env python3
+"""Published image names, labels, and the GHCR workflow."""
+
+from __future__ import annotations
+
+import unittest
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[2]
+
+IMAGES = ("front", "backend", "proxy", "mbtiles")
+LABELS = (
+    "org.opencontainers.image.source=https://github.com/sitmun/sitmun",
+    "org.opencontainers.image.licenses=EUPL-1.2",
+    "org.opencontainers.image.description=",
+)
+DOCKERFILES = {
+    "front": ROOT / "docker/front/Dockerfile",
+    "backend": ROOT / "docker/backend/Dockerfile",
+    "proxy": ROOT / "docker/proxy/Dockerfile",
+    "mbtiles": ROOT / "docker/mbtiles/Dockerfile",
+}
+
+
+class PublishedImagesTest(unittest.TestCase):
+    def test_compose_names_the_published_images_and_keeps_the_build(self) -> None:
+        text = (ROOT / "compose.yaml").read_text(encoding="utf-8")
+        for name in IMAGES:
+            image = f"image: ghcr.io/sitmun/{name}:${{SITMUN_VERSION:-1.3.0}}"
+            self.assertIn(image, text)
+        self.assertIn("pull_policy: build", text)
+        self.assertIn("dockerfile: docker/front/Dockerfile", text)
+        self.assertIn("dockerfile: docker/backend/Dockerfile", text)
+        self.assertIn("dockerfile: docker/proxy/Dockerfile", text)
+        self.assertIn("dockerfile: docker/mbtiles/Dockerfile", text)
+
+    def test_dockerfiles_carry_the_source_labels(self) -> None:
+        for path in DOCKERFILES.values():
+            text = path.read_text(encoding="utf-8")
+            for label in LABELS:
+                self.assertIn(label, text, path.name)
+
+    def test_publish_workflow_pushes_1_3_0_and_makes_the_packages_public(self) -> None:
+        text = (ROOT / ".github/workflows/publish-images.yml").read_text(encoding="utf-8")
+        self.assertIn("workflow_dispatch:", text)
+        self.assertIn('- "v*"', text)
+        self.assertIn("packages: write", text)
+        self.assertIn("version=1.3.0", text)
+        self.assertIn("version=${GITHUB_REF_NAME#v}", text)
+        self.assertIn("ENVIRONMENT: production", text)
+        self.assertIn("PUBLIC_BASE_PATH: /", text)
+        self.assertIn("--profile mbtiles push", text)
+        self.assertNotIn("/visibility", text)
+        readme = (ROOT / "README.md").read_text(encoding="utf-8")
+        self.assertIn("set `front`, `backend`, `proxy`, and `mbtiles` to public in Package settings", readme)
+
+
+if __name__ == "__main__":
+    unittest.main()

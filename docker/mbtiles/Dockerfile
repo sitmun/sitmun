@@ -12,6 +12,9 @@ RUN --mount=type=cache,target=/root/.gradle-mbtiles \
     -x :sitmun-mbtiles:check
 
 FROM amazoncorretto:${JDK_VERSION}.${JDK_TAG}-alpine${ALPINE_TAG}
+LABEL org.opencontainers.image.source=https://github.com/sitmun/sitmun
+LABEL org.opencontainers.image.licenses=EUPL-1.2
+LABEL org.opencontainers.image.description="SITMUN MBTiles"
 RUN apk add --no-cache curl
 COPY --from=build-mbtiles /usr/src/sitmun-addons/sitmun-mbtiles/build/libs/*.jar /usr/src/mbtiles.jar
 WORKDIR /usr/src
