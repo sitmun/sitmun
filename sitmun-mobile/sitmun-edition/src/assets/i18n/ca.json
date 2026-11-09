@@ -15,7 +15,9 @@
         "selectTer": "Seleccionar territori",
         "openMap": "Obrir mapa",
         "openDownload": "Abrir descarga",
-        "cancel": "Cancel·lar"
+        "cancel": "Cancel·lar",
+        "sessionExpired": "Sessió caducada, torneu a iniciar sessió",
+        "reconnectLogin": "La connexió ha tornat. Torneu a iniciar sessió per pujar els canvis."
     },
     "download": {
         "title": "Descarregar",
@@ -59,15 +61,30 @@
         "locationError": "Error en obtenir la ubicació",
         "doneText": "Fet",
         "cancelText": "Cancel·lar",
+        "clearText": "Esborra",
+        "dateNotSet": "Sense data",
         "editGeometryError": "Cal desar abans d’editar la geometria",
+        "gettingLocation": "Obtenint la ubicació…",
+        "saving": "Desant…",
+        "pointSaved": "Element desat",
         "noEditLayerSelected": "Cal seleccionar prèviament la capa a editar",
         "invalidFeatureForm": "Hi ha camps obligatoris sense emplenar",
+        "deletePointTitle": "Eliminar punt",
+        "deletePointMessage": "Voleu eliminar aquest punt? Si ja s'ha desat, el canvi s'enviarà al servidor en la propera pujada.",
+        "deletePointConfirm": "Eliminar",
         "prompt": {
             "header": "Seleccionar imatge",
             "gallery": "Obrir galeria",
             "picture": "Fer foto"
         },
-        "downloadLayers": "Capes descarregades"
+        "downloadLayers": "Capes descarregades",
+        "sessionExpired": "Sessió caducada, torneu a iniciar sessió",
+        "saveFeaturesSummary": "Desat correctament: {{inserted}} inserits, {{updated}} actualitzats, {{deleted}} esborrats",
+        "saveErrorTitle": "Errors en el desament",
+        "saveSuccessTitle": "Desat correctament",
+        "saveResultTitle": "Resultat del desament",
+        "saveErrorsSection": "Errors",
+        "saveSuccessSection": "Correctes"
     },
     "exit": {
         "title": "Sortir",

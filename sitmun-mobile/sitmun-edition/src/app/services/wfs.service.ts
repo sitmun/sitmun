@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Http } from '@capacitor-community/http';
+import { CapacitorHttp } from '@capacitor/core';
 import { create, convert } from 'xmlbuilder2';
 import { ObjectWriterOptions, XMLBuilder, XMLSerializedAsObject } from 'xmlbuilder2/lib/interfaces';
 import { InstancesService } from './instances.service';
@@ -41,7 +41,7 @@ export class WfsService {
     return this.request(options);
   }
 
-  async saveFeatures(layer: any, featuresEdition: any, mapProj: string): Promise<string> {
+  async saveFeatures(layer: any, featuresEdition: any, mapProj: string): Promise<any> {
     const data = await this.createWFSTrasaction(featuresEdition, layer.name, `${layer.url}?request=DescribeFeatureType`, mapProj);
     const options = {
       url: layer.url,
@@ -60,13 +60,13 @@ export class WfsService {
       const responseXML: any = convert(String(resp.data), options);
       if (responseXML['ows:ExceptionReport']) {
         const exception = responseXML['ows:ExceptionReport']['ows:Exception'];
-        return `${layer.name}: ${exception['@exceptionCode']}:${exception['ows:ExceptionText']}`;
+        return {'status': 400, 'data': `${exception['@exceptionCode']}:${exception['ows:ExceptionText']}`};
       } else {
         layer.refresh();
-        return '200';
+        return {'status': 200, 'data': responseXML};
       }
     }
-    return `${layer.name}: Unexpected error ${resp.status}`;
+    return {'status': resp.status, 'data': `Unexpected error: ${resp.data}`};
   }
 
   private async authHeaders(url: string) {
@@ -80,12 +80,13 @@ export class WfsService {
   }
 
   private async request(options: any) {
-    await this.loginService.ensureProxyToken();
-    const headers = {
-      ...options.headers,
-      ...(await this.authHeaders(options.url))
-    };
-    return Http.request({ ...options, headers });
+    return this.loginService.withProxyRetry(async () => {
+      const headers = {
+        ...options.headers,
+        ...(await this.authHeaders(options.url))
+      };
+      return CapacitorHttp.request({ ...options, headers });
+    });
   }
 
   async createWFSTrasaction(featuresEdition: any, typeName: string, describeFeatureUrl: string, mapProj: string) {
@@ -107,11 +108,15 @@ export class WfsService {
     return doc.end({prettyPrint: true, headless: true});
   }
 
+  private isEmpty(value: unknown): boolean {
+    return value === null || value === undefined || value === '';
+  }
+
   createWFSInsert(doc: XMLBuilder, layerSplit: string[], inserts: any[], proj: string, geomColumnName: string) {
     inserts.forEach((feature) => {
       const insert = doc.ele('wfs:Insert').ele(`${layerSplit[0]}:${layerSplit[1]}`);
       for (const [key, value] of Object.entries(feature.getAttributes())) {
-        if (key !== 'vendor.mapea.click') {
+        if (key !== 'vendor.mapea.click' && !this.isEmpty(value)) {
           insert.ele(`${layerSplit[0]}:${key}`).txt(String(value));
         }
       }
@@ -135,7 +140,10 @@ export class WfsService {
         if (key !== 'vendor.mapea.click') {
           const prop = update.ele('wfs:Property');
           prop.ele('wfs:Name').txt(key);
-          prop.ele('wfs:Value').txt(String(value));
+          // WFS 1.1.0: a Property with no Value sets the column to NULL
+          if (!this.isEmpty(value)) {
+            prop.ele('wfs:Value').txt(String(value));
+          }
         }
       }
 

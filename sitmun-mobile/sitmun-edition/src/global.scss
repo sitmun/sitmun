@@ -90,6 +90,15 @@ ion-header ion-title {
     color: red !important;
 }
 
+/* Datetime modal teleports outside the page; keep presentation styles global. */
+ion-modal.date-modal {
+    --width: fit-content;
+    --min-width: 290px;
+    --height: fit-content;
+    --border-radius: 8px;
+    --box-shadow: 0 28px 48px rgba(0, 0, 0, 0.4);
+}
+
 ion-modal.profile-modal {
     ion-content {
         --background: white;

@@ -1,8 +1,15 @@
 import { Injectable } from '@angular/core';
-import { Http } from '@capacitor-community/http';
+import { CapacitorHttp } from '@capacitor/core';
 import { environment } from 'src/environments/environment';
 import { DatabaseService } from './database.service';
 import { InstancesService } from './instances.service';
+
+export class SessionExpiredError extends Error {
+  constructor() {
+    super('Session expired');
+    this.name = 'SessionExpiredError';
+  }
+}
 
 @Injectable({
   providedIn: 'root'
@@ -27,6 +34,21 @@ export class LoginService {
 
   getProxyToken() {
     return this.proxyToken;
+  }
+
+  /** True when there is an access token and its `exp` is at least 30 s away. */
+  hasValidAccessToken(): boolean {
+    if (!this.accessToken) {
+      return false;
+    }
+    try {
+      const payload = JSON.parse(
+        atob(this.accessToken.split('.')[1].replace(/-/g, '+').replace(/_/g, '/'))
+      );
+      return typeof payload.exp === 'number' && payload.exp * 1000 > Date.now() + 30000;
+    } catch {
+      return false;
+    }
   }
 
   logout() {
@@ -59,8 +81,8 @@ export class LoginService {
   }
 
   async ensureProxyToken() {
-    if (!this.accessToken) {
-      throw new Error('Mobile access token is required');
+    if (!this.hasValidAccessToken()) {
+      throw new SessionExpiredError();
     }
     if (this.proxyToken) {
       return this.proxyToken;
@@ -78,6 +100,10 @@ export class LoginService {
       data: {}
     };
     return this.request(options, (resp: any) => {
+      if (resp.status !== 200 || !resp.data?.proxy_token) {
+        this.proxyToken = '';
+        throw new SessionExpiredError();
+      }
       this.proxyToken = resp.data.proxy_token;
       return this.proxyToken;
     });
@@ -85,7 +111,22 @@ export class LoginService {
 
   async reissueProxyToken() {
     this.proxyToken = '';
+    console.log('Refrescando proxyToken');
     return this.ensureProxyToken();
+  }
+
+  /**
+   * Ensures a proxy token, runs send once, and on HTTP 401 reissues the proxy
+   * token and retries send exactly once.
+   */
+  async withProxyRetry<T extends { status: number }>(send: () => Promise<T>): Promise<T> {
+    await this.ensureProxyToken();
+    let resp = await send();
+    if (resp.status === 401) {
+      await this.reissueProxyToken();
+      resp = await send();
+    }
+    return resp;
   }
 
   private authenticateSuccess(resp: any) {
@@ -96,7 +137,7 @@ export class LoginService {
 
   private request(options: any, callback: Function) {
     return new Promise<any>((resolve, reject) => {
-      Http.request(options).then(data => {
+      CapacitorHttp.request(options).then(data => {
         resolve(callback(data));
       }).catch(error => {
         reject(error);

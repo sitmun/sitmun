@@ -15,7 +15,9 @@
         "selectTer": "Seleccionar territorio",
         "openMap": "Abrir mapa",
         "openDownload": "Abrir descarga",
-        "cancel": "Cancelar"
+        "cancel": "Cancelar",
+        "sessionExpired": "Sesión caducada, vuelva a iniciar sesión",
+        "reconnectLogin": "La conexión ha vuelto. Inicie sesión de nuevo para subir sus cambios."
     },
     "download": {
         "title": "Descargar",
@@ -59,15 +61,30 @@
         "locationError": "Error al obtener la ubicación",
         "doneText": "Hecho",
         "cancelText": "Cancelar",
+        "clearText": "Borrar",
+        "dateNotSet": "Sin fecha",
         "editGeometryError": "Se debe guardar antes de editar la geometría",
+        "gettingLocation": "Obteniendo ubicación…",
+        "saving": "Guardando…",
+        "pointSaved": "Elemento guardado",
         "noEditLayerSelected": "Se debe seleccionar la capa a editar previamente",
         "invalidFeatureForm": "Hay campos obligatorios sin rellenar",
+        "deletePointTitle": "Eliminar punto",
+        "deletePointMessage": "¿Eliminar este punto? Si ya está guardado, el cambio se enviará al servidor en la próxima subida.",
+        "deletePointConfirm": "Eliminar",
         "prompt": {
             "header": "Seleccionar imagen",
             "gallery": "Abrir galería",
             "picture": "Tomar foto"
         },
-        "downloadLayers": "Capas descargadas"
+        "downloadLayers": "Capas descargadas",
+        "sessionExpired": "Sesión caducada, vuelva a iniciar sesión",
+        "saveFeaturesSummary": "Guardado correctamente: {{inserted}} insertados, {{updated}} actualizados, {{deleted}} borrados",
+        "saveErrorTitle": "Errores en guardado",
+        "saveSuccessTitle": "Guardado correcto",
+        "saveResultTitle": "Resultado del guardado",
+        "saveErrorsSection": "Errores",
+        "saveSuccessSection": "Correctos"
     },
     "exit": {
         "title": "Salir",

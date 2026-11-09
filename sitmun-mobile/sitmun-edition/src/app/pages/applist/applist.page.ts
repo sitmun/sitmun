@@ -4,9 +4,10 @@ import { applicationListLabel } from 'src/app/application-list-label';
 import { AuthorizationService } from 'src/app/services/authorization.service';
 import { DatabaseService } from 'src/app/services/database.service';
 import { LanguageService } from 'src/app/services/language.service';
+import { LoginService, SessionExpiredError } from 'src/app/services/login.service';
 import { NetworkService } from 'src/app/services/network.service';
 import { Filesystem, Directory } from '@capacitor/filesystem';
-import { AnimationController } from '@ionic/angular';
+import { AnimationController, ToastController } from '@ionic/angular';
 import { ProfileModalComponent } from 'src/app/components/profile-modal/profile-modal.component';
 
 @Component({
@@ -30,7 +31,8 @@ export class ApplistPage implements OnInit {
 
   constructor(private languageService: LanguageService, private router: Router,
     private authorizationService: AuthorizationService, private networkService: NetworkService,
-    private databaseService: DatabaseService, private animationCtrl: AnimationController) {
+    private databaseService: DatabaseService, private animationCtrl: AnimationController,
+    private loginService: LoginService, private toastController: ToastController) {
 
   }
 
@@ -63,6 +65,9 @@ export class ApplistPage implements OnInit {
       const resp = await this.authorizationService.getApplications();
       this.applications = resp.filter((app: any) => !app.isUnavailable);
     }catch(error) {
+      if (error instanceof SessionExpiredError) {
+        return this.backToLogin('applist.sessionExpired');
+      }
       console.log('Error obteniendo las aplicaciones disponibles:', error);
     };
   }
@@ -72,10 +77,19 @@ export class ApplistPage implements OnInit {
   }
 
   async getTerritoriesByApp(idApp: Number) {
-    if (this.networkConnected) {
-      this.territories = (await this.authorizationService.getTerritoriesByApp(idApp));
-    } else {
-      this.territories = await this.databaseService.getTerritoriesByApp(idApp);
+    try {
+      if (this.networkConnected) {
+        this.territories = (await this.authorizationService.getTerritoriesByApp(idApp));
+      } else {
+        this.territories = await this.databaseService.getTerritoriesByApp(idApp);
+      }
+    } catch (error) {
+      if (error instanceof SessionExpiredError) {
+        this.territories = [];
+        return this.backToLogin('applist.sessionExpired');
+      }
+      this.territories = [];
+      throw error;
     }
   }
 
@@ -111,6 +125,9 @@ export class ApplistPage implements OnInit {
   async mapPage(app: any) {
     this.selectedApp = app;
     await this.getTerritoriesByApp(this.selectedApp.id);
+    if (!this.territories?.length) {
+      return;
+    }
     this.selectedTerritory = this.territories[0];
     this.selectedTerritoryId = this.selectedTerritory.id;
     this.nextPage = 'map';
@@ -155,6 +172,9 @@ export class ApplistPage implements OnInit {
   async downloadPage(app: any) {
     this.selectedApp = app;
     await this.getTerritoriesByApp(this.selectedApp.id);
+    if (!this.territories?.length) {
+      return;
+    }
     this.selectedTerritory = this.territories[0];
     this.selectedTerritoryId = this.selectedTerritory.id;
     this.nextPage = 'download';
@@ -182,7 +202,23 @@ export class ApplistPage implements OnInit {
   updateNetworkStatus(connected: boolean) {
     if (this.networkConnected !== connected) {
       this.networkConnected = connected;
+      if (connected && !this.loginService.hasValidAccessToken()) {
+        return this.backToLogin('applist.reconnectLogin');
+      }
       this.refreshApplications();
     }
-  }  
+  }
+
+  private backToLogin(messageKey: string) {
+    this.languageService.translateTag(messageKey).subscribe(async message => {
+      const toast = await this.toastController.create({
+        message,
+        duration: 4000,
+        color: 'warning',
+        position: 'top'
+      });
+      await toast.present();
+    });
+    this.router.navigate(['home']);
+  }
 }

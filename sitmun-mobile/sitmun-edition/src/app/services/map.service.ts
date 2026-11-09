@@ -267,7 +267,7 @@ export class MapService {
   }
 
   getBaseLayer(profile: any, idGroup: string, title: string) {
-    const group = profile.groups.find((g: any) => g.id = idGroup);
+    const group = profile.groups.find((g: any) => g.id === idGroup);
     const bgLayers = this.createBackgroundLayers(group, profile.layers, profile.services);
     const groupOpts = {
       name: title,
@@ -368,6 +368,7 @@ export class MapService {
     let layer = null;
     switch (type) {
       case 'WMS':
+        options.isBase = false; //para saltar un bug de la api
         layer = new M.layer.WMS(options);
         break;
       case 'WMTS':
@@ -425,12 +426,12 @@ export class MapService {
     mapa.addPlugin(tocPlugin);
   }
 
-  async getLocation() {
+  async getLocation(mapa: any) {
     let position = null;
     try {
       const permission = await Geolocation.requestPermissions();
       if(permission.location === 'granted') {
-        position = await Geolocation.getCurrentPosition();
+        position = await Geolocation.getCurrentPosition({enableHighAccuracy: true});
         position= {
           x: position.coords.longitude,
           y: position.coords.latitude
@@ -439,7 +440,7 @@ export class MapService {
       } else {        
         console.log('No se tienen permisos para obtener la ubicación, obteniendo de la configuración del mapa');
         await this.errorLocationToast("permissionError");
-        position = this.getDefaultLocation();
+        position = this.getDefaultLocation(mapa);
       }
     } catch (error) {
       console.error('Error obteniendo ubicación:', error);
@@ -449,7 +450,7 @@ export class MapService {
         await this.errorLocationToast("error");
       }   
 
-      position = this.getDefaultLocation();
+      position = this.getDefaultLocation(mapa);
     }
     return position;
   }
@@ -475,18 +476,18 @@ export class MapService {
   }
   
 
-  getDefaultLocation() {
-    let position = {
-      x: 4,
-      y: 40
+  getDefaultLocation(mapa: any) {
+    let coords = [4, 40];
+    if (mapa) {
+      const center = mapa.getCenter();
+      coords = this.transformCoords([center.x, center.y], this.mapProj, 'EPSG:4326');
+    } else if (this.centerMapTransformed && this.mapProj) {
+      coords = this.transformCoords(this.centerMapTransformed, this.mapProj, 'EPSG:4326');
     }
-    if (this.centerMapTransformed && this.mapProj) {
-      const coords = this.transformCoords(this.centerMapTransformed, this.mapProj, 'EPSG:4326');
-      position = {
-        x: coords[0],
-        y: coords[1]
-      };
-    }
+    const position = {
+      x: coords[0],
+      y: coords[1]
+    };
     return position;
   }
 

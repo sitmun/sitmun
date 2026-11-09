@@ -69,4 +69,8 @@ export class LanguageService {
   translateTag(tag: string) {
     return this.translate.get(tag);
   }
+
+  translateTagWithParams(tag: string, params: Record<string, unknown>) {
+    return this.translate.get(tag, params);
+  }
 }

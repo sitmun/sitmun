@@ -9,9 +9,11 @@ import { NetworkService } from 'src/app/services/network.service';
 import { WfsService } from 'src/app/services/wfs.service';
 import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { forkJoin } from 'rxjs';
+import { firstValueFrom, forkJoin } from 'rxjs';
 import { DatabaseService } from 'src/app/services/database.service';
 import { ProfileModalComponent } from 'src/app/components/profile-modal/profile-modal.component';
+import { SessionExpiredError } from 'src/app/services/login.service';
+import { AlertController, LoadingController } from '@ionic/angular';
 
 declare var M: any;
 declare var ol: any;
@@ -41,10 +43,12 @@ export class MapPage implements OnInit {
   featureAttrForm: FormGroup;
   feature: any = null;
   newPoint = false;
+  saving = false;
   layersTreeData: TreeNode[] = [];
   bgTreeData: TreeNode[] = [];
   featureEditions: Record<string, { inserts: any[]; deletes: any[]; updates: any[] }> = {};
-  saveErrors: string[] = [];
+  saveErrors: { layerName: string; message: string }[] = [];
+  saveSuccesses: { layerName: string; message: string }[] = [];
   imageValue: string | null = null;
   errorImg: string[] = [];
   imageAttr: string = '';
@@ -55,13 +59,19 @@ export class MapPage implements OnInit {
   downloadLayers: any[] = [];
   extent: number[] = [];
   mapProjSelected: string = '';
-  currentEditionTask: any = null; 
-  @ViewChild('profileModal') profileModal!: ProfileModalComponent; 
+  currentEditionTask: any = null;
+  openDateKey: string | null = null;
+  @ViewChild('profileModal') profileModal!: ProfileModalComponent;
+
+  get dateLocale(): string {
+    return this.languageService.getLanguage();
+  } 
 
   constructor(private mapService: MapService, private languageService: LanguageService, private _location: Location,
     private router: Router, private route: ActivatedRoute, private authorizationService: AuthorizationService,
     private treeviewService: TreeviewService, private networkService: NetworkService, private cdr: ChangeDetectorRef,
-    private wfsService: WfsService, private formBuilder: FormBuilder, private databaseService: DatabaseService) {
+    private wfsService: WfsService, private formBuilder: FormBuilder, private databaseService: DatabaseService,
+    private alertController: AlertController, private loadingCtrl: LoadingController) {
     this.route.queryParams.subscribe(params => {
         const navigation = this.router.getCurrentNavigation();
         if (navigation) {
@@ -188,7 +198,7 @@ export class MapPage implements OnInit {
     this.bgTreeData = this.treeviewService.createBackgroundsTreeData(profile);
     const bgNode = this.bgTreeData.find(n => n.checked);
     if (bgNode) {
-      this.toggleBgCheck(bgNode, null);
+      this.toggleBgCheck(bgNode);
     }    
   }
 
@@ -291,6 +301,7 @@ export class MapPage implements OnInit {
 
   closeFeatureModal(resetGeom: boolean) {
     this.isFeatureModalOpen = false;
+    this.openDateKey = null;
     if (resetGeom) {
       this.newGeometry = null;
     }
@@ -314,6 +325,22 @@ export class MapPage implements OnInit {
 
   closeSaveModal() {
     this.isSaveModalOpen = false;
+    this.saveErrors = [];
+    this.saveSuccesses = [];
+  }
+
+  get saveModalTitleKey(): string {
+    if (this.saveErrors.length > 0 && this.saveSuccesses.length > 0) {
+      return 'map.saveResultTitle';
+    }
+    return this.saveErrors.length > 0 ? 'map.saveErrorTitle' : 'map.saveSuccessTitle';
+  }
+
+  private openSaveResultModal() {
+    if (this.saveErrors.length === 0 && this.saveSuccesses.length === 0) {
+      return;
+    }
+    this.isSaveModalOpen = true;
   }
 
   async createNewFeature() {
@@ -350,12 +377,15 @@ export class MapPage implements OnInit {
         key: fk,
         label: field.label,
         type: field.type,
-        defaultValue: this.featureAttr[fk] || await this.calculateFieldValue(field.value),
+        defaultValue: this.featureAttr[fk] ?? await this.calculateFieldValue(field.value),
         required: field.required,
         editable: field.editable
       };
       if (field.listValues) {
         data['listValues'] = field.listValues;
+      }
+      if (field.type === 'date') {
+        data['defaultValue'] = this.toIsoDate(data['defaultValue']);
       }
       if (field.type === 'image') {
         this.imageAttr = fk;
@@ -382,6 +412,9 @@ export class MapPage implements OnInit {
           return '';
       }
     }
+    if (['null', 'NULL'].includes(value)) {
+      return null;
+    }
     return value;
   }
 
@@ -390,12 +423,12 @@ export class MapPage implements OnInit {
     switch (attrData.type) {
       case 'text':
       case 'listbox':
-      case 'date':
       case 'image':
-        value = attrData.defaultValue || '';
+        value = attrData.defaultValue ?? '';
         break;
+      case 'date':
       case 'number':
-        value = attrData.defaultValue || 0;
+        value = attrData.defaultValue ?? null;
         break;
     }
     if (attrData.required) {
@@ -403,6 +436,12 @@ export class MapPage implements OnInit {
     } else {
       formControls[attrData.key] = [value, null];
     }
+  }
+
+  /** GeoServer sends xsd:date as `2026-10-24Z`; ion-datetime wants `2026-10-24`. */
+  private toIsoDate(value: any): string | null {
+    const match = /^(\d{4}-\d{2}-\d{2})/.exec(String(value ?? ''));
+    return match ? match[1] : null;
   }
 
   enableCameraBtn() {
@@ -415,11 +454,14 @@ export class MapPage implements OnInit {
 
   onFeatureDateChange(key: string, event: any) {
     const values: any = {};
-    values[key] = event.detail.value;
+    values[key] = this.toIsoDate(event.detail.value);
     this.featureAttrForm?.patchValue(values);
   }
 
   async onSaveModal() {
+    if (this.saving) {
+      return;
+    }
     //guardar imagen
     if (this.errorImg.length === 0 && this.imageAttr !== '')  {
       const values: any = {};
@@ -427,43 +469,59 @@ export class MapPage implements OnInit {
       this.featureAttrForm?.patchValue(values);
     }
     this.featureAttrForm.markAllAsTouched();
-    if (this.featureAttrForm.valid) {
-      this.featureAttr = this.featureAttrForm.value;
-      if (this.newPoint) {
-        const position: any = await this.mapService.getLocation();
-        if (position) {
-          const coordinates = [position.x, position.y];
-          const id = `new${Date.now()}`;
-          const geojson = {
-            type: 'Feature',
-            id,
-            geometry: {
-              type: 'Point',
-              coordinates
-            },
-            properties: this.featureAttr
-          };
-          const mapProj = this.mapa.getProjection();
-          this.feature = this.mapService.createFeaturesGeojson(geojson, 'EPSG:4326', mapProj)[0];
-          this.feature.setId(id);
-          this.feature.setAttribute('vendor.mapea.click', this.featureClickHandler.bind(this));
-          this.layerEdit.addFeatures([this.feature]);
-          this.centerMapByFeature(this.feature);
-          this.addFeatureEdition(this.layerEdit.idLayer, 'inserts');
-        }
-      } else {
-        this.feature.setAttributes(this.featureAttr);
-        if (this.newGeometry) {
-          this.feature.setGeometry(this.newGeometry);
-        }
-        console.log(`Editando feature con ID: ${this.feature.id}`);   
-        this.addFeatureEdition(this.layerEdit.idLayer, 'updates');
-      }
-      this.newPoint = false;
-      this.unsavedChanges = false;
-    } else {
+    if (!this.featureAttrForm.valid) {
       this.languageService.translateTag('map.invalidFeatureForm').subscribe(text => this.mapService.createToast(text, 'danger', 'top'));
+      return;
     }
+
+    this.saving = true;
+    const loadingKey = this.newPoint ? 'map.gettingLocation' : 'map.saving';
+    const loadingMessage = await firstValueFrom(this.languageService.translateTag(loadingKey));
+    const loading = await this.loadingCtrl.create({ message: loadingMessage });
+    try {
+      await loading.present();
+      await this.saveFeature();
+      this.languageService.translateTag('map.pointSaved').subscribe(text => this.mapService.createToast(text, 'success', 'bottom'));
+    } finally {
+      await loading.dismiss().catch(() => undefined);
+      this.saving = false;
+    }
+  }
+
+  private async saveFeature() {
+    this.featureAttr = this.featureAttrForm.value;
+    if (this.newPoint) {
+      const position: any = await this.mapService.getLocation(this.mapa);
+      if (position) {
+        const coordinates = [position.x, position.y];
+        const id = `new${Date.now()}`;
+        const geojson = {
+          type: 'Feature',
+          id,
+          geometry: {
+            type: 'Point',
+            coordinates
+          },
+          properties: this.featureAttr
+        };
+        const mapProj = this.mapa.getProjection();
+        this.feature = this.mapService.createFeaturesGeojson(geojson, 'EPSG:4326', mapProj)[0];
+        this.feature.setId(id);
+        this.feature.setAttribute('vendor.mapea.click', this.featureClickHandler.bind(this));
+        this.layerEdit.addFeatures([this.feature]);
+        this.centerMapByFeature(this.feature);
+        this.addFeatureEdition(this.layerEdit.idLayer, 'inserts');
+      }
+    } else {
+      this.feature.setAttributes(this.featureAttr);
+      if (this.newGeometry) {
+        this.feature.setGeometry(this.newGeometry);
+      }
+      console.log(`Editando feature con ID: ${this.feature.id}`);
+      this.addFeatureEdition(this.layerEdit.idLayer, 'updates');
+    }
+    this.newPoint = false;
+    this.unsavedChanges = false;
   }
 
   centerMapByFeature(feature: any) {
@@ -474,7 +532,33 @@ export class MapPage implements OnInit {
     }
   }
 
-  onDeleteModal() {
+  async onDeleteModal() {
+    const [header, message, cancel, ok] = await Promise.all([
+      firstValueFrom(this.languageService.translateTag('map.deletePointTitle')),
+      firstValueFrom(this.languageService.translateTag('map.deletePointMessage')),
+      firstValueFrom(this.languageService.translateTag('map.cancelText')),
+      firstValueFrom(this.languageService.translateTag('map.deletePointConfirm')),
+    ]);
+
+    const alert = await this.alertController.create({
+      header,
+      message,
+      buttons: [
+        { text: cancel, role: 'cancel' },
+        { text: ok, role: 'destructive' },
+      ],
+    });
+    await alert.present();
+    const { role } = await alert.onDidDismiss();
+    if (role !== 'destructive') {
+      return;
+    }
+
+    if (!this.feature) {
+      this.closeFeatureModal(true);
+      return;
+    }
+
     console.log(`Eliminando feature con ID: ${this.feature.getId()}`);
     this.layerEdit.removeFeatures([this.feature]);
     this.addFeatureEdition(this.layerEdit.idLayer, 'deletes');
@@ -580,26 +664,21 @@ export class MapPage implements OnInit {
     node.checked = this.activeEdition;
   }
   
-  toggleBgCheck(node: TreeNode, event: any) {
-    const checked = node.checked;
+  toggleBgCheck(node: TreeNode) {
+    this.treeviewService.toggleBgCheck(this.bgTreeData, node);
     let baseLayer: any = 'OSM'; // Si ninguna capa de fondo seleccionada, se aplicará la por defecto
-    if (checked) {
-      this.bgTreeData.forEach(tn => this.treeviewService.toggleCheck(tn));
-      if (event) {
-        const inputs = document.querySelectorAll<HTMLInputElement>('.bg-check');
-        inputs.forEach(i => i.checked = false);
-        event.target.checked = checked;
-      }
-      node.checked = checked;
+    if (node.checked) {
       const profile = this.authorizationService.getProfileData();
       baseLayer = this.mapService.getBaseLayer(profile, node.resource || '', node.name);
-    } 
+    }
     this.mapa.removeLayers(this.mapa.getBaseLayers());
     this.mapa.addLayers(baseLayer);
   }
 
   editGeometry() {
-    if (this.newPoint) {
+    if (this.saving) {
+      this.languageService.translateTag('map.gettingLocation').subscribe(text => this.mapService.createToast(text, 'medium', 'top'));
+    } else if (this.newPoint) {
       this.languageService.translateTag('map.editGeometryError').subscribe(text => this.mapService.createToast(text, 'warning', 'top'));
     } else {
       //const olFeature = this.feature.getImpl().getOLFeature();
@@ -634,33 +713,47 @@ export class MapPage implements OnInit {
 
   async saveAllFeatures() {
     this.saveErrors = [];
+    this.saveSuccesses = [];
     const layers = this.mapa.getImpl().getAllLayerInGroup();
     //recorre cada capa y comprueba si se realizaron ediciones
     for (const layer of layers){
       await this.saveFeaturesByLayer(layer);
     }
+    this.openSaveResultModal();
   }
 
   async saveFeaturesByLayerId(layerId: string) {
     this.saveErrors = [];
+    this.saveSuccesses = [];
     console.log(`Guardando capa con ID ${layerId}`);
     const layer = this.mapa.getImpl().getAllLayerInGroup().find((l:any) => l.idLayer === layerId);
     await this.saveFeaturesByLayer(layer);
+    this.openSaveResultModal();
   }
 
   async saveFeaturesByLayer(layer: any) {
     try {      
       if (this.featureEditions[layer.idLayer]) {
         const result = await this.wfsService.saveFeatures(layer, this.featureEditions[layer.idLayer], this.mapa.getProjection().code);
-        if (result === '200') {
+        if (result.status === 200) {
+          const summary = this.getWfsTransactionSummary(result.data);
+          const message = await firstValueFrom(
+            this.languageService.translateTagWithParams('map.saveFeaturesSummary', summary)
+          );
+          this.saveSuccesses.push({ layerName: layer.name, message });
           await this.databaseService.deleteEditionsByLayer(this.app.id, this.ter.id, layer.idLayer);
           delete this.featureEditions[layer.idLayer];
         } else {
-          this.saveErrors.push(result);
-          this.isSaveModalOpen = true;
+          this.saveErrors.push({ layerName: layer.name, message: result.data });
         }
       }
     } catch (error) {
+      if (error instanceof SessionExpiredError) {
+        this.languageService.translateTag('map.sessionExpired')
+          .subscribe(text => this.mapService.createToast(text, 'danger', 'top'));
+        this.router.navigate(['home']);
+        return;
+      }
       console.error(`Error procesando la capa con ID ${layer.idLayer}:`, error);
     }
   }
@@ -693,6 +786,18 @@ export class MapPage implements OnInit {
 
   removeImg(){
     this.imageValue = null;
+  }
+
+  private getWfsTransactionSummary(transactionData: unknown): { inserted: number; updated: number; deleted: number } {
+    const toCount = (value: unknown) => Number(value ?? 0) || 0;
+    const data = transactionData as Record<string, unknown> | undefined;
+    const response = data?.['wfs:TransactionResponse'] as Record<string, unknown> | undefined;
+    const summary = response?.['wfs:TransactionSummary'] as Record<string, unknown> | undefined;
+    return {
+      inserted: toCount(summary?.['wfs:totalInserted']),
+      updated: toCount(summary?.['wfs:totalUpdated']),
+      deleted: toCount(summary?.['wfs:totalDeleted']),
+    };
   }
 
   private async requestCameraPermission() {
