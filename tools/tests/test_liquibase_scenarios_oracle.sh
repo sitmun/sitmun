@@ -148,7 +148,7 @@ if [[ $LIQUIBASE_OK -eq 1 ]]; then
   assert_ge "STM_TRANSLATION rows for es" 100 "$ES_TRA"
 
   LAN_SEQ=$(sqlplus_q "SELECT SEQ_COUNT FROM STM_SEQUENCE WHERE SEQ_NAME='LAN_ID';")
-  assert_ge "STM_SEQUENCE[LAN_ID]" 5 "$LAN_SEQ"
+  assert_ge "STM_SEQUENCE[LAN_ID]" 6 "$LAN_SEQ"
 
   TRA_SEQ=$(sqlplus_q "SELECT SEQ_COUNT FROM STM_SEQUENCE WHERE SEQ_NAME='TRA_ID';")
   assert_ge "STM_SEQUENCE[TRA_ID]" 400 "$TRA_SEQ"
