@@ -41,9 +41,14 @@ class TranslationChecksumTest(unittest.TestCase):
 
     def test_missing_portuguese_is_inserted_without_the_1_2_9_marker(self) -> None:
         text = UPGRADE.read_text(encoding="utf-8")
-        block = _changeset(text, "portuguese-language-when-absent-postgresql")
-        self.assertIn("lan_shortname = 'pt-PT'", block)
-        self.assertNotIn("changelog/01_schema.postgresql.sql", block)
+        for changeset_id in (
+            "portuguese-language-when-absent-postgresql",
+            "portuguese-language-when-absent-oracle",
+        ):
+            block = _changeset(text, changeset_id)
+            self.assertIn("lan_shortname = 'pt-PT'", block, changeset_id)
+            self.assertIn("onError: MARK_RAN", block, changeset_id)
+            self.assertNotIn("changelog/01_schema.postgresql.sql", block, changeset_id)
         sql = (
             ROOT
             / "sitmun-backend/src/main/resources/db/changelog/upgrade/1.2.9-to-1.3.0/08-portuguese-when-absent.postgresql.sql"

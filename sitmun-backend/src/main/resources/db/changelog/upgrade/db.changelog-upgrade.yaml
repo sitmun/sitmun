@@ -369,6 +369,7 @@ databaseChangeLog:
       logicalFilePath: db/changelog/upgrade/1.2.9-to-1.3.0/08-portuguese-when-absent.postgresql.sql
       preConditions:
         - onFail: MARK_RAN
+        - onError: MARK_RAN
         - sqlCheck:
             expectedResult: "0"
             sql: SELECT COUNT(*) FROM stm_language WHERE lan_shortname = 'pt-PT'
@@ -386,6 +387,7 @@ databaseChangeLog:
       logicalFilePath: db/changelog/upgrade/1.2.9-to-1.3.0/08-portuguese-when-absent.oracle.sql
       preConditions:
         - onFail: MARK_RAN
+        - onError: MARK_RAN
         - sqlCheck:
             expectedResult: "0"
             sql: SELECT COUNT(*) FROM stm_language WHERE lan_shortname = 'pt-PT'
