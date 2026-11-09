@@ -33,7 +33,7 @@ class LanguageResourceTest {
         .andExpect(
             jsonPath(
                 "$._embedded.languages[*].shortname",
-                contains("ca", "es", "en", "oc-aranes", "fr")))
+                contains("ca", "es", "en", "oc-aranes", "fr", "pt-PT")))
         .andExpect(
             jsonPath("$._embedded.languages[?(@.shortname == 'ca')].name", hasItem("Català")))
         .andExpect(
@@ -45,7 +45,10 @@ class LanguageResourceTest {
                 "$._embedded.languages[?(@.shortname == 'oc-aranes')].name",
                 hasItem("Occitan aranés")))
         .andExpect(
-            jsonPath("$._embedded.languages[?(@.shortname == 'fr')].name", hasItem("Français")));
+            jsonPath("$._embedded.languages[?(@.shortname == 'fr')].name", hasItem("Français")))
+        .andExpect(
+            jsonPath(
+                "$._embedded.languages[?(@.shortname == 'pt-PT')].name", hasItem("Português")));
   }
 
   @Test
@@ -131,7 +134,8 @@ class LanguageResourceTest {
     mvc.perform(get(URIConstants.LANGUAGES_URI))
         .andExpect(status().isOk())
         .andExpect(
-            jsonPath("$._embedded.languages[*].enabled", contains(true, true, true, true, true)));
+            jsonPath(
+                "$._embedded.languages[*].enabled", contains(true, true, true, true, true, true)));
   }
 
   @Test
@@ -140,8 +144,9 @@ class LanguageResourceTest {
     mvc.perform(get(URIConstants.LANGUAGES_URI + "?projection=view"))
         .andExpect(status().isOk())
         .andExpect(
-            jsonPath("$._embedded.languages[*].enabled", contains(true, true, true, true, true)))
-        .andExpect(jsonPath("$._embedded.languages[*].order", contains(1, 2, 3, 4, 5)));
+            jsonPath(
+                "$._embedded.languages[*].enabled", contains(true, true, true, true, true, true)))
+        .andExpect(jsonPath("$._embedded.languages[*].order", contains(1, 2, 3, 4, 5, 6)));
   }
 
   @Test
