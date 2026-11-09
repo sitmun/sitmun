@@ -362,3 +362,37 @@ databaseChangeLog:
             splitStatements: true
             stripComments: false
             endDelimiter: ";"
+  - changeSet:
+      id: portuguese-language-when-absent-postgresql
+      author: sitmun
+      dbms: postgresql
+      logicalFilePath: db/changelog/upgrade/1.2.9-to-1.3.0/08-portuguese-when-absent.postgresql.sql
+      preConditions:
+        - onFail: MARK_RAN
+        - sqlCheck:
+            expectedResult: "0"
+            sql: SELECT COUNT(*) FROM stm_language WHERE lan_shortname = 'pt-PT'
+      changes:
+        - sqlFile:
+            path: 1.2.9-to-1.3.0/08-portuguese-when-absent.postgresql.sql
+            relativeToChangelogFile: true
+            splitStatements: true
+            stripComments: false
+            endDelimiter: ";"
+  - changeSet:
+      id: portuguese-language-when-absent-oracle
+      author: sitmun
+      dbms: oracle
+      logicalFilePath: db/changelog/upgrade/1.2.9-to-1.3.0/08-portuguese-when-absent.oracle.sql
+      preConditions:
+        - onFail: MARK_RAN
+        - sqlCheck:
+            expectedResult: "0"
+            sql: SELECT COUNT(*) FROM stm_language WHERE lan_shortname = 'pt-PT'
+      changes:
+        - sqlFile:
+            path: 1.2.9-to-1.3.0/08-portuguese-when-absent.oracle.sql
+            relativeToChangelogFile: true
+            splitStatements: true
+            stripComments: false
+            endDelimiter: ";"
