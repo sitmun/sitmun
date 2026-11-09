@@ -24,6 +24,7 @@ All notable changes to this project will be documented in this file. The format 
 
 ### Fixed
 
+- **Identify**: A named WMS group stays the request layer for GetFeatureInfo and GetLegendGraphic ([sitmun-viewer-app#224](https://github.com/sitmun/sitmun-viewer-app/pull/224)).
 - **Map**: The Loaded Layers drag handle shows a six-dot grip. The previous mark is a character this font does not draw.
 - **Map**: A restricted share link keeps `mapState` through the password form and the external login button. A person who cannot open that application and territory sees `map.error.access.denied`, and the map does not start ([#221](https://github.com/sitmun/sitmun-viewer-app/issues/221)).
 - **Map**: A share link stores an empty background and opens with no background. The profile default background stays out of the link ([#196](https://github.com/sitmun/sitmun-viewer-app/issues/196)).
