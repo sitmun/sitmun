@@ -16,6 +16,10 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -24,9 +28,14 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.sitmun.administration.service.database.DatabaseConnectionService;
+import org.sitmun.domain.DomainConstants;
 import org.sitmun.domain.database.DatabaseConnection;
 import org.sitmun.domain.database.DatabaseConnectionRepository;
+import org.sitmun.domain.task.Task;
+import org.sitmun.domain.task.TaskRepository;
+import org.sitmun.domain.task.type.TaskTypeRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.json.JsonParserFactory;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.security.test.context.support.WithMockUser;
@@ -41,9 +50,12 @@ class TaskQueryTestControllerTest {
   @Autowired private MockMvc mvc;
   @Autowired private DatabaseConnectionRepository databaseConnectionRepository;
   @Autowired private DatabaseConnectionService databaseConnectionService;
+  @Autowired private TaskRepository taskRepository;
+  @Autowired private TaskTypeRepository taskTypeRepository;
 
   private DatabaseConnection connection;
   private String jdbcUrl;
+  private final List<Integer> tasks = new ArrayList<>();
 
   @BeforeEach
   void connection() {
@@ -60,6 +72,8 @@ class TaskQueryTestControllerTest {
   @AfterEach
   void restoreCap() {
     ReflectionTestUtils.setField(databaseConnectionService, "maxRows", 1000);
+    taskRepository.deleteAllById(tasks);
+    tasks.clear();
     if (connection != null && connection.getId() != null) {
       databaseConnectionRepository.deleteById(connection.getId());
     }
@@ -181,9 +195,42 @@ class TaskQueryTestControllerTest {
                 .contentType(APPLICATION_JSON)
                 .content(
                     """
-                    {"connectionId":%d,"sql":"SELECT 1 AS n","parameters":[],"limit":-1}
+                    {"taskId":%d,"limit":-1}
                     """
-                        .formatted(connection.getId())))
+                        .formatted(savedTask("SELECT 1 AS n", "[]"))))
+        .andExpect(status().isBadRequest());
+  }
+
+  @Test
+  @WithMockUser(roles = "ADMIN")
+  @DisplayName("SQL in the request is ignored and the saved command runs")
+  void requestSqlIsIgnored() throws Exception {
+    mvc.perform(
+            post("/api/tasks/query/test")
+                .contentType(APPLICATION_JSON)
+                .content(
+                    """
+                    {"taskId":%d,"sql":"SELECT 2 AS n","connectionId":-1}
+                    """
+                        .formatted(savedTask("SELECT 1 AS n", "[]"))))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.runs[0].sql").value("SELECT 1 AS n"))
+        .andExpect(jsonPath("$.runs[0].ok").value(true));
+  }
+
+  @Test
+  @WithMockUser(roles = "ADMIN")
+  @DisplayName("a task that is not a SQL query is 400")
+  void notSqlQueryTask() throws Exception {
+    Task task = new Task();
+    task.setName("query-test-basic-" + UUID.randomUUID());
+    task.setType(taskTypeRepository.findById(1).orElseThrow());
+    Integer id = taskRepository.save(task).getId();
+    tasks.add(id);
+    mvc.perform(
+            post("/api/tasks/query/test")
+                .contentType(APPLICATION_JSON)
+                .content("{\"taskId\":%d}".formatted(id)))
         .andExpect(status().isBadRequest());
   }
 
@@ -430,18 +477,29 @@ class TaskQueryTestControllerTest {
 
   @Test
   @WithMockUser(roles = "ADMIN")
-  @DisplayName("a missing connection is 404 without a stack trace")
-  void missingConnection() throws Exception {
+  @DisplayName("a missing task is 404 without a stack trace")
+  void missingTask() throws Exception {
+    mvc.perform(
+            post("/api/tasks/query/test").contentType(APPLICATION_JSON).content("{\"taskId\":-1}"))
+        .andExpect(status().isNotFound())
+        .andExpect(jsonPath("$.detail").value("Task not found"))
+        .andExpect(jsonPath("$.trace").doesNotExist());
+  }
+
+  @Test
+  @WithMockUser(roles = "ADMIN")
+  @DisplayName("a task without a connection is not a SQL query and is 400")
+  void taskWithoutConnection() throws Exception {
+    Integer id = savedTask("SELECT 1 AS n", "[]");
+    Task task = taskRepository.findById(id).orElseThrow();
+    task.setConnection(null);
+    taskRepository.save(task);
     mvc.perform(
             post("/api/tasks/query/test")
                 .contentType(APPLICATION_JSON)
-                .content(
-                    """
-                    {"connectionId":-1,"sql":"SELECT 1 AS n","parameters":[]}
-                    """))
-        .andExpect(status().isNotFound())
-        .andExpect(jsonPath("$.detail").value("Connection not found"))
-        .andExpect(jsonPath("$.trace").doesNotExist());
+                .content("{\"taskId\":%d}".formatted(id)))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.detail").value("Task is not a SQL query task"));
   }
 
   private String body(String sql, String parameters) {
@@ -464,14 +522,26 @@ class TaskQueryTestControllerTest {
       paging = ",\"limit\":" + limit + ",\"offset\":" + offset;
     }
     return """
-        {"connectionId":%d,"sql":"%s","parameters":%s,"clientValues":%s,"systemValues":%s%s}
+        {"taskId":%d,"clientValues":%s,"systemValues":%s%s}
         """
-        .formatted(
-            connection.getId(),
-            sql.replace("\"", "\\\""),
-            parameters,
-            clientValues,
-            systemValues,
-            paging);
+        .formatted(savedTask(sql, parameters), clientValues, systemValues, paging);
+  }
+
+  private Integer savedTask(String sql, String parameters) {
+    Map<String, Object> properties = new HashMap<>();
+    properties.put(DomainConstants.Tasks.PROPERTY_SCOPE, DomainConstants.Tasks.SCOPE_SQL_QUERY);
+    properties.put(DomainConstants.Tasks.PROPERTY_COMMAND, sql);
+    properties.put(
+        DomainConstants.Tasks.PROPERTY_PARAMETERS,
+        JsonParserFactory.getJsonParser().parseList(parameters));
+    Task task = new Task();
+    task.setName("query-test-" + UUID.randomUUID());
+    task.setType(
+        taskTypeRepository.findById(DomainConstants.Tasks.TASK_TYPE_ID_QUERY).orElseThrow());
+    task.setConnection(connection);
+    task.setProperties(properties);
+    Integer id = taskRepository.save(task).getId();
+    tasks.add(id);
+    return id;
   }
 }

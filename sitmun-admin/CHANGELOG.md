@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- **SQL query tasks**: The SQL field is a CodeMirror editor with formatting, orange placeholders, and a red underline on an invalid placeholder. The parameter grid keeps a data type, Provided, and Optional, and derives Required. Test runs the unsaved form twice and shows the bound SQL, the numbered values, and a truncation notice. Save stays off until that test passes for the current SQL, connection, and parameters.
+- **SQL query tasks**: The SQL field is a CodeMirror editor with formatting, orange placeholders, and a red underline on an invalid placeholder. The parameter grid keeps a data type, Provided, and Optional, and derives Required. Test runs the saved task twice and shows the bound SQL, the numbered values, and a truncation notice. Test is off for a new task or while there are unsaved changes, and a hint asks to save first. Save does not depend on a test.
 
 ### Changed
 

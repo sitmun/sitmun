@@ -98,10 +98,14 @@ public class TaskQueryValidator implements TaskValidator {
       }
       String value = parameter.get("value") == null ? "" : String.valueOf(parameter.get("value"));
       boolean provided = truth(parameter.get("provided"));
+      // A saved required:false also comes from provided or a default value, so it only means
+      // optional when neither explains it.
       boolean optional =
           parameter.containsKey("optional")
               ? truth(parameter.get("optional"))
-              : Boolean.FALSE.equals(parameter.get("required"));
+              : !provided
+                  && !StringUtils.hasText(value)
+                  && Boolean.FALSE.equals(parameter.get("required"));
       if (provided && !StringUtils.hasText(value)) {
         errors.rejectValue(
             ERRORS_PROPERTIES_FIELD,

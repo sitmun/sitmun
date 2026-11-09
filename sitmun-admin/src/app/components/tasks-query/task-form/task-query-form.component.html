@@ -152,6 +152,9 @@
                   {{ 'entity.task.query.test' | translate }}
                 </button>
               </div>
+              @if (sqlTestNeedsSave()) {
+                <p class="sql-problems" data-testid="sql-test-save-first">{{ 'entity.task.query.testNeedsSave' | translate }}</p>
+              }
               @if (sqlProblems.length > 0) {
                 <p class="sql-problems" data-testid="sql-test-block">{{ 'entity.task.query.testBlocked' | translate:{ parameters: sqlProblems.join(', ') } }}</p>
               }

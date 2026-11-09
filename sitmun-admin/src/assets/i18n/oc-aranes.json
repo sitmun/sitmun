@@ -995,6 +995,7 @@
   "entity.task.query.sql": "Consulta SQL a realitzar",
   "entity.task.query.format": "Formatar",
   "entity.task.query.test": "Pròva",
+  "entity.task.query.testNeedsSave": "Enregistratz eth prètzfèt entà provar-lo. Era pròva executa era consulta enregistrada.",
   "entity.task.query.testBlocked": "Era pròva ei blocada enquia aguesti marcadors sigan valids: {{parameters}}.",
   "entity.task.query.violation.UNDECLARED": "{{name}} non ei declarat",
   "entity.task.query.violation.UNUSED": "{{name}} non s'utilize ena consulta",

@@ -995,6 +995,7 @@
   "entity.task.query.sql": "Requête SQL à exécuter",
   "entity.task.query.format": "Formater",
   "entity.task.query.test": "Essai",
+  "entity.task.query.testNeedsSave": "Enregistrez la tâche pour l'essayer. L'essai exécute la requête enregistrée.",
   "entity.task.query.testBlocked": "L'essai est bloqué tant que ces marqueurs ne sont pas valides : {{parameters}}.",
   "entity.task.query.violation.UNDECLARED": "{{name}} n'est pas déclaré",
   "entity.task.query.violation.UNUSED": "{{name}} n'est pas utilisé dans la requête",

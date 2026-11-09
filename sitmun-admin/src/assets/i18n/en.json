@@ -995,6 +995,7 @@
   "entity.task.query.sql": "SQL query to perform",
   "entity.task.query.format": "Format",
   "entity.task.query.test": "Test",
+  "entity.task.query.testNeedsSave": "Save the task to test it. Test runs the saved query.",
   "entity.task.query.testBlocked": "Test is blocked until these placeholders are valid: {{parameters}}.",
   "entity.task.query.violation.UNDECLARED": "{{name}} is not declared",
   "entity.task.query.violation.UNUSED": "{{name}} is not used in the query",

@@ -995,6 +995,7 @@
   "entity.task.query.sql": "Consulta SQL a realitzar",
   "entity.task.query.format": "Formata",
   "entity.task.query.test": "Prova",
+  "entity.task.query.testNeedsSave": "Deseu la tasca per provar-la. La prova executa la consulta desada.",
   "entity.task.query.testBlocked": "La prova està bloquejada fins que aquests marcadors siguin vàlids: {{parameters}}.",
   "entity.task.query.violation.UNDECLARED": "{{name}} no està declarat",
   "entity.task.query.violation.UNUSED": "{{name}} no s'utilitza a la consulta",

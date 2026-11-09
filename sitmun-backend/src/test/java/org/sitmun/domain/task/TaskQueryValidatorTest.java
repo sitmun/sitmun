@@ -402,6 +402,25 @@ class TaskQueryValidatorTest {
   }
 
   @Test
+  @DisplayName("sql-query accepts its own saved provided and default parameters again")
+  void sqlQueryRevalidatesSavedParameters() {
+    Map<String, Object> provided = new HashMap<>();
+    provided.put("name", "p");
+    provided.put("provided", true);
+    provided.put("value", "stored");
+    Map<String, Object> withDefault = new HashMap<>();
+    withDefault.put("name", "q");
+    withDefault.put("value", "kept");
+    Task task = sqlTask("SELECT ${p} AS a, ${q} AS b", List.of(provided, withDefault));
+
+    validator.validate(task);
+    assertEquals(Boolean.FALSE, provided.get("required"));
+    assertEquals(Boolean.FALSE, withDefault.get("required"));
+
+    assertDoesNotThrow(() -> validator.validate(task));
+  }
+
+  @Test
   @DisplayName("sql-query rejects a name-part placeholder")
   void sqlQueryRejectsNamePart() {
     RepositoryConstraintViolationException exception =

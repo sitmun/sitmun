@@ -1,4 +1,4 @@
-import { expect, test, type APIRequestContext } from '../fixtures';
+import { expect, test, type APIRequestContext, type CreatedResource } from '../fixtures';
 
 const ADMIN_JSON = {
   'X-SITMUN-Client': 'admin',
@@ -6,8 +6,8 @@ const ADMIN_JSON = {
 };
 
 test.describe('SQL query test API', () => {
-  test('both runs bind the client value', async ({ request }) => {
-    const body = await postTest(request, {
+  test('both runs bind the client value', async ({ request, createdResources }) => {
+    const body = await postTest(request, createdResources, {
       sql: 'SELECT ${p} AS echo',
       parameters: [{ name: 'p', label: 'Echo', dataType: 'string' }],
       clientValues: { p: 'hi' },
@@ -23,7 +23,20 @@ test.describe('SQL query test API', () => {
     expect(body.runs[1]?.label).toBe('Run 2 one page');
   });
 
-  test('a non-admin is forbidden', async ({ request, playwright }) => {
+  test('SQL in the request is ignored and the saved command runs', async ({ request, createdResources }) => {
+    const taskId = await savedTask(request, createdResources, 'SELECT 1 AS n', []);
+    const response = await request.post('/backend/api/tasks/query/test', {
+      headers: ADMIN_JSON,
+      data: { taskId, sql: 'SELECT 2 AS n', connectionId: -1 },
+    });
+    expect(response.ok(), await response.text()).toBeTruthy();
+    const body = (await response.json()) as { runs: TestRun[] };
+    expect(body.runs[0]?.sql).toBe('SELECT 1 AS n');
+    expect(body.runs[0]?.ok).toBe(true);
+  });
+
+  test('a non-admin is forbidden', async ({ request, playwright, createdResources }) => {
+    const taskId = await savedTask(request, createdResources, 'SELECT 1 AS n', []);
     const username = `e2esql${Date.now()}`;
     const password = 'E2e-viewer-pass-1';
     const created = await request.post('/backend/api/users', {
@@ -47,7 +60,7 @@ test.describe('SQL query test API', () => {
       expect(login.ok(), await login.text()).toBeTruthy();
       const response = await user.post('/backend/api/tasks/query/test', {
         headers: { 'Content-Type': 'application/json' },
-        data: { connectionId: await ensureConnection(request), sql: 'SELECT 1 AS n' },
+        data: { taskId },
       });
       expect(response.status()).toBe(403);
     } finally {
@@ -55,16 +68,8 @@ test.describe('SQL query test API', () => {
     }
   });
 
-  test('an undeclared placeholder lists the violation', async ({ request }) => {
-    const response = await postRaw(request, { sql: 'SELECT ${x} AS echo', parameters: [] });
-    expect(response.status()).toBe(400);
-    const text = await response.text();
-    expect(text).toContain('UNDECLARED');
-    expect(text).toContain('x');
-  });
-
-  test('an operator system value binds as an integer', async ({ request }) => {
-    const body = await postTest(request, {
+  test('an operator system value binds as an integer', async ({ request, createdResources }) => {
+    const body = await postTest(request, createdResources, {
       sql: 'SELECT #{TERR_ID} AS id',
       systemValues: { TERR_ID: '42' },
     });
@@ -72,8 +77,8 @@ test.describe('SQL query test API', () => {
     expect(body.runs[0]?.values?.[0]).toBe(42);
   });
 
-  test('a provided parameter keeps the stored value', async ({ request }) => {
-    const body = await postTest(request, {
+  test('a provided parameter keeps the stored value', async ({ request, createdResources }) => {
+    const body = await postTest(request, createdResources, {
       sql: 'SELECT ${p} AS echo',
       parameters: [{ name: 'p', label: 'Echo', dataType: 'string', provided: true, value: 'stored' }],
       clientValues: { p: 'other' },
@@ -81,32 +86,40 @@ test.describe('SQL query test API', () => {
     expect(body.runs[0]?.values).toEqual(['stored']);
   });
 
-  test('a query that already pages fails the second run', async ({ request }) => {
-    const body = await postTest(request, { sql: 'SELECT 1 AS n FETCH FIRST 5 ROWS ONLY' });
+  test('a query that already pages fails the second run', async ({ request, createdResources }) => {
+    const body = await postTest(request, createdResources, { sql: 'SELECT 1 AS n FETCH FIRST 5 ROWS ONLY' });
     expect(body.runs[0]?.ok).toBe(true);
     expect(body.runs[1]?.ok).toBe(false);
     expect(body.runs[1]?.error).toBeTruthy();
   });
 
-  test('extra rows set the truncation flag', async ({ request }) => {
+  test('extra rows set the truncation flag', async ({ request, createdResources }) => {
     const sql = process.env.SITMUN_E2E_DATASOURCE_URL
       ? 'SELECT g AS id FROM generate_series(1, 1001) AS g'
       : 'SELECT X AS id FROM SYSTEM_RANGE(1, 1001)';
-    const body = await postTest(request, { sql });
+    const body = await postTest(request, createdResources, { sql });
     expect(body.runs[0]?.ok).toBe(true);
     expect(body.runs[0]?.truncated).toBe(true);
     expect(body.runs[0]?.rows).toHaveLength(1000);
   });
 
-  test('a negative limit is rejected', async ({ request }) => {
-    const response = await postRaw(request, { sql: 'SELECT 1 AS n', limit: -1 });
+  test('a negative limit is rejected', async ({ request, createdResources }) => {
+    const taskId = await savedTask(request, createdResources, 'SELECT 1 AS n', []);
+    const response = await request.post('/backend/api/tasks/query/test', {
+      headers: ADMIN_JSON,
+      data: { taskId, limit: -1 },
+    });
     expect(response.status()).toBe(400);
   });
 
-  test('a missing connection is reported without a stack trace', async ({ request }) => {
-    const response = await postRaw(request, { connectionId: -1, sql: 'SELECT 1 AS n' });
-    expect([400, 404]).toContain(response.status());
+  test('a missing task is reported without a stack trace', async ({ request }) => {
+    const response = await request.post('/backend/api/tasks/query/test', {
+      headers: ADMIN_JSON,
+      data: { taskId: -1 },
+    });
+    expect(response.status()).toBe(404);
     const text = await response.text();
+    expect(text).toContain('Task not found');
     expect(text).not.toContain('at org.sitmun');
   });
 });
@@ -123,24 +136,57 @@ type TestRun = {
 
 async function postTest(
   request: APIRequestContext,
-  body: Record<string, unknown>,
+  createdResources: CreatedResource[],
+  body: {
+    sql: string;
+    parameters?: Array<Record<string, unknown>>;
+    clientValues?: Record<string, string>;
+    systemValues?: Record<string, string>;
+  },
 ): Promise<{ runs: TestRun[] }> {
-  const response = await postRaw(request, body);
+  const taskId = await savedTask(request, createdResources, body.sql, body.parameters ?? []);
+  const response = await request.post('/backend/api/tasks/query/test', {
+    headers: ADMIN_JSON,
+    data: {
+      taskId,
+      clientValues: body.clientValues ?? {},
+      systemValues: body.systemValues ?? {},
+    },
+  });
   expect(response.ok(), await response.text()).toBeTruthy();
   return (await response.json()) as { runs: TestRun[] };
 }
 
-async function postRaw(request: APIRequestContext, body: Record<string, unknown>) {
-  return request.post('/backend/api/tasks/query/test', {
+async function savedTask(
+  request: APIRequestContext,
+  createdResources: CreatedResource[],
+  command: string,
+  parameters: Array<Record<string, unknown>>,
+): Promise<number> {
+  const created = await request.post('/backend/api/tasks', {
     headers: ADMIN_JSON,
-    data: {
-      connectionId: await ensureConnection(request),
-      parameters: [],
-      clientValues: {},
-      systemValues: {},
-      ...body,
-    },
+    data: { name: `e2e-sql-test-${Date.now()}-${Math.floor(Math.random() * 1000)}` },
   });
+  expect(created.status(), await created.text()).toBe(201);
+  const id = ((await created.json()) as { id?: number }).id as number;
+  createdResources.push({ collection: 'tasks', id });
+
+  const typePut = await request.put(`/backend/api/tasks/${id}/type`, {
+    headers: { 'X-SITMUN-Client': 'admin', 'Content-Type': 'text/uri-list' },
+    data: 'http://localhost/api/task-types/5',
+  });
+  expect(typePut.ok(), await typePut.text()).toBeTruthy();
+  const connectionPut = await request.put(`/backend/api/tasks/${id}/connection`, {
+    headers: { 'X-SITMUN-Client': 'admin', 'Content-Type': 'text/uri-list' },
+    data: `http://localhost/api/connections/${await ensureConnection(request)}`,
+  });
+  expect(connectionPut.ok(), await connectionPut.text()).toBeTruthy();
+  const saved = await request.patch(`/backend/api/tasks/${id}`, {
+    headers: { 'X-SITMUN-Client': 'admin', 'Content-Type': 'application/merge-patch+json' },
+    data: { properties: { scope: 'sql-query', command, parameters } },
+  });
+  expect(saved.ok(), await saved.text()).toBeTruthy();
+  return id;
 }
 
 async function ensureConnection(request: APIRequestContext): Promise<number> {

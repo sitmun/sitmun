@@ -289,6 +289,21 @@ describe('TaskQueryFormComponent', () => {
     expect(fixture.nativeElement.querySelector('[data-testid="sql-editor"]')).not.toBeNull();
   });
 
+  it('marks the form dirty when the sql editor changes', () => {
+    component.dataLoaded = true;
+    (component as any).codeValues = { queryTaskScope: { sqlQuery: 'sql-query' } };
+    component.entityForm.get('scope')?.setValue('sql-query');
+    component.entityForm.get('command')?.setValue('select 1');
+    fixture.detectChanges();
+    component.entityForm.markAsPristine();
+
+    const view = component['sqlEditorView'];
+    view.dispatch({ changes: { from: view.state.doc.length, insert: ' ' } });
+
+    expect(component.entityForm.get('command')?.value).toBe('select 1 ');
+    expect(component.entityForm.dirty).toBe(true);
+  });
+
   it('formats a query, keeps #{MUN_INES}, and writes the same text into the editor', () => {
     component.dataLoaded = true;
     (component as any).codeValues = { queryTaskScope: { sqlQuery: 'sql-query' } };
@@ -339,7 +354,7 @@ describe('TaskQueryFormComponent', () => {
     (component as any).dialog.closeAll();
   });
 
-  it('enables save for a sql query only after a passing test and disables it after an edit', () => {
+  it('saves a sql query without a test and tests only a saved task without pending changes', () => {
     const component = createComponent();
     (component as any).codeValues = { queryTaskScope: { sqlQuery: 'sql-query' } };
     component.entityToEdit = TaskProjection.fromObject({
@@ -366,11 +381,41 @@ describe('TaskQueryFormComponent', () => {
       type: 'query',
     }];
 
-    expect(component.canSaveEntity).toBe(false);
-    (component as any).passedFingerprint = (component as any).sqlFingerprint();
+    (component as any).entityID = 10;
     expect(component.canSaveEntity).toBe(true);
-    component.entityForm.get('command')?.setValue('SELECT ${p} AS name');
-    expect(component.canSaveEntity).toBe(false);
+    expect((component as any).canTestSql()).toBe(false);
+    expect((component as any).sqlTestNeedsSave()).toBe(true);
+
+    component.entityForm.markAsPristine();
+    expect((component as any).canTestSql()).toBe(true);
+    expect((component as any).sqlTestNeedsSave()).toBe(false);
+
+    (component as any).entityID = -1;
+    expect((component as any).canTestSql()).toBe(false);
+    expect((component as any).sqlTestNeedsSave()).toBe(true);
+  });
+
+  it('posts only the saved task id and the operator values', async () => {
+    const httpMock = TestBed.inject(HttpTestingController);
+    (component as any).entityID = 10;
+    component.entityForm.get('connectionId')?.setValue(7);
+    component.entityForm.get('command')?.setValue('SELECT ${p} AS echo');
+    (component as any).testClientValues = { p: 'hi' };
+    (component as any).testSystemValues = { TERR_ID: '42' };
+    (component as any).testLimit = 2;
+    (component as any).testOffset = 1;
+
+    const pending = component['runSqlTest']();
+    const request = httpMock.expectOne(`${environment.apiBaseURL}/api/tasks/query/test`);
+    expect(request.request.body).toEqual({
+      taskId: 10,
+      clientValues: { p: 'hi' },
+      systemValues: { TERR_ID: '42' },
+      limit: 2,
+      offset: 1
+    });
+    request.flush({ runs: [] });
+    await pending;
   });
 
   it('rejects save click path when command placeholders are missing', async () => {
@@ -471,11 +516,11 @@ describe('TaskQueryFormComponent', () => {
       type: 'https://sitmun.org/problems/entity-not-found',
       title: 'Entity Not Found',
       status: 404,
-      detail: 'Connection not found'
+      detail: 'Task not found'
     }, { status: 404, statusText: 'Not Found' });
     await pending;
 
-    expect(component['sqlTestError']).toBe('Connection not found');
+    expect(component['sqlTestError']).toBe('Task not found');
     expect(component['sqlTestResult']).toBeNull();
   });
 

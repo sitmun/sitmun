@@ -170,7 +170,6 @@ export class TaskQueryFormComponent extends BaseFormComponent<TaskProjection> im
   protected testOffset = 0;
   protected testClientValues: Record<string, string> = {};
   protected testSystemValues: Record<string, string> = {};
-  private passedFingerprint = '';
   private sqlEditorView: EditorView | null = null;
   private sqlRunEditors: EditorView[] = [];
   private pendingRunEditors = false;
@@ -1219,11 +1218,7 @@ export class TaskQueryFormComponent extends BaseFormComponent<TaskProjection> im
   }
 
   private sqlSaveAllowed(base: boolean): boolean {
-    const allowed = base && this.getMissingCommandParameterNames().length === 0;
-    if (!this.codeValues?.queryTaskScope || !this.isSqlQueryScope()) {
-      return allowed;
-    }
-    return allowed && this.passedFingerprint !== '' && this.passedFingerprint === this.sqlFingerprint();
+    return base && this.getMissingCommandParameterNames().length === 0;
   }
 
   protected ensureSqlParameters(): Array<Record<string, unknown>> {
@@ -1280,8 +1275,14 @@ export class TaskQueryFormComponent extends BaseFormComponent<TaskProjection> im
     return Array.from(names);
   }
 
+  /** The backend tests the saved task, so unsaved edits would not be what runs. */
+  protected sqlTestNeedsSave(): boolean {
+    return !this.isEdition() || this.hasPendingChanges();
+  }
+
   protected canTestSql(): boolean {
-    return !!this.entityForm?.get('connectionId')?.value
+    return !this.sqlTestNeedsSave()
+      && !!this.entityForm?.get('connectionId')?.value
       && this.currentSqlScan().violations.length === 0
       && this.getMissingCommandParameterNames().length === 0;
   }
@@ -1304,10 +1305,6 @@ export class TaskQueryFormComponent extends BaseFormComponent<TaskProjection> im
   }
 
   protected async runSqlTest(): Promise<void> {
-    const parameters = this.ensureSqlParameters().map((parameter) => ({
-      ...parameter,
-      required: parameter['provided'] !== true && !String(parameter['value'] ?? '').trim() && parameter['optional'] !== true
-    }));
     this.sqlTestError = '';
     this.runGridColumns.clear();
     this.destroyRunEditors();
@@ -1315,9 +1312,7 @@ export class TaskQueryFormComponent extends BaseFormComponent<TaskProjection> im
       this.sqlTestResult = await firstValueFrom(this.http.post<{ runs?: Array<Record<string, unknown>> }>(
         `${environment.apiBaseURL}/api/tasks/query/test`,
         {
-          connectionId: this.entityForm.get('connectionId')?.value,
-          sql: this.entityForm.get('command')?.value,
-          parameters,
+          taskId: this.entityID,
           clientValues: this.testClientValues,
           systemValues: this.testSystemValues,
           limit: Number(this.testLimit),
@@ -1327,14 +1322,7 @@ export class TaskQueryFormComponent extends BaseFormComponent<TaskProjection> im
       ));
       this.runGridColumns.clear();
       this.pendingRunEditors = true;
-      const runs = this.sqlTestResult?.runs ?? [];
-      if (runs.length === 2 && runs.every((run) => run['ok'] === true)) {
-        this.passedFingerprint = this.sqlFingerprint();
-      } else {
-        this.passedFingerprint = '';
-      }
     } catch (error) {
-      this.passedFingerprint = '';
       this.sqlTestResult = null;
       this.sqlTestError = this.sqlTestFailureMessage(error);
     }
@@ -1499,6 +1487,7 @@ export class TaskQueryFormComponent extends BaseFormComponent<TaskProjection> im
           EditorView.updateListener.of((update) => {
             if (update.docChanged) {
               this.entityForm.get('command')?.setValue(update.state.doc.toString());
+              this.entityForm.get('command')?.markAsDirty();
               this.refreshSqlProblems();
             }
           })
@@ -1574,20 +1563,6 @@ export class TaskQueryFormComponent extends BaseFormComponent<TaskProjection> im
       this.ensureSqlParameters().map((parameter) => this.parameterName(parameter)),
       this.systemVariables.keys()
     );
-  }
-
-  private sqlFingerprint(): string {
-    return JSON.stringify({
-      sql: this.entityForm?.get('command')?.value ?? '',
-      connectionId: this.entityForm?.get('connectionId')?.value ?? null,
-      parameters: this.ensureSqlParameters().map((parameter) => ({
-        name: this.parameterName(parameter),
-        value: parameter['value'] ?? '',
-        dataType: parameter['dataType'] ?? 'string',
-        provided: parameter['provided'] === true,
-        optional: parameter['optional'] === true
-      }))
-    });
   }
 
   private sqlDialect() {

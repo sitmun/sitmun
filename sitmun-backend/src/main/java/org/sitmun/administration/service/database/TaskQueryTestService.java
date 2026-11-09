@@ -1,8 +1,6 @@
 package org.sitmun.administration.service.database;
 
 import jakarta.persistence.EntityNotFoundException;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
@@ -17,44 +15,51 @@ import org.sitmun.authorization.proxy.sql.BoundSql;
 import org.sitmun.authorization.proxy.sql.SqlTaskBinder;
 import org.sitmun.domain.DomainConstants;
 import org.sitmun.domain.database.DatabaseConnection;
-import org.sitmun.domain.database.DatabaseConnectionRepository;
 import org.sitmun.domain.task.Task;
 import org.sitmun.domain.task.TaskQueryValidator;
+import org.sitmun.domain.task.TaskRepository;
 import org.sitmun.domain.task.parameter.TaskParameter;
-import org.sitmun.domain.task.type.TaskType;
+import org.sitmun.domain.task.parameter.TaskParameterProcessor;
 import org.sitmun.infrastructure.variables.SystemVariableResolver;
 import org.sitmun.proxy.contract.JdbcParameter;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
 public class TaskQueryTestService {
 
-  private final DatabaseConnectionRepository databaseConnectionRepository;
+  private final TaskRepository taskRepository;
+  private final TaskParameterProcessor taskParameterProcessor;
   private final DatabaseConnectionService databaseConnectionService;
   private final TaskQueryValidator taskQueryValidator;
   private final SystemVariableResolver systemVariableResolver;
 
+  @Transactional(readOnly = true)
   public QueryTestResult test(QueryTestRequest request) {
     int limit = request.getLimit() == null ? 10 : request.getLimit();
     int offset = request.getOffset() == null ? 0 : request.getOffset();
     if (limit < 0 || offset < 0) {
       throw new BadRequestException("LIMIT and OFFSET must be non-negative integers");
     }
-    DatabaseConnection connection =
-        databaseConnectionRepository
-            .findById(request.getConnectionId() == null ? -1 : request.getConnectionId())
-            .orElseThrow(() -> new EntityNotFoundException("Connection not found"));
-    taskQueryValidator.validate(probe(request, connection));
+    Task task =
+        taskRepository
+            .findById(request.getTaskId() == null ? -1 : request.getTaskId())
+            .orElseThrow(() -> new EntityNotFoundException("Task not found"));
+    if (!DomainConstants.Tasks.isSqlQueryTask(task)) {
+      throw new BadRequestException("Task is not a SQL query task");
+    }
+    DatabaseConnection connection = task.getConnection();
+    taskQueryValidator.validate(task);
 
     SqlTaskBinder binder = new SqlTaskBinder(systemVariableResolver);
-    List<TaskParameter> declared = declared(request.getParameters());
+    List<TaskParameter> declared = taskParameterProcessor.parse(task);
+    String sql = String.valueOf(task.getProperties().get(DomainConstants.Tasks.PROPERTY_COMMAND));
     Map<String, String> clientValues =
         request.getClientValues() == null ? Map.of() : request.getClientValues();
     Map<String, String> systemValues =
         request.getSystemValues() == null ? Map.of() : request.getSystemValues();
-    BoundSql asWritten =
-        binder.bindWithSystemValues(request.getSql(), declared, clientValues, systemValues);
+    BoundSql asWritten = binder.bindWithSystemValues(sql, declared, clientValues, systemValues);
     String paged =
         JdbcSqlDialect.appendPagination(asWritten.sql(), limit, offset, connection.getUrl());
 
@@ -64,57 +69,6 @@ public class TaskQueryTestService {
             execute(connection, asWritten.sql(), asWritten.parameters(), "Run 1 as written"),
             execute(connection, paged, asWritten.parameters(), "Run 2 one page")));
     return result;
-  }
-
-  private Task probe(QueryTestRequest request, DatabaseConnection connection) {
-    TaskType type = new TaskType();
-    type.setId(DomainConstants.Tasks.TASK_TYPE_ID_QUERY);
-    Map<String, Object> properties = new HashMap<>();
-    properties.put(DomainConstants.Tasks.PROPERTY_SCOPE, DomainConstants.Tasks.SCOPE_SQL_QUERY);
-    properties.put(DomainConstants.Tasks.PROPERTY_COMMAND, request.getSql());
-    properties.put(
-        DomainConstants.Tasks.PROPERTY_PARAMETERS,
-        request.getParameters() == null ? List.of() : request.getParameters());
-    Task task = new Task();
-    task.setType(type);
-    task.setConnection(connection);
-    task.setProperties(properties);
-    return task;
-  }
-
-  private static List<TaskParameter> declared(List<Map<String, Object>> rawParameters) {
-    List<TaskParameter> declared = new ArrayList<>();
-    if (rawParameters == null) {
-      return declared;
-    }
-    for (Map<String, Object> raw : rawParameters) {
-      String name = nameOf(raw);
-      Object value = raw.get("value");
-      Object required = raw.get("required");
-      declared.add(
-          new TaskParameter(
-              name,
-              value == null ? null : String.valueOf(value),
-              null,
-              raw.get("dataType") == null ? null : String.valueOf(raw.get("dataType")),
-              required instanceof Boolean flag ? flag : null,
-              Boolean.TRUE.equals(raw.get("provided"))
-                  || "true".equalsIgnoreCase(String.valueOf(raw.get("provided"))),
-              null,
-              null,
-              raw));
-    }
-    return declared;
-  }
-
-  private static String nameOf(Map<String, Object> raw) {
-    for (String key : List.of("variable", "name", "label")) {
-      Object value = raw.get(key);
-      if (value != null && !String.valueOf(value).isBlank()) {
-        return String.valueOf(value).trim();
-      }
-    }
-    return "";
   }
 
   private QueryTestRun execute(

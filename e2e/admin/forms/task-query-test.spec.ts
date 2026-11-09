@@ -1,11 +1,12 @@
-import { expect, test, type Page } from '../fixtures';
-import { dismissBlockingOverlays, gotoCreateForm } from '../helpers/form';
+import { expect, test, type CreatedResource, type Page } from '../fixtures';
+import { dismissBlockingOverlays, gotoCreateForm, saveAndCaptureId } from '../helpers/form';
 
 const LOCALES = ['ca', 'en', 'es', 'fr', 'oc-aranes'] as const;
 
 test.describe('SQL query task test', () => {
-  test('undeclared placeholder blocks Test, a declared parameter unblocks it, and Save follows the test', async ({
+  test('undeclared placeholder blocks Test, a declared parameter and a save unblock it, and an edit blocks it again', async ({
     page,
+    createdResources,
   }) => {
     await openSqlQuery(page);
     await page.locator('[data-testid=sql-editor] .cm-content').click();
@@ -16,6 +17,10 @@ test.describe('SQL query task test', () => {
 
     await addParameter(page, 'p', 'Echo');
     await openDetails(page);
+    await expect(page.getByTestId('sql-test')).toBeDisabled();
+    await expect(page.getByTestId('sql-test-save-first')).toBeVisible();
+    await saveSqlTask(page, createdResources);
+    await expect(page.getByTestId('sql-test-save-first')).toHaveCount(0);
     await expect(page.getByTestId('sql-test')).toBeEnabled();
     await page.getByTestId('sql-test').click();
     const testDialog = page.locator('mat-dialog-container').getByTestId('sql-test-dialog');
@@ -28,12 +33,13 @@ test.describe('SQL query task test', () => {
     await expect(values).toContainText('hi');
     await testDialog.getByRole('tab').nth(1).click();
     await expect(page.getByTestId('sql-run-Run 2 one page')).toBeVisible();
-    await expect(page.getByTestId('form-save')).toBeEnabled();
 
     await page.keyboard.press('Escape');
     await page.locator('[data-testid=sql-editor] .cm-content').click();
     await page.keyboard.type(' ');
-    await expect(page.getByTestId('form-save')).toBeDisabled();
+    await expect(page.getByTestId('sql-test')).toBeDisabled();
+    await expect(page.getByTestId('sql-test-save-first')).toBeVisible();
+    await expect(page.getByTestId('form-save')).toBeEnabled();
   });
 
   test('invalid placeholders are underlined and named', async ({ page }) => {
@@ -66,23 +72,25 @@ test.describe('SQL query task test', () => {
     await expect(dialog).toBeVisible();
   });
 
-  test('a query that returns more than the row cap shows the truncation notice', async ({ page }) => {
+  test('a query that returns more than the row cap shows the truncation notice', async ({ page, createdResources }) => {
     await openSqlQuery(page);
     const sql = process.env.SITMUN_E2E_DATASOURCE_URL
       ? 'SELECT g AS id FROM generate_series(1, 1001) AS g'
       : 'SELECT X AS id FROM SYSTEM_RANGE(1, 1001)';
     await page.locator('[data-testid=sql-editor] .cm-content').click();
     await page.keyboard.type(sql);
+    await saveSqlTask(page, createdResources);
     await page.getByTestId('sql-test').click();
     const testDialog = page.locator('mat-dialog-container').getByTestId('sql-test-dialog');
     await testDialog.getByTestId('sql-test-run').click();
     await expect(testDialog.getByTestId('sql-truncated')).toBeVisible();
   });
 
-  test('a query that already pages fails the second run and leaves Save disabled', async ({ page }) => {
+  test('a query that already pages fails the second run', async ({ page, createdResources }) => {
     await openSqlQuery(page);
     await page.locator('[data-testid=sql-editor] .cm-content').click();
     await page.keyboard.type('SELECT 1 AS n FETCH FIRST 5 ROWS ONLY');
+    await saveSqlTask(page, createdResources);
     await expect(page.getByTestId('sql-test')).toBeEnabled();
     await page.getByTestId('sql-test').click();
     const testDialog = page.locator('mat-dialog-container').getByTestId('sql-test-dialog');
@@ -90,7 +98,6 @@ test.describe('SQL query task test', () => {
     await expect(testDialog.getByTestId('sql-run-Run 1 as written')).toHaveAttribute('data-ok', 'true');
     await testDialog.getByRole('tab').nth(1).click();
     await expect(testDialog.getByTestId('sql-run-Run 2 one page')).toHaveAttribute('data-ok', 'false');
-    await expect(page.getByTestId('form-save')).toBeDisabled();
   });
 
   test('format inserts line breaks and keeps a system placeholder', async ({ page }) => {
@@ -103,10 +110,11 @@ test.describe('SQL query task test', () => {
     await expect(editor).toContainText('#{USER_NAME}');
   });
 
-  test('an empty result enables Save', async ({ page }) => {
+  test('an empty result shows no rows in both runs', async ({ page, createdResources }) => {
     await openSqlQuery(page);
     await page.locator('[data-testid=sql-editor] .cm-content').click();
     await page.keyboard.type('SELECT 1 AS n WHERE 1 = 0');
+    await saveSqlTask(page, createdResources);
     await page.getByTestId('sql-test').click();
     const testDialog = page.locator('mat-dialog-container').getByTestId('sql-test-dialog');
     await testDialog.getByTestId('sql-test-run').click();
@@ -115,15 +123,15 @@ test.describe('SQL query task test', () => {
     await testDialog.getByRole('tab').nth(1).click();
     await expect(testDialog.getByTestId('sql-run-Run 2 one page')).toHaveAttribute('data-ok', 'true');
     await expect(testDialog.getByTestId('sql-run-Run 2 one page')).toContainText(/No rows\.|Sin filas\.|Sense files\.|Aucune ligne\.|Cap de linha\./);
-    await expect(page.getByTestId('form-save')).toBeEnabled();
   });
 
-  test('a provided parameter shows its stored value and binds it', async ({ page }) => {
+  test('a provided parameter shows its stored value and binds it', async ({ page, createdResources }) => {
     await openSqlQuery(page);
     await page.locator('[data-testid=sql-editor] .cm-content').click();
     await page.keyboard.type('SELECT ${secret} AS echo');
     await addProvidedParameter(page, 'secret', 'Secret', 'kept');
     await openDetails(page);
+    await saveSqlTask(page, createdResources);
     await page.getByTestId('sql-test').click();
     const testDialog = page.locator('mat-dialog-container').getByTestId('sql-test-dialog');
     await expect(testDialog).toContainText('secret: kept');
@@ -133,10 +141,11 @@ test.describe('SQL query task test', () => {
     await expect(testDialog.getByTestId('sql-run-Run 1 as written').locator('.sql-run-grid').first()).toContainText('kept');
   });
 
-  test('the requested page is appended only to the second run', async ({ page }) => {
+  test('the requested page is appended only to the second run', async ({ page, createdResources }) => {
     await openSqlQuery(page);
     await page.locator('[data-testid=sql-editor] .cm-content').click();
     await page.keyboard.type('SELECT 1 AS n');
+    await saveSqlTask(page, createdResources);
     await page.getByTestId('sql-test').click();
     const testDialog = page.locator('mat-dialog-container').getByTestId('sql-test-dialog');
     await testDialog.getByTestId('sql-limit').fill('2');
@@ -156,10 +165,11 @@ test.describe('SQL query task test', () => {
     await expect(page.getByTestId('sql-test')).toBeDisabled();
   });
 
-  test('an unknown table fails both runs and leaves Save disabled', async ({ page }) => {
+  test('an unknown table fails both runs', async ({ page, createdResources }) => {
     await openSqlQuery(page);
     await page.locator('[data-testid=sql-editor] .cm-content').click();
     await page.keyboard.type('SELECT * FROM table_that_does_not_exist');
+    await saveSqlTask(page, createdResources);
     await page.getByTestId('sql-test').click();
     const testDialog = page.locator('mat-dialog-container').getByTestId('sql-test-dialog');
     await testDialog.getByTestId('sql-test-run').click();
@@ -168,22 +178,34 @@ test.describe('SQL query task test', () => {
     await testDialog.getByRole('tab').nth(1).click();
     await expect(testDialog.getByTestId('sql-run-Run 2 one page')).toHaveAttribute('data-ok', 'false');
     await expect(testDialog.getByTestId('sql-run-Run 2 one page').locator('textarea').last()).not.toHaveValue('');
-    await expect(page.getByTestId('form-save')).toBeDisabled();
   });
 
-  test('the test dialog has no raw translation keys in any locale', async ({ page }) => {
+  test('the test dialog has no raw translation keys in any locale', async ({ page, createdResources }) => {
+    await openSqlQuery(page);
+    await page.locator('[data-testid=sql-editor] .cm-content').click();
+    await page.keyboard.type('SELECT 1 AS n');
+    const id = await saveSqlTask(page, createdResources);
     for (const locale of LOCALES) {
-      await page.addInitScript((lang) => {
-        localStorage.setItem('lang', lang);
-      }, locale);
-      await openSqlQuery(page);
-      await page.locator('[data-testid=sql-editor] .cm-content').click();
-      await page.keyboard.type('SELECT 1 AS n');
+      await page.evaluate((lang) => localStorage.setItem('lang', lang), locale);
+      await page.goto(`/#/taskQuery/${id}/5`);
+      await page.reload();
+      await expect(page.getByTestId('sql-test')).toBeEnabled();
       await page.getByTestId('sql-test').click();
       const dialog = page.locator('mat-dialog-container').getByTestId('sql-test-dialog');
       await expect(dialog).toBeVisible();
       await expect(dialog).not.toContainText('entity.task.query.');
       await page.keyboard.press('Escape');
+    }
+  });
+
+  test('the save-first hint has no raw translation key in any locale', async ({ page }) => {
+    for (const locale of LOCALES) {
+      await page.addInitScript((lang) => {
+        localStorage.setItem('lang', lang);
+      }, locale);
+      await openSqlQuery(page);
+      await expect(page.getByTestId('sql-test-save-first')).toBeVisible();
+      await expect(page.getByTestId('sql-test-save-first')).not.toContainText('entity.task.query.');
     }
   });
 });
@@ -220,6 +242,12 @@ async function ensureConnection(page: Page): Promise<string> {
   });
   expect(created.ok(), await created.text()).toBeTruthy();
   return name;
+}
+
+async function saveSqlTask(page: Page, createdResources: CreatedResource[]): Promise<number> {
+  const id = await saveAndCaptureId(page, 'tasks');
+  createdResources.push({ collection: 'tasks', id });
+  return id;
 }
 
 async function addParameter(page: Page, name: string, label: string): Promise<void> {
