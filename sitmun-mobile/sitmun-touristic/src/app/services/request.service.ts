@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Http, HttpOptions } from '@capacitor-community/http';
+import { CapacitorHttp, HttpOptions } from '@capacitor/core';
 import * as uriTemplate from 'uri-templates';
 import * as jp from 'jsonpath';
 import * as xpath from 'xpath';
@@ -85,7 +85,7 @@ export class RequestService {
     } else {
       console.log('Realizando petición: ', options.url);
       return new Promise<any[]>((resolve, reject) => {
-        Http.request(options).then(data => {
+        CapacitorHttp.request(options).then(data => {
           let response = data.data;
           let saveCache = response;
           let responseFormat = 'xml';

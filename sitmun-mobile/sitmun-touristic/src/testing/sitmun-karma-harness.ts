@@ -21,7 +21,7 @@ import { RouterTestingModule } from '@angular/router/testing';
 import { App } from '@capacitor/app';
 import { Geolocation } from '@capacitor/geolocation';
 import { Preferences } from '@capacitor/preferences';
-import { Http } from '@capacitor-community/http';
+import { CapacitorHttp } from '@capacitor/core';
 import { IonicModule } from '@ionic/angular';
 import {
   TranslateFakeLoader,
@@ -158,7 +158,7 @@ function installPluginShim(): void {
     coarseLocation: 'granted',
   }));
   patchMethod(App, 'exitApp', async () => undefined);
-  patchMethod(Http, 'request', async () => ({ data: {} }));
+  patchMethod(CapacitorHttp, 'request', async () => ({ data: {} }));
   const originalFetch = window.fetch.bind(window);
   window.fetch = ((input: RequestInfo | URL, init?: RequestInit) => {
     const url =
