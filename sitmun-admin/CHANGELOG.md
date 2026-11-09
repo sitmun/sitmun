@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Language**: Portuguese (`pt-PT`) translations and flag ([sitmun-admin-app#485](https://github.com/sitmun/sitmun-admin-app/pull/485)).
 - **SQL query tasks**: The SQL field is a CodeMirror editor with formatting, orange placeholders, and a red underline on an invalid placeholder. The parameter grid keeps a data type, Provided, and Optional, and derives Required. Test runs the saved task twice and shows the bound SQL, the numbered values, and a truncation notice. Test is off for a new task or while there are unsaved changes, and a hint asks to save first. Save does not depend on a test.
 
 ### Changed
