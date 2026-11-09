@@ -1470,14 +1470,9 @@ class ProxyConfigurationServiceTest {
 
     RequestCoordinates coordinates = coordinatesFor(request);
     ConfigProxyDto result = service.getConfiguration(request, 0L, coordinates);
-    service.applyDecorators(result, request, coordinates);
 
-    assertNotNull(result);
-    assertInstanceOf(JdbcPayloadDto.class, result.getPayload());
-
-    JdbcPayloadDto payload = (JdbcPayloadDto) result.getPayload();
-    assertEquals("SELECT * FROM STM_TSK_UI", payload.getSql());
-    assertTrue(payload.getParameters().isEmpty());
+    assertThrows(
+        BadRequestException.class, () -> service.applyDecorators(result, request, coordinates));
   }
 
   @Test
@@ -1527,7 +1522,7 @@ class ProxyConfigurationServiceTest {
 
     JdbcPayloadDto payload = (JdbcPayloadDto) result.getPayload();
     assertEquals("SELECT * FROM STM_TSK_UI WHERE tui_name = ?", payload.getSql());
-    assertEquals(List.of("Media"), payload.getParameters());
+    assertEquals("Media", payload.getParameters().get(0).value());
   }
 
   @Test
@@ -1580,8 +1575,7 @@ class ProxyConfigurationServiceTest {
 
     JdbcPayloadDto payload = (JdbcPayloadDto) result.getPayload();
     assertEquals("SELECT * FROM STM_TSK_UI WHERE tui_name = ?", payload.getSql());
-    // Client value wins over literal default
-    assertEquals(List.of("ClientShouldWin"), payload.getParameters());
+    assertEquals("ClientShouldWin", payload.getParameters().get(0).value());
   }
 
   @Test
@@ -1728,7 +1722,7 @@ class ProxyConfigurationServiceTest {
 
     JdbcPayloadDto payload = (JdbcPayloadDto) result.getPayload();
     assertEquals("SELECT * FROM STM_TSK_UI WHERE tui_name = ?", payload.getSql());
-    assertEquals(List.of("FromClient"), payload.getParameters());
+    assertEquals("FromClient", payload.getParameters().get(0).value());
   }
 
   @Test
@@ -1911,7 +1905,7 @@ class ProxyConfigurationServiceTest {
 
     JdbcPayloadDto payload = (JdbcPayloadDto) result.getPayload();
     assertEquals("SELECT * FROM STM_TSK_UI WHERE tui_name = ?", payload.getSql());
-    assertEquals(List.of("FromClient"), payload.getParameters());
+    assertEquals("FromClient", payload.getParameters().get(0).value());
   }
 
   @Test
@@ -1957,8 +1951,8 @@ class ProxyConfigurationServiceTest {
     service.applyDecorators(result, request, coordinates);
 
     JdbcPayloadDto payload = (JdbcPayloadDto) result.getPayload();
-    assertEquals("SELECT * FROM STM_EXAMPLE WHERE 1=1 AND columnA=?", payload.getSql());
-    assertEquals(List.of("client_filter"), payload.getParameters());
+    assertEquals("SELECT * FROM STM_EXAMPLE", payload.getSql());
+    assertTrue(payload.getParameters().isEmpty());
   }
 
   @Test
@@ -2319,7 +2313,7 @@ class ProxyConfigurationServiceTest {
 
     JdbcPayloadDto payload = (JdbcPayloadDto) result.getPayload();
     // Backend provided value wins, client attempt is dropped
-    assertEquals(List.of("BackendSecret"), payload.getParameters());
+    assertEquals("BackendSecret", payload.getParameters().get(0).value());
   }
 
   @Test
@@ -2441,10 +2435,6 @@ class ProxyConfigurationServiceTest {
   @Test
   @DisplayName("SQL ${name} declared with no default and client absent binds empty string")
   void sqlPlaceholderDeclaredWithNoDefaultAndClientAbsentBindsEmptyString() {
-    doCallRealMethod().when(sqlUserParametrizationDecorator).apply(any(), any());
-    doCallRealMethod().when(sqlUserParametrizationDecorator).accept(any(), any());
-    doCallRealMethod().when(sqlUserParametrizationDecorator).addBehavior(any(), any());
-
     Map<String, Object> declaredNoDefault = new HashMap<>();
     declaredNoDefault.put("variable", "filter");
     declaredNoDefault.put("value", null);
@@ -2477,15 +2467,9 @@ class ProxyConfigurationServiceTest {
 
     RequestCoordinates coordinates = coordinatesFor(request);
     ConfigProxyDto result = service.getConfiguration(request, 0L, coordinates);
-    service.applyDecorators(result, request, coordinates);
 
-    assertNotNull(result);
-    assertInstanceOf(JdbcPayloadDto.class, result.getPayload());
-
-    JdbcPayloadDto payload = (JdbcPayloadDto) result.getPayload();
-    assertEquals("SELECT * FROM data WHERE category = ?", payload.getSql());
-    // Empty string should be bound
-    assertEquals(List.of(""), payload.getParameters());
+    assertThrows(
+        BadRequestException.class, () -> service.applyDecorators(result, request, coordinates));
   }
 
   @Test
@@ -2533,9 +2517,8 @@ class ProxyConfigurationServiceTest {
     assertInstanceOf(JdbcPayloadDto.class, result.getPayload());
 
     JdbcPayloadDto payload = (JdbcPayloadDto) result.getPayload();
-    // Vary-filter adds WHERE clause with empty string bind
-    assertEquals("SELECT * FROM orders WHERE 1=1 AND status=?", payload.getSql());
-    assertEquals(List.of(""), payload.getParameters());
+    assertEquals("SELECT * FROM orders", payload.getSql());
+    assertTrue(payload.getParameters().isEmpty());
   }
 
   @Test
@@ -2591,8 +2574,7 @@ class ProxyConfigurationServiceTest {
     assertInstanceOf(JdbcPayloadDto.class, result.getPayload());
 
     JdbcPayloadDto payload = (JdbcPayloadDto) result.getPayload();
-    // Vary-filter with locked default binds resolved backend value, not client
-    assertEquals("SELECT * FROM users WHERE 1=1 AND role=?", payload.getSql());
-    assertEquals(List.of("ADMIN_ONLY"), payload.getParameters());
+    assertEquals("SELECT * FROM users", payload.getSql());
+    assertTrue(payload.getParameters().isEmpty());
   }
 }

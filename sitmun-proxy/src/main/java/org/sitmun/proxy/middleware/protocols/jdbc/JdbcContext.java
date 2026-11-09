@@ -1,6 +1,7 @@
 package org.sitmun.proxy.middleware.protocols.jdbc;
 
 import java.util.List;
+import org.sitmun.proxy.contract.JdbcParameter;
 import org.sitmun.proxy.middleware.decorator.Context;
 
 public interface JdbcContext extends Context {
@@ -14,5 +15,9 @@ public interface JdbcContext extends Context {
 
   String getSql();
 
-  List<String> getParameters();
+  List<JdbcParameter> getParameters();
+
+  Integer getMaxRows();
+
+  Integer getTimeoutSeconds();
 }

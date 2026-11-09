@@ -115,7 +115,8 @@ public class AuthorizationProxyFixtures {
         .user("admin")
         .password("admin")
         .sql("SELECT * FROM t WHERE a=?")
-        .parameters(List.of("x"))
+        .parameters(
+            List.of(new org.sitmun.proxy.contract.JdbcParameter(java.sql.Types.VARCHAR, "x")))
         .build();
   }
 

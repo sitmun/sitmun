@@ -130,5 +130,11 @@ export default defineConfig({
       dependencies: ['viewer-setup'],
       use: { ...devices['Desktop Chrome'] },
     },
+    {
+      name: 'viewer-sql-query',
+      testMatch: /sql-query-binding\.spec\.ts/,
+      dependencies: ['viewer-setup'],
+      use: { ...devices['Desktop Chrome'] },
+    },
   ],
 });

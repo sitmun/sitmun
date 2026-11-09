@@ -140,6 +140,24 @@ public class SystemVariableResolver {
    *
    * @return Map of variable name -> SpEL expression
    */
+  /**
+   * Resolves one system variable to the value its SpEL expression returns. {@code DATE} is the
+   * request clock as a {@link LocalDateTime}, not the formatted string {@link #resolve} inserts
+   * into templates.
+   */
+  public Object resolveValue(String variableName, RequestCoordinates coordinates) {
+    if ("DATE".equals(variableName)) {
+      return LocalDateTime.ofInstant(clock.instant(), clock.getZone());
+    }
+    String expression = properties.getSystem().get(variableName);
+    if (expression == null) {
+      throw new IllegalArgumentException("Unknown system variable " + variableName);
+    }
+    String cleanExpression = expression.replaceAll("^#\\{(.+)\\}$", "$1");
+    Expression exp = parser.parseExpression(cleanExpression);
+    return exp.getValue(createEvaluationContext(coordinates));
+  }
+
   public Map<String, String> getAvailableVariables() {
     return new HashMap<>(properties.getSystem());
   }

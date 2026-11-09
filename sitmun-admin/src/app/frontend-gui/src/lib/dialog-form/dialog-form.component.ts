@@ -50,6 +50,7 @@ export class DialogFormComponent implements OnInit {
   }
 
   doAdd(){
+    this.form.markAllAsTouched();
     this.loggerService.debug(explainFormValidity(this.form))
     if(this.form.valid) {
       this.dialogRef.close(DIALOG_FORM_EVENTS.ADD);

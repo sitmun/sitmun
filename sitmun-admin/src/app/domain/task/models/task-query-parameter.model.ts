@@ -32,6 +32,12 @@ export class TaskQueryParameter {
   /** provided - backend-only secret variable (not sent to client) */
   public provided?: boolean;
 
+  /** When true, a missing client value binds NULL. */
+  public optional?: boolean;
+
+  /** string, integer, number, date, timestamp or boolean. */
+  public dataType?: string;
+
   /**
    * Constructor for TaskParameter
    * @param name The name of the parameter
@@ -60,7 +66,7 @@ export class TaskQueryParameter {
   public static fromObject(source: any): TaskQueryParameter {
     const parameter = new TaskQueryParameter();
     const propertiesToCopy = [
-      'name', 'label', 'type', 'value', 'provided'
+      'name', 'label', 'type', 'value', 'provided', 'optional', 'dataType'
     ];
     propertiesToCopy.forEach(prop => {
       if (source[prop] !== undefined) {

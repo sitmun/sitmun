@@ -1,18 +1,25 @@
-import {HttpClient} from "@angular/common/http";
-import {Component, TemplateRef, ViewChild, ChangeDetectionStrategy} from "@angular/core";
-import {FormControl, FormGroup, Validators} from "@angular/forms";
+import {HttpClient, HttpContext} from "@angular/common/http";
+import {AfterViewChecked, Component, ElementRef, TemplateRef, ViewChild, ChangeDetectionStrategy} from "@angular/core";
+import {AbstractControl, FormControl, FormGroup, ValidationErrors, Validators} from "@angular/forms";
 import {MatDialog} from "@angular/material/dialog";
 import {MatSelectChange} from "@angular/material/select";
+import {MatTabChangeEvent} from "@angular/material/tabs";
 import {ActivatedRoute, Router} from "@angular/router";
 
+import {ColDef} from "@ag-grid-community/core";
+import {sql, PostgreSQL, MSSQL, StandardSQL} from "@codemirror/lang-sql";
+import {defaultHighlightStyle, syntaxHighlighting} from "@codemirror/language";
+import {EditorState, Extension, StateEffect} from "@codemirror/state";
+import {Decoration, EditorView, ViewPlugin, ViewUpdate} from "@codemirror/view";
 import {TranslateService} from "@ngx-translate/core";
 import { firstValueFrom, map, of} from "rxjs";
+import {format} from "sql-formatter";
 
 import {BaseFormComponent} from "@app/components/base-form.component";
 import {DataTableDefinition, TemplateDialog} from "@app/components/data-tables.util";
 import {RelationGridComponent} from "@app/components/shared/relation-grid/relation-grid.component";
 import {Configuration} from "@app/core/config/configuration";
-import {MessagesInterceptorStateService} from "@app/core/interceptors/messages.interceptor";
+import {MessagesInterceptorStateService, SKIP_MESSAGES_INTERCEPTOR} from "@app/core/interceptors/messages.interceptor";
 import {
   Cartography,
   CartographyService,
@@ -52,8 +59,11 @@ import {LoadingOverlayService} from "@app/services/loading-overlay.service";
 import {LoggerService} from "@app/services/logger.service";
 import {UtilsService} from "@app/services/utils.service";
 import { compareNullableString } from '@app/utils/compare-nullable-string';
+import { formatValidationErrors, getErrorMessage } from '@app/utils/problem-detail.utils';
 import {magic} from "@environments/constants";
 import {environment} from "@environments/environment";
+
+import { scanSql, SqlScan } from "../sql-placeholder-scanner";
 
 /**
  * Component for managing query tasks in the SITMUN application.
@@ -73,12 +83,29 @@ import {environment} from "@environments/environment";
 @Component({
     selector: 'app-task-query-form',
     templateUrl: './task-query-form.component.html',
-    styles: [],
+    styles: [`
+      .sql-editor { min-height: 8rem; }
+      .sql-problems { color: #c62828; margin: 0 0 8px; }
+      .sql-test-dialog, .sql-run-banner {
+        font-family: "Open Sans", sans-serif;
+      }
+      .sql-run-banner { display: flex; align-items: flex-start; gap: 8px; margin: 0 0 12px; }
+      .sql-run-banner span { white-space: pre-wrap; }
+      .sql-run-banner-icon { flex: 0 0 auto; }
+      .sql-run-banner-icon--ok { color: #4caf50; }
+      .sql-run-banner-icon--error { color: #f44336; }
+      .sql-run-banner-icon--warn { color: #f57c00; }
+      .sql-run-banner-icon--info { color: #1976d2; }
+      .sql-run-label-icon { font-size: 18px; width: 18px; height: 18px; vertical-align: text-bottom; }
+      .sql-run-grid { width: 100%; margin: 8px 0; }
+      .sql-editor.sql-run-editor { min-height: 0; margin: 0; border: 0; }
+    `],
     changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
-export class TaskQueryFormComponent extends BaseFormComponent<TaskProjection> {
+export class TaskQueryFormComponent extends BaseFormComponent<TaskProjection> implements AfterViewChecked {
   private static readonly COMMAND_PLACEHOLDER_PATTERN = /([#$]?)\{([A-Za-z_][A-Za-z0-9_]*)\}/g;
+  private static readonly refreshSqlMarks = StateEffect.define<null>();
 
   readonly config = Configuration.TASK_QUERY;
 
@@ -135,6 +162,26 @@ export class TaskQueryFormComponent extends BaseFormComponent<TaskProjection> {
    */
   protected readonly TaskParameterType = TaskParameterType;
   protected systemVariables: Map<string, string> = new Map();
+  protected sqlParameters: Array<Record<string, unknown>> | null = null;
+  protected sqlProblems: string[] = [];
+  protected sqlTestError = '';
+  protected sqlTestResult: { runs?: Array<Record<string, unknown>> } | null = null;
+  protected testLimit = 10;
+  protected testOffset = 0;
+  protected testClientValues: Record<string, string> = {};
+  protected testSystemValues: Record<string, string> = {};
+  private sqlEditorView: EditorView | null = null;
+  private sqlRunEditors: EditorView[] = [];
+  private pendingRunEditors = false;
+  protected sqlRunTab = 0;
+
+  @ViewChild('sqlEditorHost')
+  private sqlEditorHost?: ElementRef<HTMLElement>;
+
+  @ViewChild('sqlTestDialog', {static: true})
+  private readonly sqlTestDialog: TemplateRef<unknown>;
+
+  protected readonly sqlDataTypes = ['string', 'integer', 'number', 'date', 'timestamp', 'boolean'];
 
   /**
    * Gets the name of a cartography by its ID
@@ -563,6 +610,7 @@ export class TaskQueryFormComponent extends BaseFormComponent<TaskProjection> {
       this.entityForm.get('mimeType')?.disable({ emitEvent: false });
       this.entityForm.get('filename')?.setValue(null);
       this.entityForm.get('filename')?.disable({ emitEvent: false });
+      this.deriveSqlRequiredOnRows();
     } else if (value === scope?.cartographyQuery) {
       this.entityForm.get('command').setValue(null);
       this.entityForm.get('command').disable({ emitEvent: false });
@@ -722,11 +770,35 @@ export class TaskQueryFormComponent extends BaseFormComponent<TaskProjection> {
   }
 
   override canSave(): boolean {
-    return super.canSave() && this.getMissingCommandParameterNames().length === 0;
+    return this.sqlSaveAllowed(super.canSave());
   }
 
   override get canSaveEntity(): boolean {
-    return super.canSaveEntity && this.getMissingCommandParameterNames().length === 0;
+    return this.sqlSaveAllowed(super.canSaveEntity);
+  }
+
+  ngAfterViewChecked(): void {
+    if (!this.entityForm || !this.codeValues?.queryTaskScope) {
+      return;
+    }
+    if (!this.isSqlQueryScope()) {
+      this.sqlEditorView?.destroy();
+      this.sqlEditorView = null;
+      return;
+    }
+    if (this.sqlEditorHost && !this.sqlEditorView) {
+      this.mountSqlEditor();
+    }
+    if (this.pendingRunEditors) {
+      const hosts = document.querySelectorAll<HTMLElement>('[data-sql-run]');
+      if (hosts.length > 0) {
+        this.mountRunEditors(hosts);
+      }
+      const expected = this.sqlTestResult?.runs?.length ?? 0;
+      if (expected > 0 && hosts.length >= expected) {
+        this.pendingRunEditors = false;
+      }
+    }
   }
 
   protected get customWarningMessage(): string {
@@ -849,18 +921,25 @@ export class TaskQueryFormComponent extends BaseFormComponent<TaskProjection> {
     return DataTableDefinition.builder<TaskQueryParameter, TaskQueryParameter>(this.dialog, this.errorHandler, this.loadingService)
       .withRelationsColumns([
         this.utils.getSelCheckboxColumnDef(),
-        this.utils.getEditableColumnDef('common.form.name', 'name'),
+        this.sqlParameterNameColumn(),
         this.utils.getEditableColumnDef('common.form.label', 'label'),
         this.utils.getNonEditableColumnDef('common.form.value', 'value'),
         this.utils.getNonEditableColumnWithCodeListDef('common.form.type', 'type', () => this.codeList('queryTask.parameterType')),
-        this.utils.addConditionToColumnDef(this.utils.getBooleanColumnDef('common.form.required', 'required', true), (params) => params.data.type === TaskParameterType.QUERY),
+        this.sqlParameterDataTypeColumn(),
+        this.sqlParameterRequiredColumn(),
+        this.sqlParameterOptionalColumn(),
         this.utils.addConditionToColumnDef(this.utils.getBooleanColumnDef('entity.task.parameters.provided', 'provided', false), (params) => params.data.type === TaskParameterType.QUERY),
+        this.sqlParameterWhenBlankColumn(),
         this.utils.getStatusColumnDef()])
       .withRelationsOrder('name')
       .withRelationsFetcher(() => {
         const originalParameters = TaskPropertiesContract.getParameters(this.entityToEdit?.properties);
         if (originalParameters.length > 0) {
-          const parameters = originalParameters.map((parameter) => TaskQueryParameter.fromObject(parameter));
+          const parameters = originalParameters.map((parameter) => {
+            const row = TaskQueryParameter.fromObject(parameter);
+            this.applyDerivedRequired(row as unknown as Record<string, unknown>);
+            return row;
+          });
           return of(parameters);
         }
         return of<TaskQueryParameter[]>([])
@@ -876,38 +955,186 @@ export class TaskQueryFormComponent extends BaseFormComponent<TaskProjection> {
       .withTemplateDialog('newParameterDialog', () => TemplateDialog.builder()
         .withReference(this.newParameterDialog)
         .withTitle('entity.task.parameters.title')
-        .withForm(new FormGroup({
-          name: new FormControl('', {
-            validators: [Validators.required],
-            nonNullable: true
-          }),
-          label: new FormControl('', {
-            validators: [Validators.required],
-            nonNullable: true
-          }),
-          value: new FormControl('', {
-            validators: [],
-            nonNullable: false
-          }),
-          type: new FormControl(null, {
-            validators: [Validators.required],
-            nonNullable: true
-          }),
-          required: new FormControl(false, {
-            validators: [Validators.required],
-            nonNullable: true
-          }),
-          provided: new FormControl(false, {
-            validators: [],
-            nonNullable: true
-          }),
-        })).withPreOpenFunction((form: FormGroup) => {
+        .withForm(this.newParameterForm())
+        .withPreOpenFunction((form: FormGroup) => {
           const defaultType = this.defaultValueOrNull('queryTask.parameterType');
-          form.reset({type: defaultType?.value || null, provided: false});
+          form.reset({
+            name: '',
+            label: '',
+            value: '',
+            type: this.isSqlQueryScope() ? TaskParameterType.QUERY : (defaultType?.value || null),
+            required: false,
+            provided: false,
+            optional: false,
+            dataType: 'string',
+          });
         }).build())
-      .withTargetToRelation((items: TaskQueryParameter[]) => items.map(item => TaskQueryParameter.fromObject(item)))
+      .withTargetToRelation((items: TaskQueryParameter[]) => items.map(item => this.parameterFromDialog(item)))
       .withRelationsDuplicate(item => TaskQueryParameter.fromObject(item))
       .build();
+  }
+
+  private sqlParameterNameColumn() {
+    const column = this.utils.getEditableColumnDef('common.form.name', 'name');
+    (column as { editable: boolean | (() => boolean) }).editable = () => !this.isSqlQueryScope();
+    return column;
+  }
+
+  private sqlParameterDataTypeColumn() {
+    return this.utils.addConditionToColumnDef(
+      this.utils.getNonEditableColumnDef('entity.task.query.dataType', 'dataType'),
+      (params) => params.data?.type === TaskParameterType.QUERY
+    );
+  }
+
+  private sqlParameterRequiredColumn() {
+    return this.utils.addConditionToColumnDef(
+      this.utils.getBooleanColumnDef(
+        'common.form.required',
+        'required',
+        (params) => params.data?.type === 'query' && !this.isSqlQueryScope()
+      ),
+      (params) => params.data?.type === TaskParameterType.QUERY
+    );
+  }
+
+  private sqlParameterOptionalColumn() {
+    const column = this.utils.addConditionToColumnDef(
+      this.utils.getBooleanColumnDef('entity.task.query.optional', 'optional', true),
+      (params) => params.data?.type === TaskParameterType.QUERY
+    );
+    column.onCellValueChanged = (params) => {
+      this.applyDerivedRequired(params.data);
+      params.api?.refreshCells();
+    };
+    return column;
+  }
+
+  private sqlParameterWhenBlankColumn() {
+    const column = this.utils.addConditionToColumnDef(
+      this.utils.getNonEditableColumnDef('entity.task.query.whenBlank', 'whenBlank'),
+      (params) => params.data?.type === TaskParameterType.QUERY
+    );
+    column.valueGetter = (params) => this.whenBlankText(params?.data);
+    return column;
+  }
+
+  private whenBlankText(parameter: Record<string, unknown> | null | undefined): string {
+    if (!parameter || parameter['type'] !== TaskParameterType.QUERY) {
+      return '';
+    }
+    const value = typeof parameter['value'] === 'string' ? parameter['value'] : String(parameter['value'] ?? '');
+    if (parameter['provided'] === true || value.trim() !== '') {
+      return this.translateService.instant('entity.task.query.blank.provided');
+    }
+    if (parameter['optional'] === true) {
+      return this.translateService.instant('entity.task.query.blank.null');
+    }
+    return this.translateService.instant('entity.task.query.blank.required');
+  }
+
+  private applyDerivedRequired(parameter: Record<string, unknown>): void {
+    if (!parameter || !this.codeValues?.queryTaskScope || !this.isSqlQueryScope()) {
+      return;
+    }
+    if (parameter['type'] !== TaskParameterType.QUERY) {
+      return;
+    }
+    const value = typeof parameter['value'] === 'string' ? parameter['value'] : String(parameter['value'] ?? '');
+    parameter['required'] = parameter['provided'] !== true && value.trim() === '' && parameter['optional'] !== true;
+  }
+
+  private deriveSqlRequiredOnRows(): void {
+    if (!this.codeValues?.queryTaskScope || !this.isSqlQueryScope()) {
+      return;
+    }
+    this.ensureSqlParameters().forEach((parameter) => this.applyDerivedRequired(parameter));
+    const gridApi = this.parametersGrid?.dataGrid?.gridApi;
+    if (gridApi && !gridApi.isDestroyed?.()) {
+      gridApi.refreshCells();
+    }
+  }
+
+  private newParameterForm(): FormGroup {
+    const form = new FormGroup({
+      name: new FormControl('', {
+        validators: [Validators.required, (control: AbstractControl) => this.validateSqlParameterName(control)],
+        nonNullable: true
+      }),
+      label: new FormControl('', {
+        validators: [Validators.required],
+        nonNullable: true
+      }),
+      value: new FormControl('', {
+        validators: [(control: AbstractControl) => this.validateSqlParameterValue(control)],
+        nonNullable: true
+      }),
+      type: new FormControl<string | null>(null, {
+        validators: [Validators.required]
+      }),
+      required: new FormControl(false, { nonNullable: true }),
+      provided: new FormControl(false, { nonNullable: true }),
+      optional: new FormControl(false, { nonNullable: true }),
+      dataType: new FormControl('string', { nonNullable: true }),
+    });
+    const value = form.get('value');
+    form.get('provided')?.valueChanges.subscribe(() => value?.updateValueAndValidity({ emitEvent: false }));
+    form.get('optional')?.valueChanges.subscribe(() => value?.updateValueAndValidity({ emitEvent: false }));
+    return form;
+  }
+
+  private validateSqlParameterName(control: AbstractControl): ValidationErrors | null {
+    if (!this.codeValues?.queryTaskScope || !this.isSqlQueryScope()) {
+      return null;
+    }
+    const name = typeof control.value === 'string' ? control.value : '';
+    if (name.trim() === '') {
+      return null;
+    }
+    if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(name)) {
+      return { invalidName: true };
+    }
+    if (name.toLowerCase() === 'limit' || name.toLowerCase() === 'offset') {
+      return { reserved: true };
+    }
+    for (const key of this.systemVariables.keys()) {
+      if (key.toLowerCase() === name.toLowerCase()) {
+        return { systemName: true };
+      }
+    }
+    const trimmed = name.trim();
+    if (this.ensureSqlParameters().some((parameter) => this.parameterName(parameter) === trimmed)) {
+      return { duplicate: true };
+    }
+    return null;
+  }
+
+  private validateSqlParameterValue(control: AbstractControl): ValidationErrors | null {
+    if (!this.codeValues?.queryTaskScope || !this.isSqlQueryScope()) {
+      return null;
+    }
+    const value = typeof control.value === 'string' ? control.value : String(control.value ?? '');
+    if (value.includes('#{')) {
+      return { noSystemExpression: true };
+    }
+    const provided = control.parent?.get('provided')?.value === true;
+    const optional = control.parent?.get('optional')?.value === true;
+    if (provided && value.trim() === '') {
+      return { providedNeedsValue: true };
+    }
+    if (optional && value.trim() !== '') {
+      return { optionalHasValue: true };
+    }
+    return null;
+  }
+
+  protected parameterFromDialog(item: TaskQueryParameter): TaskQueryParameter {
+    if (this.codeValues?.queryTaskScope && this.isSqlQueryScope()) {
+      const draft: Record<string, unknown> = { ...item, type: TaskParameterType.QUERY };
+      this.applyDerivedRequired(draft);
+      return TaskQueryParameter.fromObject(draft);
+    }
+    return TaskQueryParameter.fromObject(item);
   }
 
   getTaskGroupName(taskGroupId: number): string {
@@ -957,6 +1184,9 @@ export class TaskQueryFormComponent extends BaseFormComponent<TaskProjection> {
   }
 
   private getCurrentParameters(): Record<string, unknown>[] {
+    if (this.codeValues?.queryTaskScope && this.isSqlQueryScope()) {
+      return this.ensureSqlParameters().filter((parameter) => parameter['status'] !== 'pendingDelete');
+    }
     const gridRows = this.parametersGrid?.getAllCurrentData?.() ?? this.parametersGrid?.rowData;
     if (Array.isArray(gridRows)) {
       return gridRows.filter((parameter) => parameter?.status !== 'pendingDelete');
@@ -982,8 +1212,378 @@ export class TaskQueryFormComponent extends BaseFormComponent<TaskProjection> {
     }
   }
 
-  private parameterName(parameter: Record<string, unknown>): string {
+  protected parameterName(parameter: Record<string, unknown>): string {
     const value = parameter['name'] ?? parameter['variable'] ?? parameter['label'];
     return typeof value === 'string' ? value.trim() : '';
+  }
+
+  private sqlSaveAllowed(base: boolean): boolean {
+    return base && this.getMissingCommandParameterNames().length === 0;
+  }
+
+  protected ensureSqlParameters(): Array<Record<string, unknown>> {
+    const fromGrid = this.sqlParametersFromGrid();
+    if (fromGrid !== null) {
+      return fromGrid;
+    }
+    if (!this.sqlParameters) {
+      this.sqlParameters = TaskPropertiesContract.getParameters(this.entityToEdit?.properties).map((parameter) => ({
+        ...parameter
+      }));
+    }
+    return this.sqlParameters.filter((parameter) => parameter['status'] !== 'pendingDelete');
+  }
+
+  protected onFormTabChange(event: MatTabChangeEvent): void {
+    if (event.index !== 0 || !this.codeValues?.queryTaskScope || !this.isSqlQueryScope()) {
+      return;
+    }
+    this.refreshSqlDecorations();
+  }
+
+  private sqlParametersFromGrid(): Array<Record<string, unknown>> | null {
+    const grid = this.parametersGrid;
+    const dataGrid = grid?.dataGrid;
+    if (!grid || !dataGrid) {
+      return null;
+    }
+    const gridApi = dataGrid.gridApi;
+    const rows = gridApi && !gridApi.isDestroyed?.()
+      ? grid.getAllCurrentData()
+      : dataGrid.rowData;
+    if (!Array.isArray(rows)) {
+      return null;
+    }
+    return rows.filter((parameter) => parameter?.status !== 'pendingDelete');
+  }
+
+  protected sqlClientParameters(): Array<Record<string, unknown>> {
+    return this.ensureSqlParameters().filter((parameter) => parameter['provided'] !== true);
+  }
+
+  protected sqlProvidedParameters(): Array<Record<string, unknown>> {
+    return this.ensureSqlParameters().filter((parameter) => parameter['provided'] === true);
+  }
+
+  protected sqlSystemNames(): string[] {
+    const names = new Set<string>();
+    for (const placement of this.currentSqlScan().placements) {
+      if (placement.kind === 'SYSTEM') {
+        names.add(placement.name);
+      }
+    }
+    return Array.from(names);
+  }
+
+  /** The backend tests the saved task, so unsaved edits would not be what runs. */
+  protected sqlTestNeedsSave(): boolean {
+    return !this.isEdition() || this.hasPendingChanges();
+  }
+
+  protected canTestSql(): boolean {
+    return !this.sqlTestNeedsSave()
+      && !!this.entityForm?.get('connectionId')?.value
+      && this.currentSqlScan().violations.length === 0
+      && this.getMissingCommandParameterNames().length === 0;
+  }
+
+  protected openSqlTest(): void {
+    this.sqlTestError = '';
+    this.sqlTestResult = null;
+    this.testLimit = 10;
+    this.testOffset = 0;
+    this.testClientValues = {};
+    this.testSystemValues = {};
+    this.runGridColumns.clear();
+    this.destroyRunEditors();
+    this.sqlRunTab = 0;
+    this.dialog.open(this.sqlTestDialog, {
+      panelClass: ['formDialogs', 'sql-test-dialog-panel'],
+      width: '800px',
+      maxWidth: '90vw',
+    });
+  }
+
+  protected async runSqlTest(): Promise<void> {
+    this.sqlTestError = '';
+    this.runGridColumns.clear();
+    this.destroyRunEditors();
+    try {
+      this.sqlTestResult = await firstValueFrom(this.http.post<{ runs?: Array<Record<string, unknown>> }>(
+        `${environment.apiBaseURL}/api/tasks/query/test`,
+        {
+          taskId: this.entityID,
+          clientValues: this.testClientValues,
+          systemValues: this.testSystemValues,
+          limit: Number(this.testLimit),
+          offset: Number(this.testOffset)
+        },
+        { context: new HttpContext().set(SKIP_MESSAGES_INTERCEPTOR, true) }
+      ));
+      this.runGridColumns.clear();
+      this.pendingRunEditors = true;
+    } catch (error) {
+      this.sqlTestResult = null;
+      this.sqlTestError = this.sqlTestFailureMessage(error);
+    }
+  }
+
+  private sqlTestFailureMessage(error: unknown): string {
+    const formatted = formatValidationErrors(error, (key) => this.translateService.instant(key));
+    if (formatted) {
+      return formatted;
+    }
+    return getErrorMessage(error);
+  }
+
+  protected formatSql(): void {
+    const command = String(this.entityForm?.get('command')?.value ?? '');
+    const formatted = format(command, {
+      language: this.sqlFormatLanguage(),
+      paramTypes: {
+        custom: [
+          { regex: String.raw`\$\{[A-Za-z_][A-Za-z0-9_]*\}` },
+          { regex: String.raw`#\{[A-Za-z_][A-Za-z0-9_]*\}` }
+        ]
+      }
+    });
+    this.entityForm.get('command')?.setValue(formatted);
+    this.sqlEditorView?.dispatch({
+      changes: { from: 0, to: this.sqlEditorView.state.doc.length, insert: formatted }
+    });
+  }
+
+  private readonly runGridColumns = new Map<string, ColDef[]>();
+  private sqlValueColumnDefs: ColDef[] | null = null;
+
+  protected runValues(run: Record<string, unknown>): unknown[] {
+    return Array.isArray(run['values']) ? run['values'] as unknown[] : [];
+  }
+
+  protected runValueRows(run: Record<string, unknown>): Array<{ position: number; value: unknown }> {
+    return this.runValues(run).map((value, index) => ({ position: index + 1, value }));
+  }
+
+  protected runValueColumnDefs(): ColDef[] {
+    if (!this.sqlValueColumnDefs) {
+      this.sqlValueColumnDefs = [
+        {
+          field: 'position',
+          headerName: this.translateService.instant('entity.task.query.position'),
+          width: 140,
+          sortable: false
+        },
+        {
+          field: 'value',
+          headerName: this.translateService.instant('entity.task.query.boundValue'),
+          flex: 1,
+          sortable: false
+        }
+      ];
+    }
+    return this.sqlValueColumnDefs;
+  }
+
+  protected runRows(run: Record<string, unknown>): Record<string, unknown>[] {
+    return Array.isArray(run['rows']) ? run['rows'] as Record<string, unknown>[] : [];
+  }
+
+  protected sqlRunTabLabel(index: number): string {
+    const key = index === 0 ? 'entity.task.query.runAsWritten' : 'entity.task.query.runPaged';
+    return this.translateService.instant(key);
+  }
+
+  protected onSqlRunTabChange(): void {
+    this.pendingRunEditors = true;
+    this.sqlRunEditors.forEach((view) => view.requestMeasure());
+  }
+
+  private destroyRunEditors(): void {
+    this.sqlRunEditors.forEach((view) => view.destroy());
+    this.sqlRunEditors = [];
+    this.pendingRunEditors = false;
+  }
+
+  private mountRunEditors(hosts: NodeListOf<HTMLElement>): void {
+    const liveHosts = new Set(hosts);
+    this.sqlRunEditors = this.sqlRunEditors.filter((view) => {
+      const parent = view.dom.parentElement;
+      const attached = view.dom.isConnected && parent !== null && liveHosts.has(parent);
+      if (!attached) {
+        view.destroy();
+      }
+      return attached;
+    });
+    let created = false;
+    hosts.forEach((host) => {
+      if (host.querySelector('.cm-editor')) {
+        return;
+      }
+      created = true;
+      host.addEventListener('click', (event) => event.stopPropagation());
+      const label = host.getAttribute('data-sql-run');
+      const run = (this.sqlTestResult?.runs ?? []).find((item) => item['label'] === label);
+      const view = new EditorView({
+        parent: host,
+        state: EditorState.create({
+          doc: String(run?.['sql'] ?? ''),
+          extensions: [
+            sql({ dialect: this.sqlDialect() }),
+            EditorState.readOnly.of(true),
+            EditorView.editable.of(false),
+            ...this.sqlEditorChrome()
+          ]
+        })
+      });
+      this.sqlRunEditors.push(view);
+    });
+    if (created) {
+      this.sqlRunEditors.forEach((view) => view.requestMeasure());
+    }
+  }
+
+  protected runColumnDefs(run: Record<string, unknown>): ColDef[] {
+    const label = String(run['label'] ?? '');
+    const cached = this.runGridColumns.get(label);
+    if (cached) {
+      return cached;
+    }
+    const fields = new Set<string>();
+    this.runRows(run).forEach((row) => Object.keys(row).forEach((field) => fields.add(field)));
+    const columnDefs = Array.from(fields).map((field) => ({ field, sortable: true, resizable: true }));
+    this.runGridColumns.set(label, columnDefs);
+    return columnDefs;
+  }
+
+  private mountSqlEditor(): void {
+    const parent = this.sqlEditorHost?.nativeElement;
+    if (!parent) {
+      return;
+    }
+    const decorate = (view: EditorView) => this.sqlDecorations(view);
+    const refreshSqlMarks = TaskQueryFormComponent.refreshSqlMarks;
+    const marks = ViewPlugin.fromClass(class {
+      decorations = Decoration.none;
+      constructor(view: EditorView) {
+        this.decorations = decorate(view);
+      }
+      update(update: ViewUpdate) {
+        const refresh = update.transactions.some((transaction) =>
+          transaction.effects.some((effect) => effect.is(refreshSqlMarks)));
+        if (update.docChanged || refresh) {
+          this.decorations = decorate(update.view);
+        }
+      }
+    }, { decorations: (value) => value.decorations });
+    parent.addEventListener('click', (event) => event.stopPropagation());
+    this.sqlEditorView = new EditorView({
+      parent,
+      state: EditorState.create({
+        doc: String(this.entityForm?.get('command')?.value ?? ''),
+        extensions: [
+          sql({ dialect: this.sqlDialect() }),
+          marks,
+          ...this.sqlEditorChrome(),
+          EditorView.updateListener.of((update) => {
+            if (update.docChanged) {
+              this.entityForm.get('command')?.setValue(update.state.doc.toString());
+              this.entityForm.get('command')?.markAsDirty();
+              this.refreshSqlProblems();
+            }
+          })
+        ]
+      })
+    });
+    parent.closest('mat-form-field')?.querySelector('textarea')?.addEventListener('focus', () => {
+      this.sqlEditorView?.focus();
+    });
+    this.refreshSqlProblems();
+  }
+
+  private sqlEditorChrome(): Extension[] {
+    return [
+      EditorView.lineWrapping,
+      syntaxHighlighting(defaultHighlightStyle, { fallback: true }),
+      EditorView.theme({
+        '&': { backgroundColor: 'transparent' },
+        '&.cm-focused': { outline: 'none' },
+        '.cm-scroller, .cm-content': {
+          fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace',
+          fontSize: '14px',
+          lineHeight: '22px'
+        },
+        '.cm-content, .cm-line': { padding: '0' },
+        '.cm-sql-placeholder, .cm-sql-placeholder span': { color: '#e65100' },
+        '.cm-sql-invalid, .cm-sql-invalid span': { textDecoration: 'underline wavy #c62828' }
+      }),
+      EditorView.updateListener.of((update) => {
+        if (!update.focusChanged) {
+          return;
+        }
+        update.view.dom.closest('mat-form-field')?.classList.toggle('mat-focused', update.view.hasFocus);
+      })
+    ];
+  }
+
+  private sqlDecorations(view: EditorView) {
+    const text = view.state.doc.toString();
+    const scan = this.scanText(text);
+    const invalid = scan.violations.filter((violation) => violation.start >= 0);
+    const ranges = [];
+    const invalidSpans = invalid.map((violation) => [violation.start, violation.end] as const);
+    for (const placement of scan.placements) {
+      const covered = invalidSpans.some(([start, end]) => placement.start < end && placement.end > start);
+      if (!covered) {
+        ranges.push(Decoration.mark({ class: 'cm-sql-placeholder' }).range(placement.start, placement.end));
+      }
+    }
+    for (const violation of invalid) {
+      ranges.push(Decoration.mark({ class: 'cm-sql-invalid' }).range(violation.start, Math.max(violation.end, violation.start + 1)));
+    }
+    return Decoration.set(ranges.sort((left, right) => left.from - right.from), true);
+  }
+
+  private refreshSqlDecorations(): void {
+    this.sqlEditorView?.dispatch({ effects: TaskQueryFormComponent.refreshSqlMarks.of(null) });
+    this.refreshSqlProblems();
+  }
+
+  private refreshSqlProblems(): void {
+    this.sqlProblems = this.currentSqlScan().violations.map((violation) =>
+      this.translateService.instant(`entity.task.query.violation.${violation.code}`, { name: violation.name ?? '' }));
+  }
+
+  private currentSqlScan(): SqlScan {
+    return this.scanText(String(this.entityForm?.get('command')?.value ?? ''));
+  }
+
+  private scanText(sqlText: string): SqlScan {
+    return scanSql(
+      sqlText,
+      this.ensureSqlParameters().map((parameter) => this.parameterName(parameter)),
+      this.systemVariables.keys()
+    );
+  }
+
+  private sqlDialect() {
+    const driver = String(this.connections.find((item) => item.id === this.entityForm?.get('connectionId')?.value)?.driver ?? '');
+    if (/postgres/i.test(driver)) {
+      return PostgreSQL;
+    }
+    if (/sqlserver|microsoft/i.test(driver)) {
+      return MSSQL;
+    }
+    return StandardSQL;
+  }
+
+  private sqlFormatLanguage(): 'postgresql' | 'transactsql' | 'sql' {
+    const driver = String(this.connections.find((item) => item.id === this.entityForm?.get('connectionId')?.value)?.driver ?? '');
+    if (/postgres/i.test(driver)) {
+      return 'postgresql';
+    }
+    if (/sqlserver|microsoft/i.test(driver)) {
+      return 'transactsql';
+    }
+    return 'sql';
   }
 }

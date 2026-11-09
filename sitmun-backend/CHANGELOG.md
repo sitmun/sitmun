@@ -8,6 +8,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+- **SQL query tasks**: `POST /api/tasks/query/test` is admin-only. It takes a saved task id plus test values, checks the save rules, then runs the task's stored SQL twice on the task's connection: as written, and as one page (`limit` 10 and `offset` 0 unless the request sets them). Each run reports the SQL with `?`, the bound values, the rows, a failure message, and whether the row cap cut the result. A database account that can execute functions can still cause side effects inside a `SELECT`. Use an account that can only read.
+
+### Changed
+
+- **SQL query tasks** (breaking): `${name}` and `#{VAR}` are bound as typed parameters. Nothing from the request or a system variable is pasted or appended into the SQL. An undeclared client key is rejected with 400, including when the task declares no parameters. A value for a Provided parameter is ignored. `#{MUN_INES}` is allowed only as the whole content of `IN (...)`. `#{DATE}` binds as a timestamp. SQL that does not start with `SELECT`, or that contains `WITH`, `;`, or a trailing `--` comment, is rejected on save. A Provided parameter needs a value. A value cannot contain `#{`. A value together with Optional is rejected. `required` is derived. Execution is read-only and always rolls back, times out at `sitmun.jdbc.query-timeout-seconds` (60), and stops at `sitmun.jdbc.max-rows` (1000). The proxy receives both limits in the JDBC payload.
+
+### Added
+
 - **Templates**: A template has an optional title of 250 characters. The More Info Advanced tab shows that title, and a blank title shows the template name. The client profile includes edit, basic, locator, query, more-info, more-info-advanced, and document-export tasks. Template and map-image tasks stay out of the profile. Rendering and PDF export still authorize them through the role and territory assignment ([sitmun-viewer-app#211](https://github.com/sitmun/sitmun-viewer-app/issues/211)).
 - **Database**: An upgrade from 1.2.8 reaches 1.3.0 directly. It applies the 1.2.9 steps that are missing, then the 1.2.9 hop. A 1.2.7 database stops with `upgrade to 1.2.8 first`. Oracle 19c was not tested; Oracle 21 is the stand-in ([#87](https://github.com/sitmun/sitmun/issues/87)).
 - **Database**: Oracle 11 and Oracle 21 no longer treat a rewritten changeset 22 as a finished 1.2.9. A released 1.2.9 install on those engines stops at changeset 22c, and the upgrade continues from that partial history ([#107](https://github.com/sitmun/sitmun/issues/107)).

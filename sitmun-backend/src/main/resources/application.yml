@@ -181,6 +181,9 @@ sitmun:
       token-recovery-password-validity-in-milliseconds: 3600000
     code-otp:
       max-attempt: 3
+  jdbc:
+    max-rows: 1000
+    query-timeout-seconds: 60
   variables:
     # System variables resolved by backend using SpEL expressions.
     # Syntax in task properties: #{VARIABLE_NAME}

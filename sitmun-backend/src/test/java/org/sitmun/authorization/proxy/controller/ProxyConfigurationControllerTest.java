@@ -201,7 +201,7 @@ class ProxyConfigurationControllerTest {
         .andExpect(
             jsonPath("$.payload.sql")
                 .value(
-                    "SELECT * FROM EXAMPLE WHERE 1=1 AND columnA=? AND columnB=? OFFSET 100 ROWS FETCH NEXT 100 ROWS ONLY"));
+                    "SELECT * FROM EXAMPLE WHERE columnA=? AND columnB=? OFFSET 100 ROWS FETCH NEXT 100 ROWS ONLY"));
   }
 
   @Test
@@ -229,7 +229,7 @@ class ProxyConfigurationControllerTest {
         .andExpect(
             jsonPath("$.payload.sql")
                 .value(
-                    "SELECT * FROM EXAMPLE WHERE USER_ID=1 AND TERR_ID=10001 AND APP_ID=10001 AND TERR_COD=60001"));
+                    "SELECT * FROM EXAMPLE WHERE USER_ID=? AND TERR_ID=? AND APP_ID=? AND TERR_COD=?"));
   }
 
   @Test
@@ -254,10 +254,9 @@ class ProxyConfigurationControllerTest {
     mvc.perform(post(CONFIG_PROXY_URI).contentType(APPLICATION_JSON).content(content))
         .andExpect(status().isOk())
         .andExpect(
-            jsonPath("$.payload.sql")
-                .value("SELECT * FROM EXAMPLE WHERE 1=1 AND columnA=? AND columnB=?"))
-        .andExpect(jsonPath("$.payload.parameters[0]").value("123"))
-        .andExpect(jsonPath("$.payload.parameters[1]").value("valueB"));
+            jsonPath("$.payload.sql").value("SELECT * FROM EXAMPLE WHERE columnA=? AND columnB=?"))
+        .andExpect(jsonPath("$.payload.parameters[0].value").value("123"))
+        .andExpect(jsonPath("$.payload.parameters[1].value").value("valueB"));
   }
 
   @Test
@@ -285,8 +284,8 @@ class ProxyConfigurationControllerTest {
                 .content(content))
         .andExpect(status().isOk())
         .andExpect(
-            jsonPath("$.payload.sql")
-                .value("SELECT * FROM EXAMPLE WHERE TERR_COD=60001 AND columnA=?"))
-        .andExpect(jsonPath("$.payload.parameters[0]").value("123"));
+            jsonPath("$.payload.sql").value("SELECT * FROM EXAMPLE WHERE TERR_COD=? AND columnA=?"))
+        .andExpect(jsonPath("$.payload.parameters[0].value").value("60001"))
+        .andExpect(jsonPath("$.payload.parameters[1].value").value("123"));
   }
 }

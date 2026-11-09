@@ -29,8 +29,13 @@ export class BtnCheckboxRenderedComponent implements ICellRendererAngularComp {
     );
   }
 
+  canEdit(): boolean {
+    const editable = this.params?.colDef?.editable;
+    return typeof editable === 'function' ? !!editable(this.params) : !!editable;
+  }
+
   btnCheckedHandler(event: MatCheckboxChange): void {
-    if (this.params.colDef.editable) {
+    if (this.canEdit()) {
       this.params.node.setDataValue(this.params.colDef.field, event.checked);
     }
   }

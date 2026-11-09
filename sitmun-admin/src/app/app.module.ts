@@ -7,6 +7,7 @@ import {BrowserModule} from '@angular/platform-browser';
 import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
 import {RouterModule} from '@angular/router';
 
+import {AgGridModule} from '@ag-grid-community/angular';
 import { provideMissingTranslationHandler, TranslateModule, TranslateService } from '@ngx-translate/core';
 import { provideTranslateHttpLoader } from '@ngx-translate/http-loader';
 import {firstValueFrom} from 'rxjs';
@@ -335,6 +336,7 @@ export function initializeConfiguration(
         DomainModule.forRoot(),
         ServicesModule,
         SitmunFrontendGuiModule,
+        AgGridModule,
         DataGridComponent,
         RelationGridComponent,
         DialogGridComponent,
