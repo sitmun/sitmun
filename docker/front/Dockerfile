@@ -48,7 +48,6 @@ COPY --chown=node:node sitmun-viewer/*.json sitmun-viewer/*.js sitmun-viewer/
 COPY --chown=node:node sitmun-viewer/src/ sitmun-viewer/src/
 COPY --chown=node:node docker/front/viewer/environment.prod.ts.template sitmun-viewer/src/environments/environment.prod.ts.template
 COPY --chown=node:node docker/front/viewer/index.html.template sitmun-viewer/src/index.html.template
-COPY --chown=node:node docker/front/viewer/webpack.config.js.template sitmun-viewer/webpack.config.js.template
 # Cap the viewer webpack heap so the build works when Docker VM RAM < 8 GiB.
 # Local pnpm run build uses 8192 MiB (the script default) when NODE_OPTIONS is unset.
 ENV NODE_OPTIONS="--max-old-space-size=4096"
@@ -58,7 +57,6 @@ RUN export BUILD_TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%S.000Z") && \
     if [ "${ENVIRONMENT}" = "production" ]; then export FRONT_ENV=Production; export FRONT_PRODUCTION=true; else export FRONT_ENV=Development; export FRONT_PRODUCTION=false; fi && \
     envsubst '$BUILD_TIMESTAMP,$APP_VERSION,$FRONT_ENV,$PUBLIC_BASE_PATH' < ./src/environments/environment.prod.ts.template > ./src/environments/environment.prod.ts
 RUN envsubst < ./src/index.html.template > ./src/index.html
-RUN envsubst '$$PUBLIC_BASE_PATH' < ./webpack.config.js.template > ./webpack.config.js
 RUN if [ "${ENVIRONMENT}" = "development" ]; then \
       pnpm exec ng build --configuration=docker-dev --base-href=${PUBLIC_BASE_PATH}viewer/; \
     else \

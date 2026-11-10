@@ -393,6 +393,11 @@ def _failures_js_catalog(_root: Path) -> list[str]:
     webpack_config = _read(ROOT / "sitmun-viewer/webpack.config.js")
     if "KeepApiSitnaDeclarationPathPlugin" not in webpack_config:
         failures.append("sitmun-viewer/webpack.config.js must keep the api-sitna declaration path")
+    if "PUBLIC_BASE_PATH" not in webpack_config:
+        failures.append("sitmun-viewer/webpack.config.js must read PUBLIC_BASE_PATH")
+    dockerfile = _read(ROOT / "docker/front/Dockerfile")
+    if "webpack.config.js.template" in dockerfile:
+        failures.append("docker/front/Dockerfile overwrites sitmun-viewer/webpack.config.js")
     root_pkg = json.loads(_read(ROOT / "package.json"))
     if not str(root_pkg.get("packageManager", "")).startswith("pnpm@"):
         failures.append("root package.json is missing packageManager")

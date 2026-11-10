@@ -5,6 +5,11 @@ const CopyWebpackPlugin = require('copy-webpack-plugin');
 const apiSitnaSource = 'node_modules/api-sitna';
 const apiSitnaDestiny = 'assets/js/api-sitna';
 
+// The front image sets PUBLIC_BASE_PATH. Local and CI builds leave it unset.
+const viewerPublicPath = process.env.PUBLIC_BASE_PATH
+  ? `${process.env.PUBLIC_BASE_PATH}viewer/`
+  : '/';
+
 // Angular 22 always passes supportedBrowsers into its Babel loader, so matched
 // dependencies are transformed. jszip/util crash that path under optimize.
 const skipAngularBabel = /[\\/]node_modules[\\/](?:jszip|util)[\\/]/;
@@ -82,7 +87,7 @@ class KeepApiSitnaDeclarationPathPlugin {
 module.exports = (config) => {
   config.output = {
     ...config.output,
-    publicPath: '/'
+    publicPath: viewerPublicPath
   };
 
   const existingProxy = config.devServer && config.devServer.proxy;
@@ -167,7 +172,7 @@ module.exports = (config) => {
       patterns: [{ from: apiSitnaSource, to: apiSitnaDestiny }]
     }),
     new webpack.DefinePlugin({
-      SITNA_BASE_URL: JSON.stringify('/' + apiSitnaDestiny + '/')
+      SITNA_BASE_URL: JSON.stringify(viewerPublicPath + apiSitnaDestiny + '/')
     }),
     new KeepApiSitnaDeclarationPathPlugin()
   ];
