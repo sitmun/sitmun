@@ -54,6 +54,12 @@ class PublishedImagesTest(unittest.TestCase):
         readme = (ROOT / "README.md").read_text(encoding="utf-8")
         self.assertIn("set `front`, `backend`, `proxy`, and `mbtiles` to public in Package settings", readme)
 
+    def test_front_waits_for_a_healthy_proxy(self) -> None:
+        text = (ROOT / "compose.yaml").read_text(encoding="utf-8")
+        front = text.split("\n  front:\n", 1)[1].split("\n  backend:\n", 1)[0]
+        self.assertRegex(front, r"backend:\n\s+condition: service_started")
+        self.assertRegex(front, r"proxy:\n\s+condition: service_healthy")
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -98,6 +98,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+#### Edition Mobile App
+
+- **Map**: Delete stays hidden while a point is added ([#189](https://github.com/sitmun/sitmun/issues/189)).
+- **Map**: Saving a point closes the form ([#190](https://github.com/sitmun/sitmun/issues/190)).
+- **Map**: Closing the form clears the selected point. Editing its geometry does not ([#184](https://github.com/sitmun/sitmun/issues/184)).
+- **Applications**: An empty list while offline says that no applications are saved on the device ([#192](https://github.com/sitmun/sitmun/issues/192)).
+- **MBTiles**: Estimate and download send numeric service and layer ids ([#203](https://github.com/sitmun/sitmun/issues/203)).
+
+#### Stack
+
+- **Compose**: The web container waits until the proxy health check passes before it starts ([#151](https://github.com/sitmun/sitmun/issues/151)).
+
 #### Backend Core
 
 - **Service checks**: A blank detail is stored as null. On Oracle, existing `SEC_OBSERVED` and `SCS_OBSERVED` values are copied as UTC before the columns become `TIMESTAMP(6) WITH TIME ZONE` ([sitmun-backend-core#355](https://github.com/sitmun/sitmun-backend-core/pull/355)).

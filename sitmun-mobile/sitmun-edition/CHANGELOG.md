@@ -17,5 +17,10 @@
 ### Fixed
 
 - **Applications**: Main list and offline cache show `name` when `title` is null ([#5](https://github.com/sitmun/edition-mobile-app/issues/5)).
+- **Map**: Delete stays hidden while a point is added ([#189](https://github.com/sitmun/sitmun/issues/189)).
+- **Map**: Saving a point closes the form ([#190](https://github.com/sitmun/sitmun/issues/190)).
+- **Map**: Closing the form clears the selected point. Editing its geometry does not ([#184](https://github.com/sitmun/sitmun/issues/184)).
+- **Applications**: An empty list while offline says that no applications are saved on the device ([#192](https://github.com/sitmun/sitmun/issues/192)).
+- **MBTiles**: Estimate and download send numeric service and layer ids ([#203](https://github.com/sitmun/sitmun/issues/203)).
 - **WFS**: Relative `/proxy/{app}/{ter}/WFS/{id}` task URLs resolve against the middleware base instead of the Capacitor WebView origin. GetFeature/Transaction send `Authorization: Bearer` for the middleware origin ([#6](https://github.com/sitmun/edition-mobile-app/issues/6)).
 - **Auth** / **i18n**: Failed login shows an error message; validation errors use i18n keys (`home.loginError`, `home.instanceRequired`) instead of hardcoded Spanish.

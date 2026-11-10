@@ -17,7 +17,8 @@
         "openDownload": "Abrir descarga",
         "cancel": "Cancel·lar",
         "sessionExpired": "Sessió caducada, torneu a iniciar sessió",
-        "reconnectLogin": "La connexió ha tornat. Torneu a iniciar sessió per pujar els canvis."
+        "reconnectLogin": "La connexió ha tornat. Torneu a iniciar sessió per pujar els canvis.",
+        "offlineEmpty": "Esteu sense connexió i no hi ha aplicacions desades en aquest dispositiu."
     },
     "download": {
         "title": "Descarregar",

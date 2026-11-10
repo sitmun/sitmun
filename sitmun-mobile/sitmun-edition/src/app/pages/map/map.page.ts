@@ -304,6 +304,7 @@ export class MapPage implements OnInit {
     this.openDateKey = null;
     if (resetGeom) {
       this.newGeometry = null;
+      this.mapa.getFeatureHandler().clearSelectedFeatures();
     }
   }
 
@@ -482,6 +483,7 @@ export class MapPage implements OnInit {
       await loading.present();
       await this.saveFeature();
       this.languageService.translateTag('map.pointSaved').subscribe(text => this.mapService.createToast(text, 'success', 'bottom'));
+      this.closeFeatureModal(true);
     } finally {
       await loading.dismiss().catch(() => undefined);
       this.saving = false;

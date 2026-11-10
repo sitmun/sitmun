@@ -17,7 +17,8 @@
         "openDownload": "Open download",
         "cancel": "Cancel",
         "sessionExpired": "Session expired, please log in again",
-        "reconnectLogin": "Connection is back. Log in again to upload your changes."
+        "reconnectLogin": "Connection is back. Log in again to upload your changes.",
+        "offlineEmpty": "You are offline, and no applications are saved on this device."
     },
     "download": {
         "title": "Download",
