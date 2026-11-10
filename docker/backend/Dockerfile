@@ -14,6 +14,9 @@ RUN --mount=type=cache,target=/root/.gradle \
 
 # Stage 1, based on Amazon Corretto, to have only the compiled app, ready for production with Nginx
 FROM amazoncorretto:${JDK_VERSION}.${JDK_TAG}-alpine${ALPINE_TAG}
+LABEL org.opencontainers.image.source=https://github.com/sitmun/sitmun
+LABEL org.opencontainers.image.licenses=EUPL-1.2
+LABEL org.opencontainers.image.description="SITMUN backend"
 RUN apk add --no-cache curl
 COPY --from=build-backend-core /usr/src/sitmun-backend/build/libs/*.jar /usr/src/sitmun.jar
 WORKDIR /usr/src

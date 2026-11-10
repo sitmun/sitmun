@@ -59,7 +59,7 @@ SITMUN Backend Core provides:
 - Database support (H2, PostgreSQL, Oracle)
 - JWT-based security and OpenAPI documentation
 
-Integrates with the [SITMUN Map Viewer](https://github.com/sitmun/sitmun-map-viewer) and [SITMUN Proxy Middleware](https://github.com/sitmun/sitmun-proxy-middleware).
+Integrates with the [SITMUN viewer](https://github.com/sitmun/sitmun/tree/dev/sitmun-viewer) and the [SITMUN proxy](https://github.com/sitmun/sitmun/tree/dev/sitmun-proxy).
 
 ## Quick Start
 
@@ -76,24 +76,26 @@ Integrates with the [SITMUN Map Viewer](https://github.com/sitmun/sitmun-map-vie
 1. **Clone the repository**
 
    ```bash
-   git clone https://github.com/sitmun/sitmun-backend-core.git
-   cd sitmun-backend-core
+   git clone --branch dev https://github.com/sitmun/sitmun.git
+   cd sitmun
    ```
+
+   Gradle runs from this repository root. The boot jar is `sitmun-backend/build/libs/sitmun-backend-<version>.jar`, where `<version>` is `version` in `gradle.properties`. Do not run the `-plain` jar.
 
 2. **Build the application**
 
    ```bash
-   ./gradlew build -x test
+   ./gradlew :sitmun-backend:build -x test
    ```
 
 3. **Run the application**
 
    ```bash
    # Run with Java directly (recommended)
-   java -jar build/libs/sitmun-backend-core.jar --spring.profiles.active=dev
+   java -jar sitmun-backend/build/libs/sitmun-backend-$(awk -F= '/^version=/{print $2}' gradle.properties).jar --spring.profiles.active=dev
    
    # Or use Gradle bootRun directly
-   ./gradlew bootRun --args='--spring.profiles.active=dev'
+   ./gradlew :sitmun-backend:bootRun --args='--spring.profiles.active=dev'
    ```
 
 4. **Verify the service is running**
@@ -110,32 +112,13 @@ Integrates with the [SITMUN Map Viewer](https://github.com/sitmun/sitmun-map-vie
 
 ### Docker Deployment
 
-1. **Start with Docker Compose (H2 - Development)**
+From the repository root, `./setup.sh` (Windows: `./setup.ps1`) prepares `.env`, then `docker compose up -d` starts the stack. Profiles and URLs are in the [repository README](../README.md).
 
-   ```bash
-   cd docker/development
-   docker-compose up
-   ```
+**Verify deployment**
 
-2. **PostgreSQL Database**
-
-   ```bash
-   cd docker/postgres
-   docker-compose up
-   ```
-
-3. **Oracle Database**
-
-   ```bash
-   cd docker/oracle
-   docker-compose up
-   ```
-
-4. **Verify deployment**
-
-   ```bash
-   curl http://localhost:8080/api/dashboard/health
-   ```
+```bash
+curl http://localhost:9001/api/dashboard/health
+```
 
 ### Troubleshooting
 
@@ -143,22 +126,21 @@ Integrates with the [SITMUN Map Viewer](https://github.com/sitmun/sitmun-map-vie
 
 ```bash
 # Use different port
-./gradlew bootRun --args='--spring.profiles.active=dev --server.port=8081'
+./gradlew :sitmun-backend:bootRun --args='--spring.profiles.active=dev --server.port=8081'
 ```
 
 #### Memory Issues
 
 ```bash
 # Increase heap size
-./gradlew bootRun --args='--spring.profiles.active=dev -Xmx4g -Xms2g'
+./gradlew :sitmun-backend:bootRun --args='--spring.profiles.active=dev -Xmx4g -Xms2g'
 ```
 
 #### Docker Issues
 
 ```bash
 # Clean up Docker resources
-cd docker/development
-docker-compose down -v
+docker compose down -v
 docker system prune -f
 ```
 
@@ -166,11 +148,11 @@ docker system prune -f
 
 ```bash
 # Check database connectivity
-docker exec sitmun-backend ping postgres
-docker exec sitmun-backend ping oracle
+docker compose exec backend ping postgres
+docker compose exec backend ping oracle
 
 # Verify database configuration
-curl http://localhost:8080/api/dashboard/health
+curl http://localhost:9001/api/dashboard/health
 ```
 
 ### Packaging Options
@@ -183,13 +165,13 @@ Standalone executable JAR with embedded Tomcat server.
 
 ```bash
 # Build JAR (default)
-./gradlew build
+./gradlew :sitmun-backend:build
 
 # Or explicitly
-./gradlew build -Ppackaging=jar
+./gradlew :sitmun-backend:build -Ppackaging=jar
 
 # Run JAR
-java -jar build/libs/sitmun-backend-core.jar --spring.profiles.active=dev
+java -jar sitmun-backend/build/libs/sitmun-backend-$(awk -F= '/^version=/{print $2}' gradle.properties).jar --spring.profiles.active=dev
 ```
 
 **Use JAR when:**
@@ -204,9 +186,9 @@ Web Application Archive for deployment to external servlet containers.
 
 ```bash
 # Build WAR
-./gradlew build -Ppackaging=war
+./gradlew :sitmun-backend:build -Ppackaging=war
 
-# Output: build/libs/sitmun-backend-core.war
+# Output: sitmun-backend/build/libs/sitmun-backend-<version>.war
 ```
 
 **Use WAR when:**
@@ -219,13 +201,13 @@ Web Application Archive for deployment to external servlet containers.
 
 ```bash
 # Copy WAR to Tomcat
-cp build/libs/sitmun-backend-core.war /path/to/tomcat/webapps/
+cp sitmun-backend/build/libs/sitmun-backend-$(awk -F= '/^version=/{print $2}' gradle.properties).war /path/to/tomcat/webapps/
 
 # Tomcat will auto-deploy at:
-# http://localhost:8080/sitmun-backend-core/
+# http://localhost:8080/sitmun-backend-<version>/
 
 # Or rename to ROOT.war for root context:
-cp build/libs/sitmun-backend-core.war /path/to/tomcat/webapps/ROOT.war
+cp sitmun-backend/build/libs/sitmun-backend-$(awk -F= '/^version=/{print $2}' gradle.properties).war /path/to/tomcat/webapps/ROOT.war
 # http://localhost:8080/
 ```
 
@@ -701,19 +683,19 @@ Comprehensive testing strategy:
 
 ```bash
 # Run all tests
-./gradlew test
+./gradlew :sitmun-backend:test
 
 # Test with PostgreSQL 16 (Docker Compose)
-./gradlew testPostgres
+./gradlew :sitmun-backend:testPostgres
 
 # Test with Oracle Free 23 (Docker Compose)
-./gradlew testOracle
+./gradlew :sitmun-backend:testOracle
 
 # Test against a database that is already running
-./gradlew testOracle11
-./gradlew testOracle19
-./gradlew testPostgres12
-./gradlew testPostgres16
+./gradlew :sitmun-backend:testOracle11
+./gradlew :sitmun-backend:testOracle19
+./gradlew :sitmun-backend:testPostgres12
+./gradlew :sitmun-backend:testPostgres16
 ```
 
 `test` and `testH2` use H2 and leave `sitmun.test.database.enabled` unset. The tasks above set `sitmun.test.database.enabled=true` plus `product` and `version` (`oracle`/`11`, `oracle`/`19`, `oracle`/`23`, `postgres`/`12`, `postgres`/`16`). A test that must not run on H2 uses `@EnabledOnDatabase`. `@EnabledOnOracleSince11` runs on Oracle 11 and newer.
@@ -740,7 +722,7 @@ In GitHub Actions, start the matching fresh-install workflow and the upgrade wor
 
 ```bash
 # Run specific test class
-./gradlew test --tests AuthenticationControllerTest
+./gradlew :sitmun-backend:test --tests AuthenticationControllerTest
 ```
 
 **Oracle Test Notes:**
@@ -750,7 +732,7 @@ In GitHub Actions, start the matching fresh-install workflow and the upgrade wor
 - If Oracle startup fails and containers are retained for troubleshooting, clean them with:
 
   ```bash
-  ./gradlew oracleComposeDownForced
+  ./gradlew :sitmun-backend:oracleComposeDownForced
   ```
 
 ### Development Workflow

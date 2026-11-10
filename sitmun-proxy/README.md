@@ -71,7 +71,7 @@ The SITMUN Proxy Middleware provides secure proxy functionality to:
 - **Response Processing**: Modify service responses before returning to client applications
 - **Security Layer**: Provide an additional security layer for sensitive geospatial services
 
-This service integrates with the [SITMUN Backend Core](https://github.com/sitmun/sitmun-backend-core) to provide secure proxy capabilities for the SITMUN platform.
+This service integrates with the [SITMUN backend](https://github.com/sitmun/sitmun/tree/dev/sitmun-backend) to provide secure proxy capabilities for the SITMUN platform.
 
 ## Quick Start
 
@@ -80,31 +80,33 @@ This service integrates with the [SITMUN Backend Core](https://github.com/sitmun
 - Java 17 or later
 - Docker CE or Docker Desktop
 - Git
-- Running instance of [sitmun-backend-core](https://github.com/sitmun/sitmun-backend-core)
+- Running instance of the [SITMUN backend](https://github.com/sitmun/sitmun/tree/dev/sitmun-backend)
 
 ### Local Development
 
 1. **Clone the repository**
 
    ```bash
-   git clone https://github.com/sitmun/sitmun-proxy-middleware.git
-   cd sitmun-proxy-middleware
+   git clone --branch dev https://github.com/sitmun/sitmun.git
+   cd sitmun
    ```
+
+   Gradle runs from this repository root. The boot jar is `sitmun-proxy/build/libs/sitmun-proxy-<version>.jar`, where `<version>` is `version` in `gradle.properties`. Do not run the `-plain` jar.
 
 2. **Build the application**
 
    ```bash
-   ./gradlew build -x test
+   ./gradlew :sitmun-proxy:build -x test
    ```
 
 3. **Run the application**
 
    ```bash
    # Run with Java directly (recommended)
-   java -jar build/libs/sitmun-proxy-middleware.jar --spring.profiles.active=prod
+   java -jar sitmun-proxy/build/libs/sitmun-proxy-$(awk -F= '/^version=/{print $2}' gradle.properties).jar --spring.profiles.active=prod
    
    # Or use Gradle bootRun directly
-   ./gradlew bootRun --args='--spring.profiles.active=prod'
+   ./gradlew :sitmun-proxy:bootRun --args='--spring.profiles.active=prod'
    ```
 
 4. **Verify the service is running**
@@ -121,28 +123,13 @@ This service integrates with the [SITMUN Backend Core](https://github.com/sitmun
 
 > **Note:** Docker builds use JAR packaging only. For WAR deployments, build locally and deploy to your application server.
 
-1. **Create environment configuration**
+From the repository root, `./setup.sh` (Windows: `./setup.ps1`) prepares `.env`, then `docker compose up -d` starts the stack. Profiles and URLs are in the [repository README](../README.md).
 
-   ```bash
-   # Create .env file
-   cat > .env << EOF
-   SITMUN_BACKEND_CONFIG_URL=http://localhost:9001/api/config/proxy
-   SITMUN_BACKEND_CONFIG_SECRET=<32+ char random value>
-   EOF
-   ```
+**Verify deployment**
 
-2. **Start with Docker Compose**
-
-   ```bash
-   cd docker/development
-   docker-compose up
-   ```
-
-3. **Verify deployment**
-
-   ```bash
-   curl http://localhost:8080/actuator/health
-   ```
+```bash
+curl http://localhost:9002/actuator/health
+```
 
 ### Troubleshooting
 
@@ -150,22 +137,21 @@ This service integrates with the [SITMUN Backend Core](https://github.com/sitmun
 
 ```bash
 # Use different port
-./gradlew bootRun --args='--spring.profiles.active=prod --server.port=8081'
+./gradlew :sitmun-proxy:bootRun --args='--spring.profiles.active=prod --server.port=8081'
 ```
 
 #### Memory Issues
 
 ```bash
 # Increase heap size
-./gradlew bootRun --args='--spring.profiles.active=prod -Xmx4g -Xms2g'
+./gradlew :sitmun-proxy:bootRun --args='--spring.profiles.active=prod -Xmx4g -Xms2g'
 ```
 
 #### Docker Issues
 
 ```bash
 # Clean up Docker resources
-cd docker/development
-docker-compose down -v
+docker compose down -v
 docker system prune -f
 ```
 
@@ -173,25 +159,25 @@ docker system prune -f
 
 ```bash
 # Build the project
-./gradlew build
+./gradlew :sitmun-proxy:build
 
 # Build without tests (faster for development)
-./gradlew build -x test
+./gradlew :sitmun-proxy:build -x test
 
 # Run tests
-./gradlew test
+./gradlew :sitmun-proxy:test
 
 # Create JAR file
-./gradlew jar
+./gradlew :sitmun-proxy:jar
 
 # Format code
-./gradlew spotlessApply
+./gradlew :sitmun-proxy:spotlessApply
 
 # Check code coverage
-./gradlew jacocoTestReport
+./gradlew :sitmun-proxy:jacocoTestReport
 ```
 
-> **💡 Tip**: For development, use `./gradlew build -x test` for faster builds, then run the JAR directly with `java -jar build/libs/sitmun-proxy-middleware.jar --spring.profiles.active=dev`
+> **💡 Tip**: For development, use `./gradlew :sitmun-proxy:build -x test` for faster builds, then run the JAR directly with `java -jar sitmun-proxy/build/libs/sitmun-proxy-$(awk -F= '/^version=/{print $2}' gradle.properties).jar --spring.profiles.active=dev`
 
 ### Packaging Options
 
@@ -203,13 +189,13 @@ Standalone executable JAR with embedded Tomcat server.
 
 ```bash
 # Build JAR (default)
-./gradlew build
+./gradlew :sitmun-proxy:build
 
 # Or explicitly
-./gradlew build -Ppackaging=jar
+./gradlew :sitmun-proxy:build -Ppackaging=jar
 
 # Run JAR
-java -jar build/libs/sitmun-proxy-middleware.jar --spring.profiles.active=prod
+java -jar sitmun-proxy/build/libs/sitmun-proxy-$(awk -F= '/^version=/{print $2}' gradle.properties).jar --spring.profiles.active=prod
 ```
 
 **Use JAR when:**
@@ -224,9 +210,9 @@ Web Application Archive for deployment to external servlet containers.
 
 ```bash
 # Build WAR
-./gradlew build -Ppackaging=war
+./gradlew :sitmun-proxy:build -Ppackaging=war
 
-# Output: build/libs/sitmun-proxy-middleware.war
+# Output: sitmun-proxy/build/libs/sitmun-proxy-<version>.war
 ```
 
 **Use WAR when:**
@@ -239,13 +225,13 @@ Web Application Archive for deployment to external servlet containers.
 
 ```bash
 # Copy WAR to Tomcat
-cp build/libs/sitmun-proxy-middleware.war /path/to/tomcat/webapps/
+cp sitmun-proxy/build/libs/sitmun-proxy-$(awk -F= '/^version=/{print $2}' gradle.properties).war /path/to/tomcat/webapps/
 
 # Tomcat will auto-deploy at:
-# http://localhost:8080/sitmun-proxy-middleware/
+# http://localhost:8080/sitmun-proxy-<version>/
 
 # Or rename to ROOT.war for root context:
-cp build/libs/sitmun-proxy-middleware.war /path/to/tomcat/webapps/ROOT.war
+cp sitmun-proxy/build/libs/sitmun-proxy-$(awk -F= '/^version=/{print $2}' gradle.properties).war /path/to/tomcat/webapps/ROOT.war
 # http://localhost:8080/
 ```
 
@@ -704,24 +690,17 @@ WmsCapabilitiesResponseDecorator       // Modifies WMS capabilities responses
 #### Docker Deployment
 
 ```bash
-# Build and run with Docker Compose
-cd docker/development
-docker-compose up --build
-
-# Run in background
-docker-compose up -d
-
-# View logs
-docker-compose logs -f
-
-# Stop services
-docker-compose down
+# From the repository root
+./setup.sh
+docker compose up -d --build
+docker compose logs -f
+docker compose down
 ```
 
 **Docker Configuration:**
 
-- **Multi-stage build** using Amazon Corretto 17 (`docker/Dockerfile`)
-- **Development environment** with Docker Compose (`docker/development/docker-compose.yml`)
+- **Multi-stage build** using Amazon Corretto 17 (`docker/proxy/Dockerfile`)
+- **Stack compose** at the repository root (`compose.yaml`)
 - **Health checks** with curl-based monitoring
 - **External configuration** mounting from host
 - **JVM optimization** with G1GC and container support
@@ -731,16 +710,16 @@ docker-compose down
 
 ```bash
 # Build JAR
-./gradlew build
+./gradlew :sitmun-proxy:build
 
 # Run with production profile
-java -jar build/libs/sitmun-proxy-middleware.jar --spring.profiles.active=prod
+java -jar sitmun-proxy/build/libs/sitmun-proxy-$(awk -F= '/^version=/{print $2}' gradle.properties).jar --spring.profiles.active=prod
 ```
 
 ### Project Structure
 
 ```text
-sitmun-proxy-middleware/
+sitmun-proxy/
 ├── src/
 │   ├── main/
 │   │   ├── java/org/sitmun/proxy/middleware/
@@ -840,13 +819,13 @@ Code quality tools:
 
 ```bash
 # Format code
-./gradlew spotlessApply
+./gradlew :sitmun-proxy:spotlessApply
 
 # Check formatting without applying
-./gradlew spotlessCheck
+./gradlew :sitmun-proxy:spotlessCheck
 
 # Check code coverage
-./gradlew jacocoTestReport
+./gradlew :sitmun-proxy:jacocoTestReport
 
 # View coverage report
 open build/reports/jacoco/test/html/index.html
@@ -862,21 +841,21 @@ Testing commands:
 
 ```bash
 # Run all tests
-./gradlew test
+./gradlew :sitmun-proxy:test
 
 # Run specific test class
-./gradlew test --tests ProxyMiddlewareControllerTest
+./gradlew :sitmun-proxy:test --tests ProxyMiddlewareControllerTest
 
 # Run protocol-specific tests
-./gradlew test --tests *HttpExecutionRequestExecutorServiceTest
-./gradlew test --tests *JdbcExecutionRequestExecutorServiceTest
-./gradlew test --tests *WmsExecutionRequestExecutorServiceTest
+./gradlew :sitmun-proxy:test --tests *HttpExecutionRequestExecutorServiceTest
+./gradlew :sitmun-proxy:test --tests *JdbcExecutionRequestExecutorServiceTest
+./gradlew :sitmun-proxy:test --tests *WmsExecutionRequestExecutorServiceTest
 
 # Run service tests
-./gradlew test --tests *ServiceExecutionRequestExecutorServiceTest
+./gradlew :sitmun-proxy:test --tests *ServiceExecutionRequestExecutorServiceTest
 
 # Run tests with coverage
-./gradlew test jacocoTestReport
+./gradlew :sitmun-proxy:test jacocoTestReport
 ```
 
 #### Test Coverage
@@ -1223,7 +1202,7 @@ docker-compose restart sitmun-proxy-middleware
 
 ### SITMUN Application Stack
 
-See [SITMUN Application Stack](https://github.com/sitmun/sitmun-application-stack) as an example of how to deploy and run the proxy as part of the SITMUN stack.
+See the [repository README](https://github.com/sitmun/sitmun) for how the proxy runs in the stack.
 
 ## Support
 

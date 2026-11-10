@@ -12,7 +12,7 @@ export const environment = {
   version: packageJson.version,
   environmentName: 'Production',
   buildTimestamp: new Date().toISOString(),
-  loginBackgroundImageUrl: 'assets/logos/barcelona_background.jpg',
+  loginBackgroundImageUrl: '',
   proxyTokenRefreshIntervalMs: 2 * 60 * 1000,
   sessionTokenRefreshIntervalMs: 2 * 60 * 1000
 };

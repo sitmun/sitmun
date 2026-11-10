@@ -10,6 +10,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 #### Backend Core
 
+- **Liquibase**: The Portuguese translation edit keeps the checksums already stored for `baseline-languages-postgresql`, `baseline-translations`, and `upgrade-1.2.9-to-1.3.0-translations-postgresql`.
+- **Liquibase**: A database that has no `pt-PT` row receives Portuguese even when it is not a 1.2.9 upgrade. A fresh database has no `stm_language` yet, so that check is skipped and the baseline still inserts the row.
 - **Tests**: A test that must not run on H2 uses `@EnabledOnDatabase`. `atLeast` is inclusive and `before` is exclusive. `@EnabledOnOracleSince11` is that annotation for Oracle 11 and newer. Production-database tasks set `sitmun.test.database.enabled`, `product`, and `version`.
 - **Cartography**: The cartography view includes `serviceType` from the linked service ([sitmun-admin-app#498](https://github.com/sitmun/sitmun-admin-app/issues/498)).
 - **Code lists**: `cartographyParameter.geometryKind` and `cartographyParameter.preferredGeometryType` store English descriptions. Spanish, Catalan, Aranese, and French labels, including format `Geometry`, come from `STM_TRANSLATION`.
@@ -45,6 +47,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 #### Stack
 
+- **Images**: `compose.yaml` names `ghcr.io/sitmun/front`, `backend`, `proxy`, and `mbtiles` at `${SITMUN_VERSION:-1.3.0}` and still builds from this checkout. `docker compose up -d --pull always --no-build` uses the published images. `.github/workflows/publish-images.yml` pushes tag `1.3.0` on a manual run, and the version without the leading `v` on a `v*` git tag. The front image is built with `PUBLIC_BASE_PATH=/` and `ENVIRONMENT=production`. GitHub creates each package private; an admin sets `front`, `backend`, `proxy`, and `mbtiles` public in Package settings after the first push ([#139](https://github.com/sitmun/sitmun/issues/139)).
 - **CI**: `ci-gate` selects changed components with `tools/bin/ci_scope.py`. Gradle caches are written from `dev` only. End-to-end jobs reuse the Playwright browser. Docker builds reuse layers from the GitHub Actions cache. Third-party actions are pinned to a commit. Dependabot opens one pull request for action updates.
 - **CI**: The four fresh-install checks share `.github/actions/backend-database`. A manual Liquibase upgrade run takes `db` and `source`.
 - **CI**: `ci-gate` follows changed paths on a push, comparing that push with the previous commit on the same branch. A manual run starts every job. The workflow also runs in a merge group.

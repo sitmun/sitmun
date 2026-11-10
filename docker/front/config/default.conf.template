@@ -20,6 +20,25 @@ server {
   location / {
     root /usr/share/nginx/html;
     include /etc/nginx/mime.types;
+
+    # The icon files are PNG. Exact locations keep the SPA fallback from
+    # answering a favicon request with index.html.
+    location = ${LOCAL_BASE_PATH}favicon.ico {
+      alias /usr/share/nginx/html/viewer/favicon.ico;
+      types { }
+      default_type image/png;
+    }
+    location = ${LOCAL_BASE_PATH}viewer/favicon.ico {
+      alias /usr/share/nginx/html/viewer/favicon.ico;
+      types { }
+      default_type image/png;
+    }
+    location = ${LOCAL_BASE_PATH}admin/favicon.ico {
+      alias /usr/share/nginx/html/admin/favicon.ico;
+      types { }
+      default_type image/png;
+    }
+
     return 301 "${public_path}viewer/";
     
     # Redirect /admin to /admin/ (permanent redirect)

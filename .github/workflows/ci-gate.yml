@@ -39,6 +39,8 @@ jobs:
           fetch-depth: 0
       - name: Check the required code-list manifest
         run: python3 tools/tests/test_inventory_codelist_consumers.py
+      - name: Check the published image contract
+        run: python3 tools/tests/test_published_images.py
       - name: Select changed components
         id: filter
         env:

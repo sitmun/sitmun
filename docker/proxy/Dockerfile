@@ -15,6 +15,9 @@ RUN --mount=type=cache,target=/root/.gradle-proxy \
 
 # Stage 1, based on Amazon Corretto, to have only the compiled app
 FROM amazoncorretto:${JDK_VERSION}.${JDK_TAG}-alpine${ALPINE_TAG}
+LABEL org.opencontainers.image.source=https://github.com/sitmun/sitmun
+LABEL org.opencontainers.image.licenses=EUPL-1.2
+LABEL org.opencontainers.image.description="SITMUN proxy"
 RUN apk add --no-cache curl
 COPY --from=build-proxy-middleware /usr/src/sitmun-proxy/build/libs/*.jar /usr/src/proxy.jar
 WORKDIR /usr/src
