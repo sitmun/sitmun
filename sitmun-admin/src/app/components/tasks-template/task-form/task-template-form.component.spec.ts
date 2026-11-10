@@ -136,9 +136,9 @@ describe('TaskTemplateFormComponent', () => {
       ],
     });
 
-    const translateService = createSpyObj(['instant', 'get']);
+    const translateService = createSpyObj(['instant', 'get', 'getCurrentLang']);
     translateService.instant.mockImplementation((key: string) => key);
-    translateService.getCurrentLang = () => 'ca';
+    translateService.getCurrentLang.mockReturnValue('ca');
     dialog = createSpyObj(['open']);
     dialog.open.mockReturnValue({
       componentInstance: {},
