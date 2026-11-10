@@ -31,7 +31,9 @@ if (externalUrl && !existsSync(testChangelog)) {
 let h2Changelog;
 if (!externalUrl) {
   try {
-    h2Changelog = writeH2Changelog(stackRoot);
+    h2Changelog = writeH2Changelog(stackRoot, {
+      firstRun: process.env.SITMUN_E2E_FIRST_RUN === '1',
+    });
   } catch (error) {
     fail(prefix, error instanceof Error ? error.message : String(error));
   }

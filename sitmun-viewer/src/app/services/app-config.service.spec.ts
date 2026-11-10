@@ -273,6 +273,33 @@ describe('AppConfigService', () => {
     });
   });
 
+  it('uses the same static language fallback as the admin client', () => {
+    const viewer = JSON.parse(
+      readFileSync(
+        join(process.cwd(), 'src/assets/config/app-config.json'),
+        'utf8'
+      )
+    );
+    const admin = JSON.parse(
+      readFileSync(
+        join(
+          process.cwd(),
+          '../sitmun-admin/src/assets/config/app-config.json'
+        ),
+        'utf8'
+      )
+    );
+
+    expect(viewer.defaultLanguage).toBe(admin.defaultLanguage);
+    expect(viewer.languages.map((language: { shortname: string }) => language.shortname)).toEqual(
+      admin.languages.map((language: { shortname: string }) => language.shortname)
+    );
+  });
+
+  it('falls back to Catalan when no static default is configured', () => {
+    expect(service.getDefaultLanguage()).toBe('ca');
+  });
+
   it('ships identify controls without persistent highlights', () => {
     const config = JSON.parse(
       readFileSync(

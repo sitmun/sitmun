@@ -14,6 +14,7 @@
     "e2e:mia-cross": "playwright test --config=e2e/playwright.mia-cross.config.ts",
     "e2e:mia-cross:ui": "playwright test --config=e2e/playwright.mia-cross.config.ts --ui",
     "e2e:application-contact": "playwright test --config=e2e/playwright.application-contact.config.ts",
+    "e2e:first-run": "playwright test --config=e2e/playwright.first-run.config.ts",
     "e2e:viewer:app": "node e2e/scripts/e2e-viewer.mjs",
     "e2e:proxy": "node e2e/scripts/e2e-proxy.mjs",
     "e2e:proxy:mobile": "node e2e/scripts/e2e-proxy-mobile.mjs",

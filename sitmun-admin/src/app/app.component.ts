@@ -1,8 +1,9 @@
-import {Component, OnDestroy, OnInit, ChangeDetectionStrategy} from '@angular/core';
+import {ChangeDetectionStrategy, Component, DestroyRef, inject, Injector, OnDestroy, OnInit} from '@angular/core';
+import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
 
 import {TranslateService} from '@ngx-translate/core';
-import {Observable, Subscription} from 'rxjs';
-import {map} from 'rxjs/operators';
+import {EMPTY, Observable, Subscription, timer} from 'rxjs';
+import {distinctUntilChanged, map, switchMap} from 'rxjs/operators';
 
 import {LoginService} from '@app/core/auth/login.service';
 import {Principal} from '@app/core/auth/principal.service';
@@ -10,8 +11,9 @@ import {ErrorTrackingService} from '@app/services/error-tracking.service';
 import {LoggerService} from '@app/services/logger.service';
 import {config} from '@config';
 
+import {retryAppStartup} from './services/app-startup';
 import {AppStateService} from './services/app-state.service';
-import {resolveUiLanguage} from './services/ui-language.resolver';
+import {readBrowserLanguages, resolveUiLanguage} from './services/ui-language.resolver';
 
 
 @Component({
@@ -34,8 +36,11 @@ export class AppComponent implements OnInit, OnDestroy {
 
   hasInitializationError$: Observable<boolean>;
   initializationError$: Observable<any>;
+  waitingForBackend$: Observable<boolean>;
 
   private readonly subscription: Subscription;
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly injector = inject(Injector);
 
   constructor(
     /** Translate service */public trans: TranslateService,
@@ -52,6 +57,9 @@ export class AppComponent implements OnInit, OnDestroy {
     this.initializationError$ = this.appStateService.state$.pipe(
       map(state => state.initializationError)
     );
+    this.waitingForBackend$ = this.appStateService.state$.pipe(
+      map(state => state.waitingForBackend)
+    );
   }
 
   /** On component init, get logged user account*/
@@ -65,6 +73,14 @@ export class AppComponent implements OnInit, OnDestroy {
     }
 
     this.setInitialLanguage();
+    this.appStateService.state$.pipe(
+      map(state => state.waitingForBackend),
+      distinctUntilChanged(),
+      switchMap(waiting => waiting ? timer(1500, 2000) : EMPTY),
+      takeUntilDestroyed(this.destroyRef),
+    ).subscribe(() => {
+      void retryAppStartup(this.injector);
+    });
 
     this.principal.identity().then((account) => {
       this.currentAccount = account;
@@ -91,6 +107,7 @@ export class AppComponent implements OnInit, OnDestroy {
     const available = (config.languagesToUse || []).map(lang => lang.shortname);
     const chosen = resolveUiLanguage({
       stored: localStorage.getItem('lang'),
+      browser: readBrowserLanguages(),
       backendDefault: config.defaultLang,
       availableShortnames: available,
       staticFallback: config.defaultLang || available[0] || 'en',

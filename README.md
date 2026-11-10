@@ -92,7 +92,7 @@ To choose a profile yourself, copy one file to `.env` and run `./setup.sh` (Wind
 
 Copying a profile over an existing `.env` drops secrets already appended. Append them again.
 
-Seeded login: `admin` / `admin`. For a deployment other than a local demo, replace the database password (Compose falls back to `sitmun3` / `sitmun3`).
+Seeded login: `admin` / `admin`. A new database that is still on that password and on `language.default=en` asks an administrator, after login, to choose the database language and optionally replace the password. Skip leaves both as they are. For a deployment other than a local demo, replace the database password (Compose falls back to `sitmun3` / `sitmun3`).
 
 | URL | What |
 | --- | --- |

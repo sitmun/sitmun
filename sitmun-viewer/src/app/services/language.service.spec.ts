@@ -10,6 +10,17 @@ import { AppConfigService } from './app-config.service';
 import { LanguageService } from './language.service';
 import { environment } from '../../environments/environment';
 
+function setBrowserLanguages(tags: string[]): void {
+  Object.defineProperty(window.navigator, 'languages', {
+    configurable: true,
+    get: () => tags
+  });
+  Object.defineProperty(window.navigator, 'language', {
+    configurable: true,
+    get: () => tags[0] ?? ''
+  });
+}
+
 describe('LanguageService', () => {
   let service: LanguageService;
   let httpMock: HttpTestingController;
@@ -97,6 +108,37 @@ describe('LanguageService', () => {
     localStorage.setItem('language', 'ca');
     await flushBootstrap('en');
     expect(service.getCurrentLanguage()).toBe('ca');
+  });
+
+  it('uses the closest browser language when the server is down', async () => {
+    setBrowserLanguages(['es-MX', 'en-US']);
+    appConfig.getDefaultLanguage.mockReturnValue('ca');
+    const translate = TestBed.inject(TranslateService);
+    const bootstrap = service.bootstrapUiLanguage();
+    httpMock
+      .expectOne(`${environment.apiUrl}/api/configuration-parameters`)
+      .error(new ProgressEvent('error'));
+    await Promise.resolve();
+    httpMock.expectOne(`${environment.apiUrl}/api/languages`).error(new ProgressEvent('error'));
+    await bootstrap;
+
+    expect(translate.use).toHaveBeenCalledWith('es');
+    expect(service.getCurrentLanguage()).toBe('es');
+  });
+
+  it('keeps a stored language when the server is down', async () => {
+    localStorage.setItem('language', 'en');
+    setBrowserLanguages(['es-MX']);
+    const translate = TestBed.inject(TranslateService);
+    const bootstrap = service.bootstrapUiLanguage();
+    httpMock
+      .expectOne(`${environment.apiUrl}/api/configuration-parameters`)
+      .error(new ProgressEvent('error'));
+    await Promise.resolve();
+    httpMock.expectOne(`${environment.apiUrl}/api/languages`).error(new ProgressEvent('error'));
+    await bootstrap;
+
+    expect(translate.use).toHaveBeenCalledWith('en');
   });
 
   it('omits disabled languages from the switcher list', async () => {

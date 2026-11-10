@@ -10,6 +10,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 #### Backend Core
 
+- **First run**: A null or blank built-in admin password is the only setup state. The admin shows the stepper on every route until that password is saved. `POST /api/setup/first-run` is anonymous only, requires the password, and can set the database language. Saving the password ends first-run. Both setup endpoints then return 404. A new 1.3.0 database clears the seeded admin password. A 1.2.9 upgrade keeps its password, so the wizard stays off. Password login rejects a null or blank password. OIDC sign-in does not. Startup repair leaves a null admin password in place.
 - **Liquibase**: The Portuguese translation edit keeps the checksums already stored for `baseline-languages-postgresql`, `baseline-translations`, and `upgrade-1.2.9-to-1.3.0-translations-postgresql`.
 - **Liquibase**: A database that has no `pt-PT` row receives Portuguese even when it is not a 1.2.9 upgrade. A fresh database has no `stm_language` yet, so that check is skipped and the baseline still inserts the row.
 - **Tests**: A test that must not run on H2 uses `@EnabledOnDatabase`. `atLeast` is inclusive and `before` is exclusive. `@EnabledOnOracleSince11` is that annotation for Oracle 11 and newer. Production-database tasks set `sitmun.test.database.enabled`, `product`, and `version`.
@@ -23,6 +24,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 #### Admin Application
 
+- **First run**: While the built-in admin password is null or blank, every admin route shows the three-step setup. The selected language is the interface language when one was chosen, and otherwise the browser language. Saving a password is required and returns to login. Once the password exists, `/first-run` leaves the stepper. The login page follows the browser language when no language is stored. While the server is still starting, the admin shows that same welcome card and keeps trying.
 - **Layers**: The layers list and the layer form show the linked service protocol beside the service. The value is the service type and stays off the stored cartography type ([sitmun-admin-app#498](https://github.com/sitmun/sitmun-admin-app/issues/498)).
 - **Layers**: Seeding feature information adds geometry properties on the same parameter list. Format stays `Geometry`. A preferred type is edited only for generic Geometry ([sitmun-admin-app#499](https://github.com/sitmun/sitmun-admin-app/issues/499)).
 - **Services**: The parameter type list follows the service protocol. `INFO` is GetFeatureInfo, `GETMAP` is GetMap, and `WMTS` stays a viewer tile setting. The parameters tab says those scopes reach the upstream service only when the service is proxied.

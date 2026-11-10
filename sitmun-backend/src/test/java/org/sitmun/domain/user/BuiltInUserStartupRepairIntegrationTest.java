@@ -38,8 +38,8 @@ class BuiltInUserStartupRepairIntegrationTest {
   @Test
   @Order(1)
   @Transactional
-  @DisplayName("passwordless admin without bootstrap secret keeps process usable and health DOWN")
-  void passwordlessAdminWithoutSecretBlocksHealth() {
+  @DisplayName("passwordless admin without bootstrap secret stays null and health UP")
+  void passwordlessAdminWithoutSecretStaysReady() {
     properties.setAdminPassword(null);
     User admin =
         userRepository.findByUsername(SecurityConstants.BUILT_IN_ADMIN_PRINCIPAL).orElseThrow();
@@ -47,16 +47,15 @@ class BuiltInUserStartupRepairIntegrationTest {
     userRepository.saveAndFlush(admin);
 
     BuiltInUserRepairResult result = repairService.repair();
-    assertThat(result.success()).isFalse();
-    assertThat(result.blockedReason())
-        .isEqualTo(BuiltInUserStartupStatus.REASON_ADMIN_MISSING_BOOTSTRAP_PASSWORD);
+    assertThat(result.success()).isTrue();
+    assertThat(result.blockedReason()).isNull();
 
-    status.markBlocked(result.blockedReason());
-    var health = healthIndicator.health();
-    assertThat(health.getStatus()).isEqualTo(Status.DOWN);
-    assertThat(health.getDetails())
-        .containsEntry("reason", BuiltInUserStartupStatus.REASON_ADMIN_MISSING_BOOTSTRAP_PASSWORD);
-    assertThat(health.getDetails().toString()).doesNotContain("$2a$");
+    User repaired =
+        userRepository.findByUsername(SecurityConstants.BUILT_IN_ADMIN_PRINCIPAL).orElseThrow();
+    assertThat(repaired.getPassword()).isNull();
+
+    status.markReady(result.warnings());
+    assertThat(healthIndicator.health().getStatus()).isEqualTo(Status.UP);
   }
 
   @Test

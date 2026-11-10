@@ -21,7 +21,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class ConfigurationParameterEventHandler {
 
-  private static final String PROTECTION_MESSAGE =
+  private static final String LANGUAGE_PROTECTION_MESSAGE =
       """
       Cannot modify 'language.default' directly. \
       Use the language default change API (/api/language-default/change) to ensure lossless migration.\
@@ -43,7 +43,7 @@ public class ConfigurationParameterEventHandler {
 
   private static void rejectLanguageDefaultMutation(ConfigurationParameter param) {
     if (SitmunConstants.LANGUAGE_DEFAULT_CONF_KEY.equals(param.getName())) {
-      throw new IllegalStateException(PROTECTION_MESSAGE.stripTrailing());
+      throw new IllegalStateException(LANGUAGE_PROTECTION_MESSAGE.stripTrailing());
     }
   }
 

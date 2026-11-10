@@ -211,11 +211,11 @@ export class AppConfigService {
   }
 
   /**
-   * Get the default language code (e.g., 'es', 'en')
-   * Returns the configured default language or 'en' as fallback
+   * Static default when the server has not provided language.default.
+   * Same last resort as the admin client: Catalan.
    */
   getDefaultLanguage(): string {
-    return this.config?.defaultLanguage ?? 'en';
+    return this.config?.defaultLanguage ?? 'ca';
   }
 
   /**

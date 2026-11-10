@@ -6,6 +6,8 @@
       errorType="initialization">
     </app-error-page>
   </div>
+} @else if (waitingForBackend$ | async) {
+  <app-backend-waiting></app-backend-waiting>
 } @else {
   <router-outlet></router-outlet>
 }
