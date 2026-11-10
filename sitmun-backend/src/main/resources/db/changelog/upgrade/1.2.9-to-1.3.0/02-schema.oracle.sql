@@ -20,7 +20,7 @@ CREATE TABLE stm_service_check (
     sec_observer VARCHAR2(16 CHAR) NOT NULL,
     sec_status VARCHAR2(50 CHAR) NOT NULL,
     sec_rank NUMBER(10, 0) NOT NULL,
-    sec_observed TIMESTAMP NOT NULL,
+    sec_observed TIMESTAMP(6) WITH TIME ZONE NOT NULL,
     sec_elapsed NUMBER(19, 0) NOT NULL,
     sec_detail VARCHAR2(4000 CHAR)
 );
@@ -41,7 +41,7 @@ CREATE TABLE stm_service_check_sample (
     scs_status VARCHAR2(50 CHAR) NOT NULL,
     scs_rank NUMBER(10, 0) NOT NULL,
     scs_elapsed NUMBER(19, 0) NOT NULL,
-    scs_observed TIMESTAMP NOT NULL
+    scs_observed TIMESTAMP(6) WITH TIME ZONE NOT NULL
 );
 
 ALTER TABLE stm_service_check_sample
@@ -188,3 +188,5 @@ ALTER TABLE stm_tree_nod MODIFY (tno_view_mode VARCHAR2(255 CHAR));
 ALTER TABLE stm_user MODIFY (use_email VARCHAR2(250 CHAR));
 
 ALTER TABLE stm_geoinfo ADD CONSTRAINT stm_geo_uk_styid UNIQUE (geo_styid);
+
+ALTER TABLE stm_task ADD (tas_title VARCHAR2(250 CHAR));

@@ -196,6 +196,8 @@ INSERT INTO stm_conf (cnf_id, cnf_name, cnf_value) VALUES (4, 'srs.default.y', '
 --end
 INSERT INTO stm_conf (cnf_id, cnf_name, cnf_value) VALUES (5, 'srs.default.proj4', '+proj=utm +zone=31 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs')
 --end
+INSERT INTO stm_conf (cnf_id, cnf_name, cnf_value) VALUES (6, 'setup.languageConfigured', 'false')
+--end
 INSERT INTO stm_literal_translation (ltr_id, ltr_literal, ltr_lanid) SELECT 1, 'No data', lang.lan_id FROM stm_language lang WHERE lang.lan_shortname = 'en'
 --end
 INSERT INTO stm_literal_translation (ltr_id, ltr_literal, ltr_lanid) SELECT 2, 'Error executing task', lang.lan_id FROM stm_language lang WHERE lang.lan_shortname = 'en'

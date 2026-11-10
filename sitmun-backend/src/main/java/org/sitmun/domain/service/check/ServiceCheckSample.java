@@ -21,6 +21,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 import org.sitmun.domain.PersistenceConstants;
 import org.sitmun.domain.service.Service;
 
@@ -48,6 +50,7 @@ public class ServiceCheckSample {
   private Integer id;
 
   @ManyToOne(fetch = FetchType.LAZY, optional = false)
+  @OnDelete(action = OnDeleteAction.CASCADE)
   @JoinColumn(
       name = "SCS_SERID",
       nullable = false,

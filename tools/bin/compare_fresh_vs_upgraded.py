@@ -11,8 +11,11 @@ rows for code-list descriptions must point at a code-list row on both sides.
 
 from __future__ import annotations
 
+import json
 import sys
 from pathlib import Path
+
+DICTIONARY = Path(__file__).resolve().parents[1] / "dictionary" / "dictionary.json"
 
 
 def lines(path: Path) -> list[str]:
@@ -61,6 +64,41 @@ def list_mismatches(label: str, left: list[str], right: list[str]) -> list[str]:
     return out
 
 
+def pairs(path: Path) -> dict[str, str]:
+    found: dict[str, str] = {}
+    for line in lines(path):
+        if "|" not in line:
+            continue
+        key, value = line.split("|", 1)
+        found[key] = value
+    return found
+
+
+def configuration_mismatches(root: Path) -> list[str]:
+    document = json.loads(DICTIONARY.read_text(encoding="utf-8"))
+    expected = document.get("configuration", {})
+    fresh = pairs(root / "fresh.configuration")
+    upgraded = pairs(root / "upgraded.configuration")
+    mismatches: list[str] = []
+    for key in sorted(set(expected) | set(fresh) | set(upgraded)):
+        spec = expected.get(key)
+        if spec:
+            if fresh.get(key) != spec.get("fresh"):
+                mismatches.append(
+                    f"configuration {key}: fresh={fresh.get(key, 'missing')} expected={spec.get('fresh')}"
+                )
+            if upgraded.get(key) != spec.get("upgraded"):
+                mismatches.append(
+                    f"configuration {key}: upgraded={upgraded.get(key, 'missing')} expected={spec.get('upgraded')}"
+                )
+            continue
+        if fresh.get(key) != upgraded.get(key):
+            mismatches.append(
+                f"configuration {key}: fresh={fresh.get(key, 'missing')} upgraded={upgraded.get(key, 'missing')}"
+            )
+    return mismatches
+
+
 def integrity_mismatch(left: list[str], right: list[str]) -> list[str]:
     fresh = left[0].strip() if left else "missing"
     upgraded = right[0].strip() if right else "missing"
@@ -82,6 +120,7 @@ def main() -> int:
     mismatches.extend(constraint_mismatches(lines(root / "fresh.constraints"), lines(root / "upgraded.constraints")))
     mismatches.extend(list_mismatches("code list", lines(root / "fresh.codelists"), lines(root / "upgraded.codelists")))
     mismatches.extend(integrity_mismatch(lines(root / "fresh.integrity"), lines(root / "upgraded.integrity")))
+    mismatches.extend(configuration_mismatches(root))
     if mismatches:
         print(f"{len(mismatches)} difference(s)")
         for line in mismatches:

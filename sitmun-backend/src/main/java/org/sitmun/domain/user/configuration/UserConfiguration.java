@@ -50,19 +50,19 @@ public class UserConfiguration {
   /** User. */
   @JoinColumn(name = "UCO_USERID", foreignKey = @ForeignKey(name = "STM_UCF_FK_USU"))
   @NotNull
-  @ManyToOne
+  @ManyToOne(optional = false)
   @OnDelete(action = OnDeleteAction.CASCADE)
   private User user;
 
   /** Territory. */
-  @ManyToOne
+  @ManyToOne(optional = false)
   @NotNull
   @OnDelete(action = OnDeleteAction.CASCADE)
   @JoinColumn(name = "UCO_TERID", foreignKey = @ForeignKey(name = "STM_UCF_FK_TER"))
   private Territory territory;
 
   /** Role. */
-  @ManyToOne
+  @ManyToOne(optional = false)
   @OnDelete(action = OnDeleteAction.CASCADE)
   @NotNull
   @JoinColumn(name = "UCO_ROLEID", foreignKey = @ForeignKey(name = "STM_UCF_FK_ROL"))

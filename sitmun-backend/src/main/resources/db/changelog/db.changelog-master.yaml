@@ -6,6 +6,7 @@ databaseChangeLog:
       id: baseline-schema-postgresql
       author: sitmun
       logicalFilePath: db/changelog/baseline/01-schema.postgresql.sql
+      validCheckSum: 9:7ceba0f78e0784bbb7303093f2d1244e
       dbms: postgresql
       preConditions:
         - onFail: MARK_RAN
@@ -23,6 +24,7 @@ databaseChangeLog:
       id: baseline-schema-oracle
       author: sitmun
       logicalFilePath: db/changelog/baseline/01-schema.oracle.sql
+      validCheckSum: 9:7df79db6fb568b71c4e962237809f7bd
       dbms: oracle
       preConditions:
         - onFail: MARK_RAN
@@ -109,6 +111,7 @@ databaseChangeLog:
       id: baseline-seed-postgresql
       author: sitmun
       logicalFilePath: db/changelog/baseline/06-seed.postgresql.sql
+      validCheckSum: 9:7d1bee163dec1d68f43561c899ecb74c
       dbms: postgresql
       preConditions:
         - onFail: MARK_RAN
@@ -126,6 +129,7 @@ databaseChangeLog:
       id: baseline-seed-oracle
       author: sitmun
       logicalFilePath: db/changelog/baseline/06-seed.oracle.sql
+      validCheckSum: 9:6a2237c6f8c57e878734dfb8f633e31f
       dbms: oracle
       preConditions:
         - onFail: MARK_RAN
@@ -143,7 +147,9 @@ databaseChangeLog:
       id: baseline-translations
       author: sitmun
       logicalFilePath: db/changelog/baseline/04-translations.sql
-      validCheckSum: 9:e0c99cd586703c2d58b101c2ade4d44f
+      validCheckSum:
+        - 9:e0c99cd586703c2d58b101c2ade4d44f
+        - 9:9e982e59c4e3f69f0df7699eaded7024
       preConditions:
         - onFail: MARK_RAN
         - or:
@@ -238,25 +244,15 @@ databaseChangeLog:
             splitStatements: true
             stripComments: false
             endDelimiter: ";"
-  - changeSet:
-      id: stm-task-tas-title
-      author: sitmun
-      preConditions:
-        - onFail: MARK_RAN
-        - not:
-            columnExists:
-              tableName: stm_task
-              columnName: tas_title
-      changes:
-        - addColumn:
-            tableName: stm_task
-            columns:
-              - column:
-                  name: tas_title
-                  type: varchar(250)
   - include:
       file: service-check-observed-timestamptz.oracle.sql
       relativeToChangelogFile: true
   - include:
       file: service-check-observed-timestamptz.postgresql.sql
+      relativeToChangelogFile: true
+  - include:
+      file: setup-language-configured.oracle.sql
+      relativeToChangelogFile: true
+  - include:
+      file: setup-language-configured.postgresql.sql
       relativeToChangelogFile: true

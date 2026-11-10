@@ -192,6 +192,8 @@ python3 tools/bin/check_changelog_integrity.py
 
 `tools/dictionary/dictionary.json` is the authored column contract. The path has no release number. A row is decided when both baseline catalogs agree, or when a later change records one value. Checkers fail when SQL, a post-Liquibase catalog dump, JPA, a request DTO, a checked-in OpenAPI document, or an admin or viewer form disagrees.
 
+A column `type` is `string`, `integer`, `boolean`, `decimal`, `timestamp`, `instant`, or `date`. `instant` is a timestamp stored with a time zone. `timestamp` has no zone. `date` is a civil day. A link column has `references.column` and, when the foreign key says so, `references.on_delete`. `enforcement` `reject` means the API refuses a value the column still accepts. `configuration` lists each required `stm_conf` key with the fresh value and the upgraded value. An unknown key, type, or section fails the check. H2 is checked as a test catalog. It is not a production engine.
+
 ```bash
 python3 tools/bin/check_data_dictionary.py \
   --sql sitmun-backend/src/main/resources/db/changelog/baseline/01-schema.postgresql.sql \
@@ -204,7 +206,7 @@ node tools/bin/check_data_dictionary_clients.mjs --app sitmun-viewer
 
 `--fail-on problem` is the default. `--fail-on none` prints the same lines and exits 0.
 
-When a release changes a column, edit the dictionary row and the Liquibase changeset in the same pull request. Before 1.3.0 is released, that changeset is the unreleased baseline or the hop under `sitmun-backend/src/main/resources/db/changelog/upgrade/`. After the release, add a new file under `db/changelog/releases/`. Do not edit a changeset that a shipped release already applied, and do not add `validCheckSum: ANY`. A database that already applied a changed unreleased changeset has to be rebuilt, because the checksum changes. Regenerate the H2 test schema with `tools/bin/generate_test_fixtures.py` instead of editing `01-schema.h2.sql` by hand.
+When a release changes a column, edit the dictionary row and the Liquibase changeset in the same pull request. Before 1.3.0 is released, that changeset is the unreleased baseline or the hop under `sitmun-backend/src/main/resources/db/changelog/upgrade/`. After the release, add a new file under `db/changelog/releases/`. Do not edit a changeset that a shipped release already applied, and do not add `validCheckSum: ANY`. The baseline schema, the baseline seed, and the 1.2.9 schema hop keep the checksum from the published 1.3.0 image, so a database created from that image still starts. That database receives `setup.languageConfigured` false when the row is missing. An upgrade that already set it true is left as it is. Regenerate the H2 test schema with `tools/bin/generate_test_fixtures.py` instead of editing `01-schema.h2.sql` by hand.
 
 ## tools/examples/ — Ejemplos ilustrativos
 

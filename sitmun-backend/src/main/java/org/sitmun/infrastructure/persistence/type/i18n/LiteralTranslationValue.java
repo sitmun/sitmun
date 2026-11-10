@@ -22,6 +22,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 @Entity
 @Table(
@@ -46,14 +48,15 @@ public class LiteralTranslationValue {
   @Column(name = "LTV_ID", nullable = false)
   private Integer id;
 
-  @ManyToOne(fetch = FetchType.LAZY)
+  @ManyToOne(fetch = FetchType.LAZY, optional = false)
+  @OnDelete(action = OnDeleteAction.CASCADE)
   @JoinColumn(
       name = "LTV_LTRID",
       nullable = false,
       foreignKey = @ForeignKey(name = "STM_LTV_FK_LTR"))
   private LiteralTranslation literalTranslation;
 
-  @ManyToOne(fetch = FetchType.LAZY)
+  @ManyToOne(fetch = FetchType.LAZY, optional = false)
   @JoinColumn(
       name = "LTV_LANID",
       nullable = false,

@@ -71,14 +71,14 @@ public class Comment {
   private Date createdDate;
 
   /** User logged. */
-  @ManyToOne
+  @ManyToOne(optional = false)
   @OnDelete(action = OnDeleteAction.CASCADE)
   @JoinColumn(name = "COM_USERID", foreignKey = @ForeignKey(name = "STM_COM_FK_USE"))
   @NotNull
   private User user;
 
   /** Application used. */
-  @ManyToOne
+  @ManyToOne(optional = false)
   @OnDelete(action = OnDeleteAction.CASCADE)
   @JoinColumn(name = "COM_APPID", foreignKey = @ForeignKey(name = "STM_COM_FK_APP"))
   @NotNull

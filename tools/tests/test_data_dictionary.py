@@ -20,12 +20,15 @@ import generate_legacy_upgrade as legacy  # noqa: E402
 from data_dictionary_lib import (  # noqa: E402
     build_document,
     check_catalog,
+    check_sql,
     decide_open_rows,
     load_system_codelists,
+    logical_type,
     norm_default,
     parse_create_columns,
     parse_uniques,
     read_dictionary,
+    validate_document,
     write_dictionary,
 )
 
@@ -33,6 +36,8 @@ FIXTURES = BIN / "testdata" / "data_dictionary"
 PG = ROOT / "sitmun-backend/src/main/resources/db/changelog/baseline/01-schema.postgresql.sql"
 ORA = ROOT / "sitmun-backend/src/main/resources/db/changelog/baseline/01-schema.oracle.sql"
 H2 = ROOT / "sitmun-backend/src/test/resources/db/changelog-test/01-schema.h2.sql"
+PG_SEED = ROOT / "sitmun-backend/src/main/resources/db/changelog/baseline/06-seed.postgresql.sql"
+ORA_SEED = ROOT / "sitmun-backend/src/main/resources/db/changelog/baseline/06-seed.oracle.sql"
 CSV = ROOT / "tools/seed-data/baseline/codelists.csv"
 
 
@@ -151,6 +156,10 @@ class DataDictionaryTest(unittest.TestCase):
                 str(ORA),
                 "--sql",
                 str(H2),
+                "--sql",
+                str(PG_SEED),
+                "--sql",
+                str(ORA_SEED),
             ],
             cwd=ROOT,
             capture_output=True,
@@ -231,6 +240,14 @@ class DataDictionaryTest(unittest.TestCase):
         self.assertIn("has no columns", completed.stderr)
         self.assertNotIn("absent", completed.stdout)
 
+    def test_named_prefix_does_not_read_the_fresh_dump(self):
+        folder = FIXTURES / "length"
+        with tempfile.TemporaryDirectory() as tmp:
+            dest = Path(tmp)
+            (dest / "fresh.columns").write_text((folder / "columns").read_text())
+            with self.assertRaises(FileNotFoundError):
+                check_catalog(read_dictionary(folder / "dictionary.json"), dest, prefix="upgraded")
+
     def test_fresh_dump_prefix_is_a_catalog(self):
         folder = FIXTURES / "length"
         with tempfile.TemporaryDirectory() as tmp:
@@ -258,6 +275,61 @@ class DataDictionaryTest(unittest.TestCase):
             stored = json.loads(path.read_text())["columns"]["STM_APP.APP_NAME"]
             self.assertNotIn("decision", stored)
             self.assertNotIn("candidates", stored)
+
+    def test_logical_type_keeps_zone_day_and_decimal_apart(self):
+        self.assertEqual(logical_type("timestamp without time zone"), "timestamp")
+        self.assertEqual(logical_type("timestamp(6) without time zone"), "timestamp")
+        self.assertEqual(logical_type("timestamp with time zone"), "instant")
+        self.assertEqual(logical_type("TIMESTAMP(6) WITH TIME ZONE"), "instant")
+        self.assertEqual(logical_type("date"), "date")
+        self.assertEqual(logical_type("double precision"), "decimal")
+        self.assertEqual(logical_type("NUMBER"), "number")
+
+    def test_reference_target_and_delete_action(self):
+        sql = (
+            "CREATE TABLE stm_app (app_id integer NOT NULL);\n"
+            "CREATE TABLE stm_par_app (pap_appid integer);\n"
+            "ALTER TABLE stm_par_app ADD CONSTRAINT stm_pap_fk_app "
+            "FOREIGN KEY (pap_appid) REFERENCES stm_app(app_id) ON DELETE CASCADE;"
+        )
+        document = {
+            "columns": {
+                "STM_PAR_APP.PAP_APPID": {
+                    "required": False,
+                    "status": "decided",
+                    "type": "integer",
+                    "default": None,
+                    "references": {"column": "STM_APP.APP_ID", "on_delete": "set null"},
+                }
+            }
+        }
+        rows = [row for row in check_sql(document, sql, consumer="fixture") if row.klass == "references"]
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(rows[0].expected, "set null")
+        self.assertEqual(rows[0].observed, "cascade")
+
+    def test_missing_configuration_key(self):
+        document = {"configuration": {"setup.languageConfigured": {"fresh": "false", "upgraded": "true"}}}
+        rows = check_sql(
+            document,
+            "INSERT INTO stm_conf (cnf_id, cnf_name, cnf_value) VALUES (1, 'language.default', 'en');",
+            consumer="seed.sql",
+        )
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(rows[0].klass, "configuration")
+        self.assertEqual(rows[0].observed, "absent")
+
+    def test_unknown_key_or_type_is_rejected(self):
+        rows = validate_document(
+            {
+                "columns": {"STM_APP.APP_NAME": {"status": "decided", "type": "other", "notes": True}},
+                "extra": {},
+            }
+        )
+        kinds = {row.observed for row in rows}
+        self.assertIn("unknown section", kinds)
+        self.assertTrue(any(row.observed.startswith("unknown key") for row in rows))
+        self.assertTrue(any(row.observed.startswith("unknown type") for row in rows))
 
 
 if __name__ == "__main__":

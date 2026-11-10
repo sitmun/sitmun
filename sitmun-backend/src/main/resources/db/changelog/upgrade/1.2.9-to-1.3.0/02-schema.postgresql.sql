@@ -20,7 +20,7 @@ CREATE TABLE stm_service_check (
     sec_observer character varying(16) NOT NULL,
     sec_status character varying(50) NOT NULL,
     sec_rank integer NOT NULL,
-    sec_observed timestamp without time zone NOT NULL,
+    sec_observed timestamp with time zone NOT NULL,
     sec_elapsed bigint NOT NULL,
     sec_detail character varying(4000)
 );
@@ -41,7 +41,7 @@ CREATE TABLE stm_service_check_sample (
     scs_status character varying(50) NOT NULL,
     scs_rank integer NOT NULL,
     scs_elapsed bigint NOT NULL,
-    scs_observed timestamp without time zone NOT NULL
+    scs_observed timestamp with time zone NOT NULL
 );
 
 ALTER TABLE stm_service_check_sample
@@ -136,3 +136,5 @@ ALTER TABLE stm_tree_nod ALTER COLUMN tno_view_mode TYPE character varying(255);
 ALTER TABLE stm_user ALTER COLUMN use_email TYPE character varying(250);
 
 ALTER TABLE stm_geoinfo ADD CONSTRAINT stm_geo_uk_styid UNIQUE (geo_styid);
+
+ALTER TABLE stm_task ADD COLUMN tas_title character varying(250);
