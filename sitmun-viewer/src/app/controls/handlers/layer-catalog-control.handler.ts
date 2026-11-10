@@ -16,6 +16,10 @@ import { CatalogLayerSelectionService } from '../../services/catalog-layer-selec
 import { CatalogSwitchingService } from '../../services/catalog-switching.service';
 import { ConfigLookupService } from '../../services/config-lookup.service';
 import {
+  featureTypeLayerTitle,
+  featureTypeNames
+} from '../../services/feature-type-names';
+import {
   findCapabilitiesLayerByTitle,
   presentFolderLayerInfo
 } from '../../services/folder-catalog-info';
@@ -613,11 +617,7 @@ export class LayerCatalogControlHandler extends ControlHandlerBase {
               }
 
               if (realLayerConfig?.type === constants.codeValue.serviceType.wfs) {
-                const featureType = realLayerConfig.layerNames[0];
                 layerOptions.type = constants.codeValue.serviceType.wfs;
-                if (featureType) {
-                  layerOptions.featureType = featureType;
-                }
                 Object.assign(layerOptions, wfsLayerGeometryOptions(realLayerConfig));
                 layerOptions['zIndex'] = realLayerConfig.order ?? 0;
                 const wfsOpacity =
@@ -650,38 +650,59 @@ export class LayerCatalogControlHandler extends ControlHandlerBase {
                   layerOptions.maxResolution = maxResolution;
                 }
 
-                const addedWfs = await handler.catalogSelection.runWithSelfCommit(
-                  self.map,
-                  () => self.map.addLayer(layerOptions)
-                );
-                if (handler.consumeCatalogAddFailure(self.map, layerName)) {
-                  await handler.removePhysicalLayersByNodeIds(
+                const featureTypes = featureTypeNames(realLayerConfig.layerNames);
+                const names = featureTypes.length > 0 ? featureTypes : [undefined];
+                let addedWfs: any;
+                for (const featureType of names) {
+                  const options = {
+                    ...layerOptions,
+                    id: self.getUID(),
+                    title: featureType
+                      ? featureTypeLayerTitle(
+                          layerOptions.title,
+                          featureType,
+                          featureTypes.length
+                        )
+                      : layerOptions.title,
+                    layerNames: featureType ? [featureType] : layerOptions.layerNames
+                  };
+                  if (featureType) {
+                    options.featureType = featureType;
+                  }
+                  const added = await handler.catalogSelection.runWithSelfCommit(
                     self.map,
-                    [layerName],
-                    self
+                    () => self.map.addLayer(options)
                   );
-                  handler.catalogSelection.commitSelection(
+                  if (handler.consumeCatalogAddFailure(self.map, layerName)) {
+                    await handler.removePhysicalLayersByNodeIds(
+                      self.map,
+                      [layerName],
+                      self
+                    );
+                    handler.catalogSelection.commitSelection(
+                      self.map,
+                      layerName,
+                      resource,
+                      false
+                    );
+                    handler.syncRadioCheckedState(self);
+                    return undefined;
+                  }
+                  const chosenGeometry = layerOptions['geometryName'];
+                  attachChosenGeometry(
                     self.map,
-                    layerName,
-                    resource,
-                    false
+                    added,
+                    typeof chosenGeometry === 'string' ? chosenGeometry : undefined,
+                    TC?.Consts?.event?.FEATURESADD
                   );
-                  handler.syncRadioCheckedState(self);
-                  return undefined;
-                }
-                const chosenGeometry = layerOptions['geometryName'];
-                attachChosenGeometry(
-                  self.map,
-                  addedWfs,
-                  typeof chosenGeometry === 'string' ? chosenGeometry : undefined,
-                  TC?.Consts?.event?.FEATURESADD
-                );
-                if (
-                  addedWfs != null &&
-                  wfsOpacity != null &&
-                  typeof addedWfs.setOpacity === 'function'
-                ) {
-                  await addedWfs.setOpacity(wfsOpacity);
+                  if (
+                    added != null &&
+                    wfsOpacity != null &&
+                    typeof added.setOpacity === 'function'
+                  ) {
+                    await added.setOpacity(wfsOpacity);
+                  }
+                  addedWfs = addedWfs ?? added;
                 }
                 const removedWfs = handler.catalogSelection.commitSelection(
                   self.map,

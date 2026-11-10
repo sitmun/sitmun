@@ -109,6 +109,11 @@
                   {{ 'common.error.required' | translate }}
                 </mat-error>
               }
+              @if (entityForm.get('joinedLayers')?.hasError('oneFeatureType')) {
+                <mat-error>
+                  {{ 'entity.cartography.error.oneFeatureType' | translate }}
+                </mat-error>
+              }
             </mat-form-field>
             <mat-slide-toggle color="primary" formControlName="queryableFeatureEnabled">
               {{ cartographyCopyKey('entity.cartography.featureInformation.queryable') | translate }}

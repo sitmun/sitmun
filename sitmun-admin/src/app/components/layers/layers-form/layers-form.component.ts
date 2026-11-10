@@ -340,11 +340,19 @@ export class LayersFormComponent extends BaseFormComponent<CartographyProjection
       return invalidLayers.length > 0 ? { invalidLayers: invalidLayers } : null;
     };
 
+    const oneFeatureTypeValidator: ValidatorFn = (control: AbstractControl): ValidationErrors | null => {
+      const service = this.services.find((item) => item.id === this.entityForm?.get('serviceId')?.value);
+      if (service?.type !== this.codeValues.serviceType.wfs) {
+        return null;
+      }
+      return this.parseLayerList(control.value).length > 1 ? { oneFeatureType: true } : null;
+    };
+
     this.entityForm = new UntypedFormGroup(
       {
       name: new UntypedFormControl(this.entityToEdit.name, [Validators.required, Validators.maxLength(100)]),
       serviceId: new UntypedFormControl(this.entityToEdit.serviceId, [Validators.required]),
-      joinedLayers: new UntypedFormControl(this.entityToEdit.layers?.join(','), [Validators.required]),
+      joinedLayers: new UntypedFormControl(this.entityToEdit.layers?.join(','), [Validators.required, oneFeatureTypeValidator]),
       minimumScale: new UntypedFormControl(this.entityToEdit.minimumScale, [
         nonNegativeIntegerValidator
       ]),
@@ -398,6 +406,7 @@ export class LayersFormComponent extends BaseFormComponent<CartographyProjection
     this.legendChoiceSub = new Subscription();
     this.legendChoiceSub.add(this.entityForm.get('serviceId')?.valueChanges.subscribe(() => {
       this.syncLegendChoice();
+      this.entityForm.get('joinedLayers')?.updateValueAndValidity({ emitEvent: false });
     }));
     this.legendChoiceSub.add(this.entityForm.get('legendType')?.valueChanges.subscribe(() => {
       this.syncLegendAddress();

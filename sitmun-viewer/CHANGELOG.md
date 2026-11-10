@@ -27,6 +27,7 @@ All notable changes to this project will be documented in this file. The format 
 
 ### Fixed
 
+- **Map**: A feature layer with several saved type names is added once per name, as its own layer. The map does not keep only the first name, and it does not combine the names into one grouped layer ([#157](https://github.com/sitmun/sitmun/issues/157)).
 - **Catalog**: The information button on a feature layer says feature type on hover. A map image layer still says layer. Portuguese includes that sentence ([#173](https://github.com/sitmun/sitmun/issues/173)).
 - **Identify**: A named WMS group stays the request layer for GetFeatureInfo and GetLegendGraphic ([sitmun-viewer-app#224](https://github.com/sitmun/sitmun-viewer-app/pull/224)).
 - **Map**: The Loaded Layers drag handle shows a six-dot grip. The previous mark is a character this font does not draw.
