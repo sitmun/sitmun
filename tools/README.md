@@ -168,7 +168,7 @@ See [seed-data/README.md](seed-data/README.md) for the full workflow.
 |--------|---------|-----------|
 | **generate_baseline_seed.py** | Write the shipped code-list and translation SQL from `seed-data/baseline`. | — |
 | **generate_legacy_upgrade.py** | Write the 1.2.9 upgrade SQL into `db/changelog/upgrade/`. | — |
-| **check_translations.py** | List code values, tasks, territory types, and task groups with no translation outside the default language. Exits 0. | — |
+| **check_translations.py** | List code values, tasks, territory types, and task groups with no translation outside the default language. Exits 1 when any row is missing. | — |
 | **check_changelog_immutability.py** | Fail if a diff edits a Liquibase include below the tree tip. `--base` for CI. | `--tree`; `--changed-file`; `--base`; `--no-git` |
 | **prepare_extracted_liquibase.py** | Rewrite pre-1.2.7 CSV width; copy case-mismatched CSV names for Linux. Used by the upgrade harness on extracted tags. | `--csv-width DIR`; `--alias-case DIR` |
 | **check_seed_identity_swap.py** | Fail a PR diff that moves an `STM_CODELIST` unique key `(COD_LIST, COD_VALUE)` onto a different `COD_ID`. | `--base`; `--changed-file`; `--no-git` |

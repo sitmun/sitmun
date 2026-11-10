@@ -34,3 +34,10 @@ ltv_id,ltr_id,lan_shortname,ltv_value
 33,5,oc-aranes,Cau executar era tasca
 34,6,oc-aranes,Contengut binari non incrustable: cau autenticacion deth servidor
 35,7,oc-aranes,[contengut binari]
+36,1,pt-PT,Sem dados
+37,2,pt-PT,Erro ao executar a tarefa
+38,3,pt-PT,Consulta
+39,4,pt-PT,Identificador de tarefa filha inválido
+40,5,pt-PT,falta executar a tarefa
+41,6,pt-PT,Conteúdo binário não incorporável: requer autenticação do servidor
+42,7,pt-PT,[conteúdo binário]

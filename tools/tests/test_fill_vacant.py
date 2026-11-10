@@ -15,6 +15,7 @@ TITLES = (
     "Informacion avançada",
     "Información avanzada",
     "Informations avancées",
+    "Informação avançada",
     "Informació avançada",
 )
 
@@ -53,7 +54,7 @@ class FillVacantTest(unittest.TestCase):
         fresh = "\n".join(load(BASELINE, "generate_baseline_seed").translation_statements())
         for sql in (hop, fresh):
             lines = more_info_lines(sql)
-            self.assertEqual(len(lines), 4)
+            self.assertEqual(len(lines), 5)
             self.assertEqual(sorted(title(line) for line in lines), sorted(TITLES))
             self.assertFalse(any("lan_shortname = 'en'" in line for line in lines))
             for name in PDF_TASKS:

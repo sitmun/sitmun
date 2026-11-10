@@ -63,6 +63,8 @@ def main() -> None:
             print(f"{language} literal {sentence['ltr_literal']}")
             missing += 1
     print(f"{missing} missing")
+    if missing:
+        sys.exit(1)
 
 
 if __name__ == "__main__":

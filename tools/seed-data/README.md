@@ -11,4 +11,4 @@ python3 tools/bin/generate_baseline_seed.py
 python3 tools/bin/generate_legacy_upgrade.py
 ```
 
-`check_translations.py` lists code values, tasks, territory types, and task groups that have no row for a language other than the default. It also lists a template sentence that has no value for a language in `languages.csv`. It reports those gaps and exits 0.
+`check_translations.py` lists code values, tasks, territory types, and task groups that have no row for a language other than the default. It also lists a template sentence that has no value for a language in `languages.csv`. It reports those gaps and exits 1 when any row is missing.

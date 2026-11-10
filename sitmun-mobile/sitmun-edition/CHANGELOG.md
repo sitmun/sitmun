@@ -9,6 +9,7 @@
 
 ### Changed
 
+- **Language**: The unused `download.scope` label is removed from every language file. `i18n-parity.spec.ts` requires each language file to match the English keys and to contain no empty value.
 - **Android**: Capacitor 8, API 36, and `CapacitorHttp`. SQLite is `@capacitor-community/sqlite` 8.1.1. Port of [edition-mobile-app#27](https://github.com/sitmun/edition-mobile-app/pull/27), which replaces [edition-mobile-app#26](https://github.com/sitmun/edition-mobile-app/pull/26).
 - **WFS**: Map layers and offline feature download use `layer.url` when the profile sets a per-layer proxy address ([sitmun-application-stack#90](https://github.com/sitmun/sitmun-application-stack/issues/90)).
 - **Auth**: Login field is `access_token` (not `id_token`); Bearer attachment matches trusted base URL path prefixes (middleware first) so gateways send `proxy_token` to `/middleware/**` and `access_token` to `/backend/**`.
