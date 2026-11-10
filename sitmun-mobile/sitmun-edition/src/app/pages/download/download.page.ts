@@ -16,6 +16,7 @@ import { MapService } from 'src/app/services/map.service';
 import { resolveAgainstBase } from 'src/app/services/trusted-origin.util';
 import { CommunityDevice } from '@capacitor-community/device';
 import { ProfileModalComponent } from 'src/app/components/profile-modal/profile-modal.component';
+import { groupMbtilesServices } from './mbtiles-service-groups';
 
 declare var ol: any;
 
@@ -398,24 +399,13 @@ export class DownloadPage implements OnInit {
   }
 
   private getmapServices(): { serviceId: number; layerIds: number[] }[] {
-    const byService = new Map<number, Set<number>>();
     const bg = this.bgTreeData.find((node: TreeNode) => node.checked);
     if (!bg) {
       return [];
     }
     const groupLayer = this.profile.groups.find((group: any) => group.id === bg.resource);
     const bgLayers = this.profile.layers.filter((layer: any) => groupLayer.layers.includes(layer.id));
-    for (const layer of bgLayers) {
-      const serviceId = layer.service.split('/')[1];
-      if (!byService.has(serviceId)) {
-        byService.set(serviceId, new Set<number>());
-      }
-      byService.get(serviceId)!.add(layer.id.split('/')[1]);
-    }
-    return Array.from(byService.entries()).map(([serviceId, layerIds]) => ({
-      serviceId,
-      layerIds: Array.from(layerIds)
-    }));
+    return groupMbtilesServices(bgLayers);
   }
 
   backPage() {

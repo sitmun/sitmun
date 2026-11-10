@@ -37,6 +37,10 @@
       </div>
     </div>
 
+    <p *ngIf="!networkConnected && !applications.length" class="ion-padding ion-text-center">
+      {{ 'applist.offlineEmpty' | translate }}
+    </p>
+
     <ion-modal id="territories-modal" #modal [isOpen]="isModalOpen" (ionModalDidDismiss)="closeTerritoryModal(false)">
       <ng-template>
         <div class="wrapper container">

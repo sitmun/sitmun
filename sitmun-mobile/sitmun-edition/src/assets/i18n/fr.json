@@ -17,7 +17,8 @@
         "openDownload": "Abrir descarga",
         "cancel": "Annuler",
         "sessionExpired": "Session expirée, veuillez vous reconnecter",
-        "reconnectLogin": "La connexion est rétablie. Reconnectez-vous pour envoyer vos modifications."
+        "reconnectLogin": "La connexion est rétablie. Reconnectez-vous pour envoyer vos modifications.",
+        "offlineEmpty": "Vous êtes hors ligne et aucune application n'est enregistrée sur cet appareil."
     },
     "download": {
         "title": "Télécharger",

@@ -17,7 +17,8 @@
         "openDownload": "Abrir descarga",
         "cancel": "Cancelar",
         "sessionExpired": "Sesión caducada, vuelva a iniciar sesión",
-        "reconnectLogin": "La conexión ha vuelto. Inicie sesión de nuevo para subir sus cambios."
+        "reconnectLogin": "La conexión ha vuelto. Inicie sesión de nuevo para subir sus cambios.",
+        "offlineEmpty": "Está sin conexión y no hay aplicaciones guardadas en este dispositivo."
     },
     "download": {
         "title": "Descargar",
