@@ -147,6 +147,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - **Viewer**: Jest transforms the pnpm copy of `url-template`. OpenLayers, proj4, and draggabilly are direct dependencies. The About window still reads `ol/package.json`.
 - **Mobile**: The Android end-to-end build uses `ng build`. `@ionic/cli` is not a dependency of the mobile apps.
 - **CI**: CodeQL JavaScript analysis no longer installs pnpm.
+- **CI**: The Android end-to-end job reads Java 21 from `sitmun-mobile/.java-version`. The root `.java-version` stays at 17 for the other jobs.
 - **CI**: `ng` is started with `pnpm exec` so pnpm does not forward a bare `--` as an empty Angular option.
 - **Admin**: `@tiptap/pm`, `ajv`, and `@jest/globals` are direct dependencies, so the editor build can load ProseMirror, `ajv/dist/compile/codegen`, and the task model spec.
 - **Viewer**: The API SITNA `FeatureHistoryEvent` declaration is listed at its pnpm path, the path webpack compiles.
