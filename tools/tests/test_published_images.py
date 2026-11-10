@@ -34,6 +34,14 @@ class PublishedImagesTest(unittest.TestCase):
         self.assertIn("dockerfile: docker/proxy/Dockerfile", text)
         self.assertIn("dockerfile: docker/mbtiles/Dockerfile", text)
 
+    def test_backend_forwards_the_upgrade_language(self) -> None:
+        text = (ROOT / "compose.yaml").read_text(encoding="utf-8")
+        backend = text.split("\n  backend:\n", 1)[1].split("\n  proxy:\n", 1)[0]
+        self.assertIn(
+            "SITMUN_UPGRADE_DEFAULT_LANGUAGE=${SITMUN_UPGRADE_DEFAULT_LANGUAGE:-}",
+            backend,
+        )
+
     def test_dockerfiles_carry_the_source_labels(self) -> None:
         for path in DOCKERFILES.values():
             text = path.read_text(encoding="utf-8")
@@ -59,6 +67,13 @@ class PublishedImagesTest(unittest.TestCase):
         front = text.split("\n  front:\n", 1)[1].split("\n  backend:\n", 1)[0]
         self.assertRegex(front, r"backend:\n\s+condition: service_started")
         self.assertRegex(front, r"proxy:\n\s+condition: service_healthy")
+
+    def test_front_apps_fall_back_inside_the_base_path(self) -> None:
+        text = (ROOT / "docker/front/config/default.conf.template").read_text(encoding="utf-8")
+        for app in ("admin", "viewer"):
+            block = text.split(f"location ${{LOCAL_BASE_PATH}}{app}/ {{", 1)[1].split("\n    }", 1)[0]
+            self.assertIn(f"alias /usr/share/nginx/html/{app}/;", block, app)
+            self.assertIn(f"try_files $uri $uri/ ${{LOCAL_BASE_PATH}}{app}/index.html;", block, app)
 
 
 if __name__ == "__main__":

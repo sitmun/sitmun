@@ -51,7 +51,7 @@ Covered browser flows run from the repo root: `pnpm run e2e`.
 | `production` | `environment.prod.ts` | `/backend` | no |
 | `e2e` | `environment.e2e.ts` | `/backend` | yes |
 
-`docker/front/Dockerfile` (`ARG NODE_VERSION=24.22.0`) writes `environment.prod.ts` from `docker/front/admin/environment.prod.ts.template` (`apiBaseURL` `${PUBLIC_BASE_PATH}backend`), then runs `--configuration=docker-dev` when `ENVIRONMENT=development` and `--configuration=production` otherwise. From the repo root:
+`docker/front/Dockerfile` (`ARG NODE_VERSION=24.22.0`) writes `environment.prod.ts` from `docker/front/admin/environment.prod.ts.template` (`apiBaseURL` `${PUBLIC_BASE_PATH}backend`), then runs `--configuration=docker-dev` when `ENVIRONMENT=development` and `--configuration=production` otherwise. The published stack runs `ghcr.io/sitmun/front:1.3.0` from the repository root with `docker compose up -d --pull always --no-build`. These commands build the local image:
 
 ```bash
 docker compose build front

@@ -48,8 +48,8 @@ server {
 
     # Handle request to /admin/
     location ${LOCAL_BASE_PATH}admin/ {
-      rewrite ^${LOCAL_BASE_PATH}(.*)$ /$1 break;
-      try_files $uri $uri/ /index.html =404;      
+      alias /usr/share/nginx/html/admin/;
+      try_files $uri $uri/ ${LOCAL_BASE_PATH}admin/index.html;
     }
 
     # Redirect /viewer to /viewer/ (permanent redirect)

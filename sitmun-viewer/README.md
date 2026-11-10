@@ -51,7 +51,7 @@ pnpm run build -- --configuration=production --base-href=/viewer/
 pnpm run build:e2e
 ```
 
-From the repo root, `compose.yaml` service `front`:
+From the repository root, the published stack runs `ghcr.io/sitmun/front:1.3.0` with `docker compose up -d --pull always --no-build`. These commands build the local `front` image:
 
 ```bash
 docker compose build front
