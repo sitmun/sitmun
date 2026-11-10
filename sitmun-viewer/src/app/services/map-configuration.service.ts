@@ -4,9 +4,15 @@ import type { AppBackground, AppCfg, AppGroup } from '@api/model/app-cfg';
 import type { SitnaBaseLayer, SitnaViews } from '@api/model/sitna-cfg';
 import { TranslateService } from '@ngx-translate/core';
 
+import { constants } from '@environments/constants';
+
 import { AppConfigService } from './app-config.service';
 import { ConfigLookupService } from './config-lookup.service';
 import { ControlRegistryService } from './control-registry.service';
+import {
+  featureTypeLayerTitle,
+  featureTypeNames
+} from './feature-type-names';
 import { wfsLayerGeometryOptions } from './wfs-layer-geometry';
 import {
   sortBackgroundsByOrder,
@@ -137,31 +143,46 @@ export class MapConfigurationService {
               thumbnail:
                 thumbnail || MapConfigurationService.DEFAULT_THUMBNAIL_URL
             };
-            if (service.type == 'WMTS') {
+            const protocol = constants.codeValue.serviceType;
+            if (service.type === protocol.wmts) {
               a.layerNames = layer.layers[0];
             }
-            if (service.type === 'WFS') {
-              const featureType = layer.layers?.[0];
-              if (featureType) {
-                a.featureType = featureType;
+            if (service.type === protocol.wfs) {
+              const names = featureTypeNames(layer.layers);
+              const featureTypes = names.length > 0 ? names : [undefined];
+              for (const featureType of featureTypes) {
+                const title = featureType
+                  ? featureTypeLayerTitle(layer.title, featureType, names.length)
+                  : layer.title;
+                const entry: SitnaBaseLayer = {
+                  ...a,
+                  id: title ?? layer.title,
+                  title,
+                  layerNames: featureType ? [featureType] : a.layerNames
+                };
+                if (featureType) {
+                  entry.featureType = featureType;
+                }
+                Object.assign(entry, wfsLayerGeometryOptions(layer));
+                const minResolution = resolutionFromScaleDenominator(
+                  layer.minScaleDenominator,
+                  1
+                );
+                const maxResolution = resolutionFromScaleDenominator(
+                  layer.maxScaleDenominator,
+                  1
+                );
+                if (minResolution != null) {
+                  entry.minResolution = minResolution;
+                }
+                if (maxResolution != null) {
+                  entry.maxResolution = maxResolution;
+                }
+                baseLayers.push(entry);
               }
-              Object.assign(a, wfsLayerGeometryOptions(layer));
-              const minResolution = resolutionFromScaleDenominator(
-                layer.minScaleDenominator,
-                1
-              );
-              const maxResolution = resolutionFromScaleDenominator(
-                layer.maxScaleDenominator,
-                1
-              );
-              if (minResolution != null) {
-                a.minResolution = minResolution;
-              }
-              if (maxResolution != null) {
-                a.maxResolution = maxResolution;
-              }
+            } else {
+              baseLayers.push(a);
             }
-            baseLayers.push(a);
           }
         }
       }
@@ -171,10 +192,11 @@ export class MapConfigurationService {
         createNoBaseMapLayer(this.translate.instant('map.basemap.none'))
       );
     }
-    const overviewId = baseLayers.find((item) => item.type !== 'WFS')?.id;
+    const featureService = constants.codeValue.serviceType.wfs;
+    const overviewId = baseLayers.find((item) => item.type !== featureService)?.id;
     if (overviewId) {
       for (const item of baseLayers) {
-        if (item.type === 'WFS' && item.id !== overviewId) {
+        if (item.type === featureService && item.id !== overviewId) {
           item.overviewMapLayer = overviewId;
         }
       }

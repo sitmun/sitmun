@@ -351,6 +351,45 @@ describe('LayersFormComponent', () => {
     });
   });
 
+  it('allows one feature type name on a feature service and keeps a comma list on a map image', () => {
+    const protocol = constants.codeValue.serviceType;
+    component.entityID = 100;
+    component.entityToEdit = Object.assign(new CartographyProjection(), {
+      name: 'layer',
+      layers: ['a'],
+      serviceId: 7,
+    });
+    component.services = [
+      { id: 7, type: protocol.wfs },
+      { id: 1, type: protocol.wms },
+    ];
+    component.postFetchData();
+    component.entityForm.patchValue({
+      name: 'layer',
+      serviceId: 7,
+      joinedLayers: 'a, b',
+    });
+
+    expect(component.entityForm.get('joinedLayers')?.hasError('oneFeatureType')).toBe(true);
+    expect(component.entityForm.valid).toBe(false);
+    expect(layersFormTemplate).toContain("hasError('oneFeatureType')");
+
+    component.entityForm.patchValue({ joinedLayers: 'a' });
+    expect(component.entityForm.get('joinedLayers')?.hasError('oneFeatureType')).toBe(false);
+
+    component.entityForm.patchValue({ serviceId: 1, joinedLayers: 'a, b' });
+    expect(component.entityForm.get('joinedLayers')?.hasError('oneFeatureType')).toBe(false);
+
+    const en = JSON.parse(readFileSync(
+      join(__dirname, '../../../../assets/i18n/en.json'),
+      'utf8',
+    )) as Record<string, string>;
+    expect(en['entity.cartography.error.oneFeatureType']).toBe('A feature layer allows one type name.');
+    expect(en['entity.cartography.hint.layerSet.wfs']).toBe(
+      'One feature type name. The map uses one feature type on each feature layer.'
+    );
+  });
+
   describe('postFetchData load preservation', () => {
     it('does not clear joinedSelectableLayers when queryableFeatureEnabled is false', () => {
       component.entityID = 4393;
@@ -1056,9 +1095,9 @@ describe('LayersFormComponent', () => {
         'utf8',
       )) as Record<string, string>;
       expect(es['entity.cartography.layerSet.wfs'])
-        .toBe('Tipo o tipos de entidad del servicio utilizados');
+        .toBe('Tipo de entidad del servicio utilizado');
       expect(es['entity.cartography.hint.layerSet.wfs'])
-        .toContain('nombres de tipo de entidad');
+        .toBe('Un solo nombre de tipo de entidad. El mapa usa un tipo de entidad en cada capa.');
       expect(es['entity.cartography.featureInformation.queryable.wfs'])
         .toBe('El tipo o tipos de entidad del servicio pueden consultarse para recuperar información alfanumérica');
       expect(es['entity.cartography.hint.minimumScale.wfs']).toContain('El tipo de entidad se oculta');

@@ -1168,21 +1168,31 @@ describe('LayerCatalogControlHandler', () => {
       expect(TC.layer.Raster).not.toHaveBeenCalled();
       expect(newLayerInstance.getCapabilitiesPromise).not.toHaveBeenCalled();
       expect(newLayerInstance.isCompatible).not.toHaveBeenCalled();
-      expect(addLayer).toHaveBeenCalledTimes(1);
-      expect(addLayer.mock.calls[0][0]).toMatchObject({
-        type: 'WFS',
-        featureType: 'app:parcels',
-        url: 'https://proxy.example/wfs',
-        nodeId: 'node/wfs',
-        serviceId: 'service/9',
-        hideTree: true,
-        zIndex: 4,
-        opacity: 0.5,
-        minResolution: (1000 * 0.00028) / 1,
-        maxResolution: (500000 * 0.00028) / 1
-      });
-      expect(addLayer.mock.calls[0][0]).not.toHaveProperty('geometryName');
-      expect(addLayer.mock.calls[0][0]).not.toHaveProperty('geometryType');
+      expect(addLayer).toHaveBeenCalledTimes(2);
+      expect(addLayer.mock.calls.map((call) => call[0].featureType)).toEqual([
+        'app:parcels',
+        'ignored'
+      ]);
+      expect(addLayer.mock.calls.map((call) => call[0].layerNames)).toEqual([
+        ['app:parcels'],
+        ['ignored']
+      ]);
+      expect(addLayer.mock.calls[0][0].title).not.toBe(addLayer.mock.calls[1][0].title);
+      for (const call of addLayer.mock.calls) {
+        expect(call[0]).toMatchObject({
+          type: 'WFS',
+          url: 'https://proxy.example/wfs',
+          nodeId: 'node/wfs',
+          serviceId: 'service/9',
+          hideTree: true,
+          zIndex: 4,
+          opacity: 0.5,
+          minResolution: (1000 * 0.00028) / 1,
+          maxResolution: (500000 * 0.00028) / 1
+        });
+        expect(call[0]).not.toHaveProperty('geometryName');
+        expect(call[0]).not.toHaveProperty('geometryType');
+      }
     });
 
     it('passes a published geometry property name and an explicit SITNA type when adding a WFS layer', async () => {
