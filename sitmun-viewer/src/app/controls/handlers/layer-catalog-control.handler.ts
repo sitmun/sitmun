@@ -1,10 +1,10 @@
 import { inject, Injectable } from '@angular/core';
 
 import type { AppCfg, AppNodeInfo, AppTasks, AppTree } from '@api/model/app-cfg';
-import { constants } from '@environments/constants';
 import { TranslateService } from '@ngx-translate/core';
 import { Subscription } from 'rxjs';
 
+import { constants } from '@environments/constants';
 
 import { catalogLayerPathTitles } from './catalog-layer-path';
 import { ensureLayerCatalogInfoAffordance } from './layer-catalog-info-affordance';

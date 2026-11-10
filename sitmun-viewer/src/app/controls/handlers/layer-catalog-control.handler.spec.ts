@@ -7,9 +7,10 @@ import { TestBed } from '@angular/core/testing';
 
 
 import type { AppCfg, AppTasks, AppTree, AppNodeInfo } from '@api/model/app-cfg';
-import { constants } from '@environments/constants';
 import { TranslateService } from '@ngx-translate/core';
 import { Subject } from 'rxjs';
+
+import { constants } from '@environments/constants';
 
 import { catalogLayerPathTitles } from './catalog-layer-path';
 import { LayerCatalogControlHandler } from './layer-catalog-control.handler';
