@@ -39,7 +39,7 @@
     "@codemirror/language": "6.13.1",
     "@codemirror/state": "6.5.2",
     "@codemirror/view": "6.38.1",
-    "@ngx-translate/core": "17.0.0",
+    "@ngx-translate/core": "18.1.0",
     "@ngx-translate/http-loader": "17.0.0",
     "@tiptap/core": "2.27.3",
     "@tiptap/extension-color": "2.27.3",
