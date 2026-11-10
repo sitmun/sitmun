@@ -34,6 +34,14 @@ class PublishedImagesTest(unittest.TestCase):
         self.assertIn("dockerfile: docker/proxy/Dockerfile", text)
         self.assertIn("dockerfile: docker/mbtiles/Dockerfile", text)
 
+    def test_backend_forwards_the_upgrade_language(self) -> None:
+        text = (ROOT / "compose.yaml").read_text(encoding="utf-8")
+        backend = text.split("\n  backend:\n", 1)[1].split("\n  proxy:\n", 1)[0]
+        self.assertIn(
+            "SITMUN_UPGRADE_DEFAULT_LANGUAGE=${SITMUN_UPGRADE_DEFAULT_LANGUAGE:-}",
+            backend,
+        )
+
     def test_dockerfiles_carry_the_source_labels(self) -> None:
         for path in DOCKERFILES.values():
             text = path.read_text(encoding="utf-8")

@@ -1,5 +1,7 @@
 # Platform notes
 
+Setup and the published images are in the [repository README](../README.md) and [DEPLOYMENT.md](../DEPLOYMENT.md).
+
 - [Upgrade 1.2.8 to 1.3.0](upgrade/1.2.8-to-1.3.0.md)
 - [Upgrade 1.2.9 to 1.3.0](upgrade/1.2.9-to-1.3.0.md)
 

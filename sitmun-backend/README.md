@@ -112,7 +112,7 @@ Integrates with the [SITMUN viewer](https://github.com/sitmun/sitmun/tree/dev/si
 
 ### Docker Deployment
 
-From the repository root, `./setup.sh` (Windows: `./setup.ps1`) prepares `.env`, then `docker compose up -d` starts the stack. Profiles and URLs are in the [repository README](../README.md).
+From the repository root, the published stack runs `ghcr.io/sitmun/backend:1.3.0` from `compose.yaml`. Copy a profile, run `./setup.sh` (Windows: `./setup.ps1`), then `docker compose up -d --pull always --no-build`. `docker compose up -d` builds this checkout. Profiles and URLs are in the [repository README](../README.md).
 
 **Verify deployment**
 
@@ -1102,8 +1102,8 @@ The Backend Core supports different service types that can be configured:
 export LOGGING_LEVEL_ORG_SITMUN=DEBUG
 export LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY=DEBUG
 
-# Restart the backend
-docker-compose restart sitmun-backend
+# Restart the backend from the repository root
+docker compose up -d backend
 ```
 
 ## Contributing

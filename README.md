@@ -1,4 +1,4 @@
-# SITMUN Application Stack
+# SITMUN
 
 [![License: EUPL v1.2](https://img.shields.io/badge/License-EUPL%20v1.2-blue.svg)](LICENSE)
 ![Version](https://img.shields.io/badge/version-1.2.9-blue.svg)
@@ -36,7 +36,31 @@ Commands: `pnpm ci`, `pnpm install`, `pnpm add`, `pnpm run`, `pnpm exec`.
 
 ## Quick start
 
-Docker Engine and Docker Compose (or Docker Desktop), plus Git.
+Docker Engine and Docker Compose (or Docker Desktop), plus Git. Both paths need a checkout, because `front` mounts `docker/front/config` and `backend` mounts `profiles/`.
+
+### Published images
+
+1.3.0 runs from `ghcr.io/sitmun/front`, `backend`, `proxy`, and `mbtiles` at tag `1.3.0`. Clone the `v1.3.0` tag, so `compose.yaml` and `profiles/` match those images. Copy a production profile, then start without building:
+
+```bash
+git clone --branch v1.3.0 https://github.com/sitmun/sitmun.git
+cd sitmun
+cp profiles/postgres.env .env   # or profiles/oracle.env
+./setup.sh                      # Windows: ./setup.ps1
+docker compose up -d --pull always --no-build
+```
+
+Add `--profile mbtiles` for MBTiles. `./setup.sh` and `./setup.ps1` append `SITMUN_USER_SECRET`, `MIDDLEWARE_SECRET`, and `SITMUN_MBTILES_JOB_HANDLE_SECRET` when those keys are absent, including on an `.env` you already copied. Do not commit the values.
+
+A manual run of Publish images pushes the `1.3.0` tag. The git tag `v1.3.0` publishes that same image tag. GitHub creates each package private. After the first push, set `front`, `backend`, `proxy`, and `mbtiles` to public in Package settings. The Packages API cannot change visibility, and later pushes keep it. An anonymous `docker pull ghcr.io/sitmun/front:1.3.0` confirms it.
+
+The published front image is built for `PUBLIC_BASE_PATH=/`. A deployment under a path prefix rebuilds `front`. See [DEPLOYMENT.md](DEPLOYMENT.md).
+
+An upgrade from 1.2.8 or 1.2.9 sets `SITMUN_UPGRADE_DEFAULT_LANGUAGE` in `.env` before that start. See [Upgrade 1.2.9 to 1.3.0](docs/upgrade/1.2.9-to-1.3.0.md) and [Upgrade 1.2.8 to 1.3.0](docs/upgrade/1.2.8-to-1.3.0.md).
+
+### Build this checkout
+
+`docker compose up -d` on `dev` builds from this checkout (`pull_policy: build`). `ENVIRONMENT` defaults to `development` unless the profile sets it. `./setup.sh` copies `profiles/development-postgres.env` to `.env` only when `.env` is missing, then appends the three secrets when those keys are absent.
 
 ```bash
 git clone --branch dev https://github.com/sitmun/sitmun.git
@@ -44,18 +68,6 @@ cd sitmun
 ./setup.sh          # Windows: ./setup.ps1
 docker compose up -d
 ```
-
-`docker compose up -d` builds from this checkout. To run the published images instead:
-
-```bash
-docker compose up -d --pull always --no-build
-```
-
-That uses `ghcr.io/sitmun/front`, `backend`, `proxy`, and `mbtiles` at tag `${SITMUN_VERSION:-1.3.0}`. Add `--profile mbtiles` for MBTiles. The checkout still supplies `profiles/` and `docker/front/config`.
-
-A manual run of Publish images pushes the `1.3.0` tag. The git tag `v1.3.0` publishes that same image tag. GitHub creates each package private. After the first push, set `front`, `backend`, `proxy`, and `mbtiles` to public in Package settings. The Packages API cannot change that. The change stays. An anonymous `docker pull ghcr.io/sitmun/front:1.3.0` is the check.
-
-`./setup.sh` and `./setup.ps1` copy `profiles/development-postgres.env` to `.env` only when `.env` is missing. They then append `SITMUN_USER_SECRET`, `MIDDLEWARE_SECRET`, and `SITMUN_MBTILES_JOB_HANDLE_SECRET` when those keys are absent, including on an `.env` you already copied from a profile. Do not commit the values.
 
 To choose a profile yourself, copy one file to `.env` and run `./setup.sh` (Windows: `./setup.ps1`). Compose marks the three secrets required (`:?`) and refuses to start without them.
 
@@ -106,6 +118,7 @@ Compose `:-` defaults below apply when the variable is unset. Dockerfile `ARG` d
 | `SITMUN_USER_SECRET` | Backend JWT signing secret. Minimum 32 characters. | required |
 | `MIDDLEWARE_SECRET` | Shared secret. Backend receives it as `SITMUN_PROXY_MIDDLEWARE_SECRET`. Proxy receives it as `SITMUN_BACKEND_CONFIG_SECRET`. | required |
 | `SITMUN_MBTILES_JOB_HANDLE_SECRET` | Proxy MBTiles job-handle secret. Minimum 32 characters. | required |
+| `SITMUN_UPGRADE_DEFAULT_LANGUAGE` | Language of existing database text on an upgrade. Must match `STM_CONF` `language.default`. Compose forwards it to the backend. Empty on a new install. | empty |
 
 `SecuritySecretValidator` (backend) and `ProxySecretValidator` (proxy) abort startup with `IllegalStateException` when a secret is blank or shorter than 32 characters.
 
@@ -133,18 +146,19 @@ Development profiles mount `profiles/development/backend` (`SITMUN_CONFIG_DIR` d
 
 ```bash
 cp profiles/postgres.env .env
-# append the three secrets, then:
-docker compose up -d
+./setup.sh
+docker compose up -d --pull always --no-build
 
 cp profiles/oracle.env .env
-docker compose up -d
+./setup.sh
+docker compose up -d --pull always --no-build
 ```
 
 Oracle's first start waits on its healthcheck (`start_period: 60s`). Follow it with `docker compose logs -f oracle`.
 
-To point at a database outside Compose, leave `COMPOSE_PROFILES` empty and set `SPRING_PROFILES_ACTIVE`, `DATABASE_URL`, `DATABASE`, `DATABASE_USERNAME`, `DATABASE_PASSWORD`, and the three secrets. `depends_on.required: false` skips a profiled database that is not started, so `docker compose up -d` starts `front`, `backend`, and `proxy` only.
+To point at a database outside Compose, leave `COMPOSE_PROFILES` empty and set `SPRING_PROFILES_ACTIVE`, `DATABASE_URL`, `DATABASE`, `DATABASE_USERNAME`, `DATABASE_PASSWORD`, and the three secrets. `depends_on.required: false` skips a profiled database that is not started, so `docker compose up -d --pull always --no-build` starts `front`, `backend`, and `proxy` only. A development checkout uses `docker compose up -d` and builds those images.
 
-Switch databases with `docker compose down`, copy the other profile to `.env`, append the three secrets, then `docker compose up -d`.
+Switch databases with `docker compose down`, copy the other profile to `.env`, run `./setup.sh`, then `docker compose up -d --pull always --no-build`.
 
 #### Example database
 
@@ -317,8 +331,10 @@ curl -X POST http://localhost:9001/api/authenticate/admin \
   -c cookies.txt \
   -H "Content-Type: application/json" \
   -d '{"username":"admin","password":"admin"}'
-curl -b cookies.txt http://localhost:9001/api/account
+curl -b cookies.txt -H "X-SITMUN-Client: admin" http://localhost:9001/api/account
 ```
+
+The backend reads `admin_access_token` only when the request sends `X-SITMUN-Client: admin` ([`AuthenticationController.resolveSessionCookieName`](sitmun-backend/src/main/java/org/sitmun/authentication/controller/AuthenticationController.java)). Without it, `/api/account` returns 401.
 
 Reinstall an app from that app directory: `rm -rf node_modules && pnpm ci`. Node must match `.nvmrc`. Java must match `.java-version`. Backend clean: `./gradlew :sitmun-backend:clean`. Proxy clean: `./gradlew :sitmun-proxy:clean`.
 

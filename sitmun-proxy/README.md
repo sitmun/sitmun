@@ -57,7 +57,7 @@ A Spring Boot microservice that acts as a reverse proxy and middleware to facili
   - [Security Configuration](#security-configuration)
   - [Monitoring and Health Checks](#monitoring-and-health-checks)
   - [Troubleshooting Integration](#troubleshooting-integration)
-  - [SITMUN Application Stack](#sitmun-application-stack)
+  - [Running in the stack](#running-in-the-stack)
 - [Support](#support)
 - [License](#license)
 
@@ -123,7 +123,7 @@ This service integrates with the [SITMUN backend](https://github.com/sitmun/sitm
 
 > **Note:** Docker builds use JAR packaging only. For WAR deployments, build locally and deploy to your application server.
 
-From the repository root, `./setup.sh` (Windows: `./setup.ps1`) prepares `.env`, then `docker compose up -d` starts the stack. Profiles and URLs are in the [repository README](../README.md).
+From the repository root, the published stack runs `ghcr.io/sitmun/proxy:1.3.0` from `compose.yaml`. Copy a profile, run `./setup.sh` (Windows: `./setup.ps1`), then `docker compose up -d --pull always --no-build`. `docker compose up -d` builds this checkout. Profiles and URLs are in the [repository README](../README.md).
 
 **Verify deployment**
 
@@ -1196,13 +1196,13 @@ logging:
 export LOGGING_LEVEL_ORG_SITMUN_PROXY_MIDDLEWARE=DEBUG
 export LOGGING_LEVEL_ORG_SITMUN=DEBUG
 
-# Restart the proxy middleware
-docker-compose restart sitmun-proxy-middleware
+# Restart the proxy from the repository root
+docker compose up -d proxy
 ```
 
-### SITMUN Application Stack
+### Running in the stack
 
-See the [repository README](https://github.com/sitmun/sitmun) for how the proxy runs in the stack.
+See the [repository README](../README.md) for how the proxy runs in the published images.
 
 ## Support
 
