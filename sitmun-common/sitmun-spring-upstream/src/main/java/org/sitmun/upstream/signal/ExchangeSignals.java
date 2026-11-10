@@ -41,7 +41,11 @@ public record ExchangeSignals(
   }
 
   public ExchangeSignals scan(InputStream body, int maxBytes, int textMaxLength) {
-    OgcExceptionScan scanned = OgcExceptionScanner.scan(body, maxBytes, textMaxLength);
+    return scan(body, maxBytes, textMaxLength, null);
+  }
+
+  public ExchangeSignals scan(InputStream body, int maxBytes, int textMaxLength, String charset) {
+    OgcExceptionScan scanned = OgcExceptionScanner.scan(body, maxBytes, textMaxLength, charset);
     return new ExchangeSignals(
         transportError, transportMessage, httpStatus, scanned.code(), scanned.text());
   }

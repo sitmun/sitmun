@@ -114,12 +114,26 @@ class OgcExceptionScannerTest {
   }
 
   @Test
+  void namedCharacterSetReadsLatin1Text() {
+    byte[] body =
+        "<ServiceException code=\"LayerNotDefined\">caf\u00f3n</ServiceException>"
+            .getBytes(Charset.forName("ISO-8859-1"));
+
+    OgcExceptionScan scan =
+        OgcExceptionScanner.scan(new ByteArrayInputStream(body), body.length, 40, "ISO-8859-1");
+
+    assertThat(scan.code()).isEqualTo("LayerNotDefined");
+    assertThat(scan.text()).isEqualTo("caf\u00f3n");
+  }
+
+  @Test
   void latin1TextStaysUnreadWithoutANamedCharacterSet() {
     byte[] body =
         "<ServiceException code=\"LayerNotDefined\">caf\u00f3n</ServiceException>"
             .getBytes(Charset.forName("ISO-8859-1"));
 
-    OgcExceptionScan scan = OgcExceptionScanner.scan(new ByteArrayInputStream(body), body.length, 40);
+    OgcExceptionScan scan =
+        OgcExceptionScanner.scan(new ByteArrayInputStream(body), body.length, 40);
 
     assertThat(scan.text()).isEmpty();
   }
@@ -131,7 +145,8 @@ class OgcExceptionScannerTest {
                 + "<ServiceException code=\"LayerNotDefined\">caf\u00f3n</ServiceException>")
             .getBytes(Charset.forName("ISO-8859-1"));
 
-    OgcExceptionScan scan = OgcExceptionScanner.scan(new ByteArrayInputStream(body), body.length, 40);
+    OgcExceptionScan scan =
+        OgcExceptionScanner.scan(new ByteArrayInputStream(body), body.length, 40);
 
     assertThat(scan.code()).isEqualTo("LayerNotDefined");
     assertThat(scan.text()).isEqualTo("caf\u00f3n");

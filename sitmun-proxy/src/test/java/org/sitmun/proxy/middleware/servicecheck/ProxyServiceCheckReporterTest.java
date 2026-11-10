@@ -61,8 +61,7 @@ class ProxyServiceCheckReporterTest {
     byte[] body =
         exceptionReport("NoApplicableCode", "caf\u00f3n").getBytes(Charset.forName("ISO-8859-1"));
 
-    var signals =
-        reporter.signals(exchange(200, "text/xml; charset=ISO-8859-1", body, START));
+    var signals = reporter.signals(exchange(200, "text/xml; charset=ISO-8859-1", body, START));
 
     assertThat(signals.ogcExceptionCode()).isEqualTo("NoApplicableCode");
     assertThat(signals.ogcExceptionText()).isEqualTo("caf\u00f3n");
@@ -74,8 +73,7 @@ class ProxyServiceCheckReporterTest {
     byte[] body =
         exceptionReport("NoApplicableCode", "caf\u00f3n").getBytes(Charset.forName("ISO-8859-1"));
 
-    var signals =
-        reporter.signals(exchange(200, "text/xml; charset=\"ISO-8859-1\"", body, START));
+    var signals = reporter.signals(exchange(200, "text/xml; charset=\"ISO-8859-1\"", body, START));
 
     assertThat(signals.ogcExceptionText()).isEqualTo("caf\u00f3n");
   }

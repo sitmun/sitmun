@@ -13,6 +13,11 @@ public final class OgcExceptionScanner {
   private OgcExceptionScanner() {}
 
   public static OgcExceptionScan scan(InputStream input, int maxBytes, int textMaxLength) {
+    return scan(input, maxBytes, textMaxLength, null);
+  }
+
+  public static OgcExceptionScan scan(
+      InputStream input, int maxBytes, int textMaxLength, String charset) {
     if (input == null || maxBytes <= 0) {
       return OgcExceptionScan.none();
     }
@@ -21,8 +26,8 @@ public final class OgcExceptionScanner {
       if (bytes.length == 0) {
         return OgcExceptionScan.none();
       }
-      return parse(bytes, textMaxLength);
-    } catch (IOException | XMLStreamException e) {
+      return parse(bytes, textMaxLength, charset);
+    } catch (IOException | XMLStreamException | IllegalArgumentException e) {
       return OgcExceptionScan.none();
     }
   }
@@ -45,11 +50,12 @@ public final class OgcExceptionScanner {
     return copy;
   }
 
-  private static OgcExceptionScan parse(byte[] bytes, int textMaxLength) throws XMLStreamException {
+  private static OgcExceptionScan parse(byte[] bytes, int textMaxLength, String charset)
+      throws XMLStreamException {
     XMLInputFactory factory = XMLInputFactory.newFactory();
     factory.setProperty(XMLInputFactory.SUPPORT_DTD, false);
     factory.setProperty(XMLInputFactory.IS_SUPPORTING_EXTERNAL_ENTITIES, false);
-    XMLStreamReader reader = factory.createXMLStreamReader(new ByteArrayInputStream(bytes));
+    XMLStreamReader reader = open(factory, bytes, charset);
     try {
       if (!advanceToFirstStart(reader)) {
         return OgcExceptionScan.none();
@@ -68,6 +74,15 @@ public final class OgcExceptionScanner {
     } finally {
       reader.close();
     }
+  }
+
+  private static XMLStreamReader open(XMLInputFactory factory, byte[] bytes, String charset)
+      throws XMLStreamException {
+    ByteArrayInputStream stream = new ByteArrayInputStream(bytes);
+    if (charset == null || charset.isBlank()) {
+      return factory.createXMLStreamReader(stream);
+    }
+    return factory.createXMLStreamReader(stream, charset.trim());
   }
 
   private static boolean advanceToFirstStart(XMLStreamReader reader) throws XMLStreamException {

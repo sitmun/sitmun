@@ -99,6 +99,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+#### Shared
+
+- **Service checks**: An upstream error page is read in the character set named on the response. When the response names none, the reader uses the byte-order mark, then the XML declaration, then UTF-8 ([#136](https://github.com/sitmun/sitmun/issues/136)).
+
 #### Edition Mobile App
 
 - **Map**: Delete stays hidden while a point is added ([#189](https://github.com/sitmun/sitmun/issues/189)).

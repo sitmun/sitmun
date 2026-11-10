@@ -20,6 +20,7 @@ import org.sitmun.domain.service.ServiceRepository;
 import org.sitmun.domain.service.check.ServiceCheck;
 import org.sitmun.domain.service.check.ServiceCheckStore;
 import org.sitmun.upstream.http.BasicAuthorization;
+import org.sitmun.upstream.http.ResponseCharset;
 import org.sitmun.upstream.http.UpstreamHttpClient;
 import org.sitmun.upstream.signal.Classification;
 import org.sitmun.upstream.signal.ExchangeSignals;
@@ -160,7 +161,11 @@ public class ServiceAccessCheckExecutor {
         input.readNBytes(properties.scanMaxBytes());
         return signals;
       }
-      return signals.scan(input, properties.scanMaxBytes(), properties.exceptionTextMaxLength());
+      return signals.scan(
+          input,
+          properties.scanMaxBytes(),
+          properties.exceptionTextMaxLength(),
+          ResponseCharset.named(response.header("content-type")));
     }
   }
 
