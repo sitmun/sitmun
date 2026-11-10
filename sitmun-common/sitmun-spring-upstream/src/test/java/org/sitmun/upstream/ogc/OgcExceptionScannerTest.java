@@ -3,6 +3,7 @@ package org.sitmun.upstream.ogc;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.ByteArrayInputStream;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import org.junit.jupiter.api.Test;
 
@@ -110,6 +111,30 @@ class OgcExceptionScannerTest {
 
     assertThat(scan.code()).isEqualTo("LayerNotDefined");
     assertThat(scan.text()).isEmpty();
+  }
+
+  @Test
+  void latin1TextStaysUnreadWithoutANamedCharacterSet() {
+    byte[] body =
+        "<ServiceException code=\"LayerNotDefined\">caf\u00f3n</ServiceException>"
+            .getBytes(Charset.forName("ISO-8859-1"));
+
+    OgcExceptionScan scan = OgcExceptionScanner.scan(new ByteArrayInputStream(body), body.length, 40);
+
+    assertThat(scan.text()).isEmpty();
+  }
+
+  @Test
+  void xmlDeclarationSuppliesTheCharacterSet() {
+    byte[] body =
+        ("<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>"
+                + "<ServiceException code=\"LayerNotDefined\">caf\u00f3n</ServiceException>")
+            .getBytes(Charset.forName("ISO-8859-1"));
+
+    OgcExceptionScan scan = OgcExceptionScanner.scan(new ByteArrayInputStream(body), body.length, 40);
+
+    assertThat(scan.code()).isEqualTo("LayerNotDefined");
+    assertThat(scan.text()).isEqualTo("caf\u00f3n");
   }
 
   @Test

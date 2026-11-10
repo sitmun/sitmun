@@ -3,6 +3,7 @@ package org.sitmun.proxy.middleware.servicecheck;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.net.URI;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
@@ -52,6 +53,42 @@ class ProxyServiceCheckReporterTest {
 
     assertThat(signals.ogcExceptionText()).isEqualTo("boom");
     assertThat(signals.ogcExceptionCode()).isEqualTo("NoApplicableCode");
+  }
+
+  @Test
+  @DisplayName("A named character set is used to read the error page")
+  void namedCharsetReadsTheErrorPage() {
+    byte[] body =
+        exceptionReport("NoApplicableCode", "caf\u00f3n").getBytes(Charset.forName("ISO-8859-1"));
+
+    var signals =
+        reporter.signals(exchange(200, "text/xml; charset=ISO-8859-1", body, START));
+
+    assertThat(signals.ogcExceptionCode()).isEqualTo("NoApplicableCode");
+    assertThat(signals.ogcExceptionText()).isEqualTo("caf\u00f3n");
+  }
+
+  @Test
+  @DisplayName("A quoted character set is used to read the error page")
+  void quotedCharsetReadsTheErrorPage() {
+    byte[] body =
+        exceptionReport("NoApplicableCode", "caf\u00f3n").getBytes(Charset.forName("ISO-8859-1"));
+
+    var signals =
+        reporter.signals(exchange(200, "text/xml; charset=\"ISO-8859-1\"", body, START));
+
+    assertThat(signals.ogcExceptionText()).isEqualTo("caf\u00f3n");
+  }
+
+  @Test
+  @DisplayName("Latin-1 text stays unread when the response names no character set")
+  void unnamedCharsetLeavesLatin1TextUnread() {
+    byte[] body =
+        exceptionReport("NoApplicableCode", "caf\u00f3n").getBytes(Charset.forName("ISO-8859-1"));
+
+    var signals = reporter.signals(exchange(200, "text/xml", body, START));
+
+    assertThat(signals.ogcExceptionText()).isEmpty();
   }
 
   @Test
