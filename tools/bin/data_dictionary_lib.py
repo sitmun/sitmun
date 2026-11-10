@@ -773,7 +773,9 @@ def check_sql(
     )
 
 
-def catalog_file(directory: Path, name: str) -> Path:
+def catalog_file(directory: Path, name: str, prefix: str | None = None) -> Path:
+    if prefix:
+        return directory / f"{prefix}.{name}"
     plain = directory / name
     if plain.is_file():
         return plain
@@ -781,20 +783,30 @@ def catalog_file(directory: Path, name: str) -> Path:
     return fresh if fresh.is_file() else plain
 
 
-def check_catalog(document: dict, directory: Path, *, consumer: str | None = None) -> list[Drift]:
-    name = consumer or directory.name
-    drifts = check_columns(document, load_columns(catalog_file(directory, "columns")), consumer=name)
-    index_path = catalog_file(directory, "indexes")
+def check_catalog(
+    document: dict,
+    directory: Path,
+    *,
+    consumer: str | None = None,
+    prefix: str | None = None,
+) -> list[Drift]:
+    name = consumer or (f"{prefix}-{directory.name}" if prefix else directory.name)
+
+    def named(filename: str) -> Path:
+        return catalog_file(directory, filename, prefix)
+
+    drifts = check_columns(document, load_columns(named("columns")), consumer=name)
+    index_path = named("indexes")
     drifts += check_uniques(
         document,
-        load_uniques(catalog_file(directory, "constraints")),
+        load_uniques(named("constraints")),
         load_index_names(index_path) if index_path.is_file() else None,
         consumer=name,
     )
-    codelists = catalog_file(directory, "codelists")
+    codelists = named("codelists")
     if codelists.is_file():
         drifts += check_codelists(document, load_codelist_values(codelists), consumer=name)
-    constraints = catalog_file(directory, "constraints")
+    constraints = named("constraints")
     if constraints.is_file():
         drifts += check_references(document, load_foreign_keys(constraints), consumer=name)
     return drifts

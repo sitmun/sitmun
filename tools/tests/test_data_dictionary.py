@@ -240,6 +240,14 @@ class DataDictionaryTest(unittest.TestCase):
         self.assertIn("has no columns", completed.stderr)
         self.assertNotIn("absent", completed.stdout)
 
+    def test_named_prefix_does_not_read_the_fresh_dump(self):
+        folder = FIXTURES / "length"
+        with tempfile.TemporaryDirectory() as tmp:
+            dest = Path(tmp)
+            (dest / "fresh.columns").write_text((folder / "columns").read_text())
+            with self.assertRaises(FileNotFoundError):
+                check_catalog(read_dictionary(folder / "dictionary.json"), dest, prefix="upgraded")
+
     def test_fresh_dump_prefix_is_a_catalog(self):
         folder = FIXTURES / "length"
         with tempfile.TemporaryDirectory() as tmp:

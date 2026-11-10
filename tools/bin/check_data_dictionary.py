@@ -46,6 +46,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--dictionary", type=Path, default=Path("tools/dictionary/dictionary.json"))
     parser.add_argument("--catalog", type=Path, action="append", default=[])
     parser.add_argument("--sql", type=Path, action="append", default=[])
+    parser.add_argument("--prefix", default=None)
     parser.add_argument("--fail-on", choices=("none", "problem"), default="problem")
     args = parser.parse_args(argv)
     document = read_dictionary(args.dictionary)
@@ -55,7 +56,7 @@ def main(argv: list[str] | None = None) -> int:
         if not columns_path.is_file() or not load_columns(columns_path):
             print(f"ERROR: {columns_path} has no columns", file=sys.stderr)
             return 1
-        drifts.extend(check_catalog(document, catalog))
+        drifts.extend(check_catalog(document, catalog, prefix=args.prefix))
     added = {}
     changelog = Path("sitmun-backend/src/main/resources/db/changelog/db.changelog-master.yaml")
     if args.sql and changelog.is_file():

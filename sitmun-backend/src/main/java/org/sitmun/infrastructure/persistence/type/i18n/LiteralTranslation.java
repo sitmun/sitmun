@@ -48,7 +48,7 @@ public class LiteralTranslation {
   @Size(max = LONG_DESCRIPTION)
   private String literal;
 
-  @ManyToOne(fetch = FetchType.LAZY)
+  @ManyToOne(fetch = FetchType.LAZY, optional = false)
   @JoinColumn(
       name = "LTR_LANID",
       nullable = false,

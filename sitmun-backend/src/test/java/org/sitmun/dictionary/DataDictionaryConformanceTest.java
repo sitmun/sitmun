@@ -141,7 +141,8 @@ class DataDictionaryConformanceTest {
         if (join == null || join.name().isBlank()) {
           continue;
         }
-        String key = table.name().toUpperCase(Locale.ROOT) + "." + join.name().toUpperCase(Locale.ROOT);
+        String key =
+            table.name().toUpperCase(Locale.ROOT) + "." + join.name().toUpperCase(Locale.ROOT);
         JsonNode row = document.path("columns").path(key);
         if (row.isMissingNode() || !"decided".equals(row.path("status").asText())) {
           continue;
@@ -151,7 +152,8 @@ class DataDictionaryConformanceTest {
         boolean optional = associationOptional(field);
         boolean observedRequired = !join.nullable() || !optional;
         if (required != observedRequired) {
-          rows.add(DictionaryComparison.line("required", key, consumer, required, observedRequired));
+          rows.add(
+              DictionaryComparison.line("required", key, consumer, required, observedRequired));
         }
         boolean beanRequired =
             field.getAnnotation(NotNull.class) != null
@@ -159,7 +161,8 @@ class DataDictionaryConformanceTest {
                 || !optional;
         if (!"reject".equals(row.path("enforcement").asText(null)) && required != beanRequired) {
           rows.add(
-              DictionaryComparison.line("required", key, consumer + "#bean", required, beanRequired));
+              DictionaryComparison.line(
+                  "required", key, consumer + "#bean", required, beanRequired));
         }
         String expectedDelete = row.path("references").path("on_delete").asText("");
         OnDelete onDelete = field.getAnnotation(OnDelete.class);
@@ -169,7 +172,8 @@ class DataDictionaryConformanceTest {
                 : onDelete.action().name().toLowerCase(Locale.ROOT).replace('_', ' ');
         if (!expectedDelete.equals(observedDelete)) {
           rows.add(
-              DictionaryComparison.line("references", key, consumer, expectedDelete, observedDelete));
+              DictionaryComparison.line(
+                  "references", key, consumer, expectedDelete, observedDelete));
         }
       }
     }

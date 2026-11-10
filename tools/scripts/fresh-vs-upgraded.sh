@@ -116,6 +116,9 @@ SQL
       docker exec "$container" psql -U sitmun3 -d sitmun3 -v ON_ERROR_STOP=1 -At -c \
         "SELECT COUNT(*) FROM stm_translation t WHERE t.tra_column = 'CodeListValue.description' AND NOT EXISTS (SELECT 1 FROM stm_codelist c WHERE c.cod_id = t.tra_eleid)" \
         > "${prefix}.integrity"
+      docker exec "$container" psql -U sitmun3 -d sitmun3 -v ON_ERROR_STOP=1 -At -F '|' -c \
+        "SELECT cnf_name, cnf_value FROM stm_conf ORDER BY 1" \
+        > "${prefix}.configuration"
     else
       dump_oracle_schema "$container" sitmun3 sitmun3 "$service" "$prefix"
       local connect="sitmun3/sitmun3@//localhost:1521/${service}"
@@ -131,6 +134,11 @@ SELECT COUNT(*) FROM stm_translation t WHERE t.tra_column = 'CodeListValue.descr
 EXIT
 \" | sqlplus -s ${connect}" | tr -d '[:space:]' > "${prefix}.integrity"
       echo >> "${prefix}.integrity"
+      docker exec "$container" bash -c "echo \"
+SET PAGESIZE 0 FEEDBACK OFF HEADING OFF LINESIZE 400 TRIMSPOOL ON
+SELECT cnf_name||'|'||cnf_value FROM stm_conf ORDER BY cnf_name;
+EXIT
+\" | sqlplus -s ${connect}" | sed '/^$/d' > "${prefix}.configuration"
     fi
   }
 

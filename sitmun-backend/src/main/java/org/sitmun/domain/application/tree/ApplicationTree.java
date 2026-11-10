@@ -38,13 +38,13 @@ public class ApplicationTree {
   @Column(name = "ATR_ID", nullable = false)
   private Integer id;
 
-  @ManyToOne
+  @ManyToOne(optional = false)
   @OnDelete(action = OnDeleteAction.CASCADE)
   @JoinColumn(name = "ATR_APPID", foreignKey = @ForeignKey(name = "STM_ATR_FK_APP"))
   @NotNull
   private Application application;
 
-  @ManyToOne
+  @ManyToOne(optional = false)
   @OnDelete(action = OnDeleteAction.CASCADE)
   @JoinColumn(name = "ATR_TREEID", foreignKey = @ForeignKey(name = "STM_ATR_FK_TRE"))
   @NotNull
