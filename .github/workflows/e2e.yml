@@ -79,9 +79,7 @@ jobs:
         with:
           node-version-file: .nvmrc
           cache: pnpm
-          cache-dependency-path: |
-            pnpm-lock.yaml
-            sitmun-admin/pnpm-lock.yaml
+          cache-dependency-path: pnpm-lock.yaml
 
       - name: Set up Node for viewer
         if: inputs.suite == 'viewer'
@@ -89,9 +87,7 @@ jobs:
         with:
           node-version-file: .nvmrc
           cache: pnpm
-          cache-dependency-path: |
-            pnpm-lock.yaml
-            sitmun-viewer/pnpm-lock.yaml
+          cache-dependency-path: pnpm-lock.yaml
 
       - name: Set up Node for admin and viewer
         if: contains(fromJSON('["contact","mia"]'), inputs.suite)
@@ -99,10 +95,7 @@ jobs:
         with:
           node-version-file: .nvmrc
           cache: pnpm
-          cache-dependency-path: |
-            pnpm-lock.yaml
-            sitmun-admin/pnpm-lock.yaml
-            sitmun-viewer/pnpm-lock.yaml
+          cache-dependency-path: pnpm-lock.yaml
 
       - name: Set up Node for mobile web
         if: inputs.suite == 'mobile_web'
@@ -118,23 +111,23 @@ jobs:
         with:
           node-version-file: .nvmrc
           cache: pnpm
-          cache-dependency-path: |
-            pnpm-lock.yaml
-            sitmun-mobile/sitmun-edition/pnpm-lock.yaml
-            sitmun-mobile/sitmun-touristic/pnpm-lock.yaml
+          cache-dependency-path: pnpm-lock.yaml
 
-      - name: Install root dependencies
-        run: pnpm ci
+      - name: Install admin suite
+        if: inputs.suite == 'admin'
+        run: pnpm ci --filter . --filter ./sitmun-admin...
 
-      - name: Install admin dependencies
-        if: contains(fromJSON('["admin","contact","mia"]'), inputs.suite)
-        working-directory: sitmun-admin
-        run: pnpm ci
+      - name: Install viewer suite
+        if: inputs.suite == 'viewer'
+        run: pnpm ci --filter . --filter ./sitmun-viewer...
 
-      - name: Install viewer dependencies
-        if: contains(fromJSON('["viewer","contact","mia"]'), inputs.suite)
-        working-directory: sitmun-viewer
-        run: pnpm ci
+      - name: Install admin and viewer
+        if: contains(fromJSON('["contact","mia"]'), inputs.suite)
+        run: pnpm ci --filter . --filter ./sitmun-admin... --filter ./sitmun-viewer...
+
+      - name: Install mobile apps
+        if: contains(fromJSON('["mobile_web","mobile_android"]'), inputs.suite)
+        run: pnpm ci --filter . --filter ./sitmun-mobile/sitmun-edition... --filter ./sitmun-mobile/sitmun-touristic...
 
       - name: Read the Playwright version
         if: inputs.suite != 'mobile_android'

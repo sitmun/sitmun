@@ -88,13 +88,32 @@ def _failures_docker_args(_root: Path) -> list[str]:
             failures.append(f"{path.relative_to(ROOT)} JDK_VERSION is {jdk}, .java-version major is {java}")
     pnpm_in_docker = PNPM_VERSION_ENV.findall(front_text)
     docker_pnpm = pnpm_in_docker[0] if len(pnpm_in_docker) == 1 else ""
-    for rel in ("package.json", "sitmun-admin/package.json", "sitmun-viewer/package.json"):
-        pinned = _package_manager_pnpm(rel)
-        if not docker_pnpm or docker_pnpm != pinned:
-            failures.append(
-                f"docker/front/Dockerfile PNPM_VERSION is {docker_pnpm or 'missing'}, {rel} packageManager is {pinned or 'missing'}"
-            )
+    pinned = _package_manager_pnpm("package.json")
+    if not docker_pnpm or docker_pnpm != pinned:
+        failures.append(
+            f"docker/front/Dockerfile PNPM_VERSION is {docker_pnpm or 'missing'}, package.json packageManager is {pinned or 'missing'}"
+        )
     return failures
+
+
+def _pnpm_catalog(text: str) -> dict[str, str]:
+    catalog: dict[str, str] = {}
+    in_catalog = False
+    for line in text.splitlines():
+        if line.startswith("catalog:"):
+            in_catalog = True
+            continue
+        if not in_catalog:
+            continue
+        if line and not line[0].isspace():
+            break
+        stripped = line.strip()
+        if not stripped or stripped.startswith("#"):
+            continue
+        key, separator, value = stripped.partition(":")
+        if separator:
+            catalog[key.strip().strip("'\"")] = value.strip().strip("'\"")
+    return catalog
 
 
 def _failures_engines(_root: Path) -> list[str]:
@@ -103,7 +122,12 @@ def _failures_engines(_root: Path) -> list[str]:
         return ["engines check needs root .nvmrc"]
     major = node.split(".")[0]
     failures = []
-    for rel in ("sitmun-admin/package.json", "sitmun-viewer/package.json"):
+    for rel in (
+        "sitmun-admin/package.json",
+        "sitmun-viewer/package.json",
+        "sitmun-mobile/sitmun-edition/package.json",
+        "sitmun-mobile/sitmun-touristic/package.json",
+    ):
         spec = json.loads(_read(ROOT / rel)).get("engines", {}).get("node", "")
         if _range_majors(spec) != {major}:
             failures.append(f"{rel} engines.node is {spec!r}, expected major {major}")
@@ -123,6 +147,8 @@ def _failures_types_node(_root: Path) -> list[str]:
         spec = data.get("devDependencies", {}).get("@types/node") or data.get("dependencies", {}).get("@types/node")
         if not spec:
             continue
+        if spec == "catalog:":
+            spec = _pnpm_catalog(_read(ROOT / "pnpm-workspace.yaml")).get("@types/node", "")
         if _range_majors(spec) != {major}:
             failures.append(f"{path.relative_to(ROOT)} @types/node is {spec}")
     return failures
@@ -312,6 +338,84 @@ def _failures_pnpm_installer(_root: Path) -> list[str]:
     return failures
 
 
+JS_APPS = (
+    "sitmun-admin/package.json",
+    "sitmun-viewer/package.json",
+    "sitmun-mobile/sitmun-edition/package.json",
+    "sitmun-mobile/sitmun-touristic/package.json",
+)
+
+# These still differ across apps. A catalog entry would force one version.
+JS_CATALOG_EXCLUDED = (
+    "@angular/core",
+    "@ngx-translate/core",
+    "@ngx-translate/http-loader",
+    "api-sitna",
+    "ol",
+    "jest",
+)
+
+
+def _package_specs(data: dict) -> dict[str, str]:
+    specs = {}
+    for section in ("dependencies", "devDependencies"):
+        specs.update(data.get(section, {}))
+    return specs
+
+
+def _failures_js_catalog(_root: Path) -> list[str]:
+    failures = []
+    workspaces = [
+        path.relative_to(ROOT).as_posix()
+        for path in ROOT.rglob("pnpm-workspace.yaml")
+        if "node_modules" not in path.parts
+    ]
+    if workspaces != ["pnpm-workspace.yaml"]:
+        failures.append(f"pnpm workspaces: {workspaces}")
+    locks = [
+        path.relative_to(ROOT).as_posix()
+        for path in ROOT.rglob("pnpm-lock.yaml")
+        if "node_modules" not in path.parts
+    ]
+    if locks != ["pnpm-lock.yaml"]:
+        failures.append(f"pnpm lockfiles: {locks}")
+    catalog = _pnpm_catalog(_read(ROOT / "pnpm-workspace.yaml"))
+    if not catalog:
+        failures.append("root pnpm-workspace.yaml has no catalog")
+        return failures
+    if catalog.get("webpack") != "5.112.2":
+        failures.append(f"catalog webpack is {catalog.get('webpack') or 'missing'}, expected 5.112.2")
+    if catalog.get("rxjs") != "7.8.2":
+        failures.append(f"catalog rxjs is {catalog.get('rxjs') or 'missing'}, expected 7.8.2")
+    for name in JS_CATALOG_EXCLUDED:
+        if name in catalog:
+            failures.append(f"catalog must not unify {name} while app versions differ")
+    if "api-sitna@4.9.1" in _read(ROOT / "sitmun-viewer/tsconfig.app.json"):
+        failures.append("sitmun-viewer/tsconfig.app.json hardcodes api-sitna@4.9.1")
+    webpack_config = _read(ROOT / "sitmun-viewer/webpack.config.js")
+    if "KeepApiSitnaDeclarationPathPlugin" not in webpack_config:
+        failures.append("sitmun-viewer/webpack.config.js must keep the api-sitna declaration path")
+    if "PUBLIC_BASE_PATH" not in webpack_config:
+        failures.append("sitmun-viewer/webpack.config.js must read PUBLIC_BASE_PATH")
+    dockerfile = _read(ROOT / "docker/front/Dockerfile")
+    if "webpack.config.js.template" in dockerfile:
+        failures.append("docker/front/Dockerfile overwrites sitmun-viewer/webpack.config.js")
+    root_pkg = json.loads(_read(ROOT / "package.json"))
+    if not str(root_pkg.get("packageManager", "")).startswith("pnpm@"):
+        failures.append("root package.json is missing packageManager")
+    for rel in JS_APPS:
+        data = json.loads(_read(ROOT / rel))
+        if "packageManager" in data:
+            failures.append(f"{rel} still sets packageManager")
+        for name, value in _package_specs(data).items():
+            if name in catalog and value != "catalog:":
+                failures.append(f"{rel} {name} is {value}, expected catalog:")
+    for name, value in _package_specs(root_pkg).items():
+        if name in catalog and value != "catalog:":
+            failures.append(f"package.json {name} is {value}, expected catalog:")
+    return failures
+
+
 def _failures_mise(_root: Path) -> list[str]:
     text = _read(ROOT / "mise.toml")
     if not text:
@@ -330,6 +434,7 @@ CHECKS = (
     ("docker-args", lambda _root: True, _failures_docker_args),
     ("engines", lambda _root: True, _failures_engines),
     ("types-node", lambda _root: True, _failures_types_node),
+    ("js-catalog", lambda _root: True, _failures_js_catalog),
     ("stale-docker", lambda _root: True, _failures_stale_docker),
     ("viewer-nvmrc", lambda _root: True, _failures_viewer_nvmrc),
     ("bump-paths", lambda _root: True, _failures_bump_paths),

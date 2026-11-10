@@ -57,8 +57,15 @@ node_modules/
 **/build/
 **/.gradle/
 
-# Not copied into any image
-sitmun-mobile/
+# Mobile apps are not copied into an image. pnpm ci still needs the two
+# workspace manifests, so those files stay in the build context.
+sitmun-mobile/*
+!sitmun-mobile/sitmun-edition
+sitmun-mobile/sitmun-edition/*
+!sitmun-mobile/sitmun-edition/package.json
+!sitmun-mobile/sitmun-touristic
+sitmun-mobile/sitmun-touristic/*
+!sitmun-mobile/sitmun-touristic/package.json
 e2e/
 
 # Keep these files (DO NOT exclude):

@@ -23,8 +23,10 @@ jobs:
         with:
           node-version-file: .nvmrc
           cache: pnpm
-          cache-dependency-path: sitmun-admin/pnpm-lock.yaml
-      - run: pnpm ci
+          cache-dependency-path: pnpm-lock.yaml
+      - name: Install dependencies
+        working-directory: ${{ github.workspace }}
+        run: pnpm ci --filter ./sitmun-admin...
       - run: pnpm run lint
       - run: pnpm run test:coverage
       - run: pnpm exec ng build --configuration=production --base-href=/admin-app/

@@ -6,7 +6,7 @@
 
 ## Requisitos
 
-Node.js es 24.22.0 ([`.nvmrc`](../../.nvmrc) en la raíz; esta app no tiene `.nvmrc`). pnpm es `packageManager` en `package.json`. mise es opcional.
+Node.js es 24.22.0 ([`.nvmrc`](../../.nvmrc) en la raíz). pnpm es `packageManager` en el `package.json` de la raíz. mise es opcional.
 
 - Angular 18.2.13 (`@angular/cli` y `@angular/*`)
 - Ionic `^8.4.1` (`@ionic/angular` y `@ionic/core`)
@@ -16,10 +16,10 @@ Node.js es 24.22.0 ([`.nvmrc`](../../.nvmrc) en la raíz; esta app no tiene `.nv
 
 ## Instalación
 
-En `sitmun-mobile/sitmun-edition`:
+Desde la raíz del repositorio:
 
 ```bash
-pnpm ci
+pnpm ci --filter ./sitmun-mobile/sitmun-edition...
 ```
 
 ## Integración con Capacitor

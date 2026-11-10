@@ -108,14 +108,9 @@ jobs:
         with:
           node-version-file: .nvmrc
           cache: pnpm
-          cache-dependency-path: |
-            pnpm-lock.yaml
-            sitmun-admin/pnpm-lock.yaml
-      - name: Install root dependencies
-        run: pnpm ci
-      - name: Install admin dependencies
-        working-directory: sitmun-admin
-        run: pnpm ci
+          cache-dependency-path: pnpm-lock.yaml
+      - name: Install dependencies
+        run: pnpm ci --filter . --filter ./sitmun-admin...
       - name: Read the Playwright version
         id: playwright-version
         run: |
