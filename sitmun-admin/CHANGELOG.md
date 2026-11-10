@@ -19,6 +19,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Layers**: A feature-service form says feature type for the members of the service, the query sentence, both scale hints, the dataset and metadata addresses, and the order hint. A map-image form still says layer ([#162](https://github.com/sitmun/sitmun/issues/162)).
+- **Trees**: A folder hint says that only the first metadata link is stored, and that only the first dataset link is stored ([#162](https://github.com/sitmun/sitmun/issues/162)).
 - **Trees**: The GetFeatureInfo filter is labeled as the feature-information filter, and the GetMap filter is labeled as the map filter ([#491](https://github.com/sitmun/sitmun-admin-app/issues/491)).
 - **Trees**: Accepting a name or description translation on a saved node marks the form dirty and sends the node update ([#504](https://github.com/sitmun/sitmun-admin-app/issues/504)).
 - **Trees**: Loading layers from a service attaches the cartography of that service when two services share a layer name ([#227](https://github.com/sitmun/sitmun-admin-app/issues/227)).

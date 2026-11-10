@@ -112,8 +112,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 - **Compose**: The web container waits until the proxy health check passes before it starts ([#151](https://github.com/sitmun/sitmun/issues/151)).
 
+#### Viewer Application
+
+- **Catalog**: The information button on a feature layer says feature type on hover. A map image layer still says layer ([#173](https://github.com/sitmun/sitmun/issues/173)).
+
+#### Admin Application
+
+- **Layers**: A feature-service form says feature type. A map-image form still says layer. A folder hint says that only the first metadata link is stored, and that only the first dataset link is stored ([#162](https://github.com/sitmun/sitmun/issues/162)).
+
 #### Backend Core
 
+- **i18n**: The six PDF and header task names, and 26 code-list labels, have Catalan, Spanish, French, Aranese, and Portuguese. The English stored text stays ([#116](https://github.com/sitmun/sitmun/issues/116)).
 - **Service checks**: A blank detail is stored as null. On Oracle, existing `SEC_OBSERVED` and `SCS_OBSERVED` values are copied as UTC before the columns become `TIMESTAMP(6) WITH TIME ZONE` ([sitmun-backend-core#355](https://github.com/sitmun/sitmun-backend-core/pull/355)).
 - **Database**: The Oracle dialects take the connected database version. Oracle 11 was configured as Oracle 8, and Oracle 21 as 19.
 - **Grants**: On Oracle, a user position created today grants access today. A cast to date kept the time of day there.

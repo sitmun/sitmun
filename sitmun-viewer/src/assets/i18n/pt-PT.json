@@ -146,6 +146,7 @@
   "layerCatalog.linkType.metadata": "Metadados",
   "layerCatalog.loadFailed": "A camada não pôde ser carregada",
   "layerCatalog.loading": "Carregando camada…",
+  "layerCatalog.featureTypeInformation": "Informação do tipo de entidade",
   "loginPage.DNIE": "Aceder com certificado eletrónico ou sistema de identificação nacional",
   "loginPage.alternativeLoginMethods": "Ou iniciar sessão usando",
   "loginPage.incorrectLogin": "Dados de acesso incorretos",

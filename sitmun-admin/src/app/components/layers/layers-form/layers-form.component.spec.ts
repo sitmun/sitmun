@@ -1013,34 +1013,123 @@ describe('LayersFormComponent', () => {
     });
 
     it('uses feature-type wording when the linked service is WFS', () => {
+      const protocol = constants.codeValue.serviceType;
       const flags = TestBed.inject(FeatureFlagService);
       expect(flags.isFeatureEnabled('LAYERS_CARTOGRAPHY_STYLES_TAB_FEATURE')).toBe(true);
       expect(flags.isFeatureEnabled('LAYERS_FILTERS_TAB_FEATURE')).toBe(true);
       expect(flags.isFeatureEnabled('LAYERS_FEATURE_INFORMATION_TAB_FEATURE')).toBe(true);
 
-      component.services = [{ id: 7, type: 'WFS' }];
+      component.services = [{ id: 7, type: protocol.wfs }];
       component.entityForm.patchValue({ serviceId: 7 });
 
-      expect(component.cartographyCopyKey('entity.cartography.styles.useAllStyles'))
-        .toBe('entity.cartography.styles.useAllStyles.wfs');
-      expect(component.cartographyCopyKey('entity.cartography.filters.applyFilterToGetMap'))
-        .toBe('entity.cartography.filters.applyFilterToGetMap.wfs');
-      expect(component.cartographyCopyKey('entity.cartography.featureInformation.layerAll'))
-        .toBe('entity.cartography.featureInformation.layerAll.wfs');
-      expect(component.cartographyCopyKey('entity.cartography.legend.sitnaControlCapabilities'))
-        .toBe('entity.cartography.legend.sitnaControlCapabilities.wfs');
-      expect(layersFormTemplate).toContain("cartographyCopyKey('entity.cartography.styles.useAllStyles')");
-      expect(layersFormTemplate).toContain("cartographyCopyKey('entity.cartography.filters.applyFilterToGetMap')");
-      expect(layersFormTemplate).toContain("cartographyCopyKey('entity.cartography.featureInformation.layerAll')");
+      const featureTypeKeys = [
+        'entity.cartography.styles.useAllStyles',
+        'entity.cartography.filters.applyFilterToGetMap',
+        'entity.cartography.featureInformation.layerAll',
+        'entity.cartography.legend.sitnaControlCapabilities',
+        'entity.cartography.layerSet',
+        'entity.cartography.hint.layerSet',
+        'entity.cartography.featureInformation.queryable',
+        'entity.cartography.hint.minimumScale',
+        'entity.cartography.hint.maximumScale',
+        'entity.cartography.datasetURL',
+        'entity.cartography.metadataURL',
+        'entity.cartography.hint.datasetURL',
+        'entity.cartography.hint.metadataURL',
+        'entity.cartography.hint.order',
+      ];
+      for (const key of featureTypeKeys) {
+        expect(component.cartographyCopyKey(key)).toBe(`${key}.wfs`);
+      }
+      for (const key of featureTypeKeys.filter((item) => item !== 'entity.cartography.legend.sitnaControlCapabilities')) {
+        expect(layersFormTemplate).toContain(`cartographyCopyKey('${key}')`);
+      }
       expect(layersFormTemplate).toContain('entity.cartography.legend.sitnaControlCapabilities.wfs');
+      expect(layersFormTemplate).toContain(
+        "joinedLayers: cartographyCopyKey('entity.cartography.layerSet')"
+      );
+      expect(layersFormTemplate).not.toContain("=== 'WFS'");
+      expect(layersFormTemplate).not.toContain('=== "WFS"');
+
+      const es = JSON.parse(readFileSync(
+        join(__dirname, '../../../../assets/i18n/es.json'),
+        'utf8',
+      )) as Record<string, string>;
+      expect(es['entity.cartography.layerSet.wfs'])
+        .toBe('Tipo o tipos de entidad del servicio utilizados');
+      expect(es['entity.cartography.hint.layerSet.wfs'])
+        .toContain('nombres de tipo de entidad');
+      expect(es['entity.cartography.featureInformation.queryable.wfs'])
+        .toBe('El tipo o tipos de entidad del servicio pueden consultarse para recuperar información alfanumérica');
+      expect(es['entity.cartography.hint.minimumScale.wfs']).toContain('El tipo de entidad se oculta');
+      expect(es['entity.cartography.hint.maximumScale.wfs']).toContain('El tipo de entidad se oculta');
+      expect(es['entity.cartography.datasetURL.wfs']).toBe('URL del dataset del tipo de entidad');
+      expect(es['entity.cartography.metadataURL.wfs']).toBe('URL de la metadata del tipo de entidad');
+      expect(es['entity.cartography.hint.datasetURL.wfs'])
+        .toBe('Se usa en la ventana emergente de información del tipo de entidad.');
+      expect(es['entity.cartography.hint.metadataURL.wfs'])
+        .toBe('Se usa en la ventana emergente de información del tipo de entidad.');
+      expect(es['entity.cartography.hint.order.wfs']).toContain('añadir el tipo de entidad');
+      expect(es['entity.cartography.hint.order.wfs']).toContain('capas de trabajo');
     });
 
     it('keeps layer wording when the linked service is WMS', () => {
-      component.services = [{ id: 7, type: 'WMS' }];
+      const protocol = constants.codeValue.serviceType;
+      component.services = [{ id: 7, type: protocol.wms }];
       component.entityForm.patchValue({ serviceId: 7 });
 
       expect(component.cartographyCopyKey('entity.cartography.styles.useAllStyles'))
         .toBe('entity.cartography.styles.useAllStyles');
+      expect(component.cartographyCopyKey('entity.cartography.layerSet'))
+        .toBe('entity.cartography.layerSet');
+    });
+
+    it('stores one folder link for metadata and for data', () => {
+      const endings = {
+        es: [
+          'Solo se guarda el primer enlace de metadatos en la carpeta.',
+          'Solo se guarda el primer enlace de datos en la carpeta.',
+        ],
+        en: [
+          'Only the first metadata link is stored on the folder.',
+          'Only the first dataset link is stored on the folder.',
+        ],
+      } as const;
+      for (const locale of ['en', 'ca', 'es', 'fr', 'oc-aranes', 'pt-PT']) {
+        const messages = JSON.parse(readFileSync(
+          join(__dirname, '../../../../assets/i18n', `${locale}.json`),
+          'utf8',
+        )) as Record<string, string>;
+        expect(messages['entity.tree.hint.metadataURL']).not.toContain('MetadataURL');
+        expect(messages['entity.tree.hint.datasetURL']).not.toContain('DataURL');
+        for (const key of [
+          'entity.cartography.layerSet',
+          'entity.cartography.hint.layerSet',
+          'entity.cartography.featureInformation.queryable',
+          'entity.cartography.hint.minimumScale',
+          'entity.cartography.hint.maximumScale',
+          'entity.cartography.datasetURL',
+          'entity.cartography.metadataURL',
+          'entity.cartography.hint.datasetURL',
+          'entity.cartography.hint.metadataURL',
+          'entity.cartography.hint.order',
+        ]) {
+          expect(messages[`${key}.wfs`].length).toBeGreaterThan(0);
+          expect(messages[`${key}.wfs`]).not.toBe(messages[key]);
+        }
+      }
+      const es = JSON.parse(readFileSync(
+        join(__dirname, '../../../../assets/i18n/es.json'),
+        'utf8',
+      )) as Record<string, string>;
+      const en = JSON.parse(readFileSync(
+        join(__dirname, '../../../../assets/i18n/en.json'),
+        'utf8',
+      )) as Record<string, string>;
+      expect(es['entity.tree.hint.metadataURL']).toContain(endings.es[0]);
+      expect(es['entity.tree.hint.datasetURL']).toContain(endings.es[1]);
+      expect(en['entity.tree.hint.metadataURL']).toContain(endings.en[0]);
+      expect(en['entity.tree.hint.datasetURL']).toContain(endings.en[1]);
     });
 
     it('filters the legend choice by service and enables the address only for a static legend', () => {
