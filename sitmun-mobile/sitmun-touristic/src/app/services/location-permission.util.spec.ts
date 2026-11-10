@@ -4,12 +4,12 @@ import { nativeLocationSettings, readDeviceLocation } from './location-permissio
 describe('location-permission.util', () => {
   it('requests permission and returns coords when granted', async () => {
     const geolocation = {
-      requestPermissions: jasmine.createSpy('requestPermissions').and.resolveTo({ location: 'granted' }),
-      getCurrentPosition: jasmine.createSpy('getCurrentPosition').and.resolveTo({
+      requestPermissions: jest.fn().mockResolvedValue({ location: 'granted' }),
+      getCurrentPosition: jest.fn().mockResolvedValue({
         coords: { longitude: 2.1, latitude: 41.4 }
       })
     };
-    await expectAsync(readDeviceLocation(geolocation)).toBeResolvedTo({
+    await expect(readDeviceLocation(geolocation)).resolves.toEqual({
       x: 2.1,
       y: 41.4,
       permission: true
@@ -20,10 +20,10 @@ describe('location-permission.util', () => {
 
   it('does not read coords when permission is denied', async () => {
     const geolocation = {
-      requestPermissions: jasmine.createSpy('requestPermissions').and.resolveTo({ location: 'denied' }),
-      getCurrentPosition: jasmine.createSpy('getCurrentPosition')
+      requestPermissions: jest.fn().mockResolvedValue({ location: 'denied' }),
+      getCurrentPosition: jest.fn()
     };
-    await expectAsync(readDeviceLocation(geolocation)).toBeResolvedTo({
+    await expect(readDeviceLocation(geolocation)).resolves.toEqual({
       x: 0,
       y: 0,
       permission: false

@@ -1,4 +1,5 @@
 import { HTTP_INTERCEPTORS, provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
+import { Component, Input } from '@angular/core';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
@@ -28,6 +29,17 @@ import { environment } from '@environments/environment';
 
 import { TaskQueryFormComponent } from './task-query-form.component';
 
+@Component({
+  selector: 'app-relation-grid',
+  template: '',
+  standalone: true,
+})
+class RelationGridStubComponent {
+  @Input() table: unknown;
+  @Input() allNewElements = false;
+  @Input() templateDialogName?: string;
+}
+
 describe('TaskQueryFormComponent', () => {
   let component: TaskQueryFormComponent;
   let fixture: ComponentFixture<TaskQueryFormComponent>;
@@ -43,6 +55,7 @@ describe('TaskQueryFormComponent', () => {
         SitmunFrontendGuiModule,
         AgGridModule,
         EntityFormAlertsComponent,
+        RelationGridStubComponent,
         MaterialModule,
         MatIconTestingModule,
         BrowserAnimationsModule,
@@ -86,6 +99,7 @@ describe('TaskQueryFormComponent', () => {
     configureLoggerForTests(loggerService);
     component.entityToEdit = component.empty();
     component.postFetchData();
+    (component as unknown as {codelists: Map<string, unknown[]>}).codelists.set('queryTask.scope', []);
     fixture.detectChanges();
   });
 

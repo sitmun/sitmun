@@ -9,6 +9,8 @@ import { TranslateLoader, TranslatePipe, TranslateService, provideTranslateServi
 import {of} from 'rxjs';
 
 import {EntityListComponent} from '@app/components/shared/entity-list/entity-list.component';
+import { LoggerService } from '@app/services/logger.service';
+import { configureLoggerForTests } from '@app/testing/test-helpers';
 import { ExternalConfigurationService } from '@app/core/config/external-configuration.service';
 import {ExternalService, ResourceService} from '@app/core/hal';
 import {CodeListService, ServiceService, TranslationService} from '@app/domain';
@@ -95,6 +97,7 @@ describe('ServiceComponent', () => {
     httpMock = TestBed.inject(HttpTestingController);
     fixture = TestBed.createComponent(ServiceComponent);
     component = fixture.componentInstance;
+    configureLoggerForTests(TestBed.inject(LoggerService));
 
     fixture.detectChanges();
     await new Promise((r) => setTimeout(r, 0));

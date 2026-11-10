@@ -1030,6 +1030,7 @@ describe('LayersFormComponent', () => {
       component.services = [{ id: 164, name: 'IDEMenorca - Ordenacio', type: 'WMS' }];
       component.postFetchData();
       component.dataLoaded = true;
+      (component as unknown as {codelists: Map<string, unknown[]>}).codelists.set('cartography.legendType', []);
       fixture.detectChanges();
 
       expect(component.entityForm.pristine).toBe(true);

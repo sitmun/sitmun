@@ -345,8 +345,8 @@ JS_APPS = (
     "sitmun-mobile/sitmun-touristic/package.json",
 )
 
-# These still differ across apps. A catalog entry would force one version.
-JS_CATALOG_EXCLUDED = ("jest",)
+# Every shared Jest package now has one catalog pin.
+JS_CATALOG_EXCLUDED = ()
 
 
 def _locked_api_sitna_ol(lock: str) -> str | None:
@@ -423,6 +423,22 @@ def _failures_js_catalog(_root: Path) -> list[str]:
         failures.append(f"catalog api-sitna is {catalog.get('api-sitna') or 'missing'}, expected 4.10.0")
     if catalog.get("ol") != "10.9.0":
         failures.append(f"catalog ol is {catalog.get('ol') or 'missing'}, expected 10.9.0")
+    jest_pins = {
+        "jest": "30.5.2",
+        "@types/jest": "30.0.0",
+        "babel-jest": "30.5.2",
+        "jest-preset-angular": "17.0.3",
+        "jest-environment-jsdom": "30.5.2",
+        "@jest/globals": "30.5.2",
+    }
+    for name, expected in jest_pins.items():
+        if catalog.get(name) != expected:
+            failures.append(f"catalog {name} is {catalog.get(name) or 'missing'}, expected {expected}")
+    touristic = json.loads(_read(ROOT / "sitmun-mobile/sitmun-touristic/package.json"))
+    if not str(touristic.get("scripts", {}).get("test", "")).startswith("jest"):
+        failures.append("sitmun-touristic test script is not jest")
+    if "karma" in touristic.get("devDependencies", {}):
+        failures.append("sitmun-touristic still depends on karma")
     locked_ol = _locked_api_sitna_ol(_read(ROOT / "pnpm-lock.yaml"))
     if locked_ol != "10.9.0":
         failures.append(f"locked api-sitna@4.10.0 depends on ol {locked_ol or 'missing'}, expected 10.9.0")
