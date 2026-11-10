@@ -45,7 +45,7 @@
     "ol": "10.5.0",
     "pako": "2.2.0",
     "proj4": "2.22.0",
-    "rxjs": "7.8.2",
+    "rxjs": "catalog:",
     "tslib": "catalog:",
     "url-template": "3.1.1",
     "zone.js": "0.15.1"

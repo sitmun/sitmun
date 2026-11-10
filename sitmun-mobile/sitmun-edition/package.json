@@ -45,7 +45,7 @@
     "bootstrap": "5.3.7",
     "cordova-plugin-httpd": "0.9.3",
     "ionicons": "catalog:",
-    "rxjs": "7.8.2",
+    "rxjs": "catalog:",
     "tslib": "catalog:",
     "xmlbuilder2": "catalog:",
     "zone.js": "0.14.10",

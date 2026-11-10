@@ -385,6 +385,8 @@ def _failures_js_catalog(_root: Path) -> list[str]:
         return failures
     if catalog.get("webpack") != "5.112.2":
         failures.append(f"catalog webpack is {catalog.get('webpack') or 'missing'}, expected 5.112.2")
+    if catalog.get("rxjs") != "7.8.2":
+        failures.append(f"catalog rxjs is {catalog.get('rxjs') or 'missing'}, expected 7.8.2")
     for name in JS_CATALOG_EXCLUDED:
         if name in catalog:
             failures.append(f"catalog must not unify {name} while app versions differ")
