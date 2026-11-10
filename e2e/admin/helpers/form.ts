@@ -19,12 +19,27 @@ export async function waitForFormReady(page: Page, primaryFieldName: string): Pr
   return primary;
 }
 
+/** Opens a hash route and reloads once when startup failed before the form rendered. */
+export async function gotoFormRoute(
+  page: Page,
+  hashPath: string,
+  primaryFieldName: string,
+): Promise<void> {
+  await page.goto(hashPath);
+  const form = control(page, primaryFieldName);
+  const initError = page.locator('app-error-page');
+  await expect(form.or(initError)).toBeVisible({ timeout: 15_000 });
+  if (await initError.isVisible()) {
+    await page.reload();
+  }
+}
+
 export async function gotoCreateForm(
   page: Page,
   hashPath: string,
   primaryFieldName: string,
 ): Promise<Locator> {
-  await page.goto(hashPath);
+  await gotoFormRoute(page, hashPath, primaryFieldName);
   return waitForFormReady(page, primaryFieldName);
 }
 
