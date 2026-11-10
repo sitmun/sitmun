@@ -68,6 +68,13 @@ class PublishedImagesTest(unittest.TestCase):
         self.assertRegex(front, r"backend:\n\s+condition: service_started")
         self.assertRegex(front, r"proxy:\n\s+condition: service_healthy")
 
+    def test_front_apps_fall_back_inside_the_base_path(self) -> None:
+        text = (ROOT / "docker/front/config/default.conf.template").read_text(encoding="utf-8")
+        for app in ("admin", "viewer"):
+            block = text.split(f"location ${{LOCAL_BASE_PATH}}{app}/ {{", 1)[1].split("\n    }", 1)[0]
+            self.assertIn(f"alias /usr/share/nginx/html/{app}/;", block, app)
+            self.assertIn(f"try_files $uri $uri/ ${{LOCAL_BASE_PATH}}{app}/index.html;", block, app)
+
 
 if __name__ == "__main__":
     unittest.main()

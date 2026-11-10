@@ -142,6 +142,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 - **Setup**: `setup.sh` and `setup.ps1` fill `SITMUN_USER_SECRET`, `MIDDLEWARE_SECRET`, and `SITMUN_MBTILES_JOB_HANDLE_SECRET` when `.env` already exists and a key is missing. A value that is already set stays. Profile templates name the three keys and leave them unset ([sitmun-application-stack#138](https://github.com/sitmun/sitmun-application-stack/issues/138)).
 - **Database**: An upgrade from 1.2.6 on Oracle 11 and on the 19c stand-in rewrites unquoted `TRUE` and `FALSE` in the extracted schema. Those releases reject boolean literals. The run then stores a checksum the current changelog already accepts.
+- **Docker**: With `LOCAL_BASE_PATH` set to a prefix such as `/sitmun3/`, the front server opens the admin at `/sitmun3/admin/`. It used to redirect that address to the viewer.
 - **Docker**: The backend and proxy images configure a Gradle project only when its directory was copied into the image.
 - **Viewer**: Jest transforms the pnpm copy of `url-template`. OpenLayers, proj4, and draggabilly are direct dependencies. The About window still reads `ol/package.json`.
 - **Mobile**: The Android end-to-end build uses `ng build`. `@ionic/cli` is not a dependency of the mobile apps.
