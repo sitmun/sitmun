@@ -14,7 +14,7 @@
   <app-entity-form-alerts
     [form]="entityForm"
     entityLabelPrefix="entity.cartography"
-    [fieldLabelKeys]="{ serviceId: 'entity.service.label', joinedLayers: 'entity.cartography.layerSet' }">
+    [fieldLabelKeys]="{ serviceId: 'entity.service.label', joinedLayers: cartographyCopyKey('entity.cartography.layerSet') }">
   </app-entity-form-alerts>
 }
 
@@ -100,9 +100,9 @@
             </mat-form-field>
             </div>
             <mat-form-field appearance="outline" class="full">
-              <mat-label>{{ 'entity.cartography.layerSet' | translate }}</mat-label>
+              <mat-label>{{ cartographyCopyKey('entity.cartography.layerSet') | translate }}</mat-label>
               <input matInput type="text" formControlName="joinedLayers" [maxlength]="800" required>
-              <mat-hint align="start">{{ 'entity.cartography.hint.layerSet' | translate }}</mat-hint>
+              <mat-hint align="start">{{ cartographyCopyKey('entity.cartography.hint.layerSet') | translate }}</mat-hint>
               <mat-hint align="end">{{ entityForm.get('joinedLayers') | characterCount }}</mat-hint>
               @if (entityForm.get('joinedLayers')?.hasError('required') && entityForm.get('joinedLayers')?.touched) {
                 <mat-error>
@@ -111,7 +111,7 @@
               }
             </mat-form-field>
             <mat-slide-toggle color="primary" formControlName="queryableFeatureEnabled">
-              {{ 'entity.cartography.featureInformation.queryable' | translate }}
+              {{ cartographyCopyKey('entity.cartography.featureInformation.queryable') | translate }}
             </mat-slide-toggle>
             @if (showsLegendFields()) {
               <mat-form-field appearance="outline" class="half sitmun-cartography-rich-hint-field" subscriptSizing="dynamic">
@@ -153,7 +153,7 @@
               <mat-form-field appearance="outline" class="half add-gap" subscriptSizing="dynamic">
                 <mat-label>{{ 'entity.cartography.minimumScale' | translate }}</mat-label>
                 <input matInput type="number" min="0" step="1" formControlName="minimumScale">
-                <mat-hint align="start">{{ 'entity.cartography.hint.minimumScale' | translate }}</mat-hint>
+                <mat-hint align="start">{{ cartographyCopyKey('entity.cartography.hint.minimumScale') | translate }}</mat-hint>
                 @if (entityForm.get('minimumScale')?.errors?.['scaleInteger']) {
                   <mat-error>
                     {{ 'entity.cartography.error.scaleNonNegativeInteger' | translate }}
@@ -163,7 +163,7 @@
               <mat-form-field appearance="outline" class="half" subscriptSizing="dynamic">
                 <mat-label>{{ 'entity.cartography.maximumScale' | translate }}</mat-label>
                 <input matInput type="number" min="0" step="1" formControlName="maximumScale">
-                <mat-hint align="start">{{ 'entity.cartography.hint.maximumScale' | translate }}</mat-hint>
+                <mat-hint align="start">{{ cartographyCopyKey('entity.cartography.hint.maximumScale') | translate }}</mat-hint>
                 @if (entityForm.get('maximumScale')?.errors?.['scaleInteger']) {
                   <mat-error>
                     {{ 'entity.cartography.error.scaleNonNegativeInteger' | translate }}
@@ -187,30 +187,30 @@
               }
             </mat-form-field>
             <mat-form-field appearance="outline" class="full" subscriptSizing="dynamic">
-              <mat-label>{{ 'entity.cartography.datasetURL' | translate }}</mat-label>
+              <mat-label>{{ cartographyCopyKey('entity.cartography.datasetURL') | translate }}</mat-label>
               <input formControlName="datasetURL" matInput type="text" [maxlength]="4000">
               <app-external-url-link
                 matSuffix
                 [url]="$safeNavigationMigration(entityForm.get('datasetURL')?.value)">
               </app-external-url-link>
-              <mat-hint align="start">{{ 'entity.cartography.hint.datasetURL' | translate }}</mat-hint>
+              <mat-hint align="start">{{ cartographyCopyKey('entity.cartography.hint.datasetURL') | translate }}</mat-hint>
               <mat-hint align="end">{{ entityForm.get('datasetURL') | characterCount }}</mat-hint>
             </mat-form-field>
             <mat-form-field appearance="outline" class="full" subscriptSizing="dynamic">
-              <mat-label>{{ 'entity.cartography.metadataURL' | translate }}</mat-label>
+              <mat-label>{{ cartographyCopyKey('entity.cartography.metadataURL') | translate }}</mat-label>
               <input formControlName="metadataURL" matInput type="text" [maxlength]="4000">
               <app-external-url-link
                 matSuffix
                 [url]="$safeNavigationMigration(entityForm.get('metadataURL')?.value)">
               </app-external-url-link>
-              <mat-hint align="start">{{ 'entity.cartography.hint.metadataURL' | translate }}</mat-hint>
+              <mat-hint align="start">{{ cartographyCopyKey('entity.cartography.hint.metadataURL') | translate }}</mat-hint>
               <mat-hint align="end">{{ entityForm.get('metadataURL') | characterCount }}</mat-hint>
             </mat-form-field>
             <div class="sitmun-layers-order-source-row">
               <mat-form-field appearance="outline" class="half add-gap sitmun-cartography-rich-hint-field" subscriptSizing="dynamic">
                 <mat-label>{{ 'entity.cartography.order' | translate }}</mat-label>
                 <input matInput type="number" step="1" formControlName="order">
-                <mat-hint align="start">{{ 'entity.cartography.hint.order' | translate }}</mat-hint>
+                <mat-hint align="start">{{ cartographyCopyKey('entity.cartography.hint.order') | translate }}</mat-hint>
               </mat-form-field>
               <ng-container *appFeatureFlag="'LAYERS_SOURCE_FEATURE'">
                 <mat-form-field appearance="outline" class="half sitmun-cartography-rich-hint-field" subscriptSizing="dynamic">

@@ -707,3 +707,163 @@ tra_id,tra_column,element,element_value,lan_shortname,tra_name
 984,Language.name,oc-aranes,,pt-PT,Aranês
 985,Language.name,fr,,pt-PT,Francês
 986,Language.name,pt-PT,,pt-PT,Português
+987,Task.name,Exportar PDF A4 Vertical,,ca,Exportar PDF A4 Vertical
+988,Task.name,Exportar PDF A4 Vertical,,es,Exportar PDF A4 vertical
+989,Task.name,Exportar PDF A4 Vertical,,fr,Exporter PDF A4 vertical
+990,Task.name,Exportar PDF A4 Vertical,,oc-aranes,Exportar PDF A4 verticau
+991,Task.name,Exportar PDF A4 Vertical,,pt-PT,Exportar PDF A4 vertical
+992,Task.name,Exportar PDF A3 Vertical,,ca,Exportar PDF A3 Vertical
+993,Task.name,Exportar PDF A3 Vertical,,es,Exportar PDF A3 vertical
+994,Task.name,Exportar PDF A3 Vertical,,fr,Exporter PDF A3 vertical
+995,Task.name,Exportar PDF A3 Vertical,,oc-aranes,Exportar PDF A3 verticau
+996,Task.name,Exportar PDF A3 Vertical,,pt-PT,Exportar PDF A3 vertical
+997,Task.name,Exportar PDF A4 Horitzontal,,ca,Exportar PDF A4 Horitzontal
+998,Task.name,Exportar PDF A4 Horitzontal,,es,Exportar PDF A4 horizontal
+999,Task.name,Exportar PDF A4 Horitzontal,,fr,Exporter PDF A4 horizontal
+1000,Task.name,Exportar PDF A4 Horitzontal,,oc-aranes,Exportar PDF A4 orizontau
+1001,Task.name,Exportar PDF A4 Horitzontal,,pt-PT,Exportar PDF A4 horizontal
+1002,Task.name,Exportar PDF A3 Horitzontal,,ca,Exportar PDF A3 Horitzontal
+1003,Task.name,Exportar PDF A3 Horitzontal,,es,Exportar PDF A3 horizontal
+1004,Task.name,Exportar PDF A3 Horitzontal,,fr,Exporter PDF A3 horizontal
+1005,Task.name,Exportar PDF A3 Horitzontal,,oc-aranes,Exportar PDF A3 orizontau
+1006,Task.name,Exportar PDF A3 Horitzontal,,pt-PT,Exportar PDF A3 horizontal
+1007,Task.name,Capçalera per defecte,,ca,Capçalera per defecte
+1008,Task.name,Capçalera per defecte,,es,Cabecera por defecto
+1009,Task.name,Capçalera per defecte,,fr,En-tête par défaut
+1010,Task.name,Capçalera per defecte,,oc-aranes,Entèsta per defaut
+1011,Task.name,Capçalera per defecte,,pt-PT,Cabeçalho predefinido
+1012,Task.name,Peu de pàgina per defecte,,ca,Peu de pàgina per defecte
+1013,Task.name,Peu de pàgina per defecte,,es,Pie de página por defecto
+1014,Task.name,Peu de pàgina per defecte,,fr,Pied de page par défaut
+1015,Task.name,Peu de pàgina per defecte,,oc-aranes,Pè de pagina per defaut
+1016,Task.name,Peu de pàgina per defecte,,pt-PT,Rodapé predefinido
+1017,CodeListValue.description,queryTask.scope,external-link,ca,Enllaç extern
+1018,CodeListValue.description,queryTask.scope,external-link,es,Enlace externo
+1019,CodeListValue.description,queryTask.scope,external-link,fr,Lien externe
+1020,CodeListValue.description,queryTask.scope,external-link,oc-aranes,Ligam extèrne
+1021,CodeListValue.description,queryTask.scope,external-link,pt-PT,Ligação externa
+1022,CodeListValue.description,queryTask.mimeType,image/png,ca,PNG (.png)
+1023,CodeListValue.description,queryTask.mimeType,image/png,es,PNG (.png)
+1024,CodeListValue.description,queryTask.mimeType,image/png,fr,PNG (.png)
+1025,CodeListValue.description,queryTask.mimeType,image/png,oc-aranes,PNG (.png)
+1026,CodeListValue.description,queryTask.mimeType,image/png,pt-PT,PNG (.png)
+1027,CodeListValue.description,queryTask.mimeType,image/jpeg,ca,"JPEG (.jpg, .jpeg)"
+1028,CodeListValue.description,queryTask.mimeType,image/jpeg,es,"JPEG (.jpg, .jpeg)"
+1029,CodeListValue.description,queryTask.mimeType,image/jpeg,fr,"JPEG (.jpg, .jpeg)"
+1030,CodeListValue.description,queryTask.mimeType,image/jpeg,oc-aranes,"JPEG (.jpg, .jpeg)"
+1031,CodeListValue.description,queryTask.mimeType,image/jpeg,pt-PT,"JPEG (.jpg, .jpeg)"
+1032,CodeListValue.description,queryTask.mimeType,image/gif,ca,GIF (.gif)
+1033,CodeListValue.description,queryTask.mimeType,image/gif,es,GIF (.gif)
+1034,CodeListValue.description,queryTask.mimeType,image/gif,fr,GIF (.gif)
+1035,CodeListValue.description,queryTask.mimeType,image/gif,oc-aranes,GIF (.gif)
+1036,CodeListValue.description,queryTask.mimeType,image/gif,pt-PT,GIF (.gif)
+1037,CodeListValue.description,queryTask.mimeType,image/svg+xml,ca,SVG (.svg)
+1038,CodeListValue.description,queryTask.mimeType,image/svg+xml,es,SVG (.svg)
+1039,CodeListValue.description,queryTask.mimeType,image/svg+xml,fr,SVG (.svg)
+1040,CodeListValue.description,queryTask.mimeType,image/svg+xml,oc-aranes,SVG (.svg)
+1041,CodeListValue.description,queryTask.mimeType,image/svg+xml,pt-PT,SVG (.svg)
+1042,CodeListValue.description,queryTask.mimeType,application/pdf,ca,PDF (.pdf)
+1043,CodeListValue.description,queryTask.mimeType,application/pdf,es,PDF (.pdf)
+1044,CodeListValue.description,queryTask.mimeType,application/pdf,fr,PDF (.pdf)
+1045,CodeListValue.description,queryTask.mimeType,application/pdf,oc-aranes,PDF (.pdf)
+1046,CodeListValue.description,queryTask.mimeType,application/pdf,pt-PT,PDF (.pdf)
+1047,CodeListValue.description,queryTask.mimeType,application/json,ca,JSON (.json)
+1048,CodeListValue.description,queryTask.mimeType,application/json,es,JSON (.json)
+1049,CodeListValue.description,queryTask.mimeType,application/json,fr,JSON (.json)
+1050,CodeListValue.description,queryTask.mimeType,application/json,oc-aranes,JSON (.json)
+1051,CodeListValue.description,queryTask.mimeType,application/json,pt-PT,JSON (.json)
+1052,CodeListValue.description,queryTask.mimeType,application/xml,ca,XML (.xml)
+1053,CodeListValue.description,queryTask.mimeType,application/xml,es,XML (.xml)
+1054,CodeListValue.description,queryTask.mimeType,application/xml,fr,XML (.xml)
+1055,CodeListValue.description,queryTask.mimeType,application/xml,oc-aranes,XML (.xml)
+1056,CodeListValue.description,queryTask.mimeType,application/xml,pt-PT,XML (.xml)
+1057,CodeListValue.description,queryTask.mimeType,application/msword,ca,Word (.doc)
+1058,CodeListValue.description,queryTask.mimeType,application/msword,es,Word (.doc)
+1059,CodeListValue.description,queryTask.mimeType,application/msword,fr,Word (.doc)
+1060,CodeListValue.description,queryTask.mimeType,application/msword,oc-aranes,Word (.doc)
+1061,CodeListValue.description,queryTask.mimeType,application/msword,pt-PT,Word (.doc)
+1062,CodeListValue.description,queryTask.mimeType,application/vnd.ms-excel,ca,Excel (.xls)
+1063,CodeListValue.description,queryTask.mimeType,application/vnd.ms-excel,es,Excel (.xls)
+1064,CodeListValue.description,queryTask.mimeType,application/vnd.ms-excel,fr,Excel (.xls)
+1065,CodeListValue.description,queryTask.mimeType,application/vnd.ms-excel,oc-aranes,Excel (.xls)
+1066,CodeListValue.description,queryTask.mimeType,application/vnd.ms-excel,pt-PT,Excel (.xls)
+1067,CodeListValue.description,queryTask.mimeType,application/vnd.oasis.opendocument.text,ca,ODT (.odt)
+1068,CodeListValue.description,queryTask.mimeType,application/vnd.oasis.opendocument.text,es,ODT (.odt)
+1069,CodeListValue.description,queryTask.mimeType,application/vnd.oasis.opendocument.text,fr,ODT (.odt)
+1070,CodeListValue.description,queryTask.mimeType,application/vnd.oasis.opendocument.text,oc-aranes,ODT (.odt)
+1071,CodeListValue.description,queryTask.mimeType,application/vnd.oasis.opendocument.text,pt-PT,ODT (.odt)
+1072,CodeListValue.description,queryTask.mimeType,application/vnd.oasis.opendocument.spreadsheet,ca,ODS (.ods)
+1073,CodeListValue.description,queryTask.mimeType,application/vnd.oasis.opendocument.spreadsheet,es,ODS (.ods)
+1074,CodeListValue.description,queryTask.mimeType,application/vnd.oasis.opendocument.spreadsheet,fr,ODS (.ods)
+1075,CodeListValue.description,queryTask.mimeType,application/vnd.oasis.opendocument.spreadsheet,oc-aranes,ODS (.ods)
+1076,CodeListValue.description,queryTask.mimeType,application/vnd.oasis.opendocument.spreadsheet,pt-PT,ODS (.ods)
+1077,CodeListValue.description,service.authenticationMode,API key,ca,Clau d'API
+1078,CodeListValue.description,service.authenticationMode,API key,es,Clave de API
+1079,CodeListValue.description,service.authenticationMode,API key,fr,Clé d'API
+1080,CodeListValue.description,service.authenticationMode,API key,oc-aranes,Clau d'API
+1081,CodeListValue.description,service.authenticationMode,API key,pt-PT,Chave de API
+1082,CodeListValue.description,apiKey.header,X-API-Key,ca,X-API-Key
+1083,CodeListValue.description,apiKey.header,X-API-Key,es,X-API-Key
+1084,CodeListValue.description,apiKey.header,X-API-Key,fr,X-API-Key
+1085,CodeListValue.description,apiKey.header,X-API-Key,oc-aranes,X-API-Key
+1086,CodeListValue.description,apiKey.header,X-API-Key,pt-PT,X-API-Key
+1087,CodeListValue.description,apiKey.cookie,X-API-Key,ca,X-API-Key
+1088,CodeListValue.description,apiKey.cookie,X-API-Key,es,X-API-Key
+1089,CodeListValue.description,apiKey.cookie,X-API-Key,fr,X-API-Key
+1090,CodeListValue.description,apiKey.cookie,X-API-Key,oc-aranes,X-API-Key
+1091,CodeListValue.description,apiKey.cookie,X-API-Key,pt-PT,X-API-Key
+1092,CodeListValue.description,apiKey.queryParam,API-Key,ca,API-Key
+1093,CodeListValue.description,apiKey.queryParam,API-Key,es,API-Key
+1094,CodeListValue.description,apiKey.queryParam,API-Key,fr,API-Key
+1095,CodeListValue.description,apiKey.queryParam,API-Key,oc-aranes,API-Key
+1096,CodeListValue.description,apiKey.queryParam,API-Key,pt-PT,API-Key
+1097,CodeListValue.description,queryTask.scope,web-api-query-no-proxy,ca,Consulta d'API web (sense intermediari)
+1098,CodeListValue.description,queryTask.scope,web-api-query-no-proxy,es,Consulta de API web (sin proxy)
+1099,CodeListValue.description,queryTask.scope,web-api-query-no-proxy,fr,Requête d'API web (sans proxy)
+1100,CodeListValue.description,queryTask.scope,web-api-query-no-proxy,oc-aranes,Consulta d'API web (sense intermediari)
+1101,CodeListValue.description,queryTask.scope,web-api-query-no-proxy,pt-PT,Consulta de API web (sem proxy)
+1102,CodeListValue.description,queryTask.scope,resource-query,ca,Consulta de recurs
+1103,CodeListValue.description,queryTask.scope,resource-query,es,Consulta de recurso
+1104,CodeListValue.description,queryTask.scope,resource-query,fr,Requête de ressource
+1105,CodeListValue.description,queryTask.scope,resource-query,oc-aranes,Consulta de recors
+1106,CodeListValue.description,queryTask.scope,resource-query,pt-PT,Consulta de recurso
+1107,CodeListValue.description,documentExport.output,pdf,ca,pdf
+1108,CodeListValue.description,documentExport.output,pdf,es,pdf
+1109,CodeListValue.description,documentExport.output,pdf,fr,pdf
+1110,CodeListValue.description,documentExport.output,pdf,oc-aranes,pdf
+1111,CodeListValue.description,documentExport.output,pdf,pt-PT,pdf
+1112,CodeListValue.description,documentExport.engine,openhtmltopdf,ca,OpenHTMLToPDF
+1113,CodeListValue.description,documentExport.engine,openhtmltopdf,es,OpenHTMLToPDF
+1114,CodeListValue.description,documentExport.engine,openhtmltopdf,fr,OpenHTMLToPDF
+1115,CodeListValue.description,documentExport.engine,openhtmltopdf,oc-aranes,OpenHTMLToPDF
+1116,CodeListValue.description,documentExport.engine,openhtmltopdf,pt-PT,OpenHTMLToPDF
+1117,CodeListValue.description,moreInfo.type,API,ca,API
+1118,CodeListValue.description,moreInfo.type,API,es,API
+1119,CodeListValue.description,moreInfo.type,API,fr,API
+1120,CodeListValue.description,moreInfo.type,API,oc-aranes,API
+1121,CodeListValue.description,moreInfo.type,API,pt-PT,API
+1122,CodeListValue.description,moreInfo.type,RESOURCE,ca,Recurs
+1123,CodeListValue.description,moreInfo.type,RESOURCE,es,Recurso
+1124,CodeListValue.description,moreInfo.type,RESOURCE,fr,Ressource
+1125,CodeListValue.description,moreInfo.type,RESOURCE,oc-aranes,Recors
+1126,CodeListValue.description,moreInfo.type,RESOURCE,pt-PT,Recurso
+1127,CodeListValue.description,moreInfo.type,SQL,ca,SQL
+1128,CodeListValue.description,moreInfo.type,SQL,es,SQL
+1129,CodeListValue.description,moreInfo.type,SQL,fr,SQL
+1130,CodeListValue.description,moreInfo.type,SQL,oc-aranes,SQL
+1131,CodeListValue.description,moreInfo.type,SQL,pt-PT,SQL
+1132,CodeListValue.description,moreInfo.type,URL,ca,URL
+1133,CodeListValue.description,moreInfo.type,URL,es,URL
+1134,CodeListValue.description,moreInfo.type,URL,fr,URL
+1135,CodeListValue.description,moreInfo.type,URL,oc-aranes,URL
+1136,CodeListValue.description,moreInfo.type,URL,pt-PT,URL
+1137,CodeListValue.description,taskEntity.jsonParamType,null,ca,nul
+1138,CodeListValue.description,taskEntity.jsonParamType,null,es,nulo
+1139,CodeListValue.description,taskEntity.jsonParamType,null,fr,nul
+1140,CodeListValue.description,taskEntity.jsonParamType,null,oc-aranes,nul
+1141,CodeListValue.description,taskEntity.jsonParamType,null,pt-PT,nulo
+1142,CodeListValue.description,cartographyParameter.format,AUTO,ca,Automàtic
+1143,CodeListValue.description,cartographyParameter.format,AUTO,es,Automático
+1144,CodeListValue.description,cartographyParameter.format,AUTO,fr,Automatique
+1145,CodeListValue.description,cartographyParameter.format,AUTO,oc-aranes,Automatic
+1146,CodeListValue.description,cartographyParameter.format,AUTO,pt-PT,Automático

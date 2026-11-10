@@ -27,6 +27,7 @@ All notable changes to this project will be documented in this file. The format 
 
 ### Fixed
 
+- **Catalog**: The information button on a feature layer says feature type on hover. A map image layer still says layer. Portuguese includes that sentence ([#173](https://github.com/sitmun/sitmun/issues/173)).
 - **Identify**: A named WMS group stays the request layer for GetFeatureInfo and GetLegendGraphic ([sitmun-viewer-app#224](https://github.com/sitmun/sitmun-viewer-app/pull/224)).
 - **Map**: The Loaded Layers drag handle shows a six-dot grip. The previous mark is a character this font does not draw.
 - **Map**: A restricted share link keeps `mapState` through the password form and the external login button. A person who cannot open that application and territory sees `map.error.access.denied`, and the map does not start ([#221](https://github.com/sitmun/sitmun-viewer-app/issues/221)).

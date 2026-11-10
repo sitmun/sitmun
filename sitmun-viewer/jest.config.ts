@@ -33,6 +33,7 @@ const config: Config = {
     '^@sections/(.*)$': '<rootDir>/src/app/sections/$1',
     '^@shared/(.*)$': '<rootDir>/src/app/shared/$1',
     '^@ui/(.*)$': '<rootDir>/src/app/ui/$1',
+    '^@environments/(.*)$': '<rootDir>/src/environments/$1',
     '^src/environments/(.*)$': '<rootDir>/src/environments/$1',
     '^src/app/(.*)$': '<rootDir>/src/app/$1',
     '^ol/package.json$': '<rootDir>/node_modules/ol/package.json'

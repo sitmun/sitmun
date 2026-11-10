@@ -25,7 +25,58 @@ def load_generator():
     return module
 
 
+FEATURE_TYPE_LABELS = (
+    ("Task.name", "Exportar PDF A4 Vertical", ""),
+    ("Task.name", "Exportar PDF A3 Vertical", ""),
+    ("Task.name", "Exportar PDF A4 Horitzontal", ""),
+    ("Task.name", "Exportar PDF A3 Horitzontal", ""),
+    ("Task.name", "Capçalera per defecte", ""),
+    ("Task.name", "Peu de pàgina per defecte", ""),
+    ("CodeListValue.description", "queryTask.scope", "external-link"),
+    ("CodeListValue.description", "queryTask.mimeType", "image/png"),
+    ("CodeListValue.description", "queryTask.mimeType", "image/jpeg"),
+    ("CodeListValue.description", "queryTask.mimeType", "image/gif"),
+    ("CodeListValue.description", "queryTask.mimeType", "image/svg+xml"),
+    ("CodeListValue.description", "queryTask.mimeType", "application/pdf"),
+    ("CodeListValue.description", "queryTask.mimeType", "application/json"),
+    ("CodeListValue.description", "queryTask.mimeType", "application/xml"),
+    ("CodeListValue.description", "queryTask.mimeType", "application/msword"),
+    ("CodeListValue.description", "queryTask.mimeType", "application/vnd.ms-excel"),
+    ("CodeListValue.description", "queryTask.mimeType", "application/vnd.oasis.opendocument.text"),
+    ("CodeListValue.description", "queryTask.mimeType", "application/vnd.oasis.opendocument.spreadsheet"),
+    ("CodeListValue.description", "service.authenticationMode", "API key"),
+    ("CodeListValue.description", "apiKey.header", "X-API-Key"),
+    ("CodeListValue.description", "apiKey.cookie", "X-API-Key"),
+    ("CodeListValue.description", "apiKey.queryParam", "API-Key"),
+    ("CodeListValue.description", "queryTask.scope", "web-api-query-no-proxy"),
+    ("CodeListValue.description", "queryTask.scope", "resource-query"),
+    ("CodeListValue.description", "documentExport.output", "pdf"),
+    ("CodeListValue.description", "documentExport.engine", "openhtmltopdf"),
+    ("CodeListValue.description", "moreInfo.type", "API"),
+    ("CodeListValue.description", "moreInfo.type", "RESOURCE"),
+    ("CodeListValue.description", "moreInfo.type", "SQL"),
+    ("CodeListValue.description", "moreInfo.type", "URL"),
+    ("CodeListValue.description", "taskEntity.jsonParamType", "null"),
+    ("CodeListValue.description", "cartographyParameter.format", "AUTO"),
+)
+
+FEATURE_TYPE_LANGUAGES = ("ca", "es", "fr", "oc-aranes", "pt-PT")
+
+
 class SeedTranslationTest(unittest.TestCase):
+    def test_feature_type_labels_exist_for_every_non_english_language(self) -> None:
+        with (SEED / "translations.csv").open(newline="") as handle:
+            present = {
+                (row["tra_column"], row["element"], row["element_value"], row["lan_shortname"])
+                for row in csv.DictReader(handle)
+            }
+        missing = [
+            f"{language} {column} {element} {value}".strip()
+            for column, element, value in FEATURE_TYPE_LABELS
+            for language in FEATURE_TYPE_LANGUAGES
+            if (column, element, value, language) not in present
+        ]
+        self.assertEqual(missing, [])
     def test_csv_stores_no_english_code_value(self) -> None:
         with (SEED / "translations.csv").open(newline="") as handle:
             stored = [

@@ -1,6 +1,7 @@
 import { inject, Injectable } from '@angular/core';
 
 import type { AppCfg, AppNodeInfo, AppTasks, AppTree } from '@api/model/app-cfg';
+import { constants } from '@environments/constants';
 import { TranslateService } from '@ngx-translate/core';
 import { Subscription } from 'rxjs';
 
@@ -48,7 +49,9 @@ const WFS_CAPABILITIES_QUERY = 'service=WFS&request=GetCapabilities';
 const MATERIAL_ICON_WARNING = 'warning';
 
 function catalogCapabilitiesQuery(serviceType: string | undefined): string {
-  return serviceType === 'WFS' ? WFS_CAPABILITIES_QUERY : WMS_CAPABILITIES_QUERY;
+  return serviceType === constants.codeValue.serviceType.wfs
+    ? WFS_CAPABILITIES_QUERY
+    : WMS_CAPABILITIES_QUERY;
 }
 
 // Declare require for CommonJS module import
@@ -609,9 +612,9 @@ export class LayerCatalogControlHandler extends ControlHandlerBase {
                 return commitClaimOnly();
               }
 
-              if (realLayerConfig?.type === 'WFS') {
+              if (realLayerConfig?.type === constants.codeValue.serviceType.wfs) {
                 const featureType = realLayerConfig.layerNames[0];
-                layerOptions.type = 'WFS';
+                layerOptions.type = constants.codeValue.serviceType.wfs;
                 if (featureType) {
                   layerOptions.featureType = featureType;
                 }
@@ -1374,7 +1377,7 @@ export class LayerCatalogControlHandler extends ControlHandlerBase {
     }
     return (
       this.virtualWmsService.findRealLayerConfig(nodeId, this.currentAppCfg)
-        ?.type === 'WFS'
+        ?.type === constants.codeValue.serviceType.wfs
     );
   }
 
@@ -1398,14 +1401,15 @@ export class LayerCatalogControlHandler extends ControlHandlerBase {
         // Material Icons “article”; Sitna “i” / --icon-info is reserved for GFI.
         element.setAttribute('checked-icon-text', 'article');
         element.setAttribute('unchecked-icon-text', 'article');
+        const row = element.closest('li[data-layer-name]') as HTMLElement | null;
+        const featureTypeLabel = this.isWfsCatalogLeaf(row?.dataset['layerName'])
+          ? this.translate.instant(LCAT_FEATURE_TYPE_INFO_I18N)
+          : null;
+        if (featureTypeLabel) {
+          element.setAttribute('title', featureTypeLabel);
+        }
         if (!element.getAttribute('aria-label')) {
-          const row = element.closest('li[data-layer-name]') as HTMLElement | null;
-          element.setAttribute(
-            'aria-label',
-            this.isWfsCatalogLeaf(row?.dataset['layerName'])
-              ? this.translate.instant(LCAT_FEATURE_TYPE_INFO_I18N)
-              : 'Layer information'
-          );
+          element.setAttribute('aria-label', featureTypeLabel ?? 'Layer information');
         }
         this.placeMetadataControl(element);
       });

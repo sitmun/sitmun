@@ -7,6 +7,7 @@ import { TestBed } from '@angular/core/testing';
 
 
 import type { AppCfg, AppTasks, AppTree, AppNodeInfo } from '@api/model/app-cfg';
+import { constants } from '@environments/constants';
 import { TranslateService } from '@ngx-translate/core';
 import { Subject } from 'rxjs';
 
@@ -3882,8 +3883,8 @@ describe('LayerCatalogControlHandler', () => {
           { id: 'layer/wms', title: 'L', layers: ['l'], service: 'service/wms' }
         ],
         services: [
-          { id: 'service/wfs', type: 'WFS', url: 'https://example.test/wfs' },
-          { id: 'service/wms', type: 'WMS', url: 'https://example.test/wms' }
+          { id: 'service/wfs', type: constants.codeValue.serviceType.wfs, url: 'https://example.test/wfs' },
+          { id: 'service/wms', type: constants.codeValue.serviceType.wms, url: 'https://example.test/wms' }
         ],
         tasks: [],
         trees: [
@@ -3924,8 +3925,18 @@ describe('LayerCatalogControlHandler', () => {
       mockVirtualCapabilities.findRealLayerConfig.mockImplementation(
         (nodeId: string) =>
           nodeId === 'node/wfs'
-            ? { type: 'WFS', url: 'https://example.test/wfs', layerNames: ['ft'], serviceId: 'service/wfs' }
-            : { type: 'WMS', url: 'https://example.test/wms', layerNames: ['l'], serviceId: 'service/wms' }
+            ? {
+                type: constants.codeValue.serviceType.wfs,
+                url: 'https://example.test/wfs',
+                layerNames: ['ft'],
+                serviceId: 'service/wfs'
+              }
+            : {
+                type: constants.codeValue.serviceType.wms,
+                url: 'https://example.test/wms',
+                layerNames: ['l'],
+                serviceId: 'service/wms'
+              }
       );
 
       const selection = TestBed.inject(CatalogLayerSelectionService);
@@ -3952,12 +3963,25 @@ describe('LayerCatalogControlHandler', () => {
       const wmsLeaf = catalog.div.querySelector(
         'li[data-layer-name="node/wms"]'
       ) as HTMLElement;
+      const handlerSource = readFileSync(
+        join(__dirname, 'layer-catalog-control.handler.ts'),
+        'utf8'
+      );
+      expect(handlerSource).toContain('constants.codeValue.serviceType.wfs');
+      expect(handlerSource).not.toContain("=== 'WFS'");
+      expect(handlerSource).not.toContain("= 'WFS'");
       expect(
         wfsLeaf.querySelector('.tc-ctl-lcat-btn-info')?.getAttribute('aria-label')
       ).toBe('layerCatalog.featureTypeInformation');
       expect(
+        wfsLeaf.querySelector('.tc-ctl-lcat-btn-info')?.getAttribute('title')
+      ).toBe('layerCatalog.featureTypeInformation');
+      expect(
         wmsLeaf.querySelector('.tc-ctl-lcat-btn-info')?.getAttribute('aria-label')
       ).toBe('Layer information');
+      expect(
+        wmsLeaf.querySelector('.tc-ctl-lcat-btn-info')?.getAttribute('title')
+      ).toBeNull();
       expect(
         wfsLeaf.querySelector('.sitmun-lcat-leaf-load')?.getAttribute('aria-label')
       ).toBe('layerCatalog.loadFeatureType');

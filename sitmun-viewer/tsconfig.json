@@ -29,6 +29,7 @@
       "@sections/*": ["src/app/sections/*"],
       "@shared/*": ["src/app/shared/*"],
       "@ui/*": ["src/app/ui/*"],
+      "@environments/*": ["src/environments/*"],
       "ol/package.json": ["node_modules/ol/package.json"]
     },
     "useDefineForClassFields": false,

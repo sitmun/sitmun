@@ -18,7 +18,7 @@ TITLES = (
     "Informació avançada",
 )
 
-ABSENT = (
+PDF_TASKS = (
     "Exportar PDF A4 Vertical",
     "Exportar PDF A3 Vertical",
     "Exportar PDF A4 Horitzontal",
@@ -56,8 +56,14 @@ class FillVacantTest(unittest.TestCase):
             self.assertEqual(len(lines), 4)
             self.assertEqual(sorted(title(line) for line in lines), sorted(TITLES))
             self.assertFalse(any("lan_shortname = 'en'" in line for line in lines))
-            for name in ABSENT:
-                self.assertNotIn(f"tas_name = '{name}'", sql)
+            for name in PDF_TASKS:
+                self.assertIn(f"tas_name = '{name}'", sql)
+                english = [
+                    line
+                    for line in sql.splitlines()
+                    if f"tas_name = '{name}'" in line and "lan_shortname = 'en'" in line
+                ]
+                self.assertEqual(english, [])
 
 
 if __name__ == "__main__":
