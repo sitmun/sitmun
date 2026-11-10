@@ -85,7 +85,10 @@
         "saveSuccessTitle": "Guardado correcto",
         "saveResultTitle": "Resultado del guardado",
         "saveErrorsSection": "Errores",
-        "saveSuccessSection": "Correctos"
+        "saveSuccessSection": "Correctos",
+        "uploadForbidden": "No tiene permiso para cambiar esta capa.",
+        "uploadFailed": "Los cambios no se han guardado.",
+        "uploadOffline": "No hay conexión. Los cambios siguen en este dispositivo."
     },
     "exit": {
         "title": "Salir",

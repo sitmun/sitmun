@@ -299,6 +299,7 @@
                   <p class="ion-padding-start">
                     <strong>{{ item.layerName }}</strong><br>
                     {{ item.message }}
+                    <span *ngIf="item.detail"><br>{{ item.detail }}</span>
                   </p>
                 </ion-text>
               </ng-container>

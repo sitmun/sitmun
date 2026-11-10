@@ -85,7 +85,10 @@
         "saveSuccessTitle": "Enregistrement réussi",
         "saveResultTitle": "Résultat de l'enregistrement",
         "saveErrorsSection": "Erreurs",
-        "saveSuccessSection": "Réussis"
+        "saveSuccessSection": "Réussis",
+        "uploadForbidden": "Vous n'êtes pas autorisé à modifier cette couche.",
+        "uploadFailed": "Les modifications n'ont pas été enregistrées.",
+        "uploadOffline": "Pas de connexion. Les modifications restent sur cet appareil."
     },
     "exit": {
         "title": "Quitter",

@@ -85,7 +85,10 @@
         "saveSuccessTitle": "Desat correctament",
         "saveResultTitle": "Resultat del desament",
         "saveErrorsSection": "Errors",
-        "saveSuccessSection": "Correctes"
+        "saveSuccessSection": "Correctes",
+        "uploadForbidden": "No teniu permís per canviar aquesta capa.",
+        "uploadFailed": "Els canvis no s'han desat.",
+        "uploadOffline": "No hi ha connexió. Els canvis segueixen en aquest dispositiu."
     },
     "exit": {
         "title": "Sortir",

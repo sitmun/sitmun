@@ -85,7 +85,10 @@
         "saveSuccessTitle": "Saved successfully",
         "saveResultTitle": "Save result",
         "saveErrorsSection": "Errors",
-        "saveSuccessSection": "Successful"
+        "saveSuccessSection": "Successful",
+        "uploadForbidden": "You are not allowed to change this layer.",
+        "uploadFailed": "The changes were not saved.",
+        "uploadOffline": "No connection. The changes stay on this device."
     },
     "exit": {
         "title": "Exit",
