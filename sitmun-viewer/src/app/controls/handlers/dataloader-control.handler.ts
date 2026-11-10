@@ -12,7 +12,6 @@ import { SitnaControlConfig } from '../control-handler.interface';
  * Allows users to load data layers via WMS suggestions and drag-and-drop.
  *
  * Control Type: sitna.dataLoader
- * Patches: scripts/patch-dataloader-legacy-controls.js
  * Configuration: div, wmsSuggestions, and enableDragAndDrop.
  * Nullish modern options are filled in so DataLoader does not read the obsolete
  * externalWMS / fileImport children.
