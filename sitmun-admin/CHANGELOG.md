@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Data grid**: The filter button and the header selection checkbox have a translated accessible name in every language.
 - **Layers**: A feature layer accepts one type name. A map-image layer still accepts a comma-separated list ([#157](https://github.com/sitmun/sitmun/issues/157)).
 - **Layers**: A feature-service form says feature type for the members of the service, the query sentence, both scale hints, the dataset and metadata addresses, and the order hint. A map-image form still says layer ([#162](https://github.com/sitmun/sitmun/issues/162)).
 - **Trees**: A folder hint says that only the first metadata link is stored, and that only the first dataset link is stored ([#162](https://github.com/sitmun/sitmun/issues/162)).

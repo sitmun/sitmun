@@ -5,6 +5,8 @@
   "auth.sessionValidation.unavailable": "Votre session n'a pas pu être vérifiée. Veuillez réessayer.",
   "agGrid.andCondition": "ET",
   "agGrid.applyFilter": "Appliquer",
+  "agGrid.ariaFilterColumn": "Appuyez sur CTRL ENTRÉE pour ouvrir le filtre",
+  "agGrid.ariaHeaderSelection": "Colonne avec sélection d'en-tête",
   "agGrid.ariaMenuColumn": "Menu de colonne",
   "agGrid.ariaRowSelect": "Appuyez sur ESPACE pour sélectionner cette ligne",
   "agGrid.ariaRowSelectAll": "Appuyez sur ESPACE pour basculer la sélection de toutes les lignes",
