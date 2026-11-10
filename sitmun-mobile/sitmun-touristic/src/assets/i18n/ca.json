@@ -7,13 +7,13 @@
     "header": "Permís de Localització Denegat",
     "message": "L'aplicació pot no funcionar correctament en alguns casos.",
     "settings": "Canviar configuració",
-     "territoriesError": "S'ha produït un error en obtenir els territoris disponibles",
+    "territoriesError": "S'ha produït un error en obtenir els territoris disponibles",
     "saveConfError": "S'ha produït un error en desar la configuració",
     "getConfError": "S'ha produït un error en obtenir la configuració",
     "territoryError": "S'ha produït un error en obtenir el territori de l'app",
     "appError": "S'ha produït un error en obtenir l'app turística",
     "databaseError": "S'ha produït un error en inicialitzar la base de dades",
-    "headerError": "Error de comunicació" 
+    "headerError": "Error de comunicació"
   },
   "events": {
     "searchEvent": "Gastronomia, teatre, música...",
@@ -43,7 +43,6 @@
     "searchMap": "Cercar..."
   },
   "nearme": {
-    "title": "A prop meu",
     "searchNearElements": "Cercar elements propers a",
     "myPosition": "La meva ubicació",
     "mapCenter": "Centre del mapa",
@@ -74,21 +73,19 @@
     "schedule": "Horari",
     "call": "Trucar",
     "point": "Punt d'interès",
-    "link": "Obrir enllaç",
-    "mailto": "Enviar correu electrònic",
-    "extraInfo": "Informació extra"
+    "link": "Obrir enllaç"
   },
   "routes": {
     "notsuitable": "No apte",
     "unclassified": "Sense classificar",
-    "easy": "Fàcil", 
-    "medium": "Moderat", 
-    "hard": "Difícil", 
-    "circular": "Circular", 
-    "start": "Inici", 
-    "end": "Fi" 
+    "easy": "Fàcil",
+    "medium": "Moderat",
+    "hard": "Difícil",
+    "circular": "Circular",
+    "start": "Inici",
+    "end": "Fi"
   },
   "gallery": {
-      "noImages": "No hi ha imatges disponibles."
+    "noImages": "No hi ha imatges disponibles."
   }
 }

@@ -6,7 +6,7 @@ import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { RouterModule } from '@angular/router';
 
-import { TranslateLoader, TranslateModule } from '@ngx-translate/core';
+import { TranslateLoader, TranslatePipe, provideTranslateService } from '@ngx-translate/core';
 import { of } from 'rxjs';
 
 import { EntityFormAlertsComponent } from '@app/components/shared/entity-form-alerts/entity-form-alerts.component';
@@ -44,7 +44,10 @@ describe('ConfigurationParameterFormComponent', () => {
         RouterModule,
         MatIconTestingModule,
         BrowserAnimationsModule,
-        TranslateModule.forRoot({
+        TranslatePipe,
+      ],
+      providers: [
+      provideTranslateService({
           loader: {
             provide: TranslateLoader,
             useFactory: () => ({
@@ -52,8 +55,6 @@ describe('ConfigurationParameterFormComponent', () => {
             }),
           },
         }),
-      ],
-      providers: [
         provideHttpClient(),
         provideHttpClientTesting(),
         provideErrorHandlerForTests(),

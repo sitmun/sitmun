@@ -69,7 +69,7 @@ public class CartographySpatialSelectionParameter {
   private String type;
 
   /** Cartography that owns this parameter. */
-  @ManyToOne
+  @ManyToOne(optional = false)
   @OnDelete(action = OnDeleteAction.CASCADE)
   @JoinColumn(name = "PSG_GIID", foreignKey = @ForeignKey(name = "STM_PSG_FK_GEO"))
   @NotNull

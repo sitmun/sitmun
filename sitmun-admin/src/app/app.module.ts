@@ -9,7 +9,7 @@ import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
 import {RouterModule} from '@angular/router';
 
 import {AgGridModule} from '@ag-grid-community/angular';
-import { provideMissingTranslationHandler, TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService, provideMissingTranslationHandler, provideTranslateService } from '@ngx-translate/core';
 import { provideTranslateHttpLoader } from '@ngx-translate/http-loader';
 
 import {ApplicationFormComponent} from '@app/components/application/application-form/application-form.component';
@@ -249,10 +249,7 @@ import {ServicesModule} from './services/services.module';
         MaterialModule,
         RouterModule,
         HalModule.forRoot(),
-        TranslateModule.forRoot({
-            loader: provideTranslateHttpLoader({ prefix: './assets/i18n/', suffix: '.json' }),
-            missingTranslationHandler: provideMissingTranslationHandler(AppMissingTranslationHandler)
-        }),
+        TranslatePipe,
         APP_ROUTING,
         BrowserAnimationsModule,
         NgOptimizedImage,
@@ -264,6 +261,10 @@ import {ServicesModule} from './services/services.module';
         LiteralTranslationCreateDialogComponent,
         LiteralTranslationCsvDialogComponent,
         BackendWaitingComponent], providers: [
+      provideTranslateService({
+            loader: provideTranslateHttpLoader({ prefix: './assets/i18n/', suffix: '.json' }),
+            missingTranslationHandler: provideMissingTranslationHandler(AppMissingTranslationHandler)
+        }),
         { provide: LOCALE_ID, useValue: 'es-ES' },
         { provide: ErrorHandler, useClass: GlobalErrorHandler },
         { provide: 'ExternalConfigurationService', useClass: ExternalConfigurationService },

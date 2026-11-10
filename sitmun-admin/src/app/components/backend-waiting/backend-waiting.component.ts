@@ -1,7 +1,7 @@
 import { NgOptimizedImage } from '@angular/common';
 import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
 
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
 import { MaterialModule } from '@app/material-module';
 import { toLanguageIsoCode } from '@app/services/language-iso';
@@ -14,7 +14,7 @@ import { environment } from '@environments/environment';
   styleUrls: ['./backend-waiting.component.scss'],
   changeDetection: ChangeDetectionStrategy.Eager,
   standalone: true,
-  imports: [MaterialModule, NgOptimizedImage, TranslateModule],
+  imports: [MaterialModule, NgOptimizedImage, TranslatePipe],
 })
 export class BackendWaitingComponent implements OnInit {
   readonly languages = environment.waitingPageLanguages;
@@ -25,9 +25,9 @@ export class BackendWaitingComponent implements OnInit {
 
   ngOnInit(): void {
     const chosen = resolveUiLanguage({
-      stored: localStorage.getItem('lang') || this.translateService.currentLang,
+      stored: localStorage.getItem('lang') || this.translateService.getCurrentLang(),
       browser: readBrowserLanguages(),
-      backendDefault: this.translateService.currentLang,
+      backendDefault: this.translateService.getCurrentLang(),
       availableShortnames: [...this.languages],
       staticFallback: this.languages[0] || 'en',
     });
@@ -44,7 +44,7 @@ export class BackendWaitingComponent implements OnInit {
     }
     this.currentShortname = shortname;
     this.translateService.use(shortname);
-    this.translateService.setDefaultLang(shortname);
+    this.translateService.setFallbackLang(shortname);
     localStorage.setItem('lang', shortname);
   }
 }

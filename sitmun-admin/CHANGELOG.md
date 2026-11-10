@@ -16,11 +16,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Language**: Portuguese includes the keys added after the `pt-PT` file landed. Every language file drops keys that no screen uses. `i18n-parity.spec.ts` requires each language file to match the English keys and to contain no empty value.
 - **Layers**: Format `Geometry`, the geometry kind, and the preferred geometry type show the code-list description for the current language. A missing format code stays empty. A missing kind or preferred type shows the stored code.
 - **Dependencies**: Node.js `24.22.0` (engines `^24.22.0 || ^26.0.0`), Angular `22.2.3`, and AG Grid Community `32.3.9`.
 
 ### Fixed
 
+- **Data grid**: The filter button and the header selection checkbox have a translated accessible name in every language.
 - **Layers**: A feature layer accepts one type name. A map-image layer still accepts a comma-separated list ([#157](https://github.com/sitmun/sitmun/issues/157)).
 - **Layers**: A feature-service form says feature type for the members of the service, the query sentence, both scale hints, the dataset and metadata addresses, and the order hint. A map-image form still says layer ([#162](https://github.com/sitmun/sitmun/issues/162)).
 - **Trees**: A folder hint says that only the first metadata link is stored, and that only the first dataset link is stored ([#162](https://github.com/sitmun/sitmun/issues/162)).

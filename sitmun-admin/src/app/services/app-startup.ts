@@ -93,7 +93,7 @@ export function initializeLanguages(
         availableShortnames: languages.map(l => l.shortname),
         staticFallback: appConfigService.getDefaultLanguageFallback() || 'en',
       });
-      translateService.setDefaultLang(chosen);
+      translateService.setFallbackLang(chosen);
       appStateService.clearWaitingForBackend();
       messagesInterceptorState.enable();
       return await firstValueFrom(translateService.use(chosen));
@@ -165,6 +165,6 @@ function useFallbackLanguage(translateService: TranslateService): Promise<unknow
     availableShortnames: available,
     staticFallback: available[0] || 'en',
   });
-  translateService.setDefaultLang(chosen);
+  translateService.setFallbackLang(chosen);
   return firstValueFrom(translateService.use(chosen));
 }

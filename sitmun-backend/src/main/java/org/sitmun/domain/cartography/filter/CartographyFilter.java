@@ -79,7 +79,7 @@ public class CartographyFilter {
   private String valueType;
 
   /** Cartography on which this filter can be applied. */
-  @ManyToOne
+  @ManyToOne(optional = false)
   @OnDelete(action = OnDeleteAction.CASCADE)
   @JoinColumn(name = "FGI_GIID", foreignKey = @ForeignKey(name = "STM_FGI_FK_GEO"))
   @NotNull

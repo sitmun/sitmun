@@ -56,14 +56,14 @@ public class CartographyAvailability {
   private String owner;
 
   /** Territory allowed to access to the cartography. */
-  @ManyToOne
+  @ManyToOne(optional = false)
   @JoinColumn(name = "AGI_TERID", foreignKey = @ForeignKey(name = "STM_AGI_FK_TER"))
   @OnDelete(action = OnDeleteAction.CASCADE)
   @NotNull
   private Territory territory;
 
   /** Cartography allowed to the territory. */
-  @ManyToOne
+  @ManyToOne(optional = false)
   @JoinColumn(name = "AGI_GIID", foreignKey = @ForeignKey(name = "STM_AGI_FK_GEO"))
   @OnDelete(action = OnDeleteAction.CASCADE)
   @NotNull

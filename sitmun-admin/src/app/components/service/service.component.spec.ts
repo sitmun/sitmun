@@ -5,7 +5,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { provideRouter, RouterModule } from '@angular/router';
 
-import {TranslateLoader, TranslateModule, TranslateService} from '@ngx-translate/core';
+import { TranslateLoader, TranslatePipe, TranslateService, provideTranslateService } from '@ngx-translate/core';
 import {of} from 'rxjs';
 
 import {EntityListComponent} from '@app/components/shared/entity-list/entity-list.component';
@@ -67,15 +67,16 @@ describe('ServiceComponent', () => {
       teardown: { destroyAfterEach: 0 as any },
       declarations: [ ServiceComponent, EntityListComponent ],
       imports : [SitmunFrontendGuiModule, MaterialModule, MatIconTestingModule, RouterModule, ServiceListGridStubComponent,
-        TranslateModule.forRoot({
+        TranslatePipe],
+      providers: [
+      provideTranslateService({
           loader: {
             provide: TranslateLoader,
             useFactory: () => ({
               getTranslation: () => of({})
             })
           }
-        })],
-      providers: [
+        }),
         ServiceService,
         CodeListService,
         TranslationService,

@@ -10,7 +10,7 @@ import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { RouterModule } from '@angular/router';
 
-import {TranslateLoader, TranslateModule} from '@ngx-translate/core';
+import { TranslateLoader, TranslatePipe, provideTranslateService } from '@ngx-translate/core';
 import {of, throwError} from 'rxjs';
 
 import {CardLeadComponent} from '@app/components/shared/card-lead/card-lead.component';
@@ -85,15 +85,16 @@ describe('LayersFormComponent', () => {
       ],
       imports: [FormsModule, ReactiveFormsModule, RouterModule.forRoot([], {}), SitmunFrontendGuiModule, EntityFormAlertsComponent, CardLeadComponent,
         MaterialModule, RouterModule, MatIconTestingModule, BrowserAnimationsModule,
-        TranslateModule.forRoot({
+        TranslatePipe],
+      providers: [
+      provideTranslateService({
           loader: {
             provide: TranslateLoader,
             useFactory: () => ({
               getTranslation: () => of({})
             })
           }
-        })],
-      providers: [
+        }),
         provideHttpClient(),
         provideHttpClientTesting(),
         provideErrorHandlerForTests(),

@@ -17,7 +17,7 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { Router } from '@angular/router';
 
 import { AuthenticationService } from '@auth/services/authentication.service';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService, provideTranslateService } from '@ngx-translate/core';
 
 import { MenuComponent } from './menu.component';
 import { AboutDialogComponent } from '../about-dialog/about-dialog.component';
@@ -42,7 +42,7 @@ describe('MenuComponent', () => {
       imports: [
         BrowserAnimationsModule,
         NgOptimizedImage,
-        TranslateModule.forRoot(),
+        TranslatePipe,
         FormsModule,
         MatDialogModule,
         MatMenuModule,
@@ -53,6 +53,7 @@ describe('MenuComponent', () => {
         MatSelectModule
       ],
       providers: [
+      provideTranslateService(),
         provideHttpClient(),
         provideHttpClientTesting(),
         {

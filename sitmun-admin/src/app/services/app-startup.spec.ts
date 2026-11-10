@@ -36,7 +36,7 @@ describe('app startup', () => {
   it('waits instead of showing an initialization error when the server is down', async () => {
     const state = new AppStateService(logger as never);
     const messages = { enable: jest.fn(), disable: jest.fn() };
-    const translate = { setDefaultLang: jest.fn(), use: () => of(null) };
+    const translate = { setFallbackLang: jest.fn(), use: () => of(null) };
 
     await initializeLanguages(
       { fetchAllItems: () => throwError(() => new HttpErrorResponse({ status: 0 })), applyLanguagesToUse: jest.fn() } as never,
@@ -51,12 +51,12 @@ describe('app startup', () => {
     expect(state.isWaitingForBackend()).toBe(true);
     expect(state.hasInitializationError()).toBe(false);
     expect(messages.enable).not.toHaveBeenCalled();
-    expect(translate.setDefaultLang).toHaveBeenCalledWith('en');
+    expect(translate.setFallbackLang).toHaveBeenCalledWith('en');
   });
 
   it('uses the closest browser language when the server is down', async () => {
     setBrowserLanguages(['fr-FR', 'de']);
-    const translate = { setDefaultLang: jest.fn(), use: jest.fn(() => of(null)) };
+    const translate = { setFallbackLang: jest.fn(), use: jest.fn(() => of(null)) };
 
     await initializeLanguages(
       { fetchAllItems: () => throwError(() => new HttpErrorResponse({ status: 0 })), applyLanguagesToUse: jest.fn() } as never,
@@ -68,13 +68,13 @@ describe('app startup', () => {
       { getDefaultLanguageFallback: () => 'ca' } as never,
     )();
 
-    expect(translate.setDefaultLang).toHaveBeenCalledWith('fr');
+    expect(translate.setFallbackLang).toHaveBeenCalledWith('fr');
     expect(translate.use).toHaveBeenCalledWith('fr');
   });
 
   it('uses the first configured language when the browser matches none', async () => {
     setBrowserLanguages(['de-DE']);
-    const translate = { setDefaultLang: jest.fn(), use: jest.fn(() => of(null)) };
+    const translate = { setFallbackLang: jest.fn(), use: jest.fn(() => of(null)) };
 
     await initializeLanguages(
       { fetchAllItems: () => throwError(() => new HttpErrorResponse({ status: 0 })), applyLanguagesToUse: jest.fn() } as never,
@@ -86,13 +86,13 @@ describe('app startup', () => {
       { getDefaultLanguageFallback: () => 'ca' } as never,
     )();
 
-    expect(translate.setDefaultLang).toHaveBeenCalledWith('es');
+    expect(translate.setFallbackLang).toHaveBeenCalledWith('es');
   });
 
   it('keeps the language chosen on the waiting page while the server is down', async () => {
     localStorage.setItem('lang', 'es');
     const state = new AppStateService(logger as never);
-    const translate = { setDefaultLang: jest.fn(), use: jest.fn(() => of(null)) };
+    const translate = { setFallbackLang: jest.fn(), use: jest.fn(() => of(null)) };
 
     await initializeLanguages(
       { fetchAllItems: () => throwError(() => new HttpErrorResponse({ status: 0 })), applyLanguagesToUse: jest.fn() } as never,
@@ -104,7 +104,7 @@ describe('app startup', () => {
       { getDefaultLanguageFallback: () => 'ca' } as never,
     )();
 
-    expect(translate.setDefaultLang).toHaveBeenCalledWith('es');
+    expect(translate.setFallbackLang).toHaveBeenCalledWith('es');
     expect(translate.use).toHaveBeenCalledWith('es');
   });
 
@@ -114,7 +114,7 @@ describe('app startup', () => {
 
     await initializeConfiguration(
       { fetchAllItems: () => throwError(() => new HttpErrorResponse({ status: 500 })) } as never,
-      { setDefaultLang: jest.fn(), use: () => of(null) } as never,
+      { setFallbackLang: jest.fn(), use: () => of(null) } as never,
       logger as never,
       state,
       messages as never,

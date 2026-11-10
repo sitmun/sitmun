@@ -3,7 +3,7 @@ import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 
-import { TranslateLoader, TranslateModule } from '@ngx-translate/core';
+import { TranslateLoader, TranslatePipe, provideTranslateService } from '@ngx-translate/core';
 import { of, ReplaySubject, Subject } from 'rxjs';
 
 import { DataGridComponent, GridEventType } from '@app/frontend-gui/src/lib/data-grid/data-grid.component';
@@ -41,16 +41,17 @@ describe('RelationGridComponent', () => {
       imports: [
         RelationGridComponent,
         DataGridComponent,
-        TranslateModule.forRoot({
+        TranslatePipe
+      ],
+      providers: [
+      provideTranslateService({
           loader: {
             provide: TranslateLoader,
             useFactory: () => ({
               getTranslation: () => of({})
             })
           }
-        })
-      ],
-      providers: [
+        }),
         provideHttpClient(),
         provideHttpClientTesting()
       ]

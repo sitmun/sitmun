@@ -3,7 +3,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { By } from '@angular/platform-browser';
 
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslatePipe, provideTranslateService } from '@ngx-translate/core';
 
 import { ExternalUrlRendererComponent } from './external-url-renderer.component';
 
@@ -17,9 +17,11 @@ describe('ExternalUrlRendererComponent', () => {
         ExternalUrlRendererComponent,
         MatIconModule,
         MatTooltipModule,
-        TranslateModule.forRoot(),
+        TranslatePipe,
       ],
-    }).compileComponents();
+    providers: [
+      provideTranslateService()
+    ]}).compileComponents();
 
     fixture = TestBed.createComponent(ExternalUrlRendererComponent);
     component = fixture.componentInstance;

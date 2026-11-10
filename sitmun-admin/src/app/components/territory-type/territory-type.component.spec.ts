@@ -4,7 +4,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { provideRouter, Router } from '@angular/router';
 
-import { TranslateLoader, TranslateModule } from '@ngx-translate/core';
+import { TranslateLoader, TranslatePipe, provideTranslateService } from '@ngx-translate/core';
 import { of } from 'rxjs';
 
 import { EntityListComponent } from '@app/components/shared/entity-list/entity-list.component';
@@ -34,7 +34,10 @@ describe('TerritoryTypeComponent', () => {
         SitmunFrontendGuiModule,
         MaterialModule,
         MatIconTestingModule,
-        TranslateModule.forRoot({
+        TranslatePipe,
+      ],
+      providers: [
+      provideTranslateService({
           loader: {
             provide: TranslateLoader,
             useFactory: () => ({
@@ -42,8 +45,6 @@ describe('TerritoryTypeComponent', () => {
             }),
           },
         }),
-      ],
-      providers: [
         CodeListService,
         TerritoryTypeService,
         TranslationService,

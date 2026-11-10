@@ -146,7 +146,7 @@ describe('AbstractMapComponent lifecycle', () => {
         {
           provide: TranslateService,
           useValue: {
-            currentLang: 'es',
+            getCurrentLang: () => 'es',
             onLangChange: of({ lang: 'es' })
           }
         },

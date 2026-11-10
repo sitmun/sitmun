@@ -2,7 +2,7 @@ import {Component, OnInit, ChangeDetectionStrategy} from '@angular/core';
 import {MatDialog} from '@angular/material/dialog';
 import {ActivatedRoute, Router} from '@angular/router';
 
-import {TranslateService} from '@ngx-translate/core';
+import { TranslateService } from '@ngx-translate/core';
 import {firstValueFrom, Observable, of, Subject} from 'rxjs';
 
 import {HalOptions, HalParam, Resource} from '@app/core';
@@ -52,7 +52,7 @@ export abstract class BaseListComponent<T extends Resource>
     if (localStorage.lang) {
       return localStorage.lang;
     }
-    return this.translateService.currentLang || config.defaultLang;
+    return this.translateService.getCurrentLang() || config.defaultLang;
   }
 
   /**

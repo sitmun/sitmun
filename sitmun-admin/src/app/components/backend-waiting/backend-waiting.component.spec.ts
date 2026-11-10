@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { TranslateLoader, TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslateLoader, TranslateService, provideTranslateService } from '@ngx-translate/core';
 import { of } from 'rxjs';
 
 import { environment } from '@environments/environment';
@@ -13,9 +13,9 @@ describe('BackendWaitingComponent', () => {
   beforeEach(async () => {
     localStorage.setItem('lang', 'ca');
     await TestBed.configureTestingModule({
-      imports: [
-        BackendWaitingComponent,
-        TranslateModule.forRoot({
+      imports: [BackendWaitingComponent],
+      providers: [
+        provideTranslateService({
           loader: {
             provide: TranslateLoader,
             useFactory: () => ({ getTranslation: () => of({}) }),
@@ -54,7 +54,7 @@ describe('BackendWaitingComponent', () => {
     fixture.detectChanges();
 
     expect(localStorage.getItem('lang')).toBe('es');
-    expect(TestBed.inject(TranslateService).currentLang).toBe('es');
+    expect(TestBed.inject(TranslateService).getCurrentLang()).toBe('es');
     const button = fixture.nativeElement.querySelector('.language-toolbar-button') as HTMLButtonElement;
     expect(button.textContent).toContain('ES');
   });

@@ -43,14 +43,14 @@ public class ApplicationTerritory {
   private Integer id;
 
   /** Application. */
-  @ManyToOne
+  @ManyToOne(optional = false)
   @OnDelete(action = OnDeleteAction.CASCADE)
   @JoinColumn(name = "ATE_APPID", foreignKey = @ForeignKey(name = "STM_ATE_FK_APP"))
   @NotNull
   private Application application;
 
   /** Territory. */
-  @ManyToOne
+  @ManyToOne(optional = false)
   @OnDelete(action = OnDeleteAction.CASCADE)
   @JoinColumn(name = "ATE_TERID", foreignKey = @ForeignKey(name = "STM_ATE_FK_TER"))
   @NotNull

@@ -4,7 +4,7 @@ import { FormField } from '@angular/forms/signals';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { provideRouter, Router } from '@angular/router';
 
-import { TranslateLoader, TranslateModule } from '@ngx-translate/core';
+import { TranslateLoader, TranslatePipe, provideTranslateService } from '@ngx-translate/core';
 import { BehaviorSubject, of } from 'rxjs';
 
 
@@ -47,7 +47,10 @@ describe('FirstRunComponent', () => {
         FormField,
         MaterialModule,
         NgOptimizedImage,
-        TranslateModule.forRoot({
+        TranslatePipe,
+      ],
+      providers: [
+        provideTranslateService({
           loader: {
             provide: TranslateLoader,
             useFactory: () => ({
@@ -55,8 +58,6 @@ describe('FirstRunComponent', () => {
             }),
           },
         }),
-      ],
-      providers: [
         provideRouter([]),
         provideNoopAnimations(),
         { provide: Router, useValue: router },

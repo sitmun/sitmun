@@ -6,7 +6,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { Router, ActivatedRoute } from '@angular/router';
 
 import { AuthenticationService } from '@auth/services/authentication.service';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService, provideTranslateService } from '@ngx-translate/core';
 import { FormFieldInputComponent } from '@ui/components/form-field-input/form-field-input.component';
 import { PrimaryButtonComponent } from '@ui/components/primary-button/primary-button.component';
 import { SecondaryButtonComponent } from '@ui/components/secondary-button/secondary-button.component';
@@ -22,7 +22,7 @@ describe('LoginComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [
-        TranslateModule.forRoot(),
+        TranslatePipe,
         NgOptimizedImage,
         MatIconModule
       ],
@@ -33,6 +33,7 @@ describe('LoginComponent', () => {
         FormFieldInputComponent
       ],
       providers: [
+      provideTranslateService(),
         provideHttpClient(),
         provideHttpClientTesting(),
         {
@@ -117,7 +118,7 @@ describe('LoginComponent', () => {
 
     await TestBed.resetTestingModule();
     await TestBed.configureTestingModule({
-      imports: [TranslateModule.forRoot(), NgOptimizedImage, MatIconModule],
+      imports: [TranslatePipe, NgOptimizedImage, MatIconModule],
       declarations: [
         LoginComponent,
         PrimaryButtonComponent,
@@ -125,6 +126,7 @@ describe('LoginComponent', () => {
         FormFieldInputComponent
       ],
       providers: [
+      provideTranslateService(),
         provideHttpClient(),
         provideHttpClientTesting(),
         { provide: Router, useValue: { navigate: jest.fn(), navigateByUrl: jest.fn() } },

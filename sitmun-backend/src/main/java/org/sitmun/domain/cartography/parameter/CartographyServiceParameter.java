@@ -60,7 +60,7 @@ public class CartographyServiceParameter {
   @NotNull
   private String type;
 
-  @ManyToOne
+  @ManyToOne(optional = false)
   @NotNull
   @OnDelete(action = OnDeleteAction.CASCADE)
   @JoinColumn(name = "GS_GEOID", foreignKey = @ForeignKey(name = "STM_GS_FK_GEO"))

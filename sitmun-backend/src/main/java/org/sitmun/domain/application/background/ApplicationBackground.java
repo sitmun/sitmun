@@ -40,14 +40,14 @@ public class ApplicationBackground {
   private Integer id;
 
   /** Application. */
-  @ManyToOne
+  @ManyToOne(optional = false)
   @OnDelete(action = OnDeleteAction.CASCADE)
   @JoinColumn(name = "ABC_APPID", foreignKey = @ForeignKey(name = "STM_ABC_FK_APP"))
   @NotNull
   private Application application;
 
   /** Background. */
-  @ManyToOne
+  @ManyToOne(optional = false)
   @OnDelete(action = OnDeleteAction.CASCADE)
   @JoinColumn(name = "ABC_BACKID", foreignKey = @ForeignKey(name = "STM_ABC_FK_FON"))
   @NotNull

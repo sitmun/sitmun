@@ -152,7 +152,7 @@ export class BaseFormComponent<T extends Resource> implements OnInit, AfterViewI
     if (localStorage.lang) {
       return localStorage.lang;
     }
-    return this.translateService.currentLang || config.defaultLang;
+    return this.translateService.getCurrentLang() || config.defaultLang;
   }
 
   protected destroyRef = inject(DestroyRef);

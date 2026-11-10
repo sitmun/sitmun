@@ -5,7 +5,7 @@ import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { RouterModule } from '@angular/router';
 
-import { TranslateLoader, TranslateModule } from '@ngx-translate/core';
+import { TranslateLoader, TranslatePipe, provideTranslateService } from '@ngx-translate/core';
 import { of } from 'rxjs';
 
 import { Principal } from '@app/core/auth/principal.service';
@@ -24,15 +24,16 @@ describe('SideMenuComponent', () => {
     await TestBed.configureTestingModule({
       declarations: [ SideMenuComponent ],
       imports: [MatIconTestingModule, MaterialModule, RouterModule.forRoot(APP_ROUTES, {}),
-         BrowserAnimationsModule, MatIconTestingModule, TranslateModule.forRoot({
+         BrowserAnimationsModule, MatIconTestingModule, TranslatePipe],
+      providers: [
+      provideTranslateService({
         loader: {
           provide: TranslateLoader,
           useFactory: () => ({
             getTranslation: () => of({})
           })
         }
-      })],
-      providers: [
+      }),
         provideHttpClient(),
         provideHttpClientTesting(),
         HttpClient,

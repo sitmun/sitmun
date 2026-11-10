@@ -7,13 +7,13 @@
     "header": "Location Permit Denied",
     "message": "The application may not work properly in some cases.",
     "settings": "Change settings",
-     "territoriesError": "An error occurred while obtaining available territories.",
+    "territoriesError": "An error occurred while obtaining available territories.",
     "saveConfError": "An error occurred while saving the configuration.",
     "getConfError": "An error occurred while getting the configuration",
     "territoryError": "An error occurred while getting the app territory.",
     "appError": "An error occurred while retrieving the tourist app.",
     "databaseError": "An error occurred while initializing the database.",
-    "headerError": "Communication error" 
+    "headerError": "Communication error"
   },
   "events": {
     "searchEvent": "Gastronomy, theater, music...",
@@ -43,7 +43,6 @@
     "search": "Search"
   },
   "nearme": {
-    "title": "Near me",
     "searchNearElements": "Search for elements near",
     "myPosition": "My location",
     "mapCenter": "Map center",
@@ -74,9 +73,7 @@
     "schedule": "Schedule",
     "call": "Call",
     "point": "Point of interest",
-    "link": "Open link",
-    "mailto": "Send email",
-    "extraInfo": "Additional information"
+    "link": "Open link"
   },
   "routes": {
     "notsuitable": "Not suitable",
@@ -89,6 +86,6 @@
     "end": "End"
   },
   "gallery": {
-      "noImages": "No images available."
+    "noImages": "No images available."
   }
 }

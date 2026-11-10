@@ -7,7 +7,7 @@ import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { RouterModule } from '@angular/router';
 
-import {TranslateLoader, TranslateModule} from '@ngx-translate/core';
+import { TranslateLoader, TranslatePipe, provideTranslateService } from '@ngx-translate/core';
 import {of} from 'rxjs';
 
 import {EntityFormAlertsComponent} from '@app/components/shared/entity-form-alerts/entity-form-alerts.component';
@@ -35,15 +35,16 @@ describe('RoleFormComponent', () => {
       teardown: { destroyAfterEach: 0 as any },
       declarations: [ RoleFormComponent, FormToolbarComponent ],
       imports: [FormsModule, ReactiveFormsModule,RouterModule.forRoot([], {}), SitmunFrontendGuiModule, EntityFormAlertsComponent, MaterialModule, RouterModule, MatIconTestingModule, BrowserAnimationsModule,
-      TranslateModule.forRoot({
+      TranslatePipe],
+      providers: [
+      provideTranslateService({
         loader: {
           provide: TranslateLoader,
           useFactory: () => ({
             getTranslation: () => of({})
           })
         }
-      })],
-      providers: [provideHttpClient(), provideHttpClientTesting(), provideErrorHandlerForTests(), RoleService, UserService, TerritoryService, ApplicationService, CodeListService,
+      }),provideHttpClient(), provideHttpClientTesting(), provideErrorHandlerForTests(), RoleService, UserService, TerritoryService, ApplicationService, CodeListService,
         CartographyGroupService,UserConfigurationService, CartographyService, TaskService,ResourceService,ExternalService,
         { provide: 'ExternalConfigurationService', useClass: ExternalConfigurationService }, ]
     })

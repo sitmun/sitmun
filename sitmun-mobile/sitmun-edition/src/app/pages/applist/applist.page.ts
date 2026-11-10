@@ -1,40 +1,53 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
-import { NavigationExtras, Router } from '@angular/router';
-import { applicationListLabel } from 'src/app/application-list-label';
-import { AuthorizationService } from 'src/app/services/authorization.service';
-import { DatabaseService } from 'src/app/services/database.service';
-import { LanguageService } from 'src/app/services/language.service';
-import { LoginService, SessionExpiredError } from 'src/app/services/login.service';
-import { NetworkService } from 'src/app/services/network.service';
-import { Filesystem, Directory } from '@capacitor/filesystem';
-import { AnimationController, ToastController } from '@ionic/angular';
-import { ProfileModalComponent } from 'src/app/components/profile-modal/profile-modal.component';
+import {
+  Component,
+  OnInit,
+  ViewChild,
+  ChangeDetectionStrategy,
+} from "@angular/core";
+import { NavigationExtras, Router } from "@angular/router";
+import { applicationListLabel } from "src/app/application-list-label";
+import { AuthorizationService } from "src/app/services/authorization.service";
+import { DatabaseService } from "src/app/services/database.service";
+import { LanguageService } from "src/app/services/language.service";
+import {
+  LoginService,
+  SessionExpiredError,
+} from "src/app/services/login.service";
+import { NetworkService } from "src/app/services/network.service";
+import { Filesystem, Directory } from "@capacitor/filesystem";
+import { AnimationController, ToastController } from "@ionic/angular";
+import { ProfileModalComponent } from "src/app/components/profile-modal/profile-modal.component";
 
 @Component({
-  selector: 'app-applist',
-  templateUrl: './applist.page.html',
-  styleUrls: ['./applist.page.scss'],
+  selector: "app-applist",
+  templateUrl: "./applist.page.html",
+  styleUrls: ["./applist.page.scss"],
+  changeDetection: ChangeDetectionStrategy.Eager,
+  standalone: false,
 })
 export class ApplistPage implements OnInit {
-
   readonly applicationListLabel = applicationListLabel;
-  messages_: any = {}
+  messages_: any = {};
   applications: any[] = [];
   territories: any[] = [];
   selectedTerritory: any = {};
   selectedTerritoryId: number = 0;
   selectedApp: any = {};
   isModalOpen = false;
-  nextPage = 'map';
+  nextPage = "map";
   networkConnected = true;
-  @ViewChild('profileModal') profileModal!: ProfileModalComponent;
+  @ViewChild("profileModal") profileModal!: ProfileModalComponent;
 
-  constructor(private languageService: LanguageService, private router: Router,
-    private authorizationService: AuthorizationService, private networkService: NetworkService,
-    private databaseService: DatabaseService, private animationCtrl: AnimationController,
-    private loginService: LoginService, private toastController: ToastController) {
-
-  }
+  constructor(
+    private languageService: LanguageService,
+    private router: Router,
+    private authorizationService: AuthorizationService,
+    private networkService: NetworkService,
+    private databaseService: DatabaseService,
+    private animationCtrl: AnimationController,
+    private loginService: LoginService,
+    private toastController: ToastController,
+  ) {}
 
   async ionViewWillEnter() {
     this.updateNetworkStatus(await this.networkService.getStatus());
@@ -53,23 +66,24 @@ export class ApplistPage implements OnInit {
       await this.getOfflineApplications();
     }
     for (const app of this.applications) {
-        //this.layers[app.id] = await this.databaseService.getLayersByApp(app.id);
-        const { layersSizeBytes, layersSizeMBytes } = await this.getDatabaseWeight(app.id);
-        app.layersSizeBytes = layersSizeBytes;
-        app.layersSizeMBytes = layersSizeMBytes;
+      //this.layers[app.id] = await this.databaseService.getLayersByApp(app.id);
+      const { layersSizeBytes, layersSizeMBytes } =
+        await this.getDatabaseWeight(app.id);
+      app.layersSizeBytes = layersSizeBytes;
+      app.layersSizeMBytes = layersSizeMBytes;
     }
   }
 
   async getApplications() {
-    try{
+    try {
       const resp = await this.authorizationService.getApplications();
       this.applications = resp.filter((app: any) => !app.isUnavailable);
-    }catch(error) {
+    } catch (error) {
       if (error instanceof SessionExpiredError) {
-        return this.backToLogin('applist.sessionExpired');
+        return this.backToLogin("applist.sessionExpired");
       }
-      console.log('Error obteniendo las aplicaciones disponibles:', error);
-    };
+      console.log("Error obteniendo las aplicaciones disponibles:", error);
+    }
   }
 
   async getOfflineApplications() {
@@ -79,45 +93,54 @@ export class ApplistPage implements OnInit {
   async getTerritoriesByApp(idApp: Number) {
     try {
       if (this.networkConnected) {
-        this.territories = (await this.authorizationService.getTerritoriesByApp(idApp));
+        this.territories =
+          await this.authorizationService.getTerritoriesByApp(idApp);
       } else {
-        this.territories = await this.databaseService.getTerritoriesByApp(idApp);
+        this.territories =
+          await this.databaseService.getTerritoriesByApp(idApp);
       }
     } catch (error) {
       if (error instanceof SessionExpiredError) {
         this.territories = [];
-        return this.backToLogin('applist.sessionExpired');
+        return this.backToLogin("applist.sessionExpired");
       }
       this.territories = [];
       throw error;
     }
   }
 
-  private async getDatabaseWeight(appId: number): Promise<Record<string, number>> {
-    const size = {layersSizeBytes: 0, layersSizeMBytes: 0};
+  private async getDatabaseWeight(
+    appId: number,
+  ): Promise<Record<string, number>> {
+    const size = { layersSizeBytes: 0, layersSizeMBytes: 0 };
     const layers = await this.databaseService.getLayersByApp(appId);
     const json = JSON.stringify(layers);
-    const blob = new Blob([json], { type: 'application/json' });
+    const blob = new Blob([json], { type: "application/json" });
     size.layersSizeBytes = blob.size;
 
     const territories = await this.databaseService.getTerritoriesByApp(appId);
     for (const ter of territories) {
-      const id = appId + '_' + ter.id; 
+      const id = appId + "_" + ter.id;
       const fileName = `bgMapa_${id}.mbtiles`;
 
       try {
         const info = await Filesystem.stat({
           path: fileName,
-          directory: Directory.Data
+          directory: Directory.Data,
         });
         size.layersSizeBytes += info.size;
-        const bgMapSizeMB = Math.round(info.size / (1024 * 1024) * 10) / 10;
-        console.log(`Archivo MBTiles encontrado para app ${appId} y territorio ${ter.id}, tamaño: ${bgMapSizeMB} MB`);
+        const bgMapSizeMB = Math.round((info.size / (1024 * 1024)) * 10) / 10;
+        console.log(
+          `Archivo MBTiles encontrado para app ${appId} y territorio ${ter.id}, tamaño: ${bgMapSizeMB} MB`,
+        );
       } catch (error) {
-        console.log(`Archivo no existe en app ${appId} y territorio ${ter.id}, no es necesario calcular su peso: ${error}`);
-      }      
+        console.log(
+          `Archivo no existe en app ${appId} y territorio ${ter.id}, no es necesario calcular su peso: ${error}`,
+        );
+      }
     }
-    size.layersSizeMBytes = Math.round(size.layersSizeBytes/ (1024 * 1024) * 10) / 10;
+    size.layersSizeMBytes =
+      Math.round((size.layersSizeBytes / (1024 * 1024)) * 10) / 10;
     console.log(`Tamaño total de app ${appId}: ${size.layersSizeMBytes} MB`);
     return size;
   }
@@ -130,7 +153,7 @@ export class ApplistPage implements OnInit {
     }
     this.selectedTerritory = this.territories[0];
     this.selectedTerritoryId = this.selectedTerritory.id;
-    this.nextPage = 'map';
+    this.nextPage = "map";
     if (this.territories.length === 1) {
       this.openMap();
     } else {
@@ -145,10 +168,12 @@ export class ApplistPage implements OnInit {
   closeTerritoryModal(openPage: boolean) {
     this.isModalOpen = false;
     if (openPage) {
-      this.selectedTerritory = this.territories.find(t => t.id === this.selectedTerritoryId);
-      if (this.nextPage === 'map') {
+      this.selectedTerritory = this.territories.find(
+        (t) => t.id === this.selectedTerritoryId,
+      );
+      if (this.nextPage === "map") {
         setTimeout(this.openMap.bind(this), 500);
-      } else if (this.nextPage === 'download') {
+      } else if (this.nextPage === "download") {
         setTimeout(this.openDownload.bind(this), 500);
       }
     }
@@ -163,10 +188,10 @@ export class ApplistPage implements OnInit {
     const navigationExtras: NavigationExtras = {
       state: {
         app: this.selectedApp,
-        ter: this.selectedTerritory
-      }
+        ter: this.selectedTerritory,
+      },
     };
-    this.router.navigate(['map'], navigationExtras);
+    this.router.navigate(["map"], navigationExtras);
   }
 
   async downloadPage(app: any) {
@@ -177,22 +202,22 @@ export class ApplistPage implements OnInit {
     }
     this.selectedTerritory = this.territories[0];
     this.selectedTerritoryId = this.selectedTerritory.id;
-    this.nextPage = 'download';
+    this.nextPage = "download";
     if (this.territories.length === 1) {
       this.openDownload();
     } else {
       this.openTerritoryModal();
-    }    
+    }
   }
 
   openDownload() {
     const navigationExtras: NavigationExtras = {
       state: {
         app: this.selectedApp,
-        ter: this.selectedTerritory
-      }
+        ter: this.selectedTerritory,
+      },
     };
-    this.navigate('download', navigationExtras);
+    this.navigate("download", navigationExtras);
   }
 
   navigate(path: string, navigationExtras: NavigationExtras) {
@@ -203,22 +228,22 @@ export class ApplistPage implements OnInit {
     if (this.networkConnected !== connected) {
       this.networkConnected = connected;
       if (connected && !this.loginService.hasValidAccessToken()) {
-        return this.backToLogin('applist.reconnectLogin');
+        return this.backToLogin("applist.reconnectLogin");
       }
       this.refreshApplications();
     }
   }
 
   private backToLogin(messageKey: string) {
-    this.languageService.translateTag(messageKey).subscribe(async message => {
+    this.languageService.translateTag(messageKey).subscribe(async (message) => {
       const toast = await this.toastController.create({
         message,
         duration: 4000,
-        color: 'warning',
-        position: 'top'
+        color: "warning",
+        position: "top",
       });
       await toast.present();
     });
-    this.router.navigate(['home']);
+    this.router.navigate(["home"]);
   }
 }

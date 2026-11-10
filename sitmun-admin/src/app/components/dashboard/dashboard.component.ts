@@ -8,8 +8,7 @@ import {
 } from '@angular/animations';
 import {Component, OnInit, ChangeDetectionStrategy} from '@angular/core';
 
-
-import {TranslateService} from '@ngx-translate/core';
+import { TranslateService } from '@ngx-translate/core';
 import {firstValueFrom, of} from 'rxjs';
 
 import {accessStatusLabel, renderAccessStatus, renderAccessTrend} from '@app/components/service/service-access-trend';
@@ -232,7 +231,7 @@ export class DashboardComponent implements OnInit {
       ? renderServiceUsage(
         params.data.summary?.usage30,
         (key) => this.utils.getTranslate(key),
-        this.translateService.currentLang || 'es',
+        this.translateService.getCurrentLang() || 'es',
       )
       : '';
 

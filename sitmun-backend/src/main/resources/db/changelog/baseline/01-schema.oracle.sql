@@ -327,7 +327,7 @@ CREATE TABLE stm_service_check (
     sec_observer VARCHAR2(16 CHAR) NOT NULL,
     sec_status VARCHAR2(50 CHAR) NOT NULL,
     sec_rank NUMBER(10, 0) NOT NULL,
-    sec_observed TIMESTAMP NOT NULL,
+    sec_observed TIMESTAMP(6) WITH TIME ZONE NOT NULL,
     sec_elapsed NUMBER(19, 0) NOT NULL,
     sec_detail VARCHAR2(4000 CHAR)
 );
@@ -339,7 +339,7 @@ CREATE TABLE stm_service_check_sample (
     scs_status VARCHAR2(50 CHAR) NOT NULL,
     scs_rank NUMBER(10, 0) NOT NULL,
     scs_elapsed NUMBER(19, 0) NOT NULL,
-    scs_observed TIMESTAMP NOT NULL
+    scs_observed TIMESTAMP(6) WITH TIME ZONE NOT NULL
 );
 
 CREATE TABLE stm_service_usage (
@@ -375,7 +375,8 @@ CREATE TABLE stm_task (
     tas_ttaskid NUMBER(10, 0),
     tas_tuiid NUMBER(10, 0),
     tas_connid NUMBER(10, 0),
-    tas_params CLOB
+    tas_params CLOB,
+    tas_title VARCHAR2(250 CHAR)
 );
 
 CREATE TABLE stm_taskrel (

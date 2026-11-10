@@ -823,10 +823,15 @@
     },
     "STM_APP.APP_CREATORID": {
       "codelist": null,
-      "consumers": {},
+      "consumers": {
+        "jpa": "org.sitmun.domain.application.Application#creator"
+      },
       "default": null,
       "enforcement": null,
       "length": null,
+      "references": {
+        "column": "STM_USER.USE_ID"
+      },
       "required": false,
       "status": "decided",
       "type": "integer"
@@ -845,7 +850,9 @@
     },
     "STM_APP.APP_ENTRYM": {
       "codelist": null,
-      "consumers": {},
+      "consumers": {
+        "jpa": "org.sitmun.domain.application.Application#accessChildrenTerritory"
+      },
       "default": null,
       "enforcement": null,
       "length": null,
@@ -855,7 +862,9 @@
     },
     "STM_APP.APP_ENTRYS": {
       "codelist": null,
-      "consumers": {},
+      "consumers": {
+        "jpa": "org.sitmun.domain.application.Application#accessParentTerritory"
+      },
       "default": null,
       "enforcement": null,
       "length": null,
@@ -865,17 +874,24 @@
     },
     "STM_APP.APP_GGIID": {
       "codelist": null,
-      "consumers": {},
+      "consumers": {
+        "jpa": "org.sitmun.domain.application.Application#situationMap"
+      },
       "default": null,
       "enforcement": null,
       "length": null,
+      "references": {
+        "column": "STM_GRP_GI.GGI_ID"
+      },
       "required": false,
       "status": "decided",
       "type": "integer"
     },
     "STM_APP.APP_HEADERPARAMS": {
       "codelist": null,
-      "consumers": {},
+      "consumers": {
+        "jpa": "org.sitmun.domain.application.Application#headerParams"
+      },
       "default": null,
       "enforcement": "truncate",
       "length": null,
@@ -945,7 +961,9 @@
     },
     "STM_APP.APP_PRIVATE": {
       "codelist": null,
-      "consumers": {},
+      "consumers": {
+        "jpa": "org.sitmun.domain.application.Application#appPrivate"
+      },
       "default": "false",
       "enforcement": null,
       "length": null,
@@ -967,7 +985,9 @@
     },
     "STM_APP.APP_REFRESH": {
       "codelist": null,
-      "consumers": {},
+      "consumers": {
+        "jpa": "org.sitmun.domain.application.Application#treeAutoRefresh"
+      },
       "default": null,
       "enforcement": null,
       "length": null,
@@ -1049,7 +1069,9 @@
     },
     "STM_APP.APP_UNAVAILABLE": {
       "codelist": null,
-      "consumers": {},
+      "consumers": {
+        "jpa": "org.sitmun.domain.application.Application#isUnavailable"
+      },
       "default": "false",
       "enforcement": null,
       "length": null,
@@ -1059,20 +1081,32 @@
     },
     "STM_APP_BCKG.ABC_APPID": {
       "codelist": null,
-      "consumers": {},
+      "consumers": {
+        "jpa": "org.sitmun.domain.application.background.ApplicationBackground#application"
+      },
       "default": null,
       "enforcement": null,
       "length": null,
+      "references": {
+        "column": "STM_APP.APP_ID",
+        "on_delete": "cascade"
+      },
       "required": true,
       "status": "decided",
       "type": "integer"
     },
     "STM_APP_BCKG.ABC_BACKID": {
       "codelist": null,
-      "consumers": {},
+      "consumers": {
+        "jpa": "org.sitmun.domain.application.background.ApplicationBackground#background"
+      },
       "default": null,
       "enforcement": null,
       "length": null,
+      "references": {
+        "column": "STM_BACKGRD.BAC_ID",
+        "on_delete": "cascade"
+      },
       "required": true,
       "status": "decided",
       "type": "integer"
@@ -1091,7 +1125,9 @@
     },
     "STM_APP_BCKG.ABC_ORDER": {
       "codelist": null,
-      "consumers": {},
+      "consumers": {
+        "jpa": "org.sitmun.domain.application.background.ApplicationBackground#order"
+      },
       "default": null,
       "enforcement": null,
       "length": null,
@@ -1105,6 +1141,10 @@
       "default": null,
       "enforcement": null,
       "length": null,
+      "references": {
+        "column": "STM_APP.APP_ID",
+        "on_delete": "cascade"
+      },
       "required": true,
       "status": "decided",
       "type": "integer"
@@ -1115,16 +1155,26 @@
       "default": null,
       "enforcement": null,
       "length": null,
+      "references": {
+        "column": "STM_ROLE.ROL_ID",
+        "on_delete": "cascade"
+      },
       "required": true,
       "status": "decided",
       "type": "integer"
     },
     "STM_APP_TER.ATE_APPID": {
       "codelist": null,
-      "consumers": {},
+      "consumers": {
+        "jpa": "org.sitmun.domain.application.territory.ApplicationTerritory#application"
+      },
       "default": null,
       "enforcement": null,
       "length": null,
+      "references": {
+        "column": "STM_APP.APP_ID",
+        "on_delete": "cascade"
+      },
       "required": true,
       "status": "decided",
       "type": "integer"
@@ -1155,20 +1205,32 @@
     },
     "STM_APP_TER.ATE_TERID": {
       "codelist": null,
-      "consumers": {},
+      "consumers": {
+        "jpa": "org.sitmun.domain.application.territory.ApplicationTerritory#territory"
+      },
       "default": null,
       "enforcement": null,
       "length": null,
+      "references": {
+        "column": "STM_TERRITORY.TER_ID",
+        "on_delete": "cascade"
+      },
       "required": true,
       "status": "decided",
       "type": "integer"
     },
     "STM_APP_TREE.ATR_APPID": {
       "codelist": null,
-      "consumers": {},
+      "consumers": {
+        "jpa": "org.sitmun.domain.application.tree.ApplicationTree#application"
+      },
       "default": null,
       "enforcement": null,
       "length": null,
+      "references": {
+        "column": "STM_APP.APP_ID",
+        "on_delete": "cascade"
+      },
       "required": true,
       "status": "decided",
       "type": "integer"
@@ -1187,7 +1249,9 @@
     },
     "STM_APP_TREE.ATR_ORDER": {
       "codelist": null,
-      "consumers": {},
+      "consumers": {
+        "jpa": "org.sitmun.domain.application.tree.ApplicationTree#order"
+      },
       "default": null,
       "enforcement": null,
       "length": null,
@@ -1197,10 +1261,16 @@
     },
     "STM_APP_TREE.ATR_TREEID": {
       "codelist": null,
-      "consumers": {},
+      "consumers": {
+        "jpa": "org.sitmun.domain.application.tree.ApplicationTree#tree"
+      },
       "default": null,
       "enforcement": null,
       "length": null,
+      "references": {
+        "column": "STM_TREE.TRE_ID",
+        "on_delete": "cascade"
+      },
       "required": true,
       "status": "decided",
       "type": "integer"
@@ -1219,10 +1289,16 @@
     },
     "STM_AVAIL_GI.AGI_GIID": {
       "codelist": null,
-      "consumers": {},
+      "consumers": {
+        "jpa": "org.sitmun.domain.cartography.availability.CartographyAvailability#cartography"
+      },
       "default": null,
       "enforcement": null,
       "length": null,
+      "references": {
+        "column": "STM_GEOINFO.GEO_ID",
+        "on_delete": "cascade"
+      },
       "required": true,
       "status": "decided",
       "type": "integer"
@@ -1253,10 +1329,16 @@
     },
     "STM_AVAIL_GI.AGI_TERID": {
       "codelist": null,
-      "consumers": {},
+      "consumers": {
+        "jpa": "org.sitmun.domain.cartography.availability.CartographyAvailability#territory"
+      },
       "default": null,
       "enforcement": null,
       "length": null,
+      "references": {
+        "column": "STM_TERRITORY.TER_ID",
+        "on_delete": "cascade"
+      },
       "required": true,
       "status": "decided",
       "type": "integer"
@@ -1287,20 +1369,32 @@
     },
     "STM_AVAIL_TSK.ATS_TASKID": {
       "codelist": null,
-      "consumers": {},
+      "consumers": {
+        "jpa": "org.sitmun.domain.task.availability.TaskAvailability#task"
+      },
       "default": null,
       "enforcement": null,
       "length": null,
+      "references": {
+        "column": "STM_TASK.TAS_ID",
+        "on_delete": "cascade"
+      },
       "required": true,
       "status": "decided",
       "type": "integer"
     },
     "STM_AVAIL_TSK.ATS_TERID": {
       "codelist": null,
-      "consumers": {},
+      "consumers": {
+        "jpa": "org.sitmun.domain.task.availability.TaskAvailability#territory"
+      },
       "default": null,
       "enforcement": null,
       "length": null,
+      "references": {
+        "column": "STM_TERRITORY.TER_ID",
+        "on_delete": "cascade"
+      },
       "required": true,
       "status": "decided",
       "type": "integer"
@@ -1343,10 +1437,15 @@
     },
     "STM_BACKGRD.BAC_GGIID": {
       "codelist": null,
-      "consumers": {},
+      "consumers": {
+        "jpa": "org.sitmun.domain.background.Background#cartographyGroup"
+      },
       "default": null,
       "enforcement": null,
       "length": null,
+      "references": {
+        "column": "STM_GRP_GI.GGI_ID"
+      },
       "required": false,
       "status": "decided",
       "type": "integer"
@@ -1461,10 +1560,16 @@
     },
     "STM_COMMENT.COM_APPID": {
       "codelist": null,
-      "consumers": {},
+      "consumers": {
+        "jpa": "org.sitmun.domain.comment.Comment#application"
+      },
       "default": null,
       "enforcement": null,
       "length": null,
+      "references": {
+        "column": "STM_APP.APP_ID",
+        "on_delete": "cascade"
+      },
       "required": true,
       "status": "decided",
       "type": "integer"
@@ -1479,7 +1584,7 @@
       "length": null,
       "required": true,
       "status": "decided",
-      "type": "other"
+      "type": "decimal"
     },
     "STM_COMMENT.COM_COORD_Y": {
       "codelist": null,
@@ -1491,7 +1596,7 @@
       "length": null,
       "required": true,
       "status": "decided",
-      "type": "other"
+      "type": "decimal"
     },
     "STM_COMMENT.COM_CREATED": {
       "codelist": null,
@@ -1567,10 +1672,16 @@
     },
     "STM_COMMENT.COM_USERID": {
       "codelist": null,
-      "consumers": {},
+      "consumers": {
+        "jpa": "org.sitmun.domain.comment.Comment#user"
+      },
       "default": null,
       "enforcement": null,
       "length": null,
+      "references": {
+        "column": "STM_USER.USE_ID",
+        "on_delete": "cascade"
+      },
       "required": true,
       "status": "decided",
       "type": "integer"
@@ -1697,10 +1808,16 @@
     },
     "STM_FIL_GI.FGI_GIID": {
       "codelist": null,
-      "consumers": {},
+      "consumers": {
+        "jpa": "org.sitmun.domain.cartography.filter.CartographyFilter#cartography"
+      },
       "default": null,
       "enforcement": null,
       "length": null,
+      "references": {
+        "column": "STM_GEOINFO.GEO_ID",
+        "on_delete": "cascade"
+      },
       "required": true,
       "status": "decided",
       "type": "integer"
@@ -1755,10 +1872,15 @@
     },
     "STM_FIL_GI.FGI_TYPID": {
       "codelist": null,
-      "consumers": {},
+      "consumers": {
+        "jpa": "org.sitmun.domain.cartography.filter.CartographyFilter#territorialLevel"
+      },
       "default": null,
       "enforcement": null,
       "length": null,
+      "references": {
+        "column": "STM_TER_TYP.TET_ID"
+      },
       "required": false,
       "status": "decided",
       "type": "integer"
@@ -1813,10 +1935,15 @@
     },
     "STM_GEOINFO.GEO_CONNID": {
       "codelist": null,
-      "consumers": {},
+      "consumers": {
+        "jpa": "org.sitmun.domain.cartography.Cartography#spatialSelectionConnection"
+      },
       "default": null,
       "enforcement": null,
       "length": null,
+      "references": {
+        "column": "STM_CONNECT.CON_ID"
+      },
       "required": false,
       "status": "decided",
       "type": "integer"
@@ -2063,20 +2190,30 @@
     },
     "STM_GEOINFO.GEO_SERID": {
       "codelist": null,
-      "consumers": {},
+      "consumers": {
+        "jpa": "org.sitmun.domain.cartography.Cartography#service"
+      },
       "default": null,
-      "enforcement": null,
+      "enforcement": "reject",
       "length": null,
+      "references": {
+        "column": "STM_SERVICE.SER_ID"
+      },
       "required": false,
       "status": "decided",
       "type": "integer"
     },
     "STM_GEOINFO.GEO_SERSELID": {
       "codelist": null,
-      "consumers": {},
+      "consumers": {
+        "jpa": "org.sitmun.domain.cartography.Cartography#spatialSelectionService"
+      },
       "default": null,
       "enforcement": null,
       "length": null,
+      "references": {
+        "column": "STM_SERVICE.SER_ID"
+      },
       "required": false,
       "status": "decided",
       "type": "integer"
@@ -2095,17 +2232,24 @@
     },
     "STM_GEOINFO.GEO_STYID": {
       "codelist": null,
-      "consumers": {},
+      "consumers": {
+        "jpa": "org.sitmun.domain.cartography.Cartography#defaultStyle"
+      },
       "default": null,
       "enforcement": null,
       "length": null,
+      "references": {
+        "column": "STM_STY_GI.SGI_ID"
+      },
       "required": false,
       "status": "decided",
       "type": "integer"
     },
     "STM_GEOINFO.GEO_STYUSEALL": {
       "codelist": null,
-      "consumers": {},
+      "consumers": {
+        "jpa": "org.sitmun.domain.cartography.Cartography#useAllStyles"
+      },
       "default": "false",
       "enforcement": null,
       "length": null,
@@ -2155,6 +2299,10 @@
       "default": null,
       "enforcement": null,
       "length": null,
+      "references": {
+        "column": "STM_GRP_GI.GGI_ID",
+        "on_delete": "cascade"
+      },
       "required": true,
       "status": "decided",
       "type": "integer"
@@ -2165,6 +2313,10 @@
       "default": null,
       "enforcement": null,
       "length": null,
+      "references": {
+        "column": "STM_GEOINFO.GEO_ID",
+        "on_delete": "cascade"
+      },
       "required": true,
       "status": "decided",
       "type": "integer"
@@ -2211,6 +2363,10 @@
       "default": null,
       "enforcement": null,
       "length": null,
+      "references": {
+        "column": "STM_TERRITORY.TER_ID",
+        "on_delete": "cascade"
+      },
       "required": true,
       "status": "decided",
       "type": "integer"
@@ -2221,6 +2377,10 @@
       "default": null,
       "enforcement": null,
       "length": null,
+      "references": {
+        "column": "STM_TERRITORY.TER_ID",
+        "on_delete": "cascade"
+      },
       "required": true,
       "status": "decided",
       "type": "integer"
@@ -2347,10 +2507,15 @@
     },
     "STM_LITERAL_TRANSLATION.LTR_LANID": {
       "codelist": null,
-      "consumers": {},
+      "consumers": {
+        "jpa": "org.sitmun.infrastructure.persistence.type.i18n.LiteralTranslation#sourceLanguage"
+      },
       "default": null,
       "enforcement": null,
       "length": null,
+      "references": {
+        "column": "STM_LANGUAGE.LAN_ID"
+      },
       "required": true,
       "status": "decided",
       "type": "integer"
@@ -2381,20 +2546,31 @@
     },
     "STM_LITERAL_TRANSLATION_VALUE.LTV_LANID": {
       "codelist": null,
-      "consumers": {},
+      "consumers": {
+        "jpa": "org.sitmun.infrastructure.persistence.type.i18n.LiteralTranslationValue#language"
+      },
       "default": null,
       "enforcement": null,
       "length": null,
+      "references": {
+        "column": "STM_LANGUAGE.LAN_ID"
+      },
       "required": true,
       "status": "decided",
       "type": "integer"
     },
     "STM_LITERAL_TRANSLATION_VALUE.LTV_LTRID": {
       "codelist": null,
-      "consumers": {},
+      "consumers": {
+        "jpa": "org.sitmun.infrastructure.persistence.type.i18n.LiteralTranslationValue#literalTranslation"
+      },
       "default": null,
       "enforcement": null,
       "length": null,
+      "references": {
+        "column": "STM_LITERAL_TRANSLATION.LTR_ID",
+        "on_delete": "cascade"
+      },
       "required": true,
       "status": "decided",
       "type": "integer"
@@ -2413,10 +2589,15 @@
     },
     "STM_LOG.LOG_APPID": {
       "codelist": null,
-      "consumers": {},
+      "consumers": {
+        "jpa": "org.sitmun.domain.log.Log#application"
+      },
       "default": null,
       "enforcement": null,
       "length": null,
+      "references": {
+        "column": "STM_APP.APP_ID"
+      },
       "required": false,
       "status": "decided",
       "type": "integer"
@@ -2495,10 +2676,15 @@
     },
     "STM_LOG.LOG_GIID": {
       "codelist": null,
-      "consumers": {},
+      "consumers": {
+        "jpa": "org.sitmun.domain.log.Log#cartography"
+      },
       "default": null,
       "enforcement": null,
       "length": null,
+      "references": {
+        "column": "STM_GEOINFO.GEO_ID"
+      },
       "required": false,
       "status": "decided",
       "type": "integer"
@@ -2541,10 +2727,15 @@
     },
     "STM_LOG.LOG_TASKID": {
       "codelist": null,
-      "consumers": {},
+      "consumers": {
+        "jpa": "org.sitmun.domain.log.Log#task"
+      },
       "default": null,
       "enforcement": null,
       "length": null,
+      "references": {
+        "column": "STM_TASK.TAS_ID"
+      },
       "required": false,
       "status": "decided",
       "type": "integer"
@@ -2575,10 +2766,15 @@
     },
     "STM_LOG.LOG_TERID": {
       "codelist": null,
-      "consumers": {},
+      "consumers": {
+        "jpa": "org.sitmun.domain.log.Log#territory"
+      },
       "default": null,
       "enforcement": null,
       "length": null,
+      "references": {
+        "column": "STM_TERRITORY.TER_ID"
+      },
       "required": false,
       "status": "decided",
       "type": "integer"
@@ -2597,20 +2793,31 @@
     },
     "STM_LOG.LOG_USERID": {
       "codelist": null,
-      "consumers": {},
+      "consumers": {
+        "jpa": "org.sitmun.domain.log.Log#user"
+      },
       "default": null,
       "enforcement": null,
       "length": null,
+      "references": {
+        "column": "STM_USER.USE_ID"
+      },
       "required": false,
       "status": "decided",
       "type": "integer"
     },
     "STM_PAR_APP.PAP_APPID": {
       "codelist": null,
-      "consumers": {},
+      "consumers": {
+        "jpa": "org.sitmun.domain.application.parameter.ApplicationParameter#application"
+      },
       "default": null,
-      "enforcement": null,
+      "enforcement": "reject",
       "length": null,
+      "references": {
+        "column": "STM_APP.APP_ID",
+        "on_delete": "cascade"
+      },
       "required": false,
       "status": "decided",
       "type": "integer"
@@ -2677,10 +2884,16 @@
     },
     "STM_PAR_GI.PGI_GIID": {
       "codelist": null,
-      "consumers": {},
+      "consumers": {
+        "jpa": "org.sitmun.domain.cartography.parameter.CartographyParameter#cartography"
+      },
       "default": null,
       "enforcement": null,
       "length": null,
+      "references": {
+        "column": "STM_GEOINFO.GEO_ID",
+        "on_delete": "cascade"
+      },
       "required": true,
       "status": "decided",
       "type": "integer"
@@ -2759,10 +2972,16 @@
     },
     "STM_PAR_GS.GS_GEOID": {
       "codelist": null,
-      "consumers": {},
+      "consumers": {
+        "jpa": "org.sitmun.domain.cartography.parameter.CartographyServiceParameter#cartography"
+      },
       "default": null,
       "enforcement": null,
       "length": null,
+      "references": {
+        "column": "STM_GEOINFO.GEO_ID",
+        "on_delete": "cascade"
+      },
       "required": true,
       "status": "decided",
       "type": "integer"
@@ -2841,10 +3060,16 @@
     },
     "STM_PAR_SER.PSE_SERID": {
       "codelist": null,
-      "consumers": {},
+      "consumers": {
+        "jpa": "org.sitmun.domain.service.parameter.ServiceParameter#service"
+      },
       "default": null,
       "enforcement": null,
       "length": null,
+      "references": {
+        "column": "STM_SERVICE.SER_ID",
+        "on_delete": "cascade"
+      },
       "required": true,
       "status": "decided",
       "type": "integer"
@@ -2887,10 +3112,16 @@
     },
     "STM_PAR_SGI.PSG_GIID": {
       "codelist": null,
-      "consumers": {},
+      "consumers": {
+        "jpa": "org.sitmun.domain.cartography.parameter.CartographySpatialSelectionParameter#cartography"
+      },
       "default": null,
       "enforcement": null,
       "length": null,
+      "references": {
+        "column": "STM_GEOINFO.GEO_ID",
+        "on_delete": "cascade"
+      },
       "required": true,
       "status": "decided",
       "type": "integer"
@@ -3029,10 +3260,16 @@
     },
     "STM_POST.POS_TERID": {
       "codelist": null,
-      "consumers": {},
+      "consumers": {
+        "jpa": "org.sitmun.domain.user.position.UserPosition#territory"
+      },
       "default": null,
       "enforcement": null,
       "length": null,
+      "references": {
+        "column": "STM_TERRITORY.TER_ID",
+        "on_delete": "cascade"
+      },
       "required": true,
       "status": "decided",
       "type": "integer"
@@ -3063,10 +3300,16 @@
     },
     "STM_POST.POS_USERID": {
       "codelist": null,
-      "consumers": {},
+      "consumers": {
+        "jpa": "org.sitmun.domain.user.position.UserPosition#user"
+      },
       "default": null,
       "enforcement": null,
       "length": null,
+      "references": {
+        "column": "STM_USER.USE_ID",
+        "on_delete": "cascade"
+      },
       "required": true,
       "status": "decided",
       "type": "integer"
@@ -3113,6 +3356,10 @@
       "default": null,
       "enforcement": null,
       "length": null,
+      "references": {
+        "column": "STM_GRP_GI.GGI_ID",
+        "on_delete": "cascade"
+      },
       "required": true,
       "status": "decided",
       "type": "integer"
@@ -3123,6 +3370,10 @@
       "default": null,
       "enforcement": null,
       "length": null,
+      "references": {
+        "column": "STM_ROLE.ROL_ID",
+        "on_delete": "cascade"
+      },
       "required": true,
       "status": "decided",
       "type": "integer"
@@ -3133,6 +3384,10 @@
       "default": null,
       "enforcement": null,
       "length": null,
+      "references": {
+        "column": "STM_ROLE.ROL_ID",
+        "on_delete": "cascade"
+      },
       "required": true,
       "status": "decided",
       "type": "integer"
@@ -3143,6 +3398,10 @@
       "default": null,
       "enforcement": null,
       "length": null,
+      "references": {
+        "column": "STM_TASK.TAS_ID",
+        "on_delete": "cascade"
+      },
       "required": true,
       "status": "decided",
       "type": "integer"
@@ -3301,7 +3560,9 @@
     },
     "STM_SERVICE.SER_PROXIED": {
       "codelist": null,
-      "consumers": {},
+      "consumers": {
+        "jpa": "org.sitmun.domain.service.Service#isProxied"
+      },
       "default": "false",
       "enforcement": null,
       "length": null,
@@ -3391,7 +3652,7 @@
       "length": null,
       "required": true,
       "status": "decided",
-      "type": "timestamp"
+      "type": "instant"
     },
     "STM_SERVICE_CHECK.SEC_OBSERVER": {
       "codelist": null,
@@ -3419,10 +3680,16 @@
     },
     "STM_SERVICE_CHECK.SEC_SERID": {
       "codelist": null,
-      "consumers": {},
+      "consumers": {
+        "jpa": "org.sitmun.domain.service.check.ServiceCheck#service"
+      },
       "default": null,
       "enforcement": null,
       "length": null,
+      "references": {
+        "column": "STM_SERVICE.SER_ID",
+        "on_delete": "cascade"
+      },
       "required": true,
       "status": "decided",
       "type": "integer"
@@ -3473,7 +3740,7 @@
       "length": null,
       "required": true,
       "status": "decided",
-      "type": "timestamp"
+      "type": "instant"
     },
     "STM_SERVICE_CHECK_SAMPLE.SCS_OBSERVER": {
       "codelist": null,
@@ -3501,10 +3768,16 @@
     },
     "STM_SERVICE_CHECK_SAMPLE.SCS_SERID": {
       "codelist": null,
-      "consumers": {},
+      "consumers": {
+        "jpa": "org.sitmun.domain.service.check.ServiceCheckSample#service"
+      },
       "default": null,
       "enforcement": null,
       "length": null,
+      "references": {
+        "column": "STM_SERVICE.SER_ID",
+        "on_delete": "cascade"
+      },
       "required": true,
       "status": "decided",
       "type": "integer"
@@ -3527,6 +3800,10 @@
       "default": null,
       "enforcement": null,
       "length": null,
+      "references": {
+        "column": "STM_APP.APP_ID",
+        "on_delete": "cascade"
+      },
       "required": true,
       "status": "decided",
       "type": "integer"
@@ -3539,7 +3816,7 @@
       "length": null,
       "required": true,
       "status": "decided",
-      "type": "timestamp"
+      "type": "date"
     },
     "STM_SERVICE_USAGE.SUS_FAILED": {
       "codelist": null,
@@ -3581,6 +3858,10 @@
       "default": null,
       "enforcement": null,
       "length": null,
+      "references": {
+        "column": "STM_SERVICE.SER_ID",
+        "on_delete": "cascade"
+      },
       "required": true,
       "status": "decided",
       "type": "integer"
@@ -3611,10 +3892,15 @@
     },
     "STM_STY_GI.SGI_GIID": {
       "codelist": null,
-      "consumers": {},
+      "consumers": {
+        "jpa": "org.sitmun.domain.cartography.style.CartographyStyle#cartography"
+      },
       "default": null,
       "enforcement": null,
       "length": null,
+      "references": {
+        "column": "STM_GEOINFO.GEO_ID"
+      },
       "required": false,
       "status": "decided",
       "type": "integer"
@@ -3663,7 +3949,9 @@
     },
     "STM_STY_GI.SGI_LURL_WIDTH": {
       "codelist": null,
-      "consumers": {},
+      "consumers": {
+        "jpa": "org.sitmun.domain.cartography.style.CartographyStyle#legendURL"
+      },
       "default": null,
       "enforcement": null,
       "length": null,
@@ -3697,10 +3985,15 @@
     },
     "STM_TASK.TAS_CONNID": {
       "codelist": null,
-      "consumers": {},
+      "consumers": {
+        "jpa": "org.sitmun.domain.task.Task#connection"
+      },
       "default": null,
       "enforcement": null,
       "length": null,
+      "references": {
+        "column": "STM_CONNECT.CON_ID"
+      },
       "required": false,
       "status": "decided",
       "type": "integer"
@@ -3719,20 +4012,30 @@
     },
     "STM_TASK.TAS_GIID": {
       "codelist": null,
-      "consumers": {},
+      "consumers": {
+        "jpa": "org.sitmun.domain.task.Task#cartography"
+      },
       "default": null,
       "enforcement": null,
       "length": null,
+      "references": {
+        "column": "STM_GEOINFO.GEO_ID"
+      },
       "required": false,
       "status": "decided",
       "type": "integer"
     },
     "STM_TASK.TAS_GTASKID": {
       "codelist": null,
-      "consumers": {},
+      "consumers": {
+        "jpa": "org.sitmun.domain.task.Task#group"
+      },
       "default": null,
       "enforcement": null,
       "length": null,
+      "references": {
+        "column": "STM_GRP_TSK.GTS_ID"
+      },
       "required": false,
       "status": "decided",
       "type": "integer"
@@ -3758,18 +4061,6 @@
       "enforcement": "truncate",
       "length": 512,
       "required": true,
-      "status": "decided",
-      "type": "string"
-    },
-    "STM_TASK.TAS_TITLE": {
-      "codelist": null,
-      "consumers": {
-        "jpa": "org.sitmun.domain.task.Task#title"
-      },
-      "default": null,
-      "enforcement": "reject",
-      "length": 250,
-      "required": false,
       "status": "decided",
       "type": "string"
     },
@@ -3799,30 +4090,57 @@
     },
     "STM_TASK.TAS_SERID": {
       "codelist": null,
-      "consumers": {},
+      "consumers": {
+        "jpa": "org.sitmun.domain.task.Task#service"
+      },
       "default": null,
       "enforcement": null,
       "length": null,
+      "references": {
+        "column": "STM_SERVICE.SER_ID"
+      },
       "required": false,
       "status": "decided",
       "type": "integer"
     },
+    "STM_TASK.TAS_TITLE": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.task.Task#title"
+      },
+      "default": null,
+      "enforcement": "reject",
+      "length": 250,
+      "required": false,
+      "status": "decided",
+      "type": "string"
+    },
     "STM_TASK.TAS_TTASKID": {
       "codelist": null,
-      "consumers": {},
+      "consumers": {
+        "jpa": "org.sitmun.domain.task.Task#type"
+      },
       "default": null,
       "enforcement": null,
       "length": null,
+      "references": {
+        "column": "STM_TSK_TYP.TTY_ID"
+      },
       "required": false,
       "status": "decided",
       "type": "integer"
     },
     "STM_TASK.TAS_TUIID": {
       "codelist": null,
-      "consumers": {},
+      "consumers": {
+        "jpa": "org.sitmun.domain.task.Task#ui"
+      },
       "default": null,
       "enforcement": null,
       "length": null,
+      "references": {
+        "column": "STM_TSK_UI.TUI_ID"
+      },
       "required": false,
       "status": "decided",
       "type": "integer"
@@ -3853,20 +4171,31 @@
     },
     "STM_TASKREL.TAR_TASKID": {
       "codelist": null,
-      "consumers": {},
+      "consumers": {
+        "jpa": "org.sitmun.domain.task.relation.TaskRelation#task"
+      },
       "default": null,
       "enforcement": null,
       "length": null,
+      "references": {
+        "column": "STM_TASK.TAS_ID",
+        "on_delete": "cascade"
+      },
       "required": true,
       "status": "decided",
       "type": "integer"
     },
     "STM_TASKREL.TAR_TASKRELID": {
       "codelist": null,
-      "consumers": {},
+      "consumers": {
+        "jpa": "org.sitmun.domain.task.relation.TaskRelation#relatedTask"
+      },
       "default": null,
       "enforcement": null,
       "length": null,
+      "references": {
+        "column": "STM_TASK.TAS_ID"
+      },
       "required": true,
       "status": "decided",
       "type": "integer"
@@ -3993,10 +4322,15 @@
     },
     "STM_TERRITORY.TER_GTYPID": {
       "codelist": null,
-      "consumers": {},
+      "consumers": {
+        "jpa": "org.sitmun.domain.territory.Territory#groupType"
+      },
       "default": null,
       "enforcement": null,
       "length": null,
+      "references": {
+        "column": "STM_GTER_TYP.GTT_ID"
+      },
       "required": false,
       "status": "decided",
       "type": "integer"
@@ -4087,10 +4421,15 @@
     },
     "STM_TERRITORY.TER_TYPID": {
       "codelist": null,
-      "consumers": {},
+      "consumers": {
+        "jpa": "org.sitmun.domain.territory.Territory#type"
+      },
       "default": null,
       "enforcement": null,
       "length": null,
+      "references": {
+        "column": "STM_TER_TYP.TET_ID"
+      },
       "required": false,
       "status": "decided",
       "type": "integer"
@@ -4109,7 +4448,9 @@
     },
     "STM_TER_TYP.TET_BOTTOM": {
       "codelist": null,
-      "consumers": {},
+      "consumers": {
+        "jpa": "org.sitmun.domain.territory.type.TerritoryType#bottomType"
+      },
       "default": null,
       "enforcement": null,
       "length": null,
@@ -4143,7 +4484,9 @@
     },
     "STM_TER_TYP.TET_OFFICIAL": {
       "codelist": null,
-      "consumers": {},
+      "consumers": {
+        "jpa": "org.sitmun.domain.territory.type.TerritoryType#official"
+      },
       "default": null,
       "enforcement": null,
       "length": null,
@@ -4153,7 +4496,9 @@
     },
     "STM_TER_TYP.TET_TOP": {
       "codelist": null,
-      "consumers": {},
+      "consumers": {
+        "jpa": "org.sitmun.domain.territory.type.TerritoryType#topType"
+      },
       "default": null,
       "enforcement": null,
       "length": null,
@@ -4271,10 +4616,15 @@
     },
     "STM_TRANSLATION.TRA_LANID": {
       "codelist": null,
-      "consumers": {},
+      "consumers": {
+        "jpa": "org.sitmun.infrastructure.persistence.type.i18n.Translation#language"
+      },
       "default": null,
       "enforcement": null,
       "length": null,
+      "references": {
+        "column": "STM_LANGUAGE.LAN_ID"
+      },
       "required": true,
       "status": "decided",
       "type": "integer"
@@ -4365,10 +4715,15 @@
     },
     "STM_TREE.TRE_USERID": {
       "codelist": null,
-      "consumers": {},
+      "consumers": {
+        "jpa": "org.sitmun.domain.tree.Tree#owner"
+      },
       "default": null,
       "enforcement": null,
       "length": null,
+      "references": {
+        "column": "STM_USER.USE_ID"
+      },
       "required": false,
       "status": "decided",
       "type": "integer"
@@ -4471,10 +4826,15 @@
     },
     "STM_TREE_NOD.TNO_GIID": {
       "codelist": null,
-      "consumers": {},
+      "consumers": {
+        "jpa": "org.sitmun.domain.tree.node.TreeNode#cartography"
+      },
       "default": null,
       "enforcement": null,
       "length": null,
+      "references": {
+        "column": "STM_GEOINFO.GEO_ID"
+      },
       "required": false,
       "status": "decided",
       "type": "integer"
@@ -4577,10 +4937,15 @@
     },
     "STM_TREE_NOD.TNO_PARENTID": {
       "codelist": null,
-      "consumers": {},
+      "consumers": {
+        "jpa": "org.sitmun.domain.tree.node.TreeNode#parent"
+      },
       "default": null,
       "enforcement": null,
       "length": null,
+      "references": {
+        "column": "STM_TREE_NOD.TNO_ID"
+      },
       "required": false,
       "status": "decided",
       "type": "integer"
@@ -4623,10 +4988,15 @@
     },
     "STM_TREE_NOD.TNO_TASKID": {
       "codelist": null,
-      "consumers": {},
+      "consumers": {
+        "jpa": "org.sitmun.domain.tree.node.TreeNode#task"
+      },
       "default": null,
       "enforcement": null,
       "length": null,
+      "references": {
+        "column": "STM_TASK.TAS_ID"
+      },
       "required": false,
       "status": "decided",
       "type": "integer"
@@ -4645,10 +5015,16 @@
     },
     "STM_TREE_NOD.TNO_TREEID": {
       "codelist": null,
-      "consumers": {},
+      "consumers": {
+        "jpa": "org.sitmun.domain.tree.node.TreeNode#tree"
+      },
       "default": null,
       "enforcement": null,
       "length": null,
+      "references": {
+        "column": "STM_TREE.TRE_ID",
+        "on_delete": "cascade"
+      },
       "required": true,
       "status": "decided",
       "type": "integer"
@@ -4683,6 +5059,10 @@
       "default": null,
       "enforcement": null,
       "length": null,
+      "references": {
+        "column": "STM_ROLE.ROL_ID",
+        "on_delete": "cascade"
+      },
       "required": true,
       "status": "decided",
       "type": "integer"
@@ -4693,6 +5073,10 @@
       "default": null,
       "enforcement": null,
       "length": null,
+      "references": {
+        "column": "STM_TREE.TRE_ID",
+        "on_delete": "cascade"
+      },
       "required": true,
       "status": "decided",
       "type": "integer"
@@ -4747,10 +5131,16 @@
     },
     "STM_TSK_TYP.TTY_PARENTID": {
       "codelist": null,
-      "consumers": {},
+      "consumers": {
+        "jpa": "org.sitmun.domain.task.type.TaskType#parent"
+      },
       "default": null,
       "enforcement": null,
       "length": null,
+      "references": {
+        "column": "STM_TSK_TYP.TTY_ID",
+        "on_delete": "cascade"
+      },
       "required": false,
       "status": "decided",
       "type": "integer"
@@ -5021,10 +5411,16 @@
     },
     "STM_USR_CONF.UCO_ROLEID": {
       "codelist": null,
-      "consumers": {},
+      "consumers": {
+        "jpa": "org.sitmun.domain.user.configuration.UserConfiguration#role"
+      },
       "default": null,
       "enforcement": null,
       "length": null,
+      "references": {
+        "column": "STM_ROLE.ROL_ID",
+        "on_delete": "cascade"
+      },
       "required": true,
       "status": "decided",
       "type": "integer"
@@ -5043,23 +5439,41 @@
     },
     "STM_USR_CONF.UCO_TERID": {
       "codelist": null,
-      "consumers": {},
+      "consumers": {
+        "jpa": "org.sitmun.domain.user.configuration.UserConfiguration#territory"
+      },
       "default": null,
       "enforcement": null,
       "length": null,
+      "references": {
+        "column": "STM_TERRITORY.TER_ID",
+        "on_delete": "cascade"
+      },
       "required": true,
       "status": "decided",
       "type": "integer"
     },
     "STM_USR_CONF.UCO_USERID": {
       "codelist": null,
-      "consumers": {},
+      "consumers": {
+        "jpa": "org.sitmun.domain.user.configuration.UserConfiguration#user"
+      },
       "default": null,
       "enforcement": null,
       "length": null,
+      "references": {
+        "column": "STM_USER.USE_ID",
+        "on_delete": "cascade"
+      },
       "required": true,
       "status": "decided",
       "type": "integer"
+    }
+  },
+  "configuration": {
+    "setup.languageConfigured": {
+      "fresh": "false",
+      "upgraded": "true"
     }
   },
   "fields": {

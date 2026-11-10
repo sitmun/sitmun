@@ -158,7 +158,7 @@ public class TreeNode {
   /** Tree. */
   @OnDelete(action = OnDeleteAction.CASCADE)
   @JoinColumn(name = "TNO_TREEID", foreignKey = @ForeignKey(name = "STM_TNO_FK_TRE"))
-  @ManyToOne
+  @ManyToOne(optional = false)
   @NotNull
   private Tree tree;
 

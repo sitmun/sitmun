@@ -11,6 +11,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 #### Backend Core
 
 - **First run**: A null or blank built-in admin password is the only setup state. The admin shows the stepper on every route until that password is saved. `POST /api/setup/first-run` is anonymous only, requires the password, and can set the database language. Saving the password ends first-run. Both setup endpoints then return 404. A new 1.3.0 database clears the seeded admin password. A 1.2.9 upgrade keeps its password, so the wizard stays off. Password login rejects a null or blank password. OIDC sign-in does not. Startup repair leaves a null admin password in place.
+- **i18n**: A fresh database and an upgrade from 1.2.9 now store Portuguese for the code-list descriptions, task names, territory types, the Basic task group, and the seven literal sentences that were still missing. `check_translations.py` exits 1 when any of those rows is missing. Databases that already applied the seed, code-list, translation, or literal changesets keep the checksums they stored.
 - **Liquibase**: The Portuguese translation edit keeps the checksums already stored for `baseline-languages-postgresql`, `baseline-translations`, and `upgrade-1.2.9-to-1.3.0-translations-postgresql`.
 - **Liquibase**: A database that has no `pt-PT` row receives Portuguese even when it is not a 1.2.9 upgrade. A fresh database has no `stm_language` yet, so that check is skipped and the baseline still inserts the row.
 - **Tests**: A test that must not run on H2 uses `@EnabledOnDatabase`. `atLeast` is inclusive and `before` is exclusive. `@EnabledOnOracleSince11` is that annotation for Oracle 11 and newer. Production-database tasks set `sitmun.test.database.enabled`, `product`, and `version`.
@@ -25,6 +26,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 #### Admin Application
 
 - **First run**: While the built-in admin password is null or blank, every admin route shows the three-step setup. The selected language is the interface language when one was chosen, and otherwise the browser language. Saving a password is required and returns to login. Once the password exists, `/first-run` leaves the stepper. The login page follows the browser language when no language is stored. While the server is still starting, the admin shows that same welcome card and keeps trying.
+- **Language**: Portuguese includes the keys added after the `pt-PT` files landed, including SQL query test copy and feature-type wording. Each language file drops keys that no screen uses. A Jest spec requires every language file to match the English keys and to contain no empty value.
 - **Layers**: The layers list and the layer form show the linked service protocol beside the service. The value is the service type and stays off the stored cartography type ([sitmun-admin-app#498](https://github.com/sitmun/sitmun-admin-app/issues/498)).
 - **Layers**: Seeding feature information adds geometry properties on the same parameter list. Format stays `Geometry`. A preferred type is edited only for generic Geometry ([sitmun-admin-app#499](https://github.com/sitmun/sitmun-admin-app/issues/499)).
 - **Services**: The parameter type list follows the service protocol. `INFO` is GetFeatureInfo, `GETMAP` is GetMap, and `WMTS` stays a viewer tile setting. The parameters tab says those scopes reach the upstream service only when the service is proxied.
@@ -33,6 +35,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 #### Viewer Application
 
+- **Language**: Portuguese includes the feature-type catalog messages, the denied-map message, and the OpenLayers version label. Each language file drops keys that no screen uses, including the empty job label. A Jest spec requires every language file to match the English keys and to contain no empty value.
 - **Map**: Adding a WFS layer passes `geometryName` when the profile publishes one, and passes `geometryType` only when the profile publishes `preferredGeometryType`. The identify table skips a field whose format is `Geometry` ([sitmun-admin-app#499](https://github.com/sitmun/sitmun-admin-app/issues/499)).
 - **Map**: A proxied layer uses its own proxy address from the profile ([#90](https://github.com/sitmun/sitmun-application-stack/issues/90)).
 - **Map**: A share link keeps the current map route and stores the view in `mapState`. Opening that link restores the extent, a non-default background, catalog layers that were turned on, reordered, or changed (including their opacity, sublayers, stacking order, and the selected layer of a radio group), drawings, an imported file, a shared feature, and the 3D camera. A missing background, layer, drawing, or file does not stop the rest of the restore. The browser does not call tinyurl.com. A failed shorten shows a map-language message ([sitmun-viewer-app#189](https://github.com/sitmun/sitmun-viewer-app/issues/189)).
@@ -127,11 +130,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 #### Admin Application
 
+- **Data grid**: The filter button and the header selection checkbox have a translated accessible name in every language.
 - **Layers**: A feature layer accepts one type name. A map-image layer still accepts a comma-separated list ([#157](https://github.com/sitmun/sitmun/issues/157)).
 - **Layers**: A feature-service form says feature type. A map-image form still says layer. A folder hint says that only the first metadata link is stored, and that only the first dataset link is stored ([#162](https://github.com/sitmun/sitmun/issues/162)).
 
 #### Backend Core
 
+- **Database**: A fresh 1.3.0 database uses the same columns, foreign keys, constraint names, and system code lists on H2, Oracle, and PostgreSQL. The literal-translation-value primary key is `stm_ltv_pkey`. A PostgreSQL database that already used the longer name is renamed ([#64](https://github.com/sitmun/sitmun/issues/64)).
+- **Database**: The data dictionary is the schema contract for column type, foreign keys, and required configuration. A fresh database stores service-check times with a time zone. The seed and the 1.2.9 hop still write `setup.languageConfigured`, and the first-run changeset removes that row. First-run uses the built-in admin password. That image also keeps the checksum of the translation and code-list changesets it already ran ([#146](https://github.com/sitmun/sitmun/issues/146), [#64](https://github.com/sitmun/sitmun/issues/64)).
 - **Database**: On PostgreSQL, the service-check time and the check-sample time are stored with a time zone. Existing values are copied as UTC before the column changes ([#144](https://github.com/sitmun/sitmun/issues/144)).
 - **Database**: An upgrade from 1.2.9 removes AIMS, FME, and TC from the service-type list. Stored services of those types stay ([#142](https://github.com/sitmun/sitmun/issues/142)).
 - **i18n**: The six PDF and header task names, and 26 code-list labels, have Catalan, Spanish, French, Aranese, and Portuguese. The English stored text stays ([#116](https://github.com/sitmun/sitmun/issues/116)).

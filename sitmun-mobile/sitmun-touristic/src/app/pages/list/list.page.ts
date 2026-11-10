@@ -1,35 +1,45 @@
-import { Component } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
-import { AuthorizationService, Node } from 'src/app/services/authorization.service';
-import { RoutingService } from 'src/app/services/routing.service';
-import { LanguageService } from 'src/app/services/language.service';
-import { DatabaseService } from 'src/app/services/database.service';
-import { LoadingController } from '@ionic/angular';
+import { Component, ChangeDetectionStrategy } from "@angular/core";
+import { ActivatedRoute, Router } from "@angular/router";
+import {
+  AuthorizationService,
+  Node,
+} from "src/app/services/authorization.service";
+import { RoutingService } from "src/app/services/routing.service";
+import { LanguageService } from "src/app/services/language.service";
+import { DatabaseService } from "src/app/services/database.service";
+import { LoadingController } from "@ionic/angular";
 
 @Component({
-  selector: 'app-list',
-  templateUrl: './list.page.html',
-  styleUrls: ['./list.page.scss'],
+  selector: "app-list",
+  templateUrl: "./list.page.html",
+  styleUrls: ["./list.page.scss"],
+  changeDetection: ChangeDetectionStrategy.Eager,
+  standalone: false,
 })
 export class ListPage {
-
   selectedLanguage: string | null = null;
   languageOptions: any[] = [];
-  rootNode: Node|any = {};
+  rootNode: Node | any = {};
   nodes: Node[] = [];
   isModalOpen: boolean = false;
   imageModal: String = "";
-  
-  constructor(private router: Router, private route: ActivatedRoute, private authorizationService: AuthorizationService,
-    private routingService: RoutingService, private languageService: LanguageService, private databaseService: DatabaseService,
-    private loadingCtrl: LoadingController) {
-      this.route.queryParams.subscribe(params => {
+
+  constructor(
+    private router: Router,
+    private route: ActivatedRoute,
+    private authorizationService: AuthorizationService,
+    private routingService: RoutingService,
+    private languageService: LanguageService,
+    private databaseService: DatabaseService,
+    private loadingCtrl: LoadingController,
+  ) {
+    this.route.queryParams.subscribe((params) => {
       let navigation = this.router.getCurrentNavigation();
       if (navigation) {
         let tempState = navigation.extras.state;
-        if (tempState && tempState['rootNode'] && tempState['nodes']) {
-          this.rootNode = tempState['rootNode'];
-          this.nodes = tempState['nodes'];
+        if (tempState && tempState["rootNode"] && tempState["nodes"]) {
+          this.rootNode = tempState["rootNode"];
+          this.nodes = tempState["nodes"];
         }
       }
     });
@@ -41,9 +51,12 @@ export class ListPage {
   }
 
   refreshPage() {
-    this.authorizationService.getProfile().then(profile => {
+    this.authorizationService.getProfile().then((profile) => {
       this.databaseService.addProfile(profile);
-      const data = this.authorizationService.getPagesByProfile(profile, this.rootNode.id);
+      const data = this.authorizationService.getPagesByProfile(
+        profile,
+        this.rootNode.id,
+      );
       this.rootNode = data.rootNode;
       this.nodes = data.nodes;
       this.hideLoading();
@@ -56,7 +69,7 @@ export class ListPage {
   }
 
   async nextPage(idNode: string | undefined) {
-    if(idNode) {
+    if (idNode) {
       const data = await this.authorizationService.getPagesNodesBD(idNode);
       this.routingService.redirect(data);
     }
@@ -83,14 +96,13 @@ export class ListPage {
     this.loadingCtrl.dismiss();
   }
 
-  closeModal(){
+  closeModal() {
     this.isModalOpen = false;
   }
 
-  openModal(event: Event, image: String | undefined){
+  openModal(event: Event, image: String | undefined) {
     event.stopPropagation();
-    this.imageModal = image || '';
+    this.imageModal = image || "";
     this.isModalOpen = true;
   }
-
 }

@@ -1,12 +1,9 @@
-import { execFileSync } from 'child_process';
 import { readFileSync } from 'fs';
 import path from 'path';
 import { createContext, runInContext } from 'vm';
 
-const viewerRoot = process.cwd();
-const patchScript = path.join(viewerRoot, 'scripts/patch-wfs-110-parser.js');
 const blobPath = path.join(
-  viewerRoot,
+  process.cwd(),
   'node_modules/api-sitna/workers/tc-caps-web-worker-blob.mjs'
 );
 
@@ -43,14 +40,7 @@ function workerSource(): string {
   return file.slice(start + 'String.raw`'.length, end);
 }
 
-describe('WFS 1.1.0 capabilities parser patch', () => {
-  beforeAll(() => {
-    execFileSync(process.execPath, [patchScript], {
-      cwd: viewerRoot,
-      stdio: 'inherit'
-    });
-  });
-
+describe('WFS 1.1.0 capabilities parser', () => {
   it('parses wfs:WFS_Capabilities 1.1.0 into version, feature type, and GetFeature', () => {
     const messages: Array<{
       state?: string;

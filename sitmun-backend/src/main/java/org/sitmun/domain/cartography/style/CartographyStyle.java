@@ -6,8 +6,6 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import java.util.Objects;
 import lombok.*;
-import org.hibernate.annotations.OnDelete;
-import org.hibernate.annotations.OnDeleteAction;
 import org.sitmun.domain.PersistenceConstants;
 import org.sitmun.domain.StoredFlagListener;
 import org.sitmun.domain.cartography.Cartography;
@@ -75,7 +73,6 @@ public class CartographyStyle {
 
   /** Cartography that owns the style. */
   @ManyToOne(fetch = FetchType.LAZY)
-  @OnDelete(action = OnDeleteAction.CASCADE)
   @JoinColumn(name = "SGI_GIID", foreignKey = @ForeignKey(name = "STM_SGI_FK_GEO"))
   private Cartography cartography;
 

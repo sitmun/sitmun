@@ -4,7 +4,7 @@ import { MatExpansionModule } from '@angular/material/expansion';
 import { MatIconModule } from '@angular/material/icon';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslatePipe, provideTranslateService } from '@ngx-translate/core';
 import { BehaviorSubject } from 'rxjs';
 
 import { ErrorTrackingService, ErrorEntry } from '@app/services/error-tracking.service';
@@ -73,9 +73,10 @@ describe('ErrorDetailsSidebarComponent', () => {
         MatButtonModule,
         MatExpansionModule,
         NoopAnimationsModule,
-        TranslateModule.forRoot()
+        TranslatePipe
       ],
       providers: [
+      provideTranslateService(),
         { provide: ErrorTrackingService, useValue: errorTrackingService },
         { provide: SidebarManagerService, useValue: sidebarManagerService }
       ]

@@ -13,7 +13,7 @@ import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { Router } from '@angular/router';
 
 import { CommonService } from '@api/services/common.service';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslatePipe, provideTranslateService } from '@ngx-translate/core';
 import { of, Subject } from 'rxjs';
 
 import {
@@ -39,7 +39,7 @@ describe('DashboardSearchboxComponent', () => {
 
     await TestBed.configureTestingModule({
       imports: [
-        TranslateModule.forRoot(),
+        TranslatePipe,
         ReactiveFormsModule,
         MatAutocompleteModule,
         MatButtonModule,
@@ -51,6 +51,7 @@ describe('DashboardSearchboxComponent', () => {
       ],
       declarations: [DashboardSearchboxComponent],
       providers: [
+      provideTranslateService(),
         provideHttpClient(),
         provideHttpClientTesting(),
         { provide: Router, useValue: { url: '/public/dashboard', navigateByUrl } },

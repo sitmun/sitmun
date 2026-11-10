@@ -101,7 +101,7 @@ export class LanguageService {
     this.backendDefault = await firstValueFrom(this.loadBackendDefaultLanguage());
     await firstValueFrom(this.getLanguagesForSwitcher());
     const lang = this.getCurrentLanguage();
-    this.translateService.setDefaultLang(lang);
+    this.translateService.setFallbackLang(lang);
     await firstValueFrom(this.translateService.use(lang));
     this.bootstrapped = true;
   }
@@ -114,7 +114,7 @@ export class LanguageService {
       return;
     }
     const lang = this.getCurrentLanguage();
-    this.translateService.setDefaultLang(lang);
+    this.translateService.setFallbackLang(lang);
     this.translateService.use(lang);
   }
 

@@ -5,7 +5,7 @@ import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { provideRouter, RouterModule } from '@angular/router';
 
-import { TranslateLoader, TranslateModule } from '@ngx-translate/core';
+import { TranslateLoader, TranslatePipe, provideTranslateService } from '@ngx-translate/core';
 import { of } from 'rxjs';
 
 import { ExternalConfigurationService } from '@app/core/config/external-configuration.service';
@@ -55,15 +55,16 @@ describe('DashboardComponent', () => {
       declarations: [ DashboardComponent ],
       imports : [SitmunFrontendGuiModule, DataGridComponent, MatIconTestingModule,
          MaterialModule, RouterModule, NoopAnimationsModule,
-        TranslateModule.forRoot({
+        TranslatePipe],
+      providers: [
+      provideTranslateService({
           loader: {
             provide: TranslateLoader,
             useFactory: () => ({
               getTranslation: () => of({})
             })
           }
-        })],
-      providers: [
+        }),
         provideHttpClient(),
         provideHttpClientTesting(),
         provideRouter([]),DashboardService,ServiceService,TranslationService,CodeListService,ResourceService,ExternalService,UtilsService,

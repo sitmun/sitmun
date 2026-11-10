@@ -7,7 +7,7 @@ import { IonicModule } from '@ionic/angular';
 import { DetailedlistPageRoutingModule } from './detailedlist-routing.module';
 
 import { DetailedlistPage } from './detailedlist.page';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslatePipe } from '@ngx-translate/core';
 
 @NgModule({
   imports: [
@@ -15,7 +15,7 @@ import { TranslateModule } from '@ngx-translate/core';
     FormsModule,
     IonicModule,
     DetailedlistPageRoutingModule,
-    TranslateModule
+    TranslatePipe
   ],
   declarations: [DetailedlistPage]
 })

@@ -168,7 +168,7 @@ See [seed-data/README.md](seed-data/README.md) for the full workflow.
 |--------|---------|-----------|
 | **generate_baseline_seed.py** | Write the shipped code-list and translation SQL from `seed-data/baseline`. | — |
 | **generate_legacy_upgrade.py** | Write the 1.2.9 upgrade SQL into `db/changelog/upgrade/`. | — |
-| **check_translations.py** | List code values, tasks, territory types, and task groups with no translation outside the default language. Exits 0. | — |
+| **check_translations.py** | List code values, tasks, territory types, and task groups with no translation outside the default language. Exits 1 when any row is missing. | — |
 | **check_changelog_immutability.py** | Fail if a diff edits a Liquibase include below the tree tip. `--base` for CI. | `--tree`; `--changed-file`; `--base`; `--no-git` |
 | **prepare_extracted_liquibase.py** | Rewrite pre-1.2.7 CSV width; copy case-mismatched CSV names for Linux. Used by the upgrade harness on extracted tags. | `--csv-width DIR`; `--alias-case DIR` |
 | **check_seed_identity_swap.py** | Fail a PR diff that moves an `STM_CODELIST` unique key `(COD_LIST, COD_VALUE)` onto a different `COD_ID`. | `--base`; `--changed-file`; `--no-git` |
@@ -192,6 +192,8 @@ python3 tools/bin/check_changelog_integrity.py
 
 `tools/dictionary/dictionary.json` is the authored column contract. The path has no release number. A row is decided when both baseline catalogs agree, or when a later change records one value. Checkers fail when SQL, a post-Liquibase catalog dump, JPA, a request DTO, a checked-in OpenAPI document, or an admin or viewer form disagrees.
 
+A column `type` is `string`, `integer`, `boolean`, `decimal`, `timestamp`, `instant`, or `date`. `instant` is a timestamp stored with a time zone. `timestamp` has no zone. `date` is a civil day. A link column has `references.column` and, when the foreign key says so, `references.on_delete`. `enforcement` `reject` means the API refuses a value the column still accepts. `configuration` lists each required `stm_conf` key with the fresh value and the upgraded value. An unknown key, type, or section fails the check. H2, Oracle, and PostgreSQL share that logical schema. Each engine keeps its own spelling of a boolean and a string.
+
 ```bash
 python3 tools/bin/check_data_dictionary.py \
   --sql sitmun-backend/src/main/resources/db/changelog/baseline/01-schema.postgresql.sql \
@@ -204,7 +206,7 @@ node tools/bin/check_data_dictionary_clients.mjs --app sitmun-viewer
 
 `--fail-on problem` is the default. `--fail-on none` prints the same lines and exits 0.
 
-When a release changes a column, edit the dictionary row and the Liquibase changeset in the same pull request. Before 1.3.0 is released, that changeset is the unreleased baseline or the hop under `sitmun-backend/src/main/resources/db/changelog/upgrade/`. After the release, add a new file under `db/changelog/releases/`. Do not edit a changeset that a shipped release already applied, and do not add `validCheckSum: ANY`. A database that already applied a changed unreleased changeset has to be rebuilt, because the checksum changes. Regenerate the H2 test schema with `tools/bin/generate_test_fixtures.py` instead of editing `01-schema.h2.sql` by hand.
+When a release changes a column, edit the dictionary row and the Liquibase changeset in the same pull request. Before 1.3.0 is released, that changeset is the unreleased baseline or the hop under `sitmun-backend/src/main/resources/db/changelog/upgrade/`. After the release, add a new file under `db/changelog/releases/`. Do not edit a changeset that a shipped release already applied, and do not add `validCheckSum: ANY`. The baseline schema, the baseline seed, and the 1.2.9 schema hop keep the checksum from the published 1.3.0 image, so a database created from that image still starts. The first-run changeset then removes `setup.languageConfigured`. First-run uses the built-in admin password. Regenerate the H2 test schema with `tools/bin/generate_test_fixtures.py` instead of editing `01-schema.h2.sql` by hand.
 
 ## tools/examples/ — Ejemplos ilustrativos
 

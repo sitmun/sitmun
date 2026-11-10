@@ -1,38 +1,46 @@
-import { Component, OnInit } from '@angular/core';
-import { AuthorizationService, Node } from 'src/app/services/authorization.service';
-import { RoutingService } from 'src/app/services/routing.service';
-import { LanguageService } from 'src/app/services/language.service';
-import { RequestService } from 'src/app/services/request.service';
-import { DatabaseService } from 'src/app/services/database.service';
-import { LoadingController } from '@ionic/angular';
+import { Component, OnInit, ChangeDetectionStrategy } from "@angular/core";
+import {
+  AuthorizationService,
+  Node,
+} from "src/app/services/authorization.service";
+import { RoutingService } from "src/app/services/routing.service";
+import { LanguageService } from "src/app/services/language.service";
+import { RequestService } from "src/app/services/request.service";
+import { DatabaseService } from "src/app/services/database.service";
+import { LoadingController } from "@ionic/angular";
 
 @Component({
-  selector: 'app-routes',
-  templateUrl: './routes.page.html',
-  styleUrls: ['./routes.page.scss'],
+  selector: "app-routes",
+  templateUrl: "./routes.page.html",
+  styleUrls: ["./routes.page.scss"],
+  changeDetection: ChangeDetectionStrategy.Eager,
+  standalone: false,
 })
 export class RoutesPage implements OnInit {
-
   selectedLanguage: string | null = null;
   languageOptions: any[] = [];
-  rootNode: Node|any = {};
-  taskNode: Node|any = {};
+  rootNode: Node | any = {};
+  taskNode: Node | any = {};
   parentData: any = {};
   task: any = {};
   elements: any[] = [];
   isModalOpen = false;
   isModalOpenImg = false;
-  currentExtraInfo = {title: '', content: ''};
-  imageModal: String = '';
+  currentExtraInfo = { title: "", content: "" };
+  imageModal: String = "";
   loaded = false;
   arraySkeleton: any[] = new Array(3);
 
-  constructor(private authorizationService: AuthorizationService, private routingService: RoutingService,
-    private languageService: LanguageService, private requestService: RequestService, private databaseService: DatabaseService,
-    private loadingCtrl: LoadingController) { }
+  constructor(
+    private authorizationService: AuthorizationService,
+    private routingService: RoutingService,
+    private languageService: LanguageService,
+    private requestService: RequestService,
+    private databaseService: DatabaseService,
+    private loadingCtrl: LoadingController,
+  ) {}
 
-  ngOnInit() {
-  }
+  ngOnInit() {}
 
   ionViewWillEnter() {
     this.loaded = false;
@@ -47,11 +55,11 @@ export class RoutesPage implements OnInit {
     if (navigation) {
       let tempState = navigation.state;
       if (tempState) {
-        this.rootNode = tempState['rootNode'];
-        this.taskNode = tempState['taskNodes'][0];
-        this.task = tempState['tasks'][0];
-        if (tempState['parentData']){
-          this.parentData = tempState['parentData'];
+        this.rootNode = tempState["rootNode"];
+        this.taskNode = tempState["taskNodes"][0];
+        this.task = tempState["tasks"][0];
+        if (tempState["parentData"]) {
+          this.parentData = tempState["parentData"];
         }
       }
     }
@@ -59,7 +67,11 @@ export class RoutesPage implements OnInit {
 
   async getData() {
     console.log("Obteniendo elementos");
-    const results = await this.requestService.templateRequest(this.task, this.taskNode.mapping, this.parentData);
+    const results = await this.requestService.templateRequest(
+      this.task,
+      this.taskNode.mapping,
+      this.parentData,
+    );
     this.elements = results;
     console.log("Elementos obtenidos");
     console.log(this.elements);
@@ -70,17 +82,24 @@ export class RoutesPage implements OnInit {
   async setFavorites() {
     console.log("Comprobando favoritos");
     const favorites = await this.getFavorites();
-    const idCat = Number(this.rootNode.id.split('/')[1]);
-    const idNode = Number(this.taskNode.id.split('/')[1]);
-    const idTask = Number(this.task.id.split('/')[1]);
-    for (let e of this.elements){
-      e['isFav'] = favorites.findIndex(fav => fav.id_node === idNode && fav.id_task === idTask && fav.id_category === idCat && fav.id_element === e.id) >= 0
+    const idCat = Number(this.rootNode.id.split("/")[1]);
+    const idNode = Number(this.taskNode.id.split("/")[1]);
+    const idTask = Number(this.task.id.split("/")[1]);
+    for (let e of this.elements) {
+      e["isFav"] =
+        favorites.findIndex(
+          (fav) =>
+            fav.id_node === idNode &&
+            fav.id_task === idTask &&
+            fav.id_category === idCat &&
+            fav.id_element === e.id,
+        ) >= 0;
     }
     console.log("Favoritos comprobados");
   }
 
   async getFavorites() {
-    const idCat = Number(this.rootNode.id.split('/')[1]);
+    const idCat = Number(this.rootNode.id.split("/")[1]);
     const favorites = await this.databaseService.getFavorites(idCat);
     return favorites;
   }
@@ -88,22 +107,22 @@ export class RoutesPage implements OnInit {
   toggleFavorite(event: any, elem: any) {
     const btn = event.target;
     const favorite = {
-      id_node: Number(this.taskNode.id.split('/')[1]),
-      id_task: Number(this.task.id.split('/')[1]),
+      id_node: Number(this.taskNode.id.split("/")[1]),
+      id_task: Number(this.task.id.split("/")[1]),
       id_element: elem.id,
-      id_category: Number(this.rootNode.id.split('/')[1]),
-      element: JSON.stringify(elem)
+      id_category: Number(this.rootNode.id.split("/")[1]),
+      element: JSON.stringify(elem),
     };
-    if (btn.classList.contains('active')) {
-      btn.classList.remove('active');
+    if (btn.classList.contains("active")) {
+      btn.classList.remove("active");
       this.databaseService.removeFavorite(favorite);
     } else {
       const category = {
-        id: Number(this.rootNode.id.split('/')[1]),
+        id: Number(this.rootNode.id.split("/")[1]),
         image: this.rootNode.image,
         name: this.rootNode.title,
-      }
-      btn.classList.add('active');
+      };
+      btn.classList.add("active");
       this.databaseService.addFavorite(category, favorite);
     }
     console.log(elem);
@@ -111,7 +130,10 @@ export class RoutesPage implements OnInit {
 
   async locateElement(elem: any) {
     console.log(elem.geom);
-    const mapData = {features: [elem], activeLayer: this.taskNode.resource || '*'};
+    const mapData = {
+      features: [elem],
+      activeLayer: this.taskNode.resource || "*",
+    };
     //this.routingService.navigate('map', mapData);
     const data = await this.authorizationService.getPagesMapNode();
     this.routingService.redirect(data, mapData);
@@ -123,7 +145,7 @@ export class RoutesPage implements OnInit {
   }
 
   async nextPage(idNode: string, parentData: any = {}) {
-    if(idNode) {
+    if (idNode) {
       const data = await this.authorizationService.getPagesNodesBD(idNode);
       this.routingService.redirect(data, parentData);
     }
@@ -142,9 +164,12 @@ export class RoutesPage implements OnInit {
   }
 
   refreshProfile() {
-    this.authorizationService.getProfile().then(profile => {
+    this.authorizationService.getProfile().then((profile) => {
       this.databaseService.addProfile(profile);
-      const data = this.authorizationService.getPagesByProfile(profile, this.rootNode.id);
+      const data = this.authorizationService.getPagesByProfile(
+        profile,
+        this.rootNode.id,
+      );
       this.rootNode = data.rootNode;
       this.hideLoading();
     });
@@ -160,31 +185,31 @@ export class RoutesPage implements OnInit {
     this.loadingCtrl.dismiss();
   }
 
-  isValidHref(href: String): boolean {    
+  isValidHref(href: String): boolean {
     return (
       href &&
-      (href.startsWith('tel:') ||
-      href.startsWith('mailto:') ||
-      href.startsWith('http://') ||
-      href.startsWith('https://'))
+      (href.startsWith("tel:") ||
+        href.startsWith("mailto:") ||
+        href.startsWith("http://") ||
+        href.startsWith("https://"))
     );
   }
 
   getDifficultyValue(difficulty: string): string {
     switch (difficulty) {
-      case 'No apte':
-        return '0';
-      case 'Baixa':
-      case 'Fàcil':
-        return '1';
-      case 'Mitjana':
-      case 'Mitjà':
-        return '2';
-      case 'Alta':
-      case 'Difícil':
-        return '3';
+      case "No apte":
+        return "0";
+      case "Baixa":
+      case "Fàcil":
+        return "1";
+      case "Mitjana":
+      case "Mitjà":
+        return "2";
+      case "Alta":
+      case "Difícil":
+        return "3";
       default:
-        return '-1';
+        return "-1";
     }
   }
 
@@ -206,19 +231,17 @@ export class RoutesPage implements OnInit {
     this.isModalOpen = false;
   }
 
-  closeModalImg(){
+  closeModalImg() {
     this.isModalOpenImg = false;
   }
 
-  openModalImg(event: Event, image: String | undefined){
+  openModalImg(event: Event, image: String | undefined) {
     event.stopPropagation();
-    this.imageModal = image || '';
+    this.imageModal = image || "";
     this.isModalOpenImg = true;
   }
 
   openLink(link: string) {
-    window.open(link, '_system');
+    window.open(link, "_system");
   }
-
-
 }

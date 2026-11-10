@@ -2,7 +2,7 @@ import {Component, effect, OnDestroy, OnInit, signal, WritableSignal, ChangeDete
 import {UntypedFormBuilder, UntypedFormGroup, Validators} from '@angular/forms';
 import {ActivatedRoute, Router} from '@angular/router';
 
-import {TranslateService} from '@ngx-translate/core';
+import { TranslateService } from '@ngx-translate/core';
 import {Subject} from 'rxjs';
 import {takeUntil} from 'rxjs/operators';
 
@@ -98,14 +98,14 @@ export class LoginComponent implements OnInit, OnDestroy {
   changeLanguage(shortname: string): void {
     this.currentShortname = shortname;
     this.translateService.use(shortname);
-    this.translateService.setDefaultLang(shortname);
+    this.translateService.setFallbackLang(shortname);
     localStorage.setItem('lang', shortname);
   }
 
   private applyLanguages(languages: Language[]): void {
     this.languages = languages;
     const chosen = resolveUiLanguage({
-      stored: localStorage.getItem('lang') || this.translateService.currentLang,
+      stored: localStorage.getItem('lang') || this.translateService.getCurrentLang(),
       browser: readBrowserLanguages(),
       backendDefault: config.defaultLang,
       availableShortnames: languages.map((language) => language.shortname),
@@ -123,17 +123,17 @@ export class LoginComponent implements OnInit, OnDestroy {
     if (val.username && val.password) {
       const langCode =
         localStorage.getItem('lang') ||
-        this.translateService.currentLang ||
+        this.translateService.getCurrentLang() ||
         this.currentShortname;
       this.loginService.login(val).then(() => {
         this.translateService.use(langCode);
-        this.translateService.setDefaultLang(langCode);
+        this.translateService.setFallbackLang(langCode);
         localStorage.setItem('lang', langCode);
 
         void this.router.navigateByUrl(this.defaultRoute);
       }, () => {
         this.translateService.use(langCode);
-        this.translateService.setDefaultLang(langCode);
+        this.translateService.setFallbackLang(langCode);
         localStorage.setItem('lang', langCode);
         this.badCredentials = 'ERROR';
       });

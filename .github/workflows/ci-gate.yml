@@ -156,10 +156,9 @@ jobs:
         with:
           node-version-file: .nvmrc
           cache: pnpm
-          cache-dependency-path: sitmun-admin/pnpm-lock.yaml
+          cache-dependency-path: pnpm-lock.yaml
       - name: Install admin dependencies
-        working-directory: sitmun-admin
-        run: pnpm ci
+        run: pnpm ci --filter ./sitmun-admin...
         env:
           NPM_CONFIG_USERCONFIG: ${{ github.workspace }}/config/npm-userconfig
       - name: Check baseline catalogs against the data dictionary

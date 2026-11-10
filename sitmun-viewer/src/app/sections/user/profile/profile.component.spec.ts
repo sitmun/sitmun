@@ -9,7 +9,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 
 import { UserService } from '@api/services/user.service';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService, provideTranslateService } from '@ngx-translate/core';
 import { PrimaryButtonComponent } from '@ui/components/primary-button/primary-button.component';
 import { ProfileInformationComponent } from '@ui/components/profile-information/profile-information.component';
 import { ReturnButtonComponent } from '@ui/components/return-button/return-button.component';
@@ -51,7 +51,7 @@ describe('ProfileComponent', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [
-        TranslateModule.forRoot(),
+        TranslatePipe,
         NgOptimizedImage,
         MatIconModule,
         MatTooltipModule
@@ -63,6 +63,7 @@ describe('ProfileComponent', () => {
         PrimaryButtonComponent
       ],
       providers: [
+      provideTranslateService(),
         provideHttpClient(),
         provideHttpClientTesting(),
         {

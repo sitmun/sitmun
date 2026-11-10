@@ -6,7 +6,7 @@ import { MatDialogModule } from '@angular/material/dialog';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { RouterModule } from '@angular/router';
 
-import { TranslateLoader, TranslateModule } from '@ngx-translate/core';
+import { TranslateLoader, TranslatePipe, provideTranslateService } from '@ngx-translate/core';
 import { of } from 'rxjs';
 
 import { ExternalConfigurationService } from '@app/core/config/external-configuration.service';
@@ -30,7 +30,10 @@ describe('TaskTypeComponent', () => {
         MatDialogModule,
         MatIconTestingModule,
         RouterModule.forRoot([]),
-        TranslateModule.forRoot({
+        TranslatePipe,
+      ],
+      providers: [
+      provideTranslateService({
           loader: {
             provide: TranslateLoader,
             useFactory: () => ({
@@ -38,8 +41,6 @@ describe('TaskTypeComponent', () => {
             }),
           },
         }),
-      ],
-      providers: [
         provideHttpClient(),
         provideHttpClientTesting(),
         provideErrorHandlerForTests(),

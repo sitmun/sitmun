@@ -4,7 +4,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { RouterModule } from '@angular/router';
 
 import { ICellRendererAngularComp } from '@ag-grid-community/angular';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslatePipe } from '@ngx-translate/core';
 
 /**
  * AG Grid cell renderer that converts cell values into Angular router links.
@@ -92,7 +92,7 @@ import { TranslateModule } from '@ngx-translate/core';
   `],
     standalone: true,
     changeDetection: ChangeDetectionStrategy.Eager,
-    imports: [RouterModule, MatIconModule, MatTooltipModule, TranslateModule]
+    imports: [RouterModule, MatIconModule, MatTooltipModule, TranslatePipe]
 })
 export class RouterLinkRendererComponent implements ICellRendererAngularComp {
   /** AG Grid cell renderer parameters */

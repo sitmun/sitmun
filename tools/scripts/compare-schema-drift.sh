@@ -103,7 +103,8 @@ dump_pg_schema() {
       string_agg(upper(kcu.column_name), ',' ORDER BY kcu.ordinal_position),
       upper(ccu.table_name),
       string_agg(upper(ccu.column_name), ',' ORDER BY kcu.ordinal_position),
-      tc.constraint_name
+      tc.constraint_name,
+      lower(rc.delete_rule)
     FROM information_schema.table_constraints tc
     JOIN information_schema.key_column_usage kcu
       ON tc.constraint_schema = kcu.constraint_schema
@@ -112,10 +113,13 @@ dump_pg_schema() {
     JOIN information_schema.constraint_column_usage ccu
       ON ccu.constraint_schema = tc.constraint_schema
      AND ccu.constraint_name = tc.constraint_name
+    JOIN information_schema.referential_constraints rc
+      ON rc.constraint_schema = tc.constraint_schema
+     AND rc.constraint_name = tc.constraint_name
     WHERE tc.table_schema = 'public'
       AND tc.table_name LIKE 'stm_%'
       AND tc.constraint_type = 'FOREIGN KEY'
-    GROUP BY kcu.table_name, ccu.table_name, tc.constraint_name
+    GROUP BY kcu.table_name, ccu.table_name, tc.constraint_name, rc.delete_rule
     ORDER BY 1, 6;
   " >> "${out_prefix}.constraints"
 
@@ -376,14 +380,14 @@ SELECT acc.table_name||'|FK|'||
        LISTAGG(acc.column_name, ',') WITHIN GROUP (ORDER BY acc.position)||'|'||
        r.table_name||'|'||
        LISTAGG(rcc.column_name, ',') WITHIN GROUP (ORDER BY acc.position)||'|'||
-       ac.constraint_name
+       ac.constraint_name||'|'||lower(nvl(ac.delete_rule, 'NO ACTION'))
 FROM user_constraints ac
 JOIN user_cons_columns acc ON ac.constraint_name = acc.constraint_name
 JOIN user_constraints r ON ac.r_constraint_name = r.constraint_name
 JOIN user_cons_columns rcc ON r.constraint_name = rcc.constraint_name AND rcc.position = acc.position
 WHERE ac.constraint_type = 'R'
   AND ac.table_name LIKE 'STM_%'
-GROUP BY acc.table_name, r.table_name, ac.constraint_name
+GROUP BY acc.table_name, r.table_name, ac.constraint_name, ac.delete_rule
 ORDER BY 1;
 \" | sqlplus -s ${connect}" >> "${out_prefix}.constraints"
 

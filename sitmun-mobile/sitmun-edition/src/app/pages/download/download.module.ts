@@ -7,7 +7,7 @@ import { IonicModule } from '@ionic/angular';
 import { DownloadPageRoutingModule } from './download-routing.module';
 
 import { DownloadPage } from './download.page';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslatePipe } from '@ngx-translate/core';
 import { ProfileModalComponent } from 'src/app/components/profile-modal/profile-modal.component';
 
 @NgModule({
@@ -16,7 +16,7 @@ import { ProfileModalComponent } from 'src/app/components/profile-modal/profile-
     FormsModule,
     IonicModule,
     DownloadPageRoutingModule,
-    TranslateModule,
+    TranslatePipe,
     ProfileModalComponent
   ],
   declarations: [DownloadPage]

@@ -6,7 +6,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 
-import { TranslateLoader, TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslateLoader, TranslatePipe, TranslateService, provideTranslateService } from '@ngx-translate/core';
 import { of } from 'rxjs';
 
 import {LoggerService} from '@app/services/logger.service';
@@ -29,14 +29,7 @@ describe('DialogFormComponent', () => {
       declarations: [ DialogFormComponent ],
       imports: [
         MatDialogModule,
-        TranslateModule.forRoot({
-          loader: {
-            provide: TranslateLoader,
-            useFactory: () => ({
-              getTranslation: () => of({})
-            })
-          }
-        }),
+        TranslatePipe,
         NoopAnimationsModule,
         ReactiveFormsModule,
         MatCardModule,
@@ -44,6 +37,14 @@ describe('DialogFormComponent', () => {
         MatTooltipModule
       ],
       providers: [
+      provideTranslateService({
+          loader: {
+            provide: TranslateLoader,
+            useFactory: () => ({
+              getTranslation: () => of({})
+            })
+          }
+        }),
         { provide: MatDialogRef, useValue: { close: dialogRefClose } },
         { provide: MatDialog, useValue: { open: dialogOpen } },
         { provide: MAT_DIALOG_DATA, useValue: {} },

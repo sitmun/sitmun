@@ -13,4 +13,4 @@ Work happens in [sitmun/sitmun](https://github.com/sitmun/sitmun).
 
 Run tests from the module you change. Root Playwright suites are `pnpm run e2e`, `pnpm run e2e:viewer`, `pnpm run e2e:mia-cross`, `pnpm run e2e:application-contact`, and `pnpm run e2e:mobile:web`. Those suites share port `18080`, so run one at a time.
 
-Node is the root `.nvmrc`. pnpm is `packageManager` in each app's `package.json`. mise reads both files and is optional. CI uses `node-version-file: .nvmrc` and `pnpm/action-setup`, then `pnpm ci`.
+Node is the root `.nvmrc`. pnpm is `packageManager` in the root `package.json`. Shared JavaScript versions are the root `pnpm-workspace.yaml` catalog. mise reads both files and is optional. CI uses `node-version-file: .nvmrc` and `pnpm/action-setup`, then `pnpm ci`.

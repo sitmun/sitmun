@@ -116,7 +116,7 @@ export class FirstRunComponent implements OnInit, OnDestroy {
   changeLanguage(shortname: string): void {
     this.currentShortname = shortname;
     this.translateService.use(shortname);
-    this.translateService.setDefaultLang(shortname);
+    this.translateService.setFallbackLang(shortname);
     localStorage.setItem('lang', shortname);
     this.preselectLanguage();
   }
@@ -155,7 +155,7 @@ export class FirstRunComponent implements OnInit, OnDestroy {
           if (languageChoice.language) {
             config.defaultLang = languageChoice.language;
             this.currentShortname = languageChoice.language;
-            this.translateService.setDefaultLang(languageChoice.language);
+            this.translateService.setFallbackLang(languageChoice.language);
             localStorage.setItem('lang', languageChoice.language);
             this.translateService.use(languageChoice.language).subscribe({ next: leave, error: leave });
             return;
@@ -234,7 +234,7 @@ export class FirstRunComponent implements OnInit, OnDestroy {
   }
 
   private applyUiLanguage(languages: Language[]): void {
-    const chosen = this.translateService.currentLang || localStorage.getItem('lang') || this.detectedShortname;
+    const chosen = this.translateService.getCurrentLang() || localStorage.getItem('lang') || this.detectedShortname;
     if (chosen && languages.some((language) => language.shortname === chosen)) {
       this.currentShortname = chosen;
       this.translateService.use(chosen);

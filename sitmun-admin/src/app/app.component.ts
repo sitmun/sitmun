@@ -15,7 +15,6 @@ import {retryAppStartup} from './services/app-startup';
 import {AppStateService} from './services/app-state.service';
 import {readBrowserLanguages, resolveUiLanguage} from './services/ui-language.resolver';
 
-
 @Component({
     selector: 'app-root',
     templateUrl: './app.component.html',
@@ -113,13 +112,13 @@ export class AppComponent implements OnInit, OnDestroy {
       staticFallback: config.defaultLang || available[0] || 'en',
     });
     this.translate.use(chosen);
-    this.translate.setDefaultLang(chosen);
+    this.translate.setFallbackLang(chosen);
   }
 
   /** Change app language*/
   changeLanguage(locale: string) {
     this.translate.use(locale);
-    this.translate.setDefaultLang(locale);
+    this.translate.setFallbackLang(locale);
     localStorage.setItem('lang', locale);
   }
 

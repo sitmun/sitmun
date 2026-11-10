@@ -45,7 +45,7 @@ public class Translation {
   private String column;
 
   /** Translation language. */
-  @ManyToOne
+  @ManyToOne(optional = false)
   @JoinColumn(name = "TRA_LANID", foreignKey = @ForeignKey(name = "STM_TRA_FK_LAN"))
   @NotNull
   private Language language;

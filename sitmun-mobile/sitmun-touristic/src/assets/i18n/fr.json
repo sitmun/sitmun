@@ -13,7 +13,7 @@
     "territoryError": "Une erreur s'est produite lors de l'obtention du territoire de l'application.",
     "appError": "Une erreur s'est produite lors de la récupération de l'application touristique.",
     "databaseError": "Une erreur s'est produite lors de l'initialisation de la base de données.",
-    "headerError": "Erreur de communication" 
+    "headerError": "Erreur de communication"
   },
   "events": {
     "searchEvent": "Gastronomie, théâtre, musique...",
@@ -43,7 +43,6 @@
     "searchMap": "Rechercher..."
   },
   "nearme": {
-    "title": "Près de moi",
     "searchNearElements": "Rechercher des éléments proches de",
     "myPosition": "Ma position",
     "mapCenter": "Centre de la carte",
@@ -74,9 +73,7 @@
     "schedule": "Horaire",
     "call": "Appeler",
     "point": "Point d'intérêt",
-    "link": "Ouvrir le lien",
-    "mailto": "Envoyer un e-mailEnvoyer un e-mail",
-    "extraInfo": "Informations supplémentaires"
+    "link": "Ouvrir le lien"
   },
   "routes": {
     "notsuitable": "Non adapté",
@@ -89,6 +86,6 @@
     "end": "Fin"
   },
   "gallery": {
-      "noImages": "Aucune image disponible."
+    "noImages": "Aucune image disponible."
   }
 }

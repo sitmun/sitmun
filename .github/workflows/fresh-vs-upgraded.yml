@@ -63,6 +63,8 @@ jobs:
         run: bash tools/scripts/fresh-vs-upgraded.sh postgres-12
       - name: Check the fresh catalog against the data dictionary
         run: python3 tools/bin/check_data_dictionary.py --catalog tools/out/schema-drift/fresh-vs-upgraded/postgres-12
+      - name: Check the upgraded catalog against the data dictionary
+        run: python3 tools/bin/check_data_dictionary.py --catalog tools/out/schema-drift/fresh-vs-upgraded/postgres-12 --prefix upgraded
 
   postgres-16:
     name: Fresh versus upgraded PostgreSQL 16
@@ -81,6 +83,8 @@ jobs:
         run: bash tools/scripts/fresh-vs-upgraded.sh postgres-16
       - name: Check the fresh catalog against the data dictionary
         run: python3 tools/bin/check_data_dictionary.py --catalog tools/out/schema-drift/fresh-vs-upgraded/postgres-16
+      - name: Check the upgraded catalog against the data dictionary
+        run: python3 tools/bin/check_data_dictionary.py --catalog tools/out/schema-drift/fresh-vs-upgraded/postgres-16 --prefix upgraded
 
   oracle-23:
     name: Fresh versus upgraded Oracle 23ai
@@ -99,6 +103,8 @@ jobs:
         run: bash tools/scripts/fresh-vs-upgraded.sh oracle-23
       - name: Check the fresh catalog against the data dictionary
         run: python3 tools/bin/check_data_dictionary.py --catalog tools/out/schema-drift/fresh-vs-upgraded/oracle-23
+      - name: Check the upgraded catalog against the data dictionary
+        run: python3 tools/bin/check_data_dictionary.py --catalog tools/out/schema-drift/fresh-vs-upgraded/oracle-23 --prefix upgraded
 
   postgres-16-from-128:
     name: Fresh versus upgraded PostgreSQL 16 from 1.2.8
@@ -117,6 +123,8 @@ jobs:
         run: bash tools/scripts/fresh-vs-upgraded.sh postgres-16 1.2.8
       - name: Check the fresh catalog against the data dictionary
         run: python3 tools/bin/check_data_dictionary.py --catalog tools/out/schema-drift/fresh-vs-upgraded/postgres-16
+      - name: Check the upgraded catalog against the data dictionary
+        run: python3 tools/bin/check_data_dictionary.py --catalog tools/out/schema-drift/fresh-vs-upgraded/postgres-16 --prefix upgraded
 
   oracle-11-from-128:
     name: Fresh versus upgraded Oracle 11g from 1.2.8
@@ -135,6 +143,8 @@ jobs:
         run: bash tools/scripts/fresh-vs-upgraded.sh oracle-11 1.2.8
       - name: Check the fresh catalog against the data dictionary
         run: python3 tools/bin/check_data_dictionary.py --catalog tools/out/schema-drift/fresh-vs-upgraded/oracle-11
+      - name: Check the upgraded catalog against the data dictionary
+        run: python3 tools/bin/check_data_dictionary.py --catalog tools/out/schema-drift/fresh-vs-upgraded/oracle-11 --prefix upgraded
 
   oracle-19-from-128:
     name: Fresh versus upgraded Oracle 21c (stand-in for 19c) from 1.2.8
@@ -153,3 +163,5 @@ jobs:
         run: bash tools/scripts/fresh-vs-upgraded.sh oracle-21 1.2.8
       - name: Check the fresh catalog against the data dictionary
         run: python3 tools/bin/check_data_dictionary.py --catalog tools/out/schema-drift/fresh-vs-upgraded/oracle-21
+      - name: Check the upgraded catalog against the data dictionary
+        run: python3 tools/bin/check_data_dictionary.py --catalog tools/out/schema-drift/fresh-vs-upgraded/oracle-21 --prefix upgraded

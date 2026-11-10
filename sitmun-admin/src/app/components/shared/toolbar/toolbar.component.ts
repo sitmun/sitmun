@@ -2,7 +2,7 @@ import {Component, DestroyRef, EventEmitter, inject, OnInit, Output, ChangeDetec
 import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
 import {Router} from '@angular/router';
 
-import {TranslateService} from '@ngx-translate/core';
+import { TranslateService } from '@ngx-translate/core';
 
 import {Language, LanguageService} from '@app/domain';
 import {toLanguageIsoCode} from '@app/services/language-iso';
@@ -53,7 +53,7 @@ export class ToolbarComponent implements OnInit {
   changeLanguage(shortname: string): void {
     this.currentShortname = shortname;
     this.translateService.use(shortname);
-    this.translateService.setDefaultLang(shortname);
+    this.translateService.setFallbackLang(shortname);
     localStorage.setItem('lang', shortname);
   }
 
@@ -68,7 +68,7 @@ export class ToolbarComponent implements OnInit {
   private applyLanguages(languages: Language[]): void {
     this.languages = languages;
     const chosen = resolveUiLanguage({
-      stored: localStorage.getItem('lang') || this.translateService.currentLang,
+      stored: localStorage.getItem('lang') || this.translateService.getCurrentLang(),
       browser: readBrowserLanguages(),
       backendDefault: config.defaultLang,
       availableShortnames: languages.map((language) => language.shortname),

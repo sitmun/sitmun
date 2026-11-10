@@ -9,7 +9,7 @@ import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { RouterModule } from '@angular/router';
 
-import {TranslateLoader, TranslateModule} from '@ngx-translate/core';
+import { TranslateLoader, TranslatePipe, provideTranslateService } from '@ngx-translate/core';
 import {of} from 'rxjs';
 
 import {EntityFormAlertsComponent} from '@app/components/shared/entity-form-alerts/entity-form-alerts.component';
@@ -47,15 +47,16 @@ describe('BackgroundLayersFormComponent', () => {
     await TestBed.configureTestingModule({
       teardown: { destroyAfterEach: 0 as any },
       declarations: [ BackgroundLayersFormComponent, FormToolbarComponent ],
-      imports: [FormsModule, ReactiveFormsModule,RouterModule.forRoot([], {}), SitmunFrontendGuiModule, EntityFormAlertsComponent, MaterialModule, RouterModule, MatIconTestingModule, TranslateModule.forRoot({
+      imports: [FormsModule, ReactiveFormsModule,RouterModule.forRoot([], {}), SitmunFrontendGuiModule, EntityFormAlertsComponent, MaterialModule, RouterModule, MatIconTestingModule, TranslatePipe, BrowserAnimationsModule],
+      providers: [
+      provideTranslateService({
         loader: {
           provide: TranslateLoader,
           useFactory: () => ({
             getTranslation: () => of({})
           })
         }
-      }), BrowserAnimationsModule],
-      providers: [
+      }),
         provideHttpClient(),
         provideHttpClientTesting(),
         provideErrorHandlerForTests(),

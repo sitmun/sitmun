@@ -68,7 +68,7 @@ public class CartographyParameter {
   private String type;
 
   /** Cartography that owns this parameter. */
-  @ManyToOne
+  @ManyToOne(optional = false)
   @OnDelete(action = OnDeleteAction.CASCADE)
   @JoinColumn(name = "PGI_GIID", foreignKey = @ForeignKey(name = "STM_PGI_FK_GEO"))
   @NotNull

@@ -28,9 +28,9 @@ Common, proxy, MBTiles, and the backend are one Gradle build. From the repositor
 
 ## Toolchain
 
-Java is the root `.java-version` (17). Node is the root `.nvmrc` (24.22.0). pnpm is the `packageManager` field on each install root. mise is optional and reads those files. CI does not use mise: `actions/setup-node` with `node-version-file: .nvmrc` and `pnpm/action-setup`, then `pnpm ci`.
+Java is the root `.java-version` (17). Node is the root `.nvmrc` (24.22.0). pnpm is the `packageManager` field on the root `package.json`. mise is optional and reads those files. CI does not use mise: `actions/setup-node` with `node-version-file: .nvmrc` and `pnpm/action-setup`, then `pnpm ci`.
 
-pnpm runs in `sitmun-admin`, `sitmun-viewer`, `sitmun-mobile/sitmun-edition`, and `sitmun-mobile/sitmun-touristic`. Each of those directories has a `pnpm-workspace.yaml` with `allowBuilds` only. The repository root has no `pnpm-workspace.yaml`. The root `package.json` is the Playwright harness. Admin and viewer `engines.node` is `>=24.22.0`.
+The root `pnpm-workspace.yaml` lists `sitmun-admin`, `sitmun-viewer`, `sitmun-mobile/sitmun-edition`, and `sitmun-mobile/sitmun-touristic`. Shared dependency versions live in its `catalog`. The root `package.json` is the Playwright harness. Each app's `engines.node` is `>=24.22.0`.
 
 Commands: `pnpm ci`, `pnpm install`, `pnpm add`, `pnpm run`, `pnpm exec`.
 
@@ -257,21 +257,22 @@ pnpm run e2e:install
 pnpm run e2e
 ```
 
-Install admin and viewer dependencies from those directories (`pnpm ci`) before the browser suites. Optional Android emulator flow: `pnpm run e2e:mobile:android` (see `e2e/README.md`).
+Install the suite from the repository root before the browser suites: `pnpm ci --filter . --filter ./sitmun-admin...` or `--filter ./sitmun-viewer...`. Optional Android emulator flow: `pnpm run e2e:mobile:android` (see `e2e/README.md`).
 
 ### Apps and backend
 
 ```bash
+pnpm ci --filter ./sitmun-admin...
 cd sitmun-admin
-pnpm ci
 pnpm start
 
+cd ..
+pnpm ci --filter ./sitmun-viewer...
 cd sitmun-viewer
-pnpm ci
 pnpm start
 ```
 
-`pnpm start` is `ng serve` with the `development` configuration. From `sitmun-mobile/sitmun-edition` or `sitmun-mobile/sitmun-touristic`: `pnpm ci` and `pnpm start`.
+`pnpm start` is `ng serve` with the `development` configuration. For edition or touristic, install from the repository root with `pnpm ci --filter ./sitmun-mobile/sitmun-edition...` or `--filter ./sitmun-mobile/sitmun-touristic...`, then run `pnpm start` in that app.
 
 ```bash
 ./gradlew :sitmun-backend:bootRun
@@ -367,7 +368,7 @@ curl -b cookies.txt -H "X-SITMUN-Client: admin" http://localhost:9001/api/accoun
 
 The backend reads `admin_access_token` only when the request sends `X-SITMUN-Client: admin` ([`AuthenticationController.resolveSessionCookieName`](sitmun-backend/src/main/java/org/sitmun/authentication/controller/AuthenticationController.java)). Without it, `/api/account` returns 401.
 
-Reinstall an app from that app directory: `rm -rf node_modules && pnpm ci`. Node must match `.nvmrc`. Java must match `.java-version`. Backend clean: `./gradlew :sitmun-backend:clean`. Proxy clean: `./gradlew :sitmun-proxy:clean`.
+Reinstall from the repository root: `rm -rf node_modules && pnpm ci`. Node must match `.nvmrc`. Java must match `.java-version`. Backend clean: `./gradlew :sitmun-backend:clean`. Proxy clean: `./gradlew :sitmun-proxy:clean`.
 
 `LOGGING_LEVEL_ORG_SITMUN` is passed through Compose (default `DEBUG`). Set it in `.env` and run `docker compose up -d backend proxy`.
 
