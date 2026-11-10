@@ -3,21 +3,21 @@
 [![License: EUPL v1.2](https://img.shields.io/badge/License-EUPL%20v1.2-blue.svg)](LICENSE)
 ![Version](https://img.shields.io/badge/version-1.2.9-blue.svg)
 
-Angular 22 map viewer (`@angular/core` `^22.2.3`, `@angular/material` `^22.2.3`, `api-sitna` `^4.8.0`). Languages: CA, ES, EN, FR. The About window reads the installed `api-sitna` version. Run commands from `sitmun-viewer`.
+Angular 22 map viewer (`@angular/core` `22.2.3`, `@angular/material` `22.2.3`, `api-sitna` `4.9.1`). Languages: CA, ES, EN, FR. The About window reads the installed `api-sitna` version. Install from the repository root, then run commands from `sitmun-viewer`.
 
 ## Toolchain
 
-Node.js 24.22.0 is the repo root [`.nvmrc`](../.nvmrc) (`engines.node` is `>=24.22.0`); pnpm is the `packageManager` field in `package.json`; mise is optional.
+Node.js 24.22.0 is the repo root [`.nvmrc`](../.nvmrc) (`engines.node` is `>=24.22.0`). pnpm is the root `packageManager`. Shared versions are the root `pnpm-workspace.yaml` catalog. mise is optional.
 
 ## Install
 
 ```bash
 git clone --branch dev https://github.com/sitmun/sitmun.git
-cd sitmun/sitmun-viewer
-pnpm ci
+cd sitmun
+pnpm ci --filter ./sitmun-viewer...
 ```
 
-`pnpm install` updates `pnpm-lock.yaml`. `pnpm ci` installs from the lockfile.
+`pnpm install` at the repository root updates `pnpm-lock.yaml`. `pnpm ci` installs from that lockfile.
 
 ## Commands
 

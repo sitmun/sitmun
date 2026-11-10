@@ -3,23 +3,21 @@
 [![License: EUPL v1.2](https://img.shields.io/badge/License-EUPL%20v1.2-blue.svg)](LICENSE)
 ![Version](https://img.shields.io/badge/version-1.2.9-blue.svg)
 
-Angular 22 admin UI for the SITMUN backend. Run the commands below from `sitmun-admin`.
+Angular 22 admin UI for the SITMUN backend. Install from the repository root, then run the app from `sitmun-admin`.
 
 ## Setup
 
-Node.js is 24.22.0 from the repo root [`.nvmrc`](../.nvmrc) (`engines.node` is `>=24.22.0`). pnpm is the `packageManager` field in `package.json`. mise is optional.
-
-- `.npmrc` sets `strict-peer-dependencies=false`.
-- `pnpm-workspace.yaml` is `allowBuilds` only.
+Node.js is 24.22.0 from the repo root [`.nvmrc`](../.nvmrc) (`engines.node` is `>=24.22.0`). pnpm is the root `packageManager`. Shared versions are the root [`pnpm-workspace.yaml`](../pnpm-workspace.yaml) catalog. The root `.npmrc` sets `strict-peer-dependencies=false`.
 
 ```bash
 git clone --branch dev https://github.com/sitmun/sitmun.git
-cd sitmun/sitmun-admin
-pnpm ci
+cd sitmun
+pnpm ci --filter ./sitmun-admin...
+cd sitmun-admin
 pnpm start
 ```
 
-`pnpm ci` installs from `pnpm-lock.yaml`. `pnpm install` updates the lockfile.
+`pnpm ci` from the repository root installs from `pnpm-lock.yaml`. `pnpm install` there updates the lockfile.
 
 `pnpm start` serves http://localhost:4200 and calls `http://localhost:9000/backend` (`src/environments/environment.ts`).
 

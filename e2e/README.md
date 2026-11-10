@@ -104,8 +104,8 @@ Starts admin, viewer, proxy, and the WMS stub on one H2.
 Node is the root `.nvmrc`. pnpm is `packageManager` in the root `package.json`. Run `pnpm ci` from the repo root.
 
 - Java 17
-- Admin dependencies: `cd sitmun-admin && pnpm ci`
-- Viewer dependencies: `cd sitmun-viewer && pnpm ci`
+- Admin dependencies, from the repo root: `pnpm ci --filter ./sitmun-admin...`
+- Viewer dependencies, from the repo root: `pnpm ci --filter ./sitmun-viewer...`
 - Chromium: `pnpm run e2e:install` (re-run after `@playwright/test` upgrades)
 
 ### Playwright browser missing

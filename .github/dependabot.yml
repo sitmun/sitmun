@@ -5,13 +5,8 @@ updates:
     target-branch: dev
     schedule:
       interval: weekly
-  - package-ecosystem: npm
-    directory: /sitmun-admin
-    target-branch: dev
-    schedule:
-      interval: weekly
     # Majors only. Patches and minors still open.
-    # Angular 22 and its build, lint, and Jest packages move as one migration.
+    # Angular and its build, lint, and Jest packages move as one migration.
     # TipTap 2, ECharts 5, and ngx-echarts 19 each break their own API on a major.
     ignore:
       - dependency-name: "@angular/*"
@@ -44,21 +39,6 @@ updates:
       tiptap:
         patterns:
           - "@tiptap/*"
-  - package-ecosystem: npm
-    directory: /sitmun-viewer
-    target-branch: dev
-    schedule:
-      interval: weekly
-  - package-ecosystem: npm
-    directory: /sitmun-mobile/sitmun-edition
-    target-branch: dev
-    schedule:
-      interval: weekly
-  - package-ecosystem: npm
-    directory: /sitmun-mobile/sitmun-touristic
-    target-branch: dev
-    schedule:
-      interval: weekly
   - package-ecosystem: gradle
     directory: /
     target-branch: dev
