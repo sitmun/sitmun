@@ -522,6 +522,7 @@ function copyMobileWorkspace(workRoot) {
   for (const name of ['package.json', 'pnpm-lock.yaml', 'pnpm-workspace.yaml', '.npmrc']) {
     cpSync(join(stackRoot, name), join(workRoot, name));
   }
+  cpSync(join(stackRoot, 'patches'), join(workRoot, 'patches'), { recursive: true });
   for (const app of ['sitmun-admin', 'sitmun-viewer']) {
     const dest = join(workRoot, app);
     mkdirSync(dest, { recursive: true });

@@ -21,6 +21,7 @@ WORKDIR /home/node/app
 
 # One workspace install. .npmrc sets strict-peer-dependencies=false. Filters keep the mobile apps out of this image.
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc ./
+COPY patches/ patches/
 COPY sitmun-admin/package.json sitmun-admin/package.json
 COPY sitmun-viewer/package.json sitmun-viewer/package.json
 COPY sitmun-viewer/scripts/ sitmun-viewer/scripts/

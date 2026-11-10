@@ -428,6 +428,10 @@ def _failures_js_catalog(_root: Path) -> list[str]:
         failures.append(f"locked api-sitna@4.10.0 depends on ol {locked_ol or 'missing'}, expected 10.9.0")
     if "api-sitna@4.10.0:" not in _read(ROOT / "pnpm-workspace.yaml"):
         failures.append("pnpm-workspace.yaml does not patch api-sitna@4.10.0")
+    if "COPY patches/" not in _read(ROOT / "docker/front/Dockerfile"):
+        failures.append("docker/front/Dockerfile does not copy patches/")
+    if "patches" not in _read(ROOT / "e2e/scripts/e2e-mobile-android.mjs"):
+        failures.append("e2e-mobile-android.mjs does not copy patches/")
     lock = _read(ROOT / "pnpm-lock.yaml")
     if "cesium@1.142.0>@cesium/engine: 26.0.0" not in lock:
         failures.append("cesium@1.142.0 must use @cesium/engine 26.0.0")
