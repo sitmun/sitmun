@@ -23,7 +23,6 @@
     "download": {
         "title": "Descarregar",
         "downloadZone": "Definir zona a descarregar",
-        "scope": "Àmbit",
         "zoomLevel": "Nivell de zoom",
         "selectData": "Seleccionar dades a descarregar",
         "update": " Actualitzar",
