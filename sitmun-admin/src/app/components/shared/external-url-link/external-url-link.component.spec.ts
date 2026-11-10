@@ -4,7 +4,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { By } from '@angular/platform-browser';
 
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslatePipe, provideTranslateService } from '@ngx-translate/core';
 
 import { ExternalUrlLinkComponent } from './external-url-link.component';
 
@@ -15,8 +15,10 @@ describe('ExternalUrlLinkComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       declarations: [ExternalUrlLinkComponent],
-      imports: [MatButtonModule, MatIconModule, MatTooltipModule, TranslateModule.forRoot()],
-    }).compileComponents();
+      imports: [MatButtonModule, MatIconModule, MatTooltipModule, TranslatePipe],
+    providers: [
+      provideTranslateService()
+    ]}).compileComponents();
 
     fixture = TestBed.createComponent(ExternalUrlLinkComponent);
     component = fixture.componentInstance;

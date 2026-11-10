@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 
-import { TranslateLoader, TranslateModule } from '@ngx-translate/core';
+import { TranslateLoader, TranslatePipe, provideTranslateService } from '@ngx-translate/core';
 import { of } from 'rxjs';
 import StackTrace from 'stacktrace-js';
 
@@ -16,16 +16,17 @@ describe('LoggerService', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [
-        TranslateModule.forRoot({
+        TranslatePipe
+      ],
+      providers: [
+      provideTranslateService({
           loader: {
             provide: TranslateLoader,
             useFactory: () => ({
               getTranslation: () => of({})
             })
           }
-        })
-      ],
-      providers: [LoggerService]
+        }),LoggerService]
     });
     service = TestBed.inject(LoggerService);
     jest.spyOn(StackTrace, 'get').mockResolvedValue([

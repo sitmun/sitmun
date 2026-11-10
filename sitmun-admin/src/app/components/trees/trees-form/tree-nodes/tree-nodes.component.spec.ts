@@ -11,7 +11,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 
-import { TranslateLoader, TranslateModule } from '@ngx-translate/core';
+import { TranslateLoader, TranslatePipe, provideTranslateService } from '@ngx-translate/core';
 import { EMPTY, firstValueFrom, Observable, of } from 'rxjs';
 
 import { ExternalConfigurationService } from '@app/core/config/external-configuration.service';
@@ -250,7 +250,11 @@ describe('TreeNodesComponent', () => {
         MatCheckboxModule,
         MatSlideToggleModule,
         BrowserAnimationsModule,
-        TranslateModule.forRoot({
+        TranslatePipe,
+        SitmunFrontendGuiModule
+      ],
+      providers: [
+      provideTranslateService({
           loader: {
             provide: TranslateLoader,
             useFactory: () => ({
@@ -258,9 +262,6 @@ describe('TreeNodesComponent', () => {
             })
           }
         }),
-        SitmunFrontendGuiModule
-      ],
-      providers: [
         TreeNodeService,
         TranslationService,
         CodeListService,

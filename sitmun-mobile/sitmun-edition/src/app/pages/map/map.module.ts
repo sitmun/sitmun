@@ -7,7 +7,7 @@ import { IonicModule } from '@ionic/angular';
 import { MapPageRoutingModule } from './map-routing.module';
 
 import { MapPage } from './map.page';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslatePipe } from '@ngx-translate/core';
 import { ProfileModalComponent } from 'src/app/components/profile-modal/profile-modal.component';
 
 @NgModule({
@@ -17,7 +17,7 @@ import { ProfileModalComponent } from 'src/app/components/profile-modal/profile-
     IonicModule,
     ReactiveFormsModule,
     MapPageRoutingModule,
-    TranslateModule,
+    TranslatePipe,
     ProfileModalComponent
   ],
   declarations: [MapPage]

@@ -4,7 +4,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { provideRouter, RouterModule } from '@angular/router';
 
-import { TranslateLoader, TranslateModule } from '@ngx-translate/core';
+import { TranslateLoader, TranslatePipe, provideTranslateService } from '@ngx-translate/core';
 import { of } from 'rxjs';
 
 import { ExternalConfigurationService } from '@app/core/config/external-configuration.service';
@@ -32,16 +32,17 @@ describe('BaseListComponent', () => {
         SitmunFrontendGuiModule,
         MaterialModule,
         RouterModule,
-        TranslateModule.forRoot({
+        TranslatePipe
+      ],
+      providers: [
+      provideTranslateService({
           loader: {
             provide: TranslateLoader,
             useFactory: () => ({
               getTranslation: () => of({})
             })
           }
-        })
-      ],
-      providers: [
+        }),
         provideRouter([]),
         provideHttpClient(),
         provideHttpClientTesting(),

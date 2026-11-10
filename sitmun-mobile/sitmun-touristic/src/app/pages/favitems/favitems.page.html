@@ -7,11 +7,16 @@
     </ion-buttons>
     <ion-title>{{category['name']}}</ion-title>
     <ion-buttons slot="end">
-      <ion-select [(ngModel)]="selectedLanguage" (ionChange)="setLanguage($event.detail.value)"
-                  interface="popover">
-        <ion-select-option *ngFor="let lang of languageOptions" [value]="lang.code">
-           {{ lang.name }}
+      <ion-select
+        [(ngModel)]="selectedLanguage"
+        (ionChange)="setLanguage($event.detail.value)"
+        interface="popover"
+      >
+        @for (lang of languageOptions; track lang) {
+        <ion-select-option [value]="lang.code">
+          {{ lang.name }}
         </ion-select-option>
+        }
       </ion-select>
     </ion-buttons>
   </ion-toolbar>
@@ -19,35 +24,66 @@
 
 <ion-content [fullscreen]="true">
   <div class="container">
-    <div class="row mb-4" *ngFor="let fav of favorites">
+    @for (fav of favorites; track fav) {
+    <div class="row mb-4">
       <div class="row">
         <div class="col-3">
-          <div class="list-img-container-sm my-auto" (click)="openModal($event, fav.element['image'])">
-            <ion-img class="list-img-sm img-cover" src="{{fav.element['image'] || '../../assets/icon/no-image.jpg'}}"></ion-img>
+          <div
+            class="list-img-container-sm my-auto"
+            (click)="openModal($event, fav.element['image'])"
+          >
+            <ion-img
+              class="list-img-sm img-cover"
+              src="{{fav.element['image'] || '../../assets/icon/no-image.jpg'}}"
+            ></ion-img>
           </div>
         </div>
         <div class="col item-data">
           <h6>{{fav.element['name']}}</h6>
-          <p *ngIf="fav.element['description']" [innerHTML]="fav.element['description'].substring(0, 50) + '...'"></p>
+          @if (fav.element['description']) {
+          <p
+            [innerHTML]="fav.element['description'].substring(0, 50) + '...'"
+          ></p>
+          }
         </div>
       </div>
       <div class="d-flex justify-content-center align-items-center gap-2">
-          <ion-button shape="round" class="access-btn dl-btn" (click)="locateElement(fav.element)">
-            <ion-icon slot="icon-only" name="location"></ion-icon>
-          </ion-button>
-          <ion-button shape="round" class="visit-btn dl-btn" [ngClass]="{'active' : fav.visited}" (click)="toggleVisited($event, fav)">
-            <ion-icon slot="icon-only" name="flag"></ion-icon>
-          </ion-button> 
-          <ion-button shape="round" class="delete-btn dl-btn" (click)="deleteFavorite(fav)">
-            <ion-icon slot="icon-only" name="trash"></ion-icon>
-          </ion-button> 
+        <ion-button
+          shape="round"
+          class="access-btn dl-btn"
+          (click)="locateElement(fav.element)"
+        >
+          <ion-icon slot="icon-only" name="location"></ion-icon>
+        </ion-button>
+        <ion-button
+          shape="round"
+          class="visit-btn dl-btn"
+          [ngClass]="{'active' : fav.visited}"
+          (click)="toggleVisited($event, fav)"
+        >
+          <ion-icon slot="icon-only" name="flag"></ion-icon>
+        </ion-button>
+        <ion-button
+          shape="round"
+          class="delete-btn dl-btn"
+          (click)="deleteFavorite(fav)"
+        >
+          <ion-icon slot="icon-only" name="trash"></ion-icon>
+        </ion-button>
       </div>
     </div>
+    }
   </div>
 
-  <ion-modal class="modal-img" [isOpen]="isModalOpen" (ionModalDidDismiss)="closeModal()">
+  <ion-modal
+    class="modal-img"
+    [isOpen]="isModalOpen"
+    (ionModalDidDismiss)="closeModal()"
+  >
     <ng-template>
-        <ion-img src="{{ imageModal || '../../assets/icon/no-image.jpg' }}"></ion-img>
+      <ion-img
+        src="{{ imageModal || '../../assets/icon/no-image.jpg' }}"
+      ></ion-img>
     </ng-template>
   </ion-modal>
 </ion-content>
@@ -63,16 +99,24 @@
 <ion-footer [translucent]="true">
   <ion-toolbar>
     <ion-buttons slot="start">
-        <div class="vertical-btn" (click)="startPage()">
-          <ion-icon name="home" size="large"></ion-icon>
-          <ion-label class="ion-text-wrap text-dark">{{'home.title' | translate}}</ion-label>
-        </div>
+      <div class="vertical-btn" (click)="startPage()">
+        <ion-icon name="home" size="large"></ion-icon>
+        <ion-label class="ion-text-wrap text-dark"
+          >{{'home.title' | translate}}</ion-label
+        >
+      </div>
     </ion-buttons>
     <ion-buttons slot="end">
       <div class="vertical-btn">
-        <ion-icon [routerLink]="['/']" name="exit-outline" size="large"></ion-icon>
-        <ion-label class="ion-text-wrap text-dark"> {{ 'exit.exit' | translate }} </ion-label>
+        <ion-icon
+          [routerLink]="['/']"
+          name="exit-outline"
+          size="large"
+        ></ion-icon>
+        <ion-label class="ion-text-wrap text-dark">
+          {{ 'exit.exit' | translate }}
+        </ion-label>
       </div>
-    </ion-buttons>  
+    </ion-buttons>
   </ion-toolbar>
 </ion-footer>

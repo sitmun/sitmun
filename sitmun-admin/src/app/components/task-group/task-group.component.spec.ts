@@ -4,7 +4,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { provideRouter, Router, RouterModule } from '@angular/router';
 
-import {TranslateLoader, TranslateModule} from '@ngx-translate/core';
+import { TranslateLoader, TranslatePipe, provideTranslateService } from '@ngx-translate/core';
 import {of} from 'rxjs';
 
 import {EntityListComponent} from '@app/components/shared/entity-list/entity-list.component';
@@ -29,15 +29,16 @@ describe('TaskGroupComponent', () => {
       teardown: { destroyAfterEach: 0 as any },
       declarations: [ TaskGroupComponent, EntityListComponent ],
       imports : [SitmunFrontendGuiModule, MaterialModule, RouterModule, MatIconTestingModule,
-        TranslateModule.forRoot({
+        TranslatePipe],
+      providers: [
+      provideTranslateService({
           loader: {
             provide: TranslateLoader,
             useFactory: () => ({
               getTranslation: () => of({})
             })
           }
-        })],
-      providers: [TaskGroupService,CodeListService,TranslationService,ResourceService,ExternalService,
+        }),TaskGroupService,CodeListService,TranslationService,ResourceService,ExternalService,
         { provide: 'ExternalConfigurationService', useClass: ExternalConfigurationService },
         provideHttpClient(),
         provideHttpClientTesting(),

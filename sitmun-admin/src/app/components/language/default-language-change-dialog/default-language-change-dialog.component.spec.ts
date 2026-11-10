@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslatePipe, provideTranslateService } from '@ngx-translate/core';
 import { of, throwError } from 'rxjs';
 
 import { LanguageService, DefaultLanguageChangePreview, DefaultLanguageChangeResult } from '@app/domain/translation/services/language.service';
@@ -77,9 +77,10 @@ describe('DefaultLanguageChangeDialogComponent', () => {
       declarations: [DefaultLanguageChangeDialogComponent],
       imports: [
         MaterialModule,
-        TranslateModule.forRoot()
+        TranslatePipe
       ],
       providers: [
+      provideTranslateService(),
         { provide: MatDialogRef, useValue: mockDialogRef },
         { provide: MAT_DIALOG_DATA, useValue: { ...mockDialogData, languageService: mockLanguageService } }
       ]

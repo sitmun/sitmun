@@ -9,7 +9,7 @@ import { MatDialogModule } from '@angular/material/dialog';
 import { Router } from '@angular/router';
 
 import { DashboardItem } from '@api/services/common.service';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslatePipe, provideTranslateService } from '@ngx-translate/core';
 import { DashboardItemComponent } from '@ui/components/dashboard/dashboard-item/dashboard-item.component';
 import { DashboardTerritorySelectionDialogComponent } from '@ui/components/dashboard/dashboard-territory-selection-dialog/dashboard-territory-selection-dialog.component';
 import { AppConfigService } from 'src/app/services/app-config.service';
@@ -80,7 +80,7 @@ describe('DashboardItemsComponent', () => {
     await TestBed.configureTestingModule({
       imports: [
         NgOptimizedImage,
-        TranslateModule.forRoot(),
+        TranslatePipe,
         MatDialogModule
       ],
       declarations: [
@@ -89,6 +89,7 @@ describe('DashboardItemsComponent', () => {
         DashboardTerritorySelectionDialogComponent
       ],
       providers: [
+      provideTranslateService(),
         provideHttpClient(),
         provideHttpClientTesting(),
         { provide: Router, useValue: mockRouter },

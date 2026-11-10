@@ -1,7 +1,7 @@
 import {ComponentFixture, TestBed} from '@angular/core/testing';
 import {FormControl, FormGroup, Validators} from '@angular/forms';
 
-import {TranslateLoader, TranslateModule} from '@ngx-translate/core';
+import { TranslateLoader, TranslatePipe, provideTranslateService } from '@ngx-translate/core';
 import {of} from 'rxjs';
 
 import {EntityFormAlertsComponent} from './entity-form-alerts.component';
@@ -14,7 +14,10 @@ describe('EntityFormAlertsComponent', () => {
     await TestBed.configureTestingModule({
       imports: [
         EntityFormAlertsComponent,
-        TranslateModule.forRoot({
+        TranslatePipe,
+      ],
+    providers: [
+      provideTranslateService({
           loader: {
             provide: TranslateLoader,
             useFactory: () => ({
@@ -26,9 +29,8 @@ describe('EntityFormAlertsComponent', () => {
                 }),
             }),
           },
-        }),
-      ],
-    }).compileComponents();
+        })
+    ]}).compileComponents();
 
     fixture = TestBed.createComponent(EntityFormAlertsComponent);
     component = fixture.componentInstance;

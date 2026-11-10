@@ -11,11 +11,7 @@ import { AUTH_CONFIG_DI } from '@auth/authentication.options';
 import { CallbackComponent } from '@auth/callback/callback.component';
 import { AuthenticationService } from '@auth/services/authentication.service';
 import { CustomAuthConfig } from '@config/app.config';
-import {
-  TranslateLoader,
-  TranslateModule,
-  TranslateService
-} from '@ngx-translate/core';
+import { TranslateLoader, TranslatePipe, TranslateService, provideTranslateService } from '@ngx-translate/core';
 import { of, throwError } from 'rxjs';
 
 import { NotificationService } from '../../notifications/services/NotificationService';
@@ -31,16 +27,17 @@ describe('CallbackComponent', () => {
     await TestBed.configureTestingModule({
       imports: [
         CallbackComponent,
-        TranslateModule.forRoot({
+        TranslatePipe
+      ],
+      providers: [
+      provideTranslateService({
           loader: {
             provide: TranslateLoader,
             useFactory: () => ({
               getTranslation: () => of({})
             })
           }
-        })
-      ],
-      providers: [
+        }),
         provideHttpClient(),
         Router,
         TranslateService,

@@ -6,7 +6,7 @@ import { FormControl, ReactiveFormsModule, UntypedFormGroup, Validators } from '
 import { MatDialog } from '@angular/material/dialog';
 import { provideRouter } from '@angular/router';
 
-import { TranslateLoader, TranslateModule } from '@ngx-translate/core';
+import { TranslateLoader, TranslatePipe, provideTranslateService } from '@ngx-translate/core';
 import { of } from 'rxjs';
 
 import { ExternalConfigurationService } from '@app/core/config/external-configuration.service';
@@ -42,7 +42,10 @@ describe('BaseFormComponent (duplicate save #384)', () => {
       declarations: [BaseFormStubComponent],
       imports: [
         ReactiveFormsModule,
-        TranslateModule.forRoot({
+        TranslatePipe,
+      ],
+      providers: [
+      provideTranslateService({
           loader: {
             provide: TranslateLoader,
             useFactory: () => ({
@@ -50,8 +53,6 @@ describe('BaseFormComponent (duplicate save #384)', () => {
             }),
           },
         }),
-      ],
-      providers: [
         provideRouter([]),
         provideHttpClient(),
         provideHttpClientTesting(),

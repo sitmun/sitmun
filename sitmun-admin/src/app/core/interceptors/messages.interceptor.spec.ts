@@ -13,7 +13,7 @@ import { TestBed } from '@angular/core/testing';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 
-import { TranslateService, TranslateModule } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService, provideTranslateService } from '@ngx-translate/core';
 import { catchError } from 'rxjs';
 
 import { ENTITY_NAME_KEY, ENTITY_TYPE_KEY } from '@app/core/hal/resource/resource.service';
@@ -38,9 +38,10 @@ describe('MessagesInterceptor', () => {
       imports: [
         NoopAnimationsModule,
         MatSnackBarModule,
-        TranslateModule.forRoot()
+        TranslatePipe
       ],
       providers: [
+      provideTranslateService(),
         provideHttpClient(withInterceptorsFromDi()),
         provideHttpClientTesting(),
         MessagesInterceptor,

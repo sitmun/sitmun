@@ -2,7 +2,7 @@
 import {TestBed, ComponentFixture} from '@angular/core/testing';
 import {Router} from '@angular/router';
 
-import {TranslateLoader, TranslateModule} from '@ngx-translate/core';
+import { TranslateLoader, TranslatePipe, provideTranslateService } from '@ngx-translate/core';
 import {of} from 'rxjs';
 
 import {AuthService, ResourceService, ExternalService, ExternalConfigurationService} from '@app/core';
@@ -29,16 +29,17 @@ describe('CallbackComponent', () => {
       teardown: { destroyAfterEach: 0 as any },
       imports: [
         CallbackComponent,
-        TranslateModule.forRoot({
+        TranslatePipe
+      ],
+      providers: [
+      provideTranslateService({
           loader: {
             provide: TranslateLoader,
             useFactory: () => ({
               getTranslation: () => of({})
             })
           }
-        })
-      ],
-      providers: [
+        }),
         AuthService,
         ResourceService,
         ExternalService,

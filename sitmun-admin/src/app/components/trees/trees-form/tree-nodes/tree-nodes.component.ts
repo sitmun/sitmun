@@ -5,7 +5,7 @@ import {MatAutocompleteSelectedEvent, MatAutocompleteTrigger} from '@angular/mat
 import {MatDialog} from '@angular/material/dialog';
 import {MatAccordion} from '@angular/material/expansion';
 
-import {TranslateService} from '@ngx-translate/core';
+import { TranslateService } from '@ngx-translate/core';
 import {XMLParser} from 'fast-xml-parser';
 import {firstValueFrom, forkJoin, Observable, of, Subject} from 'rxjs';
 import {map, timeout} from 'rxjs/operators';
@@ -61,7 +61,6 @@ interface TreeNodeTaskInputParameter {
   label: string;
   value: unknown;
 }
-
 
 /**
  * Component for managing tree nodes associated with a tree entity.
@@ -536,7 +535,6 @@ export class TreeNodesComponent implements OnInit, OnDestroy, OnChanges {
     }
     return this.availableNodeTypes;
   }
-
 
   /**
    * Effective node type for behavior/UI. Folder is the container type (replacement for cartography as container).
@@ -1798,7 +1796,7 @@ export class TreeNodesComponent implements OnInit, OnDestroy, OnChanges {
     if (localStorage.lang) {
       return localStorage.lang;
     }
-    return this.translateService.currentLang || config.defaultLang;
+    return this.translateService.getCurrentLang() || config.defaultLang;
   }
 
   /**
@@ -3392,7 +3390,6 @@ export class TreeNodesComponent implements OnInit, OnDestroy, OnChanges {
     }
   }
 
-
   private focusNameField(): void {
     setTimeout(() => {
       const input = document.querySelector(
@@ -3837,7 +3834,6 @@ export class TreeNodesComponent implements OnInit, OnDestroy, OnChanges {
       }
 
       return !!(task.groupName && task.groupName.toLowerCase().includes(term));
-
 
     });
   }

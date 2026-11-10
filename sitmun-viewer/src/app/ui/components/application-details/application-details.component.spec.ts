@@ -2,7 +2,7 @@ import { NgOptimizedImage } from '@angular/common';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { DashboardItem } from '@api/services/common.service';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslatePipe, provideTranslateService } from '@ngx-translate/core';
 
 import { ApplicationDetailsComponent } from './application-details.component';
 
@@ -22,9 +22,11 @@ describe('ApplicationDetailsComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [TranslateModule.forRoot(), NgOptimizedImage],
-      declarations: [ApplicationDetailsComponent]
-    }).compileComponents();
+      imports: [TranslatePipe, NgOptimizedImage],
+      declarations: [ApplicationDetailsComponent],
+    providers: [
+      provideTranslateService()
+    ]}).compileComponents();
 
     fixture = TestBed.createComponent(ApplicationDetailsComponent);
     component = fixture.componentInstance;

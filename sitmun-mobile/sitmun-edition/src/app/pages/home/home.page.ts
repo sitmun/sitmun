@@ -1,28 +1,33 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
-import { AlertController, Platform } from '@ionic/angular';
-import { LanguageService } from 'src/app/services/language.service';
-import { LoginService } from 'src/app/services/login.service';
-import { Router } from '@angular/router';
-import { DatabaseService } from 'src/app/services/database.service';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { NetworkService } from 'src/app/services/network.service';
-import { AuthorizationService } from 'src/app/services/authorization.service';
+import {
+  Component,
+  OnInit,
+  OnDestroy,
+  ChangeDetectionStrategy,
+} from "@angular/core";
+import { AlertController, Platform } from "@ionic/angular";
+import { LanguageService } from "src/app/services/language.service";
+import { LoginService } from "src/app/services/login.service";
+import { Router } from "@angular/router";
+import { DatabaseService } from "src/app/services/database.service";
+import { FormBuilder, FormGroup, Validators } from "@angular/forms";
+import { NetworkService } from "src/app/services/network.service";
+import { AuthorizationService } from "src/app/services/authorization.service";
 
 const LABELS: Record<string, string> = {
-  title: 'exit.title',
-  message: 'exit.message',
-  exit: 'exit.exit',
-  continue: 'exit.continue'
-}
+  title: "exit.title",
+  message: "exit.message",
+  exit: "exit.exit",
+  continue: "exit.continue",
+};
 
 @Component({
-  selector: 'app-home',
-  templateUrl: 'home.page.html',
-  styleUrls: ['home.page.scss'],
+  selector: "app-home",
+  templateUrl: "home.page.html",
+  styleUrls: ["home.page.scss"],
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false,
 })
 export class HomePage implements OnInit, OnDestroy {
-
   private subscriptionBack: any = null;
   messages_: any = {};
   selectedLanguage: string | null = null;
@@ -32,22 +37,29 @@ export class HomePage implements OnInit, OnDestroy {
   loginusers: any[] = [];
   offline = {
     instances: new Array(),
-    users: new Array()
-  }
+    users: new Array(),
+  };
   loginError = false;
-  errorMsgKey = '';
+  errorMsgKey = "";
   dbinit = false;
   isModalOpen = false;
-  instanceDB: string = '';
+  instanceDB: string = "";
 
-  constructor(private platform: Platform, private authorizationService: AuthorizationService, private router: Router,
-    private alertController: AlertController, private languageService: LanguageService, private loginService: LoginService,
-    private databaseService: DatabaseService, private formBuilder: FormBuilder, private networkService: NetworkService
+  constructor(
+    private platform: Platform,
+    private authorizationService: AuthorizationService,
+    private router: Router,
+    private alertController: AlertController,
+    private languageService: LanguageService,
+    private loginService: LoginService,
+    private databaseService: DatabaseService,
+    private formBuilder: FormBuilder,
+    private networkService: NetworkService,
   ) {
     this.loginForm = this.formBuilder.group({
-      instance: ['', Validators.required],
-      user: ['', null],
-      password: ['', null]
+      instance: ["", Validators.required],
+      user: ["", null],
+      password: ["", null],
     });
   }
 
@@ -58,7 +70,7 @@ export class HomePage implements OnInit, OnDestroy {
     this.instanceDB = this.loginForm.value.instance;
     this.loginForm.reset();
     this.loginForm.patchValue({
-      instance: this.instanceDB
+      instance: this.instanceDB,
     });
     if (this.dbinit) {
       this.updateNetworkStatus(await this.networkService.getStatus());
@@ -67,13 +79,16 @@ export class HomePage implements OnInit, OnDestroy {
   }
 
   ionViewDidEnter() {
-    this.subscriptionBack = this.platform.backButton.subscribeWithPriority(-1, (evt) => {
-      this.showExitMessage();
-    });
+    this.subscriptionBack = this.platform.backButton.subscribeWithPriority(
+      -1,
+      (evt) => {
+        this.showExitMessage();
+      },
+    );
   }
 
   ionViewDidLeave() {
-    if(this.subscriptionBack){
+    if (this.subscriptionBack) {
       this.subscriptionBack.unsubscribe();
       this.subscriptionBack = null;
     }
@@ -96,7 +111,7 @@ export class HomePage implements OnInit, OnDestroy {
     if (instances.length > 0) {
       this.instanceDB = instances[0].instance;
       this.loginForm.patchValue({
-        instance: this.instanceDB
+        instance: this.instanceDB,
       });
     }
     this.updateNetworkStatus(await this.networkService.getStatus());
@@ -108,28 +123,31 @@ export class HomePage implements OnInit, OnDestroy {
   }
 
   access() {
-    this.loginForm.get('instance')?.markAsTouched();
+    this.loginForm.get("instance")?.markAsTouched();
     if (this.loginForm.valid) {
       this.authorizationService.authorizationUrl = this.instanceDB;
       const formValue = this.loginForm.value;
       if (this.networkConnected) {
-        this.loginService.login(formValue.user, formValue.password).then(resp => {
-          if (resp) {
-            this.login(formValue);
-          } else {
-            this.errorMsgKey = 'home.loginError';
+        this.loginService
+          .login(formValue.user, formValue.password)
+          .then((resp) => {
+            if (resp) {
+              this.login(formValue);
+            } else {
+              this.errorMsgKey = "home.loginError";
+              this.loginError = true;
+            }
+          })
+          .catch((error) => {
+            console.error("Login error:", error);
+            this.errorMsgKey = "home.loginError";
             this.loginError = true;
-          }
-        }).catch(error => {
-          console.error('Login error:', error);
-          this.errorMsgKey = 'home.loginError';
-          this.loginError = true;
-        });
+          });
       } else {
         this.login(formValue);
       }
     } else {
-      this.errorMsgKey = 'home.instanceRequired';
+      this.errorMsgKey = "home.instanceRequired";
       this.loginError = true;
     }
   }
@@ -142,37 +160,38 @@ export class HomePage implements OnInit, OnDestroy {
   }
 
   nextPage() {
-    this.router.navigate(['applist']);
+    this.router.navigate(["applist"]);
   }
 
   async showExitMessage() {
     const alert = await this.alertController.create({
-      cssClass: 'my-custom-class',
-      header: 'Salir',
-      message: '¿Quiere salir de la aplicación?',
+      cssClass: "my-custom-class",
+      header: "Salir",
+      message: "¿Quiere salir de la aplicación?",
       buttons: [
         {
-          text: 'Salir',
-          cssClass: 'secondary',
+          text: "Salir",
+          cssClass: "secondary",
           handler: (blah) => {
             //navigator['app'].exitApp();
-            console.log('exit app');
-          }
-        }, {
-          text: 'Continuar',
-          cssClass: 'secondary',
+            console.log("exit app");
+          },
+        },
+        {
+          text: "Continuar",
+          cssClass: "secondary",
           handler: () => {
-            console.log('Continue');
-          }
-        }
-      ]
+            console.log("Continue");
+          },
+        },
+      ],
     });
     await alert.present();
   }
-  
+
   private _loadLang = () => {
     this.messages_ = this.languageService.loadLang(LABELS);
-  }
+  };
 
   setLanguage(langCode: string) {
     this.selectedLanguage = langCode;
@@ -180,7 +199,7 @@ export class HomePage implements OnInit, OnDestroy {
   }
 
   updateNetworkStatus(connected: boolean) {
-    console.log('Network status updated:', connected);
+    console.log("Network status updated:", connected);
     this.networkConnected = connected;
     if (!connected) {
       this.getCachedUsers();
@@ -188,29 +207,29 @@ export class HomePage implements OnInit, OnDestroy {
   }
 
   async getCachedUsers() {
-    console.log('Network disconnected, fetching cached users');
+    console.log("Network disconnected, fetching cached users");
     this.loginusers = await this.databaseService.getLoginUsers();
     this.refreshOfflineUsers();
   }
 
   refreshOfflineUsers() {
-    this.offline.users = this.loginusers.map(u => u.name);
+    this.offline.users = this.loginusers.map((u) => u.name);
   }
 
-  openInstance(){
+  openInstance() {
     this.isModalOpen = true;
   }
 
-  closeModal(){
+  closeModal() {
     this.isModalOpen = false;
   }
 
-  async saveInstance(){
+  async saveInstance() {
     await this.databaseService.insertInstance(this.instanceDB);
     console.log(this.instanceDB);
     this.isModalOpen = false;
     this.loginForm.patchValue({
-      instance: this.instanceDB
+      instance: this.instanceDB,
     });
   }
 }

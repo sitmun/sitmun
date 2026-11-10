@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { CapacitorHttp, HttpOptions } from '@capacitor/core';
-import * as uriTemplate from 'uri-templates';
+import uriTemplate from 'uri-templates';
 import * as jp from 'jsonpath';
 import * as xpath from 'xpath';
 import * as xmldom from 'xmldom';

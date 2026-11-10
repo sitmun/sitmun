@@ -647,7 +647,7 @@ export class ServiceFormComponent extends BaseFormComponent<Service> implements 
   }
 
   private timeoutSeconds(): string {
-    return new Intl.NumberFormat(this.translateService.currentLang || 'es', {maximumFractionDigits: 1})
+    return new Intl.NumberFormat(this.translateService.getCurrentLang() || 'es', {maximumFractionDigits: 1})
       .format(this.sampleTimeoutMs / 1000);
   }
 
@@ -664,11 +664,11 @@ export class ServiceFormComponent extends BaseFormComponent<Service> implements 
   }
 
   accessAgo(since: Date): string {
-    return relativeAgo(since, this.viewNow, this.translateService.currentLang || 'es');
+    return relativeAgo(since, this.viewNow, this.translateService.getCurrentLang() || 'es');
   }
 
   checkedText(): string {
-    return accessSinceLabel(this.accessObservation?.observedAt, this.translateService.currentLang || 'es');
+    return accessSinceLabel(this.accessObservation?.observedAt, this.translateService.getCurrentLang() || 'es');
   }
 
   changeClock(index: number): string {
@@ -737,7 +737,7 @@ export class ServiceFormComponent extends BaseFormComponent<Service> implements 
   }
 
   private rememberLatency(): NonNullable<ServiceFormComponent['latencyChart']> {
-    const lang = this.translateService.currentLang;
+    const lang = this.translateService.getCurrentLang();
     if (
       this.latencyChart?.samples !== this.accessSamples
       || this.latencyChart.timeoutMs !== this.sampleTimeoutMs
@@ -848,7 +848,7 @@ export class ServiceFormComponent extends BaseFormComponent<Service> implements 
   }
 
   usageAsOfText(): string | null {
-    return usageAsOfClock(this.usage?.asOf, this.translateService.currentLang || 'es');
+    return usageAsOfClock(this.usage?.asOf, this.translateService.getCurrentLang() || 'es');
   }
 
   usageDeltaText(percent: number): string {
@@ -878,7 +878,7 @@ export class ServiceFormComponent extends BaseFormComponent<Service> implements 
     if (value == null) {
       return '';
     }
-    return new Intl.NumberFormat(this.translateService.currentLang || 'es').format(value);
+    return new Intl.NumberFormat(this.translateService.getCurrentLang() || 'es').format(value);
   }
 
   usageLastUsedText(): string {
@@ -914,7 +914,7 @@ export class ServiceFormComponent extends BaseFormComponent<Service> implements 
    * detection makes the chart call setOption every frame and restart its bar animation.
    */
   usageChartSeries(): DataSeries[] {
-    const lang = this.translateService.currentLang;
+    const lang = this.translateService.getCurrentLang();
     if (this.usageChart?.view !== this.usage || this.usageChart.lang !== lang) {
       this.usageChart = {view: this.usage, lang, series: this.buildUsageChartSeries()};
     }
@@ -959,7 +959,7 @@ export class ServiceFormComponent extends BaseFormComponent<Service> implements 
   }
 
   usageChartLocale(): string {
-    return this.translateService.currentLang || 'es';
+    return this.translateService.getCurrentLang() || 'es';
   }
 
   usageApplications(): ServiceUsageApplicationTotal[] {

@@ -1,26 +1,23 @@
-import { NgModule } from '@angular/core';
-import { BrowserModule } from '@angular/platform-browser';
-import { RouteReuseStrategy } from '@angular/router';
+import { NgModule } from "@angular/core";
+import { BrowserModule } from "@angular/platform-browser";
+import { RouteReuseStrategy } from "@angular/router";
 
-import { IonicModule, IonicRouteStrategy, Platform } from '@ionic/angular';
+import { IonicModule, IonicRouteStrategy, Platform } from "@ionic/angular";
 
-import { AppComponent } from './app.component';
-import { AppRoutingModule } from './app-routing.module';
-import { LanguageService } from './services/language.service';
-import { InstancesService } from './services/instances.service';
-import { AuthorizationService } from './services/authorization.service';
-import { DatabaseService } from './services/database.service';
-import { ProxyService } from './services/proxy.service';
-import { TranslateLoader, TranslateModule, TranslateService } from '@ngx-translate/core';
-import { HttpClient, provideHttpClient } from '@angular/common/http';
-import { TranslateHttpLoader } from '@ngx-translate/http-loader';
-import { LoginService } from './services/login.service';
-import { SQLiteService } from './services/sqlite.service';
-import { MapService } from './services/map.service';
+import { AppComponent } from "./app.component";
+import { AppRoutingModule } from "./app-routing.module";
+import { LanguageService } from "./services/language.service";
+import { InstancesService } from "./services/instances.service";
+import { AuthorizationService } from "./services/authorization.service";
+import { DatabaseService } from "./services/database.service";
+import { ProxyService } from "./services/proxy.service";
+import { TranslatePipe, provideTranslateService } from "@ngx-translate/core";
+import { provideHttpClient, withXhr } from "@angular/common/http";
+import { provideTranslateHttpLoader } from "@ngx-translate/http-loader";
 
-export function createTranslateLoader(http: HttpClient) {
-  return new TranslateHttpLoader(http, './assets/i18n/', '.json');
-}
+import { LoginService } from "./services/login.service";
+import { SQLiteService } from "./services/sqlite.service";
+import { MapService } from "./services/map.service";
 
 @NgModule({
   declarations: [AppComponent],
@@ -28,18 +25,18 @@ export function createTranslateLoader(http: HttpClient) {
     BrowserModule,
     IonicModule.forRoot(),
     AppRoutingModule,
-    TranslateModule.forRoot({
-      loader: {
-        provide: TranslateLoader,
-        useFactory: (createTranslateLoader),
-        deps: [HttpClient]
-      }
-    })
+    TranslatePipe,
   ],
   providers: [
+    provideTranslateService({
+      loader: provideTranslateHttpLoader({
+        prefix: "./assets/i18n/",
+        suffix: ".json",
+      }),
+    }),
     {
       provide: RouteReuseStrategy,
-      useClass: IonicRouteStrategy
+      useClass: IonicRouteStrategy,
     },
     Platform,
     LanguageService,
@@ -50,7 +47,8 @@ export function createTranslateLoader(http: HttpClient) {
     SQLiteService,
     ProxyService,
     MapService,
-    TranslateService, provideHttpClient()],
+    provideHttpClient(withXhr()),
+  ],
   bootstrap: [AppComponent],
 })
 export class AppModule {}

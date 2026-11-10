@@ -2,7 +2,7 @@ import { NO_ERRORS_SCHEMA } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslatePipe, provideTranslateService } from '@ngx-translate/core';
 import { BehaviorSubject } from 'rxjs';
 import { ErrorTrackingService } from 'src/app/services/error-tracking.service';
 import { SidebarManagerService } from 'src/app/services/sidebar-manager.service';
@@ -17,10 +17,11 @@ describe('ErrorDetailsSidebarComponent', () => {
     activeSidebar$ = new BehaviorSubject<string | null>(null);
 
     await TestBed.configureTestingModule({
-      imports: [TranslateModule.forRoot(), NoopAnimationsModule],
+      imports: [TranslatePipe, NoopAnimationsModule],
       declarations: [ErrorDetailsSidebarComponent],
       schemas: [NO_ERRORS_SCHEMA],
       providers: [
+      provideTranslateService(),
         {
           provide: SidebarManagerService,
           useValue: {

@@ -8,7 +8,7 @@ import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
 import {RouterModule} from '@angular/router';
 
 import {AgGridModule} from '@ag-grid-community/angular';
-import { provideMissingTranslationHandler, TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService, provideMissingTranslationHandler, provideTranslateService } from '@ngx-translate/core';
 import { provideTranslateHttpLoader } from '@ngx-translate/http-loader';
 import {firstValueFrom} from 'rxjs';
 
@@ -157,7 +157,6 @@ import {LoggerService} from './services/logger.service';
 import {ServicesModule} from './services/services.module';
 import {resolveUiLanguage} from './services/ui-language.resolver';
 
-
 // APP_INITIALIZER factory functions
 export function initializeLanguages(
   languageService: LanguageService,
@@ -196,7 +195,7 @@ export function initializeLanguages(
         availableShortnames: languages.map(l => l.shortname),
         staticFallback: appConfigService.getDefaultLanguageFallback() || 'en',
       });
-      translateService.setDefaultLang(chosen);
+      translateService.setFallbackLang(chosen);
       messagesInterceptorState.enable();
       return await firstValueFrom(translateService.use(chosen));
     } catch (error) {
@@ -213,7 +212,7 @@ export function initializeLanguages(
         config.defaultLang ||
         appConfigService.getDefaultLanguageFallback() ||
         'en';
-      translateService.setDefaultLang(fallback);
+      translateService.setFallbackLang(fallback);
       return await firstValueFrom(translateService.use(fallback));
     }
   };
@@ -343,10 +342,7 @@ export function initializeConfiguration(
         MaterialModule,
         RouterModule,
         HalModule.forRoot(),
-        TranslateModule.forRoot({
-            loader: provideTranslateHttpLoader({ prefix: './assets/i18n/', suffix: '.json' }),
-            missingTranslationHandler: provideMissingTranslationHandler(AppMissingTranslationHandler)
-        }),
+        TranslatePipe,
         APP_ROUTING,
         BrowserAnimationsModule,
         NgOptimizedImage,
@@ -357,6 +353,10 @@ export function initializeConfiguration(
         LiteralTranslationsComponent,
         LiteralTranslationCreateDialogComponent,
         LiteralTranslationCsvDialogComponent], providers: [
+      provideTranslateService({
+            loader: provideTranslateHttpLoader({ prefix: './assets/i18n/', suffix: '.json' }),
+            missingTranslationHandler: provideMissingTranslationHandler(AppMissingTranslationHandler)
+        }),
         { provide: LOCALE_ID, useValue: 'es-ES' },
         { provide: ErrorHandler, useClass: GlobalErrorHandler },
         { provide: 'ExternalConfigurationService', useClass: ExternalConfigurationService },

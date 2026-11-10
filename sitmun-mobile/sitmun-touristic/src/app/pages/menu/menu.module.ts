@@ -7,7 +7,7 @@ import { IonicModule } from '@ionic/angular';
 import { MenuPageRoutingModule } from './menu-routing.module';
 
 import { MenuPage } from './menu.page';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslatePipe } from '@ngx-translate/core';
 
 @NgModule({
   imports: [
@@ -15,7 +15,7 @@ import { TranslateModule } from '@ngx-translate/core';
     FormsModule,
     IonicModule,
     MenuPageRoutingModule,
-    TranslateModule
+    TranslatePipe
   ],
   declarations: [MenuPage]
 })

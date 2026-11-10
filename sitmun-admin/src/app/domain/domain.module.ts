@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import {ModuleWithProviders, NgModule} from '@angular/core';
 
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslatePipe } from '@ngx-translate/core';
 
 import {ExternalService, ResourceService} from '@app/core/hal';
 // Import services from feature folders
@@ -26,12 +26,12 @@ import { UserConfigurationService , UserPositionService , UserService } from '@a
 @NgModule({
   imports: [
     CommonModule,
-    TranslateModule,
+    TranslatePipe,
   ],
   declarations: [
   ],
   exports: [
-    TranslateModule
+    TranslatePipe
   ]
 })
 export class DomainModule {

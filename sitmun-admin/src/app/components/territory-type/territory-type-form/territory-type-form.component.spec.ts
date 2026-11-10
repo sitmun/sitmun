@@ -6,7 +6,7 @@ import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { ActivatedRoute, convertToParamMap, RouterModule } from '@angular/router';
 
-import { TranslateLoader, TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslateLoader, TranslatePipe, TranslateService, provideTranslateService } from '@ngx-translate/core';
 import { of } from 'rxjs';
 
 import { EntityFormAlertsComponent } from '@app/components/shared/entity-form-alerts/entity-form-alerts.component';
@@ -41,7 +41,10 @@ describe('TerritoryTypeFormComponent', () => {
         MaterialModule,
         MatIconTestingModule,
         BrowserAnimationsModule,
-        TranslateModule.forRoot({
+        TranslatePipe,
+      ],
+      providers: [
+      provideTranslateService({
           loader: {
             provide: TranslateLoader,
             useFactory: () => ({
@@ -49,8 +52,6 @@ describe('TerritoryTypeFormComponent', () => {
             }),
           },
         }),
-      ],
-      providers: [
         CodeListService,
         TerritoryTypeService,
         TranslationService,

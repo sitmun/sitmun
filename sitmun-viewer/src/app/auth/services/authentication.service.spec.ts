@@ -15,7 +15,7 @@ import {
 } from '@api/api-config';
 import { AUTH_CONFIG_DI } from '@auth/authentication.options';
 import { CustomAuthConfig, NavigationPath } from '@config/app.config';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslatePipe, provideTranslateService } from '@ngx-translate/core';
 import { NEVER } from 'rxjs';
 import { environment } from 'src/environments/environment';
 
@@ -59,8 +59,9 @@ describe('AuthenticationService (FS-03)', () => {
     });
 
     TestBed.configureTestingModule({
-      imports: [TranslateModule.forRoot()],
+      imports: [TranslatePipe],
       providers: [
+      provideTranslateService(),
         provideHttpClient(),
         provideHttpClientTesting(),
         AuthenticationService,

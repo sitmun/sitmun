@@ -10,11 +10,9 @@ import {RouterModule, } from '@angular/router';
 
 //import * as ol from 'openlayers';
 import {AgGridModule} from '@ag-grid-community/angular';
-import {TranslateModule} from '@ngx-translate/core';
+import { TranslatePipe } from '@ngx-translate/core';
 import {NgxEchartsModule} from 'ngx-echarts';
 //import { AngularHalModule } from '@sitmun/frontend-core';
-
-
 
 // import { SitmunFrontendCoreModule } from '@sitmun/frontend-core';
 import {CharacterCountPipe} from '@app/components/shared/character-counter-hint/character-count.pipe';
@@ -33,10 +31,8 @@ import {KpiCardComponent} from './kpi-card/kpi-card.component';
 import {MapTreeComponent} from './map-tree/map-tree.component';
 import {MaterialModule} from './material-module';
 
-
 registerLocaleData(localeCa, 'ca');
 registerLocaleData(localeEs, 'es');
-
 
 /** SITMUN plugin core module */
 @NgModule({ declarations: [
@@ -59,7 +55,7 @@ registerLocaleData(localeEs, 'es');
         FormsModule,
         NoopAnimationsModule,
         //AngularHalModule,
-        TranslateModule,
+        TranslatePipe,
         ReactiveFormsModule,
         NgxEchartsModule,
         DataTreeComponent,
@@ -84,7 +80,7 @@ registerLocaleData(localeEs, 'es');
         AgGridModule,
         // SitmunFrontendCoreModule,
         MaterialModule,
-        TranslateModule,
+        TranslatePipe,
         NgxEchartsModule.forRoot({
             echarts: () => import('echarts')
         })

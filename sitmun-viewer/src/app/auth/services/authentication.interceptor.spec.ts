@@ -11,7 +11,7 @@ import { Router } from '@angular/router';
 import { URL_AUTH_LOGIN, URL_AUTH_LOGOUT, URL_AUTH_PROXY, URL_API_USER_ACCOUNT } from '@api/api-config';
 import { AUTH_CONFIG_DI } from '@auth/authentication.options';
 import { CustomAuthConfig } from '@config/app.config';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslatePipe, provideTranslateService } from '@ngx-translate/core';
 import { of, throwError } from 'rxjs';
 import { environment } from 'src/environments/environment';
 
@@ -34,8 +34,9 @@ describe('AuthenticationInterceptor (FS-03)', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [TranslateModule.forRoot()],
+      imports: [TranslatePipe],
       providers: [
+      provideTranslateService(),
         provideHttpClient(),
         provideHttpClientTesting(),
         AuthenticationService,

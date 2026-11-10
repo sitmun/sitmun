@@ -347,9 +347,6 @@ JS_APPS = (
 
 # These still differ across apps. A catalog entry would force one version.
 JS_CATALOG_EXCLUDED = (
-    "@angular/core",
-    "@ngx-translate/core",
-    "@ngx-translate/http-loader",
     "api-sitna",
     "ol",
     "jest",
@@ -387,6 +384,22 @@ def _failures_js_catalog(_root: Path) -> list[str]:
         failures.append(f"catalog webpack is {catalog.get('webpack') or 'missing'}, expected 5.112.2")
     if catalog.get("rxjs") != "7.8.2":
         failures.append(f"catalog rxjs is {catalog.get('rxjs') or 'missing'}, expected 7.8.2")
+    if catalog.get("@ngx-translate/core") != "18.1.0":
+        failures.append(
+            f"catalog @ngx-translate/core is {catalog.get('@ngx-translate/core') or 'missing'}, expected 18.1.0"
+        )
+    if catalog.get("@ngx-translate/http-loader") != "18.1.0":
+        failures.append(
+            f"catalog @ngx-translate/http-loader is {catalog.get('@ngx-translate/http-loader') or 'missing'}, expected 18.1.0"
+        )
+    if catalog.get("@angular/core") != "22.2.5":
+        failures.append(
+            f"catalog @angular/core is {catalog.get('@angular/core') or 'missing'}, expected 22.2.5"
+        )
+    if catalog.get("typescript") != "6.0.3":
+        failures.append(f"catalog typescript is {catalog.get('typescript') or 'missing'}, expected 6.0.3")
+    if catalog.get("zone.js") != "0.15.1":
+        failures.append(f"catalog zone.js is {catalog.get('zone.js') or 'missing'}, expected 0.15.1")
     for name in JS_CATALOG_EXCLUDED:
         if name in catalog:
             failures.append(f"catalog must not unify {name} while app versions differ")

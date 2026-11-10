@@ -1,6 +1,6 @@
 import {Component, OnDestroy, OnInit, ChangeDetectionStrategy} from '@angular/core';
 
-import {TranslateService} from '@ngx-translate/core';
+import { TranslateService } from '@ngx-translate/core';
 import {Observable, Subscription} from 'rxjs';
 import {map} from 'rxjs/operators';
 
@@ -12,7 +12,6 @@ import {config} from '@config';
 
 import {AppStateService} from './services/app-state.service';
 import {resolveUiLanguage} from './services/ui-language.resolver';
-
 
 @Component({
     selector: 'app-root',
@@ -96,13 +95,13 @@ export class AppComponent implements OnInit, OnDestroy {
       staticFallback: config.defaultLang || available[0] || 'en',
     });
     this.translate.use(chosen);
-    this.translate.setDefaultLang(chosen);
+    this.translate.setFallbackLang(chosen);
   }
 
   /** Change app language*/
   changeLanguage(locale: string) {
     this.translate.use(locale);
-    this.translate.setDefaultLang(locale);
+    this.translate.setFallbackLang(locale);
     localStorage.setItem('lang', locale);
   }
 

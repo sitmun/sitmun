@@ -5,7 +5,7 @@ import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 
-import { TranslateLoader, TranslateModule } from '@ngx-translate/core';
+import { TranslateLoader, TranslatePipe, provideTranslateService } from '@ngx-translate/core';
 import { of } from 'rxjs';
 
 import { Language } from '@app/domain/translation/models/language.model';
@@ -48,14 +48,15 @@ describe('LiteralTranslationsComponent', () => {
         LiteralTranslationsComponent,
         NoopAnimationsModule,
         MatIconTestingModule,
-        TranslateModule.forRoot({
+        TranslatePipe,
+      ],
+      providers: [
+      provideTranslateService({
           loader: {
             provide: TranslateLoader,
             useFactory: () => ({ getTranslation: () => of({}) }),
           },
         }),
-      ],
-      providers: [
         { provide: LiteralTranslationsAdminService, useValue: literalTranslationsService },
         { provide: LanguageService, useValue: languageService },
         { provide: MatDialog, useValue: dialog },

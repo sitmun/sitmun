@@ -6,7 +6,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Router, ActivatedRoute } from '@angular/router';
 
 import { CommonService } from '@api/services/common.service';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslatePipe, provideTranslateService } from '@ngx-translate/core';
 import { of } from 'rxjs';
 import { AppConfigService } from 'src/app/services/app-config.service';
 
@@ -28,10 +28,11 @@ describe('ApplicationComponent', () => {
     };
 
     TestBed.configureTestingModule({
-      imports: [TranslateModule.forRoot()],
+      imports: [TranslatePipe],
       declarations: [ApplicationComponent],
       schemas: [NO_ERRORS_SCHEMA],
       providers: [
+      provideTranslateService(),
         provideHttpClient(),
         provideHttpClientTesting(),
         {

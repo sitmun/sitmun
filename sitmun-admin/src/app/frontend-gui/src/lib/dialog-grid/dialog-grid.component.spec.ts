@@ -5,7 +5,7 @@ import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 import {MAT_DIALOG_DATA, MatDialogModule, MatDialogRef} from '@angular/material/dialog';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 
-import { TranslateLoader, TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslateLoader, TranslatePipe, TranslateService, provideTranslateService } from '@ngx-translate/core';
 import { of } from 'rxjs';
 
 import { DIALOG_GRID_EVENTS, DialogGridComponent, calculateDialogWidth } from './dialog-grid.component';
@@ -52,16 +52,17 @@ describe('DialogGridComponent', () => {
         DialogGridComponent,
         MatDialogModule,
         NoopAnimationsModule,
-        TranslateModule.forRoot({
+        TranslatePipe
+      ],
+      providers: [
+      provideTranslateService({
           loader: {
             provide: TranslateLoader,
             useFactory: () => ({
               getTranslation: () => of({})
             })
           }
-        })
-      ],
-      providers: [
+        }),
         { provide: MatDialogRef, useValue: { close: dialogRefClose } },
         { provide: MAT_DIALOG_DATA, useValue: {} },
         TranslateService

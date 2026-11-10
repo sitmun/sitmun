@@ -8,7 +8,7 @@ import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
 import {RouterModule} from '@angular/router';
 import {} from '@angular/router/testing';
 
-import {TranslateLoader, TranslateModule} from '@ngx-translate/core';
+import { TranslateLoader, TranslatePipe, provideTranslateService } from '@ngx-translate/core';
 import {of} from 'rxjs';
 
 import {EntityFormAlertsComponent} from '@app/components/shared/entity-form-alerts/entity-form-alerts.component';
@@ -64,16 +64,17 @@ describe('ApplicationFormComponent', () => {
       teardown: { destroyAfterEach: 0 as any },
       declarations: [ApplicationFormComponent, FormToolbarComponent],
       imports: [FormsModule, ReactiveFormsModule, RouterModule.forRoot([], {}), SitmunFrontendGuiModule, DataGridComponent, MaterialModule, MatIconTestingModule, BrowserAnimationsModule, CoreModule, EntityFormAlertsComponent,
-        TranslateModule.forRoot({
+        TranslatePipe],
+      schemas: [NO_ERRORS_SCHEMA],
+      providers: [
+      provideTranslateService({
           loader: {
             provide: TranslateLoader,
             useFactory: () => ({
               getTranslation: () => of({})
             })
           }
-        })],
-      schemas: [NO_ERRORS_SCHEMA],
-      providers: [provideHttpClient(), provideHttpClientTesting(), provideErrorHandlerForTests(), ApplicationService, ApplicationBackgroundService, ApplicationTreeService, RoleService, ApplicationParameterService, TreeService,
+        }),provideHttpClient(), provideHttpClientTesting(), provideErrorHandlerForTests(), ApplicationService, ApplicationBackgroundService, ApplicationTreeService, RoleService, ApplicationParameterService, TreeService,
         BackgroundService, CodeListService, CartographyGroupService, TranslationService, ResourceService, ExternalService, UserService,
         {provide: 'ExternalConfigurationService', useClass: ExternalConfigurationService},]
     })

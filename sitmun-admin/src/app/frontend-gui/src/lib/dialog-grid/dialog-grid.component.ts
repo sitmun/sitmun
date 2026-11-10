@@ -18,7 +18,7 @@ import {MatProgressSpinnerModule} from '@angular/material/progress-spinner';
 import {MatTabsModule} from '@angular/material/tabs';
 import {MatTooltipModule} from '@angular/material/tooltip';
 
-import {TranslateModule} from '@ngx-translate/core';
+import { TranslatePipe } from '@ngx-translate/core';
 import { Observable, Subject, forkJoin, of, firstValueFrom } from 'rxjs';
 
 import { LoadingOverlayService } from '@app/services/loading-overlay.service';
@@ -185,7 +185,7 @@ export async function openDialogGridWithPreload(
     MatProgressSpinnerModule,
     MatTabsModule,
     MatTooltipModule,
-    TranslateModule,
+    TranslatePipe,
     DataGridComponent
 ],
     changeDetection: ChangeDetectionStrategy.Eager,

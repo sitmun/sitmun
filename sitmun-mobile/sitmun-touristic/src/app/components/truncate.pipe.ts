@@ -1,19 +1,24 @@
-import { Pipe, PipeTransform } from '@angular/core';
+import { Pipe, PipeTransform } from "@angular/core";
 
 @Pipe({
-  name: 'truncate'
+  name: "truncate",
+  standalone: false,
 })
 export class TruncatePipe implements PipeTransform {
-  transform(value: string, limit: number = 50, completeWords: boolean = false): string {
-    if (!value) return '';
+  transform(
+    value: string,
+    limit: number = 50,
+    completeWords: boolean = false,
+  ): string {
+    if (!value) return "";
 
     if (value.length <= limit) return value;
 
     if (completeWords) {
-      let lastSpace = value.lastIndexOf(' ', limit);
-      return value.substring(0, lastSpace) + '...';
+      let lastSpace = value.lastIndexOf(" ", limit);
+      return value.substring(0, lastSpace) + "...";
     }
 
-    return value.substring(0, limit) + '...';
+    return value.substring(0, limit) + "...";
   }
 }

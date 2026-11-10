@@ -3,7 +3,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 
 import { ICellRendererAngularComp } from '@ag-grid-community/angular';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
 import { toSafeHttpUrl } from '@app/components/shared/external-url-link/http-url.util';
 
@@ -105,7 +105,7 @@ import { toSafeHttpUrl } from '@app/components/shared/external-url-link/http-url
   `],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [MatIconModule, MatTooltipModule, TranslateModule]
+  imports: [MatIconModule, MatTooltipModule, TranslatePipe]
 })
 export class ExternalUrlRendererComponent implements ICellRendererAngularComp {
   public displayValue = '';

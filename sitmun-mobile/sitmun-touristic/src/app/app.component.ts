@@ -1,15 +1,19 @@
-import { Component } from '@angular/core';
-import { Platform } from '@ionic/angular';
-import { RoutingService } from './services/routing.service';
+import { Component, ChangeDetectionStrategy } from "@angular/core";
+import { Platform } from "@ionic/angular";
+import { RoutingService } from "./services/routing.service";
 
 @Component({
-  selector: 'app-root',
-  templateUrl: 'app.component.html',
-  styleUrls: ['app.component.scss'],
+  selector: "app-root",
+  templateUrl: "app.component.html",
+  styleUrls: ["app.component.scss"],
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false,
 })
 export class AppComponent {
-  constructor(private platform: Platform, private routingService: RoutingService) {
+  constructor(
+    private platform: Platform,
+    private routingService: RoutingService,
+  ) {
     this.platform.backButton.subscribeWithPriority(9999, () => {
       this.routingService.navigateBack();
     });

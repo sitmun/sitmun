@@ -1,6 +1,6 @@
 import {ComponentFixture, TestBed} from '@angular/core/testing';
 
-import {TranslateLoader, TranslateModule} from '@ngx-translate/core';
+import { TranslateLoader, TranslatePipe, provideTranslateService } from '@ngx-translate/core';
 import {of} from 'rxjs';
 
 import {ServiceAccessTimelineComponent} from './service-access-timeline.component';
@@ -12,11 +12,13 @@ describe('ServiceAccessTimelineComponent', () => {
     await TestBed.configureTestingModule({
       declarations: [ServiceAccessTimelineComponent],
       imports: [
-        TranslateModule.forRoot({
-          loader: {provide: TranslateLoader, useFactory: () => ({getTranslation: () => of({})})},
-        }),
+        TranslatePipe,
       ],
-    }).compileComponents();
+    providers: [
+      provideTranslateService({
+          loader: {provide: TranslateLoader, useFactory: () => ({getTranslation: () => of({})})},
+        })
+    ]}).compileComponents();
     fixture = TestBed.createComponent(ServiceAccessTimelineComponent);
   });
 

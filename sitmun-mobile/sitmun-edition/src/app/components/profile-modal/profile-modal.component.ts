@@ -1,28 +1,31 @@
-import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
-import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Component, OnInit, ChangeDetectionStrategy } from "@angular/core";
+import { FormsModule } from "@angular/forms";
+import { Router } from "@angular/router";
 import { AnimationController, IonicModule } from "@ionic/angular";
-import { TranslateModule } from '@ngx-translate/core';
-import { DatabaseService } from 'src/app/services/database.service';
-import { LanguageService } from 'src/app/services/language.service';
+import { TranslatePipe } from "@ngx-translate/core";
+import { DatabaseService } from "src/app/services/database.service";
+import { LanguageService } from "src/app/services/language.service";
 
 @Component({
-  selector: 'app-profile-modal',
-  templateUrl: './profile-modal.component.html',
-  styleUrls: ['./profile-modal.component.scss'],
-  imports: [IonicModule, TranslateModule,  CommonModule, FormsModule],
-  standalone: true
+  selector: "app-profile-modal",
+  templateUrl: "./profile-modal.component.html",
+  styleUrls: ["./profile-modal.component.scss"],
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [IonicModule, TranslatePipe, FormsModule],
 })
-export class ProfileModalComponent  implements OnInit {
+export class ProfileModalComponent implements OnInit {
   selectedLanguage: string | null = null;
   languageOptions: any[] = [];
   isProfileOpen = false;
   userName: string | null = null;
   instanceDB: string | null = null;
 
-  constructor(private languageService: LanguageService, private router: Router, 
-    private animationCtrl: AnimationController, private databaseService: DatabaseService) { }
+  constructor(
+    private languageService: LanguageService,
+    private router: Router,
+    private animationCtrl: AnimationController,
+    private databaseService: DatabaseService,
+  ) {}
 
   ngOnInit() {}
 
@@ -31,10 +34,10 @@ export class ProfileModalComponent  implements OnInit {
     this.languageOptions = this.languageService.getLanguageOptions();
 
     this.databaseService.getLoggedUser().then((users: any[]) => {
-      this.userName = users?.[0]?.name ?? '';
+      this.userName = users?.[0]?.name ?? "";
 
       this.databaseService.getInstances().then((instances: any[]) => {
-        this.instanceDB = instances?.[0]?.instance ?? '';
+        this.instanceDB = instances?.[0]?.instance ?? "";
       });
     });
   }
@@ -48,11 +51,11 @@ export class ProfileModalComponent  implements OnInit {
     this.isProfileOpen = true;
   }
 
-  closeProfileModal(exit: boolean){    
+  closeProfileModal(exit: boolean) {
     this.isProfileOpen = false;
     if (exit) {
-      setTimeout(() => this.router.navigate(['/']), 500);  
-    }      
+      setTimeout(() => this.router.navigate(["/"]), 500);
+    }
   }
 
   enterAnimation = (baseEl: HTMLElement) => {
@@ -60,25 +63,24 @@ export class ProfileModalComponent  implements OnInit {
 
     const backdropAnimation = this.animationCtrl
       .create()
-      .addElement(root!.querySelector('ion-backdrop')!)
-      .fromTo('opacity', '0.01', 'var(--backdrop-opacity)');
+      .addElement(root!.querySelector("ion-backdrop")!)
+      .fromTo("opacity", "0.01", "var(--backdrop-opacity)");
 
     const wrapperAnimation = this.animationCtrl
       .create()
-      .addElement(root!.querySelector('.modal-wrapper')!)
-      .fromTo('transform', 'translateX(100%)', 'translateX(0)')
-      .fromTo('opacity', '0', '1');
+      .addElement(root!.querySelector(".modal-wrapper")!)
+      .fromTo("transform", "translateX(100%)", "translateX(0)")
+      .fromTo("opacity", "0", "1");
 
     return this.animationCtrl
       .create()
       .addElement(baseEl)
-      .easing('ease-out')
+      .easing("ease-out")
       .duration(400)
       .addAnimation([backdropAnimation, wrapperAnimation]);
   };
 
   leaveAnimation = (baseEl: HTMLElement) => {
-    return this.enterAnimation(baseEl).direction('reverse');
+    return this.enterAnimation(baseEl).direction("reverse");
   };
-
 }

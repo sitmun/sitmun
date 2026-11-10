@@ -4,7 +4,7 @@ import { FormControl, FormGroup } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
 import { DomSanitizer } from '@angular/platform-browser';
 
-import { TranslateLoader, TranslateModule } from '@ngx-translate/core';
+import { TranslateLoader, TranslatePipe, provideTranslateService } from '@ngx-translate/core';
 import { of, throwError } from 'rxjs';
 
 import { LanguageService } from '@app/domain/translation/services/language.service';
@@ -104,7 +104,10 @@ describe('TaskTemplateFormComponent', () => {
     await TestBed.configureTestingModule({
       imports: [
         MatCardModule,
-        TranslateModule.forRoot({
+        TranslatePipe,
+      ],
+      providers: [
+      provideTranslateService({
           loader: {
             provide: TranslateLoader,
             useFactory: () => ({
@@ -112,8 +115,6 @@ describe('TaskTemplateFormComponent', () => {
             }),
           },
         }),
-      ],
-      providers: [
         {
           provide: ChangeDetectorRef,
           useValue: { markForCheck: jest.fn(), detectChanges: jest.fn() },
@@ -135,9 +136,9 @@ describe('TaskTemplateFormComponent', () => {
       ],
     });
 
-    const translateService = createSpyObj(['instant', 'get']);
+    const translateService = createSpyObj(['instant', 'get', 'getCurrentLang']);
     translateService.instant.mockImplementation((key: string) => key);
-    (translateService as any).currentLang = 'ca';
+    translateService.getCurrentLang.mockReturnValue('ca');
     dialog = createSpyObj(['open']);
     dialog.open.mockReturnValue({
       componentInstance: {},

@@ -5,7 +5,7 @@ import { TestBed, fakeAsync, flush } from '@angular/core/testing';
 import { URL_AUTH_LOGOUT } from '@api/api-config';
 import { AUTH_CONFIG_DI } from '@auth/authentication.options';
 import { AuthenticationService } from '@auth/services/authentication.service';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService, provideTranslateService } from '@ngx-translate/core';
 import { from, isObservable, of, throwError } from 'rxjs';
 
 import { publicAuthClearGuard } from './public-auth-clear.guard';
@@ -24,8 +24,9 @@ describe('publicAuthClearGuard', () => {
     warning = jest.fn();
 
     TestBed.configureTestingModule({
-      imports: [TranslateModule.forRoot()],
+      imports: [TranslatePipe],
       providers: [
+      provideTranslateService(),
         {
           provide: AuthenticationService,
           useValue: { clearAuthentication }
@@ -120,8 +121,9 @@ describe('publicAuthClearGuard — HTTP contract regression', () => {
     };
 
     TestBed.configureTestingModule({
-      imports: [TranslateModule.forRoot()],
+      imports: [TranslatePipe],
       providers: [
+      provideTranslateService(),
         provideHttpClient(),
         provideHttpClientTesting(),
         AuthenticationService,

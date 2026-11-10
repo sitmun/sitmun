@@ -15,11 +15,7 @@ import { Router, RouterModule } from '@angular/router';
 
 import { CommonService } from '@api/services/common.service';
 import { AuthenticationService } from '@auth/services/authentication.service';
-import {
-  TranslateLoader,
-  TranslateModule,
-  TranslateFakeLoader
-} from '@ngx-translate/core';
+import { TranslateNoOpLoader, TranslatePipe, provideTranslateLoader, provideTranslateService } from '@ngx-translate/core';
 import { MenuComponent } from '@ui/components/menu/menu.component';
 import { BehaviorSubject, of } from 'rxjs';
 import { ErrorTrackingService } from 'src/app/services/error-tracking.service';
@@ -50,9 +46,7 @@ describe('NavigationBarComponent', () => {
       imports: [
         BrowserAnimationsModule,
         NgOptimizedImage,
-        TranslateModule.forRoot({
-          loader: { provide: TranslateLoader, useClass: TranslateFakeLoader }
-        }),
+        TranslatePipe,
         MatToolbarModule,
         MatMenuModule,
         MatButtonModule,
@@ -64,6 +58,9 @@ describe('NavigationBarComponent', () => {
         RouterModule
       ],
       providers: [
+      provideTranslateService({
+          loader: provideTranslateLoader(TranslateNoOpLoader)
+        }),
         provideHttpClient(),
         provideHttpClientTesting(),
         { provide: Router, useValue: routerSpy },

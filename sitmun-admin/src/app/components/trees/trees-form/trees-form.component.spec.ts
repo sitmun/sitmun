@@ -6,7 +6,7 @@ import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { RouterModule } from '@angular/router';
 
-import {TranslateLoader, TranslateModule} from '@ngx-translate/core';
+import { TranslateLoader, TranslatePipe, provideTranslateService } from '@ngx-translate/core';
 import {firstValueFrom, of} from 'rxjs';
 
 import {EntityFormAlertsComponent} from '@app/components/shared/entity-form-alerts/entity-form-alerts.component';
@@ -53,15 +53,16 @@ describe('TreesFormComponent', () => {
       teardown: { destroyAfterEach: 0 as any },
       declarations: [ TreesFormComponent, FormToolbarComponent ],
       imports: [FormsModule, ReactiveFormsModule,SitmunFrontendGuiModule, EntityFormAlertsComponent, RouterModule.forRoot([], {}), MaterialModule, MatIconTestingModule, BrowserAnimationsModule,
-         TranslateModule.forRoot({
+         TranslatePipe],
+      providers: [
+      provideTranslateService({
           loader: {
             provide: TranslateLoader,
             useFactory: () => ({
               getTranslation: () => of({})
             })
           }
-        })],
-      providers: [provideHttpClient(), provideHttpClientTesting(), provideErrorHandlerForTests(), TreeService, TreeNodeService, ApplicationService, ApplicationTreeService, ServiceService, CapabilitiesService, CartographyService, CodeListService, TranslationService, ResourceService, ExternalService, TaskService, RoleService,
+        }),provideHttpClient(), provideHttpClientTesting(), provideErrorHandlerForTests(), TreeService, TreeNodeService, ApplicationService, ApplicationTreeService, ServiceService, CapabilitiesService, CartographyService, CodeListService, TranslationService, ResourceService, ExternalService, TaskService, RoleService,
         { provide: 'ExternalConfigurationService', useClass: ExternalConfigurationService },
         {
           provide: AdminRuntimeConfigurationService,

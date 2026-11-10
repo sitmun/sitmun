@@ -5,7 +5,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { provideRouter, RouterModule } from '@angular/router';
 
-import {TranslateLoader, TranslateModule} from '@ngx-translate/core';
+import { TranslateLoader, TranslatePipe, provideTranslateService } from '@ngx-translate/core';
 import {of, throwError} from 'rxjs';
 
 import {EntityListComponent} from '@app/components/shared/entity-list/entity-list.component';
@@ -37,15 +37,16 @@ describe('TreesComponent', () => {
       teardown: { destroyAfterEach: 0 as any },
       declarations: [ TreesComponent, EntityListComponent ],
       imports : [MatIconTestingModule, SitmunFrontendGuiModule, MaterialModule, RouterModule,
-        TranslateModule.forRoot({
+        TranslatePipe],
+      providers: [
+      provideTranslateService({
           loader: {
             provide: TranslateLoader,
             useFactory: () => ({
               getTranslation: () => of({})
             })
           }
-        })],
-      providers: [TreeService,CodeListService,TranslationService,ResourceService,ExternalService,
+        }),TreeService,CodeListService,TranslationService,ResourceService,ExternalService,
         ErrorHandlerService,
         LoadingOverlayService,
         LoggerService,
