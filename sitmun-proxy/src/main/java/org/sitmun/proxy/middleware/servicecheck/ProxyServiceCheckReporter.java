@@ -9,7 +9,7 @@ import java.util.Map;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.sitmun.proxy.contract.ServiceCheckReport;
-import org.sitmun.upstream.http.ResponseCharset;
+import org.sitmun.proxy.middleware.service.UpstreamContentTypeFilter;
 import org.sitmun.upstream.signal.Classification;
 import org.sitmun.upstream.signal.ExchangeSignals;
 import org.sitmun.upstream.signal.RequestContext;
@@ -78,7 +78,7 @@ public class ProxyServiceCheckReporter {
         new ByteArrayInputStream(exchange.body()),
         properties.scanMaxBytes(),
         properties.exceptionTextMaxLength(),
-        ResponseCharset.named(exchange.contentType()));
+        UpstreamContentTypeFilter.charset(exchange.contentType()));
   }
 
   static boolean scannable(String contentType) {

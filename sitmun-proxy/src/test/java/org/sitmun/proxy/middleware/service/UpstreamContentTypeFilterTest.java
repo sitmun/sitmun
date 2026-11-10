@@ -76,6 +76,13 @@ class UpstreamContentTypeFilterTest {
   }
 
   @Test
+  void charsetSurvivesTheGmlSubtype() {
+    assertThat(UpstreamContentTypeFilter.charset("text/xml; charset=utf-8; subtype=gml/2.1.2"))
+        .isEqualTo("UTF-8");
+    assertThat(UpstreamContentTypeFilter.charset("text/xml; subtype=gml/2.1.2")).isNull();
+  }
+
+  @Test
   void springKeepsAStandardParameterAndDropsTheGmlSubtype() throws Exception {
     String upstream = "text/xml; charset=utf-8; subtype=gml/2.1.2";
     MockHttpServletRequest request = new MockHttpServletRequest();

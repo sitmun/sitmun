@@ -79,6 +79,19 @@ class ProxyServiceCheckReporterTest {
   }
 
   @Test
+  @DisplayName("A GML subtype does not drop the named character set")
+  void gmlSubtypeKeepsTheNamedCharacterSet() {
+    byte[] body =
+        exceptionReport("NoApplicableCode", "caf\u00f3n").getBytes(Charset.forName("ISO-8859-1"));
+
+    var signals =
+        reporter.signals(
+            exchange(200, "text/xml; charset=ISO-8859-1; subtype=gml/2.1.2", body, START));
+
+    assertThat(signals.ogcExceptionText()).isEqualTo("caf\u00f3n");
+  }
+
+  @Test
   @DisplayName("Latin-1 text stays unread when the response names no character set")
   void unnamedCharsetLeavesLatin1TextUnread() {
     byte[] body =

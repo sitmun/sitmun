@@ -4,11 +4,13 @@ import io.github.resilience4j.timelimiter.TimeLimiter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
+import java.nio.charset.Charset;
 import java.time.Instant;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeoutException;
+import okhttp3.MediaType;
 import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
@@ -20,7 +22,6 @@ import org.sitmun.domain.service.ServiceRepository;
 import org.sitmun.domain.service.check.ServiceCheck;
 import org.sitmun.domain.service.check.ServiceCheckStore;
 import org.sitmun.upstream.http.BasicAuthorization;
-import org.sitmun.upstream.http.ResponseCharset;
 import org.sitmun.upstream.http.UpstreamHttpClient;
 import org.sitmun.upstream.signal.Classification;
 import org.sitmun.upstream.signal.ExchangeSignals;
@@ -165,8 +166,16 @@ public class ServiceAccessCheckExecutor {
           input,
           properties.scanMaxBytes(),
           properties.exceptionTextMaxLength(),
-          ResponseCharset.named(response.header("content-type")));
+          charset(body.contentType()));
     }
+  }
+
+  private static String charset(MediaType type) {
+    if (type == null) {
+      return null;
+    }
+    Charset charset = type.charset(null);
+    return charset == null ? null : charset.name();
   }
 
   private static Request request(AccessProbePlan plan, URI uri) {
