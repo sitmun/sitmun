@@ -248,3 +248,9 @@ databaseChangeLog:
   - include:
       file: service-check-observed-timestamptz.postgresql.sql
       relativeToChangelogFile: true
+  - include:
+      file: setup-language-configured.oracle.sql
+      relativeToChangelogFile: true
+  - include:
+      file: setup-language-configured.postgresql.sql
+      relativeToChangelogFile: true
