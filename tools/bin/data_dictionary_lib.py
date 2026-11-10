@@ -14,6 +14,26 @@ from pathlib import Path
 
 STRING_TYPES = {"string"}
 BOOL_TYPES = {"boolean"}
+SECTIONS = {"columns", "codelists", "fields", "projections", "uniques", "configuration"}
+COLUMN_KEYS = {
+    "candidates",
+    "codelist",
+    "consumers",
+    "default",
+    "enforcement",
+    "length",
+    "references",
+    "required",
+    "status",
+    "type",
+}
+LOGICAL_TYPES = {"boolean", "date", "decimal", "instant", "integer", "number", "string", "timestamp"}
+DELETE_ACTIONS = {"cascade", "restrict", "set default", "set null"}
+TYPE_EQUIV = {
+    "boolean": {"boolean", "integer", "number"},
+    "decimal": {"decimal", "number"},
+    "integer": {"integer", "number"},
+}
 
 CREATE_TABLE_RE = re.compile(
     r"CREATE TABLE\s+(\w+)\s*\((.*?)\)\s*;",
@@ -25,6 +45,19 @@ UNIQUE_RE = re.compile(
 )
 UNIQUE_INDEX_RE = re.compile(
     r"CREATE UNIQUE INDEX\s+(\w+)\s+ON\s+(\w+)\s*\(([^)]+)\)",
+    re.I,
+)
+FOREIGN_KEY_RE = re.compile(
+    r"ALTER TABLE(?: ONLY)?\s+(\w+)\s+ADD CONSTRAINT\s+\w+\s+FOREIGN KEY\s*\(([^)]+)\)\s+"
+    r"REFERENCES\s+(\w+)\s*\(([^)]+)\)([^;]*)",
+    re.I,
+)
+CONF_INSERT_RE = re.compile(
+    r"INSERT\s+INTO\s+stm_conf\s*\([^)]*\)\s*VALUES\s*\(\s*\d+\s*,\s*'([^']+)'\s*,\s*'([^']*)'\s*\)",
+    re.I,
+)
+DELETE_RE = re.compile(
+    r"ON\s+DELETE\s+(CASCADE|SET\s+NULL|SET\s+DEFAULT|RESTRICT|NO\s+ACTION)",
     re.I,
 )
 CODELIST_ROW_RE = re.compile(
@@ -52,6 +85,16 @@ class ColumnObs:
     length: int | None
     required: bool
     default: str | None
+
+
+@dataclass(frozen=True)
+class ForeignKey:
+    table: str
+    column: str
+    ref_table: str
+    ref_column: str
+    on_delete: str | None
+    delete_known: bool
 
 
 def norm_default(value: str | None) -> str | None:
@@ -87,9 +130,17 @@ def logical_type(raw: str) -> str:
             return "boolean"
         if re.search(r"number\s*\(\s*10\s*,", text):
             return "integer"
+        if re.search(r"number\s*\(\s*\d+\s*,\s*[1-9]", text):
+            return "decimal"
         return "number"
-    if text.startswith("timestamp") or text == "date":
+    if text.startswith(("numeric", "decimal", "double", "float", "binary_double", "binary_float", "real")):
+        return "decimal"
+    if "with time zone" in text and "without time zone" not in text:
+        return "instant"
+    if text.startswith("timestamp"):
         return "timestamp"
+    if text == "date" or text.startswith("date "):
+        return "date"
     return "other"
 
 
@@ -145,6 +196,39 @@ def parse_uniques(sql: str) -> dict[str, set[frozenset[str]]]:
     return uniques
 
 
+def _delete_action(tail: str) -> str | None:
+    match = DELETE_RE.search(tail or "")
+    action = match.group(1) if match else (tail or "")
+    action = re.sub(r"\s+", " ", action.strip().lower())
+    if action in {"", "no action"}:
+        return None
+    return action if action in DELETE_ACTIONS else None
+
+
+def parse_foreign_keys(sql: str) -> list[ForeignKey]:
+    found: list[ForeignKey] = []
+    for match in FOREIGN_KEY_RE.finditer(sql):
+        columns = [part.strip().upper() for part in match.group(2).split(",") if part.strip()]
+        refs = [part.strip().upper() for part in match.group(4).split(",") if part.strip()]
+        if len(columns) != 1 or len(refs) != 1:
+            continue
+        found.append(
+            ForeignKey(
+                table=match.group(1).upper(),
+                column=columns[0],
+                ref_table=match.group(3).upper(),
+                ref_column=refs[0],
+                on_delete=_delete_action(match.group(5)),
+                delete_known=True,
+            )
+        )
+    return found
+
+
+def parse_configuration(sql: str) -> dict[str, str]:
+    return {match.group(1): match.group(2) for match in CONF_INSERT_RE.finditer(sql)}
+
+
 def parse_unique_indexes(sql: str) -> dict[str, set[str]]:
     indexes: dict[str, set[str]] = {}
     for match in UNIQUE_INDEX_RE.finditer(sql):
@@ -189,6 +273,34 @@ def load_uniques(path: Path) -> dict[str, set[frozenset[str]]]:
         cols = frozenset(part.strip().upper() for part in parts[2].split(",") if part.strip())
         uniques.setdefault(parts[0].upper(), set()).add(cols)
     return uniques
+
+
+def load_foreign_keys(path: Path) -> list[ForeignKey]:
+    found: list[ForeignKey] = []
+    if not path.is_file():
+        return found
+    for raw in path.read_text(encoding="utf-8").splitlines():
+        if not raw or raw.startswith("#"):
+            continue
+        parts = raw.split("|")
+        if len(parts) < 5 or parts[1].strip().upper() not in {"FK", "FOREIGN KEY"}:
+            continue
+        columns = [part.strip().upper() for part in parts[2].split(",") if part.strip()]
+        refs = [part.strip().upper() for part in parts[4].split(",") if part.strip()]
+        if len(columns) != 1 or len(refs) != 1:
+            continue
+        delete_known = len(parts) >= 7 and bool(parts[6].strip())
+        found.append(
+            ForeignKey(
+                table=parts[0].strip().upper(),
+                column=columns[0],
+                ref_table=parts[3].strip().upper(),
+                ref_column=refs[0],
+                on_delete=_delete_action(parts[6]) if delete_known else None,
+                delete_known=delete_known,
+            )
+        )
+    return found
 
 
 def load_index_names(path: Path) -> dict[str, set[str]]:
@@ -252,6 +364,7 @@ def empty_document() -> dict:
             },
         },
         "uniques": {},
+        "configuration": {},
     }
 
 
@@ -297,6 +410,7 @@ def build_document(
     if existing:
         document["fields"] = existing.get("fields", {})
         document["projections"] = existing.get("projections", document["projections"])
+        document["configuration"] = existing.get("configuration", {})
     previous = (existing or {}).get("columns", {})
     for key in sorted(pg_columns):
         obs = pg_columns[key]
@@ -328,6 +442,10 @@ FIELD_RE = re.compile(
 )
 SIZE_MAX_RE = re.compile(r"@Size\s*\([^)]*max\s*=\s*(\d+)")
 COLUMN_NAME_ONLY_RE = re.compile(r'@Column\s*\(\s*name\s*=\s*"([^"]+)"')
+MAPPED_COLUMN_RE = re.compile(
+    r"@(?:Column|JoinColumn)\s*\((?:(?!@(?:Column|JoinColumn)\b).)*?name\s*=\s*\"([^\"]+)\"",
+    re.S,
+)
 
 
 def _java_types(java_root: Path):
@@ -339,6 +457,32 @@ def _java_types(java_root: Path):
             yield text, f"{package.group(1)}.{class_match.group(1)}"
 
 
+def _java_fields(text: str):
+    lines = text.splitlines()
+    pending: list[str] = []
+    index = 0
+    while index < len(lines):
+        stripped = lines[index].strip()
+        if stripped.startswith("@"):
+            chunk = stripped
+            while chunk.count("(") > chunk.count(")") and index + 1 < len(lines):
+                index += 1
+                chunk += " " + lines[index].strip()
+            pending.append(chunk)
+            index += 1
+            continue
+        match = re.match(r"(?:private|protected|public)\s+(.+)", stripped)
+        if match and " static " not in f" {stripped} " and "(" not in stripped:
+            rest = match.group(1).split("=", 1)[0].strip().rstrip(";")
+            parts = rest.split()
+            if parts and parts[-1].isidentifier():
+                yield " ".join(pending), parts[-1]
+            pending = []
+        elif stripped and not stripped.startswith(("*", "/", "{", "}")):
+            pending = []
+        index += 1
+
+
 def apply_java_consumers(document: dict, java_root: Path) -> None:
     columns = document["columns"]
     parsed = list(_java_types(java_root))
@@ -348,17 +492,19 @@ def apply_java_consumers(document: dict, java_root: Path) -> None:
         table_match = TABLE_NAME_RE.search(text)
         if not table_match:
             continue
-        for field in FIELD_RE.finditer(text):
-            annotations, name = field.group(1), field.group(2)
-            column_match = COLUMN_NAME_ONLY_RE.search(annotations)
+        for annotations, name in _java_fields(text):
+            column_match = MAPPED_COLUMN_RE.search(annotations)
             if not column_match:
                 continue
             ident = f"{table_match.group(1).upper()}.{column_match.group(1).upper()}"
             row = columns.get(ident)
             if row is None or row.get("status") != "decided":
                 continue
-            row.setdefault("consumers", {})["jpa"] = f"{qualified}#{name}"
-            if row.get("type") == "string":
+            consumers = row.setdefault("consumers", {})
+            if consumers.get("jpa"):
+                continue
+            consumers["jpa"] = f"{qualified}#{name}"
+            if row.get("type") == "string" and not row.get("enforcement"):
                 row["enforcement"] = "reject" if re.search(r"@Size\b", annotations) else "truncate"
     for text, qualified in parsed:
         if ENTITY_RE.search(text):
@@ -412,9 +558,15 @@ def check_columns(
         if obs is None:
             drifts.append(Drift("length", ident, consumer, _expect_text(row.get("length")), "absent"))
             continue
-        if row.get("type") == "boolean" and obs.logical in {"boolean", "number", "integer"}:
+        expected_type = row.get("type")
+        equivalent = TYPE_EQUIV.get(expected_type, {expected_type})
+        if obs.logical not in equivalent:
+            drifts.append(
+                Drift("type", ident, consumer, _expect_text(expected_type), _expect_text(obs.logical))
+            )
+        if expected_type == "boolean" and obs.logical in {"boolean", "number", "integer"}:
             pass
-        elif row.get("type") == "string" and row.get("length") != obs.length:
+        elif expected_type == "string" and row.get("length") != obs.length:
             drifts.append(
                 Drift("length", ident, consumer, _expect_text(row.get("length")), _expect_text(obs.length))
             )
@@ -483,6 +635,81 @@ def check_codelists(document: dict, values: set[tuple[str, str]], *, consumer: s
     return drifts
 
 
+def validate_document(document: dict) -> list[Drift]:
+    drifts: list[Drift] = []
+    for section in document:
+        if section not in SECTIONS:
+            drifts.append(Drift("shape", section, "dictionary", "", "unknown section"))
+    for ident, row in sorted(document.get("columns", {}).items()):
+        if not isinstance(row, dict):
+            drifts.append(Drift("shape", ident, "dictionary", "object", type(row).__name__))
+            continue
+        for key in row:
+            if key not in COLUMN_KEYS:
+                drifts.append(Drift("shape", ident, "dictionary", "", f"unknown key {key}"))
+        if row.get("status") == "decided" and row.get("type") not in LOGICAL_TYPES:
+            drifts.append(Drift("shape", ident, "dictionary", "", f"unknown type {row.get('type')}"))
+        ref = row.get("references")
+        if ref is not None:
+            if not isinstance(ref, dict) or "column" not in ref or set(ref) - {"column", "on_delete"}:
+                drifts.append(Drift("shape", ident, "dictionary", "references", "invalid"))
+            elif ref.get("on_delete") not in (None, *DELETE_ACTIONS):
+                drifts.append(Drift("shape", ident, "dictionary", "", f"unknown on_delete {ref.get('on_delete')}"))
+    for key, spec in sorted(document.get("configuration", {}).items()):
+        if not isinstance(spec, dict) or set(spec) != {"fresh", "upgraded"}:
+            drifts.append(Drift("shape", key, "dictionary", "fresh,upgraded", "invalid configuration"))
+    return drifts
+
+
+def check_references(
+    document: dict,
+    foreign_keys: list[ForeignKey],
+    *,
+    consumer: str,
+) -> list[Drift]:
+    drifts: list[Drift] = []
+    by_source = {(item.table, item.column): item for item in foreign_keys}
+    for ident, row in sorted(document.get("columns", {}).items()):
+        if row.get("status") != "decided" or not row.get("references"):
+            continue
+        ref = row["references"]
+        table, column = ident.split(".", 1)
+        observed = by_source.get((table, column))
+        expected = ref["column"]
+        if observed is None:
+            drifts.append(Drift("references", ident, consumer, expected, "absent"))
+            continue
+        observed_target = f"{observed.ref_table}.{observed.ref_column}"
+        if observed_target != expected.upper():
+            drifts.append(Drift("references", ident, consumer, expected, observed_target))
+        if observed.delete_known and (ref.get("on_delete") or None) != observed.on_delete:
+            drifts.append(
+                Drift(
+                    "references",
+                    ident,
+                    consumer,
+                    _expect_text(ref.get("on_delete")),
+                    _expect_text(observed.on_delete),
+                )
+            )
+    return drifts
+
+
+def check_configuration(document: dict, sql: str, *, consumer: str) -> list[Drift]:
+    if not re.search(r"INSERT\s+INTO\s+stm_conf\b", sql, re.I):
+        return []
+    found = parse_configuration(sql)
+    drifts: list[Drift] = []
+    for key, spec in sorted(document.get("configuration", {}).items()):
+        expected = spec.get("fresh")
+        observed = found.get(key)
+        if observed is None:
+            drifts.append(Drift("configuration", key, consumer, _expect_text(expected), "absent"))
+        elif observed != expected:
+            drifts.append(Drift("configuration", key, consumer, _expect_text(expected), observed))
+    return drifts
+
+
 def parse_liquibase_add_columns(text: str) -> dict[tuple[str, str], ColumnObs]:
     """Columns added by a later Liquibase addColumn, which baseline CREATE TABLE omits."""
     found: dict[tuple[str, str], ColumnObs] = {}
@@ -533,11 +760,16 @@ def check_sql(
     columns = parse_create_columns(sql)
     if extra_columns:
         columns.update(extra_columns)
-    return check_columns(document, columns, consumer=consumer) + check_uniques(
-        document,
-        parse_uniques(sql),
-        parse_unique_indexes(sql),
-        consumer=consumer,
+    return (
+        check_columns(document, columns, consumer=consumer)
+        + check_uniques(
+            document,
+            parse_uniques(sql),
+            parse_unique_indexes(sql),
+            consumer=consumer,
+        )
+        + check_references(document, parse_foreign_keys(sql), consumer=consumer)
+        + check_configuration(document, sql, consumer=consumer)
     )
 
 
@@ -562,11 +794,28 @@ def check_catalog(document: dict, directory: Path, *, consumer: str | None = Non
     codelists = catalog_file(directory, "codelists")
     if codelists.is_file():
         drifts += check_codelists(document, load_codelist_values(codelists), consumer=name)
+    constraints = catalog_file(directory, "constraints")
+    if constraints.is_file():
+        drifts += check_references(document, load_foreign_keys(constraints), consumer=name)
     return drifts
 
 
 def counts(drifts: list[Drift]) -> dict[str, int]:
-    totals = {name: 0 for name in ("length", "required", "default", "unique", "codelist", "openapi")}
+    totals = {
+        name: 0
+        for name in (
+            "length",
+            "required",
+            "default",
+            "type",
+            "unique",
+            "codelist",
+            "references",
+            "configuration",
+            "shape",
+            "openapi",
+        )
+    }
     for drift in drifts:
         totals[drift.klass] = totals.get(drift.klass, 0) + 1
     return totals

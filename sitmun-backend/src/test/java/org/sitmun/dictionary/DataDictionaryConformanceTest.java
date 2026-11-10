@@ -6,6 +6,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -16,7 +19,9 @@ import java.nio.file.Path;
 import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import javax.sql.DataSource;
+import org.hibernate.annotations.OnDelete;
 import org.junit.jupiter.api.Test;
 import org.sitmun.infrastructure.persistence.type.codelist.CodeList;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,6 +41,7 @@ class DataDictionaryConformanceTest {
     JsonNode document = new ObjectMapper().readTree(dictionary.toFile());
     List<String> rows = new ArrayList<>();
     rows.addAll(scanEntities(document));
+    rows.addAll(scanAssociations(document));
     rows.addAll(scanFields(document));
     rows.addAll(scanH2(document));
     rows.addAll(scanOpenApi(document, Path.of("src/main/resources/static/v3")));
@@ -118,6 +124,68 @@ class DataDictionaryConformanceTest {
       }
     }
     return rows;
+  }
+
+  private static List<String> scanAssociations(JsonNode document) throws Exception {
+    List<String> rows = new ArrayList<>();
+    var scanner = new ClassPathScanningCandidateComponentProvider(false);
+    scanner.addIncludeFilter(new AnnotationTypeFilter(Entity.class));
+    for (BeanDefinition definition : scanner.findCandidateComponents("org.sitmun")) {
+      Class<?> type = Class.forName(definition.getBeanClassName());
+      Table table = type.getAnnotation(Table.class);
+      if (table == null) {
+        continue;
+      }
+      for (Field field : type.getDeclaredFields()) {
+        JoinColumn join = field.getAnnotation(JoinColumn.class);
+        if (join == null || join.name().isBlank()) {
+          continue;
+        }
+        String key = table.name().toUpperCase(Locale.ROOT) + "." + join.name().toUpperCase(Locale.ROOT);
+        JsonNode row = document.path("columns").path(key);
+        if (row.isMissingNode() || !"decided".equals(row.path("status").asText())) {
+          continue;
+        }
+        String consumer = type.getName() + "#" + field.getName();
+        boolean required = row.path("required").asBoolean(false);
+        boolean optional = associationOptional(field);
+        boolean observedRequired = !join.nullable() || !optional;
+        if (required != observedRequired) {
+          rows.add(DictionaryComparison.line("required", key, consumer, required, observedRequired));
+        }
+        boolean beanRequired =
+            field.getAnnotation(NotNull.class) != null
+                || field.getAnnotation(NotBlank.class) != null
+                || !optional;
+        if (!"reject".equals(row.path("enforcement").asText(null)) && required != beanRequired) {
+          rows.add(
+              DictionaryComparison.line("required", key, consumer + "#bean", required, beanRequired));
+        }
+        String expectedDelete = row.path("references").path("on_delete").asText("");
+        OnDelete onDelete = field.getAnnotation(OnDelete.class);
+        String observedDelete =
+            onDelete == null
+                ? ""
+                : onDelete.action().name().toLowerCase(Locale.ROOT).replace('_', ' ');
+        if (!expectedDelete.equals(observedDelete)) {
+          rows.add(
+              DictionaryComparison.line("references", key, consumer, expectedDelete, observedDelete));
+        }
+      }
+    }
+    return rows;
+  }
+
+  private static boolean associationOptional(Field field) {
+    ManyToOne manyToOne = field.getAnnotation(ManyToOne.class);
+    if (manyToOne != null) {
+      return manyToOne.optional();
+    }
+    OneToOne oneToOne = field.getAnnotation(OneToOne.class);
+    if (oneToOne != null) {
+      return oneToOne.optional();
+    }
+    return true;
   }
 
   private static List<String> scanFields(JsonNode document) throws Exception {
