@@ -1,0 +1,20 @@
+databaseChangeLog:
+  - changeSet:
+      id: showcase-data-4-cami-basemap
+      author: sitmun
+      context: showcase
+      comment: Camí de Cavalls opens on the GOIB base map. The SDI Viewer uses that basemap for Menorca, and its tile grid frames the whole island. The CIME reference grid snaps inside the same extent and crops the coast.
+      changes:
+        - sql:
+            sql: >
+              INSERT INTO STM_ROL_GGI (RGG_ROLEID, RGG_GGIID)
+              SELECT 4, 4
+              WHERE NOT EXISTS (
+                SELECT 1 FROM STM_ROL_GGI WHERE RGG_ROLEID = 4 AND RGG_GGIID = 4
+              );
+              UPDATE STM_APP_BCKG SET ABC_ORDER = ABC_ORDER + 1 WHERE ABC_APPID = 2;
+              INSERT INTO STM_APP_BCKG (ABC_ID, ABC_APPID, ABC_BACKID, ABC_ORDER)
+              SELECT COALESCE(MAX(ABC_ID), 0) + 1, 2, 4, 0 FROM STM_APP_BCKG;
+              UPDATE STM_SEQUENCE
+              SET SEQ_COUNT = (SELECT COALESCE(MAX(ABC_ID), 0) + 1 FROM STM_APP_BCKG)
+              WHERE SEQ_NAME = 'ABC_ID';

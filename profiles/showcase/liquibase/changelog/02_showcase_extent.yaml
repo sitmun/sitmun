@@ -1,0 +1,18 @@
+databaseChangeLog:
+  - changeSet:
+      id: showcase-data-3-extent
+      author: sitmun
+      context: showcase
+      comment: Spain opens in EPSG:3857. UTM zone 31N does not cover the peninsula and Menorca on one IGN tile matrix. Zoom is cleared so the viewer fits each territory extent.
+      changes:
+        - sql:
+            sql: >
+              UPDATE STM_TERRITORY
+              SET TER_EXTENT = '-1046403 4286870 489806 5442259',
+                  TER_CENTER = '-278298 4864564',
+                  TER_PROJECT = 'EPSG:3857',
+                  TER_ZOOM = NULL
+              WHERE TER_ID = 1;
+              UPDATE STM_TERRITORY SET TER_ZOOM = NULL WHERE TER_ID = 2;
+              UPDATE STM_TERRITORY SET TER_ZOOM = NULL WHERE TER_ID = 3;
+              UPDATE STM_TERRITORY SET TER_ZOOM = NULL WHERE TER_ID = 4;

@@ -1,0 +1,13 @@
+PAP_ID,PAP_NAME,PAP_VALUE,PAP_TYPE,PAP_APPID
+"1","A3 - Horitzontal","A3H.jasper","PRINT_TEMPLATE","1"
+"2","A3 - Vertical","A3V.jasper","PRINT_TEMPLATE","1"
+"3","A4 - Horitzontal","A4H.jasper","PRINT_TEMPLATE","1"
+"4","A4 - Vertical","A4V.jasper","PRINT_TEMPLATE","1"
+"5","A3 - Horitzontal","A3H.jasper","PRINT_TEMPLATE","2"
+"6","A3 - Vertical","A3V.jasper","PRINT_TEMPLATE","2"
+"7","A4 - Horitzontal","A4H.jasper","PRINT_TEMPLATE","2"
+"8","A4 - Vertical","A4V.jasper","PRINT_TEMPLATE","2"
+"9","A3 - Horitzontal","A3H.jasper","PRINT_TEMPLATE","3"
+"10","A3 - Vertical","A3V.jasper","PRINT_TEMPLATE","3"
+"11","A4 - Horitzontal","A4H.jasper","PRINT_TEMPLATE","3"
+"12","A4 - Vertical","A4V.jasper","PRINT_TEMPLATE","3"

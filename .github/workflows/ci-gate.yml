@@ -41,6 +41,8 @@ jobs:
         run: python3 tools/tests/test_inventory_codelist_consumers.py
       - name: Check the published image contract
         run: python3 tools/tests/test_published_images.py
+      - name: Test the showcase profile
+        run: python3 tools/tests/test_showcase_profile.py
       - name: Select changed components
         id: filter
         env:

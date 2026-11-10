@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   logicalFilePath="master.xml"
+                   xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.4.xsd">
+  <include file="classpath:/db/changelog/db.changelog-master.yaml"/>
+  <include file="changelog/01_showcase_data.yaml" relativeToChangelogFile="true"/>
+  <include file="changelog/02_showcase_extent.yaml" relativeToChangelogFile="true"/>
+  <include file="changelog/03_showcase_cami_basemap.yaml" relativeToChangelogFile="true"/>
+  <include file="changelog/04_showcase_cami_extent.yaml" relativeToChangelogFile="true"/>
+</databaseChangeLog>

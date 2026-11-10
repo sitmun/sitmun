@@ -36,7 +36,72 @@ Commands: `pnpm ci`, `pnpm install`, `pnpm add`, `pnpm run`, `pnpm exec`.
 
 ## Quick start
 
-Docker Engine and Docker Compose (or Docker Desktop), plus Git. Both paths need a checkout, because `front` mounts `docker/front/config` and `backend` mounts `profiles/`.
+Docker Engine and Docker Compose (or Docker Desktop), plus Git. Every path needs a checkout, because `front` mounts `docker/front/config` and `backend` mounts `profiles/`.
+
+### Showcase
+
+The showcase is the sales database: SDI Viewer, Camí de Cavalls, and Case processing support. It uses the published images and does not compile this checkout. `./setup.sh` keeps an `.env` that already exists, and it still copies `profiles/development-postgres.env` only when `.env` is missing, so copy the showcase file first.
+
+```bash
+git clone --branch dev https://github.com/sitmun/sitmun.git
+cd sitmun
+cp profiles/showcase.env .env
+./setup.sh                      # Windows: ./setup.ps1
+docker compose -p sitmun-showcase up -d --pull always --no-build
+```
+
+Open http://localhost:9000/viewer/. Public applications need no login. `demo` / `demo` sees all three applications. `admin` / `admin` is the baseline administrator. Change that password before any host other than localhost.
+
+`-p sitmun-showcase` keeps this database in its own volume. It does not replace a development database. The two stacks both publish ports 9000–9003, so stop the other stack first (`docker compose stop`).
+
+Images are `ghcr.io/sitmun/front`, `backend`, and `proxy` at `${SITMUN_VERSION:-1.3.0}`. Run the showcase from the release that contains `profiles/showcase`. On `dev`, before that tag, the checkout and the `1.3.0` jar can differ. The baseline comes from the jar. The showcase rows come from this checkout.
+
+Stored text is English. Spanish and Catalan are translations. To show Spanish by default, sign in to admin, disable French and Aranese, then change the default language from `en` to `es`.
+
+Thumbnails come from `ide.cime.es`. Basemaps depend on IGN, GOIB, and SITNA. One broken background service blocks the whole map. Street View has no Google key.
+
+To reset without reloading Liquibase, pin the image digests in a local Compose overlay (not `compose.override.yaml`, which Compose loads for every project) and save the database after setup:
+
+```bash
+docker compose -p sitmun-showcase exec -T postgres pg_dump -U sitmun3 -d sitmun3 -Fc > sitmun-showcase.dump
+```
+
+A dump is valid only for the backend digest it was taken from. Restore it into an empty `sitmun-showcase` volume before starting the backend.
+
+### Development setup
+
+`docker compose up -d` on `dev` builds from this checkout (`pull_policy: build`). `ENVIRONMENT` defaults to `development` unless the profile sets it. `./setup.sh` copies `profiles/development-postgres.env` to `.env` only when `.env` is missing, then appends the three secrets when those keys are absent.
+
+```bash
+git clone --branch dev https://github.com/sitmun/sitmun.git
+cd sitmun
+./setup.sh          # Windows: ./setup.ps1
+docker compose up -d
+```
+
+To choose a profile yourself, copy one file to `.env` and run `./setup.sh` (Windows: `./setup.ps1`). Compose marks the three secrets required (`:?`) and refuses to start without them.
+
+| Profile | Use |
+| --- | --- |
+| `profiles/showcase.env` | Showcase PostgreSQL. Published images, three demo applications. |
+| `profiles/development-postgres.env` | Development PostgreSQL. This is what `setup.sh` copies. |
+| `profiles/development-oracle.env` | Development Oracle |
+| `profiles/development-lvh.env` | Development PostgreSQL announced as `http://lvh.me:9000` |
+| `profiles/postgres.env` | Production PostgreSQL (`ENVIRONMENT=production`, minimal seed) |
+| `profiles/oracle.env` | Production Oracle (`ENVIRONMENT=production`, minimal seed) |
+
+Copying a profile over an existing `.env` drops secrets already appended. Append them again.
+
+Seeded login: `admin` / `admin`. For a deployment other than a local demo, replace the database password (Compose falls back to `sitmun3` / `sitmun3`).
+
+| URL | What |
+| --- | --- |
+| http://localhost:9000/viewer/ | Viewer. Public applications do not require a login. |
+| http://localhost:9000/admin/ | Admin. Requires authentication. |
+| http://localhost:9000/backend/ | Backend through nginx |
+| http://localhost:9001/swagger-ui/index.html | Swagger UI on the backend port |
+| http://localhost:9001/api/dashboard/health | Backend health |
+| http://localhost:9002/actuator/health | Proxy health |
 
 ### Published images
 
@@ -57,40 +122,6 @@ A manual run of Publish images pushes the `1.3.0` tag. The git tag `v1.3.0` publ
 The published front image is built for `PUBLIC_BASE_PATH=/`. A deployment under a path prefix rebuilds `front`. See [DEPLOYMENT.md](DEPLOYMENT.md).
 
 An upgrade from 1.2.8 or 1.2.9 sets `SITMUN_UPGRADE_DEFAULT_LANGUAGE` in `.env` before that start. See [Upgrade 1.2.9 to 1.3.0](docs/upgrade/1.2.9-to-1.3.0.md) and [Upgrade 1.2.8 to 1.3.0](docs/upgrade/1.2.8-to-1.3.0.md).
-
-### Build this checkout
-
-`docker compose up -d` on `dev` builds from this checkout (`pull_policy: build`). `ENVIRONMENT` defaults to `development` unless the profile sets it. `./setup.sh` copies `profiles/development-postgres.env` to `.env` only when `.env` is missing, then appends the three secrets when those keys are absent.
-
-```bash
-git clone --branch dev https://github.com/sitmun/sitmun.git
-cd sitmun
-./setup.sh          # Windows: ./setup.ps1
-docker compose up -d
-```
-
-To choose a profile yourself, copy one file to `.env` and run `./setup.sh` (Windows: `./setup.ps1`). Compose marks the three secrets required (`:?`) and refuses to start without them.
-
-| Profile | Use |
-| --- | --- |
-| `profiles/development-postgres.env` | Development PostgreSQL. This is what `setup.sh` copies. |
-| `profiles/development-oracle.env` | Development Oracle |
-| `profiles/development-lvh.env` | Development PostgreSQL announced as `http://lvh.me:9000` |
-| `profiles/postgres.env` | Production PostgreSQL (`ENVIRONMENT=production`, minimal seed) |
-| `profiles/oracle.env` | Production Oracle (`ENVIRONMENT=production`, minimal seed) |
-
-Copying a profile over an existing `.env` drops secrets already appended. Append them again.
-
-Seeded login: `admin` / `admin`. For a deployment other than a local demo, replace the database password (Compose falls back to `sitmun3` / `sitmun3`).
-
-| URL | What |
-| --- | --- |
-| http://localhost:9000/viewer/ | Viewer. Public applications do not require a login. |
-| http://localhost:9000/admin/ | Admin. Requires authentication. |
-| http://localhost:9000/backend/ | Backend through nginx |
-| http://localhost:9001/swagger-ui/index.html | Swagger UI on the backend port |
-| http://localhost:9001/api/dashboard/health | Backend health |
-| http://localhost:9002/actuator/health | Proxy health |
 
 ## Configuration
 
@@ -142,7 +173,7 @@ Root Playwright and backend tests use in-memory H2. Compose does not start H2.
 
 The backend service in `compose.yaml` also sets `SPRING_JPA_DATABASE_PLATFORM` to `org.hibernate.dialect.PostgreSQLDialect`.
 
-Development profiles mount `profiles/development/backend` (`SITMUN_CONFIG_DIR` default). `profiles/postgres.env` sets `SITMUN_CONFIG_DIR=postgres`. `profiles/oracle.env` sets `SITMUN_CONFIG_DIR=oracle`. Liquibase runs on backend startup.
+Development profiles mount `profiles/development/backend` (`SITMUN_CONFIG_DIR` default). `profiles/postgres.env` sets `SITMUN_CONFIG_DIR=postgres`. `profiles/oracle.env` sets `SITMUN_CONFIG_DIR=oracle`. `profiles/showcase.env` sets `SITMUN_CONFIG_DIR=showcase` and `SPRING_LIQUIBASE_CONTEXTS=showcase`. Liquibase runs on backend startup.
 
 ```bash
 cp profiles/postgres.env .env

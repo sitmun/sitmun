@@ -14,6 +14,8 @@
 #     SITMUN_DB_URL=jdbc:oracle:thin:@//127.0.0.1:15211/XE \
 #     bash tools/tests/test_backend_db_boot.sh
 # SITMUN_DB_KEEP=1 leaves the started container running for the matching Gradle suite.
+# SITMUN_PROFILE=showcase boots profiles/showcase with Liquibase context showcase
+# and checks the sales seed. It requires a PostgreSQL SITMUN_DB.
 
 set -uo pipefail
 
@@ -78,6 +80,28 @@ case "$SITMUN_DB" in
     ;;
   *)
     echo "Unknown SITMUN_DB=$SITMUN_DB (oracle-11, oracle-19, postgres-12, postgres-16)" >&2
+    exit 2
+    ;;
+esac
+
+LIQUIBASE_CONTEXTS=""
+case "${SITMUN_PROFILE:-}" in
+  "")
+    ;;
+  showcase)
+    if [[ "$ENGINE" != "postgres" ]]; then
+      echo "SITMUN_PROFILE=showcase requires a PostgreSQL SITMUN_DB" >&2
+      exit 2
+    fi
+    CONFIG_DIR="$REPO_ROOT/profiles/showcase"
+    LIQUIBASE_CONTEXTS=showcase
+    if [[ ! -f "$CONFIG_DIR/liquibase/master.xml" ]]; then
+      echo "  ✗ showcase profile is missing: $CONFIG_DIR" >&2
+      exit 1
+    fi
+    ;;
+  *)
+    echo "Unknown SITMUN_PROFILE=$SITMUN_PROFILE (showcase)" >&2
     exit 2
     ;;
 esac
@@ -162,6 +186,9 @@ echo "  $JAR"
 
 echo ""
 echo "── Backend: profile $PROFILE against $SITMUN_DB_URL ──"
+if [[ -n "$LIQUIBASE_CONTEXTS" ]]; then
+  export SPRING_LIQUIBASE_CONTEXTS="$LIQUIBASE_CONTEXTS"
+fi
 SITMUN_USER_SECRET='ci-db-boot-user-secret-at-least-32-chars' \
 SITMUN_PROXY_MIDDLEWARE_SECRET='ci-db-boot-middleware-secret-32-chars' \
 SPRING_PROFILES_ACTIVE="$PROFILE" \
@@ -214,6 +241,55 @@ check_get /api/dashboard/startup
 # ROWNUM and dense_rank, which Oracle rejects when the select list includes a CLOB.
 check_get "/api/config/client/application?page=0&size=1"
 check_get "/api/config/client/application?page=1&size=1"
+
+if [[ "${SITMUN_PROFILE:-}" == "showcase" ]]; then
+  echo ""
+  echo "── Showcase seed ──"
+  changelog=$(docker exec "$CONTAINER" psql -U "$DB_USER" -d sitmun3 -tAc \
+    "SELECT id || '=' || exectype FROM databasechangelog WHERE id LIKE 'showcase-data-%' ORDER BY id" \
+    2>/dev/null || true)
+  if [[ "$changelog" == *"showcase-data-1=EXECUTED"* && "$changelog" == *"showcase-data-2-sequences=EXECUTED"* && "$changelog" == *"showcase-data-3-extent=EXECUTED"* && "$changelog" == *"showcase-data-4-cami-basemap=EXECUTED"* && "$changelog" == *"showcase-data-5-cami-extent=EXECUTED"* && "$changelog" != *"MARK_RAN"* ]]; then
+    ok "showcase changesets EXECUTED"
+  else
+    fail "showcase changesets: ${changelog:-none}"
+  fi
+
+  apps_file="$(mktemp "${TMPDIR:-/tmp}/sitmun-showcase-apps.XXXXXX")"
+  curl -fsS -m 30 "$BASE/api/config/client/application?page=0&size=20" -o "$apps_file" \
+    && ok "public application list" || fail "public application list"
+  python3 - "$apps_file" << 'PY'
+import json, sys
+titles = {row.get("title") for row in json.load(open(sys.argv[1], encoding="utf-8")).get("content", [])}
+expected = {"SDI Viewer", "Camí de Cavalls"}
+missing = expected - titles
+extra = titles - expected
+if missing or extra or "Case processing support" in titles:
+    sys.exit(f"public titles {sorted(titles)}")
+PY
+  if [[ $? -eq 0 ]]; then ok "anonymous list is the two public applications"; else fail "anonymous application list"; fi
+
+  cookie="$(mktemp "${TMPDIR:-/tmp}/sitmun-showcase-cookie.XXXXXX")"
+  login_code=$(curl -sS -m 30 -c "$cookie" -o /dev/null -w '%{http_code}' \
+    -H 'Content-Type: application/json' \
+    -d '{"username":"demo","password":"demo"}' \
+    "$BASE/api/authenticate")
+  if [[ "$login_code" == "200" ]] && grep -q 'viewer_access_token' "$cookie"; then
+    ok "demo login sets viewer_access_token"
+  else
+    fail "demo login -> $login_code"
+  fi
+  curl -fsS -m 30 -b "$cookie" "$BASE/api/config/client/application?page=0&size=20" -o "$apps_file" \
+    && ok "demo application list" || fail "demo application list"
+  python3 - "$apps_file" << 'PY'
+import json, sys
+titles = {row.get("title") for row in json.load(open(sys.argv[1], encoding="utf-8")).get("content", [])}
+expected = {"SDI Viewer", "Camí de Cavalls", "Case processing support"}
+if titles != expected:
+    sys.exit(f"demo titles {sorted(titles)}")
+PY
+  if [[ $? -eq 0 ]]; then ok "demo sees the three applications"; else fail "demo application list contents"; fi
+  rm -f "$apps_file" "$cookie"
+fi
 
 echo ""
 echo "Results: $PASS passed, $FAIL failed"

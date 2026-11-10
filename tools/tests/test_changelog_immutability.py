@@ -289,6 +289,15 @@ class PrefixAndAllowlistTest(unittest.TestCase):
             )
         )
 
+    def test_showcase_tree_is_checked_and_not_allowlisted(self) -> None:
+        self.assertIn("profiles/showcase/liquibase", cci.DEFAULT_TREES)
+        self.assertFalse(
+            cci.is_allowlisted(
+                "profiles/showcase/liquibase",
+                "changelog/01_showcase_data.yaml",
+            )
+        )
+
     def test_development_changeset_4_is_allowlisted(self) -> None:
         self.assertTrue(
             cci.is_allowlisted(

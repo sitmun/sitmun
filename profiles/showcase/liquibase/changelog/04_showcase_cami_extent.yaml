@@ -1,0 +1,21 @@
+databaseChangeLog:
+  - changeSet:
+      id: showcase-data-5-cami-extent
+      author: sitmun
+      context: showcase
+      comment: Camí de Cavalls stays on the CIME reference base map. That matrix has no level at the SDI Viewer's Menorca resolution, so this extent selects the next level out, which contains that window.
+      changes:
+        - sql:
+            sql: >
+              DELETE FROM STM_APP_BCKG WHERE ABC_APPID = 2 AND ABC_BACKID = 4;
+              UPDATE STM_APP_BCKG SET ABC_ORDER = ABC_ORDER - 1 WHERE ABC_APPID = 2;
+              DELETE FROM STM_ROL_GGI WHERE RGG_ROLEID = 4 AND RGG_GGIID = 4;
+              INSERT INTO STM_APP_TER (ATE_ID, ATE_APPID, ATE_TERID, ATE_INIEXT)
+              VALUES (
+                (SELECT COALESCE(MAX(ATE_ID), 0) + 1 FROM STM_APP_TER),
+                2, 3,
+                '536250 4389361 651250 4461225'
+              );
+              UPDATE STM_SEQUENCE
+              SET SEQ_COUNT = (SELECT COALESCE(MAX(ATE_ID), 0) + 1 FROM STM_APP_TER)
+              WHERE SEQ_NAME = 'ATE_ID';
