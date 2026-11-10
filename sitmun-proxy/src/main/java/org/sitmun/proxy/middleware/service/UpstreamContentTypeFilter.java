@@ -134,6 +134,18 @@ public class UpstreamContentTypeFilter extends OncePerRequestFilter {
     }
   }
 
+  public static String charset(String contentType) {
+    if (contentType == null || contentType.isBlank()) {
+      return null;
+    }
+    String visible = visibleToSpring(contentType);
+    if (visible == null) {
+      return null;
+    }
+    Charset charset = MediaType.parseMediaType(visible).getCharset();
+    return charset == null ? null : charset.name();
+  }
+
   static String visibleToSpring(String upstream) {
     RawBody body = RawFieldParser.DEFAULT.parseRawBody(new RawField("Content-Type", upstream));
     String type = body.getValue();

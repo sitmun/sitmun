@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Service checks**: An upstream error page is read in the character set named on the response. When the response names none, the reader uses the byte-order mark, then the XML declaration, then UTF-8 ([#136](https://github.com/sitmun/sitmun/issues/136)).
 - **WFS**: Upstream `Content-Type` values pass through unchanged, including GeoServer `text/xml; subtype=gml/2.1.2`. Spring reads the standards-compliant part (`text/xml`, plus any parameter it can parse), so the slash in `subtype` is not a 500. The proxy sets a different type only when it replaces the body, such as `application/problem+json`.
 
 ### Added

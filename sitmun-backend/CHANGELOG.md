@@ -84,6 +84,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+- **Service checks**: An upstream error page is read in the character set named on the response. When the response names none, the reader uses the byte-order mark, then the XML declaration, then UTF-8 ([#136](https://github.com/sitmun/sitmun/issues/136)).
 - **Database**: On PostgreSQL, the service-check time and the check-sample time are stored with a time zone. Existing values are copied as UTC before the column changes. Oracle already stores both that way ([#144](https://github.com/sitmun/sitmun/issues/144)).
 - **Database**: An upgrade from 1.2.9 removes AIMS, FME, and TC from the service-type list. Stored services of those types stay. Their description translations are removed with the other orphaned code-list descriptions ([#142](https://github.com/sitmun/sitmun/issues/142)).
 - **i18n**: The six PDF and header task names, and 26 code-list labels, have Catalan, Spanish, French, Aranese, and Portuguese. The English stored text stays ([#116](https://github.com/sitmun/sitmun/issues/116)).
