@@ -346,11 +346,30 @@ JS_APPS = (
 )
 
 # These still differ across apps. A catalog entry would force one version.
-JS_CATALOG_EXCLUDED = (
-    "api-sitna",
-    "ol",
-    "jest",
-)
+JS_CATALOG_EXCLUDED = ("jest",)
+
+
+def _locked_api_sitna_ol(lock: str) -> str | None:
+    in_block = False
+    in_deps = False
+    for line in lock.splitlines():
+        if line.startswith("  api-sitna@4.10.0(") and line.endswith(":"):
+            in_block = True
+            in_deps = False
+            continue
+        if in_block and line.startswith("  ") and not line.startswith("    "):
+            in_block = False
+            in_deps = False
+        if not in_block:
+            continue
+        if line.strip() == "dependencies:":
+            in_deps = True
+            continue
+        if in_deps and line.startswith("      ol:"):
+            return line.split(":", 1)[1].strip()
+        if in_deps and not line.startswith("      "):
+            in_deps = False
+    return None
 
 
 def _package_specs(data: dict) -> dict[str, str]:
@@ -400,6 +419,33 @@ def _failures_js_catalog(_root: Path) -> list[str]:
         failures.append(f"catalog typescript is {catalog.get('typescript') or 'missing'}, expected 6.0.3")
     if catalog.get("zone.js") != "0.15.1":
         failures.append(f"catalog zone.js is {catalog.get('zone.js') or 'missing'}, expected 0.15.1")
+    if catalog.get("api-sitna") != "4.10.0":
+        failures.append(f"catalog api-sitna is {catalog.get('api-sitna') or 'missing'}, expected 4.10.0")
+    if catalog.get("ol") != "10.9.0":
+        failures.append(f"catalog ol is {catalog.get('ol') or 'missing'}, expected 10.9.0")
+    locked_ol = _locked_api_sitna_ol(_read(ROOT / "pnpm-lock.yaml"))
+    if locked_ol != "10.9.0":
+        failures.append(f"locked api-sitna@4.10.0 depends on ol {locked_ol or 'missing'}, expected 10.9.0")
+    if "api-sitna@4.10.0:" not in _read(ROOT / "pnpm-workspace.yaml"):
+        failures.append("pnpm-workspace.yaml does not patch api-sitna@4.10.0")
+    if "COPY patches/" not in _read(ROOT / "docker/front/Dockerfile"):
+        failures.append("docker/front/Dockerfile does not copy patches/")
+    if "patches" not in _read(ROOT / "e2e/scripts/e2e-mobile-android.mjs"):
+        failures.append("e2e-mobile-android.mjs does not copy patches/")
+    lock = _read(ROOT / "pnpm-lock.yaml")
+    if "cesium@1.142.0>@cesium/engine: 26.0.0" not in lock:
+        failures.append("cesium@1.142.0 must use @cesium/engine 26.0.0")
+    if "cesium@1.142.0>@cesium/widgets: 16.0.0" not in lock:
+        failures.append("cesium@1.142.0 must use @cesium/widgets 16.0.0")
+    viewer_pkg = _read(ROOT / "sitmun-viewer/package.json")
+    for script in (
+        "patch-printmap-logo.js",
+        "patch-wfs-110-parser.js",
+        "patch-api-sitna-empty-dts.js",
+        "patch-dataloader-legacy-controls.js",
+    ):
+        if script in viewer_pkg:
+            failures.append(f"sitmun-viewer/package.json still runs {script}")
     for name in JS_CATALOG_EXCLUDED:
         if name in catalog:
             failures.append(f"catalog must not unify {name} while app versions differ")

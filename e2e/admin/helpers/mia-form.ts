@@ -85,10 +85,20 @@ export async function addMiaParameterRow(
     .filter({ has: page.locator('mat-icon', { hasText: 'add_circle_outline' }) })
     .first()
     .click();
-  const dialog = page.locator('mat-dialog-container').last();
+  const dialog = page
+    .locator('mat-dialog-container')
+    .filter({ has: page.locator('[formControlName="label"]') })
+    .last();
   await expect(dialog).toBeVisible({ timeout: 15_000 });
-  await dialog.locator('[formControlName="label"]').fill(options.label);
-  await dialog.locator('[formControlName="value"]').fill(options.value);
+  await expect(dialog).not.toHaveClass(/mdc-dialog--opening/);
+  const label = dialog.locator('[formControlName="label"]');
+  const value = dialog.locator('[formControlName="value"]');
+  await label.click();
+  await label.fill(options.label);
+  await value.click();
+  await value.fill(options.value);
+  await expect(label).toHaveValue(options.label);
+  await expect(value).toHaveValue(options.value);
   await dialog
     .locator('mat-dialog-actions button')
     .filter({ has: page.locator('mat-icon', { hasText: 'add_circle_outline' }) })

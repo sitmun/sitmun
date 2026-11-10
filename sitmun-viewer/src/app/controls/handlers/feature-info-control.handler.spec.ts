@@ -617,7 +617,7 @@ describe('FeatureInfoControlHandler', () => {
           callback: gfi
         }
       };
-      const trigger = sitnaClickTrigger(click, map);
+      const trigger = sitnaClickTrigger(click);
       expect(trigger({ pixel: [1, 1], coordinate: [0, 0] })).toBe(false);
       expect(gfi).not.toHaveBeenCalled();
     });
@@ -639,42 +639,43 @@ describe('FeatureInfoControlHandler', () => {
   });
 });
 
-function sitnaClickTrigger(
-  self: {
-    parent: {
-      map: { trigger: (name: string, payload: unknown) => void };
-      callback: (coordinate: unknown, pixel: unknown) => void;
+function sitnaClickTrigger(self: {
+  parent: {
+    map: {
+      trigger: (name: string, payload: unknown) => void;
+      wrap: { map: { forEachFeatureAtPixel: unknown } };
     };
-  },
-  map: unknown
-): (event: { pixel: unknown; coordinate: unknown }) => boolean {
+    callback: (coordinate: unknown, pixel: unknown) => void;
+  };
+}): (event: { pixel: unknown; coordinate: unknown }) => boolean {
   const source = readFileSync(
-    path.join(process.cwd(), 'node_modules/api-sitna/TC/ol/ol.js'),
+    path.join(process.cwd(), 'node_modules/api-sitna/TC/ol/Click.js'),
     'utf8'
   );
-  const assign = source.indexOf(
-    'TC.wrap.control.Click.prototype.register = function (map) {'
-  );
-  const triggerAssign = source.indexOf('self._trigger = function (e) {', assign);
+  const triggerAssign = source.indexOf('this._trigger = (e) => {');
   const ret = source.indexOf('return featureCount === 0;', triggerAssign);
   const close = source.indexOf('};', ret);
-  const body = source.slice(triggerAssign, close + 2);
+  if (triggerAssign < 0 || ret < 0 || close < 0) {
+    throw new Error('Click._trigger was not found in api-sitna TC/ol/Click.js');
+  }
+  const body = source
+    .slice(triggerAssign, close + 2)
+    .replaceAll('this.#hitTolerance', '0');
   const factory = new Function(
-    'self',
-    'map',
     'Consts',
-    'hitTolerance',
-    `${body}\nreturn self._trigger;`
+    `${body}\nreturn this._trigger;`
   ) as (
-    self: unknown,
-    map: unknown,
-    consts: { view: { PRINTING: number }; event: { CLICK: string } },
-    hitTolerance: number
+    this: {
+      parent: typeof self.parent;
+      map: { forEachFeatureAtPixel: unknown };
+    },
+    consts: { view: { PRINTING: number }; event: { CLICK: string } }
   ) => (event: { pixel: unknown; coordinate: unknown }) => boolean;
-  return factory(
-    self,
-    map,
-    { view: { PRINTING: 2 }, event: { CLICK: 'click.tc' } },
-    0
+  return factory.call(
+    {
+      parent: self.parent,
+      map: self.parent.map.wrap.map
+    },
+    { view: { PRINTING: 2 }, event: { CLICK: 'click.tc' } }
   );
 }

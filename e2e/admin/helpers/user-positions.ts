@@ -1,6 +1,13 @@
 import { expect, type APIRequestContext, type Page } from '@playwright/test';
 import { mkdir } from 'node:fs/promises';
-import { control, gotoCreateForm, saveAndCaptureId, uniqueValue, waitForFormReady } from './form';
+import {
+  control,
+  gotoCreateForm,
+  gotoFormRoute,
+  saveAndCaptureId,
+  uniqueValue,
+  waitForFormReady,
+} from './form';
 
 export const POSITIONS_TAB =
   /Data associated to territory|Puestos por territorio|Positions par territoire/i;
@@ -104,7 +111,7 @@ export async function postThenSetDates(
 }
 
 export async function openPositions(page: Page, userId: number): Promise<void> {
-  await page.goto(`/#/user/${userId}/userForm`);
+  await gotoFormRoute(page, `/#/user/${userId}/userForm`, 'username');
   await waitForFormReady(page, 'username');
   await page.getByRole('tab', { name: POSITIONS_TAB }).click();
   await expect(page.locator('app-relation-grid .ag-header-cell-text').first()).toBeVisible({

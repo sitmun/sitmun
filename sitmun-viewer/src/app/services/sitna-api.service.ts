@@ -103,7 +103,8 @@ export class SitnaApiService {
    * @throws Error if SITNA is not available (indicates bootstrap failure)
    */
   getSITNA(): SitnaNamespace {
-    const SITNA = (window as { SITNA?: SitnaNamespace }).SITNA;
+    // The published SITNA.control type is a class. This service keeps a looser index.
+    const SITNA = (window as unknown as { SITNA?: SitnaNamespace }).SITNA;
     if (!SITNA) {
       throw new Error(
         'SITNA namespace not available. Ensure import("api-sitna") succeeded.'

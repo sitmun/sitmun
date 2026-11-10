@@ -531,7 +531,7 @@ document.querySelectorAll('.tc-map').forEach(function (elm) {
         if (tab.tagName === 'H2') {
           for (let i = 0; i < map.controls.length; i++) {
             const ctl = map.controls[i];
-            if (ctl.div && ctl.div.contains(tab)) {
+            if (ctl.div && ctl.div !== map.div && ctl.div.contains(tab)) {
               if (ctl.isHighlighted()) {
                 ctl.unhighlight();
               } else {
@@ -728,7 +728,7 @@ document.querySelectorAll('.tc-map').forEach(function (elm) {
               // Find the control that contains this h2
               for (let i = 0; i < map.controls.length; i++) {
                 const ctl = map.controls[i];
-                if (ctl.div && ctl.div.contains(tab)) {
+                if (ctl.div && ctl.div !== map.div && ctl.div.contains(tab)) {
                   if (ctl.isHighlighted()) {
                     ctl.unhighlight();
                   } else {

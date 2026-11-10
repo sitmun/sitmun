@@ -93,7 +93,10 @@ async function loginAndOpenMap(page: Page): Promise<void> {
 /** Opens the left tools panel and expands the print control. */
 async function openPrintPanel(page: Page): Promise<void> {
   const printSlot = page.locator('#tc-slot-print');
-  const printHeading = printSlot.locator('> h2');
+  // API-SITNA 4.10 renders PrintMap as sitna-print-map inside the slot and
+  // toggles tc-collapsed on that element.
+  const printControl = printSlot.locator('sitna-print-map');
+  const printHeading = printControl.locator('> h2');
   await printHeading.waitFor({ state: 'visible', timeout: 90_000 });
 
   const panel = page.locator('.tc-left-panel');
@@ -111,7 +114,7 @@ async function openPrintPanel(page: Page): Promise<void> {
     .toBe(true);
 
   await printHeading.click();
-  await expect(printSlot).not.toHaveClass(/tc-collapsed/);
+  await expect(printControl).not.toHaveClass(/tc-collapsed/);
 }
 
 test.use({ viewport: WINDOW });
