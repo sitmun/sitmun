@@ -60,6 +60,8 @@
         "locationPermissionError": "No es tenen permisos per obtenir la ubicació",
         "locationDisabled": "La ubicació està desactivada",
         "locationError": "Error en obtenir la ubicació",
+        "locationAccuracy": "Precisió {{meters}} m.",
+        "choosePoint": "No hi ha posició. Moveu el mapa i premeu el botó d'ubicació per situar el punt.",
         "doneText": "Fet",
         "cancelText": "Cancel·lar",
         "clearText": "Esborra",

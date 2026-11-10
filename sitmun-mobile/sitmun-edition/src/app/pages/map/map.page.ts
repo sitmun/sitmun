@@ -482,39 +482,47 @@ export class MapPage implements OnInit {
     const loading = await this.loadingCtrl.create({ message: loadingMessage });
     try {
       await loading.present();
-      await this.saveFeature();
-      this.languageService.translateTag('map.pointSaved').subscribe(text => this.mapService.createToast(text, 'success', 'bottom'));
-      this.closeFeatureModal(true);
+      const saved = await this.saveFeature();
+      if (saved) {
+        this.languageService.translateTag('map.pointSaved').subscribe(text => this.mapService.createToast(text, 'success', 'bottom'));
+        this.closeFeatureModal(true);
+      }
     } finally {
       await loading.dismiss().catch(() => undefined);
       this.saving = false;
     }
   }
 
-  private async saveFeature() {
+  private async saveFeature(): Promise<boolean> {
     this.featureAttr = this.featureAttrForm.value;
     if (this.newPoint) {
-      const position: any = await this.mapService.getLocation(this.mapa);
-      if (position) {
-        const coordinates = [position.x, position.y];
-        const id = `new${Date.now()}`;
-        const geojson = {
-          type: 'Feature',
-          id,
-          geometry: {
-            type: 'Point',
-            coordinates
-          },
-          properties: this.featureAttr
-        };
-        const mapProj = this.mapa.getProjection();
-        this.feature = this.mapService.createFeaturesGeojson(geojson, 'EPSG:4326', mapProj)[0];
-        this.feature.setId(id);
-        this.feature.setAttribute('vendor.mapea.click', this.featureClickHandler.bind(this));
-        this.layerEdit.addFeatures([this.feature]);
-        this.centerMapByFeature(this.feature);
-        this.addFeatureEdition(this.layerEdit.idLayer, 'inserts');
+      let coordinates = this.newGeometry?.coordinates as number[] | undefined;
+      if (coordinates) {
+        coordinates = this.mapService.transformCoords(coordinates, this.mapa.getProjection().code, 'EPSG:4326');
+      } else {
+        const position: any = await this.mapService.getLocation();
+        if (!position) {
+          return false;
+        }
+        coordinates = [position.x, position.y];
       }
+      const id = `new${Date.now()}`;
+      const geojson = {
+        type: 'Feature',
+        id,
+        geometry: {
+          type: 'Point',
+          coordinates
+        },
+        properties: this.featureAttr
+      };
+      const mapProj = this.mapa.getProjection();
+      this.feature = this.mapService.createFeaturesGeojson(geojson, 'EPSG:4326', mapProj)[0];
+      this.feature.setId(id);
+      this.feature.setAttribute('vendor.mapea.click', this.featureClickHandler.bind(this));
+      this.layerEdit.addFeatures([this.feature]);
+      this.centerMapByFeature(this.feature);
+      this.addFeatureEdition(this.layerEdit.idLayer, 'inserts');
     } else {
       this.feature.setAttributes(this.featureAttr);
       if (this.newGeometry) {
@@ -525,6 +533,8 @@ export class MapPage implements OnInit {
     }
     this.newPoint = false;
     this.unsavedChanges = false;
+    this.newGeometry = null;
+    return true;
   }
 
   centerMapByFeature(feature: any) {
@@ -681,31 +691,27 @@ export class MapPage implements OnInit {
   editGeometry() {
     if (this.saving) {
       this.languageService.translateTag('map.gettingLocation').subscribe(text => this.mapService.createToast(text, 'medium', 'top'));
-    } else if (this.newPoint) {
-      this.languageService.translateTag('map.editGeometryError').subscribe(text => this.mapService.createToast(text, 'warning', 'top'));
-    } else {
-      //const olFeature = this.feature.getImpl().getOLFeature();
-      //this.mapService.addMoveInteraction(this.mapa, [olFeature], this.onMoveEnd.bind(this));
-      this.geomEdition = true;
-      this.closeFeatureModal(false);
+      return;
     }
+    this.geomEdition = true;
+    this.closeFeatureModal(false);
   }
 
   saveGeom() {
+    const adding = this.newPoint;
     const center = this.mapa.getCenter();
-    const newCoords = [center.x, center.y];
-    const featGeometry = this.feature.getGeometry();
+    const type = this.feature ? this.feature.getGeometry().type : 'Point';
     this.newGeometry = {
-      type: featGeometry.type,
-      coordinates: newCoords
+      type,
+      coordinates: [center.x, center.y]
     };
-    this.openFeatureModal(false);
+    this.openFeatureModal(adding);
     this.geomEdition = false;
     this.unsavedChanges = true;
   }
 
   cancelGeomEdition() {
-    this.openFeatureModal(false);
+    this.openFeatureModal(this.newPoint);
     this.geomEdition = false;
   }
 

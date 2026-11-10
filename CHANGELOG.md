@@ -106,6 +106,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - **Applications**: An empty list while offline says that no applications are saved on the device ([#192](https://github.com/sitmun/sitmun/issues/192)).
 - **MBTiles**: Estimate and download send numeric service and layer ids ([#203](https://github.com/sitmun/sitmun/issues/203)).
 - **Upload**: A refused change says the user is not allowed, and the server text stays as a detail. No connection says the changes stay on the device. An expired session says the session expired ([#187](https://github.com/sitmun/sitmun/issues/187)).
+- **Map**: A new point reuses a fix from the last minute and stops waiting after 15 seconds. The accuracy is shown. If there is no position, the point is not placed. The location button lets the user choose the place on the map ([#191](https://github.com/sitmun/sitmun/issues/191)).
 
 #### Stack
 

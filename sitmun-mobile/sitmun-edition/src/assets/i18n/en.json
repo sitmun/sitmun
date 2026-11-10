@@ -60,6 +60,8 @@
         "locationPermissionError": "No permissions to obtain the location",
         "locationDisabled": "Location is disabled",
         "locationError": "Error obtaining location",
+        "locationAccuracy": "Accuracy {{meters}} m.",
+        "choosePoint": "No position. Move the map and press the location button to place the point.",
         "doneText": "Done",
         "cancelText": "Cancel",
         "clearText": "Clear",

@@ -60,6 +60,8 @@
         "locationPermissionError": "No se tienen permisos para obtener la ubicación",
         "locationDisabled": "La ubicación está desactivada",
         "locationError": "Error al obtener la ubicación",
+        "locationAccuracy": "Precisión {{meters}} m.",
+        "choosePoint": "No hay posición. Mueva el mapa y pulse el botón de ubicación para situar el punto.",
         "doneText": "Hecho",
         "cancelText": "Cancelar",
         "clearText": "Borrar",
