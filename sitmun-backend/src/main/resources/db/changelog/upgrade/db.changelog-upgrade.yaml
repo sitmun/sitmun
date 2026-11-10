@@ -129,6 +129,7 @@ databaseChangeLog:
       author: sitmun
       dbms: postgresql
       logicalFilePath: db/changelog/upgrade/1.2.9-to-1.3.0/03-codelists.postgresql.sql
+      validCheckSum: 9:d30b7017662e2a31159ef4e1186b15c4
       preConditions:
         - onFail: MARK_RAN
         - sqlCheck:
@@ -146,6 +147,7 @@ databaseChangeLog:
       author: sitmun
       dbms: oracle
       logicalFilePath: db/changelog/upgrade/1.2.9-to-1.3.0/03-codelists.oracle.sql
+      validCheckSum: 9:08bd80e5ffe2b5ed684a0d71341a1cf6
       preConditions:
         - onFail: MARK_RAN
         - sqlCheck:
@@ -197,7 +199,9 @@ databaseChangeLog:
       author: sitmun
       dbms: postgresql
       logicalFilePath: db/changelog/upgrade/1.2.9-to-1.3.0/04-translations.postgresql.sql
-      validCheckSum: 9:69e9e920eb6342066d76e949828cf8b7
+      validCheckSum:
+        - 9:69e9e920eb6342066d76e949828cf8b7
+        - 9:632b1aed9d8144f2d37b920d0e055afc
       preConditions:
         - onFail: MARK_RAN
         - sqlCheck:
@@ -215,6 +219,7 @@ databaseChangeLog:
       author: sitmun
       dbms: oracle
       logicalFilePath: db/changelog/upgrade/1.2.9-to-1.3.0/04-translations.oracle.sql
+      validCheckSum: 9:632b1aed9d8144f2d37b920d0e055afc
       preConditions:
         - onFail: MARK_RAN
         - sqlCheck:

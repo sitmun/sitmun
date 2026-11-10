@@ -147,7 +147,9 @@ databaseChangeLog:
       id: baseline-translations
       author: sitmun
       logicalFilePath: db/changelog/baseline/04-translations.sql
-      validCheckSum: 9:e0c99cd586703c2d58b101c2ade4d44f
+      validCheckSum:
+        - 9:e0c99cd586703c2d58b101c2ade4d44f
+        - 9:9e982e59c4e3f69f0df7699eaded7024
       preConditions:
         - onFail: MARK_RAN
         - or:
