@@ -64,6 +64,13 @@ class VersionCheckGeneratorTest(unittest.TestCase):
             self.assertIn("language.default", generated)
             self.assertIn("cod_value = 'CAPABILITIES'", generated)
             self.assertNotIn("cod_value = 'LEGENDURL'", generated)
+            self.assertIn(
+                "DELETE FROM stm_codelist WHERE cod_list = 'service.type' "
+                "AND cod_value IN ('AIMS', 'FME', 'TC')",
+                generated,
+            )
+            self.assertNotIn("DELETE FROM stm_service", generated)
+            self.assertNotIn("stm_task", generated)
 
     def test_translation_upgrade_matches_shipped_sql(self) -> None:
         generator = load_generator()
