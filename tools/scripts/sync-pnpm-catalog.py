@@ -2,9 +2,9 @@
 """Build the root pnpm catalog from dependency specifiers that already match.
 
 A name used by more than one package.json with one specifier becomes catalog:.
-Names whose specifiers differ stay in the app that declares them. webpack is the
-one intentional pin: the Angular builder and schema-utils require 5.112.x, and
-the viewer still declared 5.98.0.
+Names whose specifiers differ stay in the app that declares them. The viewer's
+direct webpack pin is 5.112.2. Do not override the Angular builder's own
+webpack: 5.112.2 removed AMDDefineDependency, which that builder still loads.
 """
 
 from __future__ import annotations
@@ -26,9 +26,6 @@ PACKAGES = (
     "sitmun-mobile/sitmun-touristic",
 )
 PINS = {
-    "webpack": "5.112.2",
-}
-OVERRIDES = {
     "webpack": "5.112.2",
 }
 ALLOW_BUILDS = (
@@ -124,9 +121,6 @@ def main() -> None:
         "catalog:",
     ]
     for name, spec in catalog.items():
-        lines.append(f"  {_quote(name)}: {spec}")
-    lines += ["", "overrides:"]
-    for name, spec in OVERRIDES.items():
         lines.append(f"  {_quote(name)}: {spec}")
     lines += ["", "allowBuilds:"]
     for name in ALLOW_BUILDS:
