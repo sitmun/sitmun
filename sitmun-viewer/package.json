@@ -36,7 +36,7 @@
     "@angular/router": "catalog:",
     "@ngx-translate/core": "catalog:",
     "@ngx-translate/http-loader": "catalog:",
-    "api-sitna": "4.9.1",
+    "api-sitna": "4.10.0",
     "dompurify": "3.4.17",
     "draggabilly": "2.4.1",
     "jwt-decode": "3.1.2",
