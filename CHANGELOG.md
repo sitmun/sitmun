@@ -124,6 +124,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 #### Backend Core
 
+- **Database**: An upgrade from 1.2.9 removes AIMS, FME, and TC from the service-type list. Stored services of those types stay ([#142](https://github.com/sitmun/sitmun/issues/142)).
 - **i18n**: The six PDF and header task names, and 26 code-list labels, have Catalan, Spanish, French, Aranese, and Portuguese. The English stored text stays ([#116](https://github.com/sitmun/sitmun/issues/116)).
 - **Service checks**: A blank detail is stored as null. On Oracle, existing `SEC_OBSERVED` and `SCS_OBSERVED` values are copied as UTC before the columns become `TIMESTAMP(6) WITH TIME ZONE` ([sitmun-backend-core#355](https://github.com/sitmun/sitmun-backend-core/pull/355)).
 - **Database**: The Oracle dialects take the connected database version. Oracle 11 was configured as Oracle 8, and Oracle 21 as 19.
