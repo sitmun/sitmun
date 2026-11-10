@@ -5,6 +5,8 @@
   "auth.sessionValidation.unavailable": "No se ha podido verificar su sesión. Inténtelo de nuevo.",
   "agGrid.andCondition": "Y",
   "agGrid.applyFilter": "Aplicar",
+  "agGrid.ariaFilterColumn": "Pulse CTRL ENTRAR para abrir el filtro",
+  "agGrid.ariaHeaderSelection": "Columna con selección de cabecera",
   "agGrid.ariaMenuColumn": "Menú de columna",
   "agGrid.ariaRowSelect": "Pulse ESPACIO para seleccionar esta fila",
   "agGrid.ariaRowSelectAll": "Pulse ESPACIO para cambiar la selección de todas las filas",

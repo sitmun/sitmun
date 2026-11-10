@@ -5,6 +5,8 @@
   "auth.sessionValidation.unavailable": "Non s'a podut verificar era vòsta session. Tornatz-ac a provar.",
   "agGrid.andCondition": "E",
   "agGrid.applyFilter": "Aplicar",
+  "agGrid.ariaFilterColumn": "Quichar CTRL ENTRAR per obrir eth filtre",
+  "agGrid.ariaHeaderSelection": "Columna damb seleccion de capçalera",
   "agGrid.ariaMenuColumn": "Menú de columna",
   "agGrid.ariaRowSelect": "Quichar ESPACI per seleccionar era fila",
   "agGrid.ariaRowSelectAll": "Quichar ESPACI per canviar era seleccion de totes es filas",

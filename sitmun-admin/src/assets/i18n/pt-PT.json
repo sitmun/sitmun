@@ -1,6 +1,8 @@
 {
   "agGrid.andCondition": "E",
   "agGrid.applyFilter": "Aplicar",
+  "agGrid.ariaFilterColumn": "Pressione CTRL ENTER para abrir o filtro",
+  "agGrid.ariaHeaderSelection": "Coluna com seleção de cabeçalho",
   "agGrid.ariaMenuColumn": "Menu da coluna",
   "agGrid.ariaRowSelect": "Pressione ESPAÇO para selecionar esta linha",
   "agGrid.ariaRowSelectAll": "Pressione ESPAÇO para alternar a seleção de todas as linhas",

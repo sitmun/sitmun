@@ -5,6 +5,8 @@
   "auth.sessionValidation.unavailable": "Your session could not be verified. Please try again.",
   "agGrid.andCondition": "AND",
   "agGrid.applyFilter": "Apply",
+  "agGrid.ariaFilterColumn": "Press CTRL ENTER to open filter",
+  "agGrid.ariaHeaderSelection": "Column with Header Selection",
   "agGrid.ariaMenuColumn": "Column menu",
   "agGrid.ariaRowSelect": "Press SPACE to select this row",
   "agGrid.ariaRowSelectAll": "Press SPACE to toggle all rows selection",
