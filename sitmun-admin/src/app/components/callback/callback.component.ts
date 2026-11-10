@@ -1,6 +1,7 @@
-import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import {Component, OnInit, ChangeDetectionStrategy} from '@angular/core';
 import {Router} from '@angular/router';
+
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
 import {Principal} from "@app/core";
 import {NotificationService} from "@app/services/notification.service";

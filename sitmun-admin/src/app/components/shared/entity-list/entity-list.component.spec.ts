@@ -38,8 +38,7 @@ describe('EntityListComponent', () => {
         MaterialModule,
         DataGridComponent,
         TranslatePipe
-      ]
-    ,
+      ],
     providers: [
       provideTranslateService({
           loader: {

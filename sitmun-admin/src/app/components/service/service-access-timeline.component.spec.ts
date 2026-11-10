@@ -14,7 +14,6 @@ describe('ServiceAccessTimelineComponent', () => {
       imports: [
         TranslatePipe,
       ],
-    ,
     providers: [
       provideTranslateService({
           loader: {provide: TranslateLoader, useFactory: () => ({getTranslation: () => of({})})},

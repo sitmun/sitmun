@@ -23,8 +23,7 @@ describe('ApplicationDetailsComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [TranslatePipe, NgOptimizedImage],
-      declarations: [ApplicationDetailsComponent]
-    ,
+      declarations: [ApplicationDetailsComponent],
     providers: [
       provideTranslateService()
     ]}).compileComponents();

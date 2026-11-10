@@ -10,7 +10,6 @@ import {RouterModule} from '@angular/router';
 import {AgGridModule} from '@ag-grid-community/angular';
 import { TranslatePipe, TranslateService, provideMissingTranslationHandler, provideTranslateService } from '@ngx-translate/core';
 import { provideTranslateHttpLoader } from '@ngx-translate/http-loader';
-
 import {firstValueFrom} from 'rxjs';
 
 import {ApplicationFormComponent} from '@app/components/application/application-form/application-form.component';

@@ -16,7 +16,6 @@ describe('ExternalUrlLinkComponent', () => {
     await TestBed.configureTestingModule({
       declarations: [ExternalUrlLinkComponent],
       imports: [MatButtonModule, MatIconModule, MatTooltipModule, TranslatePipe],
-    ,
     providers: [
       provideTranslateService()
     ]}).compileComponents();

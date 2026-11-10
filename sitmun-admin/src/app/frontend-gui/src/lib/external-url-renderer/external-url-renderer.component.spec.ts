@@ -19,7 +19,6 @@ describe('ExternalUrlRendererComponent', () => {
         MatTooltipModule,
         TranslatePipe,
       ],
-    ,
     providers: [
       provideTranslateService()
     ]}).compileComponents();

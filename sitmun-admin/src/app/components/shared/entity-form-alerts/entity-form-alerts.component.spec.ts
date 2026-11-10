@@ -16,7 +16,6 @@ describe('EntityFormAlertsComponent', () => {
         EntityFormAlertsComponent,
         TranslatePipe,
       ],
-    ,
     providers: [
       provideTranslateService({
           loader: {

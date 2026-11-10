@@ -33,7 +33,6 @@ import { AUTH_CONFIG_DI } from '@auth/authentication.options';
 import { CustomAuthConfig } from '@config/app.config';
 import { TranslatePipe, provideTranslateService } from '@ngx-translate/core';
 import { provideTranslateHttpLoader } from '@ngx-translate/http-loader';
-
 import { ErrorModalComponent } from '@sections/common/modals/error-modal/error-modal.component';
 import { LoginModalComponent } from '@sections/common/modals/login-modal/login-modal.component';
 import { WarningModalComponent } from '@sections/common/modals/warning-modal/warning-modal.component';
