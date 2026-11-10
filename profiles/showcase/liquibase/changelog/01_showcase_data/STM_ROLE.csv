@@ -1,0 +1,6 @@
+ROL_ID,ROL_NAME,ROL_NOTE
+"1","Visualitzador IDE - España","Rol públic: arbres i capes del territori España"
+"2","Visualitzador IDE - Illes Balears","Rol públic: arbres i capes del territori Illes Balears"
+"3","Visualitzador IDE - Menorca","Rol públic: arbres i capes del territori Menorca"
+"4","Camí de cavalls - públic","Rol públic de l'aplicació Camí de cavalls"
+"5","Suport a expedients - usuaris registrats","Rol restringit: només usuaris registrats"

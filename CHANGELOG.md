@@ -67,6 +67,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 #### Profile-level
 
+- **Data**: `profiles/showcase.env` loads SDI Viewer, Camí de Cavalls, and Case processing support on a fresh PostgreSQL database when the Liquibase context is `showcase`. Start with `docker compose -p sitmun-showcase up -d --pull always --no-build`. `demo` / `demo` sees all three applications. Anonymous visitors see the two public ones. Stored text is English. Spain's opening extent is EPSG:3857 and covers the peninsula, the Balearic Islands, and Menorca. The other territories stay EPSG:25831. Territory zoom is empty, so the viewer fits the extent. Camí de Cavalls stays on the CIME reference base map. Its Menorca extent is the CIME zoom level that contains the SDI Viewer window.
 - **Liquibase**: Development changelog 88, and PostgreSQL and Oracle changelog 32, add the geometry code lists and format `Geometry`.
 - **Liquibase**: Development changelog 81 creates `STM_PAR_GS` and the `cartographyServiceParameter.type` codes so a local Docker database can store layer service parameters ([#90](https://github.com/sitmun/sitmun-application-stack/issues/90)).
 - **Liquibase**: Development changelog 78 sets a description, a metadata URL, and a dataset URL on folder Adreces (tree node 12339) in Visor IDEBarcelona. Gestió municipal (node 12338) stays empty ([sitmun-viewer-app#173](https://github.com/sitmun/sitmun-viewer-app/issues/173)).

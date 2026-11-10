@@ -1,0 +1,44 @@
+name: Test Showcase PostgreSQL 16
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+on:
+  pull_request:
+    branches: [dev, main]
+    paths:
+      - 'profiles/showcase/**'
+      - 'sitmun-backend/src/main/resources/db/changelog/**'
+      - 'tools/tests/test_backend_db_boot.sh'
+      - '.github/workflows/test-showcase-postgres-16.yml'
+  merge_group:
+    paths:
+      - 'profiles/showcase/**'
+      - 'sitmun-backend/src/main/resources/db/changelog/**'
+      - 'tools/tests/test_backend_db_boot.sh'
+      - '.github/workflows/test-showcase-postgres-16.yml'
+  workflow_dispatch:
+
+jobs:
+  test-showcase-postgres-16:
+    name: Test Showcase PostgreSQL 16
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+      - name: Set up Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version-file: .java-version
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@ed408507eac070d1f99cc633dbcf757c94c7933a # v4
+        with:
+          cache-read-only: ${{ github.ref != 'refs/heads/dev' }}
+      - name: Boot the showcase profile
+        run: SITMUN_DB=postgres-16 SITMUN_PROFILE=showcase bash tools/tests/test_backend_db_boot.sh
