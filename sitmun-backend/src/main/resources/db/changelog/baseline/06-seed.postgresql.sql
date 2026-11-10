@@ -282,3 +282,17 @@ INSERT INTO stm_literal_translation_value (ltv_id, ltv_ltrid, ltv_lanid, ltv_val
 --end
 INSERT INTO stm_literal_translation_value (ltv_id, ltv_ltrid, ltv_lanid, ltv_value) SELECT 35, 7, lang.lan_id, '[contengut binari]' FROM stm_language lang WHERE lang.lan_shortname = 'oc-aranes'
 --end
+INSERT INTO stm_literal_translation_value (ltv_id, ltv_ltrid, ltv_lanid, ltv_value) SELECT 36, 1, lang.lan_id, 'Sem dados' FROM stm_language lang WHERE lang.lan_shortname = 'pt-PT'
+--end
+INSERT INTO stm_literal_translation_value (ltv_id, ltv_ltrid, ltv_lanid, ltv_value) SELECT 37, 2, lang.lan_id, 'Erro ao executar a tarefa' FROM stm_language lang WHERE lang.lan_shortname = 'pt-PT'
+--end
+INSERT INTO stm_literal_translation_value (ltv_id, ltv_ltrid, ltv_lanid, ltv_value) SELECT 38, 3, lang.lan_id, 'Consulta' FROM stm_language lang WHERE lang.lan_shortname = 'pt-PT'
+--end
+INSERT INTO stm_literal_translation_value (ltv_id, ltv_ltrid, ltv_lanid, ltv_value) SELECT 39, 4, lang.lan_id, 'Identificador de tarefa filha inválido' FROM stm_language lang WHERE lang.lan_shortname = 'pt-PT'
+--end
+INSERT INTO stm_literal_translation_value (ltv_id, ltv_ltrid, ltv_lanid, ltv_value) SELECT 40, 5, lang.lan_id, 'falta executar a tarefa' FROM stm_language lang WHERE lang.lan_shortname = 'pt-PT'
+--end
+INSERT INTO stm_literal_translation_value (ltv_id, ltv_ltrid, ltv_lanid, ltv_value) SELECT 41, 6, lang.lan_id, 'Conteúdo binário não incorporável: requer autenticação do servidor' FROM stm_language lang WHERE lang.lan_shortname = 'pt-PT'
+--end
+INSERT INTO stm_literal_translation_value (ltv_id, ltv_ltrid, ltv_lanid, ltv_value) SELECT 42, 7, lang.lan_id, '[conteúdo binário]' FROM stm_language lang WHERE lang.lan_shortname = 'pt-PT'
+--end
