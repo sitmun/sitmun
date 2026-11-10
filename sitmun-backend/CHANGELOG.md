@@ -84,6 +84,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+- **Database**: An upgrade from 1.2.9 removes AIMS, FME, and TC from the service-type list. Stored services of those types stay. Their description translations are removed with the other orphaned code-list descriptions ([#142](https://github.com/sitmun/sitmun/issues/142)).
 - **i18n**: The six PDF and header task names, and 26 code-list labels, have Catalan, Spanish, French, Aranese, and Portuguese. The English stored text stays ([#116](https://github.com/sitmun/sitmun/issues/116)).
 - **Database**: The four seeded Export PDF tasks belong to task group Basic and have no UI control. An upgrade from 1.2.8 or 1.2.9 sets group 1 and clears UI control 1 on those named tasks when a group is still missing or that control is still Attribution. A group an administrator already chose stays ([#109](https://github.com/sitmun/sitmun/issues/109)).
 - **Service usage**: A usage day keeps its civil date on H2, PostgreSQL, and Oracle. Hibernate binds `LocalDate` with JDBC 4.2 (`hibernate.type.java_time_use_direct_jdbc`). The previous `java.sql.Date` write moved that day back when the JDBC zone was UTC and the JVM zone was ahead of UTC. Rows already stored stay on the day that was written.

@@ -286,6 +286,9 @@ def description_sql(row: dict[str, str], translated: dict[str, str]) -> str:
     return f"CASE {DEFAULT_LANGUAGE} " + " ".join(arms) + f" ELSE {fallback} END"
 
 
+RETIRED_SERVICE_TYPES = ("AIMS", "FME", "TC")
+
+
 def codelists(oracle: bool) -> str:
     true = "1" if oracle else "true"
     false = "0" if oracle else "false"
@@ -320,6 +323,11 @@ def codelists(oracle: bool) -> str:
         )
         description = description_sql(row, translated.get(key, {}))
         lines.append(insert_codelist(oracle, code_list, value, true, flag, description))
+    retired = ", ".join(sql_text(value) for value in RETIRED_SERVICE_TYPES)
+    lines.append(
+        "DELETE FROM stm_codelist "
+        f"WHERE cod_list = 'service.type' AND cod_value IN ({retired})"
+    )
     return ";\n".join(lines) + ";\n"
 
 
