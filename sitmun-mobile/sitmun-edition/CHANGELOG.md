@@ -22,5 +22,6 @@
 - **Map**: Closing the form clears the selected point. Editing its geometry does not ([#184](https://github.com/sitmun/sitmun/issues/184)).
 - **Applications**: An empty list while offline says that no applications are saved on the device ([#192](https://github.com/sitmun/sitmun/issues/192)).
 - **MBTiles**: Estimate and download send numeric service and layer ids ([#203](https://github.com/sitmun/sitmun/issues/203)).
+- **Upload**: A refused change says the user is not allowed, and the server text stays as a detail. No connection says the changes stay on the device. An expired session says the session expired ([#187](https://github.com/sitmun/sitmun/issues/187)).
 - **WFS**: Relative `/proxy/{app}/{ter}/WFS/{id}` task URLs resolve against the middleware base instead of the Capacitor WebView origin. GetFeature/Transaction send `Authorization: Bearer` for the middleware origin ([#6](https://github.com/sitmun/edition-mobile-app/issues/6)).
 - **Auth** / **i18n**: Failed login shows an error message; validation errors use i18n keys (`home.loginError`, `home.instanceRequired`) instead of hardcoded Spanish.

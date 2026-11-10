@@ -13,6 +13,7 @@ import { firstValueFrom, forkJoin } from 'rxjs';
 import { DatabaseService } from 'src/app/services/database.service';
 import { ProfileModalComponent } from 'src/app/components/profile-modal/profile-modal.component';
 import { SessionExpiredError } from 'src/app/services/login.service';
+import { classifyUploadFailure, UploadFailure } from 'src/app/services/upload-failure';
 import { AlertController, LoadingController } from '@ionic/angular';
 
 declare var M: any;
@@ -47,7 +48,7 @@ export class MapPage implements OnInit {
   layersTreeData: TreeNode[] = [];
   bgTreeData: TreeNode[] = [];
   featureEditions: Record<string, { inserts: any[]; deletes: any[]; updates: any[] }> = {};
-  saveErrors: { layerName: string; message: string }[] = [];
+  saveErrors: { layerName: string; message: string; detail?: string }[] = [];
   saveSuccesses: { layerName: string; message: string }[] = [];
   imageValue: string | null = null;
   errorImg: string[] = [];
@@ -746,18 +747,38 @@ export class MapPage implements OnInit {
           await this.databaseService.deleteEditionsByLayer(this.app.id, this.ter.id, layer.idLayer);
           delete this.featureEditions[layer.idLayer];
         } else {
-          this.saveErrors.push({ layerName: layer.name, message: result.data });
+          await this.recordUploadFailure(layer.name, classifyUploadFailure({
+            status: result.status,
+            body: result.data,
+            offline: !this.networkConnected,
+          }));
         }
       }
     } catch (error) {
       if (error instanceof SessionExpiredError) {
-        this.languageService.translateTag('map.sessionExpired')
-          .subscribe(text => this.mapService.createToast(text, 'danger', 'top'));
-        this.router.navigate(['home']);
+        await this.recordUploadFailure(layer.name, { key: 'map.sessionExpired' });
         return;
       }
+      await this.recordUploadFailure(layer.name, classifyUploadFailure({
+        offline: !this.networkConnected,
+      }));
       console.error(`Error procesando la capa con ID ${layer.idLayer}:`, error);
     }
+  }
+
+  private async recordUploadFailure(layerName: string, failure: UploadFailure) {
+    if (failure.key === 'map.sessionExpired') {
+      const text = await firstValueFrom(this.languageService.translateTag(failure.key));
+      this.mapService.createToast(text, 'danger', 'top');
+      this.router.navigate(['home']);
+      return;
+    }
+    const message = await firstValueFrom(this.languageService.translateTag(failure.key));
+    this.saveErrors.push({
+      layerName,
+      message,
+      ...(failure.detail ? { detail: failure.detail } : {}),
+    });
   }
 
 
