@@ -84,6 +84,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+- **Database**: On PostgreSQL, the service-check time and the check-sample time are stored with a time zone. Existing values are copied as UTC before the column changes. Oracle already stores both that way ([#144](https://github.com/sitmun/sitmun/issues/144)).
 - **Database**: An upgrade from 1.2.9 removes AIMS, FME, and TC from the service-type list. Stored services of those types stay. Their description translations are removed with the other orphaned code-list descriptions ([#142](https://github.com/sitmun/sitmun/issues/142)).
 - **i18n**: The six PDF and header task names, and 26 code-list labels, have Catalan, Spanish, French, Aranese, and Portuguese. The English stored text stays ([#116](https://github.com/sitmun/sitmun/issues/116)).
 - **Database**: The four seeded Export PDF tasks belong to task group Basic and have no UI control. An upgrade from 1.2.8 or 1.2.9 sets group 1 and clears UI control 1 on those named tasks when a group is still missing or that control is still Attribution. A group an administrator already chose stays ([#109](https://github.com/sitmun/sitmun/issues/109)).
