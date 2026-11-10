@@ -16,7 +16,7 @@ import {
   writeFileSync,
 } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { basename, dirname, join, resolve } from 'node:path';
+import { basename, dirname, join, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -508,6 +508,29 @@ function patchTouristicEnvironment(touristicWork, backendUrl) {
   }
 }
 
+function copyAppSource(src, dest) {
+  cpSync(src, dest, {
+    recursive: true,
+    filter: (source) => {
+      const parts = source.split(sep);
+      return !parts.includes('node_modules') && !parts.includes('.angular');
+    },
+  });
+}
+
+function copyMobileWorkspace(workRoot) {
+  for (const name of ['package.json', 'pnpm-lock.yaml', 'pnpm-workspace.yaml', '.npmrc']) {
+    cpSync(join(stackRoot, name), join(workRoot, name));
+  }
+  for (const app of ['sitmun-admin', 'sitmun-viewer']) {
+    const dest = join(workRoot, app);
+    mkdirSync(dest, { recursive: true });
+    cpSync(join(stackRoot, app, 'package.json'), join(dest, 'package.json'));
+  }
+  copyAppSource(editionSrc, join(workRoot, 'sitmun-mobile', 'sitmun-edition'));
+  copyAppSource(touristicSrc, join(workRoot, 'sitmun-mobile', 'sitmun-touristic'));
+}
+
 async function main() {
   if (!existsSync(editionSrc) || !existsSync(touristicSrc)) {
     failEarly('Mobile apps missing under sitmun-mobile/');
@@ -602,10 +625,9 @@ async function main() {
     const fixture = await provisionMobileBackend(gatewayBackend);
     await assertAndroidStackContracts(gatewayBackend, fixture);
 
-    const editionWork = join(workRoot, 'edition');
-    const touristicWork = join(workRoot, 'touristic');
-    cpSync(editionSrc, editionWork, { recursive: true });
-    cpSync(touristicSrc, touristicWork, { recursive: true });
+    const editionWork = join(workRoot, 'sitmun-mobile', 'sitmun-edition');
+    const touristicWork = join(workRoot, 'sitmun-mobile', 'sitmun-touristic');
+    copyMobileWorkspace(workRoot);
     patchTouristicEnvironment(touristicWork, gatewayBackend);
 
     const sourceManifest = {
@@ -614,8 +636,18 @@ async function main() {
       builtAt: new Date().toISOString(),
     };
 
+    run(
+      'pnpm',
+      [
+        'ci',
+        '--filter',
+        './sitmun-mobile/sitmun-edition...',
+        '--filter',
+        './sitmun-mobile/sitmun-touristic...',
+      ],
+      { cwd: workRoot },
+    );
     for (const appDir of [editionWork, touristicWork]) {
-      run('pnpm', ['ci'], { cwd: appDir });
       run('pnpm', ['exec', 'ng', 'build', '--configuration=development'], { cwd: appDir });
       // Native projects are not committed in the mobile modules; generate in the temp copy.
       if (!existsSync(join(appDir, 'android'))) {

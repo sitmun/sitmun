@@ -60,6 +60,25 @@ function excludeFromAngularBabel(rule) {
   }
 }
 
+// tsconfig.app.json lists the workspace symlink. Webpack follows that link
+// into .pnpm, and the Angular loader then rejects the declaration.
+class KeepApiSitnaDeclarationPathPlugin {
+  apply(compiler) {
+    const declaration = path.resolve(
+      __dirname,
+      'node_modules/api-sitna/TC/tool/FeatureHistoryEvent.d.ts'
+    );
+    compiler.hooks.normalModuleFactory.tap('KeepApiSitnaDeclarationPathPlugin', (factory) => {
+      factory.hooks.afterResolve.tap('KeepApiSitnaDeclarationPathPlugin', (resolveData) => {
+        const resource = resolveData.createData && resolveData.createData.resource;
+        if (resource && resource.endsWith(`${path.sep}FeatureHistoryEvent.d.ts`)) {
+          resolveData.createData.resource = declaration;
+        }
+      });
+    });
+  }
+}
+
 module.exports = (config) => {
   config.output = {
     ...config.output,
@@ -149,7 +168,8 @@ module.exports = (config) => {
     }),
     new webpack.DefinePlugin({
       SITNA_BASE_URL: JSON.stringify('/' + apiSitnaDestiny + '/')
-    })
+    }),
+    new KeepApiSitnaDeclarationPathPlugin()
   ];
 
   return config;

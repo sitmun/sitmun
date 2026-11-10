@@ -390,6 +390,9 @@ def _failures_js_catalog(_root: Path) -> list[str]:
             failures.append(f"catalog must not unify {name} while app versions differ")
     if "api-sitna@4.9.1" in _read(ROOT / "sitmun-viewer/tsconfig.app.json"):
         failures.append("sitmun-viewer/tsconfig.app.json hardcodes api-sitna@4.9.1")
+    webpack_config = _read(ROOT / "sitmun-viewer/webpack.config.js")
+    if "KeepApiSitnaDeclarationPathPlugin" not in webpack_config:
+        failures.append("sitmun-viewer/webpack.config.js must keep the api-sitna declaration path")
     root_pkg = json.loads(_read(ROOT / "package.json"))
     if not str(root_pkg.get("packageManager", "")).startswith("pnpm@"):
         failures.append("root package.json is missing packageManager")
