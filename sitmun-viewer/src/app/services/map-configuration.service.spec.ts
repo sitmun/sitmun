@@ -572,11 +572,12 @@ describe('MapConfigurationService', () => {
       };
       configLookup.initialize(cfg);
 
-      const layer = service.toBaseLayers(cfg).find((l) => l.title === 'WFS Layer');
-      expect(layer?.type).toBe('WFS');
-      expect(layer?.format).toBe('text/xml');
-      expect(layer?.layerNames).toEqual(['wfs-a', 'wfs-b']);
-      expect(layer).not.toHaveProperty('version');
+      const layers = service.toBaseLayers(cfg).filter((item) => item.type === 'WFS');
+      expect(layers.map((item) => item.featureType)).toEqual(['wfs-a', 'wfs-b']);
+      expect(layers.map((item) => item.layerNames)).toEqual([['wfs-a'], ['wfs-b']]);
+      expect(layers.every((item) => item.format === 'text/xml')).toBe(true);
+      expect(layers.every((item) => !Object.prototype.hasOwnProperty.call(item, 'version'))).toBe(true);
+      expect(new Set(layers.map((item) => item.id)).size).toBe(2);
     });
 
     it('emits WFS featureType and resolution bounds and points the overview at a non-WFS layer', () => {
@@ -614,22 +615,19 @@ describe('MapConfigurationService', () => {
       configLookup.initialize(cfg);
 
       const layers = service.toBaseLayers(cfg);
-      const wfs = layers.find((item) => item.title === 'WFS Layer') as
-        | (typeof layers)[number] & {
-            featureType?: string;
-            minResolution?: number;
-            maxResolution?: number;
-            overviewMapLayer?: string;
-          };
+      const wfsLayers = layers.filter((item) => item.type === 'WFS');
       const wms = layers.find((item) => item.title === 'Base Layer 1');
 
-      expect(wfs?.featureType).toBe('wfs-a');
-      expect(wfs?.minResolution).toBeCloseTo((1000 * 0.00028) / 1);
-      expect(wfs?.maxResolution).toBeCloseTo((500000 * 0.00028) / 1);
-      expect(wfs?.overviewMapLayer).toBe(wms?.id);
-      expect(wfs?.overviewMapLayer).not.toBe(wfs?.id);
-      expect(wfs).not.toHaveProperty('geometryName');
-      expect(wfs).not.toHaveProperty('geometryType');
+      expect(wfsLayers.map((item) => item.featureType)).toEqual(['wfs-a', 'wfs-b']);
+      expect(wfsLayers.map((item) => item.layerNames)).toEqual([['wfs-a'], ['wfs-b']]);
+      for (const wfs of wfsLayers) {
+        expect(wfs.minResolution).toBeCloseTo((1000 * 0.00028) / 1);
+        expect(wfs.maxResolution).toBeCloseTo((500000 * 0.00028) / 1);
+        expect(wfs.overviewMapLayer).toBe(wms?.id);
+        expect(wfs.overviewMapLayer).not.toBe(wfs.id);
+        expect(wfs).not.toHaveProperty('geometryName');
+        expect(wfs).not.toHaveProperty('geometryType');
+      }
     });
 
     it('passes a published WFS geometry property and explicit SITNA type onto the base layer', () => {
