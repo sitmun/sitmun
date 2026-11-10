@@ -615,7 +615,7 @@ ALTER TABLE ONLY stm_literal_translation
     ADD CONSTRAINT stm_literal_translation_pkey PRIMARY KEY (ltr_id);
 
 ALTER TABLE ONLY stm_literal_translation_value
-    ADD CONSTRAINT stm_literal_translation_value_pkey PRIMARY KEY (ltv_id);
+    ADD CONSTRAINT stm_ltv_pkey PRIMARY KEY (ltv_id);
 
 ALTER TABLE ONLY stm_log
     ADD CONSTRAINT stm_log_pkey PRIMARY KEY (log_id);

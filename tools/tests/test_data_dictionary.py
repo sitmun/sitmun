@@ -26,6 +26,7 @@ from data_dictionary_lib import (  # noqa: E402
     logical_type,
     norm_default,
     parse_create_columns,
+    parse_foreign_keys,
     parse_uniques,
     read_dictionary,
     validate_document,
@@ -330,6 +331,105 @@ class DataDictionaryTest(unittest.TestCase):
         self.assertIn("unknown section", kinds)
         self.assertTrue(any(row.observed.startswith("unknown key") for row in rows))
         self.assertTrue(any(row.observed.startswith("unknown type") for row in rows))
+
+    def test_h2_oracle_and_postgresql_share_one_schema(self):
+        schemas = {name: path.read_text() for name, path in {"pg": PG, "ora": ORA, "h2": H2}.items()}
+        columns = {name: parse_create_columns(sql) for name, sql in schemas.items()}
+        self.assertEqual(set(columns["pg"]), set(columns["ora"]))
+        self.assertEqual(set(columns["pg"]), set(columns["h2"]))
+
+        def shared_type(raw: str) -> str:
+            text = raw.lower()
+            if re.search(r"number\s*\(\s*(10|19)\s*,\s*0", text) or text.startswith("bigint"):
+                return "integer"
+            if text.startswith(("clob", "text")):
+                return "string"
+            return logical_type(text)
+
+        for key in columns["pg"]:
+            observed = {}
+            for name, sql in schemas.items():
+                raw = _raw_column_type(sql, key)
+                col = columns[name][key]
+                observed[name] = (shared_type(raw), col.length, col.required, col.default)
+            self.assertEqual(len(set(observed.values())), 1, (key, observed))
+
+        def links(sql: str) -> set[tuple]:
+            return {
+                (fk.table, fk.column, fk.ref_table, fk.ref_column, fk.on_delete or "")
+                for fk in parse_foreign_keys(sql)
+            }
+
+        self.assertEqual(links(schemas["pg"]), links(schemas["ora"]))
+        self.assertEqual(links(schemas["pg"]), links(schemas["h2"]))
+
+        names = {name: _constraint_names(sql) for name, sql in schemas.items()}
+        h2_only = names["h2"] - names["pg"]
+        self.assertEqual(h2_only, {("STM_LITERAL_TRANSLATION", "UNIQUE", "(LTR_LITERAL)", "STM_LTR_LITERAL_UK")})
+        self.assertEqual(names["pg"], names["ora"])
+        self.assertEqual(names["pg"] - names["h2"], set())
+        for sql in schemas.values():
+            self.assertIn("stm_ltv_pkey", sql)
+            self.assertIn("stm_ltr_literal_uk", sql)
+
+        pg_codes = _codelist_rows(ROOT / "sitmun-backend/src/main/resources/db/changelog/baseline/02-codelists.postgresql.sql")
+        ora_codes = _codelist_rows(ROOT / "sitmun-backend/src/main/resources/db/changelog/baseline/02-codelists.oracle.sql")
+        self.assertEqual(pg_codes, ora_codes)
+
+
+def _raw_column_type(sql: str, key: tuple[str, str]) -> str:
+    table, column = key
+    match = re.search(
+        rf"CREATE TABLE\s+{table}\s*\((.*?)\);",
+        sql,
+        re.I | re.S,
+    )
+    body = match.group(1) if match else ""
+    for line in body.splitlines():
+        text = line.strip().rstrip(",")
+        if text.upper().startswith(column + " "):
+            rest = text[len(column) :].strip()
+            rest = re.sub(r"\bNOT NULL\b", "", rest, flags=re.I)
+            rest = re.sub(r"\bDEFAULT\b.*$", "", rest, flags=re.I)
+            return rest.strip()
+    raise AssertionError(key)
+
+
+def _constraint_names(sql: str) -> set[tuple[str, str, str, str]]:
+    found = set()
+    pattern = re.compile(
+        r"ALTER TABLE(?: ONLY)?\s+(\w+)\s+ADD CONSTRAINT\s+(\w+)\s+(PRIMARY KEY|UNIQUE|FOREIGN KEY)\s*(\([^)]*\))?",
+        re.I,
+    )
+    for match in pattern.finditer(sql):
+        cols = re.sub(r"\s+", "", (match.group(4) or "").upper())
+        found.add((match.group(1).upper(), match.group(3).upper(), cols, match.group(2).upper()))
+    return found
+
+
+def _codelist_rows(path: Path) -> set[tuple[str, ...]]:
+    text = path.read_text()
+    rows = set()
+    flags = {"true": "1", "false": "0", "1": "1", "0": "0"}
+    for match in re.finditer(r"INSERT INTO stm_codelist\s*\([^)]*\)\s*VALUES\s*\((.*?)\)\s*;", text, re.I | re.S):
+        parts: list[str] = []
+        buf = ""
+        quoted = False
+        for char in match.group(1):
+            if char == "'":
+                quoted = not quoted
+                buf += char
+            elif char == "," and not quoted:
+                parts.append(buf.strip())
+                buf = ""
+            else:
+                buf += char
+        if buf.strip():
+            parts.append(buf.strip())
+        parts[3] = flags[parts[3].lower()]
+        parts[4] = flags[parts[4].lower()]
+        rows.add(tuple(parts))
+    return rows
 
 
 if __name__ == "__main__":

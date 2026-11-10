@@ -6,7 +6,9 @@ databaseChangeLog:
       id: baseline-schema-postgresql
       author: sitmun
       logicalFilePath: db/changelog/baseline/01-schema.postgresql.sql
-      validCheckSum: 9:7ceba0f78e0784bbb7303093f2d1244e
+      validCheckSum:
+        - 9:7ceba0f78e0784bbb7303093f2d1244e
+        - 9:6ae367f68653c24d210d6e4388737673
       dbms: postgresql
       preConditions:
         - onFail: MARK_RAN
@@ -255,4 +257,7 @@ databaseChangeLog:
       relativeToChangelogFile: true
   - include:
       file: setup-language-configured.postgresql.sql
+      relativeToChangelogFile: true
+  - include:
+      file: literal-translation-value-pkey.postgresql.sql
       relativeToChangelogFile: true

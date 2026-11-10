@@ -84,6 +84,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+- **Database**: A fresh 1.3.0 database uses the same columns, foreign keys, constraint names, and system code lists on H2, Oracle, and PostgreSQL. The literal-translation-value primary key is `stm_ltv_pkey`. A PostgreSQL database that already used the longer name is renamed ([#64](https://github.com/sitmun/sitmun/issues/64)).
 - **Database**: The data dictionary is the schema contract for column type, foreign keys, and required configuration. A fresh database stores service-check times with a time zone and starts with `setup.languageConfigured` false. A database created by the published 1.3.0 image receives that row when it is missing. An upgrade from 1.2.9 sets that flag true. That image also keeps the checksum of the translation and code-list changesets it already ran. Task title is part of the baseline and of that upgrade ([#146](https://github.com/sitmun/sitmun/issues/146), [#64](https://github.com/sitmun/sitmun/issues/64)).
 - **Service checks**: An upstream error page is read in the character set named on the response. When the response names none, the reader uses the byte-order mark, then the XML declaration, then UTF-8 ([#136](https://github.com/sitmun/sitmun/issues/136)).
 - **Database**: On PostgreSQL, the service-check time and the check-sample time are stored with a time zone. Existing values are copied as UTC before the column changes. Oracle already stores both that way ([#144](https://github.com/sitmun/sitmun/issues/144)).
