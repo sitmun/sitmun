@@ -10,7 +10,7 @@ import {MatSelectChange} from '@angular/material/select';
 import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
 import {RouterModule} from '@angular/router';
 
-import {TranslateLoader, TranslateModule} from '@ngx-translate/core';
+import { TranslateLoader, TranslatePipe, provideTranslateService } from '@ngx-translate/core';
 import {firstValueFrom, of} from 'rxjs';
 
 import {EntityFormAlertsComponent} from '@app/components/shared/entity-form-alerts/entity-form-alerts.component';
@@ -66,7 +66,10 @@ describe('TerritoryFormComponent', () => {
         MaterialModule,
         MatIconTestingModule,
         BrowserAnimationsModule,
-        TranslateModule.forRoot({
+        TranslatePipe,
+      ],
+      providers: [
+      provideTranslateService({
           loader: {
             provide: TranslateLoader,
             useFactory: () => ({
@@ -74,8 +77,6 @@ describe('TerritoryFormComponent', () => {
             })
           }
         }),
-      ],
-      providers: [
         provideHttpClient(),
         provideHttpClientTesting(),
         provideErrorHandlerForTests(),

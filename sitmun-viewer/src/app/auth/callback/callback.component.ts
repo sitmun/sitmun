@@ -2,13 +2,13 @@ import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 
 import { AuthenticationService } from '@auth/services/authentication.service';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 
 import { NotificationService } from '../../notifications/services/NotificationService';
 
 @Component({
   selector: 'app-callback',
-  imports: [TranslateModule],
+  imports: [TranslatePipe],
   templateUrl: './callback.component.html',
   changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './callback.component.scss'

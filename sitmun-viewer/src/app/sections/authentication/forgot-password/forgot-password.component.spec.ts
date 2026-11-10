@@ -7,7 +7,7 @@ import { Router } from '@angular/router';
 
 import { AuthenticationService } from '@auth/services/authentication.service';
 import { ResetPasswordService } from '@auth/services/resetPassword.service';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslatePipe, provideTranslateService } from '@ngx-translate/core';
 import { FormFieldInputComponent } from '@ui/components/form-field-input/form-field-input.component';
 import { PrimaryButtonComponent } from '@ui/components/primary-button/primary-button.component';
 import { NotificationService } from 'src/app/notifications/services/NotificationService';
@@ -21,7 +21,7 @@ describe('ForgotPasswordComponent', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [
-        TranslateModule.forRoot(),
+        TranslatePipe,
         NgOptimizedImage,
         MatIconModule
       ],
@@ -31,6 +31,7 @@ describe('ForgotPasswordComponent', () => {
         FormFieldInputComponent
       ],
       providers: [
+      provideTranslateService(),
         provideHttpClient(),
         provideHttpClientTesting(),
         {

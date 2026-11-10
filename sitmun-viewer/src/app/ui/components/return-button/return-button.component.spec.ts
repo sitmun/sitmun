@@ -6,7 +6,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService, provideTranslateService } from '@ngx-translate/core';
 
 import { ReturnButtonComponent } from './return-button.component';
 
@@ -18,12 +18,13 @@ describe('ReturnButtonComponent', () => {
     TestBed.configureTestingModule({
       declarations: [ReturnButtonComponent],
       imports: [
-        TranslateModule.forRoot(),
+        TranslatePipe,
         MatIconModule,
         MatButtonModule,
         MatTooltipModule
       ],
       providers: [
+      provideTranslateService(),
         provideHttpClient(),
         provideHttpClientTesting(),
         {

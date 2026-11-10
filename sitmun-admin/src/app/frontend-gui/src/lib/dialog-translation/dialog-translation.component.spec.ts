@@ -11,7 +11,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 
-import { TranslateLoader, TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslateLoader, TranslatePipe, TranslateService, provideTranslateService } from '@ngx-translate/core';
 import { of } from 'rxjs';
 
 import { DialogTranslationComponent } from './dialog-translation.component';
@@ -32,7 +32,11 @@ describe('DialogTranslationComponent', () => {
         MatInputModule,
         MatTooltipModule,
         NoopAnimationsModule,
-        TranslateModule.forRoot({
+        TranslatePipe,
+        ReactiveFormsModule,
+      ],
+      providers: [
+      provideTranslateService({
           loader: {
             provide: TranslateLoader,
             useFactory: () => ({
@@ -40,9 +44,6 @@ describe('DialogTranslationComponent', () => {
             })
           }
         }),
-        ReactiveFormsModule,
-      ],
-      providers: [
         { provide: MatDialogRef, useValue: {
            
           close: () => {}

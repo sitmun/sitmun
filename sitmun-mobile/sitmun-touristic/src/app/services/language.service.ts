@@ -19,7 +19,7 @@ export class LanguageService {
   };
 
   constructor(private translate: TranslateService) {
-    this.translate.setDefaultLang(this.languages.default);
+    this.translate.setFallbackLang(this.languages.default);
     this.setInitialLanguage();
   }
 

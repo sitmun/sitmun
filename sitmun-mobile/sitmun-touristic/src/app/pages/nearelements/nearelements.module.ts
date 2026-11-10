@@ -7,7 +7,7 @@ import { IonicModule } from '@ionic/angular';
 import { NearelementsPageRoutingModule } from './nearelements-routing.module';
 
 import { NearelementsPage } from './nearelements.page';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslatePipe } from '@ngx-translate/core';
 
 @NgModule({
   imports: [
@@ -15,7 +15,7 @@ import { TranslateModule } from '@ngx-translate/core';
     FormsModule,
     IonicModule,
     NearelementsPageRoutingModule,
-    TranslateModule
+    TranslatePipe
   ],
   declarations: [NearelementsPage]
 })

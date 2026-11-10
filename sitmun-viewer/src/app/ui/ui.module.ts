@@ -19,7 +19,7 @@ import { MatTabsModule } from '@angular/material/tabs';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { RouterModule } from '@angular/router';
 
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslatePipe } from '@ngx-translate/core';
 import { DashboardSearchboxComponent } from '@ui/components/dashboard/dashboard-searchbox/dashboard-searchbox.component';
 import { ModalModule } from '@ui/modal/modal.module';
 
@@ -42,7 +42,7 @@ import { SharedPipesModule } from '../../util/pipe/SharedPipesModule';
 @NgModule({
   imports: [
     CommonModule,
-    TranslateModule,
+    TranslatePipe,
     FormsModule,
     ReactiveFormsModule,
     MatAutocompleteModule,

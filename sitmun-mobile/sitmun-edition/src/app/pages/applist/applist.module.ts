@@ -7,7 +7,7 @@ import { IonicModule } from '@ionic/angular';
 import { ApplistPageRoutingModule } from './applist-routing.module';
 
 import { ApplistPage } from './applist.page';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslatePipe } from '@ngx-translate/core';
 import { ProfileModalComponent } from 'src/app/components/profile-modal/profile-modal.component';
 
 @NgModule({
@@ -16,7 +16,7 @@ import { ProfileModalComponent } from 'src/app/components/profile-modal/profile-
     FormsModule,
     IonicModule,
     ApplistPageRoutingModule,
-    TranslateModule,
+    TranslatePipe,
     ProfileModalComponent
   ],
   declarations: [ApplistPage]

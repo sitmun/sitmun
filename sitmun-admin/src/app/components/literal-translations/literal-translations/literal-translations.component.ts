@@ -16,7 +16,7 @@ import {
   ModuleRegistry,
 } from '@ag-grid-community/core';
 import { InfiniteRowModelModule } from '@ag-grid-community/infinite-row-model';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { debounceTime, forkJoin, tap } from 'rxjs';
 
 import {
@@ -51,7 +51,7 @@ ModuleRegistry.registerModules([CommunityFeaturesModule, InfiniteRowModelModule]
   styleUrls: ['./literal-translations.component.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [CommonModule, ReactiveFormsModule, MaterialModule, TranslateModule, AgGridModule],
+  imports: [CommonModule, ReactiveFormsModule, MaterialModule, TranslatePipe, AgGridModule],
 })
 export class LiteralTranslationsComponent implements CanComponentDeactivate, OnInit {
   private readonly destroyRef = inject(DestroyRef);

@@ -9,7 +9,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { Router } from '@angular/router';
 
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslatePipe, provideTranslateService } from '@ngx-translate/core';
 import { BehaviorSubject } from 'rxjs';
 
 import { AuthService } from '@app/core/auth/auth.service';
@@ -94,9 +94,10 @@ describe('SystemInfoMenuComponent', () => {
         MatDividerModule,
         MatTooltipModule,
         NoopAnimationsModule,
-        TranslateModule.forRoot()
+        TranslatePipe
       ],
       providers: [
+      provideTranslateService(),
         { provide: Principal, useValue: principal },
         { provide: AuthService, useValue: authService },
         { provide: LoginService, useValue: { logout: jest.fn() } },

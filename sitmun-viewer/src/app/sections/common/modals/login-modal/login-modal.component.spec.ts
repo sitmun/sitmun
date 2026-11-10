@@ -5,7 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 
 import { AuthenticationService } from '@auth/services/authentication.service';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService, provideTranslateService } from '@ngx-translate/core';
 import { OpenModalRef } from '@ui/modal/service/open-modal-ref';
 import { of, throwError } from 'rxjs';
 
@@ -24,11 +24,12 @@ describe('LoginModalComponent', () => {
 
     await TestBed.configureTestingModule({
       imports: [
-        TranslateModule.forRoot(),
+        TranslatePipe,
         FormsModule
       ],
       declarations: [LoginModalComponent],
       providers: [
+      provideTranslateService(),
         provideHttpClient(),
         provideHttpClientTesting(),
         {

@@ -8,7 +8,7 @@ import { By } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { RouterModule } from '@angular/router';
 
-import { TranslateLoader, TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslateLoader, TranslatePipe, TranslateService, provideTranslateService } from '@ngx-translate/core';
 import { of } from 'rxjs';
 
 import {EntityFormAlertsComponent} from '@app/components/shared/entity-form-alerts/entity-form-alerts.component';
@@ -50,15 +50,16 @@ describe('ServiceFormComponent', () => {
     await TestBed.configureTestingModule({
       teardown: { destroyAfterEach: 0 as any },
       declarations: [ ServiceFormComponent, FormToolbarComponent, ServiceAccessTimelineComponent ],
-      imports: [FormsModule, ReactiveFormsModule, SitmunFrontendGuiModule, EntityFormAlertsComponent, RouterModule.forRoot([], {}), MaterialModule, TranslateModule.forRoot({
+      imports: [FormsModule, ReactiveFormsModule, SitmunFrontendGuiModule, EntityFormAlertsComponent, RouterModule.forRoot([], {}), MaterialModule, TranslatePipe, BrowserAnimationsModule],
+      providers: [
+      provideTranslateService({
           loader: {
             provide: TranslateLoader,
             useFactory: () => ({
               getTranslation: () => of({})
             })
           }
-        }), BrowserAnimationsModule],
-      providers: [
+        }),
         provideHttpClient(),
         provideHttpClientTesting(),
         provideErrorHandlerForTests(),
@@ -502,7 +503,7 @@ describe('ServiceFormComponent', () => {
       monitoringLabel = 'Monitorización';
       testAccessLabel = 'Probar acceso';
       const translate = TestBed.inject(TranslateService);
-      translate.setDefaultLang('es');
+      translate.setFallbackLang('es');
       translate.use('es');
       translate.setTranslation('es', {
         'entity.service.monitoring': 'Monitorización',
@@ -521,7 +522,7 @@ describe('ServiceFormComponent', () => {
       monitoringLabel = 'Monitoring';
       testAccessLabel = 'Test access';
       const translate = TestBed.inject(TranslateService);
-      translate.setDefaultLang('en');
+      translate.setFallbackLang('en');
       translate.use('en');
       translate.setTranslation('en', {
         'entity.service.monitoring': 'Monitoring',
@@ -974,7 +975,7 @@ describe('ServiceFormComponent', () => {
 
     function englishTimeoutLabels(): void {
       const translate = TestBed.inject(TranslateService);
-      translate.setDefaultLang('en');
+      translate.setFallbackLang('en');
       translate.use('en');
       translate.setTranslation('en', {
         'entity.service.access.observer.backend': 'Backend',

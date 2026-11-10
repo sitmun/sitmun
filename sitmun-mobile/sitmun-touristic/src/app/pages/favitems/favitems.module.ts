@@ -7,7 +7,7 @@ import { IonicModule } from '@ionic/angular';
 import { FavitemsPageRoutingModule } from './favitems-routing.module';
 
 import { FavitemsPage } from './favitems.page';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslatePipe } from '@ngx-translate/core';
 
 @NgModule({
   imports: [
@@ -15,7 +15,7 @@ import { TranslateModule } from '@ngx-translate/core';
     FormsModule,
     IonicModule,
     FavitemsPageRoutingModule,
-    TranslateModule
+    TranslatePipe
   ],
   declarations: [FavitemsPage]
 })

@@ -7,7 +7,7 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { RouterModule } from '@angular/router';
 
 import { AgGridModule } from '@ag-grid-community/angular';
-import { TranslateLoader, TranslateModule } from '@ngx-translate/core';
+import { TranslateLoader, TranslatePipe, provideTranslateService } from '@ngx-translate/core';
 import { of } from 'rxjs';
 
 import { EntityFormAlertsComponent } from '@app/components/shared/entity-form-alerts/entity-form-alerts.component';
@@ -46,16 +46,17 @@ describe('TaskQueryFormComponent', () => {
         MaterialModule,
         MatIconTestingModule,
         BrowserAnimationsModule,
-        TranslateModule.forRoot({
+        TranslatePipe
+      ],
+      providers: [
+      provideTranslateService({
           loader: {
             provide: TranslateLoader,
             useFactory: () => ({
               getTranslation: () => of({})
             })
           }
-        })
-      ],
-      providers: [
+        }),
         provideHttpClient(withInterceptorsFromDi()),
         provideHttpClientTesting(),
         { provide: HTTP_INTERCEPTORS, useClass: MessagesInterceptor, multi: true },

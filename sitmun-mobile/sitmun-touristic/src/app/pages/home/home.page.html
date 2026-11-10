@@ -1,13 +1,18 @@
-<ion-header [translucent]="true">
-</ion-header>
+<ion-header [translucent]="true"> </ion-header>
 
 <ion-content [fullscreen]="true">
   <div id="container">
     <div class="language-selector">
-      <ion-select [(ngModel)]="selectedLanguage" (ionChange)="setLanguage($event.detail.value)" interface="popover">
-        <ion-select-option *ngFor="let lang of languageOptions" [value]="lang.code">
-           {{ lang.name }}
+      <ion-select
+        [(ngModel)]="selectedLanguage"
+        (ionChange)="setLanguage($event.detail.value)"
+        interface="popover"
+      >
+        @for (lang of languageOptions; track lang) {
+        <ion-select-option [value]="lang.code">
+          {{ lang.name }}
         </ion-select-option>
+        }
       </ion-select>
     </div>
     <ion-grid>
@@ -21,24 +26,38 @@
         <ion-col></ion-col>
       </ion-row>
       <ion-row>
-        <ion-col>          
+        <ion-col>
           <strong>{{ 'home.instanceSelection' | translate }}</strong>
         </ion-col>
       </ion-row>
       <ion-row>
-        <ion-col class="center">          
-          <ion-select id="instance-selector" 
-          [placeholder]="'home.sitmunInstance' | translate" [attr.aria-label]="'home.sitmunInstance' | translate"
-            interface="action-sheet" cancelText="{{ 'exit.cancel' | translate }}"
-            (ionChange)="onInstanceChange($event)">
-            <ion-select-option *ngFor="let instance of instanceOptions" value="{{instance.value}}">{{instance.name}}</ion-select-option>
+        <ion-col class="center">
+          <ion-select
+            id="instance-selector"
+            [placeholder]="'home.sitmunInstance' | translate"
+            [attr.aria-label]="'home.sitmunInstance' | translate"
+            interface="action-sheet"
+            cancelText="{{ 'exit.cancel' | translate }}"
+            (ionChange)="onInstanceChange($event)"
+          >
+            @for (instance of instanceOptions; track instance) {
+            <ion-select-option value="{{instance.value}}"
+              >{{instance.name}}</ion-select-option
+            >
+            }
           </ion-select>
         </ion-col>
       </ion-row>
       <ion-row>
         <ion-col size="2"></ion-col>
         <ion-col size="8">
-          <ion-button expand="block" shape="round" (click)="access()" style="--background: #70889E;">{{ 'home.access' | translate }}</ion-button>
+          <ion-button
+            expand="block"
+            shape="round"
+            (click)="access()"
+            style="--background: #70889e"
+            >{{ 'home.access' | translate }}</ion-button
+          >
         </ion-col>
       </ion-row>
     </ion-grid>

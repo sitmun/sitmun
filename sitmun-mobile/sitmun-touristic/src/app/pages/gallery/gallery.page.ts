@@ -1,38 +1,43 @@
-import { Component, OnInit } from '@angular/core';
-import { LoadingController } from '@ionic/angular';
-import { AuthorizationService } from 'src/app/services/authorization.service';
-import { DatabaseService } from 'src/app/services/database.service';
-import { LanguageService } from 'src/app/services/language.service';
-import { RequestService } from 'src/app/services/request.service';
-import { RoutingService } from 'src/app/services/routing.service';
+import { Component, OnInit, ChangeDetectionStrategy } from "@angular/core";
+import { LoadingController } from "@ionic/angular";
+import { AuthorizationService } from "src/app/services/authorization.service";
+import { DatabaseService } from "src/app/services/database.service";
+import { LanguageService } from "src/app/services/language.service";
+import { RequestService } from "src/app/services/request.service";
+import { RoutingService } from "src/app/services/routing.service";
 
 @Component({
-  selector: 'app-gallery',
-  templateUrl: './gallery.page.html',
-  styleUrls: ['./gallery.page.scss'],
+  selector: "app-gallery",
+  templateUrl: "./gallery.page.html",
+  styleUrls: ["./gallery.page.scss"],
+  changeDetection: ChangeDetectionStrategy.Eager,
+  standalone: false,
 })
 export class GalleryPage implements OnInit {
-
   selectedLanguage: string | null = null;
-    languageOptions: any[] = [];
-    rootNode: Node|any = {};
-    taskNode: Node|any = {};
-    parentData: any = {};
-    task: any = {};
-    elements: any[] = [];
-    isModalOpen = false;
-    isModalOpenImg = false;
-    currentExtraInfo = {title: '', content: ''};
-    imageModal: String = '';
-    loaded = false;
-    arraySkeleton: any[] = new Array(3);
-  
-    constructor(private authorizationService: AuthorizationService, private routingService: RoutingService,
-      private languageService: LanguageService, private requestService: RequestService, private databaseService: DatabaseService,
-      private loadingCtrl: LoadingController) { }
-  
-    ngOnInit() {
-    }
+  languageOptions: any[] = [];
+  rootNode: Node | any = {};
+  taskNode: Node | any = {};
+  parentData: any = {};
+  task: any = {};
+  elements: any[] = [];
+  isModalOpen = false;
+  isModalOpenImg = false;
+  currentExtraInfo = { title: "", content: "" };
+  imageModal: String = "";
+  loaded = false;
+  arraySkeleton: any[] = new Array(3);
+
+  constructor(
+    private authorizationService: AuthorizationService,
+    private routingService: RoutingService,
+    private languageService: LanguageService,
+    private requestService: RequestService,
+    private databaseService: DatabaseService,
+    private loadingCtrl: LoadingController,
+  ) {}
+
+  ngOnInit() {}
 
   ionViewWillEnter() {
     this.loaded = false;
@@ -47,11 +52,11 @@ export class GalleryPage implements OnInit {
     if (navigation) {
       let tempState = navigation.state;
       if (tempState) {
-        this.rootNode = tempState['rootNode'];
-        this.taskNode = tempState['taskNodes'][0];
-        this.task = tempState['tasks'][0];
-        if (tempState['parentData']){
-          this.parentData = tempState['parentData'];
+        this.rootNode = tempState["rootNode"];
+        this.taskNode = tempState["taskNodes"][0];
+        this.task = tempState["tasks"][0];
+        if (tempState["parentData"]) {
+          this.parentData = tempState["parentData"];
         }
       }
     }
@@ -59,7 +64,11 @@ export class GalleryPage implements OnInit {
 
   async getData() {
     console.log("Obteniendo elementos");
-    const results = await this.requestService.templateRequest(this.task, this.taskNode.mapping, this.parentData);
+    const results = await this.requestService.templateRequest(
+      this.task,
+      this.taskNode.mapping,
+      this.parentData,
+    );
     this.elements = results;
     console.log("Elementos obtenidos");
     this.loaded = true;
@@ -71,7 +80,7 @@ export class GalleryPage implements OnInit {
   }
 
   async nextPage(idNode: string, parentData: any = {}) {
-    if(idNode) {
+    if (idNode) {
       const data = await this.authorizationService.getPagesNodesBD(idNode);
       this.routingService.redirect(data, parentData);
     }
@@ -90,9 +99,12 @@ export class GalleryPage implements OnInit {
   }
 
   refreshProfile() {
-    this.authorizationService.getProfile().then(profile => {
+    this.authorizationService.getProfile().then((profile) => {
       this.databaseService.addProfile(profile);
-      const data = this.authorizationService.getPagesByProfile(profile, this.rootNode.id);
+      const data = this.authorizationService.getPagesByProfile(
+        profile,
+        this.rootNode.id,
+      );
       this.rootNode = data.rootNode;
       this.hideLoading();
     });
@@ -108,14 +120,13 @@ export class GalleryPage implements OnInit {
     this.loadingCtrl.dismiss();
   }
 
-  closeModalImg(){
+  closeModalImg() {
     this.isModalOpenImg = false;
   }
 
-  openModalImg(event: Event, image: String | undefined){
+  openModalImg(event: Event, image: String | undefined) {
     event.stopPropagation();
-    this.imageModal = image || '';
+    this.imageModal = image || "";
     this.isModalOpenImg = true;
   }
-
 }

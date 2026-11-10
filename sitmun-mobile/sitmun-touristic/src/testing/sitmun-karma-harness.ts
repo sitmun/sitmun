@@ -23,11 +23,7 @@ import { Geolocation } from '@capacitor/geolocation';
 import { Preferences } from '@capacitor/preferences';
 import { CapacitorHttp } from '@capacitor/core';
 import { IonicModule } from '@ionic/angular';
-import {
-  TranslateFakeLoader,
-  TranslateLoader,
-  TranslateModule,
-} from '@ngx-translate/core';
+import { TranslateNoOpLoader, TranslatePipe, provideTranslateLoader, provideTranslateService } from '@ngx-translate/core';
 import { of } from 'rxjs';
 import { DatabaseService } from '../app/services/database.service';
 import { MapaService } from '../app/services/mapa.service';
@@ -104,7 +100,7 @@ const OVERLAY_IMPORTS = [
   CommonModule,
   FormsModule,
   IonicModule,
-  TranslateModule,
+  TranslatePipe,
 ];
 
 const OVERLAY_SCHEMAS = [CUSTOM_ELEMENTS_SCHEMA, NO_ERRORS_SCHEMA];
@@ -112,16 +108,14 @@ const OVERLAY_SCHEMAS = [CUSTOM_ELEMENTS_SCHEMA, NO_ERRORS_SCHEMA];
 @NgModule({
   imports: [
     IonicModule.forRoot(),
-    TranslateModule.forRoot({
-      defaultLanguage: 'ca',
-      loader: {
-        provide: TranslateLoader,
-        useClass: TranslateFakeLoader,
-      },
-    }),
+    TranslatePipe,
     RouterTestingModule.withRoutes([]),
   ],
   providers: [
+      provideTranslateService({
+      fallbackLang: 'ca',
+      loader: provideTranslateLoader(TranslateNoOpLoader),
+    }),
     { provide: SQLiteService, useClass: HeadlessSqlite },
     {
       provide: ActivatedRoute,

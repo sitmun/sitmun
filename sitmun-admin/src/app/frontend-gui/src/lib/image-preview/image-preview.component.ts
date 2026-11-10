@@ -2,7 +2,7 @@ import { Component, Input, OnChanges, SimpleChanges, ViewChild, ElementRef, Afte
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslatePipe } from '@ngx-translate/core';
 
 /**
  * Component for displaying image preview with dimensions and download functionality.
@@ -17,7 +17,7 @@ import { TranslateModule } from '@ngx-translate/core';
     imports: [
     MatButtonModule,
     MatIconModule,
-    TranslateModule
+    TranslatePipe
 ]
 })
 export class ImagePreviewComponent implements OnChanges, AfterViewInit {

@@ -43,7 +43,7 @@ describe('LanguageService', () => {
         {
           provide: TranslateService,
           useValue: {
-            setDefaultLang: jest.fn(),
+            setFallbackLang: jest.fn(),
             use: jest.fn().mockReturnValue(of({})),
             currentLang: 'en'
           }

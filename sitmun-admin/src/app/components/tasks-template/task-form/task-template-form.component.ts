@@ -989,7 +989,7 @@ export class TaskTemplateFormComponent extends BaseFormComponent<TaskProjection>
   }
 
   private initializePreviewLanguage(): void {
-    const currentLanguage = this.translateService.currentLang;
+    const currentLanguage = this.translateService.getCurrentLang();
     const selectedLanguage = this.previewLanguages.find((language) => language.shortname === currentLanguage)
       ? currentLanguage
       : this.previewLanguages.find((language) => language.shortname === this.previewLanguageControl.value)?.shortname

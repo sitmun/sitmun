@@ -316,7 +316,7 @@ export class NavigationBarComponent implements OnInit, DoCheck, OnDestroy {
     }
     const chosen = resolveUiLanguage({
       stored:
-        this.translate.currentLang ||
+        this.translate.getCurrentLang() ||
         localStorage.getItem(this.languageService.STORED_LANGUAGE),
       backendDefault: null,
       availableShortnames: languages.map((language) => language.shortname),

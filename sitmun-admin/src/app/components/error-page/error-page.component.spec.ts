@@ -6,7 +6,7 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { Router } from '@angular/router';
 
-import { TranslateService , TranslateModule } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService, provideTranslateService } from '@ngx-translate/core';
 
 import { LoggerService } from '@app/services/logger.service';
 
@@ -38,9 +38,10 @@ describe('ErrorPageComponent', () => {
         MatCardModule,
         MatToolbarModule,
         MatTooltipModule,
-        TranslateModule.forRoot()
+        TranslatePipe
       ],
       providers: [
+      provideTranslateService(),
         { provide: Router, useValue: { navigate: jest.fn() } },
         { provide: TranslateService, useValue: { instant: jest.fn() } },
         { provide: LoggerService, useValue: loggerService }

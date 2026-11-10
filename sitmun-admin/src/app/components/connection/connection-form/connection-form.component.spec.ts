@@ -6,7 +6,7 @@ import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { provideRouter, RouterModule } from '@angular/router';
 
-import {TranslateLoader, TranslateModule} from '@ngx-translate/core';
+import { TranslateLoader, TranslatePipe, provideTranslateService } from '@ngx-translate/core';
 import {of} from 'rxjs';
 
 import {EntityFormAlertsComponent} from '@app/components/shared/entity-form-alerts/entity-form-alerts.component';
@@ -45,15 +45,16 @@ describe('ConnectionFormComponent', () => {
       teardown: { destroyAfterEach: 0 as any },
       declarations: [ ConnectionFormComponent, FormToolbarComponent ],
       imports : [FormsModule, ReactiveFormsModule, SitmunFrontendGuiModule, EntityFormAlertsComponent, MatIconTestingModule, MaterialModule, RouterModule, BrowserAnimationsModule,
-        TranslateModule.forRoot({
+        TranslatePipe],
+      providers: [
+      provideTranslateService({
           loader: {
             provide: TranslateLoader,
             useFactory: () => ({
               getTranslation: () => of({})
             })
           }
-        })],
-      providers: [
+        }),
         provideRouter([]),
         provideHttpClient(),
         provideHttpClientTesting(),

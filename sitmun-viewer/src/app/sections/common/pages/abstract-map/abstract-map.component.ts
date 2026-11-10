@@ -91,7 +91,7 @@ export abstract class AbstractMapComponent implements OnInit, OnDestroy {
     const path = this.location.path();
     this.isInEmbedded = path.includes('embedded');
 
-    const currentLang = this.translate.currentLang;
+    const currentLang = this.translate.getCurrentLang() ?? '';
     this.locale = this.parseLang(currentLang);
   }
 
@@ -188,7 +188,7 @@ export abstract class AbstractMapComponent implements OnInit, OnDestroy {
               this.territoryId != null &&
               !isNaN(this.territoryId)
           ),
-          map(() => this.parseLang(this.translate.currentLang)),
+          map(() => this.parseLang(this.translate.getCurrentLang() ?? '')),
           filter((newLocale) => newLocale !== this.locale),
           tap((newLocale) => {
             this.locale = newLocale;
@@ -196,7 +196,7 @@ export abstract class AbstractMapComponent implements OnInit, OnDestroy {
             this.clearMap();
           }),
           switchMap(() => {
-            const langForRequest = this.translate.currentLang;
+            const langForRequest = this.translate.getCurrentLang() ?? undefined;
             const requestId = ++this.activeRequestId;
             return this.commonService
               .fetchMapConfiguration(
@@ -295,7 +295,7 @@ export abstract class AbstractMapComponent implements OnInit, OnDestroy {
       this.sitnaApi.setGlobal('currentAppCfg', appCfg);
       this.sitnaApi.setGlobal(
         'currentMapLang',
-        this.translate.currentLang || undefined
+        this.translate.getCurrentLang() || undefined
       );
 
       this.configLookup.initialize(appCfg);

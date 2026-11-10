@@ -1,70 +1,83 @@
-import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
-import { AuthorizationService, Node } from 'src/app/services/authorization.service';
-import { DatabaseService } from 'src/app/services/database.service';
-import { LanguageService } from 'src/app/services/language.service';
-import { RoutingService } from 'src/app/services/routing.service';
-import { constants } from 'src/environments/constants';
-import { Device } from '@capacitor/device';
-import { MapaService } from 'src/app/services/mapa.service';
-import { NativeSettings } from 'capacitor-native-settings';
-import { nativeLocationSettings } from 'src/app/services/location-permission.util';
-import { LoadingController } from '@ionic/angular';
+import { Component, OnInit, ChangeDetectionStrategy } from "@angular/core";
+import { ActivatedRoute, Router } from "@angular/router";
+import {
+  AuthorizationService,
+  Node,
+} from "src/app/services/authorization.service";
+import { DatabaseService } from "src/app/services/database.service";
+import { LanguageService } from "src/app/services/language.service";
+import { RoutingService } from "src/app/services/routing.service";
+import { constants } from "src/environments/constants";
+import { Device } from "@capacitor/device";
+import { MapaService } from "src/app/services/mapa.service";
+import { NativeSettings } from "capacitor-native-settings";
+import { nativeLocationSettings } from "src/app/services/location-permission.util";
+import { LoadingController } from "@ionic/angular";
 
 @Component({
-  selector: 'app-nearme',
-  templateUrl: './nearme.page.html',
-  styleUrls: ['./nearme.page.scss'],
+  selector: "app-nearme",
+  templateUrl: "./nearme.page.html",
+  styleUrls: ["./nearme.page.scss"],
+  changeDetection: ChangeDetectionStrategy.Eager,
+  standalone: false,
 })
 export class NearmePage implements OnInit {
-
   selectedLanguage: string | null = null;
   languageOptions: any[] = [];
-  rootNode: Node|any = {};
+  rootNode: Node | any = {};
   taskNodes: Node[] = [];
   distance = 5000;
   distanceMiles = 3.0;
   metricSystem = true;
-  searchPoint = 'location';
+  searchPoint = "location";
   categories: any[] = [];
-  selectedCategories: string[] = []; 
+  selectedCategories: string[] = [];
   isModalOpen = false;
   isToastOpen = false;
-  position: any = {x: 0, y: 0, permission: false};
+  position: any = { x: 0, y: 0, permission: false };
 
-  constructor(private router: Router, private route: ActivatedRoute, private authorizationService: AuthorizationService,
-    private routingService: RoutingService, private languageService: LanguageService,
-    private databaseService: DatabaseService, private mapService: MapaService, private loadingCtrl: LoadingController) {
-      this.route.queryParams.subscribe(params => {
-        let navigation = this.router.getCurrentNavigation();
-        if (navigation) {
-          let tempState = navigation.extras.state;
-          if (tempState) {
-            this.rootNode = tempState['rootNode'];
-            this.taskNodes = tempState['nodes'];
-          }
+  constructor(
+    private router: Router,
+    private route: ActivatedRoute,
+    private authorizationService: AuthorizationService,
+    private routingService: RoutingService,
+    private languageService: LanguageService,
+    private databaseService: DatabaseService,
+    private mapService: MapaService,
+    private loadingCtrl: LoadingController,
+  ) {
+    this.route.queryParams.subscribe((params) => {
+      let navigation = this.router.getCurrentNavigation();
+      if (navigation) {
+        let tempState = navigation.extras.state;
+        if (tempState) {
+          this.rootNode = tempState["rootNode"];
+          this.taskNodes = tempState["nodes"];
         }
-      });
+      }
+    });
   }
 
-  ngOnInit() {  
+  ngOnInit() {
     //this.getCategories();
     this.getCategoriesNodes();
   }
 
   getCategories() {
     this.categories = [];
-    console.log('Obteniendo categorias');
-    this.databaseService.getProfileData('trees').then((trees) => {
+    console.log("Obteniendo categorias");
+    this.databaseService.getProfileData("trees").then((trees) => {
       const jsonTrees = JSON.parse(trees[0].json);
-      const cartographyTree = jsonTrees.find((t: any) => t.type === constants.codeValue.treeType.cartography);
+      const cartographyTree = jsonTrees.find(
+        (t: any) => t.type === constants.codeValue.treeType.cartography,
+      );
       const treeNodes = cartographyTree.nodes;
       const nodeKeys = Object.keys(treeNodes);
       const layersNodes: any[] = [];
-      nodeKeys.forEach(k => {
+      nodeKeys.forEach((k) => {
         const n = treeNodes[k];
         if (n.resource) {
-          layersNodes.push({id: n.resource, name: n.title});
+          layersNodes.push({ id: n.resource, name: n.title });
         }
       });
       this.categories.push(...layersNodes);
@@ -73,9 +86,9 @@ export class NearmePage implements OnInit {
 
   getCategoriesNodes() {
     this.categories = [];
-    this.taskNodes.forEach(n => {
+    this.taskNodes.forEach((n) => {
       if (n.action) {
-        this.categories.push({id: n.id, name: n.title});
+        this.categories.push({ id: n.id, name: n.title });
       }
     });
   }
@@ -93,7 +106,7 @@ export class NearmePage implements OnInit {
   }
 
   async nextPage(idNode: string, filterData: any) {
-    if(idNode) {
+    if (idNode) {
       const data = await this.authorizationService.getPagesNodesBD(idNode);
       this.routingService.redirect(data, filterData);
     }
@@ -111,9 +124,12 @@ export class NearmePage implements OnInit {
   }
 
   refreshProfile() {
-    this.authorizationService.getProfile().then(profile => {
+    this.authorizationService.getProfile().then((profile) => {
       this.databaseService.addProfile(profile);
-      const data = this.authorizationService.getPagesByProfile(profile, this.rootNode.id);
+      const data = this.authorizationService.getPagesByProfile(
+        profile,
+        this.rootNode.id,
+      );
       this.rootNode = data.rootNode;
       this.taskNodes = data.nodes;
       this.getCategoriesNodes();
@@ -134,39 +150,43 @@ export class NearmePage implements OnInit {
   //obtiene el idioma del sistema y modifica valores distancia
   private async getLanguageSystem() {
     const tag = await Device.getLanguageTag();
-    console.log('Language tag:', tag.value);
+    console.log("Language tag:", tag.value);
 
-    if (tag.value === 'en-US' || tag.value === 'en-GB') {
+    if (tag.value === "en-US" || tag.value === "en-GB") {
       this.metricSystem = false;
-      this.distanceMiles = 3.0; 
+      this.distanceMiles = 3.0;
     } else {
-      this.distance = 5000; 
+      this.distance = 5000;
     }
-  };
+  }
 
-  toggleCategory(event:any, idCat:string) {
+  toggleCategory(event: any, idCat: string) {
     const btn = event.target;
-    if (btn.classList.contains('selected')) {
-      this.selectedCategories = this.selectedCategories.filter(c => c !== idCat);
-      btn.classList.remove('selected');
+    if (btn.classList.contains("selected")) {
+      this.selectedCategories = this.selectedCategories.filter(
+        (c) => c !== idCat,
+      );
+      btn.classList.remove("selected");
     } else {
-      btn.classList.add('selected');
+      btn.classList.add("selected");
       this.selectedCategories.push(idCat);
     }
   }
 
   async search() {
-
     if (this.selectedCategories.length === 0) {
       this.isToastOpen = true;
       return;
     }
 
-    //Reconvertir distancia a metros 
-    this.metricSystem ? this.distance : this.distance = Math.round(this.distanceMiles * 1609.34708789);
+    //Reconvertir distancia a metros
+    this.metricSystem
+      ? this.distance
+      : (this.distance = Math.round(this.distanceMiles * 1609.34708789));
 
-    if (this.searchPoint === 'location') { //usuario selecciona su ubicacion
-      this.position = await this.mapService.getLocation();    
+    if (this.searchPoint === "location") {
+      //usuario selecciona su ubicacion
+      this.position = await this.mapService.getLocation();
       if (!this.position.permission) {
         this.isModalOpen = true;
       } else {
@@ -184,13 +204,13 @@ export class NearmePage implements OnInit {
     const filterData = {
       DISTANCE: this.distance,
       LONGITUD: this.position.x,
-      LATITUD: this.position.y
+      LATITUD: this.position.y,
     };
     console.log(filterData);
     this.nextPage(this.selectedCategories[0], filterData);
   }
 
-  async openSettings(){
+  async openSettings() {
     this.isModalOpen = false;
 
     await NativeSettings.open(nativeLocationSettings());
@@ -203,6 +223,5 @@ export class NearmePage implements OnInit {
 
   closeModal() {
     this.isModalOpen = false;
-  } 
-
+  }
 }

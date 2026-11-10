@@ -7,7 +7,7 @@ import { IonicModule } from '@ionic/angular';
 import { NearmePageRoutingModule } from './nearme-routing.module';
 
 import { NearmePage } from './nearme.page';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslatePipe } from '@ngx-translate/core';
 
 @NgModule({
   imports: [
@@ -15,7 +15,7 @@ import { TranslateModule } from '@ngx-translate/core';
     FormsModule,
     IonicModule,
     NearmePageRoutingModule,
-    TranslateModule
+    TranslatePipe
   ],
   declarations: [NearmePage]
 })

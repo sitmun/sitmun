@@ -5,7 +5,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { By } from '@angular/platform-browser';
 import { provideRouter, RouterLink } from '@angular/router';
 
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslatePipe, provideTranslateService } from '@ngx-translate/core';
 
 import { RouterLinkRendererComponent } from './router-link-renderer.component';
 
@@ -22,9 +22,10 @@ describe('RouterLinkRendererComponent', () => {
         RouterLinkRendererComponent,
         MatIconModule,
         MatTooltipModule,
-        TranslateModule.forRoot(),
+        TranslatePipe,
       ],
-      providers: [provideRouter([
+      providers: [
+      provideTranslateService(),provideRouter([
         {path: 'connection/:id/connectionForm', component: RouterLinkTargetComponent},
       ])],
     }).compileComponents();

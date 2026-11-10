@@ -4,7 +4,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { provideRouter } from '@angular/router';
 
-import { TranslateLoader, TranslateModule } from '@ngx-translate/core';
+import { TranslateLoader, TranslatePipe, provideTranslateService } from '@ngx-translate/core';
 import { BehaviorSubject, of } from 'rxjs';
 
 import { SystemInfoMenuComponent } from '@app/components/shared/system-info-menu/system-info-menu.component';
@@ -43,16 +43,17 @@ describe('ToolbarComponent', () => {
         MaterialModule,
         SitmunFrontendGuiModule,
         MatIconTestingModule,
-        TranslateModule.forRoot({
+        TranslatePipe
+      ],
+      providers: [
+      provideTranslateService({
           loader: {
             provide: TranslateLoader,
             useFactory: () => ({
               getTranslation: () => of({})
             })
           }
-        })
-      ],
-      providers: [
+        }),
         provideRouter([]),
         provideHttpClient(),
         provideHttpClientTesting(),

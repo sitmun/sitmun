@@ -30,7 +30,7 @@ import {ClientSideRowModelModule} from '@ag-grid-community/client-side-row-model
 import {CommunityFeaturesModule, GridOptions, ModuleRegistry} from '@ag-grid-community/core';
 import {CsvExportModule} from '@ag-grid-community/csv-export';
 import {InfiniteRowModelModule} from '@ag-grid-community/infinite-row-model';
-import {TranslateModule, TranslateService} from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import {debounceTime, firstValueFrom, Observable, Subject, Subscription} from 'rxjs';
 
 import type {HalPage} from '@app/core/hal/hal-page';
@@ -143,7 +143,6 @@ export function onNotAvailable<T>(data: (T & Status)[]): Executor<T> {
   return new Executor(data.filter(notAvailable))
 }
 
-
 export function onCreate<T>(data: (T & Status)[]): Executor<T> {
   return new Executor(data.filter(canCreate))
 }
@@ -250,7 +249,7 @@ export class Executor<T> {
     MatMenuModule,
     MatIconModule,
     MatInputModule,
-    TranslateModule,
+    TranslatePipe,
     AgGridModule,
     MatButtonToggleModule,
     MatCardModule,
@@ -307,7 +306,6 @@ export class DataGridComponent implements OnInit, OnDestroy, OnChanges {
 
   /** Generation counter to drop stale infinite block responses */
   private infiniteDatasourceGeneration = 0;
-
 
   /** Last parameters of the grid */
   params: any;
@@ -1562,7 +1560,6 @@ export class DataGridComponent implements OnInit, OnDestroy, OnChanges {
       return this.eInput.value;
     };
 
-
     NativeDatepicker.prototype.destroy = function () {
     };
 
@@ -1593,7 +1590,6 @@ export class DataGridComponent implements OnInit, OnDestroy, OnChanges {
   oneRowSelected(): boolean {
     return (this.gridApi != null && this.gridApi?.getSelectedNodes().length == 1);
   }
-
 
   /**
    * Emits currently selected rows
@@ -1690,12 +1686,10 @@ export class DataGridComponent implements OnInit, OnDestroy, OnChanges {
         header.push(element.userProvidedColDef.headerName);
       }
 
-
     });
 
     return header.join(",");
   }
-
 
   /**
    * Exports grid data to CSV
@@ -1830,7 +1824,6 @@ export class DataGridComponent implements OnInit, OnDestroy, OnChanges {
 
     const itemsToAdd: any[] = [];
     const condition = (this.addFieldRestriction) ? this.addFieldRestriction : 'id';
-
 
     newItems.forEach(item => {
 
@@ -1967,7 +1960,6 @@ export class DataGridComponent implements OnInit, OnDestroy, OnChanges {
     }
   }
 
-
   /**
    * Deletes all pending changes and reverts the grid to its original state
    */
@@ -2037,7 +2029,6 @@ export class DataGridComponent implements OnInit, OnDestroy, OnChanges {
     //this.gridApi.redrawRows();
   }
 
-
   /**
    * Performs undo operation on the last cell edit
    */
@@ -2060,7 +2051,6 @@ export class DataGridComponent implements OnInit, OnDestroy, OnChanges {
     this.redoCounter -= 1;
   }
 
-
   /**
    * Handles cell editing stopped event
    * @param params - Cell editing parameters
@@ -2076,7 +2066,6 @@ export class DataGridComponent implements OnInit, OnDestroy, OnChanges {
       this.modificationChange = false;
     }
   }
-
 
   /**
    * Handles cell value changed event
@@ -2398,7 +2387,6 @@ export class DataGridComponent implements OnInit, OnDestroy, OnChanges {
       } else {
         this.undoNoChanges = false;
       }
-
 
     } else {
       //With the internally undo will enter at this function, so we have to control when done the undo or not

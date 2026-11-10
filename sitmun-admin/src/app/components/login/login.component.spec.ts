@@ -5,7 +5,7 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { provideRouter, RouterModule } from '@angular/router';
 
-import { TranslateLoader, TranslateModule } from '@ngx-translate/core';
+import { TranslateLoader, TranslatePipe, provideTranslateService } from '@ngx-translate/core';
 import { of } from 'rxjs';
 
 import {ExternalService, ResourceService} from '@app/core/hal/services';
@@ -32,16 +32,17 @@ describe('LoginComponent', () => {
         MatIconTestingModule,
         MaterialModule,
         RouterModule,
-        TranslateModule.forRoot({
+        TranslatePipe
+      ],
+      providers: [
+      provideTranslateService({
           loader: {
             provide: TranslateLoader,
             useFactory: () => ({
               getTranslation: () => of({})
             })
           }
-        })
-      ],
-      providers: [
+        }),
         provideRouter([]),
         provideHttpClient(),
         provideHttpClientTesting(),

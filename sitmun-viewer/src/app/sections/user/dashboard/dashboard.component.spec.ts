@@ -13,7 +13,7 @@ import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { Router } from '@angular/router';
 
 import { CommonService } from '@api/services/common.service';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslatePipe, provideTranslateService } from '@ngx-translate/core';
 import { DashboardItemComponent } from '@ui/components/dashboard/dashboard-item/dashboard-item.component';
 import { DashboardItemsComponent } from '@ui/components/dashboard/dashboard-items/dashboard-items.component';
 import { DashboardSearchboxComponent } from '@ui/components/dashboard/dashboard-searchbox/dashboard-searchbox.component';
@@ -31,7 +31,7 @@ describe('DashboardComponent', () => {
     await TestBed.configureTestingModule({
       imports: [
         NgOptimizedImage,
-        TranslateModule.forRoot(),
+        TranslatePipe,
         MatDialogModule,
         MatTabsModule,
         MatProgressSpinnerModule,
@@ -48,6 +48,7 @@ describe('DashboardComponent', () => {
         DashboardSearchboxComponent
       ],
       providers: [
+      provideTranslateService(),
         provideHttpClient(),
         provideHttpClientTesting(),
         {

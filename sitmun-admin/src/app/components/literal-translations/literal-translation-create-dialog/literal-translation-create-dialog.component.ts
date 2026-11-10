@@ -2,7 +2,7 @@ import { Component, Inject, ChangeDetectionStrategy } from '@angular/core';
 import { FormControl, ReactiveFormsModule, UntypedFormGroup, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslatePipe } from '@ngx-translate/core';
 
 import { Language, sortLanguagesByOrder } from '@app/domain/translation/models/language.model';
 import { MaterialModule } from '@app/material-module';
@@ -21,7 +21,7 @@ export interface LiteralTranslationCreateDialogResult {
 @Component({
   selector: 'app-literal-translation-create-dialog',
   standalone: true,
-  imports: [ReactiveFormsModule, MaterialModule, TranslateModule],
+  imports: [ReactiveFormsModule, MaterialModule, TranslatePipe],
   templateUrl: './literal-translation-create-dialog.component.html',
   changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./literal-translation-create-dialog.component.scss'],

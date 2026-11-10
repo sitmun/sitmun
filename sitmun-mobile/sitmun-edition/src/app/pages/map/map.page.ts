@@ -1,31 +1,41 @@
-import { Component, OnInit, ChangeDetectorRef, ViewChild } from '@angular/core';
-import { Location } from '@angular/common';
-import { LanguageService } from 'src/app/services/language.service';
-import { MapService } from 'src/app/services/map.service';
-import { ActivatedRoute, NavigationExtras, Router } from '@angular/router';
-import { AuthorizationService } from 'src/app/services/authorization.service';
-import { TreeNode, TreeviewService } from 'src/app/services/treeview.service';
-import { NetworkService } from 'src/app/services/network.service';
-import { WfsService } from 'src/app/services/wfs.service';
-import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { firstValueFrom, forkJoin } from 'rxjs';
-import { DatabaseService } from 'src/app/services/database.service';
-import { ProfileModalComponent } from 'src/app/components/profile-modal/profile-modal.component';
-import { SessionExpiredError } from 'src/app/services/login.service';
-import { classifyUploadFailure, UploadFailure } from 'src/app/services/upload-failure';
-import { AlertController, LoadingController } from '@ionic/angular';
+import {
+  Component,
+  OnInit,
+  ChangeDetectorRef,
+  ViewChild,
+  ChangeDetectionStrategy,
+} from "@angular/core";
+import { Location } from "@angular/common";
+import { LanguageService } from "src/app/services/language.service";
+import { MapService } from "src/app/services/map.service";
+import { ActivatedRoute, NavigationExtras, Router } from "@angular/router";
+import { AuthorizationService } from "src/app/services/authorization.service";
+import { TreeNode, TreeviewService } from "src/app/services/treeview.service";
+import { NetworkService } from "src/app/services/network.service";
+import { WfsService } from "src/app/services/wfs.service";
+import { Camera, CameraResultType, CameraSource } from "@capacitor/camera";
+import { FormBuilder, FormGroup, Validators } from "@angular/forms";
+import { firstValueFrom, forkJoin } from "rxjs";
+import { DatabaseService } from "src/app/services/database.service";
+import { ProfileModalComponent } from "src/app/components/profile-modal/profile-modal.component";
+import { SessionExpiredError } from "src/app/services/login.service";
+import {
+  classifyUploadFailure,
+  UploadFailure,
+} from "src/app/services/upload-failure";
+import { AlertController, LoadingController } from "@ionic/angular";
 
 declare var M: any;
 declare var ol: any;
 
 @Component({
-  selector: 'app-map',
-  templateUrl: './map.page.html',
-  styleUrls: ['./map.page.scss'],
+  selector: "app-map",
+  templateUrl: "./map.page.html",
+  styleUrls: ["./map.page.scss"],
+  changeDetection: ChangeDetectionStrategy.Eager,
+  standalone: false,
 })
 export class MapPage implements OnInit {
-
   networkConnected = true;
   mapa: any;
   app: any = {};
@@ -47,62 +57,76 @@ export class MapPage implements OnInit {
   saving = false;
   layersTreeData: TreeNode[] = [];
   bgTreeData: TreeNode[] = [];
-  featureEditions: Record<string, { inserts: any[]; deletes: any[]; updates: any[] }> = {};
+  featureEditions: Record<
+    string,
+    { inserts: any[]; deletes: any[]; updates: any[] }
+  > = {};
   saveErrors: { layerName: string; message: string; detail?: string }[] = [];
   saveSuccesses: { layerName: string; message: string }[] = [];
   imageValue: string | null = null;
   errorImg: string[] = [];
-  imageAttr: string = '';
+  imageAttr: string = "";
   cameraBtnDisabled: boolean = true;
   downloadMap: boolean = false;
   offlineMap: boolean = false;
   zoom: number = 9;
   downloadLayers: any[] = [];
   extent: number[] = [];
-  mapProjSelected: string = '';
+  mapProjSelected: string = "";
   currentEditionTask: any = null;
   openDateKey: string | null = null;
-  @ViewChild('profileModal') profileModal!: ProfileModalComponent;
+  @ViewChild("profileModal") profileModal!: ProfileModalComponent;
 
   get dateLocale(): string {
     return this.languageService.getLanguage();
-  } 
+  }
 
-  constructor(private mapService: MapService, private languageService: LanguageService, private _location: Location,
-    private router: Router, private route: ActivatedRoute, private authorizationService: AuthorizationService,
-    private treeviewService: TreeviewService, private networkService: NetworkService, private cdr: ChangeDetectorRef,
-    private wfsService: WfsService, private formBuilder: FormBuilder, private databaseService: DatabaseService,
-    private alertController: AlertController, private loadingCtrl: LoadingController) {
-    this.route.queryParams.subscribe(params => {
-        const navigation = this.router.getCurrentNavigation();
-        if (navigation) {
-          const tempState = navigation.extras.state;
-          if (tempState && tempState['app']) {
-            this.app = tempState['app'];
-          }
-          if (tempState && tempState['ter']) {
-            this.ter = tempState['ter'];
-          }
-          if (tempState && tempState['zoom']) {
-            this.zoom = tempState['zoom'];
-          }
-          if (tempState && tempState['download']) {
-            this.downloadMap = tempState['download'];
-          }
-          if (tempState && tempState['layers']) {
-            this.downloadLayers = tempState['layers'];
-          }
-          if (tempState && tempState['extent']) {
-            Object.values(tempState['extent']).forEach(value => {
-              if (value !== '' && !isNaN(Number(value))) {
-                this.extent.push(Number(value));
-              }
-            });
-          }
-          if (tempState && tempState['mapProject']) {
-            this.mapProjSelected = tempState['mapProject'];
-          }
+  constructor(
+    private mapService: MapService,
+    private languageService: LanguageService,
+    private _location: Location,
+    private router: Router,
+    private route: ActivatedRoute,
+    private authorizationService: AuthorizationService,
+    private treeviewService: TreeviewService,
+    private networkService: NetworkService,
+    private cdr: ChangeDetectorRef,
+    private wfsService: WfsService,
+    private formBuilder: FormBuilder,
+    private databaseService: DatabaseService,
+    private alertController: AlertController,
+    private loadingCtrl: LoadingController,
+  ) {
+    this.route.queryParams.subscribe((params) => {
+      const navigation = this.router.getCurrentNavigation();
+      if (navigation) {
+        const tempState = navigation.extras.state;
+        if (tempState && tempState["app"]) {
+          this.app = tempState["app"];
         }
+        if (tempState && tempState["ter"]) {
+          this.ter = tempState["ter"];
+        }
+        if (tempState && tempState["zoom"]) {
+          this.zoom = tempState["zoom"];
+        }
+        if (tempState && tempState["download"]) {
+          this.downloadMap = tempState["download"];
+        }
+        if (tempState && tempState["layers"]) {
+          this.downloadLayers = tempState["layers"];
+        }
+        if (tempState && tempState["extent"]) {
+          Object.values(tempState["extent"]).forEach((value) => {
+            if (value !== "" && !isNaN(Number(value))) {
+              this.extent.push(Number(value));
+            }
+          });
+        }
+        if (tempState && tempState["mapProject"]) {
+          this.mapProjSelected = tempState["mapProject"];
+        }
+      }
     });
     this.featureAttrForm = this.formBuilder.group({});
   }
@@ -111,50 +135,68 @@ export class MapPage implements OnInit {
     this.initPage();
   }
 
-  private async initPage(){
+  private async initPage() {
     this.updateNetworkStatus(await this.networkService.getStatus());
     this.networkService.addListener(this.updateNetworkStatus.bind(this));
     //datos mapa con conexión
     if (this.networkConnected) {
-      const profile = await this.authorizationService.getProfile(this.app.id, this.ter.id);
+      const profile = await this.authorizationService.getProfile(
+        this.app.id,
+        this.ter.id,
+      );
       if (this.downloadMap) {
-        profile.trees = this.filterProfileTrees(profile.trees, this.downloadLayers); 
+        profile.trees = this.filterProfileTrees(
+          profile.trees,
+          this.downloadLayers,
+        );
       }
-      await this.createMap(profile); 
-    }else{
+      await this.createMap(profile);
+    } else {
       //datos mapa sin conexión
       await this.createMapOffline();
     }
-    //carga tabla ediciones 
-    const featureEditions = await this.databaseService.getEditionsByAppAndTer(this.app.id, this.ter.id);
-    featureEditions.map(edition => {
+    //carga tabla ediciones
+    const featureEditions = await this.databaseService.getEditionsByAppAndTer(
+      this.app.id,
+      this.ter.id,
+    );
+    featureEditions.map((edition) => {
       this.featureEditions[edition.id_layer] = JSON.parse(edition.editionjson);
-    }); 
+    });
 
     const layers = await this.mapa.getImpl().getAllLayerInGroup();
     for (const layer of layers) {
       try {
         if (this.offlineMap) {
           this.loadChanges(layer);
-        }else{
-          layer.on(M.evt.LOAD, (features: any) => { //espera a que la capa sea cargada
+        } else {
+          layer.on(M.evt.LOAD, (features: any) => {
+            //espera a que la capa sea cargada
             this.loadChanges(layer);
           });
         }
-      }  catch (error) {
-        console.error(`Error procesando la capa con ID ${layer.idLayer}:`, error);
+      } catch (error) {
+        console.error(
+          `Error procesando la capa con ID ${layer.idLayer}:`,
+          error,
+        );
       }
     }
   }
-  
+
   private filterProfileTrees(trees: any[], layers: any[]): any[] {
-    return trees.filter(tree => {
+    return trees.filter((tree) => {
       const nodes = tree.nodes;
       const validNodes = new Set<string>();
 
       //nodos seleccionados
       Object.entries(nodes).forEach(([id, node]: [string, any]) => {
-        if ((node.resource || node.action) && layers.find(l => l.resource === node.resource || l.action === node.action)) {
+        if (
+          (node.resource || node.action) &&
+          layers.find(
+            (l) => l.resource === node.resource || l.action === node.action,
+          )
+        ) {
           validNodes.add(id);
         }
       });
@@ -164,7 +206,10 @@ export class MapPage implements OnInit {
       while (add) {
         add = false;
         Object.entries(nodes).forEach(([id, node]: [string, any]) => {
-          if (!validNodes.has(id) && node.children?.some((childId: string) => validNodes.has(childId))) {
+          if (
+            !validNodes.has(id) &&
+            node.children?.some((childId: string) => validNodes.has(childId))
+          ) {
             validNodes.add(id);
             add = true;
           }
@@ -175,16 +220,17 @@ export class MapPage implements OnInit {
       validNodes.forEach((id) => {
         const node = nodes[id];
         if (node?.children) {
-          node.children = node.children.filter((childId: string) => validNodes.has(childId));
+          node.children = node.children.filter((childId: string) =>
+            validNodes.has(childId),
+          );
         }
       });
-
 
       // eliminar nodos no válidos
       for (const id in nodes) {
         if (!validNodes.has(id)) {
           delete nodes[id];
-        } 
+        }
       }
 
       // quedarse solo con los arboles con algún nodo filtrado
@@ -193,71 +239,106 @@ export class MapPage implements OnInit {
   }
 
   private async createMap(profile: any) {
-    this.mapa = await this.mapService.initMap('map', profile, this.zoom, this.extent, this.mapProjSelected);
-    this.mapService.addClickFunctionToEditableLayers(this.featureClickHandler.bind(this));
+    this.mapa = await this.mapService.initMap(
+      "map",
+      profile,
+      this.zoom,
+      this.extent,
+      this.mapProjSelected,
+    );
+    this.mapService.addClickFunctionToEditableLayers(
+      this.featureClickHandler.bind(this),
+    );
     this.layersTreeData = this.treeviewService.createLayersTreeData(profile);
     this.bgTreeData = this.treeviewService.createBackgroundsTreeData(profile);
-    const bgNode = this.bgTreeData.find(n => n.checked);
+    const bgNode = this.bgTreeData.find((n) => n.checked);
     if (bgNode) {
       this.toggleBgCheck(bgNode);
-    }    
+    }
   }
 
-  private async createMapOffline(){
-    const layers = await this.databaseService.getLayersByAppAndTer(this.app.id, this.ter.id);
-    const bgLayer = await this.databaseService.getbgLayerByAppAndTer(this.app.id, this.ter.id);
+  private async createMapOffline() {
+    const layers = await this.databaseService.getLayersByAppAndTer(
+      this.app.id,
+      this.ter.id,
+    );
+    const bgLayer = await this.databaseService.getbgLayerByAppAndTer(
+      this.app.id,
+      this.ter.id,
+    );
     if (layers.length === 0) {
       console.warn("No hay capas guardadas para este territorio.");
-    }else{
+    } else {
       this.offlineMap = true;
-      let zoom = layers[0].zoom;        
-      let extent = layers[0].extension.split(',').map(Number);
+      let zoom = layers[0].zoom;
+      let extent = layers[0].extension.split(",").map(Number);
       let proj = layers[0].proj;
-      this.mapa = await this.mapService.initMapOffline('map', zoom, extent, proj, bgLayer[0], layers);
-      this.mapService.addClickFunctionToEditableLayers(this.featureClickHandler.bind(this));
-      this.layersTreeData = this.treeviewService.createLayersTreeDataOffline(layers);
-    } 
-    
+      this.mapa = await this.mapService.initMapOffline(
+        "map",
+        zoom,
+        extent,
+        proj,
+        bgLayer[0],
+        layers,
+      );
+      this.mapService.addClickFunctionToEditableLayers(
+        this.featureClickHandler.bind(this),
+      );
+      this.layersTreeData =
+        this.treeviewService.createLayersTreeDataOffline(layers);
+    }
   }
 
-
-  private loadChanges(layer: any){
+  private loadChanges(layer: any) {
     // comprueba si se registraron ediciones en la bbdd
     if (this.featureEditions[layer.idLayer]) {
-      console.log(`Añadiendo ediciones a la capa con ID ${layer.idLayer}`)
-      //se añaden los inserts        
-      this.featureEditions[layer.idLayer].inserts.forEach((featureInsert, index, arr) => {
-        const feature = new M.Feature();
-        feature.setId(featureInsert.id);
-        feature.setAttributes(featureInsert.attributes);
-        feature.setGeometry(featureInsert.geometry);          
-        feature.setAttribute('vendor.mapea.click', this.featureClickHandler.bind(this));
-        layer.addFeatures([feature]);
-        arr[index] = feature;
-      });
-      //se añaden los updates
-      this.featureEditions[layer.idLayer].updates.forEach((featureUpdate, index, arr) => {
-        const feature = layer.getFeatureById(featureUpdate.id);
-        if (feature) {                
-          feature.setAttributes(featureUpdate.attributes);
-          feature.setGeometry(featureUpdate.geometry);                      
-          arr[index] = feature;    
-        }else{
-          console.warn(`La modificación realizada en el feature con ID ${featureUpdate.id} no pudo ser cargada. No se encontró su ID`)
-          arr.splice(index, 1); //elimina la edición que no ha podido ser asignada, porque sino impide el guardado de la capa. Seguirá en la bbdd                
-        }
-      });
-      //se añaden los deletes
-      this.featureEditions[layer.idLayer].deletes.forEach((featureDelete, index, arr) => {
-        const feature = layer.getFeatureById(featureDelete.id);
-        if (feature){
-          layer.removeFeatures([feature]);
+      console.log(`Añadiendo ediciones a la capa con ID ${layer.idLayer}`);
+      //se añaden los inserts
+      this.featureEditions[layer.idLayer].inserts.forEach(
+        (featureInsert, index, arr) => {
+          const feature = new M.Feature();
+          feature.setId(featureInsert.id);
+          feature.setAttributes(featureInsert.attributes);
+          feature.setGeometry(featureInsert.geometry);
+          feature.setAttribute(
+            "vendor.mapea.click",
+            this.featureClickHandler.bind(this),
+          );
+          layer.addFeatures([feature]);
           arr[index] = feature;
-        }else{
-          console.warn(`La modificación realizada en el feature con ID ${featureDelete.id} no pudo ser cargada. No se encontró su ID`)
-          arr.splice(index, 1); 
-        }
-      });
+        },
+      );
+      //se añaden los updates
+      this.featureEditions[layer.idLayer].updates.forEach(
+        (featureUpdate, index, arr) => {
+          const feature = layer.getFeatureById(featureUpdate.id);
+          if (feature) {
+            feature.setAttributes(featureUpdate.attributes);
+            feature.setGeometry(featureUpdate.geometry);
+            arr[index] = feature;
+          } else {
+            console.warn(
+              `La modificación realizada en el feature con ID ${featureUpdate.id} no pudo ser cargada. No se encontró su ID`,
+            );
+            arr.splice(index, 1); //elimina la edición que no ha podido ser asignada, porque sino impide el guardado de la capa. Seguirá en la bbdd
+          }
+        },
+      );
+      //se añaden los deletes
+      this.featureEditions[layer.idLayer].deletes.forEach(
+        (featureDelete, index, arr) => {
+          const feature = layer.getFeatureById(featureDelete.id);
+          if (feature) {
+            layer.removeFeatures([feature]);
+            arr[index] = feature;
+          } else {
+            console.warn(
+              `La modificación realizada en el feature con ID ${featureDelete.id} no pudo ser cargada. No se encontró su ID`,
+            );
+            arr.splice(index, 1);
+          }
+        },
+      );
     }
   }
 
@@ -291,7 +372,7 @@ export class MapPage implements OnInit {
     this.newPoint = newPoint;
     this.isFeatureModalOpen = true;
     //this.mapService.removeMoveInteraction(this.mapa);
-    //inicializa campo imagen si algún campo ha sido definido anteriormente como imagen  
+    //inicializa campo imagen si algún campo ha sido definido anteriormente como imagen
     if (this.imageAttr) {
       this.imageValue = this.featureAttrForm.value[this.imageAttr];
       this.enableCameraBtn();
@@ -309,7 +390,7 @@ export class MapPage implements OnInit {
     }
   }
 
-  async openTocModal() {    
+  async openTocModal() {
     this.isTocModalOpen = true;
   }
 
@@ -333,9 +414,11 @@ export class MapPage implements OnInit {
 
   get saveModalTitleKey(): string {
     if (this.saveErrors.length > 0 && this.saveSuccesses.length > 0) {
-      return 'map.saveResultTitle';
+      return "map.saveResultTitle";
     }
-    return this.saveErrors.length > 0 ? 'map.saveErrorTitle' : 'map.saveSuccessTitle';
+    return this.saveErrors.length > 0
+      ? "map.saveErrorTitle"
+      : "map.saveSuccessTitle";
   }
 
   private openSaveResultModal() {
@@ -348,19 +431,23 @@ export class MapPage implements OnInit {
   async createNewFeature() {
     if (this.layerEdit) {
       this.feature = null;
-      this.imageAttr = '';
+      this.imageAttr = "";
       this.imageValue = null;
       this.featureAttr = {};
       await this.setAttrData();
       this.openFeatureModal(true);
     } else {
-      this.languageService.translateTag('map.noEditLayerSelected').subscribe(text => this.mapService.createToast(text, 'warning', 'top'));
+      this.languageService
+        .translateTag("map.noEditLayerSelected")
+        .subscribe((text) =>
+          this.mapService.createToast(text, "warning", "top"),
+        );
     }
   }
 
   async featureClickHandler(evt: any, feature: any) {
     this.feature = feature;
-    this.imageAttr = '';
+    this.imageAttr = "";
     this.imageValue = null;
     this.featureAttr = this.feature.getAttributes();
     await this.setAttrData();
@@ -372,31 +459,36 @@ export class MapPage implements OnInit {
     const fieldsKeys = Object.keys(this.currentEditionTask.fields);
     const formControls: any = {};
     this.attrData = [];
-    const fieldsKeysFiltered = fieldsKeys.filter((f: any) => this.currentEditionTask.fields[f].editable || this.currentEditionTask.fields[f].required);
+    const fieldsKeysFiltered = fieldsKeys.filter(
+      (f: any) =>
+        this.currentEditionTask.fields[f].editable ||
+        this.currentEditionTask.fields[f].required,
+    );
     for (let fk of fieldsKeysFiltered) {
       const field = this.currentEditionTask.fields[fk];
       const data: Record<string, any> = {
         key: fk,
         label: field.label,
         type: field.type,
-        defaultValue: this.featureAttr[fk] ?? await this.calculateFieldValue(field.value),
+        defaultValue:
+          this.featureAttr[fk] ?? (await this.calculateFieldValue(field.value)),
         required: field.required,
-        editable: field.editable
+        editable: field.editable,
       };
       if (field.listValues) {
-        data['listValues'] = field.listValues;
+        data["listValues"] = field.listValues;
       }
-      if (field.type === 'date') {
-        data['defaultValue'] = this.toIsoDate(data['defaultValue']);
+      if (field.type === "date") {
+        data["defaultValue"] = this.toIsoDate(data["defaultValue"]);
       }
-      if (field.type === 'image') {
+      if (field.type === "image") {
         this.imageAttr = fk;
       }
       this.addFeatureFormControl(data, formControls);
       this.attrData.push(data);
     }
     this.featureAttrForm = this.formBuilder.group(formControls);
-    this.featureAttrForm.valueChanges.subscribe(values => {
+    this.featureAttrForm.valueChanges.subscribe((values) => {
       this.unsavedChanges = true;
     });
   }
@@ -406,15 +498,15 @@ export class MapPage implements OnInit {
     if (regex.test(value)) {
       const fieldName = value.slice(2, -1);
       switch (fieldName) {
-        case 'AUDIT_USER':
+        case "AUDIT_USER":
           return (await this.databaseService.getLoggedUser())[0].name;
-        case 'AUDIT_DATE':
+        case "AUDIT_DATE":
           return new Date().toISOString();
         default:
-          return '';
+          return "";
       }
     }
-    if (['null', 'NULL'].includes(value)) {
+    if (["null", "NULL"].includes(value)) {
       return null;
     }
     return value;
@@ -423,13 +515,13 @@ export class MapPage implements OnInit {
   addFeatureFormControl(attrData: any, formControls: any) {
     let value;
     switch (attrData.type) {
-      case 'text':
-      case 'listbox':
-      case 'image':
-        value = attrData.defaultValue ?? '';
+      case "text":
+      case "listbox":
+      case "image":
+        value = attrData.defaultValue ?? "";
         break;
-      case 'date':
-      case 'number':
+      case "date":
+      case "number":
         value = attrData.defaultValue ?? null;
         break;
     }
@@ -442,7 +534,7 @@ export class MapPage implements OnInit {
 
   /** GeoServer sends xsd:date as `2026-10-24Z`; ion-datetime wants `2026-10-24`. */
   private toIsoDate(value: any): string | null {
-    const match = /^(\d{4}-\d{2}-\d{2})/.exec(String(value ?? ''));
+    const match = /^(\d{4}-\d{2}-\d{2})/.exec(String(value ?? ""));
     return match ? match[1] : null;
   }
 
@@ -465,26 +557,36 @@ export class MapPage implements OnInit {
       return;
     }
     //guardar imagen
-    if (this.errorImg.length === 0 && this.imageAttr !== '')  {
+    if (this.errorImg.length === 0 && this.imageAttr !== "") {
       const values: any = {};
       values[this.imageAttr] = this.imageValue;
       this.featureAttrForm?.patchValue(values);
     }
     this.featureAttrForm.markAllAsTouched();
     if (!this.featureAttrForm.valid) {
-      this.languageService.translateTag('map.invalidFeatureForm').subscribe(text => this.mapService.createToast(text, 'danger', 'top'));
+      this.languageService
+        .translateTag("map.invalidFeatureForm")
+        .subscribe((text) =>
+          this.mapService.createToast(text, "danger", "top"),
+        );
       return;
     }
 
     this.saving = true;
-    const loadingKey = this.newPoint ? 'map.gettingLocation' : 'map.saving';
-    const loadingMessage = await firstValueFrom(this.languageService.translateTag(loadingKey));
+    const loadingKey = this.newPoint ? "map.gettingLocation" : "map.saving";
+    const loadingMessage = await firstValueFrom(
+      this.languageService.translateTag(loadingKey),
+    );
     const loading = await this.loadingCtrl.create({ message: loadingMessage });
     try {
       await loading.present();
       const saved = await this.saveFeature();
       if (saved) {
-        this.languageService.translateTag('map.pointSaved').subscribe(text => this.mapService.createToast(text, 'success', 'bottom'));
+        this.languageService
+          .translateTag("map.pointSaved")
+          .subscribe((text) =>
+            this.mapService.createToast(text, "success", "bottom"),
+          );
         this.closeFeatureModal(true);
       }
     } finally {
@@ -498,7 +600,11 @@ export class MapPage implements OnInit {
     if (this.newPoint) {
       let coordinates = this.newGeometry?.coordinates as number[] | undefined;
       if (coordinates) {
-        coordinates = this.mapService.transformCoords(coordinates, this.mapa.getProjection().code, 'EPSG:4326');
+        coordinates = this.mapService.transformCoords(
+          coordinates,
+          this.mapa.getProjection().code,
+          "EPSG:4326",
+        );
       } else {
         const position: any = await this.mapService.getLocation();
         if (!position) {
@@ -508,28 +614,35 @@ export class MapPage implements OnInit {
       }
       const id = `new${Date.now()}`;
       const geojson = {
-        type: 'Feature',
+        type: "Feature",
         id,
         geometry: {
-          type: 'Point',
-          coordinates
+          type: "Point",
+          coordinates,
         },
-        properties: this.featureAttr
+        properties: this.featureAttr,
       };
       const mapProj = this.mapa.getProjection();
-      this.feature = this.mapService.createFeaturesGeojson(geojson, 'EPSG:4326', mapProj)[0];
+      this.feature = this.mapService.createFeaturesGeojson(
+        geojson,
+        "EPSG:4326",
+        mapProj,
+      )[0];
       this.feature.setId(id);
-      this.feature.setAttribute('vendor.mapea.click', this.featureClickHandler.bind(this));
+      this.feature.setAttribute(
+        "vendor.mapea.click",
+        this.featureClickHandler.bind(this),
+      );
       this.layerEdit.addFeatures([this.feature]);
       this.centerMapByFeature(this.feature);
-      this.addFeatureEdition(this.layerEdit.idLayer, 'inserts');
+      this.addFeatureEdition(this.layerEdit.idLayer, "inserts");
     } else {
       this.feature.setAttributes(this.featureAttr);
       if (this.newGeometry) {
         this.feature.setGeometry(this.newGeometry);
       }
       console.log(`Editando feature con ID: ${this.feature.id}`);
-      this.addFeatureEdition(this.layerEdit.idLayer, 'updates');
+      this.addFeatureEdition(this.layerEdit.idLayer, "updates");
     }
     this.newPoint = false;
     this.unsavedChanges = false;
@@ -538,8 +651,10 @@ export class MapPage implements OnInit {
   }
 
   centerMapByFeature(feature: any) {
-    if(feature) {
-      const center = this.newGeometry ? this.newGeometry.coordinates : feature.getGeometry().coordinates;
+    if (feature) {
+      const center = this.newGeometry
+        ? this.newGeometry.coordinates
+        : feature.getGeometry().coordinates;
       this.mapa.setCenter(center);
       this.mapa.setZoom(17);
     }
@@ -547,23 +662,27 @@ export class MapPage implements OnInit {
 
   async onDeleteModal() {
     const [header, message, cancel, ok] = await Promise.all([
-      firstValueFrom(this.languageService.translateTag('map.deletePointTitle')),
-      firstValueFrom(this.languageService.translateTag('map.deletePointMessage')),
-      firstValueFrom(this.languageService.translateTag('map.cancelText')),
-      firstValueFrom(this.languageService.translateTag('map.deletePointConfirm')),
+      firstValueFrom(this.languageService.translateTag("map.deletePointTitle")),
+      firstValueFrom(
+        this.languageService.translateTag("map.deletePointMessage"),
+      ),
+      firstValueFrom(this.languageService.translateTag("map.cancelText")),
+      firstValueFrom(
+        this.languageService.translateTag("map.deletePointConfirm"),
+      ),
     ]);
 
     const alert = await this.alertController.create({
       header,
       message,
       buttons: [
-        { text: cancel, role: 'cancel' },
-        { text: ok, role: 'destructive' },
+        { text: cancel, role: "cancel" },
+        { text: ok, role: "destructive" },
       ],
     });
     await alert.present();
     const { role } = await alert.onDidDismiss();
-    if (role !== 'destructive') {
+    if (role !== "destructive") {
       return;
     }
 
@@ -574,65 +693,93 @@ export class MapPage implements OnInit {
 
     console.log(`Eliminando feature con ID: ${this.feature.getId()}`);
     this.layerEdit.removeFeatures([this.feature]);
-    this.addFeatureEdition(this.layerEdit.idLayer, 'deletes');
+    this.addFeatureEdition(this.layerEdit.idLayer, "deletes");
     this.closeFeatureModal(true);
   }
 
-  async addFeatureEdition(layer: string, operation: 'inserts' | 'deletes' | 'updates') {
+  async addFeatureEdition(
+    layer: string,
+    operation: "inserts" | "deletes" | "updates",
+  ) {
     if (!this.featureEditions[layer]) {
       this.featureEditions[layer] = { inserts: [], deletes: [], updates: [] };
     }
     //comprobar ediciones anteriores no guardadas
-    if (operation === 'updates') {
-      let index = this.featureEditions[layer].inserts.findIndex(edition => edition === this.feature); 
+    if (operation === "updates") {
+      let index = this.featureEditions[layer].inserts.findIndex(
+        (edition) => edition === this.feature,
+      );
       //modificar nuevo elemento creado
       if (index !== -1) {
         this.featureEditions[layer].inserts[index] = this.feature;
-      }else{
+      } else {
         //modificar otra vez
-        index = this.featureEditions[layer].updates.findIndex(edition => edition === this.feature);
-        index !== -1 ? this.featureEditions[layer].updates[index] = this.feature : this.featureEditions[layer].updates.push(this.feature);
-      }     
-    }else if(operation === 'deletes'){
-      let index = this.featureEditions[layer].inserts.findIndex(edition => edition === this.feature); 
+        index = this.featureEditions[layer].updates.findIndex(
+          (edition) => edition === this.feature,
+        );
+        index !== -1
+          ? (this.featureEditions[layer].updates[index] = this.feature)
+          : this.featureEditions[layer].updates.push(this.feature);
+      }
+    } else if (operation === "deletes") {
+      let index = this.featureEditions[layer].inserts.findIndex(
+        (edition) => edition === this.feature,
+      );
       //eliminar un nuevo elemento creado
       if (index !== -1) {
         this.featureEditions[layer].inserts.splice(index, 1);
-      }else{
+      } else {
         //eliminar elemento modificado
-        index = this.featureEditions[layer].updates.findIndex(edition => edition === this.feature);
-        index !== -1 ? this.featureEditions[layer].updates.splice(index, 1) : this.featureEditions[layer].deletes.push(this.feature);
-      }      
-    }else{
+        index = this.featureEditions[layer].updates.findIndex(
+          (edition) => edition === this.feature,
+        );
+        index !== -1
+          ? this.featureEditions[layer].updates.splice(index, 1)
+          : this.featureEditions[layer].deletes.push(this.feature);
+      }
+    } else {
       this.featureEditions[layer].inserts.push(this.feature);
-    }    
+    }
     console.log(`Edición de feature realizado. Layer: ${layer}`);
     console.log(this.featureEditions[layer]);
-    
-    //añadir todas las ediciones realizadas a bbdd 
+
+    //añadir todas las ediciones realizadas a bbdd
     if (
       this.featureEditions[layer].inserts.length === 0 &&
       this.featureEditions[layer].deletes.length === 0 &&
       this.featureEditions[layer].updates.length === 0
     ) {
       delete this.featureEditions[layer];
-      await this.databaseService.deleteEditionsByLayer(this.app.id, this.ter.id, layer);
-    }else{
-      const simpleEditionFeatures = this.serializeEditions(this.featureEditions[layer]);
-      await this.databaseService.insertEdition(this.app.id, this.ter.id, layer, JSON.stringify(simpleEditionFeatures));  
+      await this.databaseService.deleteEditionsByLayer(
+        this.app.id,
+        this.ter.id,
+        layer,
+      );
+    } else {
+      const simpleEditionFeatures = this.serializeEditions(
+        this.featureEditions[layer],
+      );
+      await this.databaseService.insertEdition(
+        this.app.id,
+        this.ter.id,
+        layer,
+        JSON.stringify(simpleEditionFeatures),
+      );
     }
   }
 
   //algunas propiedades de featureEditions dan problemas para serializar y guardar en la bbdd, necesario simplificar
-  private serializeEditions(featureEditions: Record<string, any[]>): Record<string, any[]>{
+  private serializeEditions(
+    featureEditions: Record<string, any[]>,
+  ): Record<string, any[]> {
     const editions: Record<string, any[]> = {};
 
     for (const [operation, features] of Object.entries(featureEditions)) {
-      editions[operation] = features.map(feature => {
+      editions[operation] = features.map((feature) => {
         const object: Record<string, any> = {
           id: feature.getId(),
           attributes: feature.getAttributes(),
-          geometry: feature.getGeometry()
+          geometry: feature.getGeometry(),
         };
         return object;
       });
@@ -648,41 +795,55 @@ export class MapPage implements OnInit {
     node.visible = !node.visible;
     this.treeviewService.toggleVisible(node);
     let layer = null;
-    if (node.resource || node.action) { //layer
-      layer = this.mapa.getImpl().getAllLayerInGroup().filter((l:any) => [node.resource, node.action].includes(l.idLayer));
-    } else { //layerGroup
-      layer = this.mapa.getLayerGroup().filter((lg:any) => lg.legend === node.name);
+    if (node.resource || node.action) {
+      //layer
+      layer = this.mapa
+        .getImpl()
+        .getAllLayerInGroup()
+        .filter((l: any) => [node.resource, node.action].includes(l.idLayer));
+    } else {
+      //layerGroup
+      layer = this.mapa
+        .getLayerGroup()
+        .filter((lg: any) => lg.legend === node.name);
     }
     layer.forEach((l: any) => {
       l.setVisible(node.visible);
     });
   }
-  
+
   toggleCheck(node: TreeNode) {
-    if (this.layerEdit){
+    if (this.layerEdit) {
       this.layerEdit.extract = false; //capa editada anterior
     }
     this.layerEdit = null;
     this.activeEdition = !node.checked;
     if (this.activeEdition) {
-      this.layersTreeData.forEach(tn => this.treeviewService.toggleCheck(tn));
+      this.layersTreeData.forEach((tn) => this.treeviewService.toggleCheck(tn));
       this.currentEditionTask = node.task;
       this.mapService.deactivateFeatureInfo();
       this.mapa.getFeatureHandler().clearSelectedFeatures();
     } else {
       this.mapService.activateFeatureInfo();
     }
-    this.layerEdit = this.mapa.getImpl().getAllLayerInGroup().find((l:any) => l.idLayer === node.action);
+    this.layerEdit = this.mapa
+      .getImpl()
+      .getAllLayerInGroup()
+      .find((l: any) => l.idLayer === node.action);
     this.layerEdit.extract = this.activeEdition;
     node.checked = this.activeEdition;
   }
-  
+
   toggleBgCheck(node: TreeNode) {
     this.treeviewService.toggleBgCheck(this.bgTreeData, node);
-    let baseLayer: any = 'OSM'; // Si ninguna capa de fondo seleccionada, se aplicará la por defecto
+    let baseLayer: any = "OSM"; // Si ninguna capa de fondo seleccionada, se aplicará la por defecto
     if (node.checked) {
       const profile = this.authorizationService.getProfileData();
-      baseLayer = this.mapService.getBaseLayer(profile, node.resource || '', node.name);
+      baseLayer = this.mapService.getBaseLayer(
+        profile,
+        node.resource || "",
+        node.name,
+      );
     }
     this.mapa.removeLayers(this.mapa.getBaseLayers());
     this.mapa.addLayers(baseLayer);
@@ -690,7 +851,11 @@ export class MapPage implements OnInit {
 
   editGeometry() {
     if (this.saving) {
-      this.languageService.translateTag('map.gettingLocation').subscribe(text => this.mapService.createToast(text, 'medium', 'top'));
+      this.languageService
+        .translateTag("map.gettingLocation")
+        .subscribe((text) =>
+          this.mapService.createToast(text, "medium", "top"),
+        );
       return;
     }
     this.geomEdition = true;
@@ -700,10 +865,10 @@ export class MapPage implements OnInit {
   saveGeom() {
     const adding = this.newPoint;
     const center = this.mapa.getCenter();
-    const type = this.feature ? this.feature.getGeometry().type : 'Point';
+    const type = this.feature ? this.feature.getGeometry().type : "Point";
     this.newGeometry = {
       type,
-      coordinates: [center.x, center.y]
+      coordinates: [center.x, center.y],
     };
     this.openFeatureModal(adding);
     this.geomEdition = false;
@@ -717,7 +882,7 @@ export class MapPage implements OnInit {
 
   onMoveEnd() {
     this.layerEdit.redraw();
-    this.addFeatureEdition(this.layerEdit.idLayer, 'updates');
+    this.addFeatureEdition(this.layerEdit.idLayer, "updates");
   }
 
   async saveAllFeatures() {
@@ -725,7 +890,7 @@ export class MapPage implements OnInit {
     this.saveSuccesses = [];
     const layers = this.mapa.getImpl().getAllLayerInGroup();
     //recorre cada capa y comprueba si se realizaron ediciones
-    for (const layer of layers){
+    for (const layer of layers) {
       await this.saveFeaturesByLayer(layer);
     }
     this.openSaveResultModal();
@@ -735,58 +900,83 @@ export class MapPage implements OnInit {
     this.saveErrors = [];
     this.saveSuccesses = [];
     console.log(`Guardando capa con ID ${layerId}`);
-    const layer = this.mapa.getImpl().getAllLayerInGroup().find((l:any) => l.idLayer === layerId);
+    const layer = this.mapa
+      .getImpl()
+      .getAllLayerInGroup()
+      .find((l: any) => l.idLayer === layerId);
     await this.saveFeaturesByLayer(layer);
     this.openSaveResultModal();
   }
 
   async saveFeaturesByLayer(layer: any) {
-    try {      
+    try {
       if (this.featureEditions[layer.idLayer]) {
-        const result = await this.wfsService.saveFeatures(layer, this.featureEditions[layer.idLayer], this.mapa.getProjection().code);
+        const result = await this.wfsService.saveFeatures(
+          layer,
+          this.featureEditions[layer.idLayer],
+          this.mapa.getProjection().code,
+        );
         if (result.status === 200) {
           const summary = this.getWfsTransactionSummary(result.data);
           const message = await firstValueFrom(
-            this.languageService.translateTagWithParams('map.saveFeaturesSummary', summary)
+            this.languageService.translateTagWithParams(
+              "map.saveFeaturesSummary",
+              summary,
+            ),
           );
           this.saveSuccesses.push({ layerName: layer.name, message });
-          await this.databaseService.deleteEditionsByLayer(this.app.id, this.ter.id, layer.idLayer);
+          await this.databaseService.deleteEditionsByLayer(
+            this.app.id,
+            this.ter.id,
+            layer.idLayer,
+          );
           delete this.featureEditions[layer.idLayer];
         } else {
-          await this.recordUploadFailure(layer.name, classifyUploadFailure({
-            status: result.status,
-            body: result.data,
-            offline: !this.networkConnected,
-          }));
+          await this.recordUploadFailure(
+            layer.name,
+            classifyUploadFailure({
+              status: result.status,
+              body: result.data,
+              offline: !this.networkConnected,
+            }),
+          );
         }
       }
     } catch (error) {
       if (error instanceof SessionExpiredError) {
-        await this.recordUploadFailure(layer.name, { key: 'map.sessionExpired' });
+        await this.recordUploadFailure(layer.name, {
+          key: "map.sessionExpired",
+        });
         return;
       }
-      await this.recordUploadFailure(layer.name, classifyUploadFailure({
-        offline: !this.networkConnected,
-      }));
+      await this.recordUploadFailure(
+        layer.name,
+        classifyUploadFailure({
+          offline: !this.networkConnected,
+        }),
+      );
       console.error(`Error procesando la capa con ID ${layer.idLayer}:`, error);
     }
   }
 
   private async recordUploadFailure(layerName: string, failure: UploadFailure) {
-    if (failure.key === 'map.sessionExpired') {
-      const text = await firstValueFrom(this.languageService.translateTag(failure.key));
-      this.mapService.createToast(text, 'danger', 'top');
-      this.router.navigate(['home']);
+    if (failure.key === "map.sessionExpired") {
+      const text = await firstValueFrom(
+        this.languageService.translateTag(failure.key),
+      );
+      this.mapService.createToast(text, "danger", "top");
+      this.router.navigate(["home"]);
       return;
     }
-    const message = await firstValueFrom(this.languageService.translateTag(failure.key));
+    const message = await firstValueFrom(
+      this.languageService.translateTag(failure.key),
+    );
     this.saveErrors.push({
       layerName,
       message,
       ...(failure.detail ? { detail: failure.detail } : {}),
     });
   }
-
 
   saveMap() {
     const navigationExtras: NavigationExtras = {
@@ -795,10 +985,10 @@ export class MapPage implements OnInit {
         ter: this.ter,
         zoom: this.mapa.getZoom(),
         bbox: this.mapa.getBbox(),
-        map: true
-      }
+        map: true,
+      },
     };
-    this.navigate('download', navigationExtras);
+    this.navigate("download", navigationExtras);
   }
 
   navigate(path: string, navigationExtras: NavigationExtras) {
@@ -808,59 +998,65 @@ export class MapPage implements OnInit {
   async selectImg() {
     this.errorImg = [];
     const permission = await this.requestCameraPermission();
-    if (permission){
+    if (permission) {
       this.takePhoto();
     }
   }
 
-  removeImg(){
+  removeImg() {
     this.imageValue = null;
   }
 
-  private getWfsTransactionSummary(transactionData: unknown): { inserted: number; updated: number; deleted: number } {
+  private getWfsTransactionSummary(transactionData: unknown): {
+    inserted: number;
+    updated: number;
+    deleted: number;
+  } {
     const toCount = (value: unknown) => Number(value ?? 0) || 0;
     const data = transactionData as Record<string, unknown> | undefined;
-    const response = data?.['wfs:TransactionResponse'] as Record<string, unknown> | undefined;
-    const summary = response?.['wfs:TransactionSummary'] as Record<string, unknown> | undefined;
+    const response = data?.["wfs:TransactionResponse"] as
+      Record<string, unknown> | undefined;
+    const summary = response?.["wfs:TransactionSummary"] as
+      Record<string, unknown> | undefined;
     return {
-      inserted: toCount(summary?.['wfs:totalInserted']),
-      updated: toCount(summary?.['wfs:totalUpdated']),
-      deleted: toCount(summary?.['wfs:totalDeleted']),
+      inserted: toCount(summary?.["wfs:totalInserted"]),
+      updated: toCount(summary?.["wfs:totalUpdated"]),
+      deleted: toCount(summary?.["wfs:totalDeleted"]),
     };
   }
 
   private async requestCameraPermission() {
     try {
       const permissionStatus = await Camera.requestPermissions();
-      console.log('Camera permission status:', permissionStatus);
-      
-      if (permissionStatus.camera === 'granted') {
+      console.log("Camera permission status:", permissionStatus);
+
+      if (permissionStatus.camera === "granted") {
         return true;
       } else {
         // Permiso denegado o restringido
-        console.log('Permiso de cámara no concedido');
-        this.errorImg.push('imagePermissionError');
+        console.log("Permiso de cámara no concedido");
+        this.errorImg.push("imagePermissionError");
         return false;
       }
     } catch (error) {
-      console.error('Error solicitando permisos de cámara', error);
-      this.errorImg.push('imagePermissionError');
+      console.error("Error solicitando permisos de cámara", error);
+      this.errorImg.push("imagePermissionError");
       return false;
     }
   }
 
   private takePhoto() {
     const prompt = {
-      header: '',
-      gallery: '',
-      picture: ''
+      header: "",
+      gallery: "",
+      picture: "",
     };
 
     forkJoin({
-      header: this.languageService.translateTag('map.prompt.header'),
-      gallery: this.languageService.translateTag('map.prompt.gallery'),
-      picture: this.languageService.translateTag('map.prompt.picture')
-    }).subscribe(({header, gallery, picture}) => {
+      header: this.languageService.translateTag("map.prompt.header"),
+      gallery: this.languageService.translateTag("map.prompt.gallery"),
+      picture: this.languageService.translateTag("map.prompt.picture"),
+    }).subscribe(({ header, gallery, picture }) => {
       prompt.header = header;
       prompt.gallery = gallery;
       prompt.picture = picture;
@@ -871,53 +1067,57 @@ export class MapPage implements OnInit {
   async useCamera(prompt: any) {
     try {
       const image = await Camera.getPhoto({
-        quality: 80, 
+        quality: 80,
         allowEditing: false,
         saveToGallery: true,
         resultType: CameraResultType.Base64,
-        source: CameraSource.Prompt, 
+        source: CameraSource.Prompt,
         promptLabelHeader: prompt.header,
         promptLabelPhoto: prompt.gallery,
         promptLabelPicture: prompt.picture,
         width: 3000, // Controla el tamaño en bytes de la imagen
       });
 
-      console.log('Imagen:', image);
+      console.log("Imagen:", image);
 
-      const acceptedFormats = ['jpeg', 'png', 'heif', 'heic'];
+      const acceptedFormats = ["jpeg", "png", "heif", "heic"];
 
       // Verifica si el formato de la imagen es aceptado
       if (!acceptedFormats.includes(image.format)) {
-        this.errorImg.push('imageFormatError');
+        this.errorImg.push("imageFormatError");
         this.imageValue = null;
       }
 
       // Devuelve base64 con prefijo data URL
       this.imageValue = `data:image/${image.format};base64,${image.base64String}`;
     } catch (error) {
-      console.error('Error al tomar la foto', error);
+      console.error("Error al tomar la foto", error);
       this.imageValue = null;
     }
   }
 
   // pin elemento rango muestra un decimal exacto
   formatPin = (value: number): string => {
-    return value.toFixed(1); 
-  }
+    return value.toFixed(1);
+  };
 
   isFeatureEditionsEmpty(): boolean {
     if (!this.featureEditions) return true;
 
-    return Object.values(this.featureEditions).every(edition =>
-      (!edition.inserts || edition.inserts.length === 0) &&
-      (!edition.updates || edition.updates.length === 0) &&
-      (!edition.deletes || edition.deletes.length === 0)
+    return Object.values(this.featureEditions).every(
+      (edition) =>
+        (!edition.inserts || edition.inserts.length === 0) &&
+        (!edition.updates || edition.updates.length === 0) &&
+        (!edition.deletes || edition.deletes.length === 0),
     );
   }
 
-  changeOpacity(event: any, node: TreeNode){
+  changeOpacity(event: any, node: TreeNode) {
     node.transparency = event.detail.value;
-    const layer = this.mapa.getImpl().getAllLayerInGroup().filter((l:any) => [node.resource, node.action].includes(l.idLayer));
+    const layer = this.mapa
+      .getImpl()
+      .getAllLayerInGroup()
+      .filter((l: any) => [node.resource, node.action].includes(l.idLayer));
     layer.forEach((l: any) => {
       l.setOpacity(node.transparency);
     });
@@ -926,5 +1126,4 @@ export class MapPage implements OnInit {
   openMenu() {
     this.profileModal.openProfileModal();
   }
-
 }
