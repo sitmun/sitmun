@@ -17,6 +17,7 @@ All notable changes to this project will be documented in this file. The format 
 ### Changed
 
 - **About**: The About window shows API-SITNA 4.10.0 and OpenLayers 10.9.0.
+- **Language**: Portuguese includes the feature-type catalog messages, the denied-map message, and the OpenLayers version label. Every language file drops keys that no screen uses, including the empty job label. `i18n-parity.spec.ts` requires each language file to match the English keys and to contain no empty value.
 - **Login**: The browser tab uses the SITMUN mark. The icon file is a PNG, and the page declares that type.
 - **Login**: The login page and the password page no longer use a default image.
 - **Tooling**: Node.js is `24.22.0` (`engines` `^24.22.0 || ^26.0.0`) and Angular is `22.2.3`, with TypeScript `6.0.x`. Production builds no longer set `--openssl-legacy-provider`. Custom webpack skips Angular Babel on `jszip` and `util`, disables the webpack-dev-server HMR client (Angular 22 otherwise whitescreens on `import hotEmitter`), and appends the catastro proxy without dropping the e2e `/backend` and `/middleware` proxies. `npm run start:e2e` builds the e2e configuration and serves `dist/viewer-app` statically with those proxies instead of `ng serve`, so Playwright does not depend on webpack-dev-server under suite load. The `@angular-devkit/build-angular:browser` / `@angular-builders/custom-webpack:browser` deprecation warning is accepted for this pin; migration to `@angular/build:application` is deferred (Cesium/`@spz-loader` custom webpack still required).

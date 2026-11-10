@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Changed
+
+- **Language**: The unused `btnLabel.extraInfo`, `btnLabel.mailto`, and `nearme.title` labels are removed from every language file.
+
 ### Fixed
 
 - **Android**: Capacitor 8 targets API 36. HTTP calls use `CapacitorHttp`. SQLite is `@capacitor-community/sqlite` 8.1.1 ([touristic-mobile-app#16](https://github.com/sitmun/touristic-mobile-app/pull/16)).

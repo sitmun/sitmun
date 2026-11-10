@@ -146,13 +146,7 @@ class SeedTranslationTest(unittest.TestCase):
             text=True,
         )
         self.assertEqual(completed.returncode, 0, completed.stdout + completed.stderr)
-        literal_gaps = [
-            line for line in completed.stdout.splitlines() if " literal " in line
-        ]
-        self.assertTrue(
-            all(line.startswith("pt-PT literal ") for line in literal_gaps),
-            literal_gaps,
-        )
+        self.assertIn("0 missing", completed.stdout)
 
     def test_literal_gap_is_listed_until_the_value_exists(self) -> None:
         script = ROOT / "tools/bin/check_translations.py"
@@ -172,7 +166,7 @@ class SeedTranslationTest(unittest.TestCase):
                 capture_output=True,
                 text=True,
             )
-        self.assertEqual(missing.returncode, 0, missing.stdout + missing.stderr)
+        self.assertEqual(missing.returncode, 1, missing.stdout + missing.stderr)
         self.assertIn("fr literal No data", missing.stdout)
         present = subprocess.run(
             [sys.executable, str(script)],

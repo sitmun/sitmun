@@ -1,5 +1,5 @@
 {
-    "home":{
+    "home": {
         "title": "Inicio",
         "access": "Acceder",
         "instanceSelection": "Selecciona el territorio que deseas visitar",
@@ -13,9 +13,9 @@
         "territoryError": "Ha ocurrido un error al obtener el territorio de la app",
         "appError": "Ha ocurrido un error al obtener la app turística",
         "databaseError": "Ha ocurrido un error al inicializar la base de datos",
-        "headerError": "Error de comunicación" 
-    },   
-    "events": {   
+        "headerError": "Error de comunicación"
+    },
+    "events": {
         "searchEvent": "Gastronomía, teatro, música...",
         "category": "Categoría",
         "nextActivities": "Próximas actividades",
@@ -28,7 +28,7 @@
         "nearme": "Cerca de mí",
         "apply": "Aplicar",
         "doneText": "Hecho",
-        "cancelText": "Cancelar", 
+        "cancelText": "Cancelar",
         "location": "Donde:"
     },
     "moreInfo": "Más información",
@@ -43,7 +43,6 @@
         "searchMap": "Buscar..."
     },
     "nearme": {
-        "title": "Cerca de mí",
         "searchNearElements": "Buscar elementos cercanos a",
         "myPosition": "Mi ubicación",
         "mapCenter": "Centro del mapa",
@@ -54,9 +53,9 @@
         "selectCategory": "Seleccione al menos una categoría",
         "apply": "Aplicar"
     },
-    "schedule":{
+    "schedule": {
         "destination": "Destino"
-    },    
+    },
     "alertLocation": {
         "header": "Ubicación no disponible",
         "message": "No se ha podido obtener la ubicación actual. Se utilizará centro del mapa por defecto.",
@@ -68,15 +67,13 @@
         "exit": "Salir",
         "continue": "Continuar",
         "cancel": "Cancelar"
-    }, 
+    },
     "btnLabel": {
         "price": "Precio",
-        "schedule": "Horario", 
+        "schedule": "Horario",
         "call": "Llamar",
         "point": "Puntos de interés",
-        "link": "Abrir enlace",
-        "mailto": "Enviar email",
-        "extraInfo": "Información extra"
+        "link": "Abrir enlace"
     },
     "routes": {
         "notsuitable": "No apta",

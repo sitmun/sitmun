@@ -10,6 +10,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 #### Backend Core
 
+- **i18n**: A fresh database and an upgrade from 1.2.9 now store Portuguese for the code-list descriptions, task names, territory types, the Basic task group, and the seven literal sentences that were still missing. `check_translations.py` exits 1 when any of those rows is missing. Databases that already applied the seed, code-list, translation, or literal changesets keep the checksums they stored.
 - **Liquibase**: The Portuguese translation edit keeps the checksums already stored for `baseline-languages-postgresql`, `baseline-translations`, and `upgrade-1.2.9-to-1.3.0-translations-postgresql`.
 - **Liquibase**: A database that has no `pt-PT` row receives Portuguese even when it is not a 1.2.9 upgrade. A fresh database has no `stm_language` yet, so that check is skipped and the baseline still inserts the row.
 - **Tests**: A test that must not run on H2 uses `@EnabledOnDatabase`. `atLeast` is inclusive and `before` is exclusive. `@EnabledOnOracleSince11` is that annotation for Oracle 11 and newer. Production-database tasks set `sitmun.test.database.enabled`, `product`, and `version`.
@@ -23,6 +24,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 #### Admin Application
 
+- **Language**: Portuguese includes the keys added after the `pt-PT` files landed, including SQL query test copy and feature-type wording. Each language file drops keys that no screen uses. A Jest spec requires every language file to match the English keys and to contain no empty value.
 - **Layers**: The layers list and the layer form show the linked service protocol beside the service. The value is the service type and stays off the stored cartography type ([sitmun-admin-app#498](https://github.com/sitmun/sitmun-admin-app/issues/498)).
 - **Layers**: Seeding feature information adds geometry properties on the same parameter list. Format stays `Geometry`. A preferred type is edited only for generic Geometry ([sitmun-admin-app#499](https://github.com/sitmun/sitmun-admin-app/issues/499)).
 - **Services**: The parameter type list follows the service protocol. `INFO` is GetFeatureInfo, `GETMAP` is GetMap, and `WMTS` stays a viewer tile setting. The parameters tab says those scopes reach the upstream service only when the service is proxied.
@@ -31,6 +33,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 #### Viewer Application
 
+- **Language**: Portuguese includes the feature-type catalog messages, the denied-map message, and the OpenLayers version label. Each language file drops keys that no screen uses, including the empty job label. A Jest spec requires every language file to match the English keys and to contain no empty value.
 - **Map**: Adding a WFS layer passes `geometryName` when the profile publishes one, and passes `geometryType` only when the profile publishes `preferredGeometryType`. The identify table skips a field whose format is `Geometry` ([sitmun-admin-app#499](https://github.com/sitmun/sitmun-admin-app/issues/499)).
 - **Map**: A proxied layer uses its own proxy address from the profile ([#90](https://github.com/sitmun/sitmun-application-stack/issues/90)).
 - **Map**: A share link keeps the current map route and stores the view in `mapState`. Opening that link restores the extent, a non-default background, catalog layers that were turned on, reordered, or changed (including their opacity, sublayers, stacking order, and the selected layer of a radio group), drawings, an imported file, a shared feature, and the 3D camera. A missing background, layer, drawing, or file does not stop the rest of the restore. The browser does not call tinyurl.com. A failed shorten shows a map-language message ([sitmun-viewer-app#189](https://github.com/sitmun/sitmun-viewer-app/issues/189)).
