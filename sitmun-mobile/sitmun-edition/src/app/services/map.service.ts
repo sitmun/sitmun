@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { Geolocation } from '@capacitor/geolocation';
 import { ToastController } from '@ionic/angular';
 import { LanguageService } from './language.service';
+import { locationFromFix, locationRequestOptions } from './location-fix';
 import { Filesystem, Directory } from '@capacitor/filesystem';
 import { FeatureInfoService } from './feature-info.service';
 import { InstancesService } from './instances.service';
@@ -426,33 +427,36 @@ export class MapService {
     mapa.addPlugin(tocPlugin);
   }
 
-  async getLocation(mapa: any) {
-    let position = null;
+  async getLocation() {
     try {
       const permission = await Geolocation.requestPermissions();
-      if(permission.location === 'granted') {
-        position = await Geolocation.getCurrentPosition({enableHighAccuracy: true});
-        position= {
-          x: position.coords.longitude,
-          y: position.coords.latitude
-        };
-        console.log('Ubicacion: ', position);
-      } else {        
-        console.log('No se tienen permisos para obtener la ubicación, obteniendo de la configuración del mapa');
-        await this.errorLocationToast("permissionError");
-        position = this.getDefaultLocation(mapa);
+      if (permission.location !== 'granted') {
+        await this.errorLocationToast('permissionError');
+        await this.choosePointToast();
+        return null;
       }
+      const fix = await Geolocation.getCurrentPosition(locationRequestOptions());
+      const position = locationFromFix(fix);
+      if (!position) {
+        await this.errorLocationToast('error');
+        await this.choosePointToast();
+        return null;
+      }
+      if (position.accuracy !== undefined) {
+        this.languageService.translateTagWithParams('map.locationAccuracy', { meters: position.accuracy })
+          .subscribe((text: string) => this.createToast(text, 'success', 'bottom'));
+      }
+      return position;
     } catch (error) {
       console.error('Error obteniendo ubicación:', error);
       if ((error as Error).message?.toLowerCase().includes('location services')) {
-        await this.errorLocationToast("locationError");
-      }else{
-        await this.errorLocationToast("error");
-      }   
-
-      position = this.getDefaultLocation(mapa);
+        await this.errorLocationToast('locationError');
+      } else {
+        await this.errorLocationToast('error');
+      }
+      await this.choosePointToast();
+      return null;
     }
-    return position;
   }
 
   private async errorLocationToast(typeError: string) {
@@ -465,6 +469,13 @@ export class MapService {
     }
   }
 
+  private async choosePointToast() {
+    const text = await new Promise<string>((resolve) => {
+      this.languageService.translateTag('map.choosePoint').subscribe((value: string) => resolve(value));
+    });
+    await this.createToast(text, 'warning', 'bottom');
+  }
+
   async createToast(msg: string, type: string, pos: "top" | "bottom" | "middle" | undefined) {
     const toast = await this.toastController.create({
       message: msg,
@@ -475,21 +486,6 @@ export class MapService {
     await toast.present();
   }
   
-
-  getDefaultLocation(mapa: any) {
-    let coords = [4, 40];
-    if (mapa) {
-      const center = mapa.getCenter();
-      coords = this.transformCoords([center.x, center.y], this.mapProj, 'EPSG:4326');
-    } else if (this.centerMapTransformed && this.mapProj) {
-      coords = this.transformCoords(this.centerMapTransformed, this.mapProj, 'EPSG:4326');
-    }
-    const position = {
-      x: coords[0],
-      y: coords[1]
-    };
-    return position;
-  }
 
   transformCoords(coords: number[], projOrig: string, projDest: string) {
     const result = ol.proj.transform(coords, projOrig, projDest);

@@ -60,6 +60,8 @@
         "locationPermissionError": "Aucune autorisation pour obtenir l'emplacement",
         "locationDisabled": "L'emplacement est désactivé",
         "locationError": "Erreur lors de l'obtention de l'emplacement",
+        "locationAccuracy": "Précision {{meters}} m.",
+        "choosePoint": "Pas de position. Déplacez la carte et appuyez sur le bouton de localisation pour placer le point.",
         "doneText": "Terminé",
         "cancelText": "Annuler",
         "clearText": "Effacer",

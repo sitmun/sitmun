@@ -66,7 +66,7 @@ describe('MapPage point form', () => {
     page.loadingCtrl = {
       create: async () => ({ present: async () => {}, dismiss: async () => {} }),
     };
-    page.saveFeature = jest.fn(async () => {});
+    page.saveFeature = jest.fn(async () => true);
     page.closeFeatureModal = jest.fn();
 
     await page.onSaveModal();
@@ -90,5 +90,78 @@ describe('MapPage point form', () => {
 
     expect(page.saveFeature).not.toHaveBeenCalled();
     expect(page.closeFeatureModal).not.toHaveBeenCalled();
+  });
+
+  it('leaves the form open when the new point has no position', async () => {
+    const page = barePage() as any;
+    page.saving = false;
+    page.errorImg = [];
+    page.imageAttr = '';
+    page.newPoint = true;
+    page.featureAttrForm = { markAllAsTouched() {}, valid: true };
+    page.languageService = { translateTag: () => of('saved') };
+    page.mapService = { createToast() {} };
+    page.loadingCtrl = {
+      create: async () => ({ present: async () => {}, dismiss: async () => {} }),
+    };
+    page.saveFeature = jest.fn(async () => false);
+    page.closeFeatureModal = jest.fn();
+
+    await page.onSaveModal();
+
+    expect(page.closeFeatureModal).not.toHaveBeenCalled();
+  });
+
+  it('does not create a point when location fails', async () => {
+    const page = barePage() as any;
+    page.newPoint = true;
+    page.newGeometry = null;
+    page.featureAttrForm = { value: {} };
+    page.mapService = { getLocation: async () => null };
+
+    expect(await page.saveFeature()).toBe(false);
+    expect(page.newPoint).toBe(true);
+  });
+
+  it('uses the place the user chose instead of asking for a location', async () => {
+    const page = barePage() as any;
+    const feature = { setId() {}, setAttribute() {} };
+    page.newPoint = true;
+    page.newGeometry = { type: 'Point', coordinates: [10, 20] };
+    page.featureAttrForm = { value: {} };
+    page.mapService = {
+      getLocation: jest.fn(),
+      transformCoords: (coords: number[]) => coords,
+      createFeaturesGeojson: () => [feature],
+    };
+    page.mapa = { getProjection: () => ({ code: 'EPSG:3857' }) };
+    page.layerEdit = { addFeatures() {}, idLayer: 'layer/1' };
+    page.centerMapByFeature = () => {};
+    page.addFeatureEdition = () => {};
+
+    expect(await page.saveFeature()).toBe(true);
+    expect(page.mapService.getLocation).not.toHaveBeenCalled();
+    expect(page.newPoint).toBe(false);
+  });
+
+  it('lets a new point be placed from the map', () => {
+    const page = barePage() as any;
+    page.saving = false;
+    page.newPoint = true;
+    page.feature = null;
+    page.mapa = {
+      getCenter: () => ({ x: 3, y: 4 }),
+      getFeatureHandler: () => ({ clearSelectedFeatures() {} }),
+    };
+    page.openFeatureModal = jest.fn();
+    page.languageService = { translateTag: () => of('wait') };
+
+    page.editGeometry();
+    expect(page.geomEdition).toBe(true);
+    expect(page.isFeatureModalOpen).toBe(false);
+
+    page.saveGeom();
+    expect(page.newGeometry).toEqual({ type: 'Point', coordinates: [3, 4] });
+    expect(page.openFeatureModal).toHaveBeenCalledWith(true);
   });
 });
