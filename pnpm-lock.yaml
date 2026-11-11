@@ -320,6 +320,9 @@ catalogs:
     jest-preset-angular:
       specifier: 17.0.3
       version: 17.0.3
+    js-beautify:
+      specifier: 1.15.4
+      version: 1.15.4
     ol:
       specifier: 10.9.0
       version: 10.9.0
@@ -489,7 +492,7 @@ importers:
         specifier: 5.8.0
         version: 5.8.0
       js-beautify:
-        specifier: 1.15.4
+        specifier: 'catalog:'
         version: 1.15.4
       jsonpath:
         specifier: 1.3.0
