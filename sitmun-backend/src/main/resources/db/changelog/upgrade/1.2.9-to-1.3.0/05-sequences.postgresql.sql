@@ -1,4 +1,4 @@
--- Renumber sample task 32306 (More Info Advanced) to 37 before the sequence floor reads MAX(tas_id). Skip when 37 is already a different task.
+-- Renumber sample task 32306 (More Info Advanced) to 37 before the sequence counters read MAX(tas_id). Skip when 37 is already a different task.
 INSERT INTO stm_task (tas_id, tas_name, tas_created, tas_order, tas_giid, tas_serid, tas_gtaskid, tas_ttaskid, tas_tuiid, tas_connid, tas_params)
 SELECT 37, tas_name, tas_created, tas_order, tas_giid, tas_serid, tas_gtaskid, tas_ttaskid, tas_tuiid, tas_connid, tas_params
 FROM stm_task

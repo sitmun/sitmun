@@ -22,12 +22,12 @@ ROOT = Path(__file__).resolve().parents[2]
 LEGACY = ROOT / "sitmun-backend/src/main/resources/db/changelog/upgrade/1.2.9-to-1.3.0"
 FIXTURES = ROOT / "sitmun-backend/src/test/resources/db/databasechangelog/1.2.9"
 SEED = ROOT / "tools/seed-data/baseline"
-FLOOR = (
+COUNTERS = (
     ROOT
-    / "sitmun-backend/src/main/resources/db/changelog/baseline/05-sequence-floor.postgresql.sql"
+    / "sitmun-backend/src/main/resources/db/changelog/baseline/05-sequence-counters.postgresql.sql"
 )
 
-FLOOR_ROW = re.compile(
+COUNTER_ROW = re.compile(
     r"VALUES \('([A-Z0-9_]+)', \(SELECT COALESCE\(MAX\(([a-z0-9_]+)\), 0\) \+ 1 FROM ([a-z0-9_]+)\)"
 )
 
@@ -388,9 +388,9 @@ def sequence_preamble() -> str:
 
 
 def sequences(oracle: bool) -> str:
-    pairs = FLOOR_ROW.findall(FLOOR.read_text())
+    pairs = COUNTER_ROW.findall(COUNTERS.read_text())
     if len(pairs) < 40:
-        raise SystemExit(f"expected the sequence floor rows, found {len(pairs)}")
+        raise SystemExit(f"expected the sequence counter rows, found {len(pairs)}")
     lines: list[str] = []
     for seq, column, table in pairs:
         if oracle:

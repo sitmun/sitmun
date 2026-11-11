@@ -121,7 +121,7 @@ class RequiredCodeListsTest {
   void freshInstallSetsEveryCounterOnePastTheHighestId() throws Exception {
     Assumptions.assumeTrue(
         "shipped".equals(System.getProperty("sitmun.test.changelog"))
-            && !"false".equals(System.getProperty("sitmun.test.sequence-floor", "true")),
+            && !"false".equals(System.getProperty("sitmun.test.sequence-counters", "true")),
         "sequence counters are checked on a fresh shipped install");
     try (Connection connection = dataSource.getConnection()) {
       assertSoftly(

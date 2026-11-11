@@ -645,7 +645,7 @@ run_required_code_lists() {
     cd "$REPO_ROOT" &&
     env "$envname=$url" ./gradlew --no-daemon \
       ":sitmun-backend:${task}" \
-      -Dsitmun.test.sequence-floor=false \
+      -Dsitmun.test.sequence-counters=false \
       -Dsitmun.test.changelog=shipped
   ); then
     ok "required code lists on the upgraded database"
