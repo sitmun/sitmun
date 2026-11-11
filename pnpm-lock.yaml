@@ -323,6 +323,9 @@ catalogs:
     ol:
       specifier: 10.9.0
       version: 10.9.0
+    prettier:
+      specifier: 3.9.10
+      version: 3.9.10
     rxjs:
       specifier: 7.8.2
       version: 7.8.2
@@ -1153,7 +1156,7 @@ importers:
         specifier: 'catalog:'
         version: 17.0.3(@angular/compiler-cli@22.2.5(@angular/compiler@22.2.5)(typescript@6.0.3))(@angular/core@22.2.5(@angular/compiler@22.2.5)(rxjs@7.8.2)(zone.js@0.15.1))(@angular/platform-browser@22.2.5(@angular/animations@22.2.5(@angular/core@22.2.5(@angular/compiler@22.2.5)(rxjs@7.8.2)(zone.js@0.15.1)))(@angular/common@22.2.5(@angular/core@22.2.5(@angular/compiler@22.2.5)(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@22.2.5(@angular/compiler@22.2.5)(rxjs@7.8.2)(zone.js@0.15.1)))(@babel/core@7.29.7(supports-color@8.1.1))(@jest/transform@30.5.2(supports-color@8.1.1))(@jest/types@30.5.1)(@types/jsdom@21.1.7)(babel-jest@30.5.2(@babel/core@7.29.7(supports-color@8.1.1))(supports-color@8.1.1))(jest@30.5.2(@types/node@24.19.2)(supports-color@8.1.1)(ts-node@10.9.2(@types/node@24.19.2)(typescript@6.0.3)))(jsdom@26.1.0(supports-color@8.1.1))(typescript@6.0.3)
       prettier:
-        specifier: 3.9.10
+        specifier: 'catalog:'
         version: 3.9.10
       process:
         specifier: 0.11.10

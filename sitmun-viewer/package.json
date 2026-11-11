@@ -76,7 +76,7 @@
     "jest": "catalog:",
     "jest-environment-jsdom": "catalog:",
     "jest-preset-angular": "catalog:",
-    "prettier": "3.9.10",
+    "prettier": "catalog:",
     "process": "0.11.10",
     "typescript": "catalog:",
     "typescript-eslint": "catalog:",
