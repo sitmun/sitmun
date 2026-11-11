@@ -11,7 +11,7 @@
     "test": "jest --forceExit",
     "test:watch": "jest --watch",
     "lint": "ng lint",
-    "android": "ionic build && pnpm exec cap sync android && pnpm exec cap copy android && pnpm exec cap open android"
+    "android": "pnpm exec ng build && pnpm exec cap sync android && pnpm exec cap copy android && pnpm exec cap open android"
   },
   "private": true,
   "dependencies": {
