@@ -45,7 +45,7 @@
     "bootstrap": "5.3.3",
     "capacitor-native-settings": "8.2.0",
     "ionicons": "catalog:",
-    "jsonpath": "1.1.1",
+    "jsonpath": "catalog:",
     "rxjs": "catalog:",
     "stream": "0.0.3",
     "timers": "0.1.1",

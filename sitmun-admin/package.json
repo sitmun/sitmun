@@ -60,7 +60,7 @@
     "echarts": "5.6.0",
     "fast-xml-parser": "5.8.0",
     "js-beautify": "1.15.4",
-    "jsonpath": "1.3.0",
+    "jsonpath": "catalog:",
     "ngx-echarts": "19.0.0",
     "regex-parser": "2.3.1",
     "rxjs": "catalog:",

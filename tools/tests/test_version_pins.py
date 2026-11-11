@@ -427,6 +427,8 @@ def _failures_js_catalog(_root: Path) -> list[str]:
         failures.append(f"catalog api-sitna is {catalog.get('api-sitna') or 'missing'}, expected 4.10.0")
     if catalog.get("ol") != "10.9.0":
         failures.append(f"catalog ol is {catalog.get('ol') or 'missing'}, expected 10.9.0")
+    if catalog.get("jsonpath") != "1.3.0":
+        failures.append(f"catalog jsonpath is {catalog.get('jsonpath') or 'missing'}, expected 1.3.0")
     eslint_pins = {
         "eslint": "9.39.5",
         "@eslint/js": "9.39.5",
