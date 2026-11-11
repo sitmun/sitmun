@@ -164,6 +164,24 @@ settings:
 
 catalogs:
   default:
+    '@ag-grid-community/angular':
+      specifier: 32.3.9
+      version: 32.3.9
+    '@ag-grid-community/client-side-row-model':
+      specifier: 32.3.9
+      version: 32.3.9
+    '@ag-grid-community/core':
+      specifier: 32.3.9
+      version: 32.3.9
+    '@ag-grid-community/csv-export':
+      specifier: 32.3.9
+      version: 32.3.9
+    '@ag-grid-community/infinite-row-model':
+      specifier: 32.3.9
+      version: 32.3.9
+    '@ag-grid-community/styles':
+      specifier: 32.3.9
+      version: 32.3.9
     '@angular-builders/jest':
       specifier: 22.0.1
       version: 22.0.1
@@ -369,22 +387,22 @@ importers:
   sitmun-admin:
     dependencies:
       '@ag-grid-community/angular':
-        specifier: 32.3.9
+        specifier: 'catalog:'
         version: 32.3.9(@ag-grid-community/core@32.3.9)(@angular/common@22.2.5(@angular/core@22.2.5(@angular/compiler@22.2.5)(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@22.2.5(@angular/compiler@22.2.5)(rxjs@7.8.2)(zone.js@0.15.1))
       '@ag-grid-community/client-side-row-model':
-        specifier: 32.3.9
+        specifier: 'catalog:'
         version: 32.3.9
       '@ag-grid-community/core':
-        specifier: 32.3.9
+        specifier: 'catalog:'
         version: 32.3.9
       '@ag-grid-community/csv-export':
-        specifier: 32.3.9
+        specifier: 'catalog:'
         version: 32.3.9
       '@ag-grid-community/infinite-row-model':
-        specifier: 32.3.9
+        specifier: 'catalog:'
         version: 32.3.9
       '@ag-grid-community/styles':
-        specifier: 32.3.9
+        specifier: 'catalog:'
         version: 32.3.9
       '@angular/animations':
         specifier: 'catalog:'

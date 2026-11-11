@@ -5,6 +5,12 @@ packages:
   - sitmun-mobile/sitmun-touristic
 
 catalog:
+  '@ag-grid-community/angular': 32.3.9
+  '@ag-grid-community/client-side-row-model': 32.3.9
+  '@ag-grid-community/core': 32.3.9
+  '@ag-grid-community/csv-export': 32.3.9
+  '@ag-grid-community/infinite-row-model': 32.3.9
+  '@ag-grid-community/styles': 32.3.9
   '@angular-builders/jest': 22.0.1
   '@angular-devkit/build-angular': 22.2.5
   '@angular-eslint/builder': 22.6.0

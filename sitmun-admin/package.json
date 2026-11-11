@@ -19,12 +19,12 @@
     "clean:build": "bash scripts/clean.sh --build-only"
   },
   "dependencies": {
-    "@ag-grid-community/angular": "32.3.9",
-    "@ag-grid-community/client-side-row-model": "32.3.9",
-    "@ag-grid-community/core": "32.3.9",
-    "@ag-grid-community/csv-export": "32.3.9",
-    "@ag-grid-community/infinite-row-model": "32.3.9",
-    "@ag-grid-community/styles": "32.3.9",
+    "@ag-grid-community/angular": "catalog:",
+    "@ag-grid-community/client-side-row-model": "catalog:",
+    "@ag-grid-community/core": "catalog:",
+    "@ag-grid-community/csv-export": "catalog:",
+    "@ag-grid-community/infinite-row-model": "catalog:",
+    "@ag-grid-community/styles": "catalog:",
     "@angular/animations": "catalog:",
     "@angular/cdk": "catalog:",
     "@angular/common": "catalog:",
