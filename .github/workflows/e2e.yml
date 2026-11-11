@@ -149,11 +149,7 @@ jobs:
 
       - name: Install Chromium
         if: inputs.suite != 'mobile_android' && steps.playwright-cache.outputs.cache-hit != 'true'
-        run: pnpm exec playwright install --with-deps chromium
-
-      - name: Install Chromium system dependencies
-        if: inputs.suite != 'mobile_android' && steps.playwright-cache.outputs.cache-hit == 'true'
-        run: pnpm exec playwright install-deps chromium
+        run: pnpm exec playwright install chromium
 
       - name: Run the suite
         if: inputs.suite != 'mobile_android'
