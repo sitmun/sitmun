@@ -733,9 +733,10 @@ export class MapPage implements OnInit {
         index = this.featureEditions[layer].updates.findIndex(
           (edition) => edition === this.feature,
         );
-        index !== -1
-          ? this.featureEditions[layer].updates.splice(index, 1)
-          : this.featureEditions[layer].deletes.push(this.feature);
+        if (index !== -1) {
+          this.featureEditions[layer].updates.splice(index, 1);
+        }
+        this.featureEditions[layer].deletes.push(this.feature);
       }
     } else {
       this.featureEditions[layer].inserts.push(this.feature);

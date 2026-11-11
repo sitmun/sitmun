@@ -166,3 +166,70 @@ describe('MapPage point form', () => {
     expect(page.openFeatureModal).toHaveBeenCalledWith(true);
   });
 });
+
+describe('MapPage edition deletes', () => {
+  function barePage(): any {
+    const page = Object.create(MapPage.prototype);
+    page.app = { id: 'app' };
+    page.ter = { id: 'ter' };
+    page.databaseService = {
+      insertEdition: jest.fn(async () => {}),
+      deleteEditionsByLayer: jest.fn(async () => {}),
+    };
+    return page;
+  }
+
+  function editionFeature() {
+    return {
+      getId: () => 'f1',
+      getAttributes: () => ({}),
+      getGeometry: () => null,
+    };
+  }
+
+  it('drops an unsaved insert without recording a delete', async () => {
+    const page = barePage();
+    const created = editionFeature();
+    page.feature = created;
+    page.featureEditions = {
+      'layer/1': { inserts: [created], deletes: [], updates: [] },
+    };
+
+    await page.addFeatureEdition('layer/1', 'deletes');
+
+    expect(page.featureEditions['layer/1']).toBeUndefined();
+    expect(page.databaseService.insertEdition).not.toHaveBeenCalled();
+  });
+
+  it('records a delete after removing a pending update', async () => {
+    const page = barePage();
+    const edited = editionFeature();
+    page.feature = edited;
+    page.featureEditions = {
+      'layer/1': { inserts: [], deletes: [], updates: [edited] },
+    };
+
+    await page.addFeatureEdition('layer/1', 'deletes');
+
+    expect(page.featureEditions['layer/1']).toEqual({
+      inserts: [],
+      deletes: [edited],
+      updates: [],
+    });
+  });
+
+  it('records a delete for a feature that was not edited in this session', async () => {
+    const page = barePage();
+    const existing = editionFeature();
+    page.feature = existing;
+    page.featureEditions = {};
+
+    await page.addFeatureEdition('layer/1', 'deletes');
+
+    expect(page.featureEditions['layer/1']).toEqual({
+      inserts: [],
+      deletes: [existing],
+      updates: [],
+    });
+  });
+});
