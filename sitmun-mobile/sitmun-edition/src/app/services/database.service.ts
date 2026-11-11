@@ -53,7 +53,7 @@ export class DatabaseService {
     return available;
   }
 
-  async initDatabase(dbName: string, createTables: Function) {
+  async initDatabase(dbName: string, createTables: (...args: any[]) => any) {
     try {
       console.log('Inicializando base de datos');
       if (this.sqlite.getPlatform() === 'web') {
@@ -112,7 +112,7 @@ export class DatabaseService {
     try {
       if(this.db) {
         console.log("Creando tabla userlogin...");
-        const changes = await this.db.execute(createTableQuery);
+        await this.db.execute(createTableQuery);
         console.log('Tabla userlogin creada correctamente');
       } else {
         console.log("Conexion nula (userlogin)");
@@ -133,7 +133,7 @@ export class DatabaseService {
     try {
       if(this.db) {
         console.log("Creando tabla instances...");
-        const changes = await this.db.execute(createTableQuery);
+        await this.db.execute(createTableQuery);
         console.log('Tabla instances creada correctamente');
       } else {
         console.log("Conexion nula (instances)");
@@ -155,7 +155,7 @@ export class DatabaseService {
     try {
       if(this.db) {
         console.log("Creando tabla apps...");
-        const changes = await this.db.execute(createTableQuery);
+        await this.db.execute(createTableQuery);
         console.log('Tabla apps creada correctamente');
       } else {
         console.log("Conexion nula (apps)");
@@ -177,7 +177,7 @@ export class DatabaseService {
     try {
       if(this.db) {
         console.log("Creando tabla territorio...");
-        const changes = await this.db.execute(createTableQuery);
+        await this.db.execute(createTableQuery);
         console.log('Tabla territorio creada correctamente');
       } else {
         console.log("Conexion nula (territorio)");
@@ -206,7 +206,7 @@ export class DatabaseService {
     try {
       if(this.db) {
         console.log("Creando tabla layers...");
-        const changes = await this.db.execute(createTableQuery);
+        await this.db.execute(createTableQuery);
         console.log('Tabla layers creada correctamente');
       } else {
         console.log("Conexion nula (layers)");
@@ -230,7 +230,7 @@ export class DatabaseService {
     try {
       if(this.db) {
         console.log("Creando tabla bglayers...");
-        const changes = await this.db.execute(createTableQuery);
+        await this.db.execute(createTableQuery);
         console.log('Tabla bglayers creada correctamente');
       } else {
         console.log("Conexion nula (bglayers)");
@@ -254,7 +254,7 @@ export class DatabaseService {
     try {
       if(this.db) {
         console.log("Creando tabla ediciones...");
-        const changes = await this.db.execute(createTableQuery);
+        await this.db.execute(createTableQuery);
         console.log('Tabla Ediciones creada correctamente');
       } else {
         console.log("Conexion nula (ediciones)");
@@ -277,7 +277,7 @@ export class DatabaseService {
     try {
       if(this.db) {
         console.log("Creando tabla app_ter_layer...");
-        const changes = await this.db.execute(createTableQuery);
+        await this.db.execute(createTableQuery);
         console.log('Tabla app_ter_layer creada correctamente');
       } else {
         console.log("Conexion nula (app_ter_layer)");
