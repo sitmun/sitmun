@@ -18,9 +18,7 @@ import {
 } from '@angular/platform-browser-dynamic/testing';
 import { ActivatedRoute, Router } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
-
 import { IonicModule } from '@ionic/angular';
-
 import { TranslateNoOpLoader, TranslatePipe, provideTranslateLoader, provideTranslateService } from '@ngx-translate/core';
 import { of } from 'rxjs';
 

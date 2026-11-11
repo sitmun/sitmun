@@ -47,7 +47,7 @@ export class MapaService {
     const srs = application.srs;
     let center = [application.pointOfInterest.x, application.pointOfInterest.y];
     let bbox = application.initialExtent;
-    const _zoom = application.defaultZoomLevel;
+    const zoom = application.defaultZoomLevel;
     center = ol.proj.transform(center, srs, 'EPSG:3857');
     const bboxMin = ol.proj.transform([bbox[0], bbox[1]], srs, 'EPSG:3857');
     const bboxMax = ol.proj.transform([bbox[2], bbox[3]], srs, 'EPSG:3857');
@@ -249,7 +249,7 @@ export class MapaService {
     } else {
       feature = this.createFeatureByGeoJson(obj.geom, obj.proj, mapProj);
     }
-    const _id = `featureid_${obj.id}`;
+    const id = `featureid_${obj.id}`;
     //feature.setId(id);
     feature.setAttributes(obj);
     return feature;

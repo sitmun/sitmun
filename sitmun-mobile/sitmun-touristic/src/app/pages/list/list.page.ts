@@ -35,7 +35,7 @@ export class ListPage {
     private databaseService: DatabaseService,
     private loadingCtrl: LoadingController,
   ) {
-    this.route.queryParams.subscribe((_params) => {
+    this.route.queryParams.subscribe((params) => {
       const navigation = this.router.getCurrentNavigation();
       if (navigation) {
         const tempState = navigation.extras.state;

@@ -51,7 +51,7 @@ export class AuthorizationService {
 
   private lastUrl: string = '';
   private addProfile = false;
-  private filter: (...args: any[]) => any = (_obj: any) => { return true;};
+  private filter: (...args: any[]) => any = (obj: any) => { return true;};
 
   constructor(private instancesService: InstancesService, private languageService: LanguageService,
     private databaseService: DatabaseService
@@ -132,7 +132,7 @@ export class AuthorizationService {
   }
 
   getPagesByProfile(profile: Profile, idParentNode: string = 'root') {
-    const _touristicTree = profile.trees?.find((t: Tree) => t.type === constants.codeValue.treeType.touristicTree);
+    const touristicTree = profile.trees?.find((t: Tree) => t.type === constants.codeValue.treeType.touristicTree);
     //this.setTouristicTreeRootNode(touristicTree, idParentNode);
     return this.transformData(profile, idParentNode);
   }
