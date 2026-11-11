@@ -80,7 +80,7 @@
     "@angular/cli": "catalog:",
     "@angular/compiler-cli": "catalog:",
     "@babel/core": "catalog:",
-    "@babel/preset-env": "7.29.5",
+    "@babel/preset-env": "catalog:",
     "@eslint/js": "9.39.4",
     "@jest/globals": "catalog:",
     "@types/jest": "catalog:",

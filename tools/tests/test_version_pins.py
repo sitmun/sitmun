@@ -419,6 +419,10 @@ def _failures_js_catalog(_root: Path) -> list[str]:
         failures.append(f"catalog typescript is {catalog.get('typescript') or 'missing'}, expected 6.0.3")
     if catalog.get("zone.js") != "0.15.1":
         failures.append(f"catalog zone.js is {catalog.get('zone.js') or 'missing'}, expected 0.15.1")
+    if catalog.get("@babel/preset-env") != "7.29.7":
+        failures.append(
+            f"catalog @babel/preset-env is {catalog.get('@babel/preset-env') or 'missing'}, expected 7.29.7"
+        )
     if catalog.get("api-sitna") != "4.10.0":
         failures.append(f"catalog api-sitna is {catalog.get('api-sitna') or 'missing'}, expected 4.10.0")
     if catalog.get("ol") != "10.9.0":
