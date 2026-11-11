@@ -15,6 +15,7 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 import org.sitmun.upstream.http.ManualRedirects;
+import org.sitmun.upstream.http.UnsafeHostList;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -28,8 +29,8 @@ public class HttpClientFactoryService implements HttpClient {
   private final List<Interceptor> interceptors = new ArrayList<>();
 
   public HttpClientFactoryService(
-      @Value("${sitmun.client.unsafe-allowed-hosts:*}") List<String> unsafeAllowedHosts) {
-    this.unsafeAllowedHosts = unsafeAllowedHosts;
+      @Value("${sitmun.client.unsafe-allowed-hosts:}") List<String> unsafeAllowedHosts) {
+    this.unsafeAllowedHosts = UnsafeHostList.normalize(log, unsafeAllowedHosts);
     safeClient = createSafeClient();
     unsafeClient = createUnsafeClient();
   }
@@ -57,7 +58,7 @@ public class HttpClientFactoryService implements HttpClient {
   public OkHttpClient getClient(String host) {
     try {
       if (unsafeAllowedHosts.contains("*") || unsafeAllowedHosts.contains(host)) {
-        log.warn("Using Unsafe Client");
+        log.debug("Using Unsafe Client");
         return unsafeClient;
       } else {
         return safeClient;

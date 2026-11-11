@@ -19,6 +19,7 @@ import javax.net.ssl.SSLHandshakeException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.sitmun.upstream.http.CertificateRejection;
 import org.sitmun.upstream.signal.capture.AuthFailedCapture;
 import org.sitmun.upstream.signal.capture.ClientErrorCapture;
 import org.sitmun.upstream.signal.capture.ConnectCapture;
@@ -252,9 +253,7 @@ class ServiceCheckClassifierTest {
         new ExchangeSignals("SSLHandshakeException", "PKIX path building failed", null, null, "");
 
     assertThat(classify(probe("WMS"), signals))
-        .contains(
-            new Classification(
-                ServiceStatuses.TLS_ERROR, "SSLHandshakeException PKIX path building failed"));
+        .contains(new Classification(ServiceStatuses.TLS_ERROR, CertificateRejection.DETAIL));
   }
 
   @Test

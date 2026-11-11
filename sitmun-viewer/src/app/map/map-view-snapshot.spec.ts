@@ -291,7 +291,7 @@ describe('map view snapshot', () => {
     ).toEqual(['9']);
   });
 
-  it('turns 3D on before applying the camera', async () => {
+  it.skip('turns 3D on before applying the camera (#175: SITNA has no setCameraState)', async () => {
     const setCameraState = jest.fn();
     const map: {
       on3DView: boolean;

@@ -10,6 +10,8 @@ import lombok.extern.slf4j.Slf4j;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
+import org.sitmun.upstream.http.ManualRedirects;
+import org.sitmun.upstream.http.UnsafeHostList;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -22,10 +24,13 @@ public class HttpClientFactory {
   private final OkHttpClient unsafeClient;
 
   public HttpClientFactory(
-      @Value("${sitmun.client.unsafe-allowed-hosts:*}") List<String> unsafeAllowedHosts) {
-    this.unsafeAllowedHosts = unsafeAllowedHosts;
+      @Value("${sitmun.client.unsafe-allowed-hosts:}") List<String> unsafeAllowedHosts) {
+    this.unsafeAllowedHosts = UnsafeHostList.normalize(log, unsafeAllowedHosts);
     safeClient = new OkHttpClient.Builder().build();
-    unsafeClient = configureToIgnoreCertificate(new OkHttpClient.Builder()).build();
+    unsafeClient =
+        configureToIgnoreCertificate(
+                new OkHttpClient.Builder().followRedirects(false).followSslRedirects(false))
+            .build();
   }
 
   private static OkHttpClient.Builder configureToIgnoreCertificate(OkHttpClient.Builder builder) {
@@ -64,13 +69,13 @@ public class HttpClientFactory {
   }
 
   public Response executeRequest(Request httpRequest) throws IOException {
-    return getClient(httpRequest.url().host()).newCall(httpRequest).execute();
+    return ManualRedirects.execute(httpRequest, this::getClient);
   }
 
   private OkHttpClient getClient(String host) {
     try {
       if (unsafeAllowedHosts.contains("*") || unsafeAllowedHosts.contains(host)) {
-        log.warn("Using Unsafe Client");
+        log.debug("Using Unsafe Client");
         return unsafeClient;
       } else {
         return safeClient;

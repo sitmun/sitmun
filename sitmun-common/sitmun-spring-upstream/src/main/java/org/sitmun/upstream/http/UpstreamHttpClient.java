@@ -29,7 +29,7 @@ public final class UpstreamHttpClient {
       Duration connectTimeout,
       Duration readTimeout,
       List<Interceptor> interceptors) {
-    this.unsafeAllowedHosts = List.copyOf(unsafeAllowedHosts);
+    this.unsafeAllowedHosts = UnsafeHostList.normalize(log, unsafeAllowedHosts);
     this.safeClient = base(connectTimeout, readTimeout, interceptors).build();
     this.unsafeClient =
         ignoreCertificate(base(connectTimeout, readTimeout, interceptors))
@@ -44,7 +44,7 @@ public final class UpstreamHttpClient {
 
   public OkHttpClient clientFor(String host) {
     if (unsafeAllowedHosts.contains("*") || unsafeAllowedHosts.contains(host)) {
-      log.warn("Using Unsafe Client");
+      log.debug("Using Unsafe Client");
       return unsafeClient;
     }
     return safeClient;

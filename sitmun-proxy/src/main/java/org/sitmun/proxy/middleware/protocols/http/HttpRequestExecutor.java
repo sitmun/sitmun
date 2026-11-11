@@ -28,6 +28,7 @@ import org.sitmun.proxy.middleware.service.RequestExecutorResponse;
 import org.sitmun.proxy.middleware.service.RequestExecutorResponseImpl;
 import org.sitmun.proxy.middleware.servicecheck.UpstreamExchange;
 import org.sitmun.proxy.middleware.utils.UriTemplateExpander;
+import org.sitmun.upstream.http.CertificateRejection;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.util.StringUtils;
@@ -142,7 +143,10 @@ public class HttpRequestExecutor implements RequestExecutor {
               .type(ProblemTypes.PROXY_SERVICE_ERROR)
               .status(503)
               .title("Service Error")
-              .detail("Error with the request to final service")
+              .detail(
+                  CertificateRejection.matches(e)
+                      ? CertificateRejection.DETAIL
+                      : "Error with the request to final service")
               .instance("")
               .build();
       return new RequestExecutorResponseImpl<>(baseUrl, 503, "application/problem+json", problem);

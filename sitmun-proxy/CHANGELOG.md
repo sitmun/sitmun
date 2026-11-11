@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Security
+
+- **Upstream TLS**: `sitmun.client.unsafe-allowed-hosts` is empty unless a deployment sets it. An empty list checks the certificate and the hostname on every upstream call. A deployment that must reach a self-signed server sets `SITMUN_CLIENT_UNSAFE_ALLOWED_HOSTS` to those hosts, or to `*`. `*` turns the checks off for every host and is logged at startup. A rejected certificate says `certificate check failed` and names that setting ([#319](https://github.com/sitmun/sitmun/issues/319)).
+
 ### Fixed
 
 - **Service checks**: An upstream error page is read in the character set named on the response. When the response names none, the reader uses the byte-order mark, then the XML declaration, then UTF-8 ([#136](https://github.com/sitmun/sitmun/issues/136)).
