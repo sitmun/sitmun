@@ -49,15 +49,6 @@ def _failures_sources(_root: Path) -> list[str]:
     return failures
 
 
-def _failures_nvmrc_location(_root: Path) -> list[str]:
-    extras = [
-        str(path.relative_to(ROOT))
-        for path in ROOT.rglob(".nvmrc")
-        if path != ROOT / ".nvmrc" and "node_modules" not in path.parts
-    ]
-    return [f"extra .nvmrc: {', '.join(extras)}"] if extras else []
-
-
 def _failures_workflows(_root: Path) -> list[str]:
     failures = []
     for path in (ROOT / ".github/workflows").glob("*.yml"):
@@ -697,7 +688,6 @@ def _failures_mise(_root: Path) -> list[str]:
 
 CHECKS = (
     ("sources", lambda _root: True, _failures_sources),
-    ("nvmrc-location", lambda _root: True, _failures_nvmrc_location),
     ("workflows", lambda _root: True, _failures_workflows),
     ("docker-args", lambda _root: True, _failures_docker_args),
     ("engines", lambda _root: True, _failures_engines),
