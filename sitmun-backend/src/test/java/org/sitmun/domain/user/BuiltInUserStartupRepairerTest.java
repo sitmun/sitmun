@@ -8,9 +8,6 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.time.Clock;
-import java.time.Instant;
-import java.time.ZoneOffset;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -25,35 +22,23 @@ import org.sitmun.domain.user.position.UserPosition;
 import org.sitmun.domain.user.position.UserPositionRepository;
 import org.sitmun.infrastructure.security.core.SecurityConstants;
 import org.sitmun.infrastructure.startup.BuiltInUserStartupStatus;
-import org.sitmun.infrastructure.startup.BuiltInUsersStartupProperties;
 import org.springframework.boot.DefaultApplicationArguments;
-import org.springframework.security.crypto.password.PasswordEncoder;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("BuiltInUserStartupRepairer")
 class BuiltInUserStartupRepairerTest {
 
-  private static final Instant FIXED_INSTANT = Instant.parse("2026-07-17T12:00:00Z");
-  private static final Clock FIXED_CLOCK = Clock.fixed(FIXED_INSTANT, ZoneOffset.UTC);
-  private static final String BOOTSTRAP_PASSWORD = "bootstrap-secret-value";
-  private static final String ENCODED_PASSWORD = "$2a$10$encodedBootstrapHash";
-
   @Mock private UserRepository userRepository;
   @Mock private UserPositionRepository userPositionRepository;
-  @Mock private PasswordEncoder passwordEncoder;
 
-  private BuiltInUsersStartupProperties properties;
   private BuiltInUserStartupStatus status;
-  private BuiltInUserRepairService repairService;
   private BuiltInUserStartupRepairer repairer;
 
   @BeforeEach
   void setUp() {
-    properties = new BuiltInUsersStartupProperties();
     status = new BuiltInUserStartupStatus();
-    repairService =
-        new BuiltInUserRepairService(
-            userRepository, userPositionRepository, passwordEncoder, properties, FIXED_CLOCK);
+    BuiltInUserRepairService repairService =
+        new BuiltInUserRepairService(userRepository, userPositionRepository);
     repairer = new BuiltInUserStartupRepairer(repairService, status);
   }
 
@@ -130,19 +115,16 @@ class BuiltInUserStartupRepairerTest {
     assertThat(savedAdmin.getFirstName()).isEqualTo("Administrator");
     assertThat(savedAdmin.getEmail()).isEqualTo("admin@example.com");
     assertThat(status.getState()).isEqualTo(BuiltInUserStartupStatus.State.READY);
-    verify(passwordEncoder, never()).encode(any());
   }
 
   @Test
-  @DisplayName("missing admin with bootstrap secret: encode once, set lastPasswordChange, READY")
-  void missingAdminCreatedWithBootstrapSecret() {
+  @DisplayName("missing admin stays passwordless so first-run can set the password")
+  void missingAdminStaysPasswordless() {
     when(userRepository.findByUsername(SecurityConstants.BUILT_IN_ADMIN_PRINCIPAL))
         .thenReturn(Optional.empty());
     when(userRepository.findByUsername(SecurityConstants.PUBLIC_PRINCIPAL))
         .thenReturn(Optional.of(validPublic()));
     when(userPositionRepository.findByUser(any())).thenReturn(List.of());
-    properties.setAdminPassword(BOOTSTRAP_PASSWORD);
-    when(passwordEncoder.encode(BOOTSTRAP_PASSWORD)).thenReturn(ENCODED_PASSWORD);
     when(userRepository.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
 
     repairer.run(new DefaultApplicationArguments());
@@ -154,18 +136,15 @@ class BuiltInUserStartupRepairerTest {
             .filter(u -> SecurityConstants.BUILT_IN_ADMIN_PRINCIPAL.equals(u.getUsername()))
             .findFirst()
             .orElseThrow();
-    assertThat(savedAdmin.getPassword()).isEqualTo(ENCODED_PASSWORD);
-    assertThat(savedAdmin.getPassword()).isNotEqualTo(BOOTSTRAP_PASSWORD);
-    assertThat(savedAdmin.getLastPasswordChange()).isEqualTo(Date.from(FIXED_INSTANT));
+    assertThat(savedAdmin.getPassword()).isNull();
     assertThat(savedAdmin.getAdministrator()).isTrue();
     assertThat(savedAdmin.getBlocked()).isFalse();
     assertThat(status.getState()).isEqualTo(BuiltInUserStartupStatus.State.READY);
-    verify(passwordEncoder).encode(BOOTSTRAP_PASSWORD);
   }
 
   @Test
-  @DisplayName("empty-password admin with secret: restore encoded password")
-  void emptyPasswordAdminRestoredWithSecret() {
+  @DisplayName("empty-password admin stays null")
+  void emptyPasswordAdminStaysNull() {
     User admin =
         User.builder()
             .id(1)
@@ -176,14 +155,11 @@ class BuiltInUserStartupRepairerTest {
             .build();
     stubUsers(admin, validPublic());
     when(userPositionRepository.findByUser(any())).thenReturn(List.of());
-    properties.setAdminPassword(BOOTSTRAP_PASSWORD);
-    when(passwordEncoder.encode(BOOTSTRAP_PASSWORD)).thenReturn(ENCODED_PASSWORD);
     when(userRepository.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
 
     repairer.run(new DefaultApplicationArguments());
 
-    assertThat(admin.getPassword()).isEqualTo(ENCODED_PASSWORD);
-    assertThat(admin.getLastPasswordChange()).isEqualTo(Date.from(FIXED_INSTANT));
+    assertThat(admin.getPassword()).isNull();
     assertThat(status.getState()).isEqualTo(BuiltInUserStartupStatus.State.READY);
   }
 
@@ -211,7 +187,6 @@ class BuiltInUserStartupRepairerTest {
     assertThat(savedAdmin.getAdministrator()).isTrue();
     assertThat(status.getState()).isEqualTo(BuiltInUserStartupStatus.State.READY);
     assertThat(status.getReason()).isNull();
-    verify(passwordEncoder, never()).encode(any());
   }
 
   @Test
@@ -330,7 +305,6 @@ class BuiltInUserStartupRepairerTest {
     assertThat(admin.getAdministrator()).isTrue();
     assertThat(admin.getBlocked()).isFalse();
     assertThat(admin.getPassword()).isNull();
-    verify(passwordEncoder, never()).encode(any());
   }
 
   private void stubUsers(User admin, User pub) {

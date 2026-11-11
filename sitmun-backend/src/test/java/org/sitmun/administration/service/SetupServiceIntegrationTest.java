@@ -49,33 +49,30 @@ class SetupServiceIntegrationTest extends BaseTest {
 
   @Test
   void saveWithoutPasswordChangesNothing() {
-    assertThatThrownBy(() -> setupService.apply(new SetupFirstRunRequest("ca", true, null)))
+    assertThatThrownBy(() -> setupService.apply(new SetupFirstRunRequest("ca", null)))
         .isInstanceOf(ResponseStatusException.class)
         .extracting(ex -> ((ResponseStatusException) ex).getStatusCode())
         .isEqualTo(org.springframework.http.HttpStatus.BAD_REQUEST);
 
     assertThat(configurationValue(SitmunConstants.LANGUAGE_DEFAULT_CONF_KEY)).isEqualTo("en");
     assertThat(adminPasswordHash()).isNull();
-    assertThat(setupService.status().firstRun()).isTrue();
+    assertThat(setupService.isFirstRun()).isTrue();
   }
 
   @Test
   void blankAdminPasswordKeepsFirstRunAvailable() {
     jdbcTemplate.update("UPDATE stm_user SET use_pwd = '   ' WHERE use_user = 'admin'");
 
-    assertThat(setupService.status().firstRun()).isTrue();
+    assertThat(setupService.isFirstRun()).isTrue();
   }
 
   @Test
   void storedAdminPasswordDisablesFirstRun() {
     jdbcTemplate.update("UPDATE stm_user SET use_pwd = 'stored-hash' WHERE use_user = 'admin'");
 
-    assertThatThrownBy(() -> setupService.status())
-        .isInstanceOf(ResponseStatusException.class)
-        .extracting(ex -> ((ResponseStatusException) ex).getStatusCode())
-        .isEqualTo(org.springframework.http.HttpStatus.NOT_FOUND);
+    assertThat(setupService.isFirstRun()).isFalse();
     assertThatThrownBy(
-            () -> setupService.apply(new SetupFirstRunRequest("ca", true, "new-admin-pass")))
+            () -> setupService.apply(new SetupFirstRunRequest("ca", "new-admin-pass")))
         .isInstanceOf(ResponseStatusException.class)
         .extracting(ex -> ((ResponseStatusException) ex).getStatusCode())
         .isEqualTo(org.springframework.http.HttpStatus.NOT_FOUND);
@@ -86,27 +83,24 @@ class SetupServiceIntegrationTest extends BaseTest {
   @Test
   void anonymousCallerCanSetTheAdminPasswordAndEndFirstRun() {
     SecurityContextHolder.clearContext();
-    assertThat(setupService.status().firstRun()).isTrue();
+    assertThat(setupService.isFirstRun()).isTrue();
 
     SetupFirstRunResponse response =
-        setupService.apply(new SetupFirstRunRequest("en", true, "new-admin-pass"));
+        setupService.apply(new SetupFirstRunRequest("en", "new-admin-pass"));
 
     assertThat(response.passwordChanged()).isTrue();
     assertThat(response.firstRun()).isFalse();
-    assertThatThrownBy(() -> setupService.status())
-        .isInstanceOf(ResponseStatusException.class)
-        .extracting(ex -> ((ResponseStatusException) ex).getStatusCode())
-        .isEqualTo(org.springframework.http.HttpStatus.NOT_FOUND);
+    assertThat(setupService.isFirstRun()).isFalse();
     assertThat(adminPasswordHash()).isNotBlank();
   }
 
   @Test
   void secondSaveKeepsTheFirstPassword() {
-    setupService.apply(new SetupFirstRunRequest("en", true, "first-admin-pass"));
+    setupService.apply(new SetupFirstRunRequest("en", "first-admin-pass"));
     String firstHash = adminPasswordHash();
 
     assertThatThrownBy(
-            () -> setupService.apply(new SetupFirstRunRequest("ca", true, "second-admin-pass")))
+            () -> setupService.apply(new SetupFirstRunRequest("ca", "second-admin-pass")))
         .isInstanceOf(ResponseStatusException.class)
         .extracting(ex -> ((ResponseStatusException) ex).getStatusCode())
         .isEqualTo(org.springframework.http.HttpStatus.NOT_FOUND);
@@ -116,27 +110,25 @@ class SetupServiceIntegrationTest extends BaseTest {
   }
 
   @Test
-  void missingTranslationsWithoutContinueChangeNothing() {
-    assertThatThrownBy(
-            () -> setupService.apply(new SetupFirstRunRequest("ca", false, "new-admin-pass")))
-        .isInstanceOf(SetupConflictException.class);
+  void missingTranslationsStillSelectTheLanguage() {
+    setupService.apply(new SetupFirstRunRequest("ca", "new-admin-pass"));
 
-    assertThat(configurationValue(SitmunConstants.LANGUAGE_DEFAULT_CONF_KEY)).isEqualTo("en");
-    assertThat(adminPasswordHash()).isNull();
-    assertThat(setupService.status().firstRun()).isTrue();
+    assertThat(configurationValue(SitmunConstants.LANGUAGE_DEFAULT_CONF_KEY)).isEqualTo("ca");
+    assertThat(adminPasswordHash()).isNotBlank();
+    assertThat(setupService.isFirstRun()).isFalse();
   }
 
   @Test
   void invalidPasswordRollsBackTheLanguageChange() {
     String hashBefore = adminPasswordHash();
 
-    assertThatThrownBy(() -> setupService.apply(new SetupFirstRunRequest("ca", true, "short")))
+    assertThatThrownBy(() -> setupService.apply(new SetupFirstRunRequest("ca", "short")))
         .isInstanceOf(ResponseStatusException.class);
 
     assertThat(configurationValue(SitmunConstants.LANGUAGE_DEFAULT_CONF_KEY)).isEqualTo("en");
     assertThat(adminPasswordHash()).isNull();
     assertThat(hashBefore).isNull();
-    assertThat(setupService.status().firstRun()).isTrue();
+    assertThat(setupService.isFirstRun()).isTrue();
   }
 
   @Test
@@ -147,12 +139,12 @@ class SetupServiceIntegrationTest extends BaseTest {
         userRepository.findByUsername("admin").orElseThrow().getLastPasswordChange();
 
     SetupFirstRunResponse response =
-        setupService.apply(new SetupFirstRunRequest(null, false, "new-admin-pass"));
+        setupService.apply(new SetupFirstRunRequest(null, "new-admin-pass"));
 
     User admin = userRepository.findByUsername("admin").orElseThrow();
     assertThat(response.passwordChanged()).isTrue();
     assertThat(response.firstRun()).isFalse();
-    assertThatThrownBy(() -> setupService.status()).isInstanceOf(ResponseStatusException.class);
+    assertThat(setupService.isFirstRun()).isFalse();
     assertThat(admin.getLastPasswordChange()).isNotNull();
     assertThat(admin.getLastPasswordChange()).isNotEqualTo(previousChange);
     assertThat(

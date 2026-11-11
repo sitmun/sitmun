@@ -2,16 +2,19 @@ package org.sitmun.administration.service;
 
 import java.time.Clock;
 import java.util.Date;
+import java.util.List;
 import org.sitmun.SitmunConstants;
-import org.sitmun.administration.dto.DefaultLanguageChangePreview;
 import org.sitmun.administration.dto.DefaultLanguageChangeRequest;
 import org.sitmun.administration.dto.SetupFirstRunRequest;
 import org.sitmun.administration.dto.SetupFirstRunResponse;
-import org.sitmun.administration.dto.SetupFirstRunStatus;
+import org.sitmun.administration.dto.SetupStatusLanguage;
+import org.sitmun.administration.dto.SetupStatusResponse;
 import org.sitmun.domain.configuration.ConfigurationParameter;
 import org.sitmun.domain.configuration.ConfigurationParameterRepository;
 import org.sitmun.domain.user.UserRepository;
+import org.sitmun.infrastructure.persistence.type.i18n.LanguageRepository;
 import org.sitmun.infrastructure.security.core.SecurityConstants;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -29,6 +32,7 @@ public class SetupService {
   private final ConfigurationParameterRepository configurationParameterRepository;
   private final DefaultLanguageChangeService defaultLanguageChangeService;
   private final UserRepository userRepository;
+  private final LanguageRepository languageRepository;
   private final PasswordEncoder passwordEncoder;
   private final Clock clock;
 
@@ -36,20 +40,30 @@ public class SetupService {
       ConfigurationParameterRepository configurationParameterRepository,
       DefaultLanguageChangeService defaultLanguageChangeService,
       UserRepository userRepository,
+      LanguageRepository languageRepository,
       PasswordEncoder passwordEncoder,
       Clock clock) {
     this.configurationParameterRepository = configurationParameterRepository;
     this.defaultLanguageChangeService = defaultLanguageChangeService;
     this.userRepository = userRepository;
+    this.languageRepository = languageRepository;
     this.passwordEncoder = passwordEncoder;
     this.clock = clock;
   }
 
-  public SetupFirstRunStatus status() {
-    if (!isFirstRun()) {
-      throw new ResponseStatusException(HttpStatus.NOT_FOUND, "First-run is not available");
-    }
-    return new SetupFirstRunStatus(true, currentDefault());
+  /** Enabled languages, in selector order, plus whether first-run is still open. */
+  public SetupStatusResponse statusSnapshot() {
+    List<SetupStatusLanguage> languages =
+        languageRepository.findByEnabledTrue(Pageable.unpaged()).getContent().stream()
+            .map(
+                language ->
+                    new SetupStatusLanguage(
+                        language.getId(),
+                        language.getShortname(),
+                        language.getName(),
+                        language.getOrder()))
+            .toList();
+    return new SetupStatusResponse(isFirstRun(), currentDefault(), languages);
   }
 
   /** True while the built-in admin password is null or blank. */
@@ -76,14 +90,7 @@ public class SetupService {
     if (language != null) {
       String current = currentDefault();
       if (!language.equals(current)) {
-        DefaultLanguageChangePreview preview =
-            defaultLanguageChangeService.preview(current, language);
-        boolean continueOnMissing = Boolean.TRUE.equals(request.continueOnMissingTranslations());
-        if (preview.missingTranslations() > 0 && !continueOnMissing) {
-          throw new SetupConflictException(preview);
-        }
-        defaultLanguageChangeService.apply(
-            new DefaultLanguageChangeRequest(current, language, continueOnMissing));
+        defaultLanguageChangeService.apply(new DefaultLanguageChangeRequest(current, language, true));
       }
     }
 

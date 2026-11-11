@@ -14,7 +14,7 @@
     <mat-card appearance="outlined">
       <mat-card-header>
         <div mat-card-avatar><mat-icon fontSet="material-icons-round" color="error">error</mat-icon></div>
-        <mat-card-title>{{ (errorType === 'initialization' ? 'backend.error.initialization.title' : 'backend.error.general.title') | translate }}</mat-card-title>
+        <mat-card-title>{{ titleKey | translate }}</mat-card-title>
       </mat-card-header>
       <mat-card-content>
         <p class="error-message">{{ errorMessage | translate }}</p>

@@ -150,7 +150,8 @@ import {SystemInfoMenuComponent} from './components/shared/system-info-menu/syst
 import {GlobalErrorHandler} from './core/global-error-handler';
 import {MaterialModule} from './material-module';
 import {AppConfigService, initializeAppConfig} from './services/app-config.service';
-import {initializeConfiguration, initializeLanguages} from './services/app-startup';
+import {initializeFromSetupStatus} from './services/app-startup';
+import {SetupStatusService} from './services/setup-status.service';
 import {AppStateService} from './services/app-state.service';
 import {IconsService, initializeIcons} from './services/icons.service';
 import {LoggerService} from './services/logger.service';
@@ -274,18 +275,9 @@ import {ServicesModule} from './services/services.module';
         provideAppInitializer(() => initializeAppConfig(inject(AppConfigService))()),
         provideAppInitializer(() => initializeIcons(inject(IconsService))()),
         provideAppInitializer(() =>
-            initializeConfiguration(
-                inject(ConfigurationParametersService),
-                inject(TranslateService),
-                inject(LoggerService),
-                inject(AppStateService),
-                inject(MessagesInterceptorStateService)
-            )()
-        ),
-        provideAppInitializer(() =>
-            initializeLanguages(
+            initializeFromSetupStatus(
+                inject(SetupStatusService),
                 inject(LanguageService),
-                inject(ConfigurationParametersService),
                 inject(TranslateService),
                 inject(LoggerService),
                 inject(AppStateService),

@@ -260,9 +260,9 @@ public class WebSecurityConfigurer {
               authz) {
     var builder = PathPatternRequestMatcher.withDefaults();
     return authz
-        .requestMatchers(builder.matcher(HttpMethod.GET, "/api/setup/first-run"))
+        .requestMatchers(builder.matcher(HttpMethod.GET, "/api/setup/status"))
         .permitAll()
-        .requestMatchers(builder.matcher(HttpMethod.POST, "/api/setup/first-run"))
+        .requestMatchers(builder.matcher("/api/setup/first-run"))
         .anonymous()
         .requestMatchers(builder.matcher(HttpMethod.POST, "/api/language-default/change-preview"))
         .access((authentication, context) -> anonymousOrAdmin(authentication))

@@ -1,14 +1,13 @@
-import { HttpClient, HttpContext, HttpErrorResponse } from '@angular/common/http';
+import { HttpClient, HttpContext } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 
-import { Observable, of, throwError } from 'rxjs';
-import { catchError, shareReplay } from 'rxjs/operators';
+import { Observable } from 'rxjs';
+import { map, switchMap, tap } from 'rxjs/operators';
 
 import { ResourceService } from '@app/core/hal/services';
-import {
-  SKIP_MESSAGES_INTERCEPTOR,
-  SUPPRESS_HTTP_NOTIFICATION,
-} from '@app/core/interceptors/messages.interceptor';
+import { SUPPRESS_HTTP_NOTIFICATION } from '@app/core/interceptors/messages.interceptor';
+
+import { SetupStatusService } from './setup-status.service';
 
 export const PASSWORD_CHANGED_KEY = 'sitmun.passwordChanged';
 
@@ -19,7 +18,6 @@ export interface FirstRunStatus {
 
 export interface FirstRunSaveRequest {
   language?: string | null;
-  continueOnMissingTranslations: boolean;
   password?: string | null;
 }
 
@@ -30,42 +28,29 @@ export interface FirstRunSaveResponse {
 
 @Injectable({ providedIn: 'root' })
 export class FirstRunService {
-  private statusRequest$: Observable<FirstRunStatus> | null = null;
-
   constructor(
     private readonly http: HttpClient,
     private readonly resourceService: ResourceService,
+    private readonly setupStatus: SetupStatusService,
   ) {}
 
   load(force = false): Observable<FirstRunStatus> {
-    if (force || !this.statusRequest$) {
-      this.statusRequest$ = this.http
-        .get<FirstRunStatus>(this.api('setup/first-run'), {
-          context: new HttpContext()
-            .set(SKIP_MESSAGES_INTERCEPTOR, true)
-            .set(SUPPRESS_HTTP_NOTIFICATION, true),
-        })
-        .pipe(
-          catchError((error: unknown) => {
-            if (error instanceof HttpErrorResponse && error.status === 404) {
-              return of({ firstRun: false, currentDefault: '' });
-            }
-            return throwError(() => error);
-          }),
-          shareReplay(1),
-        );
-    }
-    return this.statusRequest$;
+    return this.setupStatus.load(force).pipe(
+      map((status) => ({ firstRun: status.firstRun, currentDefault: status.defaultLanguage })),
+    );
   }
 
   clearCache(): void {
-    this.statusRequest$ = null;
+    this.setupStatus.clearCache();
   }
 
   save(body: FirstRunSaveRequest): Observable<FirstRunSaveResponse> {
     return this.http.post<FirstRunSaveResponse>(this.api('setup/first-run'), body, {
       context: new HttpContext().set(SUPPRESS_HTTP_NOTIFICATION, true),
-    });
+    }).pipe(
+      tap(() => this.setupStatus.clearCache()),
+      switchMap((response) => this.setupStatus.load(true).pipe(map(() => response))),
+    );
   }
 
   private api(path: string): string {

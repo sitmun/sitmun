@@ -5,8 +5,6 @@ package org.sitmun.administration.dto;
  * language leaves {@code language.default} unchanged.
  *
  * @param language database language to save, or null to leave {@code language.default} unchanged
- * @param continueOnMissingTranslations required when the preview reports missing translations
  * @param password new built-in admin password
  */
-public record SetupFirstRunRequest(
-    String language, Boolean continueOnMissingTranslations, String password) {}
+public record SetupFirstRunRequest(String language, String password) {}

@@ -12,7 +12,7 @@ import org.sitmun.infrastructure.security.core.SecurityConstants;
 import org.sitmun.infrastructure.security.health.BuiltInUserHealthIndicator;
 import org.sitmun.infrastructure.startup.BuiltInUserRepairResult;
 import org.sitmun.infrastructure.startup.BuiltInUserStartupStatus;
-import org.sitmun.infrastructure.startup.BuiltInUsersStartupProperties;
+import org.sitmun.infrastructure.startup.FirstRunStartupProperties;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.health.contributor.Status;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -26,7 +26,7 @@ class BuiltInUserStartupRepairIntegrationTest {
   @Autowired private BuiltInUserRepairService repairService;
   @Autowired private BuiltInUserStartupStatus status;
   @Autowired private BuiltInUserHealthIndicator healthIndicator;
-  @Autowired private BuiltInUsersStartupProperties properties;
+  @Autowired private FirstRunStartupProperties properties;
   @Autowired private UserRepository userRepository;
 
   @AfterEach
@@ -61,9 +61,8 @@ class BuiltInUserStartupRepairIntegrationTest {
   @Test
   @Order(2)
   @Transactional
-  @DisplayName(
-      "passwordless admin with bootstrap secret restores encoded password and READY health")
-  void passwordlessAdminWithSecretBecomesReady() {
+  @DisplayName("passwordless admin stays null; the bootstrap password is not written here")
+  void passwordlessAdminStaysNull() {
     properties.setAdminPassword("probe-bootstrap-password");
     User admin =
         userRepository.findByUsername(SecurityConstants.BUILT_IN_ADMIN_PRINCIPAL).orElseThrow();
@@ -75,9 +74,7 @@ class BuiltInUserStartupRepairIntegrationTest {
 
     User repaired =
         userRepository.findByUsername(SecurityConstants.BUILT_IN_ADMIN_PRINCIPAL).orElseThrow();
-    assertThat(repaired.getPassword()).isNotBlank();
-    assertThat(repaired.getPassword()).isNotEqualTo("probe-bootstrap-password");
-    assertThat(repaired.getPassword()).startsWith("$2a$");
+    assertThat(repaired.getPassword()).isNull();
 
     status.markReady();
     assertThat(healthIndicator.health().getStatus()).isEqualTo(Status.UP);
