@@ -75,38 +75,37 @@ databaseChangeLog:
             stripComments: false
             endDelimiter: "--end"
   - changeSet:
-      id: test-sequence-floor-h2
+      id: test-sequence-counters-h2
       author: sitmun
       dbms: h2
-      validCheckSum: ANY
-      logicalFilePath: db/changelog-test/05-sequence-floor.h2.sql
+      logicalFilePath: db/changelog-test/05-sequence-counters.h2.sql
       changes:
         - sqlFile:
-            path: 05-sequence-floor.h2.sql
+            path: 05-sequence-counters.h2.sql
             relativeToChangelogFile: true
             splitStatements: true
             stripComments: false
             endDelimiter: ";"
   - changeSet:
-      id: test-sequence-counter-postgresql
+      id: test-sequence-counters-postgresql
       author: sitmun
       dbms: postgresql
-      logicalFilePath: db/changelog/baseline/05-sequence-floor.postgresql.sql
+      logicalFilePath: db/changelog/baseline/05-sequence-counters.postgresql.sql
       changes:
         - sqlFile:
-            path: db/changelog/baseline/05-sequence-floor.postgresql.sql
+            path: db/changelog/baseline/05-sequence-counters.postgresql.sql
             relativeToChangelogFile: false
             splitStatements: true
             stripComments: false
             endDelimiter: ";"
   - changeSet:
-      id: test-sequence-counter-oracle
+      id: test-sequence-counters-oracle
       author: sitmun
       dbms: oracle
-      logicalFilePath: db/changelog/baseline/05-sequence-floor.oracle.sql
+      logicalFilePath: db/changelog/baseline/05-sequence-counters.oracle.sql
       changes:
         - sqlFile:
-            path: db/changelog/baseline/05-sequence-floor.oracle.sql
+            path: db/changelog/baseline/05-sequence-counters.oracle.sql
             relativeToChangelogFile: false
             splitStatements: true
             stripComments: false
