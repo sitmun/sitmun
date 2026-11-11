@@ -138,7 +138,7 @@ export class LoginService {
     return this.accessToken;
   }
 
-  private request(options: any, callback: Function) {
+  private request(options: any, callback: (...args: any[]) => any) {
     return new Promise<any>((resolve, reject) => {
       CapacitorHttp.request(options).then(data => {
         resolve(callback(data));

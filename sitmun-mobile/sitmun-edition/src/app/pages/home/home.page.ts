@@ -83,7 +83,7 @@ export class HomePage implements OnInit, OnDestroy {
   ionViewDidEnter() {
     this.subscriptionBack = this.platform.backButton.subscribeWithPriority(
       -1,
-      (evt) => {
+      (_evt) => {
         this.showExitMessage();
       },
     );
@@ -174,7 +174,7 @@ export class HomePage implements OnInit, OnDestroy {
         {
           text: "Salir",
           cssClass: "secondary",
-          handler: (blah) => {
+          handler: (_blah) => {
             //navigator['app'].exitApp();
             console.log("exit app");
           },

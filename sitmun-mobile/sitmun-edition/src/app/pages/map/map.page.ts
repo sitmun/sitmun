@@ -25,8 +25,7 @@ import {
 } from "src/app/services/upload-failure";
 import { AlertController, LoadingController } from "@ionic/angular";
 
-declare var M: any;
-declare var ol: any;
+declare let M: any;
 
 @Component({
   selector: "app-map",
@@ -97,7 +96,7 @@ export class MapPage implements OnInit {
     private alertController: AlertController,
     private loadingCtrl: LoadingController,
   ) {
-    this.route.queryParams.subscribe((params) => {
+    this.route.queryParams.subscribe((_params) => {
       const navigation = this.router.getCurrentNavigation();
       if (navigation) {
         const tempState = navigation.extras.state;
@@ -170,7 +169,7 @@ export class MapPage implements OnInit {
         if (this.offlineMap) {
           this.loadChanges(layer);
         } else {
-          layer.on(M.evt.LOAD, (features: any) => {
+          layer.on(M.evt.LOAD, (_features: any) => {
             //espera a que la capa sea cargada
             this.loadChanges(layer);
           });
@@ -488,7 +487,7 @@ export class MapPage implements OnInit {
       this.attrData.push(data);
     }
     this.featureAttrForm = this.formBuilder.group(formControls);
-    this.featureAttrForm.valueChanges.subscribe((values) => {
+    this.featureAttrForm.valueChanges.subscribe((_values) => {
       this.unsavedChanges = true;
     });
   }

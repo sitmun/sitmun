@@ -20,7 +20,7 @@ export class NetworkService {
     return this.isConnected;
   }
 
-  addListener(callback: Function) {
+  addListener(callback: (...args: any[]) => any) {
     this.removeListeners();
     Network.addListener('networkStatusChange', (status) => {
       this.ngZone.run(() => {callback(status.connected);});
