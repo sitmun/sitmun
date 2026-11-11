@@ -1,5 +1,7 @@
 import { Component, OnInit, ChangeDetectionStrategy } from "@angular/core";
+
 import { LoadingController } from "@ionic/angular";
+
 import { AuthorizationService } from "src/app/services/authorization.service";
 import { DatabaseService } from "src/app/services/database.service";
 import { LanguageService } from "src/app/services/language.service";
@@ -24,7 +26,7 @@ export class GalleryPage implements OnInit {
   isModalOpen = false;
   isModalOpenImg = false;
   currentExtraInfo = { title: "", content: "" };
-  imageModal: String = "";
+  imageModal: string = "";
   loaded = false;
   arraySkeleton: any[] = new Array(3);
 
@@ -48,9 +50,9 @@ export class GalleryPage implements OnInit {
   }
 
   getParams() {
-    let navigation = window.history;
+    const navigation = window.history;
     if (navigation) {
-      let tempState = navigation.state;
+      const tempState = navigation.state;
       if (tempState) {
         this.rootNode = tempState["rootNode"];
         this.taskNode = tempState["taskNodes"][0];
@@ -124,7 +126,7 @@ export class GalleryPage implements OnInit {
     this.isModalOpenImg = false;
   }
 
-  openModalImg(event: Event, image: String | undefined) {
+  openModalImg(event: Event, image: string | undefined) {
     event.stopPropagation();
     this.imageModal = image || "";
     this.isModalOpenImg = true;

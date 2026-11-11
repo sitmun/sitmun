@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+
 import { DetailedlistPage } from './detailedlist.page';
 
 describe('DetailedlistPage', () => {

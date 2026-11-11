@@ -1,8 +1,11 @@
 import { Injectable } from '@angular/core';
 import { NavigationExtras, Router } from '@angular/router';
-import { constants } from 'src/environments/constants';
-import { HistoricService } from './historic.service';
+
 import { App } from '@capacitor/app';
+
+import { constants } from 'src/environments/constants';
+
+import { HistoricService } from './historic.service';
 import { LanguageService } from './language.service';
 
 @Injectable({
@@ -17,7 +20,7 @@ export class RoutingService {
   ) { }
 
   navigate(page: string, params: any, addHistoric = true) {
-    let navigationExtras: NavigationExtras = {
+    const navigationExtras: NavigationExtras = {
       state: params
     };
     if (page) {

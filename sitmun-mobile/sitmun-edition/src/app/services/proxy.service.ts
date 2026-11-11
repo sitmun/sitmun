@@ -1,7 +1,9 @@
 import { Injectable } from '@angular/core';
+
 import { CapacitorHttp } from '@capacitor/core';
-import { Directory, Filesystem } from '@capacitor/filesystem';
 import { FileTransfer } from '@capacitor/file-transfer';
+import { Directory, Filesystem } from '@capacitor/filesystem';
+
 import { InstancesService } from './instances.service';
 import { LoginService } from './login.service';
 import { authHeadersForUrl } from './trusted-origin.util';

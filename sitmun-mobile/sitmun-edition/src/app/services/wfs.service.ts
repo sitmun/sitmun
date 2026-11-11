@@ -1,7 +1,10 @@
 import { Injectable } from '@angular/core';
+
 import { CapacitorHttp } from '@capacitor/core';
+
 import { create, convert } from 'xmlbuilder2';
-import { ObjectWriterOptions, XMLBuilder, XMLSerializedAsObject } from 'xmlbuilder2/lib/interfaces';
+import { ObjectWriterOptions, XMLBuilder } from 'xmlbuilder2/lib/interfaces';
+
 import { InstancesService } from './instances.service';
 import { LoginService } from './login.service';
 import { authHeadersForUrl } from './trusted-origin.util';

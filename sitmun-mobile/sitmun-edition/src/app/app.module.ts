@@ -1,23 +1,23 @@
+import { provideHttpClient, withXhr } from "@angular/common/http";
 import { NgModule } from "@angular/core";
 import { BrowserModule } from "@angular/platform-browser";
 import { RouteReuseStrategy } from "@angular/router";
 
 import { IonicModule, IonicRouteStrategy, Platform } from "@ionic/angular";
 
-import { AppComponent } from "./app.component";
-import { AppRoutingModule } from "./app-routing.module";
-import { LanguageService } from "./services/language.service";
-import { InstancesService } from "./services/instances.service";
-import { AuthorizationService } from "./services/authorization.service";
-import { DatabaseService } from "./services/database.service";
-import { ProxyService } from "./services/proxy.service";
 import { TranslatePipe, provideTranslateService } from "@ngx-translate/core";
-import { provideHttpClient, withXhr } from "@angular/common/http";
 import { provideTranslateHttpLoader } from "@ngx-translate/http-loader";
 
+import { AppRoutingModule } from "./app-routing.module";
+import { AppComponent } from "./app.component";
+import { AuthorizationService } from "./services/authorization.service";
+import { DatabaseService } from "./services/database.service";
+import { InstancesService } from "./services/instances.service";
+import { LanguageService } from "./services/language.service";
 import { LoginService } from "./services/login.service";
-import { SQLiteService } from "./services/sqlite.service";
 import { MapService } from "./services/map.service";
+import { ProxyService } from "./services/proxy.service";
+import { SQLiteService } from "./services/sqlite.service";
 
 @NgModule({
   declarations: [AppComponent],

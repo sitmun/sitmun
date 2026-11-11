@@ -15,7 +15,7 @@ export class TruncatePipe implements PipeTransform {
     if (value.length <= limit) return value;
 
     if (completeWords) {
-      let lastSpace = value.lastIndexOf(" ", limit);
+      const lastSpace = value.lastIndexOf(" ", limit);
       return value.substring(0, lastSpace) + "...";
     }
 

@@ -1,18 +1,22 @@
 import { Component, OnInit, ChangeDetectionStrategy } from "@angular/core";
 import { ActivatedRoute, Router } from "@angular/router";
+
+import { LoadingController } from "@ionic/angular";
+
+import { Device } from "@capacitor/device";
+
+import { NativeSettings } from "capacitor-native-settings";
 import {
   AuthorizationService,
   Node,
 } from "src/app/services/authorization.service";
 import { DatabaseService } from "src/app/services/database.service";
 import { LanguageService } from "src/app/services/language.service";
+import { nativeLocationSettings } from "src/app/services/location-permission.util";
+import { MapaService } from "src/app/services/mapa.service";
 import { RoutingService } from "src/app/services/routing.service";
 import { constants } from "src/environments/constants";
-import { Device } from "@capacitor/device";
-import { MapaService } from "src/app/services/mapa.service";
-import { NativeSettings } from "capacitor-native-settings";
-import { nativeLocationSettings } from "src/app/services/location-permission.util";
-import { LoadingController } from "@ionic/angular";
+
 
 @Component({
   selector: "app-nearme",
@@ -47,9 +51,9 @@ export class NearmePage implements OnInit {
     private loadingCtrl: LoadingController,
   ) {
     this.route.queryParams.subscribe((params) => {
-      let navigation = this.router.getCurrentNavigation();
+      const navigation = this.router.getCurrentNavigation();
       if (navigation) {
-        let tempState = navigation.extras.state;
+        const tempState = navigation.extras.state;
         if (tempState) {
           this.rootNode = tempState["rootNode"];
           this.taskNodes = tempState["nodes"];

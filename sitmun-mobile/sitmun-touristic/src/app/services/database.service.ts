@@ -1,8 +1,11 @@
 import { Injectable } from '@angular/core';
+
+import { Capacitor } from '@capacitor/core';
+
 import { SQLiteDBConnection } from '@capacitor-community/sqlite';
+
 import { InstancesService } from './instances.service';
 import { SQLiteService } from './sqlite.service';
-import { Capacitor } from '@capacitor/core';
 
 export interface Category {
   id: number,
@@ -31,7 +34,7 @@ export class DatabaseService {
 
   private async loadConnection() {
     try {
-      let isConnection = await this.sqlite.isConnection(this.dbName);
+      const isConnection = await this.sqlite.isConnection(this.dbName);
       if (isConnection.result) {
         console.log("Obteniendo conexion");
         this.db = await this.sqlite.retrieveConnection(this.dbName);
@@ -160,7 +163,7 @@ export class DatabaseService {
     await this.loadConnection();
     await this.truncateProfileData();
     const keys = Object.keys(profile);
-    for (let k of keys) {
+    for (const k of keys) {
       await this.insertProfileData(k, JSON.stringify(profile[k]));
     }
     await this.closeConnection();

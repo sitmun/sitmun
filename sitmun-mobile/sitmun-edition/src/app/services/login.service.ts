@@ -1,6 +1,9 @@
 import { Injectable } from '@angular/core';
+
 import { CapacitorHttp } from '@capacitor/core';
+
 import { environment } from 'src/environments/environment';
+
 import { DatabaseService } from './database.service';
 import { InstancesService } from './instances.service';
 

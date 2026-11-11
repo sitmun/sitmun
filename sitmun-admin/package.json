@@ -81,20 +81,17 @@
     "@angular/compiler-cli": "catalog:",
     "@babel/core": "catalog:",
     "@babel/preset-env": "7.29.5",
-    "@eslint/js": "9.39.4",
+    "@eslint/js": "catalog:",
     "@jest/globals": "catalog:",
     "@types/jest": "30.0.0",
     "@types/jsonpath": "catalog:",
     "@types/mocha": "10.0.10",
     "@types/node": "catalog:",
     "@types/uri-templates": "catalog:",
-    "@typescript-eslint/eslint-plugin": "8.59.4",
-    "@typescript-eslint/parser": "8.72.1",
-    "@typescript-eslint/utils": "8.72.1",
     "angular-eslint": "catalog:",
     "babel-jest": "29.7.0",
-    "eslint": "9.39.4",
-    "eslint-plugin-import": "2.32.0",
+    "eslint": "catalog:",
+    "eslint-plugin-import": "catalog:",
     "eslint-plugin-unused-imports": "catalog:",
     "jest": "30.5.2",
     "jest-environment-jsdom": "catalog:",
@@ -104,6 +101,6 @@
     "sonar-scanner": "3.1.0",
     "ts-node": "10.9.2",
     "typescript": "catalog:",
-    "typescript-eslint": "8.59.4"
+    "typescript-eslint": "catalog:"
   }
 }

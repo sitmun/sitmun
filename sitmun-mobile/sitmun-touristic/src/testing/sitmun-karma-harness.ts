@@ -6,25 +6,29 @@ import {
   Provider,
   Type,
 } from '@angular/core';
-import { FormsModule } from '@angular/forms';
 import {
   getTestBed,
   TestBed,
   TestModuleMetadata,
 } from '@angular/core/testing';
+import { FormsModule } from '@angular/forms';
 import {
   BrowserDynamicTestingModule,
   platformBrowserDynamicTesting,
 } from '@angular/platform-browser-dynamic/testing';
 import { ActivatedRoute, Router } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
+
+import { IonicModule } from '@ionic/angular';
+
 import { App } from '@capacitor/app';
+import { CapacitorHttp } from '@capacitor/core';
 import { Geolocation } from '@capacitor/geolocation';
 import { Preferences } from '@capacitor/preferences';
-import { CapacitorHttp } from '@capacitor/core';
-import { IonicModule } from '@ionic/angular';
+
 import { TranslateNoOpLoader, TranslatePipe, provideTranslateLoader, provideTranslateService } from '@ngx-translate/core';
 import { of } from 'rxjs';
+
 import { DatabaseService } from '../app/services/database.service';
 import { MapaService } from '../app/services/mapa.service';
 import { RequestService } from '../app/services/request.service';

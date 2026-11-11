@@ -1,5 +1,7 @@
 import { Component, ChangeDetectionStrategy } from "@angular/core";
+
 import { Platform } from "@ionic/angular";
+
 import { RoutingService } from "./services/routing.service";
 
 @Component({

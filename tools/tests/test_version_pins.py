@@ -423,6 +423,24 @@ def _failures_js_catalog(_root: Path) -> list[str]:
         failures.append(f"catalog api-sitna is {catalog.get('api-sitna') or 'missing'}, expected 4.10.0")
     if catalog.get("ol") != "10.9.0":
         failures.append(f"catalog ol is {catalog.get('ol') or 'missing'}, expected 10.9.0")
+    eslint_pins = {
+        "eslint": "9.39.5",
+        "@eslint/js": "9.39.5",
+        "typescript-eslint": "8.72.2",
+        "eslint-plugin-import": "2.32.0",
+    }
+    for name, expected in eslint_pins.items():
+        if catalog.get(name) != expected:
+            failures.append(f"catalog {name} is {catalog.get(name) or 'missing'}, expected {expected}")
+    for retired in ("eslint-plugin-prefer-arrow", "eslint-plugin-jsdoc"):
+        if retired in catalog:
+            failures.append(f"catalog still pins unused {retired}")
+    for rel in (
+        "sitmun-mobile/sitmun-edition/eslint.config.js",
+        "sitmun-mobile/sitmun-touristic/eslint.config.js",
+    ):
+        if not (ROOT / rel).is_file():
+            failures.append(f"{rel} is missing")
     locked_ol = _locked_api_sitna_ol(_read(ROOT / "pnpm-lock.yaml"))
     if locked_ol != "10.9.0":
         failures.append(f"locked api-sitna@4.10.0 depends on ol {locked_ol or 'missing'}, expected 10.9.0")

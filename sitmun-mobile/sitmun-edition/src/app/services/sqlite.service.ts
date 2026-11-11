@@ -1,5 +1,7 @@
 import { Injectable } from '@angular/core';
+
 import { Capacitor } from '@capacitor/core';
+
 import { CapacitorSQLite, SQLiteDBConnection,
   SQLiteConnection, capSQLiteResult,} from '@capacitor-community/sqlite';
 
@@ -108,7 +110,7 @@ export class SQLiteService {
       if(this.sqlite != null) {
         try {
           const myConns =  await this.sqlite.retrieveAllConnections();
-          let keys = [...myConns.keys()];
+          const keys = [...myConns.keys()];
           keys.forEach( (value) => {
               console.log("Connection: " + value);
           });

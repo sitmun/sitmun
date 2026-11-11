@@ -1,14 +1,16 @@
 import { Component, OnInit, ChangeDetectionStrategy } from "@angular/core";
 import { ActivatedRoute, Router } from "@angular/router";
+
+import { LoadingController } from "@ionic/angular";
+
 import {
   AuthorizationService,
   Node,
 } from "src/app/services/authorization.service";
-import { RoutingService } from "src/app/services/routing.service";
+import { DatabaseService } from "src/app/services/database.service";
 import { LanguageService } from "src/app/services/language.service";
 import { RequestService } from "src/app/services/request.service";
-import { DatabaseService } from "src/app/services/database.service";
-import { LoadingController } from "@ionic/angular";
+import { RoutingService } from "src/app/services/routing.service";
 
 @Component({
   selector: "app-nearelements",
@@ -39,9 +41,9 @@ export class NearelementsPage implements OnInit {
     private loadingCtrl: LoadingController,
   ) {
     this.route.queryParams.subscribe((params) => {
-      let navigation = this.router.getCurrentNavigation();
+      const navigation = this.router.getCurrentNavigation();
       if (navigation) {
-        let tempState = navigation.extras.state;
+        const tempState = navigation.extras.state;
         if (tempState) {
           this.rootNode = tempState["rootNode"];
           this.taskNode = tempState["taskNodes"][0];

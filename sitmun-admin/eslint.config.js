@@ -73,6 +73,13 @@ module.exports = tseslint.config(
     },
   },
   {
+    files: ["jest/stubs/**"],
+    rules: {
+      "@angular-eslint/component-selector": "off",
+      "@angular-eslint/directive-selector": "off",
+    },
+  },
+  {
     files: ["**/*.html"],
     extends: [
       ...angular.configs.templateRecommended,

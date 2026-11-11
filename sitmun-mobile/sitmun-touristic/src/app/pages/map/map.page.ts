@@ -1,21 +1,26 @@
 import { Component, OnInit, ChangeDetectionStrategy } from "@angular/core";
 import { ActivatedRoute, Router } from "@angular/router";
-import { LanguageService } from "src/app/services/language.service";
-import { MapaService } from "src/app/services/mapa.service";
+
+import { LoadingController } from "@ionic/angular";
+
+import { Subject } from "rxjs";
+import { debounceTime, distinctUntilChanged, filter } from "rxjs/operators";
 import {
   AuthorizationService,
   Node,
 } from "src/app/services/authorization.service";
-import { RoutingService } from "src/app/services/routing.service";
-import { RequestService } from "src/app/services/request.service";
-import { Subject } from "rxjs";
-import { debounceTime, distinctUntilChanged, filter } from "rxjs/operators";
 import { DatabaseService } from "src/app/services/database.service";
+import { LanguageService } from "src/app/services/language.service";
+import { MapaService } from "src/app/services/mapa.service";
+import { RequestService } from "src/app/services/request.service";
+import { RoutingService } from "src/app/services/routing.service";
 import { TreeNode, TreeviewService } from "src/app/services/treeview.service";
-import { LoadingController } from "@ionic/angular";
+
 //import { HttpClient } from '@angular/common/http';
 
+// eslint-disable-next-line no-var -- ambient global shared across modules
 declare var M: any;
+// eslint-disable-next-line no-var -- ambient global shared across modules
 declare var ol: any;
 
 @Component({
@@ -55,9 +60,9 @@ export class MapPage implements OnInit {
     private loadingCtrl: LoadingController,
   ) {
     this.route.queryParams.subscribe((params) => {
-      let navigation = this.router.getCurrentNavigation();
+      const navigation = this.router.getCurrentNavigation();
       if (navigation) {
-        let tempState = navigation.extras.state;
+        const tempState = navigation.extras.state;
         if (tempState) {
           if (tempState["tasks"]) {
             this.searchTasks = tempState["tasks"];
@@ -127,7 +132,7 @@ export class MapPage implements OnInit {
       }
 
       console.log("aplicando estilo a la capa");
-      let style = new M.style.Generic({
+      const style = new M.style.Generic({
         point: {
           icon: {
             src: "../../assets/icon/location-point.png",

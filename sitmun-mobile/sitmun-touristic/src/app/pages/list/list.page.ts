@@ -1,13 +1,15 @@
 import { Component, ChangeDetectionStrategy } from "@angular/core";
 import { ActivatedRoute, Router } from "@angular/router";
+
+import { LoadingController } from "@ionic/angular";
+
 import {
   AuthorizationService,
   Node,
 } from "src/app/services/authorization.service";
-import { RoutingService } from "src/app/services/routing.service";
-import { LanguageService } from "src/app/services/language.service";
 import { DatabaseService } from "src/app/services/database.service";
-import { LoadingController } from "@ionic/angular";
+import { LanguageService } from "src/app/services/language.service";
+import { RoutingService } from "src/app/services/routing.service";
 
 @Component({
   selector: "app-list",
@@ -22,7 +24,7 @@ export class ListPage {
   rootNode: Node | any = {};
   nodes: Node[] = [];
   isModalOpen: boolean = false;
-  imageModal: String = "";
+  imageModal: string = "";
 
   constructor(
     private router: Router,
@@ -34,9 +36,9 @@ export class ListPage {
     private loadingCtrl: LoadingController,
   ) {
     this.route.queryParams.subscribe((params) => {
-      let navigation = this.router.getCurrentNavigation();
+      const navigation = this.router.getCurrentNavigation();
       if (navigation) {
-        let tempState = navigation.extras.state;
+        const tempState = navigation.extras.state;
         if (tempState && tempState["rootNode"] && tempState["nodes"]) {
           this.rootNode = tempState["rootNode"];
           this.nodes = tempState["nodes"];
@@ -100,7 +102,7 @@ export class ListPage {
     this.isModalOpen = false;
   }
 
-  openModal(event: Event, image: String | undefined) {
+  openModal(event: Event, image: string | undefined) {
     event.stopPropagation();
     this.imageModal = image || "";
     this.isModalOpen = true;

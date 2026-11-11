@@ -1,13 +1,13 @@
-import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { NgModule } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 import { IonicModule } from '@ionic/angular';
 
-import { NearelementsPageRoutingModule } from './nearelements-routing.module';
-
-import { NearelementsPage } from './nearelements.page';
 import { TranslatePipe } from '@ngx-translate/core';
+
+import { NearelementsPageRoutingModule } from './nearelements-routing.module';
+import { NearelementsPage } from './nearelements.page';
 
 @NgModule({
   imports: [
