@@ -18,10 +18,6 @@ import {
 } from '@angular/platform-browser-dynamic/testing';
 import { ActivatedRoute, Router } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
-import { App } from '@capacitor/app';
-import { Geolocation } from '@capacitor/geolocation';
-import { Preferences } from '@capacitor/preferences';
-import { CapacitorHttp } from '@capacitor/core';
 import { IonicModule } from '@ionic/angular';
 import { TranslateNoOpLoader, TranslatePipe, provideTranslateLoader, provideTranslateService } from '@ngx-translate/core';
 import { of } from 'rxjs';
@@ -44,10 +40,10 @@ const EMPTY_NAV_STATE = {
 class HeadlessSqlite {
   readonly isService = true;
   readonly native = false;
-  readonly platform = 'karma' as const;
+  readonly platform = 'web' as const;
   sqlite: null = null;
 
-  getPlatform(): 'karma' {
+  getPlatform(): 'web' {
     return this.platform;
   }
 
@@ -127,50 +123,18 @@ const OVERLAY_SCHEMAS = [CUSTOM_ELEMENTS_SCHEMA, NO_ERRORS_SCHEMA];
     },
   ],
 })
-class SitmunKarmaHarnessModule {}
+class SitmunTestHarnessModule {}
 
-function patchMethod(target: object, key: string, impl: (...args: never[]) => unknown): void {
-  try {
-    (target as Record<string, unknown>)[key] = impl;
-  } catch {
-    Object.defineProperty(target, key, {
-      configurable: true,
-      value: impl,
-    });
-  }
-}
-
-function installPluginShim(): void {
-  patchMethod(Preferences, 'get', async () => ({ value: null }));
-  patchMethod(Preferences, 'set', async () => undefined);
-  patchMethod(Geolocation, 'checkPermissions', async () => ({
-    location: 'granted',
-    coarseLocation: 'granted',
-  }));
-  patchMethod(Geolocation, 'requestPermissions', async () => ({
-    location: 'granted',
-    coarseLocation: 'granted',
-  }));
-  patchMethod(App, 'exitApp', async () => undefined);
-  patchMethod(CapacitorHttp, 'request', async () => ({ data: {} }));
-  const originalFetch = window.fetch.bind(window);
-  window.fetch = ((input: RequestInfo | URL, init?: RequestInit) => {
-    const url =
-      typeof input === 'string'
-        ? input
-        : input instanceof Request
-          ? input.url
-          : String(input);
-    if (url.startsWith('http://localhost:9876') || url.startsWith('/')) {
-      return originalFetch(input, init);
-    }
-    return Promise.resolve(
-      new Response('{}', {
-        status: 200,
-        headers: { 'Content-Type': 'application/json' },
-      }),
-    );
-  }) as typeof fetch;
+// Capacitor plugins are proxies that ignore assignment. App, Geolocation, and
+// Preferences come from the manual mocks in __mocks__/@capacitor.
+function installFetchStub(): void {
+  window.fetch = (async () => ({
+    ok: true,
+    status: 200,
+    headers: new Map([['content-type', 'application/json']]),
+    json: async () => ({}),
+    text: async () => '{}',
+  })) as unknown as typeof fetch;
 }
 
 function emptyProfileRows(): Promise<{ json: string }[]> {
@@ -264,14 +228,14 @@ function patchTestBed(): void {
 
 let installed = false;
 
-export function installSitmunKarmaHarness(): void {
+export function installSitmunTestHarness(): void {
   if (installed) {
     return;
   }
   installed = true;
-  installPluginShim();
+  installFetchStub();
   getTestBed().initTestEnvironment(
-    [BrowserDynamicTestingModule, SitmunKarmaHarnessModule],
+    [BrowserDynamicTestingModule, SitmunTestHarnessModule],
     platformBrowserDynamicTesting(),
     { errorOnUnknownElements: false, errorOnUnknownProperties: false },
   );

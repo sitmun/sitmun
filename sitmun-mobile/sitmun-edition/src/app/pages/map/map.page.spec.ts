@@ -24,10 +24,9 @@ describe('MapPage point form', () => {
 
   it('hides delete while adding a point', () => {
     const html = readFileSync(join(__dirname, 'map.page.html'), 'utf8');
-    const lines = html.split('\n');
-    const deleteIndex = lines.findIndex((line) => line.includes('del-feat-btn'));
-    const deleteButton = lines.slice(deleteIndex - 4, deleteIndex + 1).join('\n');
-    expect(deleteButton).toContain('@if (!newPoint)');
+    const beforeDelete = html.slice(0, html.indexOf('del-feat-btn'));
+    const enclosingBlock = beforeDelete.slice(beforeDelete.lastIndexOf('@if'));
+    expect(enclosingBlock).toMatch(/^@if \(!newPoint\) \{\s*<ion-button[^>}]*$/);
   });
 
   it('clears the selected point when the form is dismissed', () => {
