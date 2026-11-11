@@ -82,7 +82,7 @@
     "prettier": "3.9.10",
     "process": "0.11.10",
     "typescript": "catalog:",
-    "typescript-eslint": "8.71.2",
+    "typescript-eslint": "8.72.1",
     "util": "0.12.5",
     "webpack": "catalog:",
     "webpack-cli": "6.0.1"
