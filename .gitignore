@@ -1,7 +1,9 @@
+# OS
 .DS_Store
 Thumbs.db
 .directory
 
+# Editors
 .idea/
 *.iml
 *.iws
@@ -24,12 +26,14 @@ Thumbs.db
 xcuserdata/
 .history/
 
+# Gradle
 .gradle/
 build/
 out/
 *.jar
 !**/gradle/wrapper/gradle-wrapper.jar
 
+# Node
 node_modules/
 .pnpm-store/
 dist/
@@ -37,21 +41,26 @@ dist/
 coverage/
 .sass-cache/
 
+# Sonar
 .scannerwork/
 /sitmun-admin/reports/
 
+# Environment
 .env
 .env.*
 
+# Python
 __pycache__/
 *.py[cod]
 *$py.class
 
+# Playwright
 e2e/.auth/
 playwright-report/
 test-results/
 .playwright-mcp/
 
+# Local output
 logs/
 *.log
 /tools/out/
