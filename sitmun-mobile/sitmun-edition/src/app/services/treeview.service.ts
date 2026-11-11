@@ -180,11 +180,11 @@ export class TreeviewService {
   getCheckedLayers(nodes: TreeNode[]): any[] {
     let checkedLayers: any[] = [];
     nodes.forEach(n => {
-      if (n.checked && n.resource) {
+      if (n.checked && (n.resource || n.action)) {
         checkedLayers.push({
           resource: n.resource,
           action: n.action,
-          fields: n.task.fields,
+          fields: n.task?.fields,
         });
       }
       if (n.children && n.children.length > 0) {

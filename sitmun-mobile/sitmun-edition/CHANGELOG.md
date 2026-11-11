@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- **Download**: A background job that fails, returns an error, or does not finish stops the progress dialog and shows `download.backgroundFailed`. The application and its layers are not stored as downloaded ([#312](https://github.com/sitmun/sitmun/issues/312)).
+- **Download**: A ticked tree node with an editing task and no cartography is downloaded. A node with cartography and no task no longer throws ([#314](https://github.com/sitmun/sitmun/issues/314)).
+
 ### Added
 
 - **Auth**: Configurable `authenticationPath` (default `/api/authenticate/mobile`); two-token lifecycle (`access_token` for backend, `proxy_token` for middleware); trusted-origin Authorization helper (exact origin match).

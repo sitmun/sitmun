@@ -35,6 +35,7 @@
         "storagePermissionError": "No permissions to store files on the device",
         "noBgLayerSelected": "No background layer selected",
         "noLayerSelected": "No layer selected",
+        "backgroundFailed": "The background map could not be generated. Try again later or choose another background.",
         "remove": "Remove download",
         "accept": "Accept",
         "cancel": "Cancel",

@@ -35,6 +35,7 @@
         "storagePermissionError": "No es tenen permisos per emmagatzemar fitxers al dispositiu",
         "noBgLayerSelected": "No s'ha seleccionat cap capa de fons",
         "noLayerSelected": "No s'ha seleccionat cap capa",
+        "backgroundFailed": "No s'ha pogut generar el mapa de fons. Torna-ho a provar més tard o tria un altre fons.",
         "remove": "Eliminar descàrrega",
         "accept": "Acceptar",
         "cancel": "Cancel·lar",
