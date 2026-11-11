@@ -11,7 +11,7 @@ import { authHeadersForUrl } from './trusted-origin.util';
 })
 export class AuthorizationService {
 
-  private filter: Function = (_obj: any) => true;
+  private filter: (...args: any[]) => any = (_obj: any) => true;
   authorizationUrl = '';
   private profileData: any;
 
@@ -93,7 +93,7 @@ export class AuthorizationService {
     return resp.data.content.filter((obj: any) => this.filter(obj));
   }
 
-  private request(options: any, callback: Function) {
+  private request(options: any, callback: (...args: any[]) => any) {
     return new Promise<any>((resolve, reject) => {
       CapacitorHttp.request(options).then(resp => {
         if (resp.status === 401) {

@@ -168,7 +168,7 @@ export class MapService {
     this.featureInfoService.activate();
   }
 
-  addClickFunctionToEditableLayers(clickFn: Function) {
+  addClickFunctionToEditableLayers(clickFn: (...args: any[]) => any) {
     this.editableLayers.forEach(l => {
       l.on(M.evt.LOAD, (features: any[]) => {
         if (Array.isArray(features)) { //si la capa no tiene features, el objeto obtenido en el evento no es array
@@ -498,13 +498,13 @@ export class MapService {
     return result;
   }
 
-  addMoveInteraction(mapa: any, olFeatures: any[], callback: Function) {
+  addMoveInteraction(mapa: any, olFeatures: any[], callback: (...args: any[]) => any) {
     const olMap = mapa.getMapImpl();
     const collection = new ol.Collection(olFeatures);
     this.move = new ol.interaction.Translate({
       features: collection
     });
-    this.move.on('translateend', (evt: any) => {
+    this.move.on('translateend', (_evt: any) => {
       callback();
     });
     olMap.addInteraction(this.move);

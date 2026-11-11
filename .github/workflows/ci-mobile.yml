@@ -41,6 +41,24 @@ jobs:
         run: pnpm ci --filter ./${{ matrix.dir }}...
       - name: Run tests
         run: pnpm test
+      - name: Check the lint problem count
+        if: matrix.label == 'Edition'
+        run: |
+          # temporary: lint ratchet edition (#305)
+          set +e
+          pnpm exec ng lint > lint-out.txt 2>&1
+          set -e
+          if grep -q 'All files pass linting' lint-out.txt; then
+            rm -f lint-out.txt
+            exit 0
+          fi
+          problems=$(grep -o '[0-9][0-9]* problems' lint-out.txt | head -1 | cut -d' ' -f1)
+          rm -f lint-out.txt
+          echo "edition lint problems: ${problems:-missing}"
+          if [ -z "$problems" ] || [ "$problems" -gt 32 ]; then
+            echo "edition lint rose above 32"
+            exit 1
+          fi
       - name: Build the production app
         run: pnpm exec ng build --configuration=production
       - name: Check the build wrote index.html

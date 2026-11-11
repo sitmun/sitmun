@@ -84,7 +84,7 @@ export class DownloadPage implements OnInit {
     private instancesService: InstancesService,
     private mapService: MapService,
   ) {
-    this.route.queryParams.subscribe((params) => {
+    this.route.queryParams.subscribe((_params) => {
       const navigation = this.router.getCurrentNavigation();
       if (navigation) {
         const tempState = navigation.extras.state;
