@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **First run**: While the built-in admin password is null or blank, every admin route opens on a three-step setup: welcome, database language, then that password. The selected language is the interface language when one was chosen, and otherwise the browser language. Saving a password is required and returns to login. Once the password exists, `/first-run` leaves the stepper. The interface follows the browser language, including Spanish, when no language is stored.
+- **Startup**: While the server is still starting, the admin shows the same welcome card with a spinner and keeps trying, instead of an initialization error.
 - **Language**: Portuguese (`pt-PT`) translations and flag ([sitmun-admin-app#485](https://github.com/sitmun/sitmun-admin-app/pull/485)).
 - **SQL query tasks**: The SQL field is a CodeMirror editor with formatting, orange placeholders, and a red underline on an invalid placeholder. The parameter grid keeps a data type, Provided, and Optional, and derives Required. Test runs the saved task twice and shows the bound SQL, the numbered values, and a truncation notice. Test is off for a new task or while there are unsaved changes, and a hint asks to save first. Save does not depend on a test.
 

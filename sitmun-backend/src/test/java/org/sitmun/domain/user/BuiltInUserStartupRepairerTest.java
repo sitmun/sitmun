@@ -188,8 +188,8 @@ class BuiltInUserStartupRepairerTest {
   }
 
   @Test
-  @DisplayName("missing admin without secret: no throw, no unusable admin, BLOCKED")
-  void missingAdminWithoutSecretBlocks() {
+  @DisplayName("missing admin without secret: passwordless admin is ready for first-run")
+  void missingAdminWithoutSecretStaysPasswordless() {
     when(userRepository.findByUsername(SecurityConstants.BUILT_IN_ADMIN_PRINCIPAL))
         .thenReturn(Optional.empty());
     when(userRepository.findByUsername(SecurityConstants.PUBLIC_PRINCIPAL))
@@ -200,15 +200,17 @@ class BuiltInUserStartupRepairerTest {
     assertThatCode(() -> repairer.run(new DefaultApplicationArguments()))
         .doesNotThrowAnyException();
 
-    assertThat(status.getState()).isEqualTo(BuiltInUserStartupStatus.State.BLOCKED);
-    assertThat(status.getReason())
-        .isEqualTo(BuiltInUserStartupStatus.REASON_ADMIN_MISSING_BOOTSTRAP_PASSWORD);
-    verify(userRepository, never())
-        .save(
-            org.mockito.ArgumentMatchers.argThat(
-                u ->
-                    u != null
-                        && SecurityConstants.BUILT_IN_ADMIN_PRINCIPAL.equals(u.getUsername())));
+    ArgumentCaptor<User> saved = ArgumentCaptor.forClass(User.class);
+    verify(userRepository, org.mockito.Mockito.atLeastOnce()).save(saved.capture());
+    User savedAdmin =
+        saved.getAllValues().stream()
+            .filter(user -> SecurityConstants.BUILT_IN_ADMIN_PRINCIPAL.equals(user.getUsername()))
+            .findFirst()
+            .orElseThrow();
+    assertThat(savedAdmin.getPassword()).isNull();
+    assertThat(savedAdmin.getAdministrator()).isTrue();
+    assertThat(status.getState()).isEqualTo(BuiltInUserStartupStatus.State.READY);
+    assertThat(status.getReason()).isNull();
     verify(passwordEncoder, never()).encode(any());
   }
 
@@ -306,8 +308,8 @@ class BuiltInUserStartupRepairerTest {
   }
 
   @Test
-  @DisplayName("empty-password admin without secret: BLOCKED; safe public repairs still saved")
-  void emptyPasswordAdminWithoutSecretBlocksAfterSafeRepairs() {
+  @DisplayName("empty-password admin without secret: stays passwordless and READY")
+  void emptyPasswordAdminWithoutSecretStaysReady() {
     User admin =
         User.builder()
             .id(1)
@@ -323,9 +325,8 @@ class BuiltInUserStartupRepairerTest {
 
     repairer.run(new DefaultApplicationArguments());
 
-    assertThat(status.getState()).isEqualTo(BuiltInUserStartupStatus.State.BLOCKED);
-    assertThat(status.getReason())
-        .isEqualTo(BuiltInUserStartupStatus.REASON_ADMIN_MISSING_BOOTSTRAP_PASSWORD);
+    assertThat(status.getState()).isEqualTo(BuiltInUserStartupStatus.State.READY);
+    assertThat(status.getReason()).isNull();
     assertThat(admin.getAdministrator()).isTrue();
     assertThat(admin.getBlocked()).isFalse();
     assertThat(admin.getPassword()).isNull();

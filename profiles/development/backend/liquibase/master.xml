@@ -21,5 +21,6 @@
   <include file="changelog/78_dev_folder_metadata_adreces.yaml" relativeToChangelogFile="true"/>
   <include file="changelog/79_dev_folder_download_urls.yaml" relativeToChangelogFile="true"/>
   <include file="changelog/85_dev_wfs_menorca_fars.yaml" relativeToChangelogFile="true"/>
+  <include file="changelog/86_dev_setup_language_configured.sql" relativeToChangelogFile="true"/>
   <include file="changelog/14_update_sequences.sql" relativeToChangelogFile="true"/>
 </databaseChangeLog>

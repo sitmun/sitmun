@@ -1,10 +1,12 @@
 package org.sitmun.domain.user;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
+import java.util.Date;
 import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.data.rest.core.annotation.RepositoryRestResource;
@@ -53,4 +55,22 @@ public interface UserRepository extends JpaRepository<User, Integer> {
       or lower(user.lastName) like lower(concat('%', :q, '%'))
       """)
   Page<User> findByContent(@Param("q") String q, Pageable pageable);
+
+  /**
+   * Stores the built-in admin password only while it is still null or blank. Zero rows means
+   * another caller already closed setup.
+   */
+  @Modifying(clearAutomatically = true, flushAutomatically = true)
+  @RestResource(exported = false)
+  @Query(
+      """
+      UPDATE User u
+      SET u.password = :password, u.lastPasswordChange = :changedAt
+      WHERE u.username = :username
+      AND (u.password IS NULL OR TRIM(u.password) = '')
+      """)
+  int setPasswordIfAbsent(
+      @Param("username") String username,
+      @Param("password") String password,
+      @Param("changedAt") Date changedAt);
 }

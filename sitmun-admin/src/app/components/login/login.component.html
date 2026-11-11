@@ -44,6 +44,11 @@
           <mat-icon matPrefix>lock</mat-icon>
           <input matInput type="password" formControlName="password">
         </mat-form-field>
+        @if (passwordChanged) {
+          <div class="alert alert-info">
+            {{ 'firstRun.passwordChanged' | translate }}
+          </div>
+        }
         @if (badCredentials) {
           <div class="alert alert-danger">
             {{'entity.login.bad-credentials' | translate}}

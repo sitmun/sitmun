@@ -146,6 +146,7 @@ class DataDictionaryTest(unittest.TestCase):
     def test_shipped_dictionary_matches_baseline_sql(self):
         document = read_dictionary(ROOT / "tools/dictionary/dictionary.json")
         self.assertTrue(document["columns"])
+        self.assertNotIn("setup.languageConfigured", document["configuration"])
         self.assertTrue(all(row["status"] == "decided" for row in document["columns"].values()))
         completed = subprocess.run(
             [

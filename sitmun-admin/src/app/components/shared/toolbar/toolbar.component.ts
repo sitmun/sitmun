@@ -7,7 +7,7 @@ import { TranslateService } from '@ngx-translate/core';
 import {Language, LanguageService} from '@app/domain';
 import {toLanguageIsoCode} from '@app/services/language-iso';
 import {LoggerService} from '@app/services/logger.service';
-import {resolveUiLanguage} from '@app/services/ui-language.resolver';
+import {readBrowserLanguages, resolveUiLanguage} from '@app/services/ui-language.resolver';
 import {config} from '@config';
 
 @Component({
@@ -68,7 +68,8 @@ export class ToolbarComponent implements OnInit {
   private applyLanguages(languages: Language[]): void {
     this.languages = languages;
     const chosen = resolveUiLanguage({
-      stored: this.translateService.getCurrentLang() || localStorage.getItem('lang'),
+      stored: localStorage.getItem('lang') || this.translateService.getCurrentLang(),
+      browser: readBrowserLanguages(),
       backendDefault: config.defaultLang,
       availableShortnames: languages.map((language) => language.shortname),
       staticFallback: config.defaultLang || languages[0]?.shortname || 'en',

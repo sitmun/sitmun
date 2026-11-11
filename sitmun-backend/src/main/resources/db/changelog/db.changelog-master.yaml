@@ -257,12 +257,30 @@ databaseChangeLog:
   - include:
       file: service-check-observed-timestamptz.postgresql.sql
       relativeToChangelogFile: true
-  - include:
-      file: setup-language-configured.oracle.sql
-      relativeToChangelogFile: true
-  - include:
-      file: setup-language-configured.postgresql.sql
-      relativeToChangelogFile: true
+  - changeSet:
+      id: sitmun-admin-password-null-postgresql
+      author: sitmun
+      dbms: postgresql,h2
+      logicalFilePath: db/changelog/setup-language-configured.postgresql.sql
+      changes:
+        - sqlFile:
+            path: setup-language-configured.postgresql.sql
+            relativeToChangelogFile: true
+            splitStatements: true
+            stripComments: false
+            endDelimiter: ";"
+  - changeSet:
+      id: sitmun-admin-password-null-oracle
+      author: sitmun
+      dbms: oracle
+      logicalFilePath: db/changelog/setup-language-configured.oracle.sql
+      changes:
+        - sqlFile:
+            path: setup-language-configured.oracle.sql
+            relativeToChangelogFile: true
+            splitStatements: true
+            stripComments: false
+            endDelimiter: ";"
   - include:
       file: literal-translation-value-pkey.postgresql.sql
       relativeToChangelogFile: true

@@ -4,12 +4,12 @@ Browser E2E against backend-core. The default database is in-memory H2. No Docke
 
 ## Coverage
 
-`pnpm run e2e`, `e2e:viewer`, `e2e:mia-cross`, `e2e:application-contact`, `e2e:mobile:web`, and `e2e:mobile:android` bind backend port 18080. Run one at a time.
+`pnpm run e2e`, `e2e:viewer`, `e2e:mia-cross`, `e2e:application-contact`, `e2e:first-run`, `e2e:mobile:web`, and `e2e:mobile:android` bind backend port 18080. Run one at a time.
 
 ### Admin (`pnpm run e2e`)
 
 - Admin UI login (`/#/login` → `/#/dashboard`)
-- Language chrome on login: cleared `lang` → closed BCP-47 ISO from `language.default`; open menu shows API endonyms; no language field on the login form (`e2e/admin/language-chrome.spec.ts`, project `login`)
+- Language chrome on login: cleared `lang` follows the browser language, then `language.default`. The `login` project browser maps to `en`, which matches the seeded default. The open menu shows API endonyms. There is no language field on the login form (`e2e/admin/language-chrome.spec.ts`, project `login`)
 - Role form **Details**: validation, create, edit, reload persistence (relation tabs not exercised)
 - User form **Details**: validation, create, edit, reload persistence (relation tabs not exercised)
 - User form **Positions**: `Valid from` immediately before `Valid until` (ES `Fecha de alta` / `Fecha de baja`); empty `createdDate` is Not set / No informada; empty `expirationDate` is Active; Alta and Baja edit persist; Position name text edit persist; inclusive last-day tooltip; hidden for `public`; pre-2000 Alta cell; viewer cannot write Alta; 20-row open under 3s ([sitmun-admin-app#462](https://github.com/sitmun/sitmun-admin-app/issues/462); `e2e/admin/forms/user-positions.spec.ts`, project `admin-forms`)
@@ -70,6 +70,13 @@ Starts admin, viewer, proxy, and the WMS stub on one H2.
 - IDE Menorca `tu007rts_ccavalls` (tree node 12094 / GEO 1304): Capas GFI → MIA Plantilla with JDBC SQL sections (languages/territories/GFI-echo) and `nomruta` → `$featureName` (`e2e/mia-cross/mia-solrustic-gfi.spec.ts`). H2 loads `e2e/fixtures/20_menorca_solrustic_mia_e2e.yaml` after the fixture rows. App 12 and territory 4 stay; role, tree, background, and cartography foreign keys use the 10000 band.
 
 **Outside this harness:** TipTap full toolbar matrix, binary child handling, filtrable columns, Docker profile Liquibase salvage. When the UI language is blank, the viewer omits `lang` and the backend resolves it.
+
+### First run (`pnpm run e2e:first-run`)
+
+Own H2 database (`SITMUN_E2E_FIRST_RUN=1` clears the admin password). Admin on 4300 and backend on 18080. Do not run it beside another suite.
+
+- Browser locale `es-ES` and an empty `lang` open the Spanish welcome step before login. Choosing a language shows Spanish selected (`e2e/admin/first-run.spec.ts`)
+- Saving Catalan plus a new password returns to login, rejects `admin`, and accepts the new password on a dashboard with no wizard and no banner, and the Catalan toolbar badge
 
 ### Application contact (`pnpm run e2e:application-contact`)
 

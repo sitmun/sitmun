@@ -2,6 +2,8 @@ import {inject} from '@angular/core';
 import {CanActivateFn, Router} from '@angular/router';
 
 import {Principal} from '@app/core/auth/principal.service';
+import {pendingFirstRun} from '@app/core/guards/first-run.guard';
+import {FirstRunService} from '@app/services/first-run.service';
 import {NotificationService} from '@app/services/notification.service';
 
 /** Whether the resolved account may access the admin shell. */
@@ -14,6 +16,12 @@ export const authGuard: CanActivateFn = async () => {
   const principal = inject(Principal);
   const notificationService = inject(NotificationService);
   const router = inject(Router);
+  const firstRun = inject(FirstRunService);
+
+  const pending = await pendingFirstRun(firstRun, router);
+  if (pending) {
+    return pending;
+  }
 
   const identity = await principal.identity(true);
 

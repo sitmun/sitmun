@@ -111,3 +111,12 @@ databaseChangeLog:
             splitStatements: true
             stripComments: false
             endDelimiter: ";"
+  - changeSet:
+      id: test-restore-admin-password
+      author: sitmun
+      dbms: h2,postgresql,oracle
+      changes:
+        - sql:
+            sql: UPDATE stm_user SET use_pwd = '$2a$10$fxkKe8bLwlWNitI49I6DBeNtOhjTqkMw2KKWg8pPd8k2jOT5dYc/W' WHERE use_user = 'admin' AND (use_pwd IS NULL OR TRIM(use_pwd) = '')
+        - sql:
+            sql: DELETE FROM stm_conf WHERE cnf_name IN ('sitmun.first-run', 'setup.languageConfigured')
