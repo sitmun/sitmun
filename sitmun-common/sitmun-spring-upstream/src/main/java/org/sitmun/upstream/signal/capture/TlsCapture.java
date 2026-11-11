@@ -1,5 +1,6 @@
 package org.sitmun.upstream.signal.capture;
 
+import org.sitmun.upstream.http.CertificateRejection;
 import org.sitmun.upstream.signal.CaptureResult;
 import org.sitmun.upstream.signal.ExchangeSignals;
 import org.sitmun.upstream.signal.RequestContext;
@@ -21,6 +22,9 @@ public final class TlsCapture implements SignalCapture {
         && error != TransportError.CERT_PATH_VALIDATOR
         && error != TransportError.SUN_CERT_PATH_BUILDER) {
       return new CaptureResult.Undecided();
+    }
+    if (error == TransportError.SSL_HANDSHAKE || error == TransportError.SSL_PEER_UNVERIFIED) {
+      return new CaptureResult.Definitive(ServiceStatuses.TLS_ERROR, CertificateRejection.DETAIL);
     }
     String name = signals.transportError();
     String message = signals.transportMessage();

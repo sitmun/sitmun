@@ -9,6 +9,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.KeyStore;
+import java.util.concurrent.atomic.AtomicReference;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 
@@ -19,13 +20,25 @@ public final class LocalTlsServer implements AutoCloseable {
 
   private final HttpsServer server;
   private final Path keystoreDir;
+  private final String urlHost;
+  private final AtomicReference<String> redirectLocation;
 
-  private LocalTlsServer(HttpsServer server, Path keystoreDir) {
+  private LocalTlsServer(
+      HttpsServer server,
+      Path keystoreDir,
+      String urlHost,
+      AtomicReference<String> redirectLocation) {
     this.server = server;
     this.keystoreDir = keystoreDir;
+    this.urlHost = urlHost;
+    this.redirectLocation = redirectLocation;
   }
 
   public static LocalTlsServer start() throws Exception {
+    return start("127.0.0.1", "127.0.0.1");
+  }
+
+  public static LocalTlsServer start(String bindHost, String urlHost) throws Exception {
     Path keystoreDir = Files.createTempDirectory("sitmun-tls");
     Path keystore = keystoreDir.resolve("keystore.p12");
     Path keytool = Path.of(System.getProperty("java.home"), "bin", "keytool");
@@ -68,21 +81,37 @@ public final class LocalTlsServer implements AutoCloseable {
     SSLContext context = SSLContext.getInstance("TLS");
     context.init(keys.getKeyManagers(), null, null);
 
-    HttpsServer server = HttpsServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
+    AtomicReference<String> redirectLocation = new AtomicReference<>();
+    HttpsServer server = HttpsServer.create(new InetSocketAddress(bindHost, 0), 0);
     server.setHttpsConfigurator(new HttpsConfigurator(context));
     server.createContext(
         "/",
         exchange -> {
+          String location = redirectLocation.get();
+          if (location != null) {
+            exchange.getResponseHeaders().add("Location", location);
+            exchange.sendResponseHeaders(302, -1);
+            exchange.close();
+            return;
+          }
           exchange.sendResponseHeaders(200, BODY.length);
           exchange.getResponseBody().write(BODY);
           exchange.close();
         });
     server.start();
-    return new LocalTlsServer(server, keystoreDir);
+    return new LocalTlsServer(server, keystoreDir, urlHost, redirectLocation);
+  }
+
+  public void redirectTo(String location) {
+    redirectLocation.set(location);
+  }
+
+  public int port() {
+    return server.getAddress().getPort();
   }
 
   public String url() {
-    return "https://127.0.0.1:" + server.getAddress().getPort() + "/";
+    return "https://" + urlHost + ":" + port() + "/";
   }
 
   public String host() {

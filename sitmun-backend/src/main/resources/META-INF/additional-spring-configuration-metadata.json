@@ -78,8 +78,8 @@
     {
       "name": "sitmun.client.unsafe-allowed-hosts",
       "type": "java.util.List<java.lang.String>",
-      "description": "List of hosts allowed for unsafe connections.",
-      "defaultValue": ["*"]
+      "description": "Hosts whose certificates and hostnames are not checked. Empty by default. Set * to skip the check for every host.",
+      "defaultValue": []
     },
     {
       "name": "sitmun.authentication.ldap.url",

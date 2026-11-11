@@ -12,6 +12,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import javax.net.ssl.SSLHandshakeException;
 import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
@@ -28,6 +29,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.sitmun.proxy.middleware.dto.ProblemDetail;
 import org.sitmun.proxy.middleware.service.RequestExecutorResponse;
+import org.sitmun.proxy.middleware.service.RequestExecutorResponseImpl;
 import org.sitmun.proxy.middleware.service.UpstreamContentType;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
@@ -636,5 +638,21 @@ class HttpRequestExecutorTest {
         .startsWith("https://api.example.com/search/alpha")
         .doesNotContain("?TERM=")
         .doesNotContain("&TERM=");
+  }
+
+  @Test
+  @DisplayName("A rejected certificate names the allow-list setting")
+  void rejectedCertificateNamesTheSetting() throws IOException {
+    httpRequestExecutor.setUrl(TEST_URL);
+    when(httpClient.executeRequest(any(Request.class)))
+        .thenThrow(new SSLHandshakeException("PKIX path building failed"));
+
+    RequestExecutorResponseImpl<?> result =
+        (RequestExecutorResponseImpl<?>) httpRequestExecutor.execute();
+    ProblemDetail problem = (ProblemDetail) result.getBody();
+
+    assertThat(problem.getDetail())
+        .contains("certificate")
+        .contains("sitmun.client.unsafe-allowed-hosts");
   }
 }

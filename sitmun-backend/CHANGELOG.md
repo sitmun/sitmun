@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Security
+
+- **Upstream TLS**: `sitmun.client.unsafe-allowed-hosts` is empty unless a deployment sets it. An empty list checks the certificate and the hostname on every upstream call. A deployment that must reach a self-signed server sets `SITMUN_CLIENT_UNSAFE_ALLOWED_HOSTS` to those hosts, or to `*`. `*` turns the checks off for every host and is logged at startup. A rejected certificate says `certificate check failed` and names that setting ([#319](https://github.com/sitmun/sitmun/issues/319)).
+
 ### Added
 
 - **First run**: `GET` and `POST /api/setup/first-run` are available while the built-in admin password is null or blank, and both return 404 once that password exists. `POST` accepts anonymous callers only. The password is required and is stored only while the admin password is still empty. The post can also set the database language, with the same missing-translation choice as the language-default API. A password change sets `lastPasswordChange`, so existing sessions stop working. A new 1.3.0 database clears the seeded admin password. A 1.2.9 upgrade keeps its password. Password login rejects a null or blank password. OIDC sign-in does not. Startup repair leaves a null admin password in place.

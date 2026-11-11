@@ -29,7 +29,7 @@ public class ServiceCheckConfiguration {
   @Bean
   UpstreamHttpClient serviceCheckHttpClient(
       ServiceCheckProperties properties,
-      @Value("${sitmun.client.unsafe-allowed-hosts:*}") List<String> unsafeAllowedHosts) {
+      @Value("${sitmun.client.unsafe-allowed-hosts:}") List<String> unsafeAllowedHosts) {
     return new UpstreamHttpClient(
         unsafeAllowedHosts, properties.connectTimeout(), properties.readTimeout(), List.of());
   }

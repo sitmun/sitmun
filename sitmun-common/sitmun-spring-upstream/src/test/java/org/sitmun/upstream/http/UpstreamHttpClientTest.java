@@ -39,6 +39,15 @@ class UpstreamHttpClientTest {
   }
 
   @Test
+  void mixedCaseHostUsesTheUnsafeClient() {
+    UpstreamHttpClient client =
+        new UpstreamHttpClient(
+            List.of("LocalHost"), Duration.ofMillis(5), Duration.ofMillis(6), List.of());
+
+    assertThat(client.clientFor("localhost")).isSameAs(client.unsafeClient());
+  }
+
+  @Test
   void starAllowlistUsesUnsafeClient() {
     UpstreamHttpClient client =
         new UpstreamHttpClient(List.of("*"), Duration.ofMillis(5), Duration.ofMillis(6), List.of());
