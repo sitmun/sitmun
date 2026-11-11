@@ -17,7 +17,6 @@ This `docs/` folder is organized to provide easy access to all project documenta
 - **[Main README](../README.md)** - Project overview and quick start guide
 - **[GitHub Repository](https://github.com/sitmun/sitmun-admin-app)** - Source code and issues
 - **[Backend Core Repository](https://github.com/sitmun/sitmun-backend-core)** - Related backend project
-- **[SonarCloud Quality Gate](https://sonarcloud.io/dashboard?id=org.sitmun%3Asitmun-admin-app)** - Code quality metrics
 
 ## 📖 Additional Resources
 

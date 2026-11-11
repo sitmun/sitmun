@@ -16,6 +16,7 @@ WORKFLOW_LITERAL = re.compile(
 ARG_DEFAULT = re.compile(r"^ARG\s+(JDK_VERSION|NODE_VERSION)=(\S+)", re.M)
 PNPM_VERSION_ENV = re.compile(r"\bPNPM_VERSION=(\S+)")
 COORDINATE = re.compile(r"['\"][a-zA-Z0-9_.-]+:[a-zA-Z0-9_.-]+:\d")
+QUOTED_MODULE = re.compile(r"""['"][\w.-]+:[\w.-]+['"]""")
 ENGINE_MAJOR = re.compile(r"(\d+)")
 
 
@@ -177,7 +178,7 @@ def _failures_gradle_literals(_root: Path) -> list[str]:
         if "build" in path.parts or "node_modules" in path.parts or ".gradle" in path.parts:
             continue
         text = _read(path)
-        if "project.version" in text or COORDINATE.search(text):
+        if "project.version" in text or COORDINATE.search(text) or QUOTED_MODULE.search(text):
             failures.append(str(path.relative_to(ROOT)))
     return failures
 
@@ -510,7 +511,6 @@ def _failures_js_catalog(_root: Path) -> list[str]:
         "draggabilly": "2.4.1",
         "echarts": "5.6.0",
         "fast-xml-parser": "5.8.0",
-        "jest-sonar": "0.2.16",
         "jsonpath": "1.3.0",
         "jwt-decode": "3.1.2",
         "meld": "1.3.2",
@@ -521,7 +521,6 @@ def _failures_js_catalog(_root: Path) -> list[str]:
         "process": "0.11.10",
         "proj4": "2.22.0",
         "regex-parser": "2.3.1",
-        "sonar-scanner": "3.1.0",
         "sql-formatter": "15.9.0",
         "stacktrace-js": "2.0.2",
         "stream": "0.0.3",
@@ -569,13 +568,11 @@ def _failures_js_catalog(_root: Path) -> list[str]:
             "codemirror",
             "echarts",
             "fast-xml-parser",
-            "jest-sonar",
             "js-beautify",
             "jsdom",
             "jsonpath",
             "ngx-echarts",
             "regex-parser",
-            "sonar-scanner",
             "sql-formatter",
             "stacktrace-js",
             "ts-node",

@@ -38,7 +38,7 @@ Copiar `resources/android/AndroidManifest.xml` a `android/app/src/main`.
 pnpm run android
 ```
 
-El script hace `ionic build`, `pnpm exec cap sync android`, `pnpm exec cap copy android` y `pnpm exec cap open android`. La APK de depuración generada en Android Studio queda en `android/app/build/outputs/apk/debug`.
+El script hace `pnpm exec ng build`, `pnpm exec cap sync android`, `pnpm exec cap copy android` y `pnpm exec cap open android`. La APK de depuración generada en Android Studio queda en `android/app/build/outputs/apk/debug`.
 
 ## Authentication and proxy
 
