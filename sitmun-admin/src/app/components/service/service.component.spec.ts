@@ -9,13 +9,13 @@ import { TranslateLoader, TranslatePipe, TranslateService, provideTranslateServi
 import {of} from 'rxjs';
 
 import {EntityListComponent} from '@app/components/shared/entity-list/entity-list.component';
-import { LoggerService } from '@app/services/logger.service';
-import { configureLoggerForTests } from '@app/testing/test-helpers';
 import { ExternalConfigurationService } from '@app/core/config/external-configuration.service';
 import {ExternalService, ResourceService} from '@app/core/hal';
 import {CodeListService, ServiceService, TranslationService} from '@app/domain';
 import { SitmunFrontendGuiModule } from '@app/frontend-gui/src/lib/public_api';
 import { MaterialModule } from '@app/material-module';
+import { LoggerService } from '@app/services/logger.service';
+import { configureLoggerForTests } from '@app/testing/test-helpers';
 
 import { ServiceHealthFilterComponent } from './service-health-filter.component';
 import { ServiceComponent } from './service.component';
