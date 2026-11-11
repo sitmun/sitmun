@@ -20,9 +20,6 @@ import { TreeNode, TreeviewService } from "src/app/services/treeview.service";
 
 // eslint-disable-next-line no-var -- ambient global shared across modules
 declare var M: any;
-// eslint-disable-next-line no-var -- ambient global shared across modules
-declare var ol: any;
-
 @Component({
   selector: "app-map",
   templateUrl: "./map.page.html",
