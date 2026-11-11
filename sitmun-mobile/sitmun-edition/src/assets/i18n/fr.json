@@ -35,6 +35,7 @@
         "storagePermissionError": "Aucun droit d'accès pour stocker des fichiers sur l'appareil",
         "noBgLayerSelected": "Aucune couche de fond sélectionnée",
         "noLayerSelected": "Aucune couche sélectionnée",
+        "backgroundFailed": "Le fond de carte n'a pas pu être généré. Réessayez plus tard ou choisissez un autre fond.",
         "remove": "Supprimer le téléchargement",
         "accept": "Accepter",
         "cancel": "Annuler",

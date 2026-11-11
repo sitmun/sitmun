@@ -35,6 +35,7 @@
         "storagePermissionError": "No se tienen permisos para almacenar ficheros en el dispositvo",
         "noBgLayerSelected": "No se ha seleccionado ninguna capa de fondo",
         "noLayerSelected": "No se ha seleccionado ninguna capa",
+        "backgroundFailed": "No se ha podido generar el mapa de fondo. Vuelve a intentarlo más tarde o elige otro fondo.",
         "remove": "Eliminar descarga",
         "accept": "Aceptar",
         "cancel": "Cancelar",

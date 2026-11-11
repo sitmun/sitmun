@@ -26,6 +26,7 @@ import { TreeNode, TreeviewService } from "src/app/services/treeview.service";
 import { resolveAgainstBase } from "src/app/services/trusted-origin.util";
 import { WfsService } from "src/app/services/wfs.service";
 
+import { pollMbtilesJob } from "./mbtiles-job-poll";
 import { groupMbtilesServices } from "./mbtiles-service-groups";
 
 // eslint-disable-next-line no-var -- ambient global shared across modules
@@ -262,23 +263,27 @@ export class DownloadPage implements OnInit {
     this.downloadProgress.type = "download.progress-request";
     this.downloadProgress.value = 0.01;
     if (jobHandle) {
-      await new Promise<void>((resolve) => {
-        const checkStatus = async () => {
-          const resp = await this.proxyService.checkbgServices(jobHandle);
-          if (resp.data.processedTiles) {
-            this.downloadProgress.value =
-              resp.data.processedTiles / resp.data.totalTiles;
-          }
-          if (resp.data.status === "COMPLETED") {
-            this.downloadProgress.value = 1;
-            await this.storagebgLayer(jobHandle);
-            resolve();
-          } else {
-            setTimeout(checkStatus, 3000);
-          }
-        };
-        checkStatus();
-      });
+      const outcome = await pollMbtilesJob(
+        () => this.proxyService.checkbgServices(jobHandle),
+        {
+          intervalMs: 3000,
+          timeoutMs: 10 * 60 * 1000,
+          onProgress: (value) => {
+            this.downloadProgress.value = value;
+          },
+        },
+      );
+      if (outcome !== "completed") {
+        this.downloadProgress.value = 0;
+        this.languageService
+          .translateTag("download.backgroundFailed")
+          .subscribe((text: string) =>
+            this.createToast(text, "warning", "bottom"),
+          );
+        return;
+      }
+      this.downloadProgress.value = 1;
+      await this.storagebgLayer(jobHandle);
     }
 
     //almacena en base de datos
