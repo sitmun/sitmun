@@ -66,6 +66,8 @@ catalog:
   webpack: 5.112.2
   zone.js: 0.15.1
   xmlbuilder2: 3.1.1
+  echarts: 5.6.0
+  ngx-echarts: 19.0.0
 
 allowBuilds:
   '@parcel/watcher': true
