@@ -275,6 +275,48 @@ catalogs:
     '@ngx-translate/http-loader':
       specifier: 18.1.0
       version: 18.1.0
+    '@tiptap/core':
+      specifier: 2.27.3
+      version: 2.27.3
+    '@tiptap/extension-color':
+      specifier: 2.27.3
+      version: 2.27.3
+    '@tiptap/extension-highlight':
+      specifier: 2.27.3
+      version: 2.27.3
+    '@tiptap/extension-image':
+      specifier: 2.27.3
+      version: 2.27.3
+    '@tiptap/extension-link':
+      specifier: 2.27.3
+      version: 2.27.3
+    '@tiptap/extension-table':
+      specifier: 2.27.3
+      version: 2.27.3
+    '@tiptap/extension-table-cell':
+      specifier: 2.27.3
+      version: 2.27.3
+    '@tiptap/extension-table-header':
+      specifier: 2.27.3
+      version: 2.27.3
+    '@tiptap/extension-table-row':
+      specifier: 2.27.3
+      version: 2.27.3
+    '@tiptap/extension-text-align':
+      specifier: 2.27.3
+      version: 2.27.3
+    '@tiptap/extension-text-style':
+      specifier: 2.27.3
+      version: 2.27.3
+    '@tiptap/extension-underline':
+      specifier: 2.27.3
+      version: 2.27.3
+    '@tiptap/pm':
+      specifier: 2.27.3
+      version: 2.27.3
+    '@tiptap/starter-kit':
+      specifier: 2.27.3
+      version: 2.27.3
     '@types/jest':
       specifier: 30.0.0
       version: 30.0.0
@@ -435,46 +477,46 @@ importers:
         specifier: 'catalog:'
         version: 18.1.0(@angular/common@22.2.5(@angular/core@22.2.5(@angular/compiler@22.2.5)(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@22.2.5(@angular/compiler@22.2.5)(rxjs@7.8.2)(zone.js@0.15.1))(@ngx-translate/core@18.1.0(@angular/common@22.2.5(@angular/core@22.2.5(@angular/compiler@22.2.5)(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@22.2.5(@angular/compiler@22.2.5)(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))
       '@tiptap/core':
-        specifier: 2.27.3
+        specifier: 'catalog:'
         version: 2.27.3(@tiptap/pm@2.27.3)
       '@tiptap/extension-color':
-        specifier: 2.27.3
+        specifier: 'catalog:'
         version: 2.27.3(@tiptap/core@2.27.3(@tiptap/pm@2.27.3))(@tiptap/extension-text-style@2.27.3(@tiptap/core@2.27.3(@tiptap/pm@2.27.3)))
       '@tiptap/extension-highlight':
-        specifier: 2.27.3
+        specifier: 'catalog:'
         version: 2.27.3(@tiptap/core@2.27.3(@tiptap/pm@2.27.3))
       '@tiptap/extension-image':
-        specifier: 2.27.3
+        specifier: 'catalog:'
         version: 2.27.3(@tiptap/core@2.27.3(@tiptap/pm@2.27.3))
       '@tiptap/extension-link':
-        specifier: 2.27.3
+        specifier: 'catalog:'
         version: 2.27.3(@tiptap/core@2.27.3(@tiptap/pm@2.27.3))(@tiptap/pm@2.27.3)
       '@tiptap/extension-table':
-        specifier: 2.27.3
+        specifier: 'catalog:'
         version: 2.27.3(@tiptap/core@2.27.3(@tiptap/pm@2.27.3))(@tiptap/pm@2.27.3)
       '@tiptap/extension-table-cell':
-        specifier: 2.27.3
+        specifier: 'catalog:'
         version: 2.27.3(@tiptap/core@2.27.3(@tiptap/pm@2.27.3))
       '@tiptap/extension-table-header':
-        specifier: 2.27.3
+        specifier: 'catalog:'
         version: 2.27.3(@tiptap/core@2.27.3(@tiptap/pm@2.27.3))
       '@tiptap/extension-table-row':
-        specifier: 2.27.3
+        specifier: 'catalog:'
         version: 2.27.3(@tiptap/core@2.27.3(@tiptap/pm@2.27.3))
       '@tiptap/extension-text-align':
-        specifier: 2.27.3
+        specifier: 'catalog:'
         version: 2.27.3(@tiptap/core@2.27.3(@tiptap/pm@2.27.3))
       '@tiptap/extension-text-style':
-        specifier: 2.27.3
+        specifier: 'catalog:'
         version: 2.27.3(@tiptap/core@2.27.3(@tiptap/pm@2.27.3))
       '@tiptap/extension-underline':
-        specifier: 2.27.3
+        specifier: 'catalog:'
         version: 2.27.3(@tiptap/core@2.27.3(@tiptap/pm@2.27.3))
       '@tiptap/pm':
-        specifier: 2.27.3
+        specifier: 'catalog:'
         version: 2.27.3
       '@tiptap/starter-kit':
-        specifier: 2.27.3
+        specifier: 'catalog:'
         version: 2.27.3
       ajv:
         specifier: 8.17.1

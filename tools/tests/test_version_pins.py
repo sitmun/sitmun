@@ -456,6 +456,25 @@ def _failures_js_catalog(_root: Path) -> list[str]:
     for name, expected in jest_pins.items():
         if catalog.get(name) != expected:
             failures.append(f"catalog {name} is {catalog.get(name) or 'missing'}, expected {expected}")
+    tiptap_pins = {
+        "@tiptap/core": "2.27.3",
+        "@tiptap/extension-color": "2.27.3",
+        "@tiptap/extension-highlight": "2.27.3",
+        "@tiptap/extension-image": "2.27.3",
+        "@tiptap/extension-link": "2.27.3",
+        "@tiptap/extension-table": "2.27.3",
+        "@tiptap/extension-table-cell": "2.27.3",
+        "@tiptap/extension-table-header": "2.27.3",
+        "@tiptap/extension-table-row": "2.27.3",
+        "@tiptap/extension-text-align": "2.27.3",
+        "@tiptap/extension-text-style": "2.27.3",
+        "@tiptap/extension-underline": "2.27.3",
+        "@tiptap/pm": "2.27.3",
+        "@tiptap/starter-kit": "2.27.3",
+    }
+    for name, expected in tiptap_pins.items():
+        if catalog.get(name) != expected:
+            failures.append(f"catalog {name} is {catalog.get(name) or 'missing'}, expected {expected}")
     touristic = json.loads(_read(ROOT / "sitmun-mobile/sitmun-touristic/package.json"))
     if not str(touristic.get("scripts", {}).get("test", "")).startswith("jest"):
         failures.append("sitmun-touristic test script is not jest")
