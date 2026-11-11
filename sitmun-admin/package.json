@@ -85,7 +85,7 @@
     "@jest/globals": "catalog:",
     "@types/jest": "catalog:",
     "@types/jsonpath": "catalog:",
-    "@types/mocha": "10.0.10",
+    "@types/mocha": "catalog:",
     "@types/node": "catalog:",
     "@types/uri-templates": "catalog:",
     "angular-eslint": "catalog:",
@@ -96,10 +96,10 @@
     "jest": "catalog:",
     "jest-environment-jsdom": "catalog:",
     "jest-preset-angular": "catalog:",
-    "jest-sonar": "0.2.16",
-    "jsdom": "26.1.0",
+    "jest-sonar": "catalog:",
+    "jsdom": "catalog:",
     "sonar-scanner": "3.1.0",
-    "ts-node": "10.9.2",
+    "ts-node": "catalog:",
     "typescript": "catalog:",
     "typescript-eslint": "catalog:"
   }

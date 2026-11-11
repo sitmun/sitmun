@@ -275,12 +275,18 @@ catalogs:
     '@ngx-translate/http-loader':
       specifier: 18.1.0
       version: 18.1.0
+    '@playwright/test':
+      specifier: 1.64.1
+      version: 1.64.1
     '@types/jest':
       specifier: 30.0.0
       version: 30.0.0
     '@types/jsonpath':
       specifier: 0.2.4
       version: 0.2.4
+    '@types/mocha':
+      specifier: 10.0.10
+      version: 10.0.10
     '@types/node':
       specifier: 24.19.2
       version: 24.19.2
@@ -320,12 +326,21 @@ catalogs:
     jest-preset-angular:
       specifier: 17.0.3
       version: 17.0.3
+    jest-sonar:
+      specifier: 0.2.16
+      version: 0.2.16
+    jsdom:
+      specifier: 26.1.0
+      version: 26.1.0
     ol:
       specifier: 10.9.0
       version: 10.9.0
     rxjs:
       specifier: 7.8.2
       version: 7.8.2
+    ts-node:
+      specifier: 10.9.2
+      version: 10.9.2
     tslib:
       specifier: 2.8.1
       version: 2.8.1
@@ -360,7 +375,7 @@ importers:
   .:
     devDependencies:
       '@playwright/test':
-        specifier: 1.64.1
+        specifier: 'catalog:'
         version: 1.64.1
       '@types/node':
         specifier: 'catalog:'
@@ -562,7 +577,7 @@ importers:
         specifier: 'catalog:'
         version: 0.2.4
       '@types/mocha':
-        specifier: 10.0.10
+        specifier: 'catalog:'
         version: 10.0.10
       '@types/node':
         specifier: 'catalog:'
@@ -595,16 +610,16 @@ importers:
         specifier: 'catalog:'
         version: 17.0.3(@angular/compiler-cli@22.2.5(@angular/compiler@22.2.5)(typescript@6.0.3))(@angular/core@22.2.5(@angular/compiler@22.2.5)(rxjs@7.8.2)(zone.js@0.15.1))(@angular/platform-browser@22.2.5(@angular/animations@22.2.5(@angular/core@22.2.5(@angular/compiler@22.2.5)(rxjs@7.8.2)(zone.js@0.15.1)))(@angular/common@22.2.5(@angular/core@22.2.5(@angular/compiler@22.2.5)(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@22.2.5(@angular/compiler@22.2.5)(rxjs@7.8.2)(zone.js@0.15.1)))(@babel/core@7.29.7(supports-color@8.1.1))(@jest/transform@30.5.2(supports-color@8.1.1))(@jest/types@30.5.1)(@types/jsdom@21.1.7)(babel-jest@30.5.2(@babel/core@7.29.7(supports-color@8.1.1))(supports-color@8.1.1))(jest@30.5.2(@types/node@24.19.2)(supports-color@8.1.1)(ts-node@10.9.2(@types/node@24.19.2)(typescript@6.0.3)))(jsdom@26.1.0(supports-color@8.1.1))(typescript@6.0.3)
       jest-sonar:
-        specifier: 0.2.16
+        specifier: 'catalog:'
         version: 0.2.16
       jsdom:
-        specifier: 26.1.0
+        specifier: 'catalog:'
         version: 26.1.0(supports-color@8.1.1)
       sonar-scanner:
         specifier: 3.1.0
         version: 3.1.0
       ts-node:
-        specifier: 10.9.2
+        specifier: 'catalog:'
         version: 10.9.2(@types/node@24.19.2)(typescript@6.0.3)
       typescript:
         specifier: 'catalog:'

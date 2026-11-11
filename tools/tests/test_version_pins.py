@@ -456,6 +456,16 @@ def _failures_js_catalog(_root: Path) -> list[str]:
     for name, expected in jest_pins.items():
         if catalog.get(name) != expected:
             failures.append(f"catalog {name} is {catalog.get(name) or 'missing'}, expected {expected}")
+    test_pins = {
+        "@playwright/test": "1.64.1",
+        "@types/mocha": "10.0.10",
+        "jest-sonar": "0.2.16",
+        "jsdom": "26.1.0",
+        "ts-node": "10.9.2",
+    }
+    for name, expected in test_pins.items():
+        if catalog.get(name) != expected:
+            failures.append(f"catalog {name} is {catalog.get(name) or 'missing'}, expected {expected}")
     touristic = json.loads(_read(ROOT / "sitmun-mobile/sitmun-touristic/package.json"))
     if not str(touristic.get("scripts", {}).get("test", "")).startswith("jest"):
         failures.append("sitmun-touristic test script is not jest")
