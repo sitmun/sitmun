@@ -43,7 +43,7 @@
     "@ngx-translate/core": "catalog:",
     "@ngx-translate/http-loader": "catalog:",
     "bootstrap": "5.3.7",
-    "cordova-plugin-httpd": "0.9.3",
+    "cordova-plugin-httpd": "catalog:",
     "ionicons": "catalog:",
     "rxjs": "catalog:",
     "tslib": "catalog:",

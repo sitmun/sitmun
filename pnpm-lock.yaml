@@ -296,6 +296,9 @@ catalogs:
     babel-jest:
       specifier: 30.5.2
       version: 30.5.2
+    cordova-plugin-httpd:
+      specifier: 0.9.3
+      version: 0.9.3
     eslint:
       specifier: 9.39.5
       version: 9.39.5
@@ -700,7 +703,7 @@ importers:
         specifier: 5.3.7
         version: 5.3.7(@popperjs/core@2.11.8)
       cordova-plugin-httpd:
-        specifier: 0.9.3
+        specifier: 'catalog:'
         version: 0.9.3
       ionicons:
         specifier: 'catalog:'
