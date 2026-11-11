@@ -326,6 +326,9 @@ catalogs:
     rxjs:
       specifier: 7.8.2
       version: 7.8.2
+    stacktrace-js:
+      specifier: 2.0.2
+      version: 2.0.2
     tslib:
       specifier: 2.8.1
       version: 2.8.1
@@ -507,7 +510,7 @@ importers:
         specifier: 15.6.6
         version: 15.6.6
       stacktrace-js:
-        specifier: 2.0.2
+        specifier: 'catalog:'
         version: 2.0.2
       tslib:
         specifier: 'catalog:'

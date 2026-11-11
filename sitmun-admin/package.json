@@ -65,7 +65,7 @@
     "regex-parser": "2.3.1",
     "rxjs": "catalog:",
     "sql-formatter": "15.6.6",
-    "stacktrace-js": "2.0.2",
+    "stacktrace-js": "catalog:",
     "tslib": "catalog:",
     "uri-templates": "catalog:",
     "zone.js": "catalog:"
