@@ -13,7 +13,6 @@
     "test:watch": "jest --watch",
     "test:coverage": "jest --config jest.coverage.config.ts --watchAll=false",
     "lint": "ng lint",
-    "sonar": "sonar-scanner",
     "clean": "bash scripts/clean.sh",
     "clean:force": "bash scripts/clean.sh --force",
     "clean:build": "bash scripts/clean.sh --build-only"
@@ -96,9 +95,7 @@
     "jest": "catalog:",
     "jest-environment-jsdom": "catalog:",
     "jest-preset-angular": "catalog:",
-    "jest-sonar": "catalog:",
     "jsdom": "catalog:",
-    "sonar-scanner": "catalog:",
     "ts-node": "catalog:",
     "typescript": "catalog:",
     "typescript-eslint": "catalog:"

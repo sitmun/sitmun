@@ -378,8 +378,6 @@ Reinstall from the repository root: `rm -rf node_modules && pnpm ci`. Node must 
 
 Issues: https://github.com/sitmun/sitmun/issues
 
-Admin SonarCloud project key `org.sitmun:sitmun-admin-app`: https://sonarcloud.io/dashboard?id=org.sitmun%3Asitmun-admin-app
-
 ## License
 
 European Union Public Licence v1.2. See [LICENSE](LICENSE).

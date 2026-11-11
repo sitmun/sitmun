@@ -11,8 +11,7 @@ plugins {
   alias libs.plugins.liquibase
   
   id 'jacoco'
-  alias libs.plugins.sonarqube
-  
+
   alias libs.plugins.docker.compose
 
   alias libs.plugins.spotless
@@ -482,13 +481,6 @@ jacocoTestReport {
 }
 
 test.finalizedBy jacocoTestReport
-
-// SonarQube integration
-apply from: "${project.projectDir}/sonar.gradle"
-
-tasks.named('sonarqube') {
-  dependsOn(tasks.jacocoTestReport)
-}
 
 // Spotless code formatting
 

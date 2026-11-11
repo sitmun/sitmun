@@ -16,7 +16,6 @@ dom4j = "2.1.4"
 springdoc-openapi = "1.9.0"
 springdoc-openapi-lib = "3.2.0"
 liquibase-gradle = "2.2.0"
-sonarqube = "3.3"
 docker-compose = "0.17.12"
 bucket4j = "8.21.0"
 openhtmltopdf = "1.0.10"
@@ -114,5 +113,4 @@ spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }
 lombok = { id = "io.freefair.lombok", version.ref = "lombok" }
 springdoc-openapi = { id = "org.springdoc.openapi-gradle-plugin", version.ref = "springdoc-openapi" }
 liquibase = { id = "org.liquibase.gradle", version.ref = "liquibase-gradle" }
-sonarqube = { id = "org.sonarqube", version.ref = "sonarqube" }
 docker-compose = { id = "com.avast.gradle.docker-compose", version.ref = "docker-compose" }

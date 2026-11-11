@@ -36,7 +36,6 @@ ALLOW_BUILDS = (
     "nice-napi",
     "nx",
     "protobufjs",
-    "sonar-scanner",
     "unrs-resolver",
 )
 TSCONFIG_APP = ROOT / "sitmun-viewer/tsconfig.app.json"

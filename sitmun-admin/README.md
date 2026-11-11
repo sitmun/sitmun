@@ -29,14 +29,13 @@ pnpm start
 - `pnpm test` — Jest
 - `pnpm run test:watch`
 - `pnpm test -- --testNamePattern=UserComponent`
-- `pnpm run test:coverage` — writes `coverage/admin-app/lcov.info` and `reports/ut_report.xml`
+- `pnpm run test:coverage` — writes `coverage/admin-app/lcov.info`
 - `pnpm run lint`
 - `pnpm run lint -- --fix`
 - `pnpm run build` — development configuration
 - `pnpm run build -- --configuration=docker-dev`
 - `pnpm run build -- --configuration=production`
 - `pnpm run build -- --configuration=production --base-href=/admin/`
-- `pnpm run sonar` — `sonar-scanner`
 
 Covered browser flows run from the repo root: `pnpm run e2e`.
 
