@@ -2,24 +2,24 @@ services:
   front:
     build:
       cache_from:
-        - type=gha,scope=front
+        - type=gha,scope=front-${IMAGE_ARCH:-local}
       cache_to:
-        - type=gha,scope=front,mode=max
+        - type=gha,scope=front-${IMAGE_ARCH:-local},mode=max
   backend:
     build:
       cache_from:
-        - type=gha,scope=backend
+        - type=gha,scope=backend-${IMAGE_ARCH:-local}
       cache_to:
-        - type=gha,scope=backend,mode=max
+        - type=gha,scope=backend-${IMAGE_ARCH:-local},mode=max
   proxy:
     build:
       cache_from:
-        - type=gha,scope=proxy
+        - type=gha,scope=proxy-${IMAGE_ARCH:-local}
       cache_to:
-        - type=gha,scope=proxy,mode=max
+        - type=gha,scope=proxy-${IMAGE_ARCH:-local},mode=max
   mbtiles:
     build:
       cache_from:
-        - type=gha,scope=mbtiles
+        - type=gha,scope=mbtiles-${IMAGE_ARCH:-local}
       cache_to:
-        - type=gha,scope=mbtiles,mode=max
+        - type=gha,scope=mbtiles-${IMAGE_ARCH:-local},mode=max

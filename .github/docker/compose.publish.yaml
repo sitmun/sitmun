@@ -1,0 +1,21 @@
+services:
+  front:
+    build:
+      platforms:
+        - linux/amd64
+        - linux/arm64
+  backend:
+    build:
+      platforms:
+        - linux/amd64
+        - linux/arm64
+  proxy:
+    build:
+      platforms:
+        - linux/amd64
+        - linux/arm64
+  mbtiles:
+    build:
+      platforms:
+        - linux/amd64
+        - linux/arm64

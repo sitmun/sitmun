@@ -9,13 +9,20 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    name: Build images
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [ubuntu-latest, ubuntu-24.04-arm]
     timeout-minutes: 180
     steps:
       - uses: actions/checkout@v5
       - name: Set up Buildx
         uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
       - name: Build images
+        env:
+          IMAGE_ARCH: ${{ runner.arch }}
         run: |
           umask 077
           cat > "$RUNNER_TEMP/compose.env" << EOF
@@ -28,6 +35,8 @@ jobs:
           "${compose[@]}" build front backend proxy
           "${compose[@]}" --profile mbtiles build mbtiles
       - name: Wait until the backend is healthy
+        env:
+          IMAGE_ARCH: ${{ runner.arch }}
         run: |
           umask 077
           cat > "$RUNNER_TEMP/compose.env" << EOF

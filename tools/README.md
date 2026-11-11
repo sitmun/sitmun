@@ -61,6 +61,7 @@ Paths by scenario:
 | **validate-liquibase-changelogs.sh** | List changelogs by last modification (newest first). Not an immutability gate. Pass `[liquibase_dir]` as first argument (default: development). |
 | **compare-schema-drift.sh** | Apply development vs postgres/oracle Liquibase (Docker), report PROBLEM/INFO drift, write **draft fix YAML** under `tools/out/schema-drift/`. Optional `--against jpa`. Target `dev-dialects` compares development postgresql vs oracle. Target `fresh-vs-upgraded <engine> [source-tag]` compares a fresh 1.3.0 database with a tagged database upgraded by the shipped master. The source tag defaults to `1.2.9`. Engines are `postgres-16`, `postgres-12`, `oracle-23`, `oracle-21`, and `oracle-11`. Workflow `Fresh versus upgraded` runs that target. |
 | **bump-version.sh** | Copy the platform version from root `gradle.properties` into admin and viewer `package.json`, README badges, and lockfiles. See [Version and release](#version-and-release). |
+| **publish-images.sh** | Build and push the four images for amd64 and arm64 under one tag. See [RELEASE.md](../RELEASE.md#images). |
 
 ```bash
 # Apply seed data to a remote PostgreSQL database (English baseline)

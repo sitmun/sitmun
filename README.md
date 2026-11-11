@@ -28,7 +28,7 @@ Common, proxy, MBTiles, and the backend are one Gradle build. From the repositor
 
 ## Toolchain
 
-Java is the root `.java-version` (17). Node is the root `.nvmrc` (24.22.0). pnpm is the `packageManager` field on the root `package.json`. mise is optional and reads those files. CI does not use mise: `actions/setup-node` with `node-version-file: .nvmrc` and `pnpm/action-setup`, then `pnpm ci`.
+Java is the root `.java-version` (17). Gradle provisions that JDK itself through the Foojay resolver (`org.gradle.java.installations.auto-detect=false` in `gradle.properties`) and ignores the host JDK. After a JDK security release, delete the old directory under `~/.gradle/jdks` so Gradle downloads the patched build. Node is the root `.nvmrc` (24.22.0). pnpm is the `packageManager` field on the root `package.json`. mise is optional and reads those files. CI does not use mise: `actions/setup-node` with `node-version-file: .nvmrc` and `pnpm/action-setup`, then `pnpm ci`.
 
 The root `pnpm-workspace.yaml` lists `sitmun-admin`, `sitmun-viewer`, `sitmun-mobile/sitmun-edition`, and `sitmun-mobile/sitmun-touristic`. Shared dependency versions live in its `catalog`. The root `package.json` is the Playwright harness. Each app's `engines.node` is `>=24.22.0`.
 
@@ -105,7 +105,7 @@ Seeded login: `admin` / `admin`. A new database that is still on that password a
 
 ### Published images
 
-1.3.0 runs from `ghcr.io/sitmun/front`, `backend`, `proxy`, and `mbtiles` at tag `1.3.0`. Clone the `v1.3.0` tag, so `compose.yaml` and `profiles/` match those images. Copy a production profile, then start without building:
+1.3.0 runs from `ghcr.io/sitmun/front`, `backend`, `proxy`, and `mbtiles` at tag `1.3.0`. Each image is `linux/amd64` and `linux/arm64`, so an Apple M1 pulls a native image with no `--platform` flag. Clone the `v1.3.0` tag, so `compose.yaml` and `profiles/` match those images. Copy a production profile, then start without building:
 
 ```bash
 git clone --branch v1.3.0 https://github.com/sitmun/sitmun.git
@@ -117,7 +117,7 @@ docker compose up -d --pull always --no-build
 
 Add `--profile mbtiles` for MBTiles. `./setup.sh` and `./setup.ps1` append `SITMUN_USER_SECRET`, `MIDDLEWARE_SECRET`, and `SITMUN_MBTILES_JOB_HANDLE_SECRET` when those keys are absent, including on an `.env` you already copied. Do not commit the values.
 
-A manual run of Publish images pushes the `1.3.0` tag. The git tag `v1.3.0` publishes that same image tag. GitHub creates each package private. After the first push, set `front`, `backend`, `proxy`, and `mbtiles` to public in Package settings. The Packages API cannot change visibility, and later pushes keep it. An anonymous `docker pull ghcr.io/sitmun/front:1.3.0` confirms it.
+Publishing and republishing a tag is in [RELEASE.md](RELEASE.md#images).
 
 The published front image is built for `PUBLIC_BASE_PATH=/`. A deployment under a path prefix rebuilds `front`. See [DEPLOYMENT.md](DEPLOYMENT.md).
 
@@ -125,7 +125,7 @@ An upgrade from 1.2.8 or 1.2.9 sets `SITMUN_UPGRADE_DEFAULT_LANGUAGE` in `.env` 
 
 ## Configuration
 
-Compose `:-` defaults below apply when the variable is unset. Dockerfile `ARG` defaults for `NODE_VERSION` and `JDK_VERSION` stay in `docker/**/Dockerfile`, so `docker compose build` works with no `.env`.
+Compose `:-` defaults below apply when the variable is unset. Runtime `FROM` lines in `docker/**/Dockerfile` are literal `image:tag@sha256:<index digest>`. Dependabot bumps those digests. `tools/tests/test_version_pins.py` checks the Corretto major against `.java-version`. `ARG NODE_VERSION` stays in `docker/front/Dockerfile`, and `ARG JDK_VERSION` stays on the Java build stages, so `docker compose build` works with no `.env`.
 
 | Variable | Role | Compose default |
 | --- | --- | --- |

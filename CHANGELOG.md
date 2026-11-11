@@ -52,6 +52,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 #### Stack
 
+- **Images**: Java runtimes use Amazon Corretto 17.0.21 on Amazon Linux 2023. That build removes the compromised eMudhra certificates (CVE-2026-91403). The Alpine runtime is gone. The front image uses nginx 1.30.
+- **Images**: `front`, `backend`, `proxy`, and `mbtiles` publish `linux/amd64` and `linux/arm64` through `tools/scripts/publish-images.sh`. Java runtimes set `JAVA_TOOL_OPTIONS=-XX:MaxRAMPercentage=75`. MBTiles starts with `exec java`, so the JVM receives `SIGTERM`.
 - **Images**: `compose.yaml` names `ghcr.io/sitmun/front`, `backend`, `proxy`, and `mbtiles` at `${SITMUN_VERSION:-1.3.0}` and still builds from this checkout. `docker compose up -d --pull always --no-build` uses the published images. `.github/workflows/publish-images.yml` pushes tag `1.3.0` on a manual run, and the version without the leading `v` on a `v*` git tag. The front image is built with `PUBLIC_BASE_PATH=/` and `ENVIRONMENT=production`. GitHub creates each package private; an admin sets `front`, `backend`, `proxy`, and `mbtiles` public in Package settings after the first push ([#139](https://github.com/sitmun/sitmun/issues/139)).
 - **Upgrade**: Compose passes `SITMUN_UPGRADE_DEFAULT_LANGUAGE` into the backend. An empty value leaves a new install unchanged.
 - **CI**: `ci-gate` selects changed components with `tools/bin/ci_scope.py`. Gradle caches are written from `dev` only. End-to-end jobs reuse the Playwright browser. Docker builds reuse layers from the GitHub Actions cache. Third-party actions are pinned to a commit. Dependabot opens one pull request for action updates.

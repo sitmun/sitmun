@@ -1,7 +1,7 @@
 # Stage 0, "build-apps", based on Node.js, to build and compile both frontend apps sequentially
 # Each app's About-dialog version comes from its package.json at build time (not stack VERSION).
 ARG NODE_VERSION=24.22.0
-FROM node:${NODE_VERSION} AS build-apps
+FROM --platform=$BUILDPLATFORM node:${NODE_VERSION} AS build-apps
 ARG PUBLIC_BASE_PATH=/
 ARG ENVIRONMENT=development
 ENV PUBLIC_BASE_PATH=${PUBLIC_BASE_PATH}
@@ -65,7 +65,7 @@ RUN if [ "${ENVIRONMENT}" = "development" ]; then \
     fi
 
 # Stage 1, based on Nginx, to have only the compiled apps, ready for production with Nginx
-FROM nginx:1.27-alpine
+FROM nginx:1.30-alpine@sha256:583b7f2fce1cdb8da5ad5c39ebd3c33b98b87d493190e548bdee1fa8c619c311
 LABEL org.opencontainers.image.source=https://github.com/sitmun/sitmun
 LABEL org.opencontainers.image.licenses=EUPL-1.2
 LABEL org.opencontainers.image.description="SITMUN admin and viewer"
