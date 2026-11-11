@@ -58,7 +58,9 @@ class FirstRunStartupApplierTest {
     properties.setLanguage("es");
     when(setupService.isFirstRun()).thenReturn(true);
     when(languageRepository.findByShortname("es"))
-        .thenReturn(Optional.of(Language.builder().shortname("es").name("Castellano").enabled(true).build()));
+        .thenReturn(
+            Optional.of(
+                Language.builder().shortname("es").name("Castellano").enabled(true).build()));
 
     applier.run(new DefaultApplicationArguments());
 
@@ -84,7 +86,9 @@ class FirstRunStartupApplierTest {
     gate.close();
     properties.setLanguage("fr");
     when(languageRepository.findByShortname("fr"))
-        .thenReturn(Optional.of(Language.builder().shortname("fr").name("Français").enabled(false).build()));
+        .thenReturn(
+            Optional.of(
+                Language.builder().shortname("fr").name("Français").enabled(false).build()));
     applier.run(new DefaultApplicationArguments());
     verify(setupService, org.mockito.Mockito.times(2))
         .apply(new SetupFirstRunRequest(null, "new-admin-pass"));

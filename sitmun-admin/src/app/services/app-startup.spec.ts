@@ -322,6 +322,7 @@ function languageService(calls: { languages: number }): LanguageService {
       return of([]);
     },
     applyLanguagesToUse: (items: unknown) => items,
+    languagesFromSetup: (items: unknown) => items,
   } as never;
 }
 

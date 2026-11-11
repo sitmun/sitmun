@@ -5,6 +5,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -133,16 +134,18 @@ class FirstRunStartupApplierIntegrationTest extends BaseTest {
   }
 
   private Map<String, Object> spanishBackground() {
-    return jdbcTemplate.queryForMap(
-        """
-        SELECT t.bac_id AS id, t.bac_name AS english, tr.tra_name AS spanish
-        FROM stm_backgrd t
-        JOIN stm_translation tr
-          ON tr.tra_eleid = t.bac_id AND tr.tra_column = 'Background.name'
-        JOIN stm_language l ON l.lan_id = tr.tra_lanid AND l.lan_shortname = 'es'
-        WHERE t.bac_name <> tr.tra_name
-        LIMIT 1
-        """);
+    List<Map<String, Object>> rows =
+        jdbcTemplate.queryForList(
+            """
+            SELECT t.bac_id AS id, t.bac_name AS english, tr.tra_name AS spanish
+            FROM stm_backgrd t
+            JOIN stm_translation tr
+              ON tr.tra_eleid = t.bac_id AND tr.tra_column = 'Background.name'
+            JOIN stm_language l ON l.lan_id = tr.tra_lanid AND l.lan_shortname = 'es'
+            WHERE t.bac_name <> tr.tra_name
+            """);
+    assertThat(rows).isNotEmpty();
+    return rows.get(0);
   }
 
   private String mainName(Object id) {

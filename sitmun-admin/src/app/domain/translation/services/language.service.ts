@@ -63,6 +63,23 @@ export class LanguageService extends RestService<Language> {
   /**
    * Updates app config, localStorage, and notifies language selectors.
    */
+  /**
+   * Stores the languages from setup status and gives each one the self link a
+   * relation save expects. Setup status does not return HAL links.
+   */
+  languagesFromSetup(
+    languages: ReadonlyArray<{ id: number; shortname: string; name: string; order?: number | null }>,
+  ): Language[] {
+    return this.applyLanguagesToUse(
+      languages.map((language) =>
+        Language.fromObject({
+          ...language,
+          _links: this.createProxy(language.id)?._links,
+        }),
+      ),
+    );
+  }
+
   applyLanguagesToUse(languages: Language[]): Language[] {
     const enabled = filterEnabledLanguages(sortByLanguageOrder(languages));
     config.languagesToUse = enabled;

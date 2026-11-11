@@ -151,11 +151,11 @@ import {GlobalErrorHandler} from './core/global-error-handler';
 import {MaterialModule} from './material-module';
 import {AppConfigService, initializeAppConfig} from './services/app-config.service';
 import {initializeFromSetupStatus} from './services/app-startup';
-import {SetupStatusService} from './services/setup-status.service';
 import {AppStateService} from './services/app-state.service';
 import {IconsService, initializeIcons} from './services/icons.service';
 import {LoggerService} from './services/logger.service';
 import {ServicesModule} from './services/services.module';
+import {SetupStatusService} from './services/setup-status.service';
 
 @NgModule({ declarations: [
         BaseFormComponent,

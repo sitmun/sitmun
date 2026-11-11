@@ -8,7 +8,7 @@ import { firstValueFrom } from 'rxjs';
 import { DataTablesRegistry } from '@app/components/data-tables.util';
 import { MessagesInterceptorStateService } from '@app/core';
 import { Resource } from '@app/core/hal/resource/resource.model';
-import { Language, LanguageService } from '@app/domain';
+import { LanguageService } from '@app/domain';
 import { config } from '@config';
 import { environment } from '@environments/environment';
 
@@ -208,9 +208,7 @@ async function applySetupStatus(
   if (status.defaultLanguage) {
     config.defaultLang = status.defaultLanguage;
   }
-  const languages = languageService.applyLanguagesToUse(
-    (status.languages || []).map((language) => Language.fromObject(language)),
-  );
+  const languages = languageService.languagesFromSetup(status.languages || []);
   const chosen = resolveUiLanguage({
     stored: localStorage.getItem('lang'),
     browser: readBrowserLanguages(),

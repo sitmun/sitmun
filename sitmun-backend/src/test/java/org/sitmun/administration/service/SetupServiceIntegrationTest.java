@@ -71,8 +71,7 @@ class SetupServiceIntegrationTest extends BaseTest {
     jdbcTemplate.update("UPDATE stm_user SET use_pwd = 'stored-hash' WHERE use_user = 'admin'");
 
     assertThat(setupService.isFirstRun()).isFalse();
-    assertThatThrownBy(
-            () -> setupService.apply(new SetupFirstRunRequest("ca", "new-admin-pass")))
+    assertThatThrownBy(() -> setupService.apply(new SetupFirstRunRequest("ca", "new-admin-pass")))
         .isInstanceOf(ResponseStatusException.class)
         .extracting(ex -> ((ResponseStatusException) ex).getStatusCode())
         .isEqualTo(org.springframework.http.HttpStatus.NOT_FOUND);

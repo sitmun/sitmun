@@ -13,8 +13,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.server.ResponseStatusException;
 
 /**
- * Runs the first-run wizard from environment variables after the built-in users exist. Never
- * aborts startup. Opens the setup gate even when setup is skipped or rejected.
+ * Runs the first-run wizard from environment variables after the built-in users exist. Never aborts
+ * startup. Opens the setup gate even when setup is skipped or rejected.
  */
 @Component
 @Order(Ordered.HIGHEST_PRECEDENCE + 30)

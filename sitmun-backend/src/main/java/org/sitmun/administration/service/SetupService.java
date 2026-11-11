@@ -90,7 +90,8 @@ public class SetupService {
     if (language != null) {
       String current = currentDefault();
       if (!language.equals(current)) {
-        defaultLanguageChangeService.apply(new DefaultLanguageChangeRequest(current, language, true));
+        defaultLanguageChangeService.apply(
+            new DefaultLanguageChangeRequest(current, language, true));
       }
     }
 
