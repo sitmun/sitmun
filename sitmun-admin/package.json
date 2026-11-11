@@ -98,7 +98,7 @@
     "jest-preset-angular": "catalog:",
     "jest-sonar": "0.2.16",
     "jsdom": "26.1.0",
-    "sonar-scanner": "3.1.0",
+    "sonar-scanner": "catalog:",
     "ts-node": "10.9.2",
     "typescript": "catalog:",
     "typescript-eslint": "catalog:"
