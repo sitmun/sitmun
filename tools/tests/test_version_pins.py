@@ -436,6 +436,16 @@ def _failures_js_catalog(_root: Path) -> list[str]:
     for name, expected in eslint_pins.items():
         if catalog.get(name) != expected:
             failures.append(f"catalog {name} is {catalog.get(name) or 'missing'}, expected {expected}")
+    codemirror_pins = {
+        "@codemirror/lang-sql": "6.10.0",
+        "@codemirror/language": "6.13.1",
+        "@codemirror/state": "6.5.2",
+        "@codemirror/view": "6.38.1",
+        "codemirror": "6.0.1",
+    }
+    for name, expected in codemirror_pins.items():
+        if catalog.get(name) != expected:
+            failures.append(f"catalog {name} is {catalog.get(name) or 'missing'}, expected {expected}")
     for retired in ("eslint-plugin-prefer-arrow", "eslint-plugin-jsdoc"):
         if retired in catalog:
             failures.append(f"catalog still pins unused {retired}")
