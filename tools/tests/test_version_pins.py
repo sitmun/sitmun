@@ -457,7 +457,7 @@ def _failures_js_catalog(_root: Path) -> list[str]:
         if catalog.get(name) != expected:
             failures.append(f"catalog {name} is {catalog.get(name) or 'missing'}, expected {expected}")
     sql_formatter_pins = {
-        "sql-formatter": "15.6.6",
+        "sql-formatter": "15.9.0",
     }
     for name, expected in sql_formatter_pins.items():
         if catalog.get(name) != expected:

@@ -327,8 +327,8 @@ catalogs:
       specifier: 7.8.2
       version: 7.8.2
     sql-formatter:
-      specifier: 15.6.6
-      version: 15.6.6
+      specifier: 15.9.0
+      version: 15.9.0
     tslib:
       specifier: 2.8.1
       version: 2.8.1
@@ -508,7 +508,7 @@ importers:
         version: 7.8.2
       sql-formatter:
         specifier: 'catalog:'
-        version: 15.6.6
+        version: 15.9.0
       stacktrace-js:
         specifier: 2.0.2
         version: 2.0.2
@@ -9347,8 +9347,8 @@ packages:
   sprintf-js@1.0.3:
     resolution: {integrity: sha512-D9cPgkvLlV3t3IzL0D0YLvGA9Ahk4PcvVwUbN0dSGr1aP0Nrt4AEnTUbuGvquEC0mA64Gqt1fzirlRs5ibXx8g==}
 
-  sql-formatter@15.6.6:
-    resolution: {integrity: sha512-bZydXEXhaNDQBr8xYHC3a8thwcaMuTBp0CkKGjwGYDsIB26tnlWeWPwJtSQ0TEwiJcz9iJJON5mFPkx7XroHcg==}
+  sql-formatter@15.9.0:
+    resolution: {integrity: sha512-3A/N+v+mA5/PDU+FlO4uTFE0L/Mmg63c/Ny161Qv2b1Mxp9IX8War+LLmq17LA/Kgu4KXAR7iutK2JaHWJMMtw==}
     hasBin: true
 
   sql.js@1.15.2:
@@ -19789,7 +19789,7 @@ snapshots:
 
   sprintf-js@1.0.3: {}
 
-  sql-formatter@15.6.6:
+  sql-formatter@15.9.0:
     dependencies:
       argparse: 2.0.1
       nearley: 2.20.1
