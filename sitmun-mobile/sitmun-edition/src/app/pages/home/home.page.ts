@@ -37,7 +37,7 @@ export class HomePage implements OnInit, OnDestroy {
   networkConnected = true;
   loginForm: FormGroup;
   loginusers: any[] = [];
-  offline = {
+  offline: { instances: any[]; users: any[] } = {
     instances: [],
     users: [],
   };

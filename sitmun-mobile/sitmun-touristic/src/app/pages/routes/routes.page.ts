@@ -188,12 +188,14 @@ export class RoutesPage implements OnInit {
   }
 
   isValidHref(href: string): boolean {
+    if (!href) {
+      return false;
+    }
     return (
-      href &&
-      (href.startsWith("tel:") ||
-        href.startsWith("mailto:") ||
-        href.startsWith("http://") ||
-        href.startsWith("https://"))
+      href.startsWith("tel:") ||
+      href.startsWith("mailto:") ||
+      href.startsWith("http://") ||
+      href.startsWith("https://")
     );
   }
 
