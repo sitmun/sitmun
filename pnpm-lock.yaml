@@ -266,6 +266,15 @@ catalogs:
     '@eslint/js':
       specifier: 9.39.5
       version: 9.39.5
+    '@ionic/angular':
+      specifier: 8.6.2
+      version: 8.6.2
+    '@ionic/angular-toolkit':
+      specifier: 12.2.0
+      version: 12.2.0
+    '@ionic/core':
+      specifier: 8.6.2
+      version: 8.6.2
     '@jest/globals':
       specifier: 30.5.2
       version: 30.5.2
@@ -338,6 +347,9 @@ catalogs:
     babel-jest:
       specifier: 30.5.2
       version: 30.5.2
+    bootstrap:
+      specifier: 5.3.7
+      version: 5.3.7
     eslint:
       specifier: 9.39.5
       version: 9.39.5
@@ -727,10 +739,10 @@ importers:
         specifier: 'catalog:'
         version: 8.0.4(@capacitor/core@8.6.0)
       '@ionic/angular':
-        specifier: 8.6.2
+        specifier: 'catalog:'
         version: 8.6.2(add9bf361dfc53f460321ee036ee694b)
       '@ionic/core':
-        specifier: 8.6.2
+        specifier: 'catalog:'
         version: 8.6.2
       '@ngx-translate/core':
         specifier: 'catalog:'
@@ -739,7 +751,7 @@ importers:
         specifier: 'catalog:'
         version: 18.1.0(@angular/common@22.2.5(@angular/core@22.2.5(@angular/compiler@22.2.5)(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@22.2.5(@angular/compiler@22.2.5)(rxjs@7.8.2)(zone.js@0.15.1))(@ngx-translate/core@18.1.0(@angular/common@22.2.5(@angular/core@22.2.5(@angular/compiler@22.2.5)(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@22.2.5(@angular/compiler@22.2.5)(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))
       bootstrap:
-        specifier: 5.3.7
+        specifier: 'catalog:'
         version: 5.3.7(@popperjs/core@2.11.8)
       cordova-plugin-httpd:
         specifier: 0.9.3
@@ -797,7 +809,7 @@ importers:
         specifier: 'catalog:'
         version: 9.39.5
       '@ionic/angular-toolkit':
-        specifier: 12.2.0
+        specifier: 'catalog:'
         version: 12.2.0
       '@types/jest':
         specifier: 'catalog:'
@@ -896,11 +908,11 @@ importers:
         specifier: 'catalog:'
         version: 8.0.4(@capacitor/core@8.6.0)
       '@ionic/angular':
-        specifier: 8.4.3
-        version: 8.4.3(add9bf361dfc53f460321ee036ee694b)
+        specifier: 'catalog:'
+        version: 8.6.2(add9bf361dfc53f460321ee036ee694b)
       '@ionic/core':
-        specifier: 8.4.3
-        version: 8.4.3
+        specifier: 'catalog:'
+        version: 8.6.2
       '@ngx-translate/core':
         specifier: 'catalog:'
         version: 18.1.0(@angular/common@22.2.5(@angular/core@22.2.5(@angular/compiler@22.2.5)(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@22.2.5(@angular/compiler@22.2.5)(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2)
@@ -920,8 +932,8 @@ importers:
         specifier: 0.1.34
         version: 0.1.34
       bootstrap:
-        specifier: 5.3.3
-        version: 5.3.3(@popperjs/core@2.11.8)
+        specifier: 'catalog:'
+        version: 5.3.7(@popperjs/core@2.11.8)
       capacitor-native-settings:
         specifier: 8.2.0
         version: 8.2.0(@capacitor/core@8.6.0)
@@ -999,8 +1011,8 @@ importers:
         specifier: 'catalog:'
         version: 9.39.5
       '@ionic/angular-toolkit':
-        specifier: 12.1.1
-        version: 12.1.1
+        specifier: 'catalog:'
+        version: 12.2.0
       '@types/jest':
         specifier: 'catalog:'
         version: 30.0.0
@@ -1322,15 +1334,6 @@ packages:
       webpack: ^5.30.0
       webpack-dev-server: ^5.0.2 || ^6.0.0
 
-  '@angular-devkit/core@18.2.21':
-    resolution: {integrity: sha512-Lno6GNbJME85wpc/uqn+wamBxvfZJZFYSH8+oAkkyjU/hk8r5+X8DuyqsKAa0m8t46zSTUsonHsQhVe5vgrZeQ==}
-    engines: {node: ^18.19.1 || ^20.11.1 || >=22.0.0, npm: ^6.11.0 || ^7.5.6 || >=8.0.0, yarn: '>= 1.13.0'}
-    peerDependencies:
-      chokidar: ^3.5.2
-    peerDependenciesMeta:
-      chokidar:
-        optional: true
-
   '@angular-devkit/core@19.2.27':
     resolution: {integrity: sha512-3amNzoCVSKd7ah6l6lBQL4onwwJvqvam7FMoQBILrxtW5LB5ezh8gMSPuA4zJjKjoRzf9uoWdlzqv/84I52xZA==}
     engines: {node: ^18.19.1 || ^20.11.1 || >=22.0.0, npm: ^6.11.0 || ^7.5.6 || >=8.0.0, yarn: '>= 1.13.0'}
@@ -1357,10 +1360,6 @@ packages:
     peerDependenciesMeta:
       chokidar:
         optional: true
-
-  '@angular-devkit/schematics@18.2.21':
-    resolution: {integrity: sha512-yuC2vN4VL48JhnsaOa9J/o0Jl+cxOklRNQp5J2/ypMuRROaVCrZAPiX+ChSHh++kHYMpj8+ggNrrUwRNfMKACQ==}
-    engines: {node: ^18.19.1 || ^20.11.1 || >=22.0.0, npm: ^6.11.0 || ^7.5.6 || >=8.0.0, yarn: '>= 1.13.0'}
 
   '@angular-devkit/schematics@19.2.27':
     resolution: {integrity: sha512-/PZmyAlb2NGWPikRRuiWLdfHQd8Wrx6lX4HqvTcaDhlU43M3T0ud4PH2T3QDp7BzHYY92xtD8iPxX2asg67G1A==}
@@ -3318,20 +3317,8 @@ packages:
   '@interactjs/types@1.10.21':
     resolution: {integrity: sha512-U5N3eg9m3rLO9PrQkAaLKsSlCTRxpuMyhPBdMpicPH09icW/kIjLWQcDa3tP/I57zG0yxG6zBFREAcrjyIB3Bw==}
 
-  '@ionic/angular-toolkit@12.1.1':
-    resolution: {integrity: sha512-VgD9pUg2ViI6a0W+8iUs7sGrQ8/1BQH43/ioAqGu/WWsgcnevy9ddTZp0M1MHbeVWaoauwbmNsG/lgNNEZq1hw==}
-
   '@ionic/angular-toolkit@12.2.0':
     resolution: {integrity: sha512-N8gXCPygqvApfkvnLXFZI23P3HsHO525mA+h+xfFOnYOgB4VeSARfMBtlPVvSfaS5H8y1ntU2Cq4RnvD8KGX0A==}
-
-  '@ionic/angular@8.4.3':
-    resolution: {integrity: sha512-dIrO7luoj9Iepo4tYKTzhCEpVFWIqZ1RNgDPttKVHa8hE4xhvbb1y2Ou9zmpz7cI5QShAkr3tnAbb7rkYh4fFQ==}
-    peerDependencies:
-      '@angular/core': '>=16.0.0'
-      '@angular/forms': '>=16.0.0'
-      '@angular/router': '>=16.0.0'
-      rxjs: '>=7.5.0'
-      zone.js: '>=0.13.0'
 
   '@ionic/angular@8.6.2':
     resolution: {integrity: sha512-1mObblBsi8kNdaLk5VjvDWaJfOK1f9uLAkSFmMcXcFLKU7vdOLIealilcALsSKU8XMnEMWFpuJUNzVLdjbwEoA==}
@@ -3345,9 +3332,6 @@ packages:
   '@ionic/cli-framework-output@2.2.8':
     resolution: {integrity: sha512-TshtaFQsovB4NWRBydbNFawql6yul7d5bMiW1WYYf17hd99V6xdDdk3vtF51bw6sLkxON3bDQpWsnUc9/hVo3g==}
     engines: {node: '>=16.0.0'}
-
-  '@ionic/core@8.4.3':
-    resolution: {integrity: sha512-U9HdZ32bre6OKA5akJVmQMxNB8Art3Nqdn3s7m2W83I5NhLg9Tehaf8ua8jxPZtxCa1nuN7tUbzHmMCkcdqDTw==}
 
   '@ionic/core@8.6.2':
     resolution: {integrity: sha512-CGZ9CDp/XHtm9WrK3wt0ZtR2f2B76qEvJIaF/juCqmpza9Al6u2L9R/NTEwInDRCWfbkAIF22nHNH54/VvN78Q==}
@@ -4780,10 +4764,6 @@ packages:
   '@rtsao/scc@1.1.0':
     resolution: {integrity: sha512-zt6OdqaDoOnJ1ZYsCYGt9YmWzDXl4vQdKTyJev62gFhRGKdx7mcT54V9KIjg+d2wi9EXsPvAPKe7i7WjfVWB8g==}
 
-  '@schematics/angular@18.2.21':
-    resolution: {integrity: sha512-5Ai+NEflQZi67y4NsQ3o04iEp7zT0/BUFVCrJ3CueU3uYQGs8jrN1Lk6tvQ9c5HzGcTDrMXuTrCswyR9o6ecpA==}
-    engines: {node: ^18.19.1 || ^20.11.1 || >=22.0.0, npm: ^6.11.0 || ^7.5.6 || >=8.0.0, yarn: '>= 1.13.0'}
-
   '@schematics/angular@19.2.27':
     resolution: {integrity: sha512-kJX5nyDjwo6iHQ+g/AJa+4SyHRSQyGgutpqXUIuYY2htGWVS1HUQlHfwAER5btjSNKe/iHgh4pzYGZfvJ2V6/A==}
     engines: {node: ^18.19.1 || ^20.11.1 || >=22.0.0, npm: ^6.11.0 || ^7.5.6 || >=8.0.0, yarn: '>= 1.13.0'}
@@ -4824,11 +4804,6 @@ packages:
 
   '@standard-schema/spec@1.1.0':
     resolution: {integrity: sha512-l2aFy5jALhniG5HgqrD6jXLi/rUWrKvqN/qJx6yoJsgKhblVd+iqqU4RCXavm/jPityDo5TCvKMnpjKnOriy0w==}
-
-  '@stencil/core@4.20.0':
-    resolution: {integrity: sha512-WPrTHFngvN081RY+dJPneKQLwnOFD60OMCOQGmmSHfCW0f4ujPMzzhwWU1gcSwXPWXz5O+8cBiiCaxAbJU7kAg==}
-    engines: {node: '>=16.0.0', npm: '>=7.10.0'}
-    hasBin: true
 
   '@stencil/core@4.33.1':
     resolution: {integrity: sha512-12k9xhAJBkpg598it+NRmaYIdEe6TSnsL/v6/KRXDcUyTK11VYwZQej2eHnMWtqot+znJ+GNTqb5YbiXi+5Low==}
@@ -5865,11 +5840,6 @@ packages:
   boolbase@2.0.0:
     resolution: {integrity: sha512-DkVaaQHymRhpYEYo9x1oo7Q7B0Y6KJUsjm3c9eTyFDby4MHLBTwZ6ZDWBel5zrYxj1WsZgC5oLpiz+93MluXeA==}
     engines: {node: '>=20.19.0'}
-
-  bootstrap@5.3.3:
-    resolution: {integrity: sha512-8HLCdWgyoMguSO9o+aH+iuZ+aht+mzW0u3HIMzVu7Srrpv7EBBxTnrFlSCskwdY1+EOFQSm7uMJhNQHkdPcmjg==}
-    peerDependencies:
-      '@popperjs/core': ^2.11.8
 
   bootstrap@5.3.7:
     resolution: {integrity: sha512-7KgiD8UHjfcPBHEpDNg+zGz8L3LqR3GVwqZiBRFX04a1BCArZOz1r2kjly2HQ0WokqTO0v1nF+QAt8dsW4lKlw==}
@@ -7945,9 +7915,6 @@ packages:
   magic-bytes.js@1.13.1:
     resolution: {integrity: sha512-x5sn4UX2k5gCWlcfmoFwG4TPie8+dctESyqOBdhB5p6MsgWXdBKGmt9nXPObj/JI50TTL928lc5Yt1WntMn1bw==}
 
-  magic-string@0.30.11:
-    resolution: {integrity: sha512-+Wri9p0QHMy+545hKww7YAu5NyzF8iomPL/RQazugQ9+Ez4Ic3mERMd8ZTX5rfK944j+560ZJi8iAwgak1Ac7A==}
-
   magic-string@0.30.17:
     resolution: {integrity: sha512-sNPKHvyjVf7gyjwS4xGTaW/mCnF8wnjtifKBEhxfZ7E/S8tQ0rssrwGNn6q8JH/ohItJfSQp9mBtQYuTlH5QnA==}
 
@@ -8518,10 +8485,6 @@ packages:
   picomatch@2.3.2:
     resolution: {integrity: sha512-V7+vQEJ06Z+c5tSye8S+nHUfI51xoXIXjHQ99cQtKUkQqqO1kO/KCJUfZXuB47h/YBlDhah2H3hdUGXn8ie0oA==}
     engines: {node: '>=8.6'}
-
-  picomatch@4.0.2:
-    resolution: {integrity: sha512-M7BAV6Rlcy5u+m6oPhAPFgJTzAioX/6B0DxyvDlo9l8+T3nLKbrczg2WLUyzd45L8RqfUMyGPzekbMvX2Ldkwg==}
-    engines: {node: '>=12'}
 
   picomatch@4.0.4:
     resolution: {integrity: sha512-QP88BAKvMam/3NxH6vj2o21R6MjxZUAd6nlwAS/pnGvN9IVLocLHxGYIzFhg6fUQ+5th6P4dv4eW9jX3DSIj7A==}
@@ -10543,15 +10506,6 @@ snapshots:
     transitivePeerDependencies:
       - chokidar
 
-  '@angular-devkit/core@18.2.21':
-    dependencies:
-      ajv: 8.17.1
-      ajv-formats: 3.0.1(ajv@8.17.1)
-      jsonc-parser: 3.3.1
-      picomatch: 4.0.2
-      rxjs: 7.8.1
-      source-map: 0.7.4
-
   '@angular-devkit/core@19.2.27':
     dependencies:
       ajv: 8.18.0
@@ -10582,16 +10536,6 @@ snapshots:
       source-map: 0.8.0
     optionalDependencies:
       chokidar: 5.0.0
-
-  '@angular-devkit/schematics@18.2.21':
-    dependencies:
-      '@angular-devkit/core': 18.2.21
-      jsonc-parser: 3.3.1
-      magic-string: 0.30.11
-      ora: 5.4.1
-      rxjs: 7.8.1
-    transitivePeerDependencies:
-      - chokidar
 
   '@angular-devkit/schematics@19.2.27':
     dependencies:
@@ -13015,14 +12959,6 @@ snapshots:
 
   '@interactjs/types@1.10.21': {}
 
-  '@ionic/angular-toolkit@12.1.1':
-    dependencies:
-      '@angular-devkit/core': 18.2.21
-      '@angular-devkit/schematics': 18.2.21
-      '@schematics/angular': 18.2.21
-    transitivePeerDependencies:
-      - chokidar
-
   '@ionic/angular-toolkit@12.2.0':
     dependencies:
       '@angular-devkit/core': 19.2.27
@@ -13030,18 +12966,6 @@ snapshots:
       '@schematics/angular': 19.2.27
     transitivePeerDependencies:
       - chokidar
-
-  '@ionic/angular@8.4.3(add9bf361dfc53f460321ee036ee694b)':
-    dependencies:
-      '@angular/core': 22.2.5(@angular/compiler@22.2.5)(rxjs@7.8.2)(zone.js@0.15.1)
-      '@angular/forms': 22.2.5(@angular/common@22.2.5(@angular/core@22.2.5(@angular/compiler@22.2.5)(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@22.2.5(@angular/compiler@22.2.5)(rxjs@7.8.2)(zone.js@0.15.1))(@angular/platform-browser@22.2.5(@angular/animations@22.2.5(@angular/core@22.2.5(@angular/compiler@22.2.5)(rxjs@7.8.2)(zone.js@0.15.1)))(@angular/common@22.2.5(@angular/core@22.2.5(@angular/compiler@22.2.5)(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@22.2.5(@angular/compiler@22.2.5)(rxjs@7.8.2)(zone.js@0.15.1)))(rxjs@7.8.2)
-      '@angular/router': 22.2.5(@angular/common@22.2.5(@angular/core@22.2.5(@angular/compiler@22.2.5)(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@22.2.5(@angular/compiler@22.2.5)(rxjs@7.8.2)(zone.js@0.15.1))(@angular/platform-browser@22.2.5(@angular/animations@22.2.5(@angular/core@22.2.5(@angular/compiler@22.2.5)(rxjs@7.8.2)(zone.js@0.15.1)))(@angular/common@22.2.5(@angular/core@22.2.5(@angular/compiler@22.2.5)(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@22.2.5(@angular/compiler@22.2.5)(rxjs@7.8.2)(zone.js@0.15.1)))(rxjs@7.8.2)
-      '@ionic/core': 8.4.3
-      ionicons: 7.4.0
-      jsonc-parser: 3.3.1
-      rxjs: 7.8.2
-      tslib: 2.8.1
-      zone.js: 0.15.1
 
   '@ionic/angular@8.6.2(add9bf361dfc53f460321ee036ee694b)':
     dependencies:
@@ -13062,12 +12986,6 @@ snapshots:
       tslib: 2.8.1
     transitivePeerDependencies:
       - supports-color
-
-  '@ionic/core@8.4.3':
-    dependencies:
-      '@stencil/core': 4.20.0
-      ionicons: 7.4.0
-      tslib: 2.8.1
 
   '@ionic/core@8.6.2':
     dependencies:
@@ -14310,14 +14228,6 @@ snapshots:
 
   '@rtsao/scc@1.1.0': {}
 
-  '@schematics/angular@18.2.21':
-    dependencies:
-      '@angular-devkit/core': 18.2.21
-      '@angular-devkit/schematics': 18.2.21
-      jsonc-parser: 3.3.1
-    transitivePeerDependencies:
-      - chokidar
-
   '@schematics/angular@19.2.27':
     dependencies:
       '@angular-devkit/core': 19.2.27
@@ -14379,8 +14289,6 @@ snapshots:
   '@spz-loader/core@0.3.1': {}
 
   '@standard-schema/spec@1.1.0': {}
-
-  '@stencil/core@4.20.0': {}
 
   '@stencil/core@4.33.1':
     optionalDependencies:
@@ -15249,10 +15157,6 @@ snapshots:
 
   agent-base@9.0.0: {}
 
-  ajv-formats@3.0.1(ajv@8.17.1):
-    optionalDependencies:
-      ajv: 8.17.1
-
   ajv-formats@3.0.1(ajv@8.18.0):
     optionalDependencies:
       ajv: 8.18.0
@@ -15676,10 +15580,6 @@ snapshots:
       multicast-dns: 7.2.5
 
   boolbase@2.0.0: {}
-
-  bootstrap@5.3.3(@popperjs/core@2.11.8):
-    dependencies:
-      '@popperjs/core': 2.11.8
 
   bootstrap@5.3.7(@popperjs/core@2.11.8):
     dependencies:
@@ -18207,10 +18107,6 @@ snapshots:
 
   magic-bytes.js@1.13.1: {}
 
-  magic-string@0.30.11:
-    dependencies:
-      '@jridgewell/sourcemap-codec': 1.6.0
-
   magic-string@0.30.17:
     dependencies:
       '@jridgewell/sourcemap-codec': 1.6.0
@@ -18835,8 +18731,6 @@ snapshots:
   picocolors@1.1.1: {}
 
   picomatch@2.3.2: {}
-
-  picomatch@4.0.2: {}
 
   picomatch@4.0.4: {}
 
