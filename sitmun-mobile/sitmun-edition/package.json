@@ -42,7 +42,7 @@
     "@ionic/core": "8.6.2",
     "@ngx-translate/core": "catalog:",
     "@ngx-translate/http-loader": "catalog:",
-    "bootstrap": "5.3.7",
+    "bootstrap": "catalog:",
     "cordova-plugin-httpd": "0.9.3",
     "ionicons": "catalog:",
     "rxjs": "catalog:",
