@@ -429,6 +429,8 @@ def _failures_js_catalog(_root: Path) -> list[str]:
         failures.append(f"catalog ol is {catalog.get('ol') or 'missing'}, expected 10.9.0")
     if catalog.get("jsonpath") != "1.3.0":
         failures.append(f"catalog jsonpath is {catalog.get('jsonpath') or 'missing'}, expected 1.3.0")
+    if catalog.get("bootstrap") != "5.3.7":
+        failures.append(f"catalog bootstrap is {catalog.get('bootstrap') or 'missing'}, expected 5.3.7")
     eslint_pins = {
         "eslint": "9.39.5",
         "@eslint/js": "9.39.5",
@@ -456,6 +458,14 @@ def _failures_js_catalog(_root: Path) -> list[str]:
         "@jest/globals": "30.5.2",
     }
     for name, expected in jest_pins.items():
+        if catalog.get(name) != expected:
+            failures.append(f"catalog {name} is {catalog.get(name) or 'missing'}, expected {expected}")
+    ionic_pins = {
+        "@ionic/angular": "8.6.2",
+        "@ionic/core": "8.6.2",
+        "@ionic/angular-toolkit": "12.2.0",
+    }
+    for name, expected in ionic_pins.items():
         if catalog.get(name) != expected:
             failures.append(f"catalog {name} is {catalog.get(name) or 'missing'}, expected {expected}")
     touristic = json.loads(_read(ROOT / "sitmun-mobile/sitmun-touristic/package.json"))
