@@ -410,10 +410,17 @@ def _failures_js_catalog(_root: Path) -> list[str]:
         failures.append(f"catalog typescript is {catalog.get('typescript') or 'missing'}, expected 6.0.3")
     if catalog.get("zone.js") != "0.15.1":
         failures.append(f"catalog zone.js is {catalog.get('zone.js') or 'missing'}, expected 0.15.1")
-    if catalog.get("@babel/preset-env") != "7.29.7":
-        failures.append(
-            f"catalog @babel/preset-env is {catalog.get('@babel/preset-env') or 'missing'}, expected 7.29.7"
-        )
+    cleared_catalog_pins = {
+        "@angular/cli": "22.2.6",
+        "@angular-devkit/build-angular": "22.2.6",
+        "js-beautify": "2.0.3",
+        "jsdom": "31.0.0",
+        "@babel/preset-env": "8.0.7",
+        "@babel/core": "8.0.7",
+    }
+    for name, expected in cleared_catalog_pins.items():
+        if catalog.get(name) != expected:
+            failures.append(f"catalog {name} is {catalog.get(name) or 'missing'}, expected {expected}")
     if catalog.get("api-sitna") != "4.10.0":
         failures.append(f"catalog api-sitna is {catalog.get('api-sitna') or 'missing'}, expected 4.10.0")
     if catalog.get("ol") != "10.9.0":
@@ -504,8 +511,6 @@ def _failures_js_catalog(_root: Path) -> list[str]:
         "echarts": "5.6.0",
         "fast-xml-parser": "5.8.0",
         "jest-sonar": "0.2.16",
-        "js-beautify": "1.15.4",
-        "jsdom": "26.1.0",
         "jsonpath": "1.3.0",
         "jwt-decode": "3.1.2",
         "meld": "1.3.2",
