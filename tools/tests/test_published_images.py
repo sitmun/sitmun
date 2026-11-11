@@ -54,6 +54,7 @@ class PublishedImagesTest(unittest.TestCase):
         text = (ROOT / ".github/workflows/publish-images.yml").read_text(encoding="utf-8")
         self.assertIn("workflow_dispatch:", text)
         self.assertIn('- "v*"', text)
+        self.assertNotIn("publish-1.3.0", text)
         self.assertIn("packages: write", text)
         self.assertIn("version=1.3.0", text)
         self.assertIn("version=${GITHUB_REF_NAME#v}", text)
@@ -65,6 +66,7 @@ class PublishedImagesTest(unittest.TestCase):
         self.assertNotIn("/visibility", text)
         release = (ROOT / "RELEASE.md").read_text(encoding="utf-8")
         self.assertIn("set `front`, `backend`, `proxy`, and `mbtiles` to public in Package settings", release)
+        self.assertNotIn("publish-1.3.0", release)
         readme = (ROOT / "README.md").read_text(encoding="utf-8")
         self.assertIn("RELEASE.md#images", readme)
 

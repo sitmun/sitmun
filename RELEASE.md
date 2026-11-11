@@ -8,7 +8,7 @@ Tags imported from the previous repositories use `legacy/<repository>/<tag>`, fo
 
 ## Images
 
-[`.github/workflows/publish-images.yml`](.github/workflows/publish-images.yml) pushes `ghcr.io/sitmun/front`, `ghcr.io/sitmun/backend`, `ghcr.io/sitmun/proxy`, and `ghcr.io/sitmun/mbtiles` for `linux/amd64` and `linux/arm64`. CI and a local checkout both call [`tools/scripts/publish-images.sh`](tools/scripts/publish-images.sh), which runs `docker compose build --push`. A manual run and a push to `publish-1.3.0` push tag `1.3.0`. A `v*` git tag publishes the version without the leading `v`, so `v1.3.0` publishes `1.3.0`. The front image is built with `PUBLIC_BASE_PATH=/` and `ENVIRONMENT=production`.
+[`.github/workflows/publish-images.yml`](.github/workflows/publish-images.yml) pushes `ghcr.io/sitmun/front`, `ghcr.io/sitmun/backend`, `ghcr.io/sitmun/proxy`, and `ghcr.io/sitmun/mbtiles` for `linux/amd64` and `linux/arm64`. CI and a local checkout both call [`tools/scripts/publish-images.sh`](tools/scripts/publish-images.sh), which runs `docker compose build --push`. A manual run publishes tag `1.3.0`. A `v*` git tag publishes the version without the leading `v`, so `v1.3.0` publishes `1.3.0`. The front image is built with `PUBLIC_BASE_PATH=/` and `ENVIRONMENT=production`.
 
 GitHub creates each package private. After the first push, set `front`, `backend`, `proxy`, and `mbtiles` to public in Package settings. The Packages API cannot change visibility, and later pushes keep it. An anonymous `docker pull ghcr.io/sitmun/front:1.3.0` confirms it. Operators run the images with the steps in [README.md](README.md).
 
