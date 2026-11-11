@@ -116,6 +116,7 @@ databaseChangeLog:
       validCheckSum:
         - 9:7d1bee163dec1d68f43561c899ecb74c
         - 9:9ce86585e248e8398cc8b8c9d17e2c3c
+        - 9:480affced94f3b2ebcff7fb48a49efbd
       dbms: postgresql
       preConditions:
         - onFail: MARK_RAN
@@ -136,6 +137,7 @@ databaseChangeLog:
       validCheckSum:
         - 9:6a2237c6f8c57e878734dfb8f633e31f
         - 9:30e9348f5345cd62fa61ba6b921dc2ba
+        - 9:75aa37c876aa841f4046b05ae4ee0f19
       dbms: oracle
       preConditions:
         - onFail: MARK_RAN
@@ -262,6 +264,7 @@ databaseChangeLog:
       author: sitmun
       dbms: postgresql,h2
       logicalFilePath: db/changelog/setup-language-configured.postgresql.sql
+      validCheckSum: 9:c110b5892ec3422b7f23feb4a563ede8
       changes:
         - sqlFile:
             path: setup-language-configured.postgresql.sql
@@ -274,6 +277,7 @@ databaseChangeLog:
       author: sitmun
       dbms: oracle
       logicalFilePath: db/changelog/setup-language-configured.oracle.sql
+      validCheckSum: 9:d76ee49c03327dda551badccda71d9ae
       changes:
         - sqlFile:
             path: setup-language-configured.oracle.sql

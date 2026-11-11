@@ -7,6 +7,8 @@ import jakarta.validation.constraints.Size;
 import java.util.*;
 import lombok.*;
 import org.hibernate.Length;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 import org.sitmun.authorization.client.dto.ClientConfigurationViews;
 import org.sitmun.domain.PersistenceConstants;
 import org.sitmun.domain.cartography.Cartography;
@@ -117,12 +119,19 @@ public class Task {
 
   /** Roles allowed to access to this task. */
   @ManyToMany(cascade = {CascadeType.MERGE, CascadeType.PERSIST})
+  @OnDelete(action = OnDeleteAction.CASCADE)
   @JoinTable(
       name = "STM_ROL_TSK",
       joinColumns =
-          @JoinColumn(name = "RTS_TASKID", foreignKey = @ForeignKey(name = "STM_RTS_FK_TAS")),
+          @JoinColumn(
+              name = "RTS_TASKID",
+              nullable = false,
+              foreignKey = @ForeignKey(name = "STM_RTS_FK_TAS")),
       inverseJoinColumns =
-          @JoinColumn(name = "RTS_ROLEID", foreignKey = @ForeignKey(name = "STM_RTS_FK_ROL")))
+          @JoinColumn(
+              name = "RTS_ROLEID",
+              nullable = false,
+              foreignKey = @ForeignKey(name = "STM_RTS_FK_ROL")))
   @Builder.Default
   private Set<Role> roles = new HashSet<>();
 

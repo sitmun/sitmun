@@ -11,6 +11,8 @@ import java.util.*;
 import lombok.*;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Length;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 import org.sitmun.authorization.client.dto.ClientConfigurationViews;
 import org.sitmun.domain.CodeListsConstants;
 import org.sitmun.domain.PersistenceConstants;
@@ -178,12 +180,19 @@ public class Application {
 
   /** Roles granted in this application. */
   @ManyToMany(cascade = {CascadeType.MERGE, CascadeType.PERSIST})
+  @OnDelete(action = OnDeleteAction.CASCADE)
   @JoinTable(
       name = "STM_APP_ROL",
       joinColumns =
-          @JoinColumn(name = "ARO_APPID", foreignKey = @ForeignKey(name = "STM_ARO_FK_APP")),
+          @JoinColumn(
+              name = "ARO_APPID",
+              nullable = false,
+              foreignKey = @ForeignKey(name = "STM_ARO_FK_APP")),
       inverseJoinColumns =
-          @JoinColumn(name = "ARO_ROLEID", foreignKey = @ForeignKey(name = "STM_ARO_FK_ROL")))
+          @JoinColumn(
+              name = "ARO_ROLEID",
+              nullable = false,
+              foreignKey = @ForeignKey(name = "STM_ARO_FK_ROL")))
   @Builder.Default
   private Set<Role> availableRoles = new HashSet<>();
 

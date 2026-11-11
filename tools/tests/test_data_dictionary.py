@@ -147,6 +147,18 @@ class DataDictionaryTest(unittest.TestCase):
         document = read_dictionary(ROOT / "tools/dictionary/dictionary.json")
         self.assertTrue(document["columns"])
         self.assertNotIn("setup.languageConfigured", document["configuration"])
+        proj4 = "+proj=utm +zone=31 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"
+        same = {"fresh": "en", "upgraded": "en"}
+        self.assertEqual(
+            document["configuration"],
+            {
+                "language.default": same,
+                "srs.default.identifier": {"fresh": "EPSG:25831", "upgraded": "EPSG:25831"},
+                "srs.default.proj4": {"fresh": proj4, "upgraded": proj4},
+                "srs.default.x": {"fresh": "x", "upgraded": "x"},
+                "srs.default.y": {"fresh": "y", "upgraded": "y"},
+            },
+        )
         self.assertTrue(all(row["status"] == "decided" for row in document["columns"].values()))
         completed = subprocess.run(
             [

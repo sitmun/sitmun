@@ -59,7 +59,9 @@ public class CartographyStyle {
   @AttributeOverride(name = "width", column = @Column(name = "SGI_LURL_WIDTH"))
   @AttributeOverride(name = "height", column = @Column(name = "SGI_LURL_HEIGHT"))
   @AttributeOverride(name = "format", column = @Column(name = "SGI_LURL_FORMAT"))
-  @AttributeOverride(name = "onlineResource", column = @Column(name = "SGI_LURL_URL"))
+  @AttributeOverride(
+      name = "onlineResource",
+      column = @Column(name = "SGI_LURL_URL", length = PersistenceConstants.URL))
   private LegendURL legendURL;
 
   /**

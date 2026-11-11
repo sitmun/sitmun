@@ -4,9 +4,13 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.persistence.AttributeOverride;
 import jakarta.persistence.Column;
+import jakarta.persistence.Embedded;
+import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
@@ -42,6 +46,10 @@ class DataDictionaryConformanceTest {
     List<String> rows = new ArrayList<>();
     rows.addAll(scanEntities(document));
     rows.addAll(scanAssociations(document));
+    rows.addAll(scanJoinTables(document));
+    rows.addAll(scanEmbeddedIds(document));
+    rows.addAll(scanAttributeOverrides(document));
+    rows.addAll(scanMissingConsumers(document));
     rows.addAll(scanFields(document));
     rows.addAll(scanH2(document));
     rows.addAll(scanOpenApi(document, Path.of("src/main/resources/static/v3")));
@@ -178,6 +186,178 @@ class DataDictionaryConformanceTest {
       }
     }
     return rows;
+  }
+
+  private static List<String> scanJoinTables(JsonNode document) throws Exception {
+    List<String> rows = new ArrayList<>();
+    for (Class<?> type : entities()) {
+      Table table = type.getAnnotation(Table.class);
+      if (table == null) {
+        continue;
+      }
+      for (Field field : type.getDeclaredFields()) {
+        JoinTable joinTable = field.getAnnotation(JoinTable.class);
+        if (joinTable == null) {
+          continue;
+        }
+        String consumer = type.getName() + "#" + field.getName();
+        checkJoinColumns(
+            document, joinTable.name(), joinTable.joinColumns(), field, consumer, rows);
+        checkJoinColumns(
+            document, joinTable.name(), joinTable.inverseJoinColumns(), field, consumer, rows);
+      }
+    }
+    return rows;
+  }
+
+  private static void checkJoinColumns(
+      JsonNode document,
+      String tableName,
+      JoinColumn[] joins,
+      Field field,
+      String consumer,
+      List<String> rows) {
+    for (JoinColumn join : joins) {
+      if (join.name().isBlank()) {
+        continue;
+      }
+      String key = tableName.toUpperCase(Locale.ROOT) + "." + join.name().toUpperCase(Locale.ROOT);
+      JsonNode row = document.path("columns").path(key);
+      if (row.isMissingNode() || !"decided".equals(row.path("status").asText())) {
+        continue;
+      }
+      boolean required = row.path("required").asBoolean(false);
+      if (required != !join.nullable()) {
+        rows.add(DictionaryComparison.line("required", key, consumer, required, !join.nullable()));
+      }
+      String expectedDelete = row.path("references").path("on_delete").asText("");
+      String observedDelete = deleteAction(field.getAnnotation(OnDelete.class));
+      if (!expectedDelete.equals(observedDelete)) {
+        rows.add(
+            DictionaryComparison.line("references", key, consumer, expectedDelete, observedDelete));
+      }
+    }
+  }
+
+  private static List<String> scanEmbeddedIds(JsonNode document) throws Exception {
+    List<String> rows = new ArrayList<>();
+    for (Class<?> type : entities()) {
+      Table table = type.getAnnotation(Table.class);
+      if (table == null) {
+        continue;
+      }
+      for (Field field : type.getDeclaredFields()) {
+        if (field.getAnnotation(EmbeddedId.class) == null) {
+          continue;
+        }
+        String consumer = type.getName() + "#" + field.getName();
+        for (Field part : field.getType().getDeclaredFields()) {
+          Column column = part.getAnnotation(Column.class);
+          if (column == null || column.name().isBlank()) {
+            continue;
+          }
+          String key =
+              table.name().toUpperCase(Locale.ROOT) + "." + column.name().toUpperCase(Locale.ROOT);
+          compareColumn(document, key, consumer, column, part, rows);
+        }
+      }
+    }
+    return rows;
+  }
+
+  private static List<String> scanAttributeOverrides(JsonNode document) throws Exception {
+    List<String> rows = new ArrayList<>();
+    for (Class<?> type : entities()) {
+      Table table = type.getAnnotation(Table.class);
+      if (table == null) {
+        continue;
+      }
+      for (Field field : type.getDeclaredFields()) {
+        if (field.getAnnotation(Embedded.class) == null) {
+          continue;
+        }
+        String consumer = type.getName() + "#" + field.getName();
+        for (AttributeOverride override : field.getAnnotationsByType(AttributeOverride.class)) {
+          Column column = override.column();
+          if (column.name().isBlank()) {
+            continue;
+          }
+          String key =
+              table.name().toUpperCase(Locale.ROOT) + "." + column.name().toUpperCase(Locale.ROOT);
+          Field part = field.getType().getDeclaredField(override.name());
+          compareColumn(document, key, consumer, column, part, rows);
+        }
+      }
+    }
+    return rows;
+  }
+
+  private static void compareColumn(
+      JsonNode document,
+      String key,
+      String consumer,
+      Column column,
+      Field part,
+      List<String> rows) {
+    JsonNode row = document.path("columns").path(key);
+    if (row.isMissingNode() || !"decided".equals(row.path("status").asText())) {
+      return;
+    }
+    if ("string".equals(row.path("type").asText()) && row.hasNonNull("length")) {
+      int expected = row.get("length").asInt();
+      if (column.length() != expected) {
+        rows.add(DictionaryComparison.line("length", key, consumer, expected, column.length()));
+      }
+    }
+    boolean required = row.path("required").asBoolean(false);
+    if (required == column.nullable()) {
+      rows.add(DictionaryComparison.line("required", key, consumer, required, !column.nullable()));
+    }
+    boolean beanRequired =
+        part.getAnnotation(NotNull.class) != null || part.getAnnotation(NotBlank.class) != null;
+    if (!"reject".equals(row.path("enforcement").asText(null))
+        && required != beanRequired
+        && "string".equals(row.path("type").asText())) {
+      rows.add(
+          DictionaryComparison.line("required", key, consumer + "#bean", required, beanRequired));
+    }
+  }
+
+  private static List<String> scanMissingConsumers(JsonNode document) {
+    List<String> rows = new ArrayList<>();
+    var columns = document.path("columns").fields();
+    while (columns.hasNext()) {
+      var entry = columns.next();
+      JsonNode row = entry.getValue();
+      if (!"decided".equals(row.path("status").asText())) {
+        continue;
+      }
+      String key = entry.getKey();
+      if (key.startsWith("STM_SEQUENCE.")) {
+        continue;
+      }
+      if (row.path("consumers").path("jpa").asText("").isBlank()) {
+        rows.add(DictionaryComparison.line("consumer", key, "jpa", "present", "absent"));
+      }
+    }
+    return rows;
+  }
+
+  private static List<Class<?>> entities() throws Exception {
+    List<Class<?>> types = new ArrayList<>();
+    var scanner = new ClassPathScanningCandidateComponentProvider(false);
+    scanner.addIncludeFilter(new AnnotationTypeFilter(Entity.class));
+    for (BeanDefinition definition : scanner.findCandidateComponents("org.sitmun")) {
+      types.add(Class.forName(definition.getBeanClassName()));
+    }
+    return types;
+  }
+
+  private static String deleteAction(OnDelete onDelete) {
+    if (onDelete == null) {
+      return "";
+    }
+    return onDelete.action().name().toLowerCase(Locale.ROOT).replace('_', ' ');
   }
 
   private static boolean associationOptional(Field field) {
