@@ -66,6 +66,9 @@ catalog:
   webpack: 5.112.2
   zone.js: 0.15.1
   xmlbuilder2: 3.1.1
+  '@types/proj4': 2.5.2
+  pako: 2.2.0
+  proj4: 2.22.0
 
 allowBuilds:
   '@parcel/watcher': true

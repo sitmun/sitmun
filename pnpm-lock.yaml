@@ -284,6 +284,9 @@ catalogs:
     '@types/node':
       specifier: 24.19.2
       version: 24.19.2
+    '@types/proj4':
+      specifier: 2.5.2
+      version: 2.5.2
     '@types/uri-templates':
       specifier: 0.1.34
       version: 0.1.34
@@ -323,6 +326,12 @@ catalogs:
     ol:
       specifier: 10.9.0
       version: 10.9.0
+    pako:
+      specifier: 2.2.0
+      version: 2.2.0
+    proj4:
+      specifier: 2.22.0
+      version: 2.22.0
     rxjs:
       specifier: 7.8.2
       version: 7.8.2
@@ -1056,10 +1065,10 @@ importers:
         specifier: 'catalog:'
         version: 10.9.0
       pako:
-        specifier: 2.2.0
+        specifier: 'catalog:'
         version: 2.2.0
       proj4:
-        specifier: 2.22.0
+        specifier: 'catalog:'
         version: 2.22.0(geotiff@2.1.3)
       rxjs:
         specifier: 'catalog:'
@@ -1123,7 +1132,7 @@ importers:
         specifier: 'catalog:'
         version: 24.19.2
       '@types/proj4':
-        specifier: 2.5.2
+        specifier: 'catalog:'
         version: 2.5.2
       angular-eslint:
         specifier: 'catalog:'
