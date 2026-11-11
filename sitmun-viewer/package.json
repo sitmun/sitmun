@@ -50,7 +50,7 @@
     "zone.js": "catalog:"
   },
   "devDependencies": {
-    "@angular-builders/custom-webpack": "22.0.1",
+    "@angular-builders/custom-webpack": "catalog:",
     "@angular-builders/jest": "catalog:",
     "@angular-devkit/build-angular": "catalog:",
     "@angular-eslint/builder": "catalog:",
@@ -69,7 +69,7 @@
     "@types/proj4": "2.5.2",
     "angular-eslint": "catalog:",
     "babel-jest": "catalog:",
-    "copy-webpack-plugin": "14.0.0",
+    "copy-webpack-plugin": "catalog:",
     "eslint": "catalog:",
     "eslint-plugin-import": "catalog:",
     "eslint-plugin-unused-imports": "catalog:",
@@ -82,6 +82,6 @@
     "typescript-eslint": "catalog:",
     "util": "0.12.5",
     "webpack": "catalog:",
-    "webpack-cli": "6.0.1"
+    "webpack-cli": "catalog:"
   }
 }

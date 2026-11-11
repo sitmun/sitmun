@@ -66,6 +66,9 @@ catalog:
   webpack: 5.112.2
   zone.js: 0.15.1
   xmlbuilder2: 3.1.1
+  '@angular-builders/custom-webpack': 22.0.1
+  copy-webpack-plugin: 14.0.0
+  webpack-cli: 6.0.1
 
 allowBuilds:
   '@parcel/watcher': true
