@@ -456,6 +456,17 @@ def _failures_js_catalog(_root: Path) -> list[str]:
     for name, expected in jest_pins.items():
         if catalog.get(name) != expected:
             failures.append(f"catalog {name} is {catalog.get(name) or 'missing'}, expected {expected}")
+    xml_pins = {
+        "@types/xml2js": "0.4.14",
+        "@types/xmldom": "0.1.34",
+        "fast-xml-parser": "5.8.0",
+        "xml2js": "0.4.23",
+        "xmldom": "0.6.0",
+        "xpath": "0.0.34",
+    }
+    for name, expected in xml_pins.items():
+        if catalog.get(name) != expected:
+            failures.append(f"catalog {name} is {catalog.get(name) or 'missing'}, expected {expected}")
     touristic = json.loads(_read(ROOT / "sitmun-mobile/sitmun-touristic/package.json"))
     if not str(touristic.get("scripts", {}).get("test", "")).startswith("jest"):
         failures.append("sitmun-touristic test script is not jest")
