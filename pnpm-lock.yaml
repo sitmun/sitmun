@@ -296,6 +296,9 @@ catalogs:
     babel-jest:
       specifier: 30.5.2
       version: 30.5.2
+    draggabilly:
+      specifier: 2.4.1
+      version: 2.4.1
     eslint:
       specifier: 9.39.5
       version: 9.39.5
@@ -1041,7 +1044,7 @@ importers:
         specifier: 3.4.17
         version: 3.4.17
       draggabilly:
-        specifier: 2.4.1
+        specifier: 'catalog:'
         version: 2.4.1
       jwt-decode:
         specifier: 3.1.2
