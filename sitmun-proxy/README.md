@@ -699,7 +699,7 @@ docker compose down
 
 **Docker Configuration:**
 
-- **Multi-stage build** using Amazon Corretto 17 (`docker/proxy/Dockerfile`)
+- **Multi-stage build** using Amazon Corretto 17 on Amazon Linux 2023 (`docker/proxy/Dockerfile`)
 - **Stack compose** at the repository root (`compose.yaml`)
 - **Health checks** with curl-based monitoring
 - **External configuration** mounting from host
@@ -761,7 +761,7 @@ sitmun-proxy/
 │   ├── application.yml                             # External base config
 │   └── application-prod.yml                        # External production config
 ├── docker/                                        # Docker configuration
-│   ├── Dockerfile                                  # Multi-stage build with Amazon Corretto
+│   ├── Dockerfile                                  # Multi-stage build with Amazon Corretto 17 on Amazon Linux 2023
 │   └── development/
 │       └── docker-compose.yml                     # Development environment
 ├── gradle/                                        # Gradle configuration

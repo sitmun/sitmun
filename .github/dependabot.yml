@@ -58,7 +58,8 @@ updates:
         patterns:
           - "*"
   - package-ecosystem: docker
-    directory: /
+    directories:
+      - "/docker/*"
     target-branch: dev
     schedule:
       interval: weekly

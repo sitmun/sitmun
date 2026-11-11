@@ -9,8 +9,15 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    name: Build images
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [ubuntu-latest, ubuntu-24.04-arm]
     timeout-minutes: 180
+    env:
+      IMAGE_ARCH: ${{ runner.arch }}
     steps:
       - uses: actions/checkout@v5
       - name: Set up Buildx

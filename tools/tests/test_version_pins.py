@@ -14,6 +14,7 @@ WORKFLOW_LITERAL = re.compile(
     re.M,
 )
 ARG_DEFAULT = re.compile(r"^ARG\s+(JDK_VERSION|NODE_VERSION)=(\S+)", re.M)
+RUNTIME_CORRETTO = re.compile(r"^FROM amazoncorretto:(\d+)\.\d+\.\d+@sha256:[0-9a-f]{64}\s*$", re.M)
 PNPM_VERSION_ENV = re.compile(r"\bPNPM_VERSION=(\S+)")
 COORDINATE = re.compile(r"['\"][a-zA-Z0-9_.-]+:[a-zA-Z0-9_.-]+:\d")
 QUOTED_MODULE = re.compile(r"""['"][\w.-]+:[\w.-]+['"]""")
@@ -75,9 +76,15 @@ def _failures_docker_args(_root: Path) -> list[str]:
     if node_args.get("NODE_VERSION") != node:
         failures.append(f"docker/front/Dockerfile NODE_VERSION is {node_args.get('NODE_VERSION')}, .nvmrc is {node}")
     for path in (ROOT / "docker").rglob("Dockerfile"):
-        jdk = dict(ARG_DEFAULT.findall(_read(path))).get("JDK_VERSION")
+        text = _read(path)
+        jdk = dict(ARG_DEFAULT.findall(text)).get("JDK_VERSION")
         if jdk is not None and jdk != java:
             failures.append(f"{path.relative_to(ROOT)} JDK_VERSION is {jdk}, .java-version major is {java}")
+        majors = RUNTIME_CORRETTO.findall(text)
+        if jdk is not None and majors != [java]:
+            failures.append(
+                f"{path.relative_to(ROOT)} runtime Corretto major is {majors or 'missing'}, .java-version major is {java}"
+            )
     pnpm_in_docker = PNPM_VERSION_ENV.findall(front_text)
     docker_pnpm = pnpm_in_docker[0] if len(pnpm_in_docker) == 1 else ""
     pinned = _package_manager_pnpm("package.json")
