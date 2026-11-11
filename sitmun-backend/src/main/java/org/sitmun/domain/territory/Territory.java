@@ -11,6 +11,8 @@ import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 import lombok.*;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 import org.sitmun.authorization.client.dto.ClientConfigurationViews;
 import org.sitmun.domain.CodeListsConstants;
 import org.sitmun.domain.PersistenceConstants;
@@ -210,23 +212,37 @@ public class Territory {
 
   /** Territories that are part of this territory. */
   @ManyToMany(cascade = {CascadeType.MERGE, CascadeType.PERSIST})
+  @OnDelete(action = OnDeleteAction.CASCADE)
   @JoinTable(
       name = "STM_GRP_TER",
       joinColumns =
-          @JoinColumn(name = "GTE_TERID", foreignKey = @ForeignKey(name = "STM_GTE_FK_TER")),
+          @JoinColumn(
+              name = "GTE_TERID",
+              nullable = false,
+              foreignKey = @ForeignKey(name = "STM_GTE_FK_TER")),
       inverseJoinColumns =
-          @JoinColumn(name = "GTE_TERMID", foreignKey = @ForeignKey(name = "STM_GTE_FK_TERM")))
+          @JoinColumn(
+              name = "GTE_TERMID",
+              nullable = false,
+              foreignKey = @ForeignKey(name = "STM_GTE_FK_TERM")))
   @Builder.Default
   private Set<Territory> members = new HashSet<>();
 
   /** Territories of which this territory is part of. */
   @ManyToMany(cascade = {CascadeType.MERGE, CascadeType.PERSIST})
+  @OnDelete(action = OnDeleteAction.CASCADE)
   @JoinTable(
       name = "STM_GRP_TER",
       joinColumns =
-          @JoinColumn(name = "GTE_TERMID", foreignKey = @ForeignKey(name = "STM_GTE_FK_TERM")),
+          @JoinColumn(
+              name = "GTE_TERMID",
+              nullable = false,
+              foreignKey = @ForeignKey(name = "STM_GTE_FK_TERM")),
       inverseJoinColumns =
-          @JoinColumn(name = "GTE_TERID", foreignKey = @ForeignKey(name = "STM_GTE_FK_TER")))
+          @JoinColumn(
+              name = "GTE_TERID",
+              nullable = false,
+              foreignKey = @ForeignKey(name = "STM_GTE_FK_TER")))
   @Builder.Default
   private Set<Territory> memberOf = new HashSet<>();
 

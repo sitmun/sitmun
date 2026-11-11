@@ -1137,7 +1137,9 @@
     },
     "STM_APP_ROL.ARO_APPID": {
       "codelist": null,
-      "consumers": {},
+      "consumers": {
+        "jpa": "org.sitmun.domain.role.Role#applications"
+      },
       "default": null,
       "enforcement": null,
       "length": null,
@@ -1151,7 +1153,9 @@
     },
     "STM_APP_ROL.ARO_ROLEID": {
       "codelist": null,
-      "consumers": {},
+      "consumers": {
+        "jpa": "org.sitmun.domain.role.Role#applications"
+      },
       "default": null,
       "enforcement": null,
       "length": null,
@@ -2295,7 +2299,9 @@
     },
     "STM_GGI_GI.GGG_GGIID": {
       "codelist": null,
-      "consumers": {},
+      "consumers": {
+        "jpa": "org.sitmun.domain.cartography.permission.CartographyPermission#members"
+      },
       "default": null,
       "enforcement": null,
       "length": null,
@@ -2309,7 +2315,9 @@
     },
     "STM_GGI_GI.GGG_GIID": {
       "codelist": null,
-      "consumers": {},
+      "consumers": {
+        "jpa": "org.sitmun.domain.cartography.permission.CartographyPermission#members"
+      },
       "default": null,
       "enforcement": null,
       "length": null,
@@ -2359,7 +2367,9 @@
     },
     "STM_GRP_TER.GTE_TERID": {
       "codelist": null,
-      "consumers": {},
+      "consumers": {
+        "jpa": "org.sitmun.domain.territory.Territory#members"
+      },
       "default": null,
       "enforcement": null,
       "length": null,
@@ -2373,7 +2383,9 @@
     },
     "STM_GRP_TER.GTE_TERMID": {
       "codelist": null,
-      "consumers": {},
+      "consumers": {
+        "jpa": "org.sitmun.domain.territory.Territory#members"
+      },
       "default": null,
       "enforcement": null,
       "length": null,
@@ -3352,7 +3364,9 @@
     },
     "STM_ROL_GGI.RGG_GGIID": {
       "codelist": null,
-      "consumers": {},
+      "consumers": {
+        "jpa": "org.sitmun.domain.role.Role#permissions"
+      },
       "default": null,
       "enforcement": null,
       "length": null,
@@ -3366,7 +3380,9 @@
     },
     "STM_ROL_GGI.RGG_ROLEID": {
       "codelist": null,
-      "consumers": {},
+      "consumers": {
+        "jpa": "org.sitmun.domain.role.Role#permissions"
+      },
       "default": null,
       "enforcement": null,
       "length": null,
@@ -3380,7 +3396,9 @@
     },
     "STM_ROL_TSK.RTS_ROLEID": {
       "codelist": null,
-      "consumers": {},
+      "consumers": {
+        "jpa": "org.sitmun.domain.role.Role#tasks"
+      },
       "default": null,
       "enforcement": null,
       "length": null,
@@ -3394,7 +3412,9 @@
     },
     "STM_ROL_TSK.RTS_TASKID": {
       "codelist": null,
-      "consumers": {},
+      "consumers": {
+        "jpa": "org.sitmun.domain.role.Role#tasks"
+      },
       "default": null,
       "enforcement": null,
       "length": null,
@@ -3796,7 +3816,9 @@
     },
     "STM_SERVICE_USAGE.SUS_APPID": {
       "codelist": null,
-      "consumers": {},
+      "consumers": {
+        "jpa": "org.sitmun.domain.service.usage.ServiceUsage#id"
+      },
       "default": null,
       "enforcement": null,
       "length": null,
@@ -3810,7 +3832,9 @@
     },
     "STM_SERVICE_USAGE.SUS_DAY": {
       "codelist": null,
-      "consumers": {},
+      "consumers": {
+        "jpa": "org.sitmun.domain.service.usage.ServiceUsage#id"
+      },
       "default": null,
       "enforcement": null,
       "length": null,
@@ -3832,7 +3856,9 @@
     },
     "STM_SERVICE_USAGE.SUS_OPERATION": {
       "codelist": null,
-      "consumers": {},
+      "consumers": {
+        "jpa": "org.sitmun.domain.service.usage.ServiceUsage#id"
+      },
       "default": null,
       "enforcement": "truncate",
       "length": 32,
@@ -3854,7 +3880,9 @@
     },
     "STM_SERVICE_USAGE.SUS_SERID": {
       "codelist": null,
-      "consumers": {},
+      "consumers": {
+        "jpa": "org.sitmun.domain.service.usage.ServiceUsage#id"
+      },
       "default": null,
       "enforcement": null,
       "length": null,
@@ -3919,7 +3947,9 @@
     },
     "STM_STY_GI.SGI_LURL_FORMAT": {
       "codelist": null,
-      "consumers": {},
+      "consumers": {
+        "jpa": "org.sitmun.domain.cartography.style.CartographyStyle#legendURL"
+      },
       "default": null,
       "enforcement": "truncate",
       "length": 255,
@@ -3929,7 +3959,9 @@
     },
     "STM_STY_GI.SGI_LURL_HEIGHT": {
       "codelist": null,
-      "consumers": {},
+      "consumers": {
+        "jpa": "org.sitmun.domain.cartography.style.CartographyStyle#legendURL"
+      },
       "default": null,
       "enforcement": null,
       "length": null,
@@ -3939,9 +3971,11 @@
     },
     "STM_STY_GI.SGI_LURL_URL": {
       "codelist": null,
-      "consumers": {},
+      "consumers": {
+        "jpa": "org.sitmun.domain.cartography.style.CartographyStyle#legendURL"
+      },
       "default": null,
-      "enforcement": "truncate",
+      "enforcement": "reject",
       "length": 4000,
       "required": false,
       "status": "decided",
@@ -5055,7 +5089,9 @@
     },
     "STM_TREE_ROL.TRO_ROLEID": {
       "codelist": null,
-      "consumers": {},
+      "consumers": {
+        "jpa": "org.sitmun.domain.role.Role#trees"
+      },
       "default": null,
       "enforcement": null,
       "length": null,
@@ -5069,7 +5105,9 @@
     },
     "STM_TREE_ROL.TRO_TREEID": {
       "codelist": null,
-      "consumers": {},
+      "consumers": {
+        "jpa": "org.sitmun.domain.role.Role#trees"
+      },
       "default": null,
       "enforcement": null,
       "length": null,
@@ -5470,7 +5508,28 @@
       "type": "integer"
     }
   },
-  "configuration": {},
+  "configuration": {
+    "language.default": {
+      "fresh": "en",
+      "upgraded": "en"
+    },
+    "srs.default.identifier": {
+      "fresh": "EPSG:25831",
+      "upgraded": "EPSG:25831"
+    },
+    "srs.default.proj4": {
+      "fresh": "+proj=utm +zone=31 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs",
+      "upgraded": "+proj=utm +zone=31 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"
+    },
+    "srs.default.x": {
+      "fresh": "x",
+      "upgraded": "x"
+    },
+    "srs.default.y": {
+      "fresh": "y",
+      "upgraded": "y"
+    }
+  },
   "fields": {
     "org.sitmun.authentication.dto.UserPasswordAuthenticationRequest#username": {
       "same_as": "STM_USER.USE_USER"

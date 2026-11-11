@@ -8,6 +8,8 @@ import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 import lombok.*;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 import org.sitmun.authorization.client.dto.ClientConfigurationViews;
 import org.sitmun.domain.application.Application;
 import org.sitmun.domain.cartography.permission.CartographyPermission;
@@ -60,48 +62,76 @@ public class Role {
 
   /** Applications that have this role granted. */
   @ManyToMany(cascade = {CascadeType.MERGE, CascadeType.PERSIST})
+  @OnDelete(action = OnDeleteAction.CASCADE)
   @JoinTable(
       name = "STM_APP_ROL",
       joinColumns =
-          @JoinColumn(name = "ARO_ROLEID", foreignKey = @ForeignKey(name = "STM_ARO_FK_ROL")),
+          @JoinColumn(
+              name = "ARO_ROLEID",
+              nullable = false,
+              foreignKey = @ForeignKey(name = "STM_ARO_FK_ROL")),
       inverseJoinColumns =
-          @JoinColumn(name = "ARO_APPID", foreignKey = @ForeignKey(name = "STM_ARO_FK_APP")))
+          @JoinColumn(
+              name = "ARO_APPID",
+              nullable = false,
+              foreignKey = @ForeignKey(name = "STM_ARO_FK_APP")))
   @Builder.Default
   @JsonView(ClientConfigurationViews.Base.class)
   private Set<Application> applications = new HashSet<>();
 
   /** Tasks that have this role. */
   @ManyToMany(cascade = {CascadeType.MERGE, CascadeType.PERSIST})
+  @OnDelete(action = OnDeleteAction.CASCADE)
   @JoinTable(
       name = "STM_ROL_TSK",
       joinColumns =
-          @JoinColumn(name = "RTS_ROLEID", foreignKey = @ForeignKey(name = "STM_RTS_FK_ROL")),
+          @JoinColumn(
+              name = "RTS_ROLEID",
+              nullable = false,
+              foreignKey = @ForeignKey(name = "STM_RTS_FK_ROL")),
       inverseJoinColumns =
-          @JoinColumn(name = "RTS_TASKID", foreignKey = @ForeignKey(name = "STM_RTS_FK_TAS")))
+          @JoinColumn(
+              name = "RTS_TASKID",
+              nullable = false,
+              foreignKey = @ForeignKey(name = "STM_RTS_FK_TAS")))
   @Builder.Default
   @JsonView(ClientConfigurationViews.ApplicationTerritory.class)
   private Set<Task> tasks = new HashSet<>();
 
   /** Permissions that have this role. */
   @ManyToMany(cascade = {CascadeType.MERGE, CascadeType.PERSIST})
+  @OnDelete(action = OnDeleteAction.CASCADE)
   @JoinTable(
       name = "STM_ROL_GGI",
       joinColumns =
-          @JoinColumn(name = "RGG_ROLEID", foreignKey = @ForeignKey(name = "STM_RGG_FK_ROL")),
+          @JoinColumn(
+              name = "RGG_ROLEID",
+              nullable = false,
+              foreignKey = @ForeignKey(name = "STM_RGG_FK_ROL")),
       inverseJoinColumns =
-          @JoinColumn(name = "RGG_GGIID", foreignKey = @ForeignKey(name = "STM_RGG_FK_GGI")))
+          @JoinColumn(
+              name = "RGG_GGIID",
+              nullable = false,
+              foreignKey = @ForeignKey(name = "STM_RGG_FK_GGI")))
   @Builder.Default
   @JsonView(ClientConfigurationViews.ApplicationTerritory.class)
   private Set<CartographyPermission> permissions = new HashSet<>();
 
   /** Trees that have this role. */
   @ManyToMany(cascade = {CascadeType.MERGE, CascadeType.PERSIST})
+  @OnDelete(action = OnDeleteAction.CASCADE)
   @JoinTable(
       name = "STM_TREE_ROL",
       joinColumns =
-          @JoinColumn(name = "TRO_ROLEID", foreignKey = @ForeignKey(name = "STM_TRO_FK_ROL")),
+          @JoinColumn(
+              name = "TRO_ROLEID",
+              nullable = false,
+              foreignKey = @ForeignKey(name = "STM_TRO_FK_ROL")),
       inverseJoinColumns =
-          @JoinColumn(name = "TRO_TREEID", foreignKey = @ForeignKey(name = "STM_TRO_FK_TRE")))
+          @JoinColumn(
+              name = "TRO_TREEID",
+              nullable = false,
+              foreignKey = @ForeignKey(name = "STM_TRO_FK_TRE")))
   @Builder.Default
   @JsonView(ClientConfigurationViews.ApplicationTerritory.class)
   private Set<Tree> trees = new HashSet<>();

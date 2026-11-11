@@ -201,7 +201,8 @@ class DataDictionaryConformanceTest {
           continue;
         }
         String consumer = type.getName() + "#" + field.getName();
-        checkJoinColumns(document, joinTable.name(), joinTable.joinColumns(), field, consumer, rows);
+        checkJoinColumns(
+            document, joinTable.name(), joinTable.joinColumns(), field, consumer, rows);
         checkJoinColumns(
             document, joinTable.name(), joinTable.inverseJoinColumns(), field, consumer, rows);
       }

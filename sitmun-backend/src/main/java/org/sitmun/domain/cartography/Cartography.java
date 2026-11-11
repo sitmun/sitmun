@@ -12,6 +12,8 @@ import jakarta.validation.constraints.Size;
 import java.util.*;
 import lombok.*;
 import org.hibernate.annotations.BatchSize;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 import org.sitmun.authorization.client.dto.ClientConfigurationViews;
 import org.sitmun.domain.CodeListsConstants;
 import org.sitmun.domain.StoredFlagListener;
@@ -317,12 +319,19 @@ public class Cartography {
 
   /** The permissions that this cartography has. */
   @ManyToMany(cascade = {CascadeType.MERGE, CascadeType.PERSIST})
+  @OnDelete(action = OnDeleteAction.CASCADE)
   @JoinTable(
       name = "STM_GGI_GI",
       joinColumns =
-          @JoinColumn(name = "GGG_GIID", foreignKey = @ForeignKey(name = "STM_GGG_FK_GEO")),
+          @JoinColumn(
+              name = "GGG_GIID",
+              nullable = false,
+              foreignKey = @ForeignKey(name = "STM_GGG_FK_GEO")),
       inverseJoinColumns =
-          @JoinColumn(name = "GGG_GGIID", foreignKey = @ForeignKey(name = "STM_GGG_FK_GGI")))
+          @JoinColumn(
+              name = "GGG_GGIID",
+              nullable = false,
+              foreignKey = @ForeignKey(name = "STM_GGG_FK_GGI")))
   @BatchSize(size = 50)
   @Builder.Default
   private Set<CartographyPermission> permissions = new HashSet<>();

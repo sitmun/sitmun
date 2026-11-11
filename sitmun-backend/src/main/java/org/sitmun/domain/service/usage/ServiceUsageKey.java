@@ -2,6 +2,7 @@ package org.sitmun.domain.service.usage;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
+import jakarta.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.time.LocalDate;
 import java.util.Objects;
@@ -27,6 +28,7 @@ public class ServiceUsageKey implements Serializable {
   private LocalDate usageDay;
 
   @Column(name = "SUS_OPERATION", length = 32, nullable = false)
+  @NotNull
   private String operation;
 
   @Override
