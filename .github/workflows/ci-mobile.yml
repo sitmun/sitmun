@@ -1,0 +1,47 @@
+name: CI mobile
+
+permissions:
+  contents: read
+
+on:
+  workflow_call:
+  workflow_dispatch:
+
+env:
+  NPM_CONFIG_USERCONFIG: ${{ github.workspace }}/config/npm-userconfig
+
+jobs:
+  build:
+    name: ${{ matrix.label }}
+    timeout-minutes: 30
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - label: Edition
+            dir: sitmun-mobile/sitmun-edition
+          - label: Touristic
+            dir: sitmun-mobile/sitmun-touristic
+    defaults:
+      run:
+        working-directory: ${{ matrix.dir }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
+        with:
+          version: 12.15.0
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+      - name: Install dependencies
+        working-directory: ${{ github.workspace }}
+        run: pnpm ci --filter ./${{ matrix.dir }}...
+      - name: Run tests
+        run: pnpm test
+      - name: Build the production app
+        run: pnpm exec ng build --configuration=production
+      - name: Check the build wrote index.html
+        run: test -f www/index.html

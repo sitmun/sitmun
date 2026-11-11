@@ -11,6 +11,8 @@ Work happens in [sitmun/sitmun](https://github.com/sitmun/sitmun).
 - Pull requests into `dev` merge through the merge queue once that queue is turned on.
 - Direct pushes to `dev` and `main` are rejected.
 
+Frontend lint must report 0 problems. Warnings fail admin and viewer lint. Mobile Jest tests and production builds run in `ci-gate`.
+
 Run tests from the module you change. Root Playwright suites are `pnpm run e2e`, `pnpm run e2e:viewer`, `pnpm run e2e:mia-cross`, `pnpm run e2e:application-contact`, and `pnpm run e2e:mobile:web`. Those suites share port `18080`, so run one at a time.
 
 Node is the root `.nvmrc`. pnpm is `packageManager` in the root `package.json`. Shared JavaScript versions are the root `pnpm-workspace.yaml` catalog. mise reads both files and is optional. CI uses `node-version-file: .nvmrc` and `pnpm/action-setup`, then `pnpm ci`.

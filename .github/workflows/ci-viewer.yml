@@ -1,5 +1,8 @@
 name: CI viewer
 
+permissions:
+  contents: read
+
 on:
   workflow_call:
   workflow_dispatch:
@@ -33,4 +36,4 @@ jobs:
         env:
           NODE_OPTIONS: "--max-old-space-size=8192"
       - name: Validate build artifacts
-        run: test -d dist/viewer-app && test -n "$(ls -A dist/viewer-app)"
+        run: test -f dist/viewer-app/index.html

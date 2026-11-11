@@ -80,6 +80,7 @@ E2E_SHARED = (
 FILTERS = {
     "admin": ("sitmun-admin/**", ".nvmrc"),
     "viewer": ("sitmun-viewer/**", ".nvmrc"),
+    "mobile": ("sitmun-mobile/**", ".nvmrc"),
     "backend": ("sitmun-backend/**", *GRADLE_PATHS),
     "proxy": ("sitmun-proxy/**", *GRADLE_PATHS),
     "mbtiles": ("sitmun-addons/sitmun-mbtiles/**", *GRADLE_PATHS),
