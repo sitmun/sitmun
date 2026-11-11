@@ -24,8 +24,10 @@ describe('MapPage point form', () => {
 
   it('hides delete while adding a point', () => {
     const html = readFileSync(join(__dirname, 'map.page.html'), 'utf8');
-    const deleteButton = html.split('\n').find((line) => line.includes('del-feat-btn'));
-    expect(deleteButton).toContain('*ngIf="!newPoint"');
+    const lines = html.split('\n');
+    const deleteIndex = lines.findIndex((line) => line.includes('del-feat-btn'));
+    const deleteButton = lines.slice(deleteIndex - 4, deleteIndex + 1).join('\n');
+    expect(deleteButton).toContain('@if (!newPoint)');
   });
 
   it('clears the selected point when the form is dismissed', () => {
@@ -163,5 +165,72 @@ describe('MapPage point form', () => {
     page.saveGeom();
     expect(page.newGeometry).toEqual({ type: 'Point', coordinates: [3, 4] });
     expect(page.openFeatureModal).toHaveBeenCalledWith(true);
+  });
+});
+
+describe('MapPage edition deletes', () => {
+  function barePage(): any {
+    const page = Object.create(MapPage.prototype);
+    page.app = { id: 'app' };
+    page.ter = { id: 'ter' };
+    page.databaseService = {
+      insertEdition: jest.fn(async () => {}),
+      deleteEditionsByLayer: jest.fn(async () => {}),
+    };
+    return page;
+  }
+
+  function editionFeature() {
+    return {
+      getId: () => 'f1',
+      getAttributes: () => ({}),
+      getGeometry: () => null,
+    };
+  }
+
+  it('drops an unsaved insert without recording a delete', async () => {
+    const page = barePage();
+    const created = editionFeature();
+    page.feature = created;
+    page.featureEditions = {
+      'layer/1': { inserts: [created], deletes: [], updates: [] },
+    };
+
+    await page.addFeatureEdition('layer/1', 'deletes');
+
+    expect(page.featureEditions['layer/1']).toBeUndefined();
+    expect(page.databaseService.insertEdition).not.toHaveBeenCalled();
+  });
+
+  it('records a delete after removing a pending update', async () => {
+    const page = barePage();
+    const edited = editionFeature();
+    page.feature = edited;
+    page.featureEditions = {
+      'layer/1': { inserts: [], deletes: [], updates: [edited] },
+    };
+
+    await page.addFeatureEdition('layer/1', 'deletes');
+
+    expect(page.featureEditions['layer/1']).toEqual({
+      inserts: [],
+      deletes: [edited],
+      updates: [],
+    });
+  });
+
+  it('records a delete for a feature that was not edited in this session', async () => {
+    const page = barePage();
+    const existing = editionFeature();
+    page.feature = existing;
+    page.featureEditions = {};
+
+    await page.addFeatureEdition('layer/1', 'deletes');
+
+    expect(page.featureEditions['layer/1']).toEqual({
+      inserts: [],
+      deletes: [existing],
+      updates: [],
+    });
   });
 });
