@@ -66,6 +66,7 @@ catalog:
   webpack: 5.112.2
   zone.js: 0.15.1
   xmlbuilder2: 3.1.1
+  sql-formatter: 15.6.6
 
 allowBuilds:
   '@parcel/watcher': true
