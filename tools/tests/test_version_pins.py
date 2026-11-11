@@ -457,7 +457,7 @@ def _failures_js_catalog(_root: Path) -> list[str]:
         if catalog.get(name) != expected:
             failures.append(f"catalog {name} is {catalog.get(name) or 'missing'}, expected {expected}")
     test_pins = {
-        "@playwright/test": "1.64.1",
+        "@playwright/test": "1.65.0",
         "@types/mocha": "10.0.10",
         "jest-sonar": "0.2.16",
         "jsdom": "26.1.0",

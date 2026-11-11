@@ -66,7 +66,7 @@ catalog:
   webpack: 5.112.2
   zone.js: 0.15.1
   xmlbuilder2: 3.1.1
-  '@playwright/test': 1.64.1
+  '@playwright/test': 1.65.0
   '@types/mocha': 10.0.10
   jest-sonar: 0.2.16
   jsdom: 26.1.0
