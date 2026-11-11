@@ -296,6 +296,9 @@ catalogs:
     babel-jest:
       specifier: 30.5.2
       version: 30.5.2
+    dompurify:
+      specifier: 3.4.17
+      version: 3.4.17
     eslint:
       specifier: 9.39.5
       version: 9.39.5
@@ -1038,7 +1041,7 @@ importers:
         specifier: 'catalog:'
         version: 4.10.0(patch_hash=79f1f503f699b93a738b7e258e6060f2689537daa23587e36f8c0fc4cbba3f98)(@types/node@24.19.2)
       dompurify:
-        specifier: 3.4.17
+        specifier: 'catalog:'
         version: 3.4.17
       draggabilly:
         specifier: 2.4.1
