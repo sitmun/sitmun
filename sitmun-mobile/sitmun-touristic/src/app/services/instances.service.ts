@@ -35,7 +35,7 @@ export class InstancesService {
         });
       });
     } else {
-      return new Promise<object>((resolve, reject) => {
+      return new Promise<object>((resolve, _reject) => {
         resolve(environment.instancesData);
       });
     }

@@ -4,8 +4,6 @@ import { LanguageService } from './language.service';
 
 // eslint-disable-next-line no-var -- ambient global shared across modules
 declare var M: any;
-// eslint-disable-next-line no-var -- ambient global shared across modules
-declare var ol: any;
 
 @Injectable({
   providedIn: 'root'

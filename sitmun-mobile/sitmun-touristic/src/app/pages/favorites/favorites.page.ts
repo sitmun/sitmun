@@ -36,7 +36,7 @@ export class FavoritesPage implements OnInit {
     private authorizationService: AuthorizationService,
     private loadingCtrl: LoadingController,
   ) {
-    this.route.queryParams.subscribe((params) => {
+    this.route.queryParams.subscribe((_params) => {
       const navigation = this.router.getCurrentNavigation();
       if (navigation) {
         const tempState = navigation.extras.state;

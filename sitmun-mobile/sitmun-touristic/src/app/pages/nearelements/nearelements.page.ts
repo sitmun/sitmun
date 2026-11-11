@@ -40,7 +40,7 @@ export class NearelementsPage implements OnInit {
     private databaseService: DatabaseService,
     private loadingCtrl: LoadingController,
   ) {
-    this.route.queryParams.subscribe((params) => {
+    this.route.queryParams.subscribe((_params) => {
       const navigation = this.router.getCurrentNavigation();
       if (navigation) {
         const tempState = navigation.extras.state;
@@ -61,7 +61,7 @@ export class NearelementsPage implements OnInit {
   }
 
   getData() {
-    const proxyParams = this.task.id.split("/");
+    const _proxyParams = this.task.id.split("/");
     this.requestService
       .templateRequest(this.task, this.taskNode.mapping, this.parentData)
       .then((results) => {

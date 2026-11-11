@@ -20,8 +20,6 @@ import { TreeNode, TreeviewService } from "src/app/services/treeview.service";
 
 // eslint-disable-next-line no-var -- ambient global shared across modules
 declare var M: any;
-// eslint-disable-next-line no-var -- ambient global shared across modules
-declare var ol: any;
 
 @Component({
   selector: "app-map",
@@ -59,7 +57,7 @@ export class MapPage implements OnInit {
     private treeviewService: TreeviewService,
     private loadingCtrl: LoadingController,
   ) {
-    this.route.queryParams.subscribe((params) => {
+    this.route.queryParams.subscribe((_params) => {
       const navigation = this.router.getCurrentNavigation();
       if (navigation) {
         const tempState = navigation.extras.state;

@@ -59,7 +59,7 @@ export class EventsPage implements OnInit {
     this.filters["startdate"] = this.getToday();
     this.filters["enddate"] = this.getNext15();
     this.locale = this.languageService.getLocale();
-    this.route.queryParams.subscribe((params) => {
+    this.route.queryParams.subscribe((_params) => {
       const navigation = this.router.getCurrentNavigation();
       if (navigation) {
         const tempState = navigation.extras.state;

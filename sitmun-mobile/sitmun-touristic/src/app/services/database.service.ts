@@ -142,7 +142,7 @@ export class DatabaseService {
     try {
       if(this.db) {
         console.log(`Creando tabla ${tableName}...`);
-        const changes = await this.db.execute(createTableQuery);
+        await this.db.execute(createTableQuery);
         console.log(`Tabla ${tableName} creada correctamente`);
       } else {
         console.log("Conexion nula");
