@@ -16,6 +16,7 @@ WORKFLOW_LITERAL = re.compile(
 ARG_DEFAULT = re.compile(r"^ARG\s+(JDK_VERSION|NODE_VERSION)=(\S+)", re.M)
 PNPM_VERSION_ENV = re.compile(r"\bPNPM_VERSION=(\S+)")
 COORDINATE = re.compile(r"['\"][a-zA-Z0-9_.-]+:[a-zA-Z0-9_.-]+:\d")
+QUOTED_MODULE = re.compile(r"""['"][\w.-]+:[\w.-]+['"]""")
 ENGINE_MAJOR = re.compile(r"(\d+)")
 
 
@@ -177,7 +178,7 @@ def _failures_gradle_literals(_root: Path) -> list[str]:
         if "build" in path.parts or "node_modules" in path.parts or ".gradle" in path.parts:
             continue
         text = _read(path)
-        if "project.version" in text or COORDINATE.search(text):
+        if "project.version" in text or COORDINATE.search(text) or QUOTED_MODULE.search(text):
             failures.append(str(path.relative_to(ROOT)))
     return failures
 
