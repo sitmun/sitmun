@@ -1,5 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Injector } from '@angular/core';
+import { Router } from '@angular/router';
 
 import { TranslateService } from '@ngx-translate/core';
 import { firstValueFrom } from 'rxjs';
@@ -7,13 +8,14 @@ import { firstValueFrom } from 'rxjs';
 import { DataTablesRegistry } from '@app/components/data-tables.util';
 import { MessagesInterceptorStateService } from '@app/core';
 import { Resource } from '@app/core/hal/resource/resource.model';
-import { ConfigurationParametersService, LanguageService } from '@app/domain';
+import { LanguageService } from '@app/domain';
 import { config } from '@config';
 import { environment } from '@environments/environment';
 
 import { AppConfigService } from './app-config.service';
-import { AppStateService } from './app-state.service';
+import { AppStateService, WaitingReason } from './app-state.service';
 import { LoggerService } from './logger.service';
+import { SetupStatus, SetupStatusService } from './setup-status.service';
 import { readBrowserLanguages, resolveUiLanguage } from './ui-language.resolver';
 
 /** The browser never reached the server, or a proxy answered because nothing was listening. */
@@ -24,7 +26,29 @@ export function isBackendUnavailable(error: unknown): boolean {
   return error.status === 0 || error.status === 502 || error.status === 503 || error.status === 504;
 }
 
+/** The backend is up and still applying first-run setup. */
+export function isBackendConfiguring(error: unknown): boolean {
+  if (!(error instanceof HttpErrorResponse) || error.status !== 503) {
+    return false;
+  }
+  const body = error.error as { status?: string } | null;
+  return body?.status === 'configuring';
+}
+
+function waitingReasonFor(error: unknown): WaitingReason {
+  return isBackendConfiguring(error) ? 'configuring' : 'unreachable';
+}
+
+function isSetupStatusMissing(error: unknown): boolean {
+  return error instanceof HttpErrorResponse && error.status === 404;
+}
+
 let startupRetrying = false;
+
+/** Paint the waiting page when setup status has not answered by then. */
+const SHOW_WAITING_AFTER_MS = 300;
+
+type StartupResult = { ok: true; status: SetupStatus } | { ok: false; error: unknown };
 
 /** Runs startup again after the server was not reachable. */
 export async function retryAppStartup(injector: Injector): Promise<void> {
@@ -34,125 +58,183 @@ export async function retryAppStartup(injector: Injector): Promise<void> {
   }
   startupRetrying = true;
   try {
-    await initializeConfiguration(
-      injector.get(ConfigurationParametersService),
-      injector.get(TranslateService),
-      injector.get(LoggerService),
-      appStateService,
-      injector.get(MessagesInterceptorStateService),
-    )();
-    await initializeLanguages(
+    const setupStatus = injector.get(SetupStatusService);
+    const logger = injector.get(LoggerService);
+    let status: SetupStatus;
+    try {
+      status = await firstValueFrom(setupStatus.load(true));
+    } catch (error) {
+      if (isBackendUnavailable(error)) {
+        appStateService.setWaitingForBackend(waitingReasonFor(error));
+        return;
+      }
+      if (isSetupStatusMissing(error)) {
+        recordSetupStatusMismatch(appStateService, error);
+        return;
+      }
+      logger.warn('Setup status failed during startup retry', error);
+      return;
+    }
+    const router = injector.get(Router);
+    await router.navigate([status.firstRun ? '/first-run' : '/login']);
+    await applySetupStatus(
+      status,
       injector.get(LanguageService),
-      injector.get(ConfigurationParametersService),
       injector.get(TranslateService),
-      injector.get(LoggerService),
+      logger,
       appStateService,
       injector.get(MessagesInterceptorStateService),
       injector.get(AppConfigService),
-    )();
+    );
   } finally {
     startupRetrying = false;
   }
 }
 
-export function initializeLanguages(
+export function initializeFromSetupStatus(
+  setupStatus: SetupStatusService,
   languageService: LanguageService,
-  configurationService: ConfigurationParametersService,
   translateService: TranslateService,
   loggerService: LoggerService,
   appStateService: AppStateService,
   messagesInterceptorState: MessagesInterceptorStateService,
-  appConfigService: AppConfigService
+  appConfigService: AppConfigService,
 ) {
   return async () => {
     messagesInterceptorState.disable();
     DataTablesRegistry.setLoggerService(loggerService);
     Resource.setLoggerService(loggerService);
-
-    try {
-      if (!config.defaultLang) {
-        try {
-          const configParams = await firstValueFrom(configurationService.fetchAllItems());
-          const defaultLangParam = configParams.find(element => element.name === 'language.default');
-          if (defaultLangParam?.value) {
-            config.defaultLang = defaultLangParam.value;
-          }
-        } catch {
-          // configuration may load in a parallel initializer; fall back below
-        }
-      }
-
-      const languages = languageService.applyLanguagesToUse(
-        await firstValueFrom(languageService.fetchAllItems())
+    const outcome = firstValueFrom(setupStatus.load(true)).then(
+      (status): StartupResult => ({ ok: true, status }),
+      (error): StartupResult => ({ ok: false, error }),
+    );
+    const quick = await Promise.race([
+      outcome,
+      new Promise<null>((resolve) => setTimeout(() => resolve(null), SHOW_WAITING_AFTER_MS)),
+    ]);
+    if (quick) {
+      return settleStartup(
+        quick,
+        languageService,
+        translateService,
+        loggerService,
+        appStateService,
+        messagesInterceptorState,
+        appConfigService,
       );
-
-      const chosen = resolveUiLanguage({
-        stored: localStorage.getItem('lang'),
-        browser: readBrowserLanguages(),
-        backendDefault: config.defaultLang,
-        availableShortnames: languages.map(l => l.shortname),
-        staticFallback: appConfigService.getDefaultLanguageFallback() || 'en',
-      });
-      translateService.setFallbackLang(chosen);
-      appStateService.clearWaitingForBackend();
-      messagesInterceptorState.enable();
-      return await firstValueFrom(translateService.use(chosen));
-    } catch (error) {
-      if (isBackendUnavailable(error)) {
-        messagesInterceptorState.disable();
-        appStateService.setWaitingForBackend();
-        return useFallbackLanguage(translateService);
-      }
-      const initError = {
-        message: 'Failed to initialize languages',
-        originalError: error,
-        source: 'languages',
-        timestamp: new Date().toISOString()
-      };
-      appStateService.setInitializationError(initError, 'languages');
-      messagesInterceptorState.enable();
-      return useFallbackLanguage(translateService);
     }
+    appStateService.setWaitingForBackend('unreachable');
+    void outcome.then((result) =>
+      settleStartup(
+        result,
+        languageService,
+        translateService,
+        loggerService,
+        appStateService,
+        messagesInterceptorState,
+        appConfigService,
+      ),
+    );
+    return useFallbackLanguage(translateService);
   };
 }
 
-export function initializeConfiguration(
-  configurationService: ConfigurationParametersService,
+async function settleStartup(
+  result: StartupResult,
+  languageService: LanguageService,
   translateService: TranslateService,
   loggerService: LoggerService,
   appStateService: AppStateService,
-  messagesInterceptorState: MessagesInterceptorStateService
-) {
-  return async () => {
+  messagesInterceptorState: MessagesInterceptorStateService,
+  appConfigService: AppConfigService,
+): Promise<unknown> {
+  if (result.ok) {
+    return applySetupStatus(
+      result.status,
+      languageService,
+      translateService,
+      loggerService,
+      appStateService,
+      messagesInterceptorState,
+      appConfigService,
+    );
+  }
+  return settleStartupFailure(
+    result['error'],
+    translateService,
+    appStateService,
+    messagesInterceptorState,
+  );
+}
+
+function settleStartupFailure(
+  error: unknown,
+  translateService: TranslateService,
+  appStateService: AppStateService,
+  messagesInterceptorState: MessagesInterceptorStateService,
+): Promise<unknown> {
+  if (isBackendUnavailable(error)) {
     messagesInterceptorState.disable();
-    try {
-      const configParams = await firstValueFrom(configurationService.fetchAllItems());
-      const defaultLang = configParams.find(element => element.name === 'language.default');
+    appStateService.setWaitingForBackend(waitingReasonFor(error));
+    return useFallbackLanguage(translateService);
+  }
+  if (isSetupStatusMissing(error)) {
+    recordSetupStatusMismatch(appStateService, error);
+    messagesInterceptorState.enable();
+    return useFallbackLanguage(translateService);
+  }
+  appStateService.setInitializationError(
+    {
+      message: 'Failed to initialize setup status',
+      originalError: error,
+      source: 'setup',
+      timestamp: new Date().toISOString(),
+    },
+    'setup',
+  );
+  messagesInterceptorState.enable();
+  return useFallbackLanguage(translateService);
+}
 
-      if (defaultLang) {
-        config.defaultLang = defaultLang.value;
-      }
+async function applySetupStatus(
+  status: SetupStatus,
+  languageService: LanguageService,
+  translateService: TranslateService,
+  loggerService: LoggerService,
+  appStateService: AppStateService,
+  messagesInterceptorState: MessagesInterceptorStateService,
+  appConfigService: AppConfigService,
+): Promise<unknown> {
+  if (status.defaultLanguage) {
+    config.defaultLang = status.defaultLanguage;
+  }
+  const languages = languageService.languagesFromSetup(status.languages || []);
+  const chosen = resolveUiLanguage({
+    stored: localStorage.getItem('lang'),
+    browser: readBrowserLanguages(),
+    backendDefault: config.defaultLang,
+    availableShortnames: languages.map((language) => language.shortname),
+    staticFallback: appConfigService.getDefaultLanguageFallback() || 'en',
+  });
+  translateService.setFallbackLang(chosen);
+  appStateService.clearWaitingForBackend();
+  messagesInterceptorState.enable();
+  loggerService.debug(
+    `Setup status loaded: firstRun=${status.firstRun}, ${languages.length} languages`,
+  );
+  return firstValueFrom(translateService.use(chosen));
+}
 
-      loggerService.debug(`Configuration initialized: ${configParams.length} parameters loaded`);
-      if (!appStateService.isWaitingForBackend()) {
-        messagesInterceptorState.enable();
-      }
-    } catch (error) {
-      if (isBackendUnavailable(error)) {
-        messagesInterceptorState.disable();
-        appStateService.setWaitingForBackend();
-        return;
-      }
-      const initError = {
-        message: 'Failed to initialize configuration',
-        originalError: error,
-        source: 'configuration',
-        timestamp: new Date().toISOString()
-      };
-      appStateService.setInitializationError(initError, 'configuration');
-      messagesInterceptorState.enable();
-    }
-  };
+function recordSetupStatusMismatch(appStateService: AppStateService, error: unknown): void {
+  appStateService.setInitializationError(
+    {
+      message: 'backend.error.setupStatus',
+      originalError: error,
+      source: 'setup-status',
+      timestamp: new Date().toISOString(),
+    },
+    'setup-status',
+  );
 }
 
 /** The server provided no language. Use the user's choice, then the closest browser language. */

@@ -32,8 +32,13 @@
         <mat-spinner diameter="28" [attr.aria-label]="'backend.waiting.title' | translate"></mat-spinner>
         <div class="waiting-copy">
           <p class="product-title">{{ productTitle }}</p>
-          <h4>{{ 'backend.waiting.title' | translate }}</h4>
-          <p>{{ 'backend.waiting.body' | translate }}</p>
+          @if ((waitingReason$ | async) === 'configuring') {
+            <h4>{{ 'backend.configuring.title' | translate }}</h4>
+            <p>{{ 'backend.configuring.body' | translate }}</p>
+          } @else {
+            <h4>{{ 'backend.waiting.title' | translate }}</h4>
+            <p>{{ 'backend.waiting.body' | translate }}</p>
+          }
         </div>
       </div>
     </mat-card-content>

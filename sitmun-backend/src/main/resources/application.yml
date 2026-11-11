@@ -167,10 +167,12 @@ sitmun:
               where childTerritory member of uc.territory.members)))
         group by app.name
   startup:
-    built-in-users:
-      # Optional. When set, startup writes this password if the admin password is missing.
-      # When unset, a null admin password stays null so first-run can set it.
+    first-run:
+      # Optional. When the admin password is null, startup runs the first-run wizard with these
+      # values. The password must be 8 to 50 characters and must differ from the username.
+      # Remove the variables after /api/dashboard/health is UP.
       admin-password: ${SITMUN_BOOTSTRAP_ADMIN_PASSWORD:}
+      language: ${SITMUN_BOOTSTRAP_LANGUAGE:}
   recover-password:
     front:
       url: "http://localhost:9080"

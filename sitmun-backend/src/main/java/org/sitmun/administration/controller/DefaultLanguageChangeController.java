@@ -5,7 +5,9 @@ import org.sitmun.administration.dto.DefaultLanguageChangePreview;
 import org.sitmun.administration.dto.DefaultLanguageChangeRequest;
 import org.sitmun.administration.dto.DefaultLanguageChangeResult;
 import org.sitmun.administration.service.DefaultLanguageChangeService;
+import org.sitmun.administration.service.FirstRunStartupGate;
 import org.sitmun.administration.service.SetupService;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
@@ -29,11 +31,13 @@ public class DefaultLanguageChangeController {
 
   private final DefaultLanguageChangeService service;
   private final SetupService setupService;
+  private final FirstRunStartupGate gate;
 
   public DefaultLanguageChangeController(
-      DefaultLanguageChangeService service, SetupService setupService) {
+      DefaultLanguageChangeService service, SetupService setupService, FirstRunStartupGate gate) {
     this.service = service;
     this.setupService = setupService;
+    this.gate = gate;
   }
 
   /**
@@ -44,6 +48,11 @@ public class DefaultLanguageChangeController {
    */
   @PostMapping("/change-preview")
   public ResponseEntity<?> preview(@RequestBody PreviewRequest request) {
+    if (!gate.isReady()) {
+      return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+          .header(HttpHeaders.RETRY_AFTER, "2")
+          .body(new SetupController.SetupConfiguringResponse("configuring"));
+    }
     if (!mayPreview()) {
       return ResponseEntity.notFound().build();
     }

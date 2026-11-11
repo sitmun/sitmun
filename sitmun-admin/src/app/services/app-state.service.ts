@@ -4,11 +4,14 @@ import { BehaviorSubject } from 'rxjs';
 
 import { LoggerService } from './logger.service';
 
+export type WaitingReason = 'unreachable' | 'configuring';
+
 export interface AppState {
   hasInitializationError: boolean;
   initializationError?: any;
   isInitialized: boolean;
   waitingForBackend: boolean;
+  waitingReason: WaitingReason;
 }
 
 @Injectable({
@@ -19,6 +22,7 @@ export class AppStateService {
     hasInitializationError: false,
     isInitialized: false,
     waitingForBackend: false,
+    waitingReason: 'unreachable',
   });
 
   public state$ = this.stateSubject.asObservable();
@@ -91,17 +95,23 @@ export class AppStateService {
     return this.stateSubject.value.isInitialized;
   }
 
-  /** The server has not answered yet, so startup will try again. */
-  setWaitingForBackend(): void {
+  /** The server has not answered yet, or it is still applying setup. */
+  setWaitingForBackend(reason: WaitingReason = 'unreachable'): void {
     const currentState = this.stateSubject.value;
-    if (currentState.hasInitializationError || currentState.waitingForBackend) {
+    if (currentState.hasInitializationError) {
+      return;
+    }
+    if (currentState.waitingForBackend && currentState.waitingReason === reason) {
       return;
     }
     this.stateSubject.next({
       ...currentState,
       waitingForBackend: true,
+      waitingReason: reason,
     });
-    this.loggerService.info('Waiting for the server to start');
+    this.loggerService.info(
+      reason === 'configuring' ? 'Waiting while the server configures' : 'Waiting for the server to start',
+    );
   }
 
   clearWaitingForBackend(): void {

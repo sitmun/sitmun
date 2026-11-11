@@ -140,7 +140,6 @@ export class FirstRunComponent implements OnInit, OnDestroy {
     this.firstRunService
       .save({
         language: languageChoice.language || null,
-        continueOnMissingTranslations: true,
         password: password || null,
       })
       .pipe(takeUntil(this.destroy$))

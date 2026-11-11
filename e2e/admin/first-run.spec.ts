@@ -50,8 +50,9 @@ test('saving Catalan and a new password signs the admin out', async ({ page }) =
 
   await page.goto('/#/first-run');
   await expect(page).toHaveURL(/\/#\/login/);
-  const closed = await page.request.get('http://localhost:18080/api/setup/first-run');
-  expect(closed.status()).toBe(404);
+  const closed = await page.request.get('http://localhost:18080/api/setup/status');
+  expect(closed.status()).toBe(200);
+  expect((await closed.json()).firstRun).toBe(false);
 
   await page.locator('[formControlName="username"]').fill('admin');
   await page.locator('[formControlName="password"]').fill('admin');

@@ -199,9 +199,14 @@
       "description": "OIDC providers configuration."
     },
     {
-      "name": "sitmun.startup.built-in-users.admin-password",
+      "name": "sitmun.startup.first-run.admin-password",
       "type": "java.lang.String",
-      "description": "Optional bootstrap password used only to create a missing built-in admin user or restore an empty admin password at startup. Inject via SITMUN_BOOTSTRAP_ADMIN_PASSWORD. No default. Remove after /api/dashboard/health is UP and rotate via the admin UI."
+      "description": "Optional admin password applied by first-run setup when the built-in admin password is null. Inject via SITMUN_BOOTSTRAP_ADMIN_PASSWORD. Must be 8 to 50 characters and differ from the username. No default. Remove after /api/dashboard/health is UP."
+    },
+    {
+      "name": "sitmun.startup.first-run.language",
+      "type": "java.lang.String",
+      "description": "Optional database default language applied with the bootstrap admin password. Inject via SITMUN_BOOTSTRAP_LANGUAGE. An unknown, disabled, or already-current language does not swap translations. Missing translations keep the existing text."
     },
     {
       "name": "sitmun.service-check.enabled",

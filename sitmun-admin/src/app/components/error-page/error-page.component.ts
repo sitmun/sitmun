@@ -17,6 +17,7 @@ export class ErrorPageComponent implements OnInit {
   @Input() errorType: 'initialization' | 'general' = 'general';
   
   errorMessage = '';
+  titleKey = 'backend.error.general.title';
   errorDetails = '';
   showDetails = false;
   loadedData = false;
@@ -36,6 +37,16 @@ export class ErrorPageComponent implements OnInit {
   }
 
   private processError(): void {
+    this.titleKey = this.errorType === 'initialization'
+      ? 'backend.error.initialization.title'
+      : 'backend.error.general.title';
+    if (this.error?.source === 'setup-status') {
+      this.titleKey = 'backend.error.setupStatus.title';
+      this.errorMessage = 'backend.error.setupStatus';
+      this.errorDetails = JSON.stringify(this.error, null, 2);
+      this.loadedData = true;
+      return;
+    }
     if (this.error) {
       if (typeof this.error === 'string') {
         this.errorMessage = this.error;

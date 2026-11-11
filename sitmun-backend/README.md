@@ -464,7 +464,8 @@ Security responses use `application/problem+json` with generic details. Invalid 
 | `SPRING_DATASOURCE_USERNAME`             | Database username | `sa`                                     | Yes (prod) |
 | `SPRING_DATASOURCE_PASSWORD`             | Database password | ``                                       | Yes (prod) |
 | `SITMUN_USER_SECRET`                     | JWT signing secret (min 32 chars; startup-validated) | -                            | Yes |
-| `SITMUN_BOOTSTRAP_ADMIN_PASSWORD`        | Optional plaintext used only to create a missing built-in `admin` or restore an empty admin password at startup. No default. Remove after health is UP and rotate via the admin UI. | - | Only when admin is missing/passwordless |
+| `SITMUN_BOOTSTRAP_ADMIN_PASSWORD`        | Optional admin password applied by first-run setup when the built-in admin password is null. 8 to 50 characters, and not the username. No default. Remove after health is UP. | - | Only when admin is passwordless |
+| `SITMUN_BOOTSTRAP_LANGUAGE`              | Optional database default language applied with the bootstrap password. Unknown, disabled, or already-current values do not swap translations. Missing translations keep the existing text. | - | No |
 | `SITMUN_USER_TOKEN_VALIDITY_IN_MILLISECONDS` | User session JWT validity in milliseconds | `900000` (15 min)                        | No |
 | `SITMUN_USER_COOKIE_MAX_AGE_IN_SECONDS` | Max-Age for viewer/admin session cookies | `900`                                    | No |
 | `SITMUN_USER_MAX_SESSION_DURATION_MILLISECONDS` | Hard cap from `auth_time` for `/api/authenticate/refresh` | `28800000` (8 h)                         | No |
@@ -904,16 +905,16 @@ On every start, `BuiltInUserStartupRepairer` soft-repairs the built-in `admin` a
 - Clears stale `public` personal data/password and deletes `public` positions only.
 - If built-in `admin` still has positions, keeps them and emits a stable warning `admin-has-positions` (remove via admin UI). Health stays `UP` when repair otherwise succeeds.
 - Creates a missing `public` automatically.
-- Creates a missing `admin`, or restores an empty admin password, only when `SITMUN_BOOTSTRAP_ADMIN_PASSWORD` is set. The value is BCrypt-encoded; plaintext is never logged or stored.
+- Creates a missing `admin` with a null password. The password is set only by first-run setup (`POST /api/setup/first-run` or `SITMUN_BOOTSTRAP_ADMIN_PASSWORD`).
 - Never aborts the JVM. `/api/dashboard/health` stays `DOWN` (HTTP 503) until repair succeeds.
-- `/api/dashboard/startup` is a public, read-only diagnostic that returns `{ "state": "ready|blocked|initializing" }`, when blocked a stable `"reason"` such as `admin-missing-bootstrap-password`, and optional `"warnings"` (e.g. `["admin-has-positions"]`). It never exposes secrets, hashes, or exception text. Do not enable global Actuator health details for this purpose — that would leak details from every health contributor.
+- `/api/dashboard/startup` is a public, read-only diagnostic that returns `{ "state": "ready|blocked|initializing" }`, when blocked a stable `"reason"` such as `repair-failed`, and optional `"warnings"` (e.g. `["admin-has-positions"]`). It never exposes secrets, hashes, or exception text. Do not enable global Actuator health details for this purpose — that would leak details from every health contributor.
 - Under the `dev` profile, property dump logging redacts keys containing `password`, `secret`, `token`, or `credential` (including `SITMUN_BOOTSTRAP_ADMIN_PASSWORD`).
 
-Operator sequence when admin is missing or passwordless:
+Operator sequence when the admin password is null:
 
-1. Inject `SITMUN_BOOTSTRAP_ADMIN_PASSWORD` through the deployment secret mechanism (no committed default).
-2. Start the backend and wait for `/api/dashboard/health` to become `UP`. Use `GET /api/dashboard/startup` if you need the stable reason.
-3. Remove the bootstrap secret from deployment configuration.
+1. Inject `SITMUN_BOOTSTRAP_ADMIN_PASSWORD` through the deployment secret mechanism (no committed default). Optionally set `SITMUN_BOOTSTRAP_LANGUAGE`.
+2. Start the backend and wait for `/api/dashboard/health` to become `UP`. Setup endpoints return 503 `{ "status": "configuring" }` until that startup step finishes.
+3. Remove the bootstrap variables from deployment configuration.
 4. Rotate the password through the normal admin UI.
 
 #### Actuator Endpoints

@@ -196,6 +196,21 @@ describe('LanguageService', () => {
     });
   });
 
+  describe('languagesFromSetup', () => {
+    it('gives each setup language the self link a relation save expects', () => {
+      mockResourceService.getResourceUrl.mockImplementation((resource?: string) =>
+        resource ? `http://localhost:8080/api/${resource}` : 'http://localhost:8080/api',
+      );
+      const languages = service.languagesFromSetup([
+        { id: 2, shortname: 'es', name: 'Castellano', order: 2 },
+      ]);
+
+      expect(languages).toHaveLength(1);
+      expect(languages[0].shortname).toBe('es');
+      expect(languages[0]._links.self.href).toBe('http://localhost:8080/api/languages/2');
+    });
+  });
+
   describe('dead language admin APIs (must stay absent)', () => {
     it('does not expose reorder or setDefault helpers', () => {
       expect(service).not.toHaveProperty('reorder');

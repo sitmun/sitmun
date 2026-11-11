@@ -82,6 +82,15 @@ describe('ErrorPageComponent', () => {
     });
   });
 
+  it('explains a setup status version mismatch', () => {
+    component.error = { source: 'setup-status', error: { message: 'backend.error.setupStatus' } };
+    component.errorType = 'initialization';
+    component.ngOnInit();
+
+    expect(component.errorMessage).toBe('backend.error.setupStatus');
+    expect(component.titleKey).toBe('backend.error.setupStatus.title');
+  });
+
   it('should toggle details visibility', () => {
     expect(component.showDetails).toBeFalsy();
     
