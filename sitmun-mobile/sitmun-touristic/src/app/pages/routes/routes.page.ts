@@ -1,13 +1,15 @@
 import { Component, OnInit, ChangeDetectionStrategy } from "@angular/core";
+
+import { LoadingController } from "@ionic/angular";
+
 import {
   AuthorizationService,
   Node,
 } from "src/app/services/authorization.service";
-import { RoutingService } from "src/app/services/routing.service";
+import { DatabaseService } from "src/app/services/database.service";
 import { LanguageService } from "src/app/services/language.service";
 import { RequestService } from "src/app/services/request.service";
-import { DatabaseService } from "src/app/services/database.service";
-import { LoadingController } from "@ionic/angular";
+import { RoutingService } from "src/app/services/routing.service";
 
 @Component({
   selector: "app-routes",
@@ -27,7 +29,7 @@ export class RoutesPage implements OnInit {
   isModalOpen = false;
   isModalOpenImg = false;
   currentExtraInfo = { title: "", content: "" };
-  imageModal: String = "";
+  imageModal: string = "";
   loaded = false;
   arraySkeleton: any[] = new Array(3);
 
@@ -51,9 +53,9 @@ export class RoutesPage implements OnInit {
   }
 
   getParams() {
-    let navigation = window.history;
+    const navigation = window.history;
     if (navigation) {
-      let tempState = navigation.state;
+      const tempState = navigation.state;
       if (tempState) {
         this.rootNode = tempState["rootNode"];
         this.taskNode = tempState["taskNodes"][0];
@@ -85,7 +87,7 @@ export class RoutesPage implements OnInit {
     const idCat = Number(this.rootNode.id.split("/")[1]);
     const idNode = Number(this.taskNode.id.split("/")[1]);
     const idTask = Number(this.task.id.split("/")[1]);
-    for (let e of this.elements) {
+    for (const e of this.elements) {
       e["isFav"] =
         favorites.findIndex(
           (fav) =>
@@ -185,13 +187,15 @@ export class RoutesPage implements OnInit {
     this.loadingCtrl.dismiss();
   }
 
-  isValidHref(href: String): boolean {
+  isValidHref(href: string): boolean {
+    if (!href) {
+      return false;
+    }
     return (
-      href &&
-      (href.startsWith("tel:") ||
-        href.startsWith("mailto:") ||
-        href.startsWith("http://") ||
-        href.startsWith("https://"))
+      href.startsWith("tel:") ||
+      href.startsWith("mailto:") ||
+      href.startsWith("http://") ||
+      href.startsWith("https://")
     );
   }
 
@@ -235,7 +239,7 @@ export class RoutesPage implements OnInit {
     this.isModalOpenImg = false;
   }
 
-  openModalImg(event: Event, image: String | undefined) {
+  openModalImg(event: Event, image: string | undefined) {
     event.stopPropagation();
     this.imageModal = image || "";
     this.isModalOpenImg = true;

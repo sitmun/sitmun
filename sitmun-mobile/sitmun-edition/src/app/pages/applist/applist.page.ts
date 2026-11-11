@@ -5,7 +5,13 @@ import {
   ChangeDetectionStrategy,
 } from "@angular/core";
 import { NavigationExtras, Router } from "@angular/router";
+
+import { AnimationController, ToastController } from "@ionic/angular";
+
+import { Filesystem, Directory } from "@capacitor/filesystem";
+
 import { applicationListLabel } from "src/app/application-list-label";
+import { ProfileModalComponent } from "src/app/components/profile-modal/profile-modal.component";
 import { AuthorizationService } from "src/app/services/authorization.service";
 import { DatabaseService } from "src/app/services/database.service";
 import { LanguageService } from "src/app/services/language.service";
@@ -14,9 +20,7 @@ import {
   SessionExpiredError,
 } from "src/app/services/login.service";
 import { NetworkService } from "src/app/services/network.service";
-import { Filesystem, Directory } from "@capacitor/filesystem";
-import { AnimationController, ToastController } from "@ionic/angular";
-import { ProfileModalComponent } from "src/app/components/profile-modal/profile-modal.component";
+
 
 @Component({
   selector: "app-applist",
@@ -90,7 +94,7 @@ export class ApplistPage implements OnInit {
     this.applications = await this.databaseService.getApps();
   }
 
-  async getTerritoriesByApp(idApp: Number) {
+  async getTerritoriesByApp(idApp: number) {
     try {
       if (this.networkConnected) {
         this.territories =

@@ -1,21 +1,24 @@
 import { Injectable } from '@angular/core';
+
 import { CapacitorHttp } from '@capacitor/core';
-import { InstancesService } from './instances.service';
-import { LanguageService } from './language.service';
-import { DatabaseService } from './database.service';
+
 import { constants } from 'src/environments/constants';
 
+import { DatabaseService } from './database.service';
+import { InstancesService } from './instances.service';
+import { LanguageService } from './language.service';
+
 export interface Node {
-  uri: String;
+  uri: string;
   title: string;
-  description: String;
-  resource: String;
-  action: String;
-  isRadio: Boolean;
-  loadData: Boolean;
+  description: string;
+  resource: string;
+  action: string;
+  isRadio: boolean;
+  loadData: boolean;
   type: string;
-  viewMode: String;
-  image: String;
+  viewMode: string;
+  image: string;
   order: number;
   children: string[];
   mapping: any,
@@ -24,8 +27,8 @@ export interface Node {
 
 export interface Tree {
   id: string;
-  title: String;
-  image: String;
+  title: string;
+  image: string;
   type: string;
   rootNode: string;
   nodes: Record<string, Node>;
@@ -68,7 +71,7 @@ export class AuthorizationService {
     return this.request(options, this.filterCallback.bind(this));
   }
 
-  async getTerritoryByApp(idApp: Number) {
+  async getTerritoryByApp(idApp: number) {
     const url = `${this.instancesService.authorizationUrl}/api/config/client/application/${idApp}/territories`;
     const options = {
       url,
@@ -209,7 +212,7 @@ export class AuthorizationService {
           params = this.transformTask(profile.tasks, rootNode, taskNodes);
         } else {
           const nodeIds = rootNode['children'];
-          let nodes: Node[] = [];
+          const nodes: Node[] = [];
           if (nodeIds) {
             nodeIds.forEach(k => {
               const n = touristicTree.nodes[k];

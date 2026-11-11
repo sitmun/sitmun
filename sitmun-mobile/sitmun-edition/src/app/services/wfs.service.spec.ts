@@ -1,6 +1,9 @@
-import { CapacitorHttp } from '@capacitor/core';
 import { TestBed } from '@angular/core/testing';
+
+import { CapacitorHttp } from '@capacitor/core';
+
 import { create } from 'xmlbuilder2';
+
 import { InstancesService } from './instances.service';
 import { LoginService } from './login.service';
 import { WfsService } from './wfs.service';

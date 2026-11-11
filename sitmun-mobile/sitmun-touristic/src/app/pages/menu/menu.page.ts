@@ -1,14 +1,16 @@
 import { Component, ChangeDetectionStrategy } from "@angular/core";
 import { ActivatedRoute, Router } from "@angular/router";
+
+import { LoadingController } from "@ionic/angular";
+
 import {
   AuthorizationService,
   Node,
 } from "src/app/services/authorization.service";
-import { RoutingService } from "src/app/services/routing.service";
-import { LanguageService } from "src/app/services/language.service";
 import { DatabaseService } from "src/app/services/database.service";
+import { LanguageService } from "src/app/services/language.service";
+import { RoutingService } from "src/app/services/routing.service";
 import { constants } from "src/environments/constants";
-import { LoadingController } from "@ionic/angular";
 
 @Component({
   selector: "app-menu",
@@ -34,9 +36,9 @@ export class MenuPage {
     private loadingCtrl: LoadingController,
   ) {
     this.route.queryParams.subscribe((params) => {
-      let navigation = this.router.getCurrentNavigation();
+      const navigation = this.router.getCurrentNavigation();
       if (navigation) {
-        let tempState = navigation.extras.state;
+        const tempState = navigation.extras.state;
         if (tempState && tempState["rootNode"] && tempState["nodes"]) {
           this.rootNode = tempState["rootNode"];
           this.nodes = tempState["nodes"];

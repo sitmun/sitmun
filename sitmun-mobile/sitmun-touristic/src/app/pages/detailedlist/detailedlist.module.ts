@@ -1,13 +1,13 @@
-import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { NgModule } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 import { IonicModule } from '@ionic/angular';
 
-import { DetailedlistPageRoutingModule } from './detailedlist-routing.module';
-
-import { DetailedlistPage } from './detailedlist.page';
 import { TranslatePipe } from '@ngx-translate/core';
+
+import { DetailedlistPageRoutingModule } from './detailedlist-routing.module';
+import { DetailedlistPage } from './detailedlist.page';
 
 @NgModule({
   imports: [

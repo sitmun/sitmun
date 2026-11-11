@@ -1,15 +1,17 @@
 import { Component, OnInit, ChangeDetectionStrategy } from "@angular/core";
 import { ActivatedRoute, Router } from "@angular/router";
+
+import { LoadingController } from "@ionic/angular";
+
 import {
   AuthorizationService,
   Node,
 } from "src/app/services/authorization.service";
-import { RoutingService } from "src/app/services/routing.service";
-import { LanguageService } from "src/app/services/language.service";
-import { RequestService } from "src/app/services/request.service";
 import { DatabaseService } from "src/app/services/database.service";
+import { LanguageService } from "src/app/services/language.service";
 import { MapaService } from "src/app/services/mapa.service";
-import { LoadingController } from "@ionic/angular";
+import { RequestService } from "src/app/services/request.service";
+import { RoutingService } from "src/app/services/routing.service";
 
 @Component({
   selector: "app-events",
@@ -58,9 +60,9 @@ export class EventsPage implements OnInit {
     this.filters["enddate"] = this.getNext15();
     this.locale = this.languageService.getLocale();
     this.route.queryParams.subscribe((params) => {
-      let navigation = this.router.getCurrentNavigation();
+      const navigation = this.router.getCurrentNavigation();
       if (navigation) {
-        let tempState = navigation.extras.state;
+        const tempState = navigation.extras.state;
         if (tempState) {
           this.rootNode = tempState["rootNode"];
           this.taskNodes = tempState["taskNodes"];
@@ -289,7 +291,7 @@ export class EventsPage implements OnInit {
     const idCat = Number(this.rootNode.id.split("/")[1]);
     const idNode = Number(this.eventsNode.id.split("/")[1]);
     const idTask = Number(this.eventsTask.id.split("/")[1]);
-    for (let e of this.events) {
+    for (const e of this.events) {
       e["isFav"] =
         favorites.findIndex((fav) => {
           return (

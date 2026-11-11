@@ -1,15 +1,19 @@
 import { Injectable } from '@angular/core';
+
 import { CapacitorHttp, HttpOptions } from '@capacitor/core';
-import uriTemplate from 'uri-templates';
+
 import * as jp from 'jsonpath';
-import * as xpath from 'xpath';
-import * as xmldom from 'xmldom';
-import { MapaService } from './mapa.service';
+import { environment } from 'src/environments/environment';
+import uriTemplate from 'uri-templates';
 import { create } from 'xmlbuilder2';
 import { XMLBuilder } from 'xmlbuilder2/lib/interfaces';
+import * as xmldom from 'xmldom';
+import * as xpath from 'xpath';
+
 import { DatabaseService } from './database.service';
-import { environment } from 'src/environments/environment';
 import { LanguageService } from './language.service';
+import { MapaService } from './mapa.service';
+
 
 @Injectable({
   providedIn: 'root'
@@ -221,7 +225,7 @@ export class RequestService {
     } else {
       prop = prop.substring(prop.lastIndexOf('/') + 1);
     }
-    let doc = create()
+    const doc = create()
     .ele('ogc:Filter', {
       'xmlns:ogc': 'http://www.opengis.net/ogc'
     });

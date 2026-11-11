@@ -1,7 +1,9 @@
 import { Component, OnInit, ChangeDetectionStrategy } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { Router } from "@angular/router";
+
 import { AnimationController, IonicModule } from "@ionic/angular";
+
 import { TranslatePipe } from "@ngx-translate/core";
 import { DatabaseService } from "src/app/services/database.service";
 import { LanguageService } from "src/app/services/language.service";

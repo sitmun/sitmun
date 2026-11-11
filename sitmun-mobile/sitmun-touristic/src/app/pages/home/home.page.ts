@@ -4,20 +4,23 @@ import {
   OnDestroy,
   ChangeDetectionStrategy,
 } from "@angular/core";
-import { InstancesService } from "src/app/services/instances.service";
-import { AuthorizationService } from "src/app/services/authorization.service";
-import { RoutingService } from "src/app/services/routing.service";
+
 import { AlertController, LoadingController, Platform } from "@ionic/angular";
-import { LanguageService } from "src/app/services/language.service";
-import { DatabaseService } from "src/app/services/database.service";
-import { Geolocation, PermissionStatus } from "@capacitor/geolocation";
+
 import { App } from "@capacitor/app";
+import { Geolocation, PermissionStatus } from "@capacitor/geolocation";
+
 import {
   NativeSettings,
   AndroidSettings,
   IOSSettings,
 } from "capacitor-native-settings";
 import { firstValueFrom } from "rxjs";
+import { AuthorizationService } from "src/app/services/authorization.service";
+import { DatabaseService } from "src/app/services/database.service";
+import { InstancesService } from "src/app/services/instances.service";
+import { LanguageService } from "src/app/services/language.service";
+import { RoutingService } from "src/app/services/routing.service";
 
 const LABELS: Record<string, string> = {
   title: "exit.title",

@@ -6,12 +6,12 @@ import {
   Provider,
   Type,
 } from '@angular/core';
-import { FormsModule } from '@angular/forms';
 import {
   getTestBed,
   TestBed,
   TestModuleMetadata,
 } from '@angular/core/testing';
+import { FormsModule } from '@angular/forms';
 import {
   BrowserDynamicTestingModule,
   platformBrowserDynamicTesting,
@@ -21,6 +21,7 @@ import { RouterTestingModule } from '@angular/router/testing';
 import { IonicModule } from '@ionic/angular';
 import { TranslateNoOpLoader, TranslatePipe, provideTranslateLoader, provideTranslateService } from '@ngx-translate/core';
 import { of } from 'rxjs';
+
 import { DatabaseService } from '../app/services/database.service';
 import { MapaService } from '../app/services/mapa.service';
 import { RequestService } from '../app/services/request.service';

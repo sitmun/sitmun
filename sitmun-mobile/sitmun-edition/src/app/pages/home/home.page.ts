@@ -4,14 +4,16 @@ import {
   OnDestroy,
   ChangeDetectionStrategy,
 } from "@angular/core";
+import { FormBuilder, FormGroup, Validators } from "@angular/forms";
+import { Router } from "@angular/router";
+
 import { AlertController, Platform } from "@ionic/angular";
+
+import { AuthorizationService } from "src/app/services/authorization.service";
+import { DatabaseService } from "src/app/services/database.service";
 import { LanguageService } from "src/app/services/language.service";
 import { LoginService } from "src/app/services/login.service";
-import { Router } from "@angular/router";
-import { DatabaseService } from "src/app/services/database.service";
-import { FormBuilder, FormGroup, Validators } from "@angular/forms";
 import { NetworkService } from "src/app/services/network.service";
-import { AuthorizationService } from "src/app/services/authorization.service";
 
 const LABELS: Record<string, string> = {
   title: "exit.title",
@@ -35,9 +37,9 @@ export class HomePage implements OnInit, OnDestroy {
   networkConnected = true;
   loginForm: FormGroup;
   loginusers: any[] = [];
-  offline = {
-    instances: new Array(),
-    users: new Array(),
+  offline: { instances: any[]; users: any[] } = {
+    instances: [],
+    users: [],
   };
   loginError = false;
   errorMsgKey = "";

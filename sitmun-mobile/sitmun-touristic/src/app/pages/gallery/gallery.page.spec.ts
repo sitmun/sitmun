@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+
 import { GalleryPage } from './gallery.page';
 
 describe('GalleryPage', () => {

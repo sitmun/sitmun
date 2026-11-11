@@ -1,4 +1,3 @@
-import { paths } from "jsonpath";
 
 export const constants = {
     codeValue: {

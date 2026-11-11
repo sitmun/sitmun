@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+
 import { DatabaseService } from './database.service';
 import { exactOrigin } from './trusted-origin.util';
 

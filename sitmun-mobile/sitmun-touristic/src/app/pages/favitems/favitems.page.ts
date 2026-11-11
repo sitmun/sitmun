@@ -1,10 +1,13 @@
 import { Component, OnInit, ChangeDetectionStrategy } from "@angular/core";
 import { ActivatedRoute, Router } from "@angular/router";
-import { RoutingService } from "src/app/services/routing.service";
-import { LanguageService } from "src/app/services/language.service";
-import { DatabaseService } from "src/app/services/database.service";
-import { AuthorizationService } from "src/app/services/authorization.service";
+
 import { LoadingController, Platform } from "@ionic/angular";
+
+import { AuthorizationService } from "src/app/services/authorization.service";
+import { DatabaseService } from "src/app/services/database.service";
+import { LanguageService } from "src/app/services/language.service";
+import { RoutingService } from "src/app/services/routing.service";
+
 
 @Component({
   selector: "app-favitems",
@@ -19,7 +22,7 @@ export class FavitemsPage implements OnInit {
   category: any = {};
   favorites: any[] = [];
   isModalOpen = false;
-  imageModal: String = "";
+  imageModal: string = "";
 
   constructor(
     private router: Router,
@@ -32,9 +35,9 @@ export class FavitemsPage implements OnInit {
     private loadingCtrl: LoadingController,
   ) {
     this.route.queryParams.subscribe((params) => {
-      let navigation = this.router.getCurrentNavigation();
+      const navigation = this.router.getCurrentNavigation();
       if (navigation) {
-        let tempState = navigation.extras.state;
+        const tempState = navigation.extras.state;
         if (tempState) {
           this.category = tempState["category"];
         }
@@ -146,7 +149,7 @@ export class FavitemsPage implements OnInit {
     this.isModalOpen = false;
   }
 
-  openModal(event: Event, image: String | undefined) {
+  openModal(event: Event, image: string | undefined) {
     event.stopPropagation();
     this.imageModal = image || "";
     this.isModalOpen = true;

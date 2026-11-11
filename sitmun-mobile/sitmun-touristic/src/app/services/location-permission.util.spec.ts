@@ -1,4 +1,5 @@
 import { AndroidSettings, IOSSettings } from 'capacitor-native-settings';
+
 import { nativeLocationSettings, readDeviceLocation } from './location-permission.util';
 
 describe('location-permission.util', () => {

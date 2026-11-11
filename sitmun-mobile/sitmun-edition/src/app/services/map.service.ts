@@ -1,15 +1,21 @@
 import { Injectable } from '@angular/core';
-import { Geolocation } from '@capacitor/geolocation';
+
 import { ToastController } from '@ionic/angular';
-import { LanguageService } from './language.service';
-import { locationFromFix, locationRequestOptions } from './location-fix';
+
 import { Filesystem, Directory } from '@capacitor/filesystem';
+import { Geolocation } from '@capacitor/geolocation';
+
 import { FeatureInfoService } from './feature-info.service';
 import { InstancesService } from './instances.service';
+import { LanguageService } from './language.service';
+import { locationFromFix, locationRequestOptions } from './location-fix';
 import { resolveAgainstBase } from './trusted-origin.util';
 
+// eslint-disable-next-line no-var -- ambient global shared across modules
 declare var M: any;
+// eslint-disable-next-line no-var -- ambient global shared across modules
 declare var ol: any;
+// eslint-disable-next-line no-var -- ambient global shared across modules
 declare var cordova: any;
 
 
@@ -217,9 +223,9 @@ export class MapService {
     const layers: any[] = profile.layers;
     const services: any[] = profile.services;
     const mapBg: any[] = [];
-    for(let b of backgrounds) {
-      let group = groups.find(g => g.id === b.id);
-      let bg = this.createMapBackground(group, layers, services);
+    for(const b of backgrounds) {
+      const group = groups.find(g => g.id === b.id);
+      const bg = this.createMapBackground(group, layers, services);
       mapBg.push(bg);
     }
     this.createBackgroundPlugin(mapa, mapBg);
@@ -282,8 +288,8 @@ export class MapService {
   private createBackgroundLayers(group: any, layers: any[], services: any[]) {
     const bgLayers = [];
     const filteredLayers = layers.filter(l => group.layers.includes(l.id));
-    for(let l of filteredLayers) {
-      let serviceData = services.find(s => s.id === l.service);
+    for(const l of filteredLayers) {
+      const serviceData = services.find(s => s.id === l.service);
       const bgLayer = this.createLayer(serviceData, l, true);
       bgLayers.push(bgLayer);
     }
@@ -333,7 +339,7 @@ export class MapService {
   }
 
   createLayer(service: any, layer: any, base: boolean = false) {
-    let layerOptions = {
+    const layerOptions = {
       url: layer.url || service.url,
       name: layer.layers[0],
       legend: layer.title,
@@ -352,7 +358,7 @@ export class MapService {
 
   async createLayerByTask(task: any) {
     const middlewareBase = await this.instancesService.getMiddlewareBaseUrl();
-    let layerOptions = {
+    const layerOptions = {
       url: resolveAgainstBase(task.url, middlewareBase),
       name: task.parameters.typename.value,
       isBase: false,

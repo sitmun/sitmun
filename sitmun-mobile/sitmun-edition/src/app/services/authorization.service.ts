@@ -1,5 +1,7 @@
 import { Injectable } from '@angular/core';
+
 import { CapacitorHttp } from '@capacitor/core';
+
 import { InstancesService } from './instances.service';
 import { LoginService, SessionExpiredError } from './login.service';
 import { authHeadersForUrl } from './trusted-origin.util';
@@ -33,7 +35,7 @@ export class AuthorizationService {
     return this.request(options, this.filterCallback.bind(this));
   }
 
-  async getTerritoriesByApp(idApp: Number) {
+  async getTerritoriesByApp(idApp: number) {
     const url = (await this.instancesServices.getInstanceUrl())
       .concat(`/api/config/client/application/${idApp}/territories`);
     const options = {
@@ -48,7 +50,7 @@ export class AuthorizationService {
     return this.request(options, this.basicCallback);
   }
 
-  async getProfile(idApp: Number, idTer: Number) {
+  async getProfile(idApp: number, idTer: number) {
     this.instancesServices.setAppTerritory(idApp as number, idTer as number);
     const url = (await this.instancesServices.getInstanceUrl())
       .concat(`/api/config/client/profile/${idApp}/${idTer}`);

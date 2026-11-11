@@ -1,5 +1,7 @@
 import { TestBed } from '@angular/core/testing';
+
 import { environment } from 'src/environments/environment';
+
 import { DatabaseService } from './database.service';
 import { InstancesService } from './instances.service';
 import { LoginService, SessionExpiredError } from './login.service';

@@ -1,3 +1,4 @@
+import { Location } from "@angular/common";
 import {
   ChangeDetectorRef,
   Component,
@@ -5,25 +6,29 @@ import {
   ViewChild,
   ChangeDetectionStrategy,
 } from "@angular/core";
-import { Location } from "@angular/common";
-import { applicationListLabel } from "src/app/application-list-label";
-import { LanguageService } from "src/app/services/language.service";
 import { Router, ActivatedRoute, NavigationExtras } from "@angular/router";
-import { AuthorizationService } from "src/app/services/authorization.service";
-import { WfsService } from "src/app/services/wfs.service";
-import { TreeNode, TreeviewService } from "src/app/services/treeview.service";
-import { NetworkService } from "src/app/services/network.service";
-import { DatabaseService } from "src/app/services/database.service";
+
 import { LoadingController, ToastController } from "@ionic/angular";
-import { ProxyService } from "src/app/services/proxy.service";
+
 import { Filesystem, Directory } from "@capacitor/filesystem";
-import { InstancesService } from "src/app/services/instances.service";
-import { MapService } from "src/app/services/map.service";
-import { resolveAgainstBase } from "src/app/services/trusted-origin.util";
+
 import { CommunityDevice } from "@capacitor-community/device";
+import { applicationListLabel } from "src/app/application-list-label";
 import { ProfileModalComponent } from "src/app/components/profile-modal/profile-modal.component";
+import { AuthorizationService } from "src/app/services/authorization.service";
+import { DatabaseService } from "src/app/services/database.service";
+import { InstancesService } from "src/app/services/instances.service";
+import { LanguageService } from "src/app/services/language.service";
+import { MapService } from "src/app/services/map.service";
+import { NetworkService } from "src/app/services/network.service";
+import { ProxyService } from "src/app/services/proxy.service";
+import { TreeNode, TreeviewService } from "src/app/services/treeview.service";
+import { resolveAgainstBase } from "src/app/services/trusted-origin.util";
+import { WfsService } from "src/app/services/wfs.service";
+
 import { groupMbtilesServices } from "./mbtiles-service-groups";
 
+// eslint-disable-next-line no-var -- ambient global shared across modules
 declare var ol: any;
 
 @Component({

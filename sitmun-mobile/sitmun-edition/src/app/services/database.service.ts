@@ -1,7 +1,10 @@
 import { Injectable } from '@angular/core';
-import { SQLiteDBConnection } from '@capacitor-community/sqlite';
-import { SQLiteService } from './sqlite.service';
+
 import { Capacitor } from '@capacitor/core';
+
+import { SQLiteDBConnection } from '@capacitor-community/sqlite';
+
+import { SQLiteService } from './sqlite.service';
 
 @Injectable({
   providedIn: 'root'
@@ -17,7 +20,7 @@ export class DatabaseService {
 
   async loadConnection(name: string) {
     try {
-      let isConnection = await this.sqlite.isConnection(name);
+      const isConnection = await this.sqlite.isConnection(name);
       if (isConnection.result) {
         console.log("Obteniendo conexion");
         this.db = await this.sqlite.retrieveConnection(name);
@@ -530,7 +533,7 @@ export class DatabaseService {
     }
   }
 
-  async getTerritoriesByApp(idApp: Number) {
+  async getTerritoriesByApp(idApp: number) {
     await this.loadConnection(this.dbUser);
     const statement = 'SELECT * FROM territory WHERE id_app = ?';
     const values = [idApp];
@@ -552,7 +555,7 @@ export class DatabaseService {
     }
   }
 
-  async getLayersByApp(idApp: Number) {
+  async getLayersByApp(idApp: number) {
     await this.loadConnection(this.dbUser);
     const statement = 'SELECT * FROM layers WHERE id_app = ?';
     const values = [idApp];
@@ -576,7 +579,7 @@ export class DatabaseService {
   }
 
 
-  async getLayersByAppAndTer(idApp: Number, idTer: number) {
+  async getLayersByAppAndTer(idApp: number, idTer: number) {
     await this.loadConnection(this.dbUser);
     const statement = 'SELECT * FROM layers WHERE id_app = ? AND id_ter = ?';
     const values = [idApp, idTer];
@@ -599,7 +602,7 @@ export class DatabaseService {
     }
   }
 
-   async getbgLayerByAppAndTer(idApp: Number, idTer: number) {
+   async getbgLayerByAppAndTer(idApp: number, idTer: number) {
     await this.loadConnection(this.dbUser);
     const statement = 'SELECT * FROM bgLayers WHERE id_app = ? AND id_ter = ?';
     const values = [idApp, idTer];
@@ -622,7 +625,7 @@ export class DatabaseService {
     }
   }
 
-  async getEditionsByAppAndTer(idApp: Number, idTer: number) {
+  async getEditionsByAppAndTer(idApp: number, idTer: number) {
     await this.loadConnection(this.dbUser);
     const statement = 'SELECT * FROM featureEditions WHERE id_app = ? AND id_ter = ?';
     const values = [idApp, idTer];
@@ -645,7 +648,7 @@ export class DatabaseService {
     }
   }
 
-  async deleteAllEditions(idApp: Number, idTer: number) {
+  async deleteAllEditions(idApp: number, idTer: number) {
     await this.loadConnection(this.dbUser);
     const statement = 'DELETE FROM featureEditions WHERE id_app = ? AND id_ter = ?';
     const values = [idApp, idTer];
@@ -662,7 +665,7 @@ export class DatabaseService {
     }
   }
 
-  async deleteEditionsByLayer(idApp: Number, idTer: number, layerId: string) {
+  async deleteEditionsByLayer(idApp: number, idTer: number, layerId: string) {
     await this.loadConnection(this.dbUser);
     const statement = 'DELETE FROM featureEditions WHERE id_app = ? AND id_ter = ? AND id_layer = ?';
     const values = [idApp, idTer, layerId];
@@ -714,7 +717,7 @@ export class DatabaseService {
     }
   }
 
-  async deleteLayersByAppAndTer(idApp: Number, idTer: number) {
+  async deleteLayersByAppAndTer(idApp: number, idTer: number) {
     await this.loadConnection(this.dbUser);
     const statement = 'DELETE FROM layers WHERE id_app = ? AND id_ter = ?';
     const values = [idApp, idTer];

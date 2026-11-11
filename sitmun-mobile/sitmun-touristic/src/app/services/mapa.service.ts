@@ -1,13 +1,19 @@
 import { Injectable } from '@angular/core';
-import { Geolocation } from '@capacitor/geolocation';
-import { DatabaseService } from './database.service';
-import { constants } from 'src/environments/constants';
+
 import { ToastController } from '@ionic/angular';
-import { LanguageService } from './language.service';
+
+import { Geolocation } from '@capacitor/geolocation';
+
+import { constants } from 'src/environments/constants';
+
+import { DatabaseService } from './database.service';
 import { FeatureInfoService } from './feature-info.service';
+import { LanguageService } from './language.service';
 import { readDeviceLocation } from './location-permission.util';
 
+// eslint-disable-next-line no-var -- ambient global shared across modules
 declare var M: any;
+// eslint-disable-next-line no-var -- ambient global shared across modules
 declare var ol: any;
 
 @Injectable({
@@ -38,10 +44,10 @@ export class MapaService {
 
   async applyMapDataFromProfile(mapa: any) {
     const application = JSON.parse((await this.databaseService.getProfileData('application'))[0].json);
-    let srs = application.srs;
+    const srs = application.srs;
     let center = [application.pointOfInterest.x, application.pointOfInterest.y];
     let bbox = application.initialExtent;
-    let zoom = application.defaultZoomLevel;
+    const zoom = application.defaultZoomLevel;
     center = ol.proj.transform(center, srs, 'EPSG:3857');
     const bboxMin = ol.proj.transform([bbox[0], bbox[1]], srs, 'EPSG:3857');
     const bboxMax = ol.proj.transform([bbox[2], bbox[3]], srs, 'EPSG:3857');
@@ -67,9 +73,9 @@ export class MapaService {
   private applyMapBackgrounds(mapa: any, backgrounds: any[], groups: any[], layers: any[], services: any[]) {
     if (backgrounds && backgrounds.length > 0) {
       const mapBg: any[] = [];
-      for(let b of backgrounds) {
-        let group = groups.find(g => g.id === b.id);
-        let bg = this.createMapBackground(group, layers, services);
+      for(const b of backgrounds) {
+        const group = groups.find(g => g.id === b.id);
+        const bg = this.createMapBackground(group, layers, services);
         mapBg.push(bg);
       }
       this.createBackgroundPlugin(mapa, mapBg);
@@ -85,12 +91,12 @@ export class MapaService {
         const children = treeNodes[rootNode].children;
         children.forEach((c: string) => {
           const node = treeNodes[c];
-          let MLayer = this.processCartographyNode(node, treeNodes, layers, services, activeLayer);          
+          const MLayer = this.processCartographyNode(node, treeNodes, layers, services, activeLayer);          
           mapa.addLayers(MLayer);
         });
       } else {
         const node = treeNodes[rootNode];
-        let MLayer = this.processCartographyNode(node, treeNodes, layers, services, activeLayer);
+        const MLayer = this.processCartographyNode(node, treeNodes, layers, services, activeLayer);
         mapa.addLayers(MLayer);
       }
       this.createTOCPlugin(mapa, cartographyTree.title);
@@ -118,7 +124,7 @@ export class MapaService {
       const children = node.children;
       children.forEach((c: string) => {
         const node = treeNodes[c];
-        let MLayer = this.processCartographyNode(node, treeNodes, layers, services, activeLayer);
+        const MLayer = this.processCartographyNode(node, treeNodes, layers, services, activeLayer);
         groupOpts.layers.push(MLayer);
       });
       result = new M.layer.LayerGroup(groupOpts);
@@ -197,8 +203,8 @@ export class MapaService {
   private createBackgroundLayers(group: any, layers: any[], services: any[]) {
     const bgLayers = [];
     const filteredLayers = layers.filter(l => group.layers.includes(l.id));
-    for(let l of filteredLayers) {
-      let serviceData = services.find(s => s.id === l.service);
+    for(const l of filteredLayers) {
+      const serviceData = services.find(s => s.id === l.service);
       const bgLayer = this.createLayer(serviceData, l, true);
       bgLayers.push(bgLayer);
     }
@@ -206,7 +212,7 @@ export class MapaService {
   }
 
   createLayer(service: any, layer: any, node: any, base: boolean = false) {
-    let layerOptions = {
+    const layerOptions = {
       url: service.url,
       name: layer.layers[0],
       legend: node.title,
@@ -256,7 +262,7 @@ export class MapaService {
     return feature;
   }
 
-  createFeatureByGeoJson(jsonGeom: Object, geomProj: string, mapProj: string) {
+  createFeatureByGeoJson(jsonGeom: object, geomProj: string, mapProj: string) {
     const feature = new M.Feature();
     feature.setGeometry(jsonGeom);
     feature.getImpl().getOLFeature().getGeometry().transform(geomProj, mapProj);
@@ -264,7 +270,7 @@ export class MapaService {
   }
 
   async getLocation() {
-    let position = {x: 4, y: 40, permission: false};
+    const position = {x: 4, y: 40, permission: false};
     try {
       const device = await readDeviceLocation(Geolocation);
       if (device.permission) {
@@ -325,7 +331,7 @@ export class MapaService {
   }
 
   async getLocationByProj(proj: string) {
-    let position: any = await this.getLocation();
+    const position: any = await this.getLocation();
     if (position) {
       const coords = this.transformCoords([position.x, position.y], 'EPSG:4326', proj);
       position.x = coords[0];
@@ -339,7 +345,7 @@ export class MapaService {
     return result;
   }
 
-  calculateCoordsByBuffer(projection: string = 'EPSG:4326', buffer: Number = 1000) {
+  calculateCoordsByBuffer(projection: string = 'EPSG:4326', buffer: number = 1000) {
     const dist = [buffer, buffer];
     const dif = ol.proj.transform(dist, 'EPSG:3857', projection);
     return dif;
