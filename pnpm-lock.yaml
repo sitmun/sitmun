@@ -338,6 +338,9 @@ catalogs:
     uri-templates:
       specifier: 0.2.0
       version: 0.2.0
+    url-template:
+      specifier: 3.1.1
+      version: 3.1.1
     webpack:
       specifier: 5.112.2
       version: 5.112.2
@@ -1068,7 +1071,7 @@ importers:
         specifier: 'catalog:'
         version: 2.8.1
       url-template:
-        specifier: 3.1.1
+        specifier: 'catalog:'
         version: 3.1.1
       zone.js:
         specifier: 'catalog:'

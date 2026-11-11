@@ -46,7 +46,7 @@
     "proj4": "2.22.0",
     "rxjs": "catalog:",
     "tslib": "catalog:",
-    "url-template": "3.1.1",
+    "url-template": "catalog:",
     "zone.js": "catalog:"
   },
   "devDependencies": {
