@@ -38,7 +38,7 @@
     "@capacitor/network": "8.0.1",
     "@capacitor/preferences": "catalog:",
     "@capacitor/status-bar": "catalog:",
-    "@ionic/angular": "8.6.2",
+    "@ionic/angular": "9.0.10",
     "@ionic/core": "8.6.2",
     "@ngx-translate/core": "catalog:",
     "@ngx-translate/http-loader": "catalog:",
