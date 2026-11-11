@@ -56,14 +56,12 @@ public class BuiltInUserRepairService {
         existingAdmin.isEmpty() || StringUtils.isBlank(existingAdmin.get().getPassword());
 
     if (passwordNeeded && properties.normalizedAdminPassword().isEmpty()) {
-      existingAdmin.ifPresent(
-          admin -> {
-            repairAdminFlags(admin);
-            userRepository.save(admin);
-            warnAdminPositions(admin, warnings);
-          });
-      return BuiltInUserRepairResult.blocked(
-          BuiltInUserStartupStatus.REASON_ADMIN_MISSING_BOOTSTRAP_PASSWORD, warnings);
+      User admin = existingAdmin.orElseGet(this::newAdminShell);
+      repairAdminFlags(admin);
+      admin.setPassword(null);
+      userRepository.save(admin);
+      warnAdminPositions(admin, warnings);
+      return BuiltInUserRepairResult.succeeded(warnings);
     }
 
     User admin = existingAdmin.orElseGet(this::newAdminShell);

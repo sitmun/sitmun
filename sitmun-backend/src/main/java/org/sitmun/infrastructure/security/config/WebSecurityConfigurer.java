@@ -4,6 +4,7 @@ import static org.sitmun.infrastructure.security.core.SecurityConstants.*;
 import static org.sitmun.infrastructure.security.core.SecurityRole.*;
 
 import java.util.List;
+import java.util.function.Supplier;
 import org.sitmun.authentication.handler.OidcAuthenticationFailureHandler;
 import org.sitmun.authentication.handler.OidcAuthenticationSuccessHandler;
 import org.sitmun.authentication.service.CookieService;
@@ -27,7 +28,9 @@ import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authorization.AuthorizationDecision;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -36,6 +39,7 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.annotation.web.configurers.AuthorizeHttpRequestsConfigurer;
 import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestRedirectFilter;
@@ -256,6 +260,12 @@ public class WebSecurityConfigurer {
               authz) {
     var builder = PathPatternRequestMatcher.withDefaults();
     return authz
+        .requestMatchers(builder.matcher(HttpMethod.GET, "/api/setup/first-run"))
+        .permitAll()
+        .requestMatchers(builder.matcher(HttpMethod.POST, "/api/setup/first-run"))
+        .anonymous()
+        .requestMatchers(builder.matcher(HttpMethod.POST, "/api/language-default/change-preview"))
+        .access((authentication, context) -> anonymousOrAdmin(authentication))
         .requestMatchers(builder.matcher(HttpMethod.GET, "/v3/api-docs"))
         .permitAll()
         .requestMatchers(builder.matcher(HttpMethod.GET, "/v3/api-docs.yaml"))
@@ -296,6 +306,18 @@ public class WebSecurityConfigurer {
         .permitAll()
         .requestMatchers(builder.matcher(HttpMethod.GET, "/api/auth/enabled-methods"))
         .permitAll();
+  }
+
+  /** Password login is closed during first-run. The wizard and its preview stay open. */
+  private static AuthorizationDecision anonymousOrAdmin(
+      Supplier<? extends Authentication> authentication) {
+    Authentication auth = authentication.get();
+    boolean admin =
+        auth != null
+            && auth.getAuthorities().stream()
+                .anyMatch(granted -> ("ROLE_" + ADMIN.name()).equals(granted.getAuthority()));
+    boolean anonymous = auth == null || auth instanceof AnonymousAuthenticationToken;
+    return new AuthorizationDecision(admin || anonymous);
   }
 
   private AuthorizeHttpRequestsConfigurer<HttpSecurity>.AuthorizationManagerRequestMatcherRegistry

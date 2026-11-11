@@ -10,5 +10,7 @@ export const environment = {
   version: packageJson.version,
   buildTimestamp: new Date().toISOString(),
   environmentName: 'e2e',
-  sessionTokenRefreshIntervalMs: 10 * 60 * 1000
+  sessionTokenRefreshIntervalMs: 10 * 60 * 1000,
+  // Interface languages on the waiting page. The rest of the app uses the database list.
+  waitingPageLanguages: ['es', 'en', 'fr', 'ca', 'oc-aranes', 'pt-PT']
 };

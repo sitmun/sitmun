@@ -72,6 +72,64 @@ describe('resolveUiLanguage', () => {
       })
     ).toBe('en');
   });
+
+  it('maps es-ES to es ahead of the database default', () => {
+    expect(
+      resolveUiLanguage({
+        stored: null,
+        browser: ['es-ES'],
+        backendDefault: 'en',
+        availableShortnames: ['ca', 'en', 'es', 'pt-PT', 'oc-aranes'],
+        staticFallback: 'en',
+      })
+    ).toBe('es');
+  });
+
+  it('maps pt-BR to pt-PT and oc to oc-aranes', () => {
+    const available = ['ca', 'en', 'es', 'pt-PT', 'oc-aranes'];
+    expect(
+      resolveUiLanguage({
+        stored: null,
+        browser: 'pt-BR',
+        backendDefault: 'en',
+        availableShortnames: available,
+        staticFallback: 'en',
+      })
+    ).toBe('pt-PT');
+    expect(
+      resolveUiLanguage({
+        stored: null,
+        browser: 'oc',
+        backendDefault: 'en',
+        availableShortnames: available,
+        staticFallback: 'en',
+      })
+    ).toBe('oc-aranes');
+  });
+
+  it('falls through to the database default when the browser language is disabled', () => {
+    expect(
+      resolveUiLanguage({
+        stored: null,
+        browser: 'es-ES',
+        backendDefault: 'en',
+        availableShortnames: ['ca', 'en'],
+        staticFallback: 'ca',
+      })
+    ).toBe('en');
+  });
+
+  it('keeps a stored choice ahead of the browser', () => {
+    expect(
+      resolveUiLanguage({
+        stored: 'ca',
+        browser: 'es-ES',
+        backendDefault: 'en',
+        availableShortnames: ['ca', 'en', 'es'],
+        staticFallback: 'en',
+      })
+    ).toBe('ca');
+  });
 });
 
 describe('sortByLanguageOrder', () => {

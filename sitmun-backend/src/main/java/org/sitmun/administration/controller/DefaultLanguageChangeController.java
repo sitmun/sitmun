@@ -5,8 +5,12 @@ import org.sitmun.administration.dto.DefaultLanguageChangePreview;
 import org.sitmun.administration.dto.DefaultLanguageChangeRequest;
 import org.sitmun.administration.dto.DefaultLanguageChangeResult;
 import org.sitmun.administration.service.DefaultLanguageChangeService;
+import org.sitmun.administration.service.SetupService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -24,9 +28,12 @@ import org.springframework.web.bind.annotation.RestController;
 public class DefaultLanguageChangeController {
 
   private final DefaultLanguageChangeService service;
+  private final SetupService setupService;
 
-  public DefaultLanguageChangeController(DefaultLanguageChangeService service) {
+  public DefaultLanguageChangeController(
+      DefaultLanguageChangeService service, SetupService setupService) {
     this.service = service;
+    this.setupService = setupService;
   }
 
   /**
@@ -37,6 +44,9 @@ public class DefaultLanguageChangeController {
    */
   @PostMapping("/change-preview")
   public ResponseEntity<?> preview(@RequestBody PreviewRequest request) {
+    if (!mayPreview()) {
+      return ResponseEntity.notFound().build();
+    }
     try {
       DefaultLanguageChangePreview preview = service.preview(request.from(), request.to());
       return ResponseEntity.ok(preview);
@@ -79,6 +89,23 @@ public class DefaultLanguageChangeController {
       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
           .body(new ErrorResponse("Change failed: " + e.getMessage()));
     }
+  }
+
+  /** Administrators can always preview. Anonymous callers can preview only during first-run. */
+  private boolean mayPreview() {
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    boolean admin =
+        authentication != null
+            && authentication.getAuthorities().stream()
+                .anyMatch(granted -> "ROLE_ADMIN".equals(granted.getAuthority()));
+    if (admin) {
+      return true;
+    }
+    boolean anonymous =
+        authentication == null
+            || !authentication.isAuthenticated()
+            || authentication instanceof AnonymousAuthenticationToken;
+    return anonymous && setupService.isFirstRun();
   }
 
   /** Preview request DTO for simpler endpoint binding. */

@@ -8,6 +8,7 @@ export interface AppState {
   hasInitializationError: boolean;
   initializationError?: any;
   isInitialized: boolean;
+  waitingForBackend: boolean;
 }
 
 @Injectable({
@@ -16,7 +17,8 @@ export interface AppState {
 export class AppStateService {
   private stateSubject = new BehaviorSubject<AppState>({
     hasInitializationError: false,
-    isInitialized: false
+    isInitialized: false,
+    waitingForBackend: false,
   });
 
   public state$ = this.stateSubject.asObservable();
@@ -35,6 +37,7 @@ export class AppStateService {
     const newState: AppState = {
       ...currentState,
       hasInitializationError: true,
+      waitingForBackend: false,
       initializationError: {
         error,
         source,
@@ -86,6 +89,34 @@ export class AppStateService {
    */
   isInitialized(): boolean {
     return this.stateSubject.value.isInitialized;
+  }
+
+  /** The server has not answered yet, so startup will try again. */
+  setWaitingForBackend(): void {
+    const currentState = this.stateSubject.value;
+    if (currentState.hasInitializationError || currentState.waitingForBackend) {
+      return;
+    }
+    this.stateSubject.next({
+      ...currentState,
+      waitingForBackend: true,
+    });
+    this.loggerService.info('Waiting for the server to start');
+  }
+
+  clearWaitingForBackend(): void {
+    const currentState = this.stateSubject.value;
+    if (!currentState.waitingForBackend) {
+      return;
+    }
+    this.stateSubject.next({
+      ...currentState,
+      waitingForBackend: false,
+    });
+  }
+
+  isWaitingForBackend(): boolean {
+    return this.stateSubject.value.waitingForBackend;
   }
 
   /**

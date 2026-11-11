@@ -26,6 +26,7 @@ import {UtilsService} from '@app/services/utils.service';
 export class ConfigurationParameterFormComponent extends BaseFormComponent<ConfigurationParameter> {
   readonly config = Configuration.CONFIGURATION_PARAMETER;
   isProtectedParameter = false;
+  readonly protectionMessageKey = 'entity.configurationParameter.languageDefaultProtection';
   /** Info keys from the last create/update response (not reloaded by GET). */
   saveInfoKeys: string[] = [];
 
@@ -110,7 +111,7 @@ export class ConfigurationParameterFormComponent extends BaseFormComponent<Confi
 
   override async createEntity(): Promise<number> {
     if (this.isProtectedParameter) {
-      const message = this.translateService.instant('entity.configurationParameter.languageDefaultProtection');
+      const message = this.translateService.instant(this.protectionMessageKey);
       throw new Error(message);
     }
     const entityToCreate = this.createObject();
@@ -121,7 +122,7 @@ export class ConfigurationParameterFormComponent extends BaseFormComponent<Confi
 
   override async updateEntity(): Promise<void> {
     if (this.isProtectedParameter) {
-      const message = this.translateService.instant('entity.configurationParameter.languageDefaultProtection');
+      const message = this.translateService.instant(this.protectionMessageKey);
       throw new Error(message);
     }
     const entityToUpdate = this.createObject(this.entityID);

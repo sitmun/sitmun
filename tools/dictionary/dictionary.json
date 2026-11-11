@@ -5470,12 +5470,7 @@
       "type": "integer"
     }
   },
-  "configuration": {
-    "setup.languageConfigured": {
-      "fresh": "false",
-      "upgraded": "true"
-    }
-  },
+  "configuration": {},
   "fields": {
     "org.sitmun.authentication.dto.UserPasswordAuthenticationRequest#username": {
       "same_as": "STM_USER.USE_USER"

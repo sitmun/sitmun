@@ -15,6 +15,7 @@ import {ConnectionFormComponent} from '@app/components/connection/connection-for
 import {ConnectionComponent} from '@app/components/connection/connection.component';
 import {DashboardComponent} from '@app/components/dashboard/dashboard.component';
 import {ErrorPageComponent} from '@app/components/error-page/error-page.component';
+import {FirstRunComponent} from '@app/components/first-run/first-run.component';
 import {LanguageFormComponent} from '@app/components/language/language-form/language-form.component';
 import {LanguageComponent} from '@app/components/language/language.component';
 import {LayersFormComponent} from '@app/components/layers/layers-form/layers-form.component';
@@ -64,16 +65,18 @@ import {UserFormComponent} from '@app/components/user/user-form/user-form.compon
 import {UserComponent} from '@app/components/user/user.component';
 import {authGuard} from '@app/core/guards/auth.guard';
 import {CanDeactivateGuard} from '@app/core/guards/can-deactivate-guard.service';
+import {firstRunGuard, firstRunPageGuard, loginGuard} from '@app/core/guards/first-run.guard';
 import {magic} from "@environments/constants";
 
 export const APP_ROUTES: Routes = [
-  {path: 'login', component: LoginComponent},
+  {path: 'login', component: LoginComponent, canActivate: [loginGuard]},
+  {path: 'first-run', component: FirstRunComponent, canActivate: [firstRunPageGuard]},
   {path: 'error', component: ErrorPageComponent},
   {path: 'callback', component: CallbackComponent},
   {
     path: '',
     component: AuthenticatedLayoutComponent,
-    canActivate: [authGuard],
+    canActivate: [authGuard, firstRunGuard],
     children: [
       {path: 'dashboard', component: DashboardComponent},
       {path: 'connection', component: ConnectionComponent, canDeactivate: [CanDeactivateGuard]},
