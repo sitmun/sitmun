@@ -14,6 +14,8 @@ import {ExternalService, ResourceService} from '@app/core/hal';
 import {CodeListService, ServiceService, TranslationService} from '@app/domain';
 import { SitmunFrontendGuiModule } from '@app/frontend-gui/src/lib/public_api';
 import { MaterialModule } from '@app/material-module';
+import { LoggerService } from '@app/services/logger.service';
+import { configureLoggerForTests } from '@app/testing/test-helpers';
 
 import { ServiceHealthFilterComponent } from './service-health-filter.component';
 import { ServiceComponent } from './service.component';
@@ -95,6 +97,7 @@ describe('ServiceComponent', () => {
     httpMock = TestBed.inject(HttpTestingController);
     fixture = TestBed.createComponent(ServiceComponent);
     component = fixture.componentInstance;
+    configureLoggerForTests(TestBed.inject(LoggerService));
 
     fixture.detectChanges();
     await new Promise((r) => setTimeout(r, 0));

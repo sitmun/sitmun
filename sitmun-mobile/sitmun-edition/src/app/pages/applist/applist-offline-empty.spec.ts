@@ -4,7 +4,7 @@ import { join } from 'path';
 describe('offline application list', () => {
   it('explains an empty list while the device is offline', () => {
     const html = readFileSync(join(__dirname, 'applist.page.html'), 'utf8');
-    expect(html).toContain('*ngIf="!networkConnected && !applications.length"');
+    expect(html).toContain('@if (!networkConnected && !applications.length) {');
     expect(html).toContain("applist.offlineEmpty");
 
     for (const locale of ['en', 'es', 'ca', 'fr']) {
