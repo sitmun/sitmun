@@ -1,24 +1,9 @@
 import {readFileSync} from 'node:fs';
-import {posix} from 'node:path';
 
-import {
-  createJestConfig,
-  loadSonarJestContract,
-  parseSonarJestContract,
-} from './create-jest-config';
+import {createJestConfig} from './create-jest-config';
 
 const jestConfig = createJestConfig({collectCoverage: false});
 const coverageConfig = createJestConfig({collectCoverage: true});
-
-function sonarValue(key: string): string {
-  const match = readFileSync('sonar-project.properties', 'utf8').match(
-    new RegExp(`^${key}=(.*)$`, 'm')
-  );
-  if (!match) {
-    throw new Error(`missing ${key}`);
-  }
-  return match[1].trim().split(',')[0];
-}
 
 function packageScripts(): Record<string, string> {
   const pkg = JSON.parse(readFileSync('package.json', 'utf8')) as {
@@ -27,58 +12,18 @@ function packageScripts(): Record<string, string> {
   return pkg.scripts;
 }
 
-function sonarReporterOptions(config: {reporters?: unknown}): {
-  outputDirectory: string;
-  outputName: string;
-} {
-  const reporters = config.reporters;
-  if (!Array.isArray(reporters)) {
-    throw new Error('missing reporters');
-  }
-  const sonar = reporters.find(
-    (entry) => Array.isArray(entry) && entry[0] === 'jest-sonar'
-  ) as [string, {outputDirectory: string; outputName: string}] | undefined;
-  if (!sonar?.[1]) {
-    throw new Error('missing jest-sonar reporter');
-  }
-  return sonar[1];
-}
-
-describe('Sonar Jest contract', () => {
-  const lcov = sonarValue('sonar.javascript.lcov.reportPaths');
-  const utReport = sonarValue('sonar.testExecutionReportPaths');
+describe('Jest coverage contract', () => {
   const scripts = packageScripts();
-  const contract = parseSonarJestContract(
-    readFileSync('sonar-project.properties', 'utf8')
-  );
-
-  it('parses the same values Sonar has on disk', () => {
-    expect(contract).toEqual(loadSonarJestContract());
-    expect(contract.lcovReportPath).toBe(lcov);
-    expect(contract.testExecutionReportPath).toBe(utReport);
-  });
-
-  it('rejects Sonar properties that omit the lcov path', () => {
-    expect(() => parseSonarJestContract('sonar.testExecutionReportPaths=reports/ut_report.xml\n')).toThrow(
-      'missing sonar.javascript.lcov.reportPaths'
-    );
-  });
 
   it('does not collect coverage on the default config pnpm test loads', () => {
     expect(jestConfig.collectCoverage).toBe(false);
   });
 
-  it('writes lcov where Sonar already looks', () => {
-    expect(jestConfig.coverageDirectory).toBe(posix.dirname(lcov));
-    expect(coverageConfig.coverageDirectory).toBe(jestConfig.coverageDirectory);
-  });
-
-  it('emits reports/ut_report.xml only from the coverage config', () => {
+  it('writes lcov under coverage/admin-app from the coverage config', () => {
+    expect(jestConfig.coverageDirectory).toBe('coverage/admin-app');
+    expect(coverageConfig.coverageDirectory).toBe('coverage/admin-app');
     expect(coverageConfig.collectCoverage).toBe(true);
-    expect(() => sonarReporterOptions(jestConfig)).toThrow('missing jest-sonar reporter');
-    const sonar = sonarReporterOptions(coverageConfig);
-    expect(sonar.outputDirectory).toBe(contract.testExecutionOutputDirectory);
-    expect(sonar.outputName).toBe(contract.testExecutionOutputName);
+    expect(coverageConfig.coverageReporters).toEqual(['lcovonly', 'text']);
   });
 
   it('splits commands: local test never asks for coverage', () => {

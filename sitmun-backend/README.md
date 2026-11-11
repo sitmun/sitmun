@@ -674,7 +674,6 @@ spring-boot-starter-security = { module = "org.springframework.boot:spring-boot-
 The project enforces high code quality standards:
 
 - **Spotless**: Automated code formatting
-- **SonarQube**: Code quality analysis
 - **JaCoCo**: Code coverage reporting
 - **Conventional Commits**: Structured commit messages
 ### Testing

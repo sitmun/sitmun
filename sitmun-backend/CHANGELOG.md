@@ -35,6 +35,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Removed
 
+- **Tooling**: The SonarQube plugin and `sonar.gradle` are removed. JaCoCo coverage reports stay.
 - **Code lists**: The backend no longer inserts code-list rows at startup. `sitmun.startup.code-lists` is removed. Readiness no longer waits for that step. The four JDBC drivers are rows in the shipped seed.
 - **Database**: `sitmun-backend/config` is no longer the development changelog. A local boot loads the test changelog. Production profiles load the shipped master.
 

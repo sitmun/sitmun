@@ -1,15 +1,4 @@
-import {readFileSync} from 'node:fs';
-import {posix} from 'node:path';
-
 import type {Config} from 'jest';
-
-export type SonarJestContract = {
-  readonly lcovReportPath: string;
-  readonly coverageDirectory: string;
-  readonly testExecutionReportPath: string;
-  readonly testExecutionOutputDirectory: string;
-  readonly testExecutionOutputName: string;
-};
 
 export type JestRunMode = {
   readonly collectCoverage: boolean;
@@ -27,64 +16,18 @@ const HEAVY_GUI_STUBS: Record<string, string> = {
   '^ngx-echarts$': '<rootDir>/jest/stubs/ngx-echarts.ts'
 };
 
-function requiredProperty(text: string, key: string): string {
-  const match = text.match(new RegExp(`^${key}=(.*)$`, 'm'));
-  const value = match?.[1]?.trim().split(',')[0];
-  if (!value) {
-    throw new Error(`missing ${key} in sonar-project.properties`);
-  }
-  return value;
-}
-
-export function parseSonarJestContract(propertiesText: string): SonarJestContract {
-  const lcovReportPath = requiredProperty(
-    propertiesText,
-    'sonar.javascript.lcov.reportPaths'
-  );
-  if (!lcovReportPath.endsWith('lcov.info')) {
-    throw new Error(`sonar.javascript.lcov.reportPaths must end with lcov.info`);
-  }
-  const testExecutionReportPath = requiredProperty(
-    propertiesText,
-    'sonar.testExecutionReportPaths'
-  );
-  return {
-    lcovReportPath,
-    coverageDirectory: posix.dirname(lcovReportPath),
-    testExecutionReportPath,
-    testExecutionOutputDirectory: posix.dirname(testExecutionReportPath),
-    testExecutionOutputName: posix.basename(testExecutionReportPath)
-  };
-}
-
-export function loadSonarJestContract(
-  propertiesPath = 'sonar-project.properties'
-): SonarJestContract {
-  return parseSonarJestContract(readFileSync(propertiesPath, 'utf8'));
-}
-
-export function createJestConfig(
-  mode: JestRunMode,
-  contract: SonarJestContract = loadSonarJestContract()
-): Config {
-  const sonarReporter: [string, {outputDirectory: string; outputName: string}] = [
-    'jest-sonar',
-    {
-      outputDirectory: contract.testExecutionOutputDirectory,
-      outputName: contract.testExecutionOutputName
-    }
-  ];
+export function createJestConfig(mode: JestRunMode): Config {
   return {
     preset: 'jest-preset-angular',
     clearMocks: true,
     restoreMocks: true,
     testTimeout: 30_000,
     collectCoverage: mode.collectCoverage,
-    coverageDirectory: contract.coverageDirectory,
+    coverageDirectory: 'coverage/admin-app',
     coverageProvider: 'v8',
     coverageReporters: mode.collectCoverage ? ['lcovonly', 'text'] : undefined,
     coveragePathIgnorePatterns: ['/node_modules/', '<rootDir>/jest/'],
-    reporters: mode.collectCoverage ? ['default', sonarReporter] : ['default'],
+    reporters: ['default'],
     testEnvironment: 'jsdom',
     moduleNameMapper: {
       d3: '<rootDir>/node_modules/d3/dist/d3.min.js',
