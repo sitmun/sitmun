@@ -41,6 +41,10 @@ jobs:
             language: javascript
           - component: viewer
             language: javascript
+          - component: edition
+            language: javascript
+          - component: touristic
+            language: javascript
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-java@v5

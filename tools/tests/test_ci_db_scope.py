@@ -91,6 +91,19 @@ class FlagTest(unittest.TestCase):
         self.assertFalse(flags["viewer"])
         self.assertFalse(flags["backend"])
 
+    def test_mobile_source_selects_mobile(self):
+        flags = scope.flags_for(["sitmun-mobile/sitmun-edition/src/main.ts"])
+        self.assertTrue(flags["mobile"])
+        self.assertFalse(flags["admin"])
+        self.assertFalse(flags["viewer"])
+
+    def test_nvmrc_selects_admin_viewer_and_mobile(self):
+        flags = scope.flags_for([".nvmrc"])
+        self.assertTrue(flags["admin"])
+        self.assertTrue(flags["viewer"])
+        self.assertTrue(flags["mobile"])
+        self.assertFalse(flags["backend"])
+
     def test_viewer_source_selects_viewer(self):
         flags = scope.flags_for(["sitmun-viewer/src/app.ts"])
         self.assertTrue(flags["viewer"])

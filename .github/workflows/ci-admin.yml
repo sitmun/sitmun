@@ -1,5 +1,8 @@
 name: CI admin
 
+permissions:
+  contents: read
+
 on:
   workflow_call:
   workflow_dispatch:
@@ -31,4 +34,4 @@ jobs:
       - run: pnpm run test:coverage
       - run: pnpm exec ng build --configuration=production --base-href=/admin-app/
       - name: Validate build artifacts
-        run: test -d dist/admin-app && test -n "$(ls -A dist/admin-app)"
+        run: test -f dist/admin-app/index.html
