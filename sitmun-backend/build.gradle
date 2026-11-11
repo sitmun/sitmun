@@ -160,7 +160,7 @@ dependencies {
   
   // LDAP testing (embedded LDAP server)
   testImplementation libs.unboundid.ldapsdk
-  testImplementation 'com.squareup.okhttp3:mockwebserver'
+  testImplementation libs.mockwebserver
 
 }
 
