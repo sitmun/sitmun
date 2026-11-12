@@ -2,15 +2,11 @@
 
 ## [Unreleased]
 
-### Fixed
-
-- **Download**: A background job that fails, returns an error, or does not finish stops the progress dialog and shows `download.backgroundFailed`. The application and its layers are not stored as downloaded ([#312](https://github.com/sitmun/sitmun/issues/312)).
-- **Download**: A ticked tree node with an editing task and no cartography is downloaded. A node with cartography and no task no longer throws ([#314](https://github.com/sitmun/sitmun/issues/314)).
-
 ### Added
 
 - **Auth**: Configurable `authenticationPath` (default `/api/authenticate/mobile`); two-token lifecycle (`access_token` for backend, `proxy_token` for middleware); trusted-origin Authorization helper (exact origin match).
 - **MBTiles**: Estimate/create/status/file through authenticated middleware routes using service/layer IDs.
+
 
 ### Changed
 
@@ -20,8 +16,11 @@
 - **Auth**: Login field is `access_token` (not `id_token`); Bearer attachment matches trusted base URL path prefixes (middleware first) so gateways send `proxy_token` to `/middleware/**` and `access_token` to `/backend/**`.
 - **MBTiles** / **Proxy**: Downloads use Capacitor HTTP `downloadFile` with Bearer; map/resource and MBTiles URLs share the middleware base (`…/middleware/proxy/{app}/{ter}/…`); removed `config.mbtilesUrl`, backend→middleware string rewrite, and dead `localhost:8080/proxy` default.
 
+
 ### Fixed
 
+- **Download**: A background job that fails, returns an error, or does not finish stops the progress dialog and shows `download.backgroundFailed`. The application and its layers are not stored as downloaded ([#312](https://github.com/sitmun/sitmun/issues/312)).
+- **Download**: A ticked tree node with an editing task and no cartography is downloaded. A node with cartography and no task no longer throws ([#314](https://github.com/sitmun/sitmun/issues/314)).
 - **Applications**: Main list and offline cache show `name` when `title` is null ([#5](https://github.com/sitmun/edition-mobile-app/issues/5)).
 - **Map**: Delete stays hidden while a point is added ([#189](https://github.com/sitmun/sitmun/issues/189)).
 - **Map**: Saving a point closes the form ([#190](https://github.com/sitmun/sitmun/issues/190)).
@@ -32,3 +31,5 @@
 - **Map**: A new point reuses a fix from the last minute and stops waiting after 15 seconds. The accuracy is shown. If there is no position, the point is not placed. The location button lets the user choose the place on the map ([#191](https://github.com/sitmun/sitmun/issues/191)).
 - **WFS**: Relative `/proxy/{app}/{ter}/WFS/{id}` task URLs resolve against the middleware base instead of the Capacitor WebView origin. GetFeature/Transaction send `Authorization: Bearer` for the middleware origin ([#6](https://github.com/sitmun/edition-mobile-app/issues/6)).
 - **Auth** / **i18n**: Failed login shows an error message; validation errors use i18n keys (`home.loginError`, `home.instanceRequired`) instead of hardcoded Spanish.
+
+[unreleased]: https://github.com/sitmun/sitmun/compare/legacy/sitmun-application-stack/sitmun-application-stack/1.2.9...HEAD
