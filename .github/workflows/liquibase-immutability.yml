@@ -40,6 +40,9 @@ jobs:
         if: github.event_name == 'pull_request'
         run: git fetch --no-tags origin "${{ github.base_ref }}"
 
+      - name: Fetch release tags
+        run: git fetch --force origin 'refs/tags/v*:refs/tags/v*'
+
       - name: PR diff gate
         if: github.event_name == 'pull_request'
         run: python3 tools/bin/check_changelog_immutability.py --base "origin/${{ github.base_ref }}"
