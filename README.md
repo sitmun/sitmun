@@ -61,11 +61,11 @@ That copy matches only the backend image it was taken from. Restore it into an e
 | --- | --- | --- |
 | `sitmun-admin` | Angular 22 | `front` (`/admin/`) |
 | `sitmun-viewer` | Angular 22 | `front` (`/viewer/`) |
-| `sitmun-mobile/sitmun-edition` | Ionic 8, Angular 22 | none |
-| `sitmun-mobile/sitmun-touristic` | Ionic 8, Angular 22 | none |
-| `sitmun-backend` | Spring Boot 4, Java 17 | `backend` |
-| `sitmun-proxy` | Spring Boot 4, Java 17 | `proxy` |
-| `sitmun-addons/sitmun-mbtiles` | Spring Boot 4, Java 17 | `mbtiles` (profile, no host port) |
+| `sitmun-mobile/sitmun-edition` | Ionic 8, Angular 22, Capacitor 8 | none |
+| `sitmun-mobile/sitmun-touristic` | Ionic 8, Angular 22, Capacitor 8 | none |
+| `sitmun-backend` | Spring Boot 4.1, Java 17 | `backend` |
+| `sitmun-proxy` | Spring Boot 4.1, Java 17 | `proxy` |
+| `sitmun-addons/sitmun-mbtiles` | Spring Boot 4.1, Java 17 | `mbtiles` (profile, no host port) |
 | `sitmun-common` | Java 17 libraries | none |
 
 Image definitions are under `docker/`. The Compose file is `compose.yaml`.
