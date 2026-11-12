@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Added
+
+#### Stack
+
+- **CI**: An upgrade from 1.3.0 runs on PostgreSQL 12, PostgreSQL 16, and Oracle 23ai. It installs the published 1.3.0 backend image, then checks that this tree's backend starts on that database and that every 1.3.0 changeset keeps its checksum.
+
 ## [1.3.0] - 2026-11-12
 
 ### Added
