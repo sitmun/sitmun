@@ -1,4 +1,4 @@
-appId: touristic.mobile.app
+appId: org.sitmun.mobile.touristic
 androidWebViewHierarchy: devtools
 ---
 - launchApp:

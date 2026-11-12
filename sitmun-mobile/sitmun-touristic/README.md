@@ -1,4 +1,4 @@
-# SITMUN Touristic Mobile Application
+# SITMUN Touristic
 
 ## Plataforma de desarrollo
 

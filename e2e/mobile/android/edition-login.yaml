@@ -1,4 +1,4 @@
-appId: edition.mobile.app
+appId: org.sitmun.mobile.editor
 androidWebViewHierarchy: devtools
 ---
 - launchApp:

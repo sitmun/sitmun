@@ -709,8 +709,8 @@ async function main() {
       join(stackRoot, 'e2e', 'mobile', 'android', 'touristic-public.yaml'),
     ];
     for (const flow of flows) {
-      run('adb', ['shell', 'am', 'force-stop', 'edition.mobile.app']);
-      run('adb', ['shell', 'am', 'force-stop', 'touristic.mobile.app']);
+      run('adb', ['shell', 'am', 'force-stop', 'org.sitmun.mobile.editor']);
+      run('adb', ['shell', 'am', 'force-stop', 'org.sitmun.mobile.touristic']);
       const maestroOut = join(artifactDir, 'maestro', basename(flow, '.yaml'));
       mkdirSync(maestroOut, { recursive: true });
       run('maestro', [

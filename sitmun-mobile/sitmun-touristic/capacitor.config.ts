@@ -1,8 +1,8 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'touristic.mobile.app',
-  appName: 'touristic-mobile-app',
+  appId: 'org.sitmun.mobile.touristic',
+  appName: 'SITMUN Touristic',
   webDir: 'www',
   server: {
     cleartext: true,

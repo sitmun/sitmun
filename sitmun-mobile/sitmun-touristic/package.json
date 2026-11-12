@@ -1,6 +1,7 @@
 {
   "name": "touristic-mobile-app",
   "version": "1.0.0",
+  "description": "SITMUN Touristic",
   "author": "Ionic Framework",
   "homepage": "https://ionicframework.com/",
   "scripts": {

@@ -32,7 +32,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 - **Proxy**: The five-segment cartography path forwards `cartographyId`. `POST` stays `application/xml`.
 
-#### Edition Mobile App
+#### Mobile Editor
 
 - **WFS**: A layer and its offline download use `layer.url` when the profile sets it.
 - **Download**: A background job that fails shows `download.backgroundFailed` and does not mark the application downloaded.
@@ -69,7 +69,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - **Database**: The Oracle dialects take the connected database version. A user position created today grants access today. A position that expires today stays active.
 - **i18n**: Creating a task with a new template literal no longer returns HTTP 500 on Oracle.
 
-#### Edition Mobile App
+#### Mobile Editor
 
 - **Map**: Delete stays hidden while a point is added. Saving a point closes the form. Closing the form clears the selected point.
 - **Upload**: A refused change says the user is not allowed. No connection says the changes stay on the device. An expired session says the session expired.
