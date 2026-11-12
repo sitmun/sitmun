@@ -65,7 +65,7 @@ RUN if [ "${ENVIRONMENT}" = "development" ]; then \
     fi
 
 # Stage 1, based on Nginx, to have only the compiled apps, ready for production with Nginx
-FROM nginx:1.30-alpine@sha256:583b7f2fce1cdb8da5ad5c39ebd3c33b98b87d493190e548bdee1fa8c619c311
+FROM nginx:1.31-alpine@sha256:713fc2ebfd92e8217db451477182ee91944b123d2b1ee9fd5a8c6e91ca6c3a11
 LABEL org.opencontainers.image.source=https://github.com/sitmun/sitmun
 LABEL org.opencontainers.image.licenses=EUPL-1.2
 LABEL org.opencontainers.image.description="SITMUN admin and viewer"
