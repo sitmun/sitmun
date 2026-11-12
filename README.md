@@ -21,11 +21,13 @@ Background maps come from other organisations. One failed background map blocks 
 
 ### Install the showcase
 
-You need Docker Desktop. Run these commands in an existing checkout. The release checkout will be the annotated tag once that tag exists.
+You need Docker Desktop and Git.
 
 Windows:
 
 ```powershell
+git clone https://github.com/sitmun/sitmun.git
+cd sitmun
 Copy-Item profiles\showcase.env .env
 .\setup.ps1
 docker compose -p sitmun-showcase up -d --pull always --no-build
@@ -34,6 +36,8 @@ docker compose -p sitmun-showcase up -d --pull always --no-build
 Linux:
 
 ```bash
+git clone https://github.com/sitmun/sitmun.git
+cd sitmun
 cp profiles/showcase.env .env
 ./setup.sh
 docker compose -p sitmun-showcase up -d --pull always --no-build
