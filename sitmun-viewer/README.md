@@ -1,7 +1,7 @@
 # SITMUN Viewer Application
 
 [![License: EUPL v1.2](https://img.shields.io/badge/License-EUPL%20v1.2-blue.svg)](LICENSE)
-![Version](https://img.shields.io/badge/version-1.2.9-blue.svg)
+![Version](https://img.shields.io/badge/version-1.3.0-blue.svg)
 
 Angular 22 map viewer (`@angular/core` `22.2.5`, `@angular/material` `22.2.5`, `api-sitna` `4.10.0`, `ol` `10.9.0`). Languages: CA, ES, EN, FR. The About window reads the installed `api-sitna` and `ol` versions. Install from the repository root, then run commands from `sitmun-viewer`.
 

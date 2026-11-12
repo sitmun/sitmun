@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.3.0] - YYYY-MM-DD
+
 ### Added
 
 - **First run**: While the built-in admin password is null or blank, every admin route opens on a three-step setup: welcome, database language, then that password. The selected language is the interface language when one was chosen, and otherwise the browser language. Saving a password is required and returns to login. Once the password exists, `/first-run` leaves the stepper. The interface follows the browser language, including Spanish, when no language is stored.
@@ -438,7 +440,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Various bug fixes and improvements from development phase
 
-[Unreleased]: https://github.com/sitmun/sitmun/compare/legacy/sitmun-admin-app/sitmun-admin-app/1.2.9...HEAD
+[Unreleased]: https://github.com/sitmun/sitmun/compare/v1.3.0...HEAD
+[1.3.0]: https://github.com/sitmun/sitmun/compare/legacy/sitmun-admin-app/sitmun-admin-app/1.2.9...v1.3.0
 [1.2.9]: https://github.com/sitmun/sitmun-admin-app/compare/sitmun-admin-app/1.2.8...sitmun-admin-app/1.2.9
 [1.2.8]: https://github.com/sitmun/sitmun-admin-app/compare/sitmun-admin-app/1.2.7...sitmun-admin-app/1.2.8
 [1.2.7]: https://github.com/sitmun/sitmun-admin-app/compare/sitmun-admin-app/1.2.6...sitmun-admin-app/1.2.7

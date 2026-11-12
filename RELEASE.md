@@ -4,7 +4,7 @@ This repository has one version in the root `gradle.properties` file. `tools/scr
 
 This repository is [sitmun/sitmun](https://github.com/sitmun/sitmun). Components are directories in this repository. `dev` is the integration branch. `main` receives release pull requests from `dev`.
 
-A release tag is an annotated tag. Its name is `v` plus `MAJOR.MINOR.PATCH`. The image tag is that name without the leading `v`. `git clone --branch` selects that tag once it exists. The platform version in `gradle.properties` is `1.2.9`.
+A release tag is an annotated tag. Its name is `v` plus `MAJOR.MINOR.PATCH`. The image tag is that name without the leading `v`. `git clone --branch` selects that tag once it exists. The platform version in `gradle.properties` is `1.3.0`.
 
 Tags imported from the previous repositories use `legacy/<repository>/<tag>`, for example `legacy/sitmun-application-stack/sitmun-application-stack/1.2.6`.
 
@@ -42,5 +42,3 @@ done
 ```
 
 Delete only those ids: `gh api -X DELETE "/orgs/sitmun/packages/container/<name>/versions/<id>"`. The account must be an admin of the `sitmun` organization.
-
-The platform version in `gradle.properties` is `1.2.9`. A manual publish passes image tag `1.3.0`.

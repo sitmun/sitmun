@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.3.0] - YYYY-MM-DD
+
 ### Added
 
 - **First run**: `GET /api/setup/status` reports whether the built-in admin password is empty, with the default language and the enabled languages. `GET /api/setup/first-run` is removed. `POST /api/setup/first-run` is anonymous only while that password is empty, stores the password, and can set the database language. A new 1.3.0 database clears the seeded password. A 1.2.9 upgrade keeps its password. Password login rejects a null or blank password. OIDC sign-in does not. Startup repair leaves a null admin password in place.
@@ -501,7 +503,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 - Various bug fixes and improvements from development phase
 
-[Unreleased]: https://github.com/sitmun/sitmun/compare/legacy/sitmun-backend-core/sitmun-backend-core/1.2.9...HEAD
+[Unreleased]: https://github.com/sitmun/sitmun/compare/v1.3.0...HEAD
+[1.3.0]: https://github.com/sitmun/sitmun/compare/legacy/sitmun-backend-core/sitmun-backend-core/1.2.9...v1.3.0
 [1.2.9]: https://github.com/sitmun/sitmun-backend-core/compare/sitmun-backend-core/1.2.8...sitmun-backend-core/1.2.9
 [1.2.8]: https://github.com/sitmun/sitmun-backend-core/compare/sitmun-backend-core/1.2.7...sitmun-backend-core/1.2.8
 [1.2.7]: https://github.com/sitmun/sitmun-backend-core/compare/sitmun-backend-core/1.2.6...sitmun-backend-core/1.2.7

@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.3.0] - YYYY-MM-DD
+
 ### Added
 
 #### Backend Core
@@ -1258,7 +1260,8 @@ For detailed changelogs of individual components, see:
 
 ## Links
 
-[unreleased]: https://github.com/sitmun/sitmun/compare/legacy/sitmun-application-stack/sitmun-application-stack/1.2.9...HEAD
+[unreleased]: https://github.com/sitmun/sitmun/compare/v1.3.0...HEAD
+[1.3.0]: https://github.com/sitmun/sitmun/compare/legacy/sitmun-application-stack/sitmun-application-stack/1.2.9...v1.3.0
 [1.2.9]: https://github.com/sitmun/sitmun-application-stack/compare/sitmun-application-stack/1.2.8...sitmun-application-stack/1.2.9
 [1.2.8]: https://github.com/sitmun/sitmun-application-stack/compare/sitmun-application-stack/1.2.7...sitmun-application-stack/1.2.8
 [1.2.7]: https://github.com/sitmun/sitmun-application-stack/compare/sitmun-application-stack/1.2.6...sitmun-application-stack/1.2.7

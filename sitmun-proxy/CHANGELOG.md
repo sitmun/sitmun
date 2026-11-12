@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.3.0] - YYYY-MM-DD
+
 ### Security
 
 - **Upstream TLS**: `sitmun.client.unsafe-allowed-hosts` is empty unless a deployment sets it. An empty list checks the certificate and the hostname on every upstream call. A deployment that must reach a self-signed server sets `SITMUN_CLIENT_UNSAFE_ALLOWED_HOSTS` to those hosts, or to `*`. `*` turns the checks off for every host and is logged at startup. A rejected certificate says `certificate check failed` and names that setting ([#319](https://github.com/sitmun/sitmun/issues/319)).
@@ -207,7 +209,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Various bug fixes and improvements from the development phase
 
-[Unreleased]: https://github.com/sitmun/sitmun/compare/legacy/sitmun-proxy-middleware/sitmun-proxy-middleware/1.2.9...HEAD
+[Unreleased]: https://github.com/sitmun/sitmun/compare/v1.3.0...HEAD
+[1.3.0]: https://github.com/sitmun/sitmun/compare/legacy/sitmun-proxy-middleware/sitmun-proxy-middleware/1.2.9...v1.3.0
 [1.2.9]: https://github.com/sitmun/sitmun-proxy-middleware/compare/sitmun-proxy-middleware/1.2.8...sitmun-proxy-middleware/1.2.9
 [1.2.8]: https://github.com/sitmun/sitmun-proxy-middleware/compare/sitmun-proxy-middleware/1.2.7...sitmun-proxy-middleware/1.2.8
 

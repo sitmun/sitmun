@@ -1,7 +1,7 @@
 # SITMUN Administration Application
 
 [![License: EUPL v1.2](https://img.shields.io/badge/License-EUPL%20v1.2-blue.svg)](LICENSE)
-![Version](https://img.shields.io/badge/version-1.2.9-blue.svg)
+![Version](https://img.shields.io/badge/version-1.3.0-blue.svg)
 
 Angular 22 admin UI for the SITMUN backend. Install from the repository root, then run the app from `sitmun-admin`.
 
