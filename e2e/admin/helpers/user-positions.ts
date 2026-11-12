@@ -1,11 +1,18 @@
 import { expect, type APIRequestContext, type Page } from '@playwright/test';
 import { mkdir } from 'node:fs/promises';
-import { control, gotoCreateForm, saveAndCaptureId, uniqueValue, waitForFormReady } from './form';
+import {
+  control,
+  gotoCreateForm,
+  gotoFormRoute,
+  saveAndCaptureId,
+  uniqueValue,
+  waitForFormReady,
+} from './form';
 
 export const POSITIONS_TAB =
   /Data associated to territory|Puestos por territorio|Positions par territoire/i;
 export const ADMIN_HEADERS = { 'X-SITMUN-Client': 'admin' };
-export const TERRITORY_URI = 'http://localhost:18080/api/territories/1';
+export const TERRITORY_URI = 'http://localhost:18080/api/territories/10001';
 export const EN_CREATED_DATE_HEADER = 'Valid from';
 export const EN_EXPIRATION_DATE_HEADER = 'Valid until';
 export const ES_CREATED_DATE_HEADER = 'Fecha de alta';
@@ -104,7 +111,7 @@ export async function postThenSetDates(
 }
 
 export async function openPositions(page: Page, userId: number): Promise<void> {
-  await page.goto(`/#/user/${userId}/userForm`);
+  await gotoFormRoute(page, `/#/user/${userId}/userForm`, 'username');
   await waitForFormReady(page, 'username');
   await page.getByRole('tab', { name: POSITIONS_TAB }).click();
   await expect(page.locator('app-relation-grid .ag-header-cell-text').first()).toBeVisible({
@@ -123,8 +130,12 @@ export async function saveShot(page: Page, name: string): Promise<void> {
   await page.screenshot({ path: `test-results/${name}` });
 }
 
-export async function editAltaCell(page: Page, isoDate: string): Promise<void> {
-  const cell = page.locator('app-relation-grid .ag-cell[col-id="createdDate"]').first();
+export async function editDateCell(
+  page: Page,
+  colId: 'createdDate' | 'expirationDate',
+  isoDate: string,
+): Promise<void> {
+  const cell = page.locator(`app-relation-grid .ag-cell[col-id="${colId}"]`).first();
   await expect(cell).toBeVisible({ timeout: 15_000 });
   await cell.dblclick();
   const editor = page.locator('app-relation-grid .ag-cell-inline-editing input').first();
@@ -136,6 +147,31 @@ export async function editAltaCell(page: Page, isoDate: string): Promise<void> {
     timeout: 5_000,
   });
   await page.locator('app-relation-grid .ag-cell-inline-editing input').first().fill(isoDate);
+  await page.keyboard.press('Enter');
+}
+
+export async function editAltaCell(page: Page, isoDate: string): Promise<void> {
+  await editDateCell(page, 'createdDate', isoDate);
+}
+
+export async function editBajaCell(page: Page, isoDate: string): Promise<void> {
+  await editDateCell(page, 'expirationDate', isoDate);
+}
+
+/** Inline text editor on Position name (CommunityFeaturesModule text path). */
+export async function editPositionNameCell(page: Page, name: string): Promise<void> {
+  const cell = page.locator('app-relation-grid .ag-cell[col-id="name"]').first();
+  await expect(cell).toBeVisible({ timeout: 15_000 });
+  await cell.dblclick();
+  const editor = page.locator('app-relation-grid .ag-cell-inline-editing input').first();
+  if ((await editor.count()) === 0 || !(await editor.isVisible())) {
+    await cell.click();
+    await page.keyboard.press('F2');
+  }
+  await expect(page.locator('app-relation-grid .ag-cell-inline-editing input').first()).toBeVisible({
+    timeout: 5_000,
+  });
+  await page.locator('app-relation-grid .ag-cell-inline-editing input').first().fill(name);
   await page.keyboard.press('Enter');
 }
 

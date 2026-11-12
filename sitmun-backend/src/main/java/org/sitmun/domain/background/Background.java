@@ -10,6 +10,7 @@ import java.util.Set;
 import lombok.*;
 import org.sitmun.authorization.client.dto.ClientConfigurationViews;
 import org.sitmun.domain.PersistenceConstants;
+import org.sitmun.domain.StoredFlagListener;
 import org.sitmun.domain.application.background.ApplicationBackground;
 import org.sitmun.domain.cartography.permission.CartographyPermission;
 import org.sitmun.infrastructure.persistence.type.basic.Http;
@@ -20,7 +21,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 /** Background. */
 @Entity
-@EntityListeners({AuditingEntityListener.class, I18nListener.class})
+@EntityListeners({AuditingEntityListener.class, I18nListener.class, StoredFlagListener.class})
 @Table(name = "STM_BACKGRD")
 @Builder
 @Getter
@@ -39,11 +40,11 @@ public class Background {
       allocationSize = 1)
   @Id
   @GeneratedValue(strategy = GenerationType.TABLE, generator = "STM_BACKGRD_GEN")
-  @Column(name = "BAC_ID")
+  @Column(name = "BAC_ID", nullable = false)
   private Integer id;
 
   /** Name. */
-  @Column(name = "BAC_NAME", length = PersistenceConstants.IDENTIFIER)
+  @Column(name = "BAC_NAME", length = PersistenceConstants.IDENTIFIER, nullable = false)
   @NotBlank
   @JsonView(ClientConfigurationViews.ApplicationTerritory.class)
   @I18n

@@ -11,5 +11,19 @@ public record DatasourcePayload(
     String password,
     String driver,
     String sql,
-    List<String> parameters)
-    implements Payload {}
+    List<JdbcParameter> parameters)
+    implements Payload {
+
+  @Override
+  public String toString() {
+    return "DatasourcePayload[vary="
+        + vary
+        + ", uri="
+        + uri
+        + ", driver="
+        + driver
+        + ", parameterCount="
+        + (parameters == null ? 0 : parameters.size())
+        + "]";
+  }
+}

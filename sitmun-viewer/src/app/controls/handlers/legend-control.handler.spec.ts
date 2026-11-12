@@ -2,12 +2,48 @@ import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 
-import { AppCfg, AppTasks } from '@api/model/app-cfg';
+import type { AppCfg, AppTasks } from '@api/model/app-cfg';
 
 import { LegendControlHandler } from './legend-control.handler';
 import { AppConfigService } from '../../services/app-config.service';
 import { SitnaApiService } from '../../services/sitna-api.service';
 import { UIStateService } from '../../services/ui-state.service';
+
+/**
+ * SITNA prints customLegend by itself and drops the tree. Legend URL and a
+ * static image both stay in the symbol slot under the existing titles.
+ */
+function renderEmbeddedLegendEntry(
+  layer: { title: string; childTitle: string; customLegend?: string },
+  legendResult: Array<Array<{ src?: string }>>
+): HTMLElement {
+  const entry = document.createElement('sitna-layer-legend');
+  if (layer.customLegend) {
+    entry.innerHTML = layer.customLegend;
+    return entry;
+  }
+  const src = legendResult[0]?.[0]?.src ?? '';
+  entry.innerHTML =
+    '<li class="tc-ctl-legend-node">' +
+    `<div class="tc-ctl-legend-title">${layer.title}</div>` +
+    '<ul class="tc-ctl-legend-branch"><li class="tc-ctl-legend-node">' +
+    `<div class="tc-ctl-legend-title">${layer.childTitle}</div>` +
+    `<div class="tc-ctl-legend-watch"><img src="${src}" alt=""></div>` +
+    '</li></ul></li>';
+  return entry;
+}
+
+function expectEmbeddedLegendSymbol(
+  entry: HTMLElement,
+  title: string,
+  childTitle: string,
+  src: string
+): void {
+  expect(entry.querySelectorAll('.tc-ctl-legend-title')[0]?.textContent).toBe(title);
+  expect(entry.querySelectorAll('.tc-ctl-legend-title')[1]?.textContent).toBe(childTitle);
+  expect(entry.querySelector('.tc-ctl-legend-watch img')?.getAttribute('src')).toBe(src);
+  expect(entry.querySelector(':scope > img')).toBeNull();
+}
 
 describe('LegendControlHandler', () => {
   let handler: LegendControlHandler;
@@ -193,6 +229,7 @@ describe('LegendControlHandler', () => {
       await handler.loadPatches(mockAppCfg);
 
       const layer = Object.create(TC.layer.Raster.prototype);
+      layer.options = { legendType: 'LEGENDGRAPHIC' };
       layer.availableNames = ['CAE1M_141A'];
       layer.getInfo = jest.fn().mockReturnValue({
         legend: [{ src: 'http://127.0.0.1:18093/legend?layer=CAE1M_141A' }]
@@ -216,6 +253,7 @@ describe('LegendControlHandler', () => {
       await handler.loadPatches(mockAppCfg);
 
       const layer = Object.create(TC.layer.Raster.prototype);
+      layer.options = { legendType: 'LEGENDGRAPHIC' };
       layer.availableNames = ['L1'];
       layer.getInfo = jest.fn().mockReturnValue({
         legend: [{ src: 'http://example.com/legend.png' }]
@@ -234,11 +272,88 @@ describe('LegendControlHandler', () => {
       await handler.loadPatches(mockAppCfg);
 
       const layer = Object.create(TC.layer.Raster.prototype);
+      layer.options = { legendType: 'LEGENDGRAPHIC' };
       layer.availableNames = ['L1'];
       layer.getInfo = jest.fn();
 
       const result = await layer.getLegend(true);
       expect(result).toBe(native);
+      expect(layer.getInfo).not.toHaveBeenCalled();
+    });
+
+    it('embeds the capabilities image for LEGENDURL and does not call native getLegend', async () => {
+      const native = TC.layer.Raster.prototype.getLegend;
+      await handler.loadPatches(mockAppCfg);
+
+      const layer = Object.create(TC.layer.Raster.prototype);
+      layer.options = { legendType: 'LEGENDURL' };
+      layer.availableNames = ['L1'];
+      layer.getInfo = jest.fn().mockReturnValue({
+        legend: [{ src: 'http://example.com/capabilities.png' }]
+      });
+
+      const result = await layer.getLegend(true);
+      const entry = renderEmbeddedLegendEntry(
+        {
+          title: 'Gestió municipal',
+          childTitle: 'Illes urbanes',
+          customLegend: layer.customLegend
+        },
+        result
+      );
+
+      expect(result).toEqual([
+        [{ layerName: 'L1', src: 'http://example.com/capabilities.png' }]
+      ]);
+      expect(layer.customLegend).toBeUndefined();
+      expectEmbeddedLegendSymbol(
+        entry,
+        'Gestió municipal',
+        'Illes urbanes',
+        'http://example.com/capabilities.png'
+      );
+      expect(native).not.toHaveBeenCalled();
+    });
+
+    it('embeds a static legend image the same way as a Legend URL symbol', async () => {
+      const native = TC.layer.Raster.prototype.getLegend;
+      await handler.loadPatches(mockAppCfg);
+
+      const layer = Object.create(TC.layer.Raster.prototype);
+      const url =
+        'https://raw.githubusercontent.com/sitmun/community/master/logotip%20SITMUN%20JPG/horitzontal/01.principal-horit-normal.jpg';
+      layer.options = { legendType: 'LINK', legendURL: url };
+      layer.availableNames = ['CAE1M_112L_FF'];
+
+      const result = await layer.getLegend(true);
+      const entry = renderEmbeddedLegendEntry(
+        {
+          title: 'Gestió municipal',
+          childTitle: 'Carrers',
+          customLegend: layer.customLegend
+        },
+        result
+      );
+
+      expect(result).toEqual([[{ layerName: 'CAE1M_112L_FF', src: url }]]);
+      expect(layer.customLegend).toBeUndefined();
+      expectEmbeddedLegendSymbol(entry, 'Gestió municipal', 'Carrers', url);
+      expect(native).not.toHaveBeenCalled();
+    });
+
+    it('returns no image for a blank WMS or WMTS legend type', async () => {
+      const native = TC.layer.Raster.prototype.getLegend;
+      await handler.loadPatches(mockAppCfg);
+
+      const layer = Object.create(TC.layer.Raster.prototype);
+      layer.availableNames = ['L1'];
+      layer.getInfo = jest.fn().mockReturnValue({
+        legend: [{ src: 'http://example.com/legend.png' }]
+      });
+
+      const result = await layer.getLegend(true);
+      expect(result).toEqual([]);
+      expect(native).not.toHaveBeenCalled();
       expect(layer.getInfo).not.toHaveBeenCalled();
     });
 
@@ -277,7 +392,7 @@ describe('LegendControlHandler', () => {
       const layer = {
         id: 'wl-1',
         isBase: false,
-        options: {},
+        options: { legendType: 'LEGENDGRAPHIC' },
         availableNames: ['L1'],
         getInfo: jest.fn().mockReturnValue({
           legend: [{ src: 'http://example.com/legend.png' }]

@@ -4,15 +4,27 @@ Helpers for codelists, Liquibase changelogs, seed data, and translations.
 
 ## Layout
 
+Run a file in `bin` with `python3` or `node`. Run a file in `scripts` with `bash`. A purpose folder holds one whole job. `tools/monorepo/` and `tools/i18n-utils/` are purpose folders. The seed is CSV. `bin` has no database importer.
+
+`bin/dump_1_2_9_databasechangelog.sh` is a bash script. It stays in `bin`, next to the upgrade generators.
+
 ```
 tools/
-├── seed-data/        source-of-truth JSON/CSV data (never edit generated files)
-├── bin/              Python tooling — generators, importers, utilities
-├── scripts/          operational shell scripts (apply, validate)
-├── tests/            integration test scripts (Docker-based Liquibase tests)
+├── seed-data/        source-of-truth CSV (do not edit generated SQL)
+├── bin/              tools run with python3 or node
+├── scripts/          tools run with bash
+├── tests/            Liquibase and seed checks
 ├── examples/         illustrative ops samples (not production ETL)
-└── i18n-utils/       frontend i18n helpers
+├── monorepo/         pins and message rewrite for a later import
+├── i18n-utils/       one job for frontend i18n JSON
+└── dictionary/       authored column contract
 ```
+
+`tools/monorepo/` stays so a later import can reuse `pins.txt`, `tag-map.tsv`, and `rewrite_message.py` in one place. This folder does not run the import.
+
+`tools/i18n-utils/` stays because sorting frontend JSON keys and filling missing keys is one job, separate from the database seed CSV.
+
+`tools/tests/test_liquibase_codelist_auth_mode_swap.sh` stays as the local check for the 1.2.6 to 1.2.7 auth-mode id swap. The shipped master does not include changeset `25-fix-auth-mode-swap`, so CI does not run the script.
 
 ## Scenario selection
 
@@ -37,7 +49,7 @@ Paths by scenario:
   They mount `profiles/<scenario>/liquibase` and run `liquibase update` with `changelog/master.xml`. So they run the same changelog as production for that profile. Behaviour matches the backend when it uses that profile.
 
 - **JUnit tests**  
-  They use classpath changelogs (e.g. `classpath:/db/changelog/db.changelog-postgres.yaml` in `application-postgres.yml`), which include files from `src/test/resources/db/changelog/` and/or the backend `config/db/changelog/`. That set can differ from the profile changelogs (e.g. no 07_sequences, or different includes). So JUnit Liquibase runs do not necessarily behave the same as profile-based runs; they validate the app against a test DB schema, not the production seed flow.
+  They use `classpath:/db/changelog-test/db.changelog-master.yaml`: the H2 schema, the shipped master, then fixture rows. That is the test database, not a production profile run.
 
 ---
 
@@ -47,9 +59,9 @@ Paths by scenario:
 |--------|---------|
 | **apply-seed-data.sh** | Generate seed files then apply the Liquibase changelog to a remote database. `--db-type postgres\|oracle`; `--baseline` selects i18n language. |
 | **validate-liquibase-changelogs.sh** | List changelogs by last modification (newest first). Not an immutability gate. Pass `[liquibase_dir]` as first argument (default: development). |
-| **compare-schema-drift.sh** | Apply development vs postgres/oracle Liquibase (Docker), report PROBLEM/INFO drift, write **draft fix YAML** under `tools/out/schema-drift/`. Optional `--against jpa`. Target `dev-dialects` compares development postgresql vs oracle. |
-| **checkout-latest-tags.sh** | Update all git submodules to their latest version tag. |
-| **bump-version.sh** | Propagate stack `VERSION` into coordinated submodule build metadata, OpenAPI docs, frontend env files, README badges, and lockfiles. See [Version and release](#version-and-release). |
+| **compare-schema-drift.sh** | Apply development vs postgres/oracle Liquibase (Docker), report PROBLEM/INFO drift, write **draft fix YAML** under `tools/out/schema-drift/`. Optional `--against jpa`. Target `dev-dialects` compares development postgresql vs oracle. Target `fresh-vs-upgraded <engine> [source-tag]` compares a fresh 1.3.0 database with a tagged database upgraded by the shipped master. The source tag defaults to `1.2.9`. Engines are `postgres-16`, `postgres-12`, `oracle-23`, `oracle-21`, and `oracle-11`. Workflow `Fresh versus upgraded` runs that target. |
+| **bump-version.sh** | Copy the platform version from root `gradle.properties` into admin and viewer `package.json`, README badges, and lockfiles. See [Version and release](#version-and-release). |
+| **publish-images.sh** | Build and push the four images for amd64 and arm64 under one tag. See [RELEASE.md](../RELEASE.md#images). |
 
 ```bash
 # Apply seed data to a remote PostgreSQL database (English baseline)
@@ -93,18 +105,15 @@ bash tools/scripts/compare-schema-drift.sh postgres --fail-on none
 # then add the line from MASTER_INCLUDE.txt to profiles/postgres/liquibase/master.xml
 bash tools/scripts/compare-schema-drift.sh oracle --fail-on none
 bash tools/scripts/compare-schema-drift.sh postgres --against jpa --fail-on none
-
-# Move submodules to latest tags
-bash tools/scripts/checkout-latest-tags.sh
 ```
 
 Drafts are **not** auto-wired into `master.xml`. Do not rewrite `sitmun:1`; only add incremental changesets after review. Default draft prefix is `22_schema_drift_fix`. Java field defaults / Bean Validation are annotated as INFO via `extract_jpa_column_hints.py`. They do not invent SQL `DEFAULT` clauses.
 
-Applied profile/schema changesets are frozen. `check_changelog_immutability.py` fails a diff that edits a shipped include numbered below the HEAD tip. Includes that were not on the diff base (new incrementals in the same PR) are allowed. Allowlisted exceptions are generated production seeds `02`–`06` (`runOnChange`), production Postgres `07_sequences.yaml` (`runOnChange`), and development `04_initial_data_dev` (`validCheckSum: ANY`). Adding only `--validCheckSum` lines to `01_schema.*` is also allowed so historical `sitmun:1` hashes can be accepted without rewriting the schema. `check_changelog_integrity.py` is a git-ancestry report on backend-core files. It does not fail CI.
+Applied profile/schema changesets are frozen. `check_changelog_immutability.py` fails a diff that edits a shipped include numbered below the HEAD tip. Includes that were not on the diff base (new incrementals in the same PR) are allowed. Allowlisted exceptions are generated production seeds `02`–`06` (`runOnChange`), production Postgres `07_sequences.yaml` (`runOnChange`), and development `04_initial_data_dev` (`validCheckSum: ANY`). Adding only `--validCheckSum` lines to `01_schema.*` is also allowed so historical `sitmun:1` hashes can be accepted without rewriting the schema. `check_changelog_integrity.py` is a git-ancestry report on the development changelog. It does not fail CI.
 
 ### Version and release
 
-Coordinated stack version lives in root `VERSION`. Propagation and status:
+The platform version lives in root `gradle.properties` (`version=`). Propagation and status:
 
 ```bash
 # Show current version across consumers
@@ -115,7 +124,7 @@ bash tools/scripts/bump-version.sh 1.2.9
 bash tools/scripts/bump-version.sh --status
 ```
 
-Updates backend/proxy `build.gradle` and OpenAPI YAMLs, admin/viewer `package.json` / environments / badges, and regenerates frontend lockfiles when needed. Full cut/tag/merge sequence is in root [RELEASE.md](../RELEASE.md).
+Updates admin and viewer `package.json` and README badges, and regenerates those lockfiles when needed. Gradle, OpenAPI, and the frontend environment files take the version from that source at build time. Full cut/tag/merge sequence is in root [RELEASE.md](../RELEASE.md).
 
 ---
 
@@ -129,8 +138,10 @@ Updates backend/proxy `build.gradle` and OpenAPI YAMLs, admin/viewer `package.js
 | **test_changelog_immutability.py** | Unit tests for the PR-diff Liquibase immutability gate. |
 | **test_prepare_extracted_liquibase.py** | Unit tests for 1.2.6 CSV width rewrite and case-alias copies. |
 | **test_seed_identity_swap.py** | Unit tests for the STM_CODELIST unique-key swap gate (`#45`). |
-| **test_liquibase_1.2.7_to_head_upgrade.sh** | Tag → HEAD upgrade. CI: postgres 1.2.7/1.2.8, Oracle 1.2.6–1.2.8, development Oracle 1.2.6. |
-| **test_liquibase_codelist_auth_mode_swap.sh** | Docker fixture for the 1.2.6→1.2.7 auth-mode ID swap. CI job `postgres-auth-mode-swap`. |
+| **test_liquibase_upgrade_from_1.2.9.sh** | Upgrade a tagged source release to the shipped master, and refuse 1.2.7. The source tag defaults to `1.2.9`. Engines are `postgres-16`, `postgres-12`, `oracle-23`, `oracle-21`, and `oracle-11`. On Darwin, Oracle 11 and 21 use Colima profile `oracle-xe`. Elsewhere they use Docker. After a successful upgrade it runs `RequiredCodeListsTest` on that database. `SITMUN_UPGRADE_KEEP_DB=1` leaves the English upgrade running when every check passes. The Catalan check runs before that upgrade. CI jobs `postgres-12-from`, `postgres-16-from`, and `oracle-23-from` call this script with source `1.2.9`. `oracle-11-from` and `oracle-19-from` pass `stopped-22c`: they install the released 1.2.9 tag, confirm Liquibase stops at changeset 22c, then upgrade that database. The Oracle 21c job passes `oracle-21`. The PostgreSQL 16 job then runs `pnpm run e2e` against the kept database. |
+| **test_liquibase_1.2.7_to_head_upgrade.sh** | Older tag to HEAD upgrade. CI jobs `dev-postgres-from` and `dev-oracle-from` still call it for the development profile. `SITMUN_ORACLE_IMAGE` (default `gvenzl/oracle-free:23-slim`) and `SITMUN_POSTGRES_IMAGE` (default `postgres:16-alpine`) pick the server. `SITMUN_ORACLE_WAIT_TRIES` is the Oracle readiness budget. `gvenzl/oracle-xe:21-slim` and `gvenzl/oracle-xe:11` are amd64 only. Do not run the 11 image on an Apple M1. |
+| **test_liquibase_codelist_auth_mode_swap.sh** | Local fixture for the 1.2.6 to 1.2.7 auth-mode id swap. The shipped master does not include changeset `25-fix-auth-mode-swap`, so CI does not run it. |
+| **test_backend_db_boot.sh** | Boots the backend jar on an empty schema. `SITMUN_DB` is `oracle-11`, `oracle-19`, `postgres-12`, or `postgres-16`. Checks Liquibase, the Hibernate dialect (`SitmunOracleLegacyDialect`, `SitmunOracleDialect`, or `PostgreSQLDialect`), the database version, health, startup, and the public application list. CI workflows `Test Oracle 11`, `Test Oracle 19`, `Test PostgreSQL 12`, and `Test PostgreSQL 16` then run `testOracle11`, `testOracle19`, `testPostgres12`, or `testPostgres16` on the same container. `SITMUN_DB_KEEP=1` keeps it running. On an Apple M1, run `gvenzl/oracle-xe` in an x86_64 Colima profile and set `SITMUN_DB_URL`. |
 
 ```bash
 python3 tools/tests/test_report_schema_drift.py
@@ -138,6 +149,12 @@ python3 tools/tests/test_changelog_immutability.py
 python3 tools/tests/test_prepare_extracted_liquibase.py
 python3 tools/tests/test_seed_identity_swap.py
 bash tools/tests/test_liquibase_1.2.7_to_head_upgrade.sh postgres
+SITMUN_POSTGRES_IMAGE=postgres:12-alpine \
+  bash tools/tests/test_liquibase_1.2.7_to_head_upgrade.sh postgres-from 1.2.7
+SITMUN_ORACLE_IMAGE=gvenzl/oracle-xe:21-slim \
+  bash tools/tests/test_liquibase_1.2.7_to_head_upgrade.sh oracle-from 1.2.7
+SITMUN_DB=oracle-11 SITMUN_DB_URL=jdbc:oracle:thin:@//127.0.0.1:15211/XE \
+  bash tools/tests/test_backend_db_boot.sh
 bash tools/tests/test_liquibase_scenarios.sh
 bash tools/tests/test_liquibase_scenarios_oracle.sh
 ```
@@ -150,40 +167,20 @@ See [seed-data/README.md](seed-data/README.md) for the full workflow.
 
 | Script | Purpose | Key flags |
 |--------|---------|-----------|
-| **generate_all_seed_outputs.py** | Orchestrator: run translation + seed generation for all production profiles. | `--scenarios` (default: postgres,oracle); `--baseline` |
-| **generate_seed_files.py** | Generate non-translation seed CSVs + loadUpdateData YAMLs. | `--scenario` |
-| **generate_translation_files.py** | Generate Liquibase translation CSVs + changelog from baseline. | `--scenario`; `--baseline` |
-| **switch_default_language.py** | Non-destructive baseline selection + production regeneration. | positional lang; `--dry-run` |
-| **check_translations.py** | Report missing translations. | `--baseline` |
-| **import_missing_translations.py** | Merge completed rows from `missing-translations.csv` into a baseline. | `--baseline` |
-| **extract_seed_data.py** | Extract non-translation seed rows from dev CSVs → `master-seed-data.json`. | — |
-| **extract_translatable.py** | Extract from seed CSVs + dev translations → baseline JSON. | `--scenario`; `--baseline` |
-| **import_from_csv.py** | One-time import from legacy Liquibase translation CSVs into a baseline. | `--scenario`; `--baseline` |
-| **import_from_generated_csvs.py** | Import from generated `STM_TRANSLATION_*.csv` into a baseline. | `--scenario`; `--baseline` |
-| **sort_codelist.py** | Sort and renumber `STM_CODELIST.csv`. | pass input file path |
+| **generate_baseline_seed.py** | Write the shipped code-list and translation SQL from `seed-data/baseline`. | — |
+| **generate_legacy_upgrade.py** | Write the 1.2.9 upgrade SQL into `db/changelog/upgrade/`. | — |
+| **check_translations.py** | List code values, tasks, territory types, and task groups with no translation outside the default language. Exits 1 when any row is missing. | — |
 | **check_changelog_immutability.py** | Fail if a diff edits a Liquibase include below the tree tip. `--base` for CI. | `--tree`; `--changed-file`; `--base`; `--no-git` |
 | **prepare_extracted_liquibase.py** | Rewrite pre-1.2.7 CSV width; copy case-mismatched CSV names for Linux. Used by the upgrade harness on extracted tags. | `--csv-width DIR`; `--alias-case DIR` |
 | **check_seed_identity_swap.py** | Fail a PR diff that moves an `STM_CODELIST` unique key `(COD_LIST, COD_VALUE)` onto a different `COD_ID`. | `--base`; `--changed-file`; `--no-git` |
-| **check_changelog_integrity.py** | Git-ancestry report (backend-core default). Prints violations. Does not exit 1. | — |
+| **check_changelog_integrity.py** | Git-ancestry report (development changelog by default). Prints violations. Does not exit 1. | — |
 | **report_schema_drift.py** | Compare schema dumps; emit PROBLEM/INFO report + draft Liquibase YAML. | `--out-dir`; `--fail-on`; `--dbms` |
 | **extract_jpa_column_hints.py** | Scan domain entities for java defaults / validation / auditing → JSON hints. | `--out` |
 
 ```bash
-# Generate translation + seed files for both production profiles (default baseline)
-python3 tools/bin/generate_all_seed_outputs.py
-
-# Explicit English baseline, both profiles
-python3 tools/bin/generate_all_seed_outputs.py --baseline en --scenarios postgres,oracle
-
-# Only translation files for oracle
-python3 tools/bin/generate_translation_files.py --scenario oracle --baseline en
-
-# Switch default language to Spanish (non-destructive, regenerates postgres + oracle)
-python3 tools/bin/switch_default_language.py es --dry-run
-python3 tools/bin/switch_default_language.py es
-
-# Sort a codelist CSV
-python3 tools/bin/sort_codelist.py profiles/postgres/liquibase/changelog/02_codelists/STM_CODELIST.csv
+python3 tools/bin/generate_baseline_seed.py
+python3 tools/bin/generate_legacy_upgrade.py
+python3 tools/bin/check_translations.py
 
 # Check changelog immutability (also run by .github/workflows/liquibase-immutability.yml)
 python3 tools/bin/check_changelog_immutability.py
@@ -191,6 +188,26 @@ python3 tools/bin/check_changelog_integrity.py
 ```
 
 ---
+
+## Data dictionary
+
+`tools/dictionary/dictionary.json` is the authored column contract. The path has no release number. A row is decided when both baseline catalogs agree, or when a later change records one value. Checkers fail when SQL, a post-Liquibase catalog dump, JPA, a request DTO, a checked-in OpenAPI document, or an admin or viewer form disagrees.
+
+A column `type` is `string`, `integer`, `boolean`, `decimal`, `timestamp`, `instant`, or `date`. `instant` is a timestamp stored with a time zone. `timestamp` has no zone. `date` is a civil day. A link column has `references.column` and, when the foreign key says so, `references.on_delete`. `enforcement` `reject` means the API refuses a value the column still accepts. `configuration` lists each required `stm_conf` key with the fresh value and the upgraded value. An unknown key, type, or section fails the check. H2, Oracle, and PostgreSQL share that logical schema. Each engine keeps its own spelling of a boolean and a string.
+
+```bash
+python3 tools/bin/check_data_dictionary.py \
+  --sql sitmun-backend/src/main/resources/db/changelog/baseline/01-schema.postgresql.sql \
+  --sql sitmun-backend/src/main/resources/db/changelog/baseline/01-schema.oracle.sql \
+  --sql sitmun-backend/src/test/resources/db/changelog-test/01-schema.h2.sql
+node tools/bin/check_data_dictionary_clients.mjs --app sitmun-admin
+node tools/bin/check_data_dictionary_clients.mjs --app sitmun-viewer
+./gradlew :sitmun-backend:test --tests org.sitmun.dictionary.DataDictionaryConformanceTest -Dsitmun.dictionary.fail=true
+```
+
+`--fail-on problem` is the default. `--fail-on none` prints the same lines and exits 0.
+
+When a release changes a column, edit the dictionary row and the Liquibase changeset in the same pull request. The 1.3.0 baseline and the 1.2.9-to-1.3.0 hop under `sitmun-backend/src/main/resources/db/changelog/upgrade/` are shipped. A new change goes in a new file under `db/changelog/releases/`, included from the master. `check_changelog_immutability.py` rejects an edit to any file that exists at the latest `vMAJOR.MINOR.PATCH` tag. Do not edit a changeset that a shipped release already applied, and do not add `validCheckSum: ANY`. The baseline schema, the baseline seed, and the 1.2.9 schema hop keep the checksums of the files they already ran. First-run uses the built-in admin password. `setup.languageConfigured` is not stored. Regenerate the H2 test schema with `tools/bin/generate_test_fixtures.py` instead of editing `01-schema.h2.sql` by hand.
 
 ## tools/examples/ — Ejemplos ilustrativos
 

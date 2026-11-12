@@ -1,20 +1,41 @@
 import { inject, Injectable } from '@angular/core';
 
-import { AppCfg, AppNodeInfo, AppTasks, AppTree } from '@api/model/app-cfg';
+import type { AppCfg, AppNodeInfo, AppTasks, AppTree } from '@api/model/app-cfg';
 import { TranslateService } from '@ngx-translate/core';
 import { Subscription } from 'rxjs';
 
+import { constants } from '@environments/constants';
 
+import { catalogLayerPathTitles } from './catalog-layer-path';
 import { ensureLayerCatalogInfoAffordance } from './layer-catalog-info-affordance';
+import {
+  CatalogInfoKind,
+  catalogInfoKind
+} from '../../services/catalog-info-kind';
 import { CatalogLayerSelectionService } from '../../services/catalog-layer-selection.service';
 import { CatalogSwitchingService } from '../../services/catalog-switching.service';
 import { ConfigLookupService } from '../../services/config-lookup.service';
+import {
+  featureTypeLayerTitle,
+  featureTypeNames
+} from '../../services/feature-type-names';
+import {
+  findCapabilitiesLayerByTitle,
+  presentFolderLayerInfo
+} from '../../services/folder-catalog-info';
+import { LayerInfoService } from '../../services/layer-info.service';
 import { resolveSitmunGfiEnabled } from '../../services/profile-layer-queryable';
 import { RasterLayerService } from '../../services/raster-layer.service';
 import { SitnaApiService } from '../../services/sitna-api.service';
 import { SitnaCapabilitiesInterceptor } from '../../services/sitna-capabilities-interceptor.service';
 import { VirtualWmsCapabilitiesService } from '../../services/virtual-wms-capabilities.service';
+import {
+  attachChosenGeometry,
+  wfsLayerGeometryOptions
+} from '../../services/wfs-layer-geometry';
 import type { Meld, MeldJoinPoint } from '../../types/meld.types';
+import { WMSLayer } from '../../types/wms-capabilities';
+import { resolutionFromScaleDenominator } from '../../utils/scale-resolution';
 import { ControlHandlerBase } from '../control-handler-base';
 import {
   BootstrapEligibilityOptions,
@@ -22,8 +43,20 @@ import {
 } from '../control-handler.interface';
 
 const LCAT_LOADING_I18N = 'layerCatalog.loading';
+const LCAT_LOADING_WFS_I18N = 'layerCatalog.loading.wfs';
 const LCAT_LOAD_FAILED_I18N = 'layerCatalog.loadFailed';
+const LCAT_LOAD_FAILED_WFS_I18N = 'layerCatalog.loadFailed.wfs';
+const LCAT_FEATURE_TYPE_INFO_I18N = 'layerCatalog.featureTypeInformation';
+const LCAT_LOAD_FEATURE_TYPE_I18N = 'layerCatalog.loadFeatureType';
+const WMS_CAPABILITIES_QUERY = 'service=wms&request=getcapabilities';
+const WFS_CAPABILITIES_QUERY = 'service=WFS&request=GetCapabilities';
 const MATERIAL_ICON_WARNING = 'warning';
+
+function catalogCapabilitiesQuery(serviceType: string | undefined): string {
+  return serviceType === constants.codeValue.serviceType.wfs
+    ? WFS_CAPABILITIES_QUERY
+    : WMS_CAPABILITIES_QUERY;
+}
 
 // Declare require for CommonJS module import
 declare function require(module: string): any;
@@ -56,6 +89,7 @@ export class LayerCatalogControlHandler extends ControlHandlerBase {
   private readonly catalogSelection = inject(CatalogLayerSelectionService);
   private readonly catalogSwitching = inject(CatalogSwitchingService);
   private readonly rasterService = inject(RasterLayerService);
+  private readonly layerInfoService = inject(LayerInfoService);
   private readonly capabilitiesInterceptor = inject(SitnaCapabilitiesInterceptor);
   private readonly translate = inject(TranslateService);
 
@@ -115,10 +149,8 @@ export class LayerCatalogControlHandler extends ControlHandlerBase {
    * @param context - Full application configuration context (required, must not be null)
    */
   override async loadPatches(context: AppCfg): Promise<void> {
-    // Store AppCfg immediately (needed for patches even if already applied)
     this.currentAppCfg = context;
 
-    // Ensure context is initialized in lookup service
     this.configLookup.initialize(context);
 
     // Guard: Don't reapply patches on map reload
@@ -134,6 +166,7 @@ export class LayerCatalogControlHandler extends ControlHandlerBase {
     await this.patchLayerCatalogGetLayerRootNode();
     await this.patchRasterGetPath();
     await this.patchLayerCatalogTemplate();
+    await this.patchFolderLayerInfo();
     await this.patchLayerCatalogCreateSearchAutocomplete();
     await this.patchRasterGetInfo();
     await this.patchLayerCatalogInjectCatalogSwitching();
@@ -150,7 +183,6 @@ export class LayerCatalogControlHandler extends ControlHandlerBase {
       this.langChangeSub = undefined;
     });
 
-    // Mark patches as applied
     this.patchesApplied = true;
   }
 
@@ -215,41 +247,30 @@ export class LayerCatalogControlHandler extends ControlHandlerBase {
     task: AppTasks,
     context: AppCfg
   ): SitnaControlConfig | null {
-    // Ensure context is initialized in lookup service
     this.configLookup.initialize(context);
 
-    // Store AppCfg and task for use in patches
     this.currentAppCfg = context;
 
-    // Get all root tree nodes first (for setting up global state)
     const allRootNodeIds = this.getAllRootNodeIds(context);
 
-    // Filter out empty trees before setting up global state
-    // This ensures empty trees are not offered in the modal
     const nonEmptyRootNodeIds = this.filterEmptyTrees(allRootNodeIds, context);
 
-    // If all trees are empty, disable the control
     if (nonEmptyRootNodeIds.length === 0) {
       return null;
     }
 
-    // Setup global state for catalog switching BEFORE building configuration
     // Always setup global state, even for single tree (ensures consistent behavior)
-    // Use filtered list so empty trees are not shown in modal
     this.catalogSwitching.setupGlobalState(
       nonEmptyRootNodeIds,
       this.configLookup
     );
 
-    // Get root tree nodes from parameters (these are the actual root nodes of trees)
-    // This will respect catalog selection if switching is enabled
     const rootNodeIds = this.getRootNodeIds(context);
 
     if (rootNodeIds.length === 0) {
       return null;
     }
 
-    // Build WMS configuration for each direct child of the root nodes
     // Each child of the root node becomes a separate virtual WMS service
     const wmsLayers: Array<{
       id: string;
@@ -271,7 +292,6 @@ export class LayerCatalogControlHandler extends ControlHandlerBase {
         continue;
       }
 
-      // Get direct children of the root node
       if (!rootNode.children || rootNode.children.length === 0) {
         continue;
       }
@@ -283,14 +303,12 @@ export class LayerCatalogControlHandler extends ControlHandlerBase {
         return orderA - orderB;
       });
 
-      // Create a virtual service for each child of the root node
       for (const childId of sortedChildren) {
         const childNode = this.configLookup.findNode(childId);
         if (!childNode) {
           continue;
         }
 
-        // Check if the node can generate valid capabilities before registering it
         if (!this.virtualWmsService.canGenerateCapabilities(childId, context)) {
           continue;
         }
@@ -316,7 +334,6 @@ export class LayerCatalogControlHandler extends ControlHandlerBase {
       return null;
     }
 
-    // Get default configuration using controlIdentifier
     const defaultConfig = this.getDefaultConfig();
 
     const baseConfig: SitnaControlConfig = {
@@ -324,7 +341,6 @@ export class LayerCatalogControlHandler extends ControlHandlerBase {
       layers: wmsLayers
     };
 
-    // Merge with task parameters (allows backend to override div or add other options)
     return this.mergeWithParameters(baseConfig, task.parameters);
   }
 
@@ -347,12 +363,10 @@ export class LayerCatalogControlHandler extends ControlHandlerBase {
         continue;
       }
 
-      // Check if root node has children
       if (!rootNode.children || rootNode.children.length === 0) {
         continue;
       }
 
-      // Check if at least one child can generate valid capabilities
       let hasValidChild = false;
       for (const childId of rootNode.children) {
         if (this.virtualWmsService.canGenerateCapabilities(childId, context)) {
@@ -365,7 +379,6 @@ export class LayerCatalogControlHandler extends ControlHandlerBase {
         continue;
       }
 
-      // Tree is not empty, include it
       nonEmptyRootNodeIds.push(rootNodeId);
     }
 
@@ -387,28 +400,23 @@ export class LayerCatalogControlHandler extends ControlHandlerBase {
    * Empty trees are always filtered out.
    */
   private getRootNodeIds(context: AppCfg): string[] {
-    // Check if catalog global state is setup with a selected tree
     const selectedRootNode =
       this.catalogSwitching.getSelectedTreeRootNode(context);
     if (selectedRootNode) {
-      // Verify the selected tree is not empty
       const filtered = this.filterEmptyTrees([selectedRootNode], context);
-      if (filtered.length === 0) {
-        // Fall through to default behavior
-      } else {
+      if (filtered.length > 0) {
         return [selectedRootNode];
       }
     }
 
-    // Default: use the first non-empty tree root node
     const allRootNodeIds = this.getAllRootNodeIds(context);
     const nonEmptyRootNodeIds = this.filterEmptyTrees(allRootNodeIds, context);
 
     if (nonEmptyRootNodeIds.length > 0) {
-      return [nonEmptyRootNodeIds[0]]; // Return only the first non-empty tree
+      return [nonEmptyRootNodeIds[0]];
     }
 
-    return []; // No non-empty trees available
+    return [];
   }
 
   // ============================================================================
@@ -497,6 +505,10 @@ export class LayerCatalogControlHandler extends ControlHandlerBase {
             nodeId?: string;
             serviceId?: string;
             sitmunGfiEnabled?: boolean;
+            featureType?: string;
+            opacity?: number;
+            minResolution?: number;
+            maxResolution?: number;
             [key: string]: unknown;
           };
 
@@ -524,9 +536,26 @@ export class LayerCatalogControlHandler extends ControlHandlerBase {
             layerOptions.layerNames = layerName;
           }
 
+          const treeNodeTitle = catalogNode?.title?.trim();
+          const pathTitles = catalogLayerPathTitles(layerName, appCfgAdd);
+          const topTitle =
+            pathTitles.length > 0 ? pathTitles[0] : treeNodeTitle;
+          if (topTitle) {
+            layerOptions.title = topTitle;
+          }
+
+          if (resource) {
+            layerOptions['profileLayerId'] = resource;
+          }
           const appLayer = resource
             ? appCfgAdd.layers.find((l) => l.id === resource)
             : undefined;
+          if (appLayer?.legendType) {
+            layerOptions['legendType'] = appLayer.legendType;
+          }
+          if (appLayer?.legendURL) {
+            layerOptions['legendURL'] = appLayer.legendURL;
+          }
           const queryableLeaf =
             typeof handler.configLookup.isQueryableLeaf === 'function' &&
             handler.configLookup.isQueryableLeaf(layerName);
@@ -587,6 +616,115 @@ export class LayerCatalogControlHandler extends ControlHandlerBase {
                 return commitClaimOnly();
               }
 
+              if (realLayerConfig?.type === constants.codeValue.serviceType.wfs) {
+                layerOptions.type = constants.codeValue.serviceType.wfs;
+                Object.assign(layerOptions, wfsLayerGeometryOptions(realLayerConfig));
+                layerOptions['zIndex'] = realLayerConfig.order ?? 0;
+                const wfsOpacity =
+                  typeof transparency === 'number' && transparency > 0
+                    ? (100 - transparency) / 100
+                    : undefined;
+                if (wfsOpacity != null) {
+                  layerOptions.opacity = wfsOpacity;
+                }
+                const leaf =
+                  typeof layerObj.getLayerNodeByName === 'function'
+                    ? layerObj.getLayerNodeByName(layerName)
+                    : undefined;
+                const metersPerUnit =
+                  typeof self.map.getMetersPerUnit === 'function'
+                    ? self.map.getMetersPerUnit()
+                    : 1;
+                const minResolution = resolutionFromScaleDenominator(
+                  leaf?.MinScaleDenominator,
+                  metersPerUnit
+                );
+                const maxResolution = resolutionFromScaleDenominator(
+                  leaf?.MaxScaleDenominator,
+                  metersPerUnit
+                );
+                if (minResolution != null) {
+                  layerOptions.minResolution = minResolution;
+                }
+                if (maxResolution != null) {
+                  layerOptions.maxResolution = maxResolution;
+                }
+
+                const featureTypes = featureTypeNames(realLayerConfig.layerNames);
+                const names = featureTypes.length > 0 ? featureTypes : [undefined];
+                let addedWfs: any;
+                for (const featureType of names) {
+                  const options = {
+                    ...layerOptions,
+                    id: self.getUID(),
+                    title: featureType
+                      ? featureTypeLayerTitle(
+                          layerOptions.title,
+                          featureType,
+                          featureTypes.length
+                        )
+                      : layerOptions.title,
+                    layerNames: featureType ? [featureType] : layerOptions.layerNames
+                  };
+                  if (featureType) {
+                    options.featureType = featureType;
+                  }
+                  const added = await handler.catalogSelection.runWithSelfCommit(
+                    self.map,
+                    () => self.map.addLayer(options)
+                  );
+                  if (handler.consumeCatalogAddFailure(self.map, layerName)) {
+                    await handler.removePhysicalLayersByNodeIds(
+                      self.map,
+                      [layerName],
+                      self
+                    );
+                    handler.catalogSelection.commitSelection(
+                      self.map,
+                      layerName,
+                      resource,
+                      false
+                    );
+                    handler.syncRadioCheckedState(self);
+                    return undefined;
+                  }
+                  const chosenGeometry = layerOptions['geometryName'];
+                  attachChosenGeometry(
+                    self.map,
+                    added,
+                    typeof chosenGeometry === 'string' ? chosenGeometry : undefined,
+                    TC?.Consts?.event?.FEATURESADD
+                  );
+                  if (
+                    added != null &&
+                    wfsOpacity != null &&
+                    typeof added.setOpacity === 'function'
+                  ) {
+                    await added.setOpacity(wfsOpacity);
+                  }
+                  addedWfs = addedWfs ?? added;
+                }
+                const removedWfs = handler.catalogSelection.commitSelection(
+                  self.map,
+                  layerName,
+                  resource,
+                  true
+                );
+                await handler.catalogSelection.runWithSelfCommit(
+                  self.map,
+                  async () => {
+                    await handler.removePhysicalResources(
+                      self.map,
+                      removedWfs.removeResources,
+                      self,
+                      layerName
+                    );
+                  }
+                );
+                handler.afterCatalogClaimCommitted(self.map, self);
+                return addedWfs;
+              }
+
               const newLayer = new Raster(layerOptions);
               await newLayer.getCapabilitiesPromise();
 
@@ -597,13 +735,13 @@ export class LayerCatalogControlHandler extends ControlHandlerBase {
                 );
                 return joinPoint.proceed();
               }
-              const nodeTitle = handler.getNodeTitle(layerName, appCfgAdd);
 
-              if (nodeTitle && newLayer.Capability?.Layer) {
+              const capabilityRoot = newLayer.capabilities?.Capability?.Layer;
+              if (treeNodeTitle && capabilityRoot) {
                 handler.updateLayerTitleInCapabilities(
-                  newLayer.Capability.Layer,
+                  capabilityRoot,
                   effectiveLayerNames,
-                  nodeTitle
+                  treeNodeTitle
                 );
               }
 
@@ -872,6 +1010,18 @@ export class LayerCatalogControlHandler extends ControlHandlerBase {
         return;
       }
       this.markCatalogAddFailure(map, nodeId);
+      const maxNumFeatures =
+        TC?.Consts?.WFSErrors?.MAX_NUM_FEATURES ?? 'NumMaxFeatures';
+      if (
+        eventOrLayer?.message === maxNumFeatures &&
+        typeof map.toast === 'function' &&
+        typeof map.getLocaleString === 'function'
+      ) {
+        const limit = eventOrLayer?.data?.limit;
+        map.toast(map.getLocaleString('query.msgTooManyResults', { limit }), {
+          limit
+        });
+      }
       void this.rollbackFailedCatalogLayer(map, nodeId, TC);
     };
 
@@ -1242,6 +1392,26 @@ export class LayerCatalogControlHandler extends ControlHandlerBase {
     }
   }
 
+  private isWfsCatalogLeaf(nodeId: string | undefined): boolean {
+    if (!nodeId || !this.currentAppCfg) {
+      return false;
+    }
+    return (
+      this.virtualWmsService.findRealLayerConfig(nodeId, this.currentAppCfg)
+        ?.type === constants.codeValue.serviceType.wfs
+    );
+  }
+
+  private catalogStatusLabel(
+    nodeId: string | undefined,
+    wmsKey: string,
+    wfsKey: string
+  ): string {
+    return this.translate.instant(
+      this.isWfsCatalogLeaf(nodeId) ? wfsKey : wmsKey
+    );
+  }
+
   /** Mark SITNA info toggles as the trailing metadata affordance. */
   private stampMetadataControls(root: ParentNode): void {
     root
@@ -1252,8 +1422,15 @@ export class LayerCatalogControlHandler extends ControlHandlerBase {
         // Material Icons “article”; Sitna “i” / --icon-info is reserved for GFI.
         element.setAttribute('checked-icon-text', 'article');
         element.setAttribute('unchecked-icon-text', 'article');
+        const row = element.closest('li[data-layer-name]') as HTMLElement | null;
+        const featureTypeLabel = this.isWfsCatalogLeaf(row?.dataset['layerName'])
+          ? this.translate.instant(LCAT_FEATURE_TYPE_INFO_I18N)
+          : null;
+        if (featureTypeLabel) {
+          element.setAttribute('title', featureTypeLabel);
+        }
         if (!element.getAttribute('aria-label')) {
-          element.setAttribute('aria-label', 'Layer information');
+          element.setAttribute('aria-label', featureTypeLabel ?? 'Layer information');
         }
         this.placeMetadataControl(element);
       });
@@ -1615,7 +1792,11 @@ export class LayerCatalogControlHandler extends ControlHandlerBase {
       input.setAttribute('aria-checked', 'false');
       input.setAttribute(
         'aria-label',
-        leafNode?.title ? `Load ${leafNode.title}` : `Load layer ${nodeId}`
+        leafNode?.title
+          ? `Load ${leafNode.title}`
+          : this.isWfsCatalogLeaf(nodeId)
+            ? this.translate.instant(LCAT_LOAD_FEATURE_TYPE_I18N, { nodeId })
+            : `Load layer ${nodeId}`
       );
       const label = document.createElement('label');
       label.className = 'sitmun-lcat-leaf-load-label';
@@ -1925,10 +2106,14 @@ export class LayerCatalogControlHandler extends ControlHandlerBase {
     if (!div || !map) {
       return;
     }
-    const label = this.translate.instant(LCAT_LOADING_I18N);
     div.querySelectorAll('li[data-layer-name]').forEach((node: Element) => {
       const li = node as HTMLElement;
       const nodeId = li.dataset['layerName'];
+      const label = this.catalogStatusLabel(
+        nodeId,
+        LCAT_LOADING_I18N,
+        LCAT_LOADING_WFS_I18N
+      );
       const pending =
         !!nodeId && this.catalogSelection.isCatalogLoadPending(map, nodeId);
       let spinner = Array.from(li.children).find((child) =>
@@ -1969,10 +2154,14 @@ export class LayerCatalogControlHandler extends ControlHandlerBase {
     if (!div || !map) {
       return;
     }
-    const label = this.translate.instant(LCAT_LOAD_FAILED_I18N);
     div.querySelectorAll('li[data-layer-name]').forEach((node: Element) => {
       const li = node as HTMLElement;
       const nodeId = li.dataset['layerName'];
+      const label = this.catalogStatusLabel(
+        nodeId,
+        LCAT_LOAD_FAILED_I18N,
+        LCAT_LOAD_FAILED_WFS_I18N
+      );
       const failed =
         !!nodeId && this.catalogSelection.isLoadFailed(map, nodeId);
       let warning = Array.from(li.children).find((child) =>
@@ -2538,10 +2727,7 @@ export class LayerCatalogControlHandler extends ControlHandlerBase {
             handler.sitnaApi.getGlobal('currentAppCfg') ??
             handler.currentAppCfg;
           if (nodeId && appCfgPath) {
-            const parentTitles = handler.getParentNodeTitles(
-              nodeId,
-              appCfgPath
-            );
+            const parentTitles = catalogLayerPathTitles(nodeId, appCfgPath);
             if (parentTitles.length > 0) {
               return parentTitles;
             }
@@ -2560,103 +2746,10 @@ export class LayerCatalogControlHandler extends ControlHandlerBase {
   // ============================================================================
 
   /**
-   * Get the title of a node from apiConfig by nodeId.
-   */
-  private getNodeTitle(nodeId: string, apiConfig: AppCfg): string | null {
-    if (!apiConfig?.trees) {
-      return null;
-    }
-
-    for (const tree of apiConfig.trees) {
-      if (!tree.nodes) {
-        continue;
-      }
-
-      const node = tree.nodes[nodeId];
-      if (node?.title) {
-        return node.title;
-      }
-    }
-
-    return null;
-  }
-
-  /**
    * Get the Raster prototype from SITNA/TC, if present.
    */
   private getRasterPrototype(TC: any): any {
     return TC?.layer?.Raster?.prototype || TC?.wrap?.layer?.Raster?.prototype;
-  }
-
-  /**
-   * Get parent node titles from SITMUN configuration for a given nodeId.
-   */
-  private getParentNodeTitles(nodeId: string, apiConfig: AppCfg): string[] {
-    if (!apiConfig?.trees) {
-      return [];
-    }
-
-    for (const tree of apiConfig.trees) {
-      if (!tree.nodes || !tree.rootNode) {
-        continue;
-      }
-
-      const node = tree.nodes[nodeId];
-      if (!node) {
-        continue;
-      }
-
-      const rootNode = tree.nodes[tree.rootNode];
-      if (!rootNode) {
-        continue;
-      }
-
-      const parentTitles: string[] = [];
-      let currentNodeId: string | null = nodeId;
-      const visited = new Set<string>();
-
-      while (currentNodeId) {
-        if (visited.has(currentNodeId)) {
-          break;
-        }
-        visited.add(currentNodeId);
-
-        // Stop if current node is a direct child of rootNode
-        if (rootNode.children?.includes(currentNodeId)) {
-          break;
-        }
-
-        // Find parent
-        let parentId: string | null = null;
-        for (const [parentNodeId, parentNode] of Object.entries(tree.nodes)) {
-          const node = parentNode as AppNodeInfo;
-          if (node.children?.includes(currentNodeId)) {
-            parentId = parentNodeId;
-            break;
-          }
-        }
-
-        if (!parentId || parentId === tree.rootNode) {
-          break;
-        }
-
-        const parentNode = tree.nodes[parentId] as AppNodeInfo;
-        if (parentNode?.title) {
-          parentTitles.unshift(parentNode.title);
-        }
-
-        currentNodeId = parentId;
-      }
-
-      // Add the leaf node's title
-      if (node.title) {
-        parentTitles.push(node.title);
-      }
-
-      return parentTitles;
-    }
-
-    return [];
   }
 
   /**
@@ -2676,6 +2769,7 @@ export class LayerCatalogControlHandler extends ControlHandlerBase {
 
     if (layer.Name && layerNames.includes(layer.Name)) {
       layer.Title = newTitle;
+      layer.title = newTitle;
     }
 
     if (layer.Layer) {
@@ -2684,9 +2778,131 @@ export class LayerCatalogControlHandler extends ControlHandlerBase {
   }
 
   /**
-   * Patch LayerCatalog to use custom info template.
-   * Overrides the template path to use LayerCatalogInfoSitmun.hbs instead of default.
-   * Completely replaces loadTemplates method to customize template loading.
+   * Resolve the profile node SITNA passed to the information window.
+   * A leaf name is the node id. A folder has no name, so the title is used.
+   */
+  private lookupCatalogInfoNode(name: unknown, title: unknown): AppNodeInfo | undefined {
+    if (typeof name === 'string' && name.length > 0) {
+      const byId = this.configLookup.findNode(name);
+      if (byId) {
+        return byId;
+      }
+    }
+    if (typeof title !== 'string' || !this.currentAppCfg) {
+      return undefined;
+    }
+    for (const tree of this.currentAppCfg.trees) {
+      const nodes = tree.nodes as Record<string, AppNodeInfo> | undefined;
+      if (!nodes) {
+        continue;
+      }
+      for (const node of Object.values(nodes)) {
+        if (node?.title === title && catalogInfoKind(node) === CatalogInfoKind.Folder) {
+          return node;
+        }
+      }
+    }
+    return undefined;
+  }
+
+  /**
+   * Choose the information template from catalogInfoKind.
+   * A folder has no layer name, so SITNA fills the dialog from capabilities
+   * by title and omits DataURL. Rewrite that payload before the folder template runs.
+   */
+  private async patchFolderLayerInfo(): Promise<void> {
+    const lookupCatalogInfoNode = (name: unknown, title: unknown) =>
+      this.lookupCatalogInfoNode(name, title);
+    const describe = (kind: 'metadata' | 'download', format: string): string =>
+      this.layerInfoService.describeOgcLinkFormat(kind, format);
+    const capabilitiesQueryForName = (leafName: unknown): string => {
+      if (
+        typeof leafName !== 'string' ||
+        leafName.length === 0 ||
+        !this.currentAppCfg
+      ) {
+        return catalogCapabilitiesQuery(undefined);
+      }
+      return catalogCapabilitiesQuery(
+        this.virtualWmsService.findRealLayerConfig(leafName, this.currentAppCfg)
+          ?.type
+      );
+    };
+    await this.withTCAsync(async (TC) => {
+      const ctlProto = TC.control?.LayerCatalog?.prototype as
+        | {
+            showLayerInfo?: (...args: unknown[]) => unknown;
+            __sitmunFolderInfo?: boolean;
+          }
+        | undefined;
+      if (!ctlProto?.showLayerInfo || ctlProto.__sitmunFolderInfo) {
+        return;
+      }
+      const originalShowLayerInfo = ctlProto.showLayerInfo;
+      ctlProto.showLayerInfo = function (
+        this: {
+          CLASS: string;
+          getRenderedHtml: (...args: unknown[]) => unknown;
+        },
+        ...args: unknown[]
+      ): unknown {
+        const layer = args[0] as
+          | { capabilities?: { Capability?: { Layer?: unknown } } }
+          | undefined;
+        const name = args[1];
+        const title = args[2];
+        const originalRender = this.getRenderedHtml;
+        // eslint-disable-next-line @typescript-eslint/no-this-alias
+        const self = this;
+        this.getRenderedHtml = function (
+          templateId: unknown,
+          data: unknown,
+          callback: unknown
+        ): unknown {
+          let nextId = templateId;
+          let next = data;
+          if (
+            templateId === self.CLASS + '-info' &&
+            data &&
+            typeof data === 'object'
+          ) {
+            const kind = catalogInfoKind(lookupCatalogInfoNode(name, title));
+            if (kind === CatalogInfoKind.Folder && typeof title === 'string') {
+              nextId = self.CLASS + '-info-folder';
+              const cap = findCapabilitiesLayerByTitle(
+                layer?.capabilities?.Capability?.Layer as WMSLayer | undefined,
+                title
+              );
+              next = presentFolderLayerInfo(
+                data as Record<string, unknown>,
+                cap,
+                describe
+              );
+            } else {
+              next = {
+                ...(data as Record<string, unknown>),
+                capabilitiesQuery: capabilitiesQueryForName(name)
+              };
+            }
+          }
+          return originalRender.call(self, nextId, next, callback);
+        };
+        try {
+          return originalShowLayerInfo.apply(this, args);
+        } finally {
+          this.getRenderedHtml = originalRender;
+        }
+      };
+      ctlProto.__sitmunFolderInfo = true;
+      this.patchManager.add(() => {
+        ctlProto.showLayerInfo = originalShowLayerInfo;
+        delete ctlProto.__sitmunFolderInfo;
+      });
+    });
+  }
+
+  /**
+   * Patch LayerCatalog to use a template per catalog info kind.
    */
   private async patchLayerCatalogTemplate(): Promise<void> {
     await this.withTCAsync(async (TC) => {
@@ -2718,7 +2934,12 @@ export class LayerCatalogControlHandler extends ControlHandlerBase {
 
         // Override the info template with custom SITMUN template
         self.template[self.CLASS + '-info'] =
-          'assets/js/patch/templates/LayerCatalogInfoSitmun.hbs';
+          'assets/js/patch/templates/LayerCatalogInfoLayerSitmun.hbs';
+        self.template[self.CLASS + '-info-folder'] =
+          'assets/js/patch/templates/LayerCatalogInfoFolderSitmun.hbs';
+        // The catalog root row is this branch. SITNA's branch template has no info button.
+        self.template[self.CLASS + '-branch'] =
+          'assets/js/patch/templates/LayerCatalogBranchSitmun.hbs';
 
         // Load projects template for catalog switching
         self.template[self.CLASS + '-proj'] =
@@ -2857,10 +3078,9 @@ export class LayerCatalogControlHandler extends ControlHandlerBase {
           const originalInfo = joinPoint.proceed();
 
           // Get WMS capabilities using service
-          const rasterInstancesCache = (handler as any).rasterInstancesCache;
           const wmsCapabilities = handler.rasterService.getRasterCapabilities(
             realLayerConfig,
-            rasterInstancesCache
+            undefined
           );
 
           // Enrich layer info using service
@@ -2868,7 +3088,7 @@ export class LayerCatalogControlHandler extends ControlHandlerBase {
             nodeId,
             realLayerConfig,
             wmsCapabilities,
-            rasterInstancesCache
+            undefined
           );
 
           // Merge original result with enriched data (enriched overrides original)
@@ -3156,5 +3376,66 @@ export class LayerCatalogControlHandler extends ControlHandlerBase {
       applied.add(loadId);
       this.defaultLoadApplied.set(map, applied);
     });
+  }
+
+  async addProfileLayers(
+    map: { getControlsByClass?: (type: unknown) => unknown[] },
+    context: AppCfg | null | undefined,
+    profileLayerIds: string[]
+  ): Promise<void> {
+    if (!context || profileLayerIds.length === 0) {
+      return;
+    }
+    const nodes = this.nodesForProfileLayers(context, profileLayerIds);
+    if (nodes.length === 0) {
+      return;
+    }
+    await this.withTCAsync(async (TC) => {
+      const catalogs =
+        typeof map.getControlsByClass === 'function'
+          ? (map.getControlsByClass(TC.control.LayerCatalog) as Array<{
+              addLayerToMap?: (
+                layer: { title: string; options: Record<string, unknown> },
+                nodeId: string
+              ) => Promise<unknown>;
+              map?: object;
+            }>)
+          : [];
+      const catalog = catalogs[0];
+      if (!catalog?.addLayerToMap) {
+        return;
+      }
+      this.attachMapEventBridge(catalog.map ?? map, TC);
+      for (const { nodeId, title } of nodes) {
+        const configuredLayer = this.findConfiguredCatalogLayer(
+          catalog,
+          context,
+          nodeId
+        );
+        await catalog.addLayerToMap(
+          configuredLayer ?? { title, options: {} },
+          nodeId
+        );
+      }
+    });
+  }
+
+  private nodesForProfileLayers(
+    context: AppCfg,
+    profileLayerIds: string[]
+  ): Array<{ nodeId: string; title: string }> {
+    const wanted = new Set(profileLayerIds);
+    const found: Array<{ nodeId: string; title: string }> = [];
+    for (const tree of context.trees ?? []) {
+      for (const [nodeId, raw] of Object.entries(tree.nodes ?? {})) {
+        const node = raw as AppNodeInfo;
+        if (!node?.resource || node.action || !wanted.has(node.resource)) {
+          continue;
+        }
+        found.push({ nodeId, title: node.title });
+        wanted.delete(node.resource);
+      }
+    }
+    return found;
   }
 }

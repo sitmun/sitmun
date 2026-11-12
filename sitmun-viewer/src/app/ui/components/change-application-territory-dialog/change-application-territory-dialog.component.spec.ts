@@ -13,11 +13,7 @@ import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { Router } from '@angular/router';
 
 import { CommonService } from '@api/services/common.service';
-import {
-  TranslateFakeLoader,
-  TranslateLoader,
-  TranslateModule
-} from '@ngx-translate/core';
+import { TranslateNoOpLoader, TranslatePipe, provideTranslateLoader, provideTranslateService } from '@ngx-translate/core';
 import { of } from 'rxjs';
 import { NotificationService } from 'src/app/notifications/services/NotificationService';
 import { AppConfigService } from 'src/app/services/app-config.service';
@@ -88,9 +84,7 @@ describe('ChangeApplicationTerritoryDialogComponent', () => {
       imports: [
         NoopAnimationsModule,
         FormsModule,
-        TranslateModule.forRoot({
-          loader: { provide: TranslateLoader, useClass: TranslateFakeLoader }
-        }),
+        TranslatePipe,
         MatDialogModule,
         MatCardModule,
         MatFormFieldModule,
@@ -104,6 +98,9 @@ describe('ChangeApplicationTerritoryDialogComponent', () => {
         SelectableListComponent
       ],
       providers: [
+      provideTranslateService({
+          loader: provideTranslateLoader(TranslateNoOpLoader)
+        }),
         provideHttpClient(),
         provideHttpClientTesting(),
         {

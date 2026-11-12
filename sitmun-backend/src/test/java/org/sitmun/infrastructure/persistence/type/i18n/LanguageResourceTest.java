@@ -11,8 +11,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.sitmun.test.URIConstants;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
@@ -33,7 +33,7 @@ class LanguageResourceTest {
         .andExpect(
             jsonPath(
                 "$._embedded.languages[*].shortname",
-                contains("ca", "es", "en", "oc-aranes", "fr")))
+                contains("ca", "es", "en", "oc-aranes", "fr", "pt-PT")))
         .andExpect(
             jsonPath("$._embedded.languages[?(@.shortname == 'ca')].name", hasItem("Català")))
         .andExpect(
@@ -45,7 +45,10 @@ class LanguageResourceTest {
                 "$._embedded.languages[?(@.shortname == 'oc-aranes')].name",
                 hasItem("Occitan aranés")))
         .andExpect(
-            jsonPath("$._embedded.languages[?(@.shortname == 'fr')].name", hasItem("Français")));
+            jsonPath("$._embedded.languages[?(@.shortname == 'fr')].name", hasItem("Français")))
+        .andExpect(
+            jsonPath(
+                "$._embedded.languages[?(@.shortname == 'pt-PT')].name", hasItem("Português")));
   }
 
   @Test
@@ -58,7 +61,7 @@ class LanguageResourceTest {
         .andExpect(
             jsonPath(
                 "$._embedded.languages[?(@.shortname == 'es')].translatedName",
-                hasItem("Castellà")))
+                hasItem("Espanyol")))
         .andExpect(
             jsonPath(
                 "$._embedded.languages[?(@.shortname == 'oc-aranes')].name",
@@ -78,8 +81,7 @@ class LanguageResourceTest {
             jsonPath("$._embedded.languages[?(@.shortname == 'es')].name", hasItem("Castellano")))
         .andExpect(
             jsonPath(
-                "$._embedded.languages[?(@.shortname == 'es')].translatedName",
-                hasItem("Castellano")))
+                "$._embedded.languages[?(@.shortname == 'es')].translatedName", hasItem("Español")))
         .andExpect(
             jsonPath("$._embedded.languages[?(@.shortname == 'en')].name", hasItem("English")))
         .andExpect(
@@ -98,7 +100,7 @@ class LanguageResourceTest {
         .andExpect(
             jsonPath(
                 "$._embedded.languages[?(@.shortname == 'es')].translatedName",
-                hasItem("Castelhan")))
+                hasItem("Espanhòl")))
         .andExpect(
             jsonPath(
                 "$._embedded.languages[?(@.shortname == 'oc-aranes')].name",
@@ -106,7 +108,7 @@ class LanguageResourceTest {
         .andExpect(
             jsonPath(
                 "$._embedded.languages[?(@.shortname == 'oc-aranes')].translatedName",
-                hasItem("Occitan aranés")));
+                hasItem("Aranés")));
   }
 
   @Test
@@ -132,7 +134,8 @@ class LanguageResourceTest {
     mvc.perform(get(URIConstants.LANGUAGES_URI))
         .andExpect(status().isOk())
         .andExpect(
-            jsonPath("$._embedded.languages[*].enabled", contains(true, true, true, true, true)));
+            jsonPath(
+                "$._embedded.languages[*].enabled", contains(true, true, true, true, true, true)));
   }
 
   @Test
@@ -141,15 +144,16 @@ class LanguageResourceTest {
     mvc.perform(get(URIConstants.LANGUAGES_URI + "?projection=view"))
         .andExpect(status().isOk())
         .andExpect(
-            jsonPath("$._embedded.languages[*].enabled", contains(true, true, true, true, true)))
-        .andExpect(jsonPath("$._embedded.languages[*].order", contains(1, 2, 3, 4, 5)));
+            jsonPath(
+                "$._embedded.languages[*].enabled", contains(true, true, true, true, true, true)))
+        .andExpect(jsonPath("$._embedded.languages[*].order", contains(1, 2, 3, 4, 5, 6)));
   }
 
   @Test
   @Transactional
   @WithMockUser(roles = "ADMIN")
-  @DisplayName("PATCH disable non-default language succeeds")
-  void patchDisableNonDefaultLanguageSucceeds() throws Exception {
+  @DisplayName("PATCH of a non-default language stores enabled false")
+  void patchDisablesNonDefaultLanguage() throws Exception {
     mvc.perform(
             patch(URIConstants.LANGUAGES_URI + "/2")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -161,12 +165,13 @@ class LanguageResourceTest {
   @Test
   @Transactional
   @WithMockUser(roles = "ADMIN")
-  @DisplayName("PATCH disable current default language fails")
-  void patchDisableDefaultLanguageFails() throws Exception {
+  @DisplayName("PATCH cannot disable the database default language")
+  void patchCannotDisableDatabaseDefaultLanguage() throws Exception {
     mvc.perform(
             patch(URIConstants.LANGUAGES_URI + "/1")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"enabled\": false}"))
-        .andExpect(status().isBadRequest());
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.detail").value("Cannot disable the database default language"));
   }
 }

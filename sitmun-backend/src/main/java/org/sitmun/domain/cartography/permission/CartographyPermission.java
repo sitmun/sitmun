@@ -4,11 +4,14 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonView;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 import lombok.*;
 import org.hibernate.annotations.BatchSize;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 import org.sitmun.authorization.client.dto.ClientConfigurationViews;
 import org.sitmun.domain.CodeListsConstants;
 import org.sitmun.domain.PersistenceConstants;
@@ -42,12 +45,13 @@ public class CartographyPermission {
       allocationSize = 1)
   @Id
   @GeneratedValue(strategy = GenerationType.TABLE, generator = "STM_GRP_GI_GEN")
-  @Column(name = "GGI_ID")
+  @Column(name = "GGI_ID", nullable = false)
   @JsonView(ClientConfigurationViews.ApplicationTerritory.class)
   private Integer id;
 
   /** Permissions name. */
-  @Column(name = "GGI_NAME", length = PersistenceConstants.IDENTIFIER)
+  @Column(name = "GGI_NAME", length = 80, nullable = false)
+  @Size(max = 80)
   @NotBlank
   @JsonView(ClientConfigurationViews.ApplicationTerritory.class)
   private String name;
@@ -61,12 +65,19 @@ public class CartographyPermission {
 
   /** The geographic information that the roles can access. */
   @ManyToMany(cascade = {CascadeType.MERGE, CascadeType.PERSIST})
+  @OnDelete(action = OnDeleteAction.CASCADE)
   @JoinTable(
       name = "STM_GGI_GI",
       joinColumns =
-          @JoinColumn(name = "GGG_GGIID", foreignKey = @ForeignKey(name = "STM_GGG_FK_GGI")),
+          @JoinColumn(
+              name = "GGG_GGIID",
+              nullable = false,
+              foreignKey = @ForeignKey(name = "STM_GGG_FK_GGI")),
       inverseJoinColumns =
-          @JoinColumn(name = "GGG_GIID", foreignKey = @ForeignKey(name = "STM_GGG_FK_GEO")))
+          @JoinColumn(
+              name = "GGG_GIID",
+              nullable = false,
+              foreignKey = @ForeignKey(name = "STM_GGG_FK_GEO")))
   @BatchSize(size = 50)
   @Builder.Default
   @JsonView(ClientConfigurationViews.ApplicationTerritory.class)
@@ -74,12 +85,19 @@ public class CartographyPermission {
 
   /** The roles allowed to access the members. */
   @ManyToMany(cascade = {CascadeType.MERGE, CascadeType.PERSIST})
+  @OnDelete(action = OnDeleteAction.CASCADE)
   @JoinTable(
       name = "STM_ROL_GGI",
       joinColumns =
-          @JoinColumn(name = "RGG_GGIID", foreignKey = @ForeignKey(name = "STM_RGG_FK_GGI")),
+          @JoinColumn(
+              name = "RGG_GGIID",
+              nullable = false,
+              foreignKey = @ForeignKey(name = "STM_RGG_FK_GGI")),
       inverseJoinColumns =
-          @JoinColumn(name = "RGG_ROLEID", foreignKey = @ForeignKey(name = "STM_RGG_FK_ROL")))
+          @JoinColumn(
+              name = "RGG_ROLEID",
+              nullable = false,
+              foreignKey = @ForeignKey(name = "STM_RGG_FK_ROL")))
   @BatchSize(size = 50)
   @Builder.Default
   private Set<Role> roles = new HashSet<>();

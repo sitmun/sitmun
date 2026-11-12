@@ -5,7 +5,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslatePipe, provideTranslateService } from '@ngx-translate/core';
 import { of, Subject, throwError } from 'rxjs';
 
 import { TaskTemplatePreviewService } from '@app/domain';
@@ -49,8 +49,9 @@ describe('QueryExecutionCardComponent', () => {
 
     await TestBed.configureTestingModule({
       declarations: [QueryExecutionCardComponent],
-      imports: [HttpClientTestingModule, ReactiveFormsModule, MatCardModule, MatButtonModule, MatIconModule, TranslateModule.forRoot()],
-      providers: [{ provide: TaskTemplatePreviewService, useValue: previewService }],
+      imports: [HttpClientTestingModule, ReactiveFormsModule, MatCardModule, MatButtonModule, MatIconModule, TranslatePipe],
+      providers: [
+      provideTranslateService(),{ provide: TaskTemplatePreviewService, useValue: previewService }],
     }).compileComponents();
 
     fixture = TestBed.createComponent(QueryExecutionCardComponent);
@@ -83,9 +84,7 @@ describe('QueryExecutionCardComponent', () => {
     clipboardWriteText.mockRestore();
   });
 
-  it('should create', () => {
-    expect(component).toBeTruthy();
-  });
+  
 
   it('should create one form control per parameter', () => {
     expect(component.parameterForm.contains('param1')).toBe(true);

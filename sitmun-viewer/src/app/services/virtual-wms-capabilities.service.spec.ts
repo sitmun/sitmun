@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 
-import { AppCfg } from '@api/model/app-cfg';
+import type { AppCfg } from '@api/model/app-cfg';
 import { TranslateService } from '@ngx-translate/core';
 
 import { AppConfigService } from './app-config.service';
@@ -186,14 +186,78 @@ describe('VirtualWmsCapabilitiesService', () => {
       const capabilities = service.generateCapabilities('node-1', mockAppCfg);
       const rootLayer = capabilities.Capability.Layer;
 
-      // Root should not have Name
       expect(rootLayer.Name).toBeUndefined();
+      const leaf = rootLayer.Layer?.find((layer) => layer.Title === 'Leaf Node 1');
+      expect(leaf?.Name).toBe('node-3');
+    });
 
-      // Find leaf node (has Name property)
-      const leafNode = rootLayer.Layer?.find((l) => l.Name);
-      if (leafNode) {
-        expect(leafNode.Name).toBeDefined();
-      }
+    it('copies folder description and URLs onto the catalog root layer', () => {
+      const cfg: AppCfg = {
+        ...mockAppCfg,
+        trees: mockAppCfg.trees.map((tree) => ({
+          ...tree,
+          nodes: {
+            ...tree.nodes,
+            'node-1': {
+              ...tree.nodes['node-1'],
+              description: 'Carrers del municipi.',
+              metadataURL: 'https://www.icgc.cat/meta.xml',
+              datasetURL: 'https://www.icgc.cat/adreces.zip'
+            }
+          }
+        }))
+      };
+      const rootLayer = service.generateCapabilities('node-1', cfg).Capability.Layer;
+      expect(rootLayer.Name).toBeUndefined();
+      expect(rootLayer.Abstract).toBe('Carrers del municipi.');
+      expect(rootLayer.MetadataURL).toEqual([
+        {
+          Format: 'text/xml',
+          OnlineResource: { 'xlink:href': 'https://www.icgc.cat/meta.xml' }
+        }
+      ]);
+      expect(rootLayer.DataURL).toEqual([
+        {
+          Format: 'application/zip',
+          OnlineResource: { 'xlink:href': 'https://www.icgc.cat/adreces.zip' }
+        }
+      ]);
+    });
+
+    it('copies folder description and URLs onto the group layer', () => {
+      const cfg: AppCfg = {
+        ...mockAppCfg,
+        trees: mockAppCfg.trees.map((tree) => ({
+          ...tree,
+          nodes: {
+            ...tree.nodes,
+            'node-2': {
+              ...tree.nodes['node-2'],
+              description: 'Carrers del municipi.',
+              metadataURL: 'https://www.icgc.cat/meta.xml',
+              datasetURL: 'https://www.icgc.cat/adreces.zip'
+            }
+          }
+        }))
+      };
+      const capabilities = service.generateCapabilities('node-1', cfg);
+      const folder = capabilities.Capability.Layer.Layer?.find(
+        (layer) => layer.Title === 'Folder Node'
+      );
+      expect(folder?.Name).toBeUndefined();
+      expect(folder?.Abstract).toBe('Carrers del municipi.');
+      expect(folder?.MetadataURL).toEqual([
+        {
+          Format: 'text/xml',
+          OnlineResource: { 'xlink:href': 'https://www.icgc.cat/meta.xml' }
+        }
+      ]);
+      expect(folder?.DataURL).toEqual([
+        {
+          Format: 'application/zip',
+          OnlineResource: { 'xlink:href': 'https://www.icgc.cat/adreces.zip' }
+        }
+      ]);
     });
 
     it('should emit MetadataURL and DataURL on leaf layers from profile', () => {
@@ -647,9 +711,74 @@ describe('VirtualWmsCapabilitiesService', () => {
       );
       expect(config).toBeNull();
     });
+
+    it('should prefer the layer proxy url over the service url', () => {
+      const proxied: AppCfg = {
+        ...mockAppCfg,
+        layers: mockAppCfg.layers.map((layer) =>
+          layer.id === 'layer-1'
+            ? { ...layer, url: 'http://proxy.example/proxy/1/1/WMS/1/1' }
+            : layer
+        )
+      };
+
+      const config = service.findRealLayerConfig('node-3', proxied);
+
+      expect(config?.url).toBe('http://proxy.example/proxy/1/1/WMS/1/1');
+    });
+
+    it('omits format and matrixSet and keeps every layer name for WMTS', () => {
+      const configWithTileOptions: AppCfg = {
+        ...mockAppCfg,
+        layers: mockAppCfg.layers.map((layer) =>
+          layer.id === 'layer-1'
+            ? {
+                ...layer,
+                layers: ['wmts-a', 'wmts-b'],
+                parameters: { format: 'image/jpeg', matrixSet: 'EPSG:4326' }
+              }
+            : layer
+        ),
+        services: mockAppCfg.services.map((svc) =>
+          svc.id === 'service-1'
+            ? {
+                ...svc,
+                type: 'WMTS',
+                parameters: { format: 'image/png', matrixSet: 'EPSG:25831' }
+              }
+            : svc
+        )
+      };
+
+      const config = service.findRealLayerConfig('node-3', configWithTileOptions);
+      expect(config?.type).toBe('WMTS');
+      expect(config?.layerNames).toEqual(['wmts-a', 'wmts-b']);
+      expect(config).not.toHaveProperty('format');
+      expect(config).not.toHaveProperty('matrixSet');
+    });
   });
 
   describe('findNodeIdFromLayerProperties', () => {
+    it('should find nodeId from a per-layer proxy url', () => {
+      const proxied: AppCfg = {
+        ...mockAppCfg,
+        layers: mockAppCfg.layers.map((layer) =>
+          layer.id === 'layer-1'
+            ? { ...layer, url: 'http://proxy.example/proxy/1/1/WMS/1/1' }
+            : layer
+        )
+      };
+
+      const nodeId = service.findNodeIdFromLayerProperties(
+        'http://proxy.example/proxy/1/1/WMS/1/1',
+        'WMS',
+        ['wms-layer-1'],
+        proxied
+      );
+
+      expect(nodeId).toBe('node-3');
+    });
+
     it('should find nodeId from layer properties with array layerNames', () => {
       const nodeId = service.findNodeIdFromLayerProperties(
         'http://example.com/wms',
@@ -844,6 +973,30 @@ describe('VirtualWmsCapabilitiesService', () => {
       const rootLayer = capabilities.Capability.Layer;
 
       expect(rootLayer.CRS).toContain('EPSG:25831');
+    });
+
+    it('ignores a layer SRS parameter and a service VERSION', () => {
+      const config: AppCfg = {
+        ...mockAppCfg,
+        layers: mockAppCfg.layers.map((layer) =>
+          layer.id === 'layer-1'
+            ? { ...layer, parameters: { SRS: 'EPSG:4326' } }
+            : layer
+        ),
+        services: mockAppCfg.services.map((svc) =>
+          svc.id === 'service-1'
+            ? {
+                ...svc,
+                parameters: { SRS: 'EPSG:25831', VERSION: '1.1.1' }
+              }
+            : svc
+        )
+      };
+
+      const capabilities = service.generateCapabilities('node-3', config);
+      expect(capabilities.Capability.Layer.CRS).toContain('EPSG:25831');
+      expect(capabilities.Capability.Layer.CRS).not.toContain('EPSG:4326');
+      expect(JSON.stringify(capabilities)).not.toContain('1.1.1');
     });
 
     it('should fall back to application SRS', () => {

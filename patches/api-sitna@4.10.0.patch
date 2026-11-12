@@ -1,0 +1,257 @@
+diff --git a/TC/control/DataLoader.js b/TC/control/DataLoader.js
+index 4056f934b277ac52bf7da92c0a0e3f125ff002e3..92dfa9e793a0319ede54799cd98f77801e906293 100644
+--- a/TC/control/DataLoader.js
++++ b/TC/control/DataLoader.js
+@@ -104,10 +104,14 @@ class DataLoader extends TabContainer {
+         const self = this;
+ 
+         // Consultamos la configuración de los controles hijos primero en el sitio esperado, luego en el sitio obsoleto.
++        const legacyControlOptions = (name) =>
++            Array.isArray(self.options.controls)
++                ? self.options.controls.find((ctl) => ctl.name === name)?.options
++                : undefined;
+         const suggestions = self.options.wmsSuggestions ??
+-            self.options.controls.find((ctl) => ctl.name === "externalWMS").options.suggestions;
++            legacyControlOptions("externalWMS")?.suggestions;
+         const enableDragAndDrop = self.options.enableDragAndDrop ??
+-            self.options.controls.find((ctl) => ctl.name === "fileImport").options.enableDragAndDrop;
++            legacyControlOptions("fileImport")?.enableDragAndDrop;
+ 
+         self.controlOptions = [
+             {
+@@ -119,6 +123,7 @@ class DataLoader extends TabContainer {
+                 fileImport: { enableDragAndDrop },
+             }
+         ];
++        self.ctlCount = self.controlOptions.length;
+         self.defaultSelection = 0;
+         self.model = new DataloaderModel();
+     }
+diff --git a/TC/control/PrintMap.js b/TC/control/PrintMap.js
+index faad6c4132728bf568a77b38efe7bad7b6371a9e..2d79a18755719c43d8566829d06c596bb3c1b2d9 100644
+--- a/TC/control/PrintMap.js
++++ b/TC/control/PrintMap.js
+@@ -804,8 +804,8 @@ class PrintMap extends MapInfo {
+                 return logoColumn;
+ 
+             }, function () {
+-                PrintMap.imageErrorHandling(self.options.logo);
+-
++                TC.error(self.getLocaleString('print.error'));
++                TC.error('No se ha podido generar el base64 correspondiente a la imagen: ' + self.options.logo, Consts.msgErrorMode.EMAIL, 'Error en la impresión'); //Correo de error
+                 return onLogoError();
+             });
+         } else {
+diff --git a/TC/templates/tc-ctl-cbms.mjs b/TC/templates/tc-ctl-cbms.mjs
+new file mode 100644
+index 0000000000000000000000000000000000000000..7a12af8590fedf2b3f946473eb1d3680d954b0a5
+--- /dev/null
++++ b/TC/templates/tc-ctl-cbms.mjs
+@@ -0,0 +1,3 @@
++export default {"compiler":[8,">= 4.3.0"],"main":function(container,depth0,helpers,partials,data) {
++    return "<h2>[[backgroundMap]]</h2>\n<button class=\"tc-ctl-cbms-btn\" title=\"[[changeBackgroundLayer]]\"></button>\n<div class=\"tc-ctl-cbms-btn-view\" style=\"display:none\"></div> \u003C!-- compatibilidad con v4.0.2 -->";
++},"useData":true}
+\ No newline at end of file
+diff --git a/TC/templates/tc-ctl-col.mjs b/TC/templates/tc-ctl-col.mjs
+new file mode 100644
+index 0000000000000000000000000000000000000000..7438a97b71eb3eb752111b773083a94938e86357
+--- /dev/null
++++ b/TC/templates/tc-ctl-col.mjs
+@@ -0,0 +1,14 @@
++export default {"compiler":[8,">= 4.3.0"],"main":function(container,depth0,helpers,partials,data) {
++    var alias1=container.lambda, alias2=container.escapeExpression, lookupProperty = container.lookupProperty || function(parent, propertyName) {
++        if (Object.prototype.hasOwnProperty.call(parent, propertyName)) {
++          return parent[propertyName];
++        }
++        return undefined
++    };
++
++  return "<sitna-button variant=\""
++    + alias2(alias1((depth0 != null ? lookupProperty(depth0,"buttonVariant") : depth0), depth0))
++    + "\" text=\"[[zoomToCurrentLocation]]\" class=\"tc-ctl-col-btn-on\"></sitna-button>\n<sitna-button variant=\""
++    + alias2(alias1((depth0 != null ? lookupProperty(depth0,"buttonVariant") : depth0), depth0))
++    + "\" text=\"[[stopDisplayingLocation]]\" class=\"tc-ctl-col-btn-off tc-hidden\" active></sitna-button>";
++},"useData":true}
+\ No newline at end of file
+diff --git a/TC/templates/tc-ctl-lcomp.mjs b/TC/templates/tc-ctl-lcomp.mjs
+new file mode 100644
+index 0000000000000000000000000000000000000000..427a0667f575dd83b531135c6814dd1818a83317
+--- /dev/null
++++ b/TC/templates/tc-ctl-lcomp.mjs
+@@ -0,0 +1,84 @@
++export default {"0":function(container,depth0,helpers,partials,data) {
++    var lookupProperty = container.lookupProperty || function(parent, propertyName) {
++        if (Object.prototype.hasOwnProperty.call(parent, propertyName)) {
++          return parent[propertyName];
++        }
++        return undefined
++    };
++
++  return "<button class=\"tc-ctl-lcomp-btn\" commandfor=\""
++    + container.escapeExpression(container.lambda((depth0 != null ? lookupProperty(depth0,"controlId") : depth0), depth0))
++    + "-dialog\" command=\"show-modal\"></button>";
++},"1":function(container,depth0,helpers,partials,data) {
++    var lookupProperty = container.lookupProperty || function(parent, propertyName) {
++        if (Object.prototype.hasOwnProperty.call(parent, propertyName)) {
++          return parent[propertyName];
++        }
++        return undefined
++    };
++
++  return "        <div class=\"tc-ctl-lcomp-layer-sec tc-ctl-lcomp-layer-sec-"
++    + container.escapeExpression(container.lambda((data && lookupProperty(data,"index")), depth0))
++    + "\"></div>\n";
++},"2":function(container,depth0,helpers,partials,data) {
++    var stack1, alias1=depth0 != null ? depth0 : (container.nullContext || {}), lookupProperty = container.lookupProperty || function(parent, propertyName) {
++        if (Object.prototype.hasOwnProperty.call(parent, propertyName)) {
++          return parent[propertyName];
++        }
++        return undefined
++    };
++
++  return "                "
++    + ((stack1 = lookupProperty(helpers,"unless").call(alias1,(data && lookupProperty(data,"first")),{"name":"unless","hash":{},"fn":container.program(3, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":18,"column":16},"end":{"line":18,"column":91}}})) != null ? stack1 : "")
++    + "\n            <input type=\"range\" min=\"0\" max=\"1\" value=\""
++    + ((stack1 = lookupProperty(helpers,"if").call(alias1,(data && lookupProperty(data,"first")),{"name":"if","hash":{},"fn":container.program(4, data, 0),"inverse":container.program(5, data, 0),"data":data,"loc":{"start":{"line":19,"column":55},"end":{"line":19,"column":88}}})) != null ? stack1 : "")
++    + "\" step=\"0.01\" class=\"tc-ctl-lcomp-view-transp-slider-rng tc-ctl-lcomp-view-transp-slider-rng-"
++    + container.escapeExpression(container.lambda((data && lookupProperty(data,"index")), depth0))
++    + "\" />\n";
++},"3":function(container,depth0,helpers,partials,data) {
++    return "<h3>[[secondaryLayersTransparencyDegree]]</h3>";
++},"4":function(container,depth0,helpers,partials,data) {
++    return "0.5";
++},"5":function(container,depth0,helpers,partials,data) {
++    return "0";
++},"6":function(container,depth0,helpers,partials,data) {
++    var alias1=container.lambda, alias2=container.escapeExpression, lookupProperty = container.lookupProperty || function(parent, propertyName) {
++        if (Object.prototype.hasOwnProperty.call(parent, propertyName)) {
++          return parent[propertyName];
++        }
++        return undefined
++    };
++
++  return "        <label class=\"tc-map-comp-view tc-map-comp-view-"
++    + alias2(alias1(depth0, depth0))
++    + "\"><input type=\"radio\" name=\"lcomp\" value=\""
++    + alias2(alias1(depth0, depth0))
++    + "\" /> "
++    + alias2(lookupProperty(helpers,"i18n").call(depth0 != null ? depth0 : (container.nullContext || {}),depth0,{"name":"i18n","hash":{},"data":data,"loc":{"start":{"line":31,"column":113},"end":{"line":31,"column":123}}}))
++    + "</label>\n";
++},"compiler":[8,">= 4.3.0"],"main":function(container,depth0,helpers,partials,data) {
++    var stack1, alias1=depth0 != null ? depth0 : (container.nullContext || {}), alias2=container.lambda, alias3=container.escapeExpression, lookupProperty = container.lookupProperty || function(parent, propertyName) {
++        if (Object.prototype.hasOwnProperty.call(parent, propertyName)) {
++          return parent[propertyName];
++        }
++        return undefined
++    };
++
++  return "<h2>[[compareLayers]] <sitna-button variant=\"minimal\" class=\"tc-ctl-lcomp-swap\" text=\"[[swapLayers]]\"></sitna-button></h2>\n<div class=\"tc-ctl-lcomp-container\">\n    <div class=\"tc-ctl-lcomp-selectors\">\n        <div class=\"tc-ctl-lcomp-layer-main\"></div>\n        "
++    + ((stack1 = lookupProperty(helpers,"if").call(alias1,(depth0 != null ? lookupProperty(depth0,"showButton") : depth0),{"name":"if","hash":{},"fn":container.program(0, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":5,"column":8},"end":{"line":5,"column":130}}})) != null ? stack1 : "")
++    + "\n"
++    + ((stack1 = lookupProperty(helpers,"each").call(alias1,(depth0 != null ? lookupProperty(depth0,"layers") : depth0),{"name":"each","hash":{},"fn":container.program(1, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":6,"column":8},"end":{"line":8,"column":17}}})) != null ? stack1 : "")
++    + "    </div>\n    <div class=\"tc-ctl-lcomp-sliders\">\n        <div class=\"tc-ctl-lcomp-view-spyglass-slider\">\n            <h3>[[spyglassDiameter]]</h3>\n            <input type=\"range\" min=\""
++    + alias3(alias2((depth0 != null ? lookupProperty(depth0,"spyglassMinRadius") : depth0), depth0))
++    + "\" max=\""
++    + alias3(alias2((depth0 != null ? lookupProperty(depth0,"spyglassMaxRadius") : depth0), depth0))
++    + "\" value=\""
++    + alias3(alias2((depth0 != null ? lookupProperty(depth0,"spyglassRadius") : depth0), depth0))
++    + "\" class=\"tc-ctl-lcomp-view-spyglass-slider-rng\" />\n        </div>\n        <div class=\"tc-ctl-lcomp-view-transp-slider\">\n            <h3>[[transparencyDegree]]</h3>\n"
++    + ((stack1 = lookupProperty(helpers,"each").call(alias1,(depth0 != null ? lookupProperty(depth0,"layers") : depth0),{"name":"each","hash":{},"fn":container.program(2, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":17,"column":12},"end":{"line":20,"column":21}}})) != null ? stack1 : "")
++    + "        </div>\n        <div class=\"tc-ctl-lcomp-view-time-slider\"></div>\n    </div>\n</div>\n<dialog id=\""
++    + alias3(alias2((depth0 != null ? lookupProperty(depth0,"controlId") : depth0), depth0))
++    + "-dialog\" closedby=\"any\">\n    <div class=\"tc-modal-header\">\n        <h3>[[comparativeViewTypes]]</h3> <sitna-button variant=\"minimal\" class=\"tc-modal-close\"></sitna-button>\n    </div>\n    <div class=\"tc-modal-body\">\n"
++    + ((stack1 = lookupProperty(helpers,"each").call(alias1,(depth0 != null ? lookupProperty(depth0,"views") : depth0),{"name":"each","hash":{},"fn":container.program(6, data, 0),"inverse":container.noop,"data":data,"loc":{"start":{"line":30,"column":8},"end":{"line":32,"column":17}}})) != null ? stack1 : "")
++    + "    </div>\n</dialog>";
++},"useData":true}
+\ No newline at end of file
+diff --git a/TC/templates/tc-ctl-time.mjs b/TC/templates/tc-ctl-time.mjs
+new file mode 100644
+index 0000000000000000000000000000000000000000..f60d3709b8471e9a586a0d5a62ffe19111412d40
+--- /dev/null
++++ b/TC/templates/tc-ctl-time.mjs
+@@ -0,0 +1,14 @@
++export default {"compiler":[8,">= 4.3.0"],"main":function(container,depth0,helpers,partials,data) {
++    var alias1=container.lambda, alias2=container.escapeExpression, lookupProperty = container.lookupProperty || function(parent, propertyName) {
++        if (Object.prototype.hasOwnProperty.call(parent, propertyName)) {
++          return parent[propertyName];
++        }
++        return undefined
++    };
++
++  return "<h2>[[timeProgress]]</h2>\n<div class=\"tc-ctl-time-body\">\n    <div class=\"tc-ctl-time-title\"><sitna-button variant=\"minimal\" class=\"tc-ctl-time-prev-btn\"></sitna-button><span class=\"tc-ctl-time-cur\"></span><sitna-button variant=\"minimal\" class=\"tc-ctl-time-next-btn\"></sitna-button></div>\n    <input type=\"range\" class=\"tc-ctl-time-rng\" list=\""
++    + alias2(alias1((depth0 != null ? lookupProperty(depth0,"controlId") : depth0), depth0))
++    + "-time-ticks\" />\n    <datalist id=\""
++    + alias2(alias1((depth0 != null ? lookupProperty(depth0,"controlId") : depth0), depth0))
++    + "-time-ticks\"></datalist>\n    <div class=\"tc-ctl-time-axis\"></div>\n</div>\n<div class=\"tc-ctl-time-warn\">[[layerNotInTimeline]]</div>";
++},"useData":true}
+\ No newline at end of file
+diff --git a/TC/tool/FeatureHistoryEvent.d.ts b/TC/tool/FeatureHistoryEvent.d.ts
+index 7099b0ded0396edc63d07293fe1755ecb7126122..21a59ce27b87c36507c0799d33e73d20cb7bc4b6 100644
+--- a/TC/tool/FeatureHistoryEvent.d.ts
++++ b/TC/tool/FeatureHistoryEvent.d.ts
+@@ -1,16 +1,3 @@
+-//import Feature from "../../SITNA/feature/Feature";
+-
+-//export interface FeatureHistoryAction {
+-//    type: string;
+-//    oldData?: any;
+-//    newData?: any;
+-//}
+-
+-//export default interface FeatureHistoryEvent extends Event {
+-//    feature: Feature; // The feature that triggered the event
+-//    action?: string; // Optional action type (e.g., 'undo', 'redo', 'push')
+-//    undoStack: FeatureHistoryAction[]; // Optional undo stack state
+-//    redoStack: FeatureHistoryAction[]; // Optional redo stack state
+-//}
+-
+-//export type FeatureHistoryEventCallback = (event: FeatureHistoryEvent) => void;
+\ No newline at end of file
++export default class FeatureHistoryEvent extends Event {
++  constructor(type: string, eventInitDict?: EventInit);
++}
+diff --git a/workers/tc-caps-web-worker-blob.mjs b/workers/tc-caps-web-worker-blob.mjs
+index 82ba279b2c673c6bda2cc18b33fd3e4e526db43d..013f081c67c2c3d6535d4de71ec0c2e956cd2cfd 100644
+--- a/workers/tc-caps-web-worker-blob.mjs
++++ b/workers/tc-caps-web-worker-blob.mjs
+@@ -744,7 +744,6 @@ console.log("MILLISECONDS",end2-start2);
+                         }
+                         return a;
+                     case e.V1_1_0:
+-                        return {};
+                     case e.V2_0_0:
+                         var n = {};
+                         for (var s in r.OperationsMetadata) {
+@@ -782,7 +781,6 @@ console.log("MILLISECONDS",end2-start2);
+                         }
+                         return a;
+                     case e.V1_1_0:
+-                        return {};
+                     case e.V2_0_0:
+                         r.FeatureTypeList.FeatureType = (r.FeatureTypeList.FeatureType instanceof Array) ? r.FeatureTypeList.FeatureType : [r.FeatureTypeList.FeatureType];
+                         for (var a = {}, i = 0; i < r.FeatureTypeList.FeatureType.length; i++) {
+@@ -799,7 +797,6 @@ console.log("MILLISECONDS",end2-start2);
+                     case e.V1_0_0:
+                         return r.Filter_Capabilities;
+                     case e.V1_1_0:
+-                        return {};
+                     case e.V2_0_0:
+                         var a = r.Filter_Capabilities;
+                         return a
+@@ -813,7 +810,6 @@ console.log("MILLISECONDS",end2-start2);
+                         for (var i in r) "string" == typeof r[i] && (a[i] = r[i]);
+                         return a;
+                     case e.V1_1_0:
+-                        return {};
+                     case e.V2_0_0:
+                         var a = {};
+                         for (var i in r) "string" == typeof r[i] && (a[i] = r[i]);
+@@ -849,7 +845,7 @@ console.log("MILLISECONDS",end2-start2);
+         return capabilities;
+     };
+     var postprocessWFS = function (xml) {
+-        var capabilities = xml.WFS_Capabilities || (xml['?xml'] && (xml['?xml'].WFS_Capabilities));
++        var capabilities = xml.WFS_Capabilities || xml['wfs:WFS_Capabilities'] || (xml['?xml'] && (xml['?xml'].WFS_Capabilities || xml['?xml']['wfs:WFS_Capabilities']));
+         if (capabilities) {
+             capabilities = wfsParser.Parse(capabilities);
+             //añadir prefijo a los atributos simples y pue empiecen por http

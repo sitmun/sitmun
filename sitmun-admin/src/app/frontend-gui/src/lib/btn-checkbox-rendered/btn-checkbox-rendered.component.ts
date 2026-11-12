@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { MatCheckboxChange } from '@angular/material/checkbox';
 
 import { ICellRendererAngularComp } from '@ag-grid-community/angular';
@@ -7,6 +7,7 @@ import { ICellRendererAngularComp } from '@ag-grid-community/angular';
     selector: 'app-btn-checkbox-rendered',
     templateUrl: './btn-checkbox-rendered.component.html',
     styles: [],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class BtnCheckboxRenderedComponent implements ICellRendererAngularComp {
@@ -28,8 +29,13 @@ export class BtnCheckboxRenderedComponent implements ICellRendererAngularComp {
     );
   }
 
+  canEdit(): boolean {
+    const editable = this.params?.colDef?.editable;
+    return typeof editable === 'function' ? !!editable(this.params) : !!editable;
+  }
+
   btnCheckedHandler(event: MatCheckboxChange): void {
-    if (this.params.colDef.editable) {
+    if (this.canEdit()) {
       this.params.node.setDataValue(this.params.colDef.field, event.checked);
     }
   }

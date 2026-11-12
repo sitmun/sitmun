@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges, ChangeDetectionStrategy } from '@angular/core';
 
 import { Observable, of, Subject } from 'rxjs';
 
@@ -34,6 +34,8 @@ export interface EntityListConfig<T> {
   defaultColumnSorting?: string[];
   /** Enables row drag ordering in client-side mode */
   rowDragManaged?: boolean;
+  /** AG Grid components registered in addition to the shared grid renderers */
+  gridComponents?: Record<string, unknown>;
   /** Grid configuration options */
   gridOptions?: {
     globalSearch?: boolean;
@@ -53,6 +55,7 @@ export interface EntityListConfig<T> {
     selector: 'app-entity-list',
     templateUrl: './entity-list.component.html',
     styles: [],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class EntityListComponent<T extends Resource> implements OnInit, OnChanges {
@@ -90,16 +93,10 @@ export class EntityListComponent<T extends Resource> implements OnInit, OnChange
     if (changes['isDataLoaded']) {
       this.dataLoaded = this.isDataLoaded;
     }
-    // Update refresh event if provided by parent
-    if (changes['refreshCommandEvent$'] && this.refreshCommandEvent$) {
-      // Parent provided refresh event, use it
-    } else if (!this.refreshCommandEvent$) {
+    if (!this.refreshCommandEvent$) {
       this.refreshCommandEvent$ = this._refreshCommandEvent$;
     }
-    // Update save state event if provided by parent
-    if (changes['saveAgGridStateEvent'] && this.saveAgGridStateEvent) {
-      // Parent provided save state event, use it
-    } else if (!this.saveAgGridStateEvent) {
+    if (!this.saveAgGridStateEvent) {
       this.saveAgGridStateEvent = this._saveAgGridStateEvent;
     }
   }

@@ -13,7 +13,7 @@ import { TestBed } from '@angular/core/testing';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 
-import { TranslateService, TranslateModule } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService, provideTranslateService } from '@ngx-translate/core';
 import { catchError } from 'rxjs';
 
 import { ENTITY_NAME_KEY, ENTITY_TYPE_KEY } from '@app/core/hal/resource/resource.service';
@@ -26,7 +26,6 @@ import { MessagesInterceptor, MessagesInterceptorStateService } from './messages
 describe('MessagesInterceptor', () => {
   let httpClient: HttpClient;
   let httpMock: HttpTestingController;
-  let interceptor: MessagesInterceptor;
   let stateService: MessagesInterceptorStateService;
 
   beforeEach(() => {
@@ -39,9 +38,10 @@ describe('MessagesInterceptor', () => {
       imports: [
         NoopAnimationsModule,
         MatSnackBarModule,
-        TranslateModule.forRoot()
+        TranslatePipe
       ],
       providers: [
+      provideTranslateService(),
         provideHttpClient(withInterceptorsFromDi()),
         provideHttpClientTesting(),
         MessagesInterceptor,
@@ -60,7 +60,6 @@ describe('MessagesInterceptor', () => {
 
     httpClient = TestBed.inject(HttpClient);
     httpMock = TestBed.inject(HttpTestingController);
-    interceptor = TestBed.inject(MessagesInterceptor);
     stateService = TestBed.inject(MessagesInterceptorStateService);
   });
 
@@ -68,9 +67,7 @@ describe('MessagesInterceptor', () => {
     httpMock.verify();
   });
 
-  it('should be created', () => {
-    expect(interceptor).toBeTruthy();
-  });
+  
 
   describe('404 error handling', () => {
     beforeEach(() => {

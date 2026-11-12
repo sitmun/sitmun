@@ -1,5 +1,5 @@
 import { HttpClient } from '@angular/common/http';
-import { Component, ElementRef, NgZone, QueryList, TemplateRef, ViewChild, ViewChildren } from '@angular/core';
+import { Component, ElementRef, NgZone, QueryList, TemplateRef, ViewChild, ViewChildren, ChangeDetectionStrategy } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
 import { MatDialog } from '@angular/material/dialog';
@@ -97,6 +97,7 @@ export function shouldOpenPreviewHrefInNewTab(href: string | null | undefined): 
   selector: 'app-task-template-form',
   templateUrl: './task-template-form.component.html',
   styleUrl: './task-template-form.component.scss',
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false,
 })
 export class TaskTemplateFormComponent extends BaseFormComponent<TaskProjection> {
@@ -148,6 +149,7 @@ export class TaskTemplateFormComponent extends BaseFormComponent<TaskProjection>
   protected readonly taskTypeLabelResolver = (task: TaskProjection): string => this.getTaskTypeLabel(task);
   protected validationFieldLabels: Record<string, string> = {
     name: 'entity.task.template.label',
+    title: 'entity.task.template.title',
     taskGroupId: 'entity.taskGroup.label',
   };
 
@@ -213,7 +215,7 @@ export class TaskTemplateFormComponent extends BaseFormComponent<TaskProjection>
 
   override async preFetchData() {
     const typeId = magic.taskTemplateTypeId;
-    this.initTranslations('Task', ['name']);
+    this.initTranslations('Task', ['name', 'title']);
     await this.initCodeLists(['taskEntity.jsonParamType']);
     try {
       await firstValueFrom(this.languageService.refreshLanguagesToUse());
@@ -304,7 +306,11 @@ export class TaskTemplateFormComponent extends BaseFormComponent<TaskProjection>
   override postFetchData() {
     this.entityForm = new FormGroup({
       name: new FormControl(this.entityToEdit?.name ?? '', {
-        validators: [Validators.required],
+        validators: [Validators.maxLength(512), Validators.required],
+        nonNullable: true,
+      }),
+      title: new FormControl(this.entityToEdit?.title ?? '', {
+        validators: [Validators.maxLength(250)],
         nonNullable: true,
       }),
       taskGroupId: new FormControl(this.entityToEdit?.groupId ?? null, {
@@ -938,6 +944,7 @@ export class TaskTemplateFormComponent extends BaseFormComponent<TaskProjection>
       Object.assign(safeToEdit, formValues, {
         id,
         properties,
+        title: String(formValues.title ?? '').trim(),
       }),
     );
   }
@@ -982,7 +989,7 @@ export class TaskTemplateFormComponent extends BaseFormComponent<TaskProjection>
   }
 
   private initializePreviewLanguage(): void {
-    const currentLanguage = this.translateService.currentLang;
+    const currentLanguage = this.translateService.getCurrentLang();
     const selectedLanguage = this.previewLanguages.find((language) => language.shortname === currentLanguage)
       ? currentLanguage
       : this.previewLanguages.find((language) => language.shortname === this.previewLanguageControl.value)?.shortname
@@ -1400,8 +1407,8 @@ export class TaskTemplateFormComponent extends BaseFormComponent<TaskProjection>
       taskAvailabilityService: this.taskAvailabilityService,
       taskService: this.taskService,
       isNew: () => this.isNew(),
-      entity: this.entityToEdit,
-      entityId: this.entityID,
+      entity: () => this.entityToEdit,
+      entityId: () => this.entityID,
       roleTargetToRelation: (items: Role[]) => items,
     };
   }

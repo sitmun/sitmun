@@ -6,7 +6,7 @@ import static org.sitmun.proxy.middleware.dto.ProxyProblemResponses.backendFailu
 import static org.sitmun.proxy.middleware.dto.ProxyProblemResponses.backendUnavailable;
 import static org.sitmun.proxy.middleware.dto.ProxyProblemResponses.emptyBackendConfiguration;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.Locale;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.sitmun.proxy.middleware.dto.ConfigProxyDto;
@@ -14,7 +14,9 @@ import org.sitmun.proxy.middleware.dto.ConfigProxyRequestDto;
 import org.sitmun.proxy.middleware.dto.PayloadDto;
 import org.sitmun.proxy.middleware.protocols.jdbc.JdbcPayloadDto;
 import org.sitmun.proxy.middleware.protocols.wms.WmsPayloadDto;
+import org.sitmun.proxy.middleware.servicecheck.ProxyCheckSubject;
 import org.sitmun.proxy.middleware.utils.logging.SensitiveDataMasking;
+import org.sitmun.upstream.signal.RequestContext;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -25,6 +27,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
+import tools.jackson.databind.ObjectMapper;
 
 @Service
 @Slf4j
@@ -58,9 +61,22 @@ public class RequestConfigurationService {
       Map<String, String> params,
       String url,
       String body) {
+    return doRequest(appId, terId, type, typeId, null, token, params, url, body);
+  }
+
+  public ResponseEntity<?> doRequest(
+      Integer appId,
+      Integer terId,
+      String type,
+      Integer typeId,
+      Integer cartographyId,
+      String token,
+      Map<String, String> params,
+      String url,
+      String body) {
     String method = body == null ? "GET" : "POST";
     ConfigProxyRequestDto configProxyRequest =
-        new ConfigProxyRequestDto(appId, terId, type, typeId, method, params, body);
+        new ConfigProxyRequestDto(appId, terId, type, typeId, method, params, body, cartographyId);
     log.debug(
         "Proxy config request: appId={} terId={} type={} typeId={} method={} paramKeys={} "
             + "upstreamRequestBodyPresent={} authorizationPresent={}",
@@ -88,7 +104,12 @@ public class RequestConfigurationService {
 
       if (configProxyDto != null) {
         log.info("Requesting data from the final service");
-        return requestExecutorService.executeRequest(url, configProxyDto.getPayload());
+        ProxyCheckSubject.set(subjectFor(appId, type, typeId));
+        try {
+          return requestExecutorService.executeRequest(url, configProxyDto.getPayload());
+        } finally {
+          ProxyCheckSubject.clear();
+        }
       } else {
         return emptyBackendConfiguration();
       }
@@ -125,6 +146,17 @@ public class RequestConfigurationService {
           e.getClass().getSimpleName());
       return backendUnavailable();
     }
+  }
+
+  public static ProxyCheckSubject subjectFor(Integer appId, String type, Integer typeId) {
+    if (appId == null || type == null || typeId == null) {
+      return null;
+    }
+    String protocol = type.toUpperCase(Locale.ROOT);
+    if (!RequestContext.isOgcProtocol(protocol)) {
+      return null;
+    }
+    return new ProxyCheckSubject(typeId.longValue(), appId.longValue(), protocol);
   }
 
   private static String describePayloadForLog(PayloadDto payload) {

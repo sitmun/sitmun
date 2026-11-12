@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -48,6 +48,7 @@ interface DocumentExportTaskProperties {
   selector: 'app-task-document-export-form',
   templateUrl: './task-document-export-form.component.html',
   styles: ['.pdf-config-row { margin-top: 16px; }'],
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false,
 })
 export class TaskDocumentExportFormComponent extends BaseFormComponent<TaskProjection> {
@@ -158,7 +159,7 @@ export class TaskDocumentExportFormComponent extends BaseFormComponent<TaskProje
 
     this.entityForm = new FormGroup({
       name: new FormControl(this.entityToEdit.name, {
-        validators: [Validators.required],
+        validators: [Validators.maxLength(512), Validators.required],
         nonNullable: true,
       }),
       taskGroupId: new FormControl(this.entityToEdit.groupId, {
@@ -262,8 +263,8 @@ export class TaskDocumentExportFormComponent extends BaseFormComponent<TaskProje
       taskAvailabilityService: this.taskAvailabilityService,
       taskService: this.taskService,
       isNew: () => this.isNew(),
-      entity: this.entityToEdit,
-      entityId: this.entityID,
+      entity: () => this.entityToEdit,
+      entityId: () => this.entityID,
     };
   }
 }

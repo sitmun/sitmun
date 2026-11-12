@@ -1,4 +1,4 @@
-import {Component} from '@angular/core';
+import {Component, ChangeDetectionStrategy} from '@angular/core';
 import {UntypedFormControl, UntypedFormGroup, Validators} from '@angular/forms';
 import {MatDialog} from '@angular/material/dialog';
 import {ActivatedRoute, Router} from '@angular/router';
@@ -85,6 +85,7 @@ import {constants} from "@environments/constants";
 @Component({
     selector: 'app-background-layers-form',
     templateUrl: './background-layers-form.component.html',
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class BackgroundLayersFormComponent extends BaseFormComponent<BackgroundProjection> {
@@ -234,8 +235,8 @@ export class BackgroundLayersFormComponent extends BaseFormComponent<BackgroundP
     }
 
     this.entityForm = new UntypedFormGroup({
-      name: new UntypedFormControl(this.entityToEdit.name, [Validators.required]),
-      description: new UntypedFormControl(this.entityToEdit.description),
+      name: new UntypedFormControl(this.entityToEdit.name, [Validators.maxLength(50), Validators.required]),
+      description: new UntypedFormControl(this.entityToEdit.description, [Validators.maxLength(250)]),
       image: new UntypedFormControl(this.entityToEdit.image, [
         Validators.maxLength(4000),
         optionalHttpOrHttpsUrlValidator,

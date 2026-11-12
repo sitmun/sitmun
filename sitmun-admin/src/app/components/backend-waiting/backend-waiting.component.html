@@ -1,0 +1,46 @@
+<mat-toolbar color="primary">
+  <mat-toolbar-row class="top-toolbar-row">
+    <div class="sitmun-logo-container">
+      <div class="sitmun-logo">
+        <img alt="logo" class="logo" height="48" ngSrc="assets/img/logos/logo_sitmun.svg" width="128">
+      </div>
+    </div>
+    <span class="toolbar-spacer"></span>
+    <button
+      mat-button
+      type="button"
+      [matMenuTriggerFor]="languageMenu"
+      [attr.aria-label]="'entity.login.language' | translate"
+      class="language-toolbar-button">
+      <mat-icon>language</mat-icon>
+      <span>{{ isoCode(currentShortname) }}</span>
+    </button>
+    <mat-menu #languageMenu="matMenu">
+      @for (lang of languages; track lang) {
+        <button mat-menu-item type="button" (click)="changeLanguage(lang)">
+          {{ 'lang.' + lang | translate }}
+        </button>
+      }
+    </mat-menu>
+  </mat-toolbar-row>
+</mat-toolbar>
+
+<div class="waiting-container">
+  <mat-card>
+    <mat-card-content>
+      <div class="waiting-status">
+        <mat-spinner diameter="28" [attr.aria-label]="'backend.waiting.title' | translate"></mat-spinner>
+        <div class="waiting-copy">
+          <p class="product-title">{{ productTitle }}</p>
+          @if ((waitingReason$ | async) === 'configuring') {
+            <h4>{{ 'backend.configuring.title' | translate }}</h4>
+            <p>{{ 'backend.configuring.body' | translate }}</p>
+          } @else {
+            <h4>{{ 'backend.waiting.title' | translate }}</h4>
+            <p>{{ 'backend.waiting.body' | translate }}</p>
+          }
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>

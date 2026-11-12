@@ -24,8 +24,8 @@ import org.sitmun.infrastructure.web.dto.ProblemTypes;
 import org.sitmun.test.BaseTest;
 import org.sitmun.test.TestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.test.context.support.WithMockUser;
@@ -60,17 +60,21 @@ class TreeControllerTest extends BaseTest {
         .executeWithoutResult(
             status -> {
               jdbcTemplate.update(
-                  "UPDATE STM_TREE SET TRE_TYPE = 'cartography' WHERE TRE_ID IN (1, 2, 3)");
-              // Drop stray nodes left by other Data REST tests (seed tree 2 is only node 15).
+                  "UPDATE STM_TREE SET TRE_TYPE = 'cartography' WHERE TRE_ID IN (10001, 10002, 10003)");
+              // Drop stray nodes left by other Data REST tests (municipal tree is only node 10015).
               jdbcTemplate.update(
-                  "DELETE FROM STM_TREE_NOD WHERE TNO_TREEID = 2 AND TNO_ID <> 15"
+                  "DELETE FROM STM_TREE_NOD WHERE TNO_TREEID = 10002 AND TNO_ID <> 10015"
                       + " AND TNO_PARENTID IS NOT NULL");
-              jdbcTemplate.update("DELETE FROM STM_TREE_NOD WHERE TNO_TREEID = 2 AND TNO_ID <> 15");
-              jdbcTemplate.update("UPDATE STM_TREE_NOD SET TNO_RADIO = FALSE WHERE TNO_TREEID = 2");
-              // Seed: tree 1 radio folder is node 7 only.
               jdbcTemplate.update(
-                  "UPDATE STM_TREE_NOD SET TNO_RADIO = FALSE WHERE TNO_TREEID = 1 AND TNO_ID <> 7");
-              jdbcTemplate.update("UPDATE STM_TREE_NOD SET TNO_RADIO = TRUE WHERE TNO_ID = 7");
+                  "DELETE FROM STM_TREE_NOD WHERE TNO_TREEID = 10002 AND TNO_ID <> 10015");
+              jdbcTemplate.update(
+                  "UPDATE STM_TREE_NOD SET TNO_RADIO = ? WHERE TNO_TREEID = 10002", false);
+              // Provincial tree radio folder is node 10007 only.
+              jdbcTemplate.update(
+                  "UPDATE STM_TREE_NOD SET TNO_RADIO = ? WHERE TNO_TREEID = 10001 AND TNO_ID <> 10007",
+                  false);
+              jdbcTemplate.update(
+                  "UPDATE STM_TREE_NOD SET TNO_RADIO = ? WHERE TNO_ID = 10007", true);
             });
   }
 
@@ -79,7 +83,7 @@ class TreeControllerTest extends BaseTest {
   }
 
   @Test
-  @DisplayName("PUT: Fail 400 when try save touristic tree with non touristic application")
+  @DisplayName("POST linking touristic tree 4 to application 1 returns 400")
   @WithMockUser(roles = "ADMIN")
   void saveTouristicTreeWithNonTouristicApplication() throws Exception {
     mockMvc
@@ -90,7 +94,7 @@ class TreeControllerTest extends BaseTest {
                     """
                     {"application":"%s","tree":"%s"}
                     """
-                        .formatted(APPLICATION_URI.replace("{0}", "1"), TREE_URI + "/4")))
+                        .formatted(APPLICATION_URI.replace("{0}", "10001"), TREE_URI + "/10004")))
         .andExpect(status().isBadRequest())
         .andExpect(
             jsonPath("$.detail")
@@ -98,7 +102,7 @@ class TreeControllerTest extends BaseTest {
   }
 
   @Test
-  @DisplayName("PUT: Fail 400 when try save non touristic tree with touristic application")
+  @DisplayName("POST linking tree 1 to touristic application 6 returns 400")
   @WithMockUser(roles = "ADMIN")
   void saveNoTouristicTreeWithTouristicApplication() throws Exception {
     mockMvc
@@ -109,7 +113,7 @@ class TreeControllerTest extends BaseTest {
                     """
                     {"application":"%s","tree":"%s"}
                     """
-                        .formatted(APPLICATION_URI.replace("{0}", "6"), TREE_URI + "/1")))
+                        .formatted(APPLICATION_URI.replace("{0}", "10006"), TREE_URI + "/10001")))
         .andExpect(status().isBadRequest())
         .andExpect(
             jsonPath("$.detail")
@@ -118,17 +122,17 @@ class TreeControllerTest extends BaseTest {
   }
 
   @Test
-  @DisplayName("PUT: Check that updating and removing standard trees works as expected")
+  @DisplayName("DELETE and POST move tree 1 from application 1 to application 2 and back")
   @WithMockUser(roles = "ADMIN")
   void updateAndRemoveATree() throws Exception {
-    String treeUri = TREE_URI + "/1";
-    String app1Uri = APPLICATION_URI.replace("{0}", "1");
-    String app2Uri = APPLICATION_URI.replace("{0}", "2");
+    String treeUri = TREE_URI + "/10001";
+    String app1Uri = APPLICATION_URI.replace("{0}", "10001");
+    String app2Uri = APPLICATION_URI.replace("{0}", "10002");
 
-    assertEquals(1, linksForTree(1).size());
-    linksForTree(1).forEach(link -> assertEquals(1, link.getApplication().getId()));
+    assertEquals(1, linksForTree(10001).size());
+    linksForTree(10001).forEach(link -> assertEquals(10001, link.getApplication().getId()));
 
-    mockMvc.perform(delete(APPLICATION_TREE_URI, 1)).andExpect(status().isNoContent());
+    mockMvc.perform(delete(APPLICATION_TREE_URI, 10001)).andExpect(status().isNoContent());
 
     mockMvc
         .perform(
@@ -141,13 +145,13 @@ class TreeControllerTest extends BaseTest {
                         .formatted(app2Uri, treeUri)))
         .andExpect(status().isCreated());
 
-    assertEquals(1, linksForTree(1).size());
-    linksForTree(1).forEach(link -> assertEquals(2, link.getApplication().getId()));
+    assertEquals(1, linksForTree(10001).size());
+    linksForTree(10001).forEach(link -> assertEquals(10002, link.getApplication().getId()));
 
-    Integer app2LinkId = linksForTree(1).stream().findFirst().orElseThrow().getId();
+    Integer app2LinkId = linksForTree(10001).stream().findFirst().orElseThrow().getId();
     mockMvc.perform(delete(APPLICATION_TREE_URI, app2LinkId)).andExpect(status().isNoContent());
 
-    assertEquals(0, linksForTree(1).size());
+    assertEquals(0, linksForTree(10001).size());
 
     mockMvc
         .perform(
@@ -160,8 +164,8 @@ class TreeControllerTest extends BaseTest {
                         .formatted(app1Uri, treeUri)))
         .andExpect(status().isCreated());
 
-    assertEquals(1, linksForTree(1).size());
-    linksForTree(1).forEach(link -> assertEquals(1, link.getApplication().getId()));
+    assertEquals(1, linksForTree(10001).size());
+    linksForTree(10001).forEach(link -> assertEquals(10001, link.getApplication().getId()));
   }
 
   private List<ApplicationTree> linksForTree(int treeId) {
@@ -178,7 +182,7 @@ class TreeControllerTest extends BaseTest {
         TreeTypeValidationRequest.builder().type("touristic").applicationIds(Set.of()).build();
 
     mvc.perform(
-            post("/api/trees/2/validate-type-change")
+            post("/api/trees/10002/validate-type-change")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(TestUtils.asJsonString(request)))
         .andExpect(status().isNoContent());
@@ -191,11 +195,11 @@ class TreeControllerTest extends BaseTest {
     TreeTypeValidationRequest request =
         TreeTypeValidationRequest.builder()
             .type("touristic")
-            .applicationIds(Set.of(6)) // App 6 is touristic
+            .applicationIds(Set.of(10006)) // App 10006 is touristic
             .build();
 
     mvc.perform(
-            post("/api/trees/2/validate-type-change")
+            post("/api/trees/10002/validate-type-change")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(TestUtils.asJsonString(request)))
         .andExpect(status().isNoContent());
@@ -208,11 +212,11 @@ class TreeControllerTest extends BaseTest {
     TreeTypeValidationRequest request =
         TreeTypeValidationRequest.builder()
             .type("touristic")
-            .applicationIds(Set.of(1, 2)) // Multiple apps violate touristic constraint
+            .applicationIds(Set.of(10001, 10002)) // Multiple apps violate touristic constraint
             .build();
 
     mvc.perform(
-            post("/api/trees/1/validate-type-change")
+            post("/api/trees/10001/validate-type-change")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(TestUtils.asJsonString(request)))
         .andExpect(status().isUnprocessableEntity())
@@ -229,11 +233,11 @@ class TreeControllerTest extends BaseTest {
     TreeTypeValidationRequest request =
         TreeTypeValidationRequest.builder()
             .type("touristic")
-            .applicationIds(Set.of(1)) // App 1 is non-touristic
+            .applicationIds(Set.of(10001)) // App 10001 is non-touristic
             .build();
 
     mvc.perform(
-            post("/api/trees/4/validate-type-change")
+            post("/api/trees/10004/validate-type-change")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(TestUtils.asJsonString(request)))
         .andExpect(status().isUnprocessableEntity())
@@ -249,11 +253,11 @@ class TreeControllerTest extends BaseTest {
     TreeTypeValidationRequest request =
         TreeTypeValidationRequest.builder()
             .type("cartography")
-            .applicationIds(Set.of(1, 2, 3)) // Multiple non-touristic apps OK
+            .applicationIds(Set.of(10001, 10002, 10003)) // Multiple non-touristic apps OK
             .build();
 
     mvc.perform(
-            post("/api/trees/1/validate-type-change")
+            post("/api/trees/10001/validate-type-change")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(TestUtils.asJsonString(request)))
         .andExpect(status().isNoContent());
@@ -271,11 +275,11 @@ class TreeControllerTest extends BaseTest {
     TreeTypeValidationRequest request =
         TreeTypeValidationRequest.builder()
             .type("cartography")
-            .applicationIds(Set.of(6)) // App 6 is touristic with 0 trees
+            .applicationIds(Set.of(10006)) // App 10006 is touristic with 0 trees
             .build();
 
     mvc.perform(
-            post("/api/trees/1/validate-type-change")
+            post("/api/trees/10001/validate-type-change")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(TestUtils.asJsonString(request)))
         .andExpect(status().isUnprocessableEntity())
@@ -283,22 +287,17 @@ class TreeControllerTest extends BaseTest {
   }
 
   @Test
-  @DisplayName("POST: Validate non-touristic tree with multi-tree touristic app - returns 422")
+  @DisplayName("POST: Validate cartography tree on touristic app 6 returns 422")
   @WithMockUser(roles = "ADMIN")
-  void validateNonTouristicTypeWithMultiTreeTouristicApp() throws Exception {
-    // This test would need setup where App 6 is linked to multiple touristic trees
-    // For now, test the rejection of a touristic app that's incompatible
-
+  void validateCartographyTreeOnTouristicAppReturns422() throws Exception {
     TreeTypeValidationRequest request =
         TreeTypeValidationRequest.builder()
             .type("cartography")
-            .applicationIds(Set.of(6)) // App 6 touristic
+            .applicationIds(Set.of(10006))
             .build();
 
-    // The actual validation depends on how many touristic trees App 6 has
-    // This is a placeholder - adjust based on actual TreeEventHandler logic
     mvc.perform(
-            post("/api/trees/4/validate-type-change")
+            post("/api/trees/10004/validate-type-change")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(TestUtils.asJsonString(request)))
         .andExpect(status().isUnprocessableEntity())
@@ -309,10 +308,10 @@ class TreeControllerTest extends BaseTest {
   @DisplayName("POST: Validate with null type - returns 400")
   @WithMockUser(roles = "ADMIN")
   void validateWithNullType() throws Exception {
-    String requestJson = "{\"type\": null, \"applicationIds\": [1]}";
+    String requestJson = "{\"type\": null, \"applicationIds\": [10001]}";
 
     mvc.perform(
-            post("/api/trees/1/validate-type-change")
+            post("/api/trees/10001/validate-type-change")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(requestJson))
         .andExpect(status().isBadRequest());
@@ -323,10 +322,10 @@ class TreeControllerTest extends BaseTest {
   @WithMockUser(roles = "ADMIN")
   void validateWithEmptyType() throws Exception {
     TreeTypeValidationRequest request =
-        TreeTypeValidationRequest.builder().type("").applicationIds(Set.of(1)).build();
+        TreeTypeValidationRequest.builder().type("").applicationIds(Set.of(10001)).build();
 
     mvc.perform(
-            post("/api/trees/1/validate-type-change")
+            post("/api/trees/10001/validate-type-change")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(TestUtils.asJsonString(request)))
         .andExpect(status().isBadRequest());
@@ -339,7 +338,7 @@ class TreeControllerTest extends BaseTest {
     String requestJson = "{\"type\": \"touristic\", \"applicationIds\": null}";
 
     mvc.perform(
-            post("/api/trees/2/validate-type-change")
+            post("/api/trees/10002/validate-type-change")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(requestJson))
         .andExpect(status().isNoContent());
@@ -350,7 +349,10 @@ class TreeControllerTest extends BaseTest {
   @WithMockUser(roles = "ADMIN")
   void validateWithNonExistentTreeId() throws Exception {
     TreeTypeValidationRequest request =
-        TreeTypeValidationRequest.builder().type("cartography").applicationIds(Set.of(1)).build();
+        TreeTypeValidationRequest.builder()
+            .type("cartography")
+            .applicationIds(Set.of(10001))
+            .build();
 
     mvc.perform(
             post("/api/trees/99999/validate-type-change")
@@ -371,7 +373,7 @@ class TreeControllerTest extends BaseTest {
             .build();
 
     mvc.perform(
-            post("/api/trees/1/validate-type-change")
+            post("/api/trees/10001/validate-type-change")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(TestUtils.asJsonString(request)))
         .andExpect(status().isNotFound())
@@ -383,14 +385,14 @@ class TreeControllerTest extends BaseTest {
   @WithMockUser(roles = "ADMIN")
   void putCartographyToEditionWithRadioFoldersRejected() throws Exception {
     String treeJson =
-        mvc.perform(get("/api/trees/1"))
+        mvc.perform(get("/api/trees/10001"))
             .andExpect(status().isOk())
             .andReturn()
             .getResponse()
             .getContentAsString();
 
     mvc.perform(
-            put("/api/trees/1")
+            put("/api/trees/10001")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(withTreeType(treeJson, "edition")))
         .andExpect(status().isBadRequest())
@@ -409,12 +411,13 @@ class TreeControllerTest extends BaseTest {
     try {
       Integer radioFolders =
           jdbcTemplate.queryForObject(
-              "SELECT COUNT(*) FROM STM_TREE_NOD WHERE TNO_TREEID = 2 AND TNO_RADIO = TRUE",
-              Integer.class);
+              "SELECT COUNT(*) FROM STM_TREE_NOD WHERE TNO_TREEID = 10002 AND TNO_RADIO = ?",
+              Integer.class,
+              true);
       assertEquals(0, radioFolders, "tree 2 must have no radio folders before type change");
 
       String treeJson =
-          mvc.perform(get("/api/trees/2"))
+          mvc.perform(get("/api/trees/10002"))
               .andExpect(status().isOk())
               .andReturn()
               .getResponse()
@@ -423,13 +426,15 @@ class TreeControllerTest extends BaseTest {
 
       MvcResult putResult =
           mvc.perform(
-                  put("/api/trees/2")
+                  put("/api/trees/10002")
                       .contentType(MediaType.APPLICATION_JSON)
                       .content(withTreeType(treeJson, "edition")))
               .andReturn();
       String putBody = putResult.getResponse().getContentAsString();
       assertEquals(
-          200, putResult.getResponse().getStatus(), "PUT /api/trees/2 type→edition: " + putBody);
+          200,
+          putResult.getResponse().getStatus(),
+          "PUT /api/trees/10002 type→edition: " + putBody);
       assertEquals("edition", JsonPath.parse(putBody).read("$.type", String.class));
     } finally {
       restoreSeedTreeTypes();
@@ -437,14 +442,60 @@ class TreeControllerTest extends BaseTest {
   }
 
   @Test
+  @DisplayName("PUT: cartography to touristic while linked to several applications - returns 400")
+  @WithMockUser(roles = "ADMIN")
+  void putCartographyToTouristicWithSeveralApplicationsRejected() throws Exception {
+    try {
+      rejectTouristicTypeChange(10002);
+    } finally {
+      restoreSeedTreeTypes();
+    }
+  }
+
+  @Test
+  @DisplayName(
+      "PUT: cartography to touristic while linked to a non-touristic application - returns 400")
+  @WithMockUser(roles = "ADMIN")
+  void putCartographyToTouristicWithNonTouristicApplicationRejected() throws Exception {
+    try {
+      rejectTouristicTypeChange(10003);
+    } finally {
+      restoreSeedTreeTypes();
+    }
+  }
+
+  private void rejectTouristicTypeChange(int treeId) throws Exception {
+    String treeJson =
+        mvc.perform(get("/api/trees/" + treeId))
+            .andExpect(status().isOk())
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+
+    mvc.perform(
+            put("/api/trees/" + treeId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(withTreeType(treeJson, "touristic")))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.type").value(ProblemTypes.TOURISTIC_TREE_CONSTRAINT))
+        .andExpect(
+            jsonPath("$.detail")
+                .value("Touristic tree can only be linked with 0 or 1 tourist application"));
+
+    mvc.perform(get("/api/trees/" + treeId))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.type").value("cartography"));
+  }
+
+  @Test
   @DisplayName("POST: cartography to edition with radio folders - returns 422")
   @WithMockUser(roles = "ADMIN")
   void validateCartographyToEditionWithRadioFoldersRejected() throws Exception {
     TreeTypeValidationRequest request =
-        TreeTypeValidationRequest.builder().type("edition").applicationIds(Set.of(1)).build();
+        TreeTypeValidationRequest.builder().type("edition").applicationIds(Set.of(10001)).build();
 
     mvc.perform(
-            post("/api/trees/1/validate-type-change")
+            post("/api/trees/10001/validate-type-change")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(TestUtils.asJsonString(request)))
         .andExpect(status().isUnprocessableEntity())
@@ -456,17 +507,17 @@ class TreeControllerTest extends BaseTest {
   }
 
   @Test
-  @DisplayName("POST: Validation errors return proper RFC 9457 format")
+  @DisplayName("POST validation errors return RFC 9457 type, status, title, detail, and instance")
   @WithMockUser(roles = "ADMIN")
   void validateRfc9457Format() throws Exception {
     TreeTypeValidationRequest request =
         TreeTypeValidationRequest.builder()
             .type("touristic")
-            .applicationIds(Set.of(1, 2)) // Force error
+            .applicationIds(Set.of(10001, 10002)) // Force error
             .build();
 
     mvc.perform(
-            post("/api/trees/1/validate-type-change")
+            post("/api/trees/10001/validate-type-change")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(TestUtils.asJsonString(request)))
         .andExpect(status().isUnprocessableEntity())

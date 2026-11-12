@@ -5,7 +5,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 
-import { TranslateLoader, TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslateLoader, TranslatePipe, TranslateService, provideTranslateService } from '@ngx-translate/core';
 import { of } from 'rxjs';
 
 import { DialogMessageComponent } from './dialog-message.component';
@@ -23,16 +23,17 @@ describe('DialogMessageComponent', () => {
         MatIconModule,
         MatTooltipModule,
         NoopAnimationsModule,
-        TranslateModule.forRoot({
+        TranslatePipe
+      ],
+      providers: [
+      provideTranslateService({
           loader: {
             provide: TranslateLoader,
             useFactory: () => ({
               getTranslation: () => of({})
             })
           }
-        })
-      ],
-      providers: [
+        }),
         { provide: MatDialogRef, useValue: { 
            
           close: () => {} 
@@ -50,9 +51,7 @@ describe('DialogMessageComponent', () => {
     fixture.detectChanges();
   });
 
-  it('should create', () => {
-    expect(component).toBeTruthy();
-  });
+  
 
   it('uses default mini-fab actions when destructive is false', () => {
     component.destructive = false;

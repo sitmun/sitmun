@@ -19,14 +19,14 @@ export const FEATURE_FLAGS = {
   SERVICES_CRS_LIST: 'services-crs-list',
   /** Service-level HTTP/query parameters (viewer + proxy); admin UI tab on the service form. */
   SERVICES_PARAMETERS_FEATURE: 'services-parameters-feature',
-  /** Layers form: legend type / legend URL tab (not in SITNA client profile yet). */
-  LAYERS_LEGEND_TAB_FEATURE: 'layers-legend-tab',
   /** Layers form: OGC style names grid and use-all-styles (not in SITNA client profile yet). */
   LAYERS_CARTOGRAPHY_STYLES_TAB_FEATURE: 'layers-cartography-styles-tab',
   /** Layers form: territorial filters and apply-filter toggles (not in viewer client profile yet). */
   LAYERS_FILTERS_TAB_FEATURE: 'layers-filters-tab',
-  /** Layers form: GetFeatureInfo / queryable layer subset and optional cartography parameters (not in SITNA client profile yet). */
+  /** Layers form: queryable layer subset. The feature-information field list is always shown. */
   LAYERS_FEATURE_INFORMATION_TAB_FEATURE: 'layers-feature-information-tab',
+  /** Layers form: fixed OGC parameters applied when the owning service is proxied. */
+  LAYERS_SERVICE_PARAMETERS_FEATURE: 'layers-service-parameters',
   /** Application form: comma-separated scale denominators (not in viewer client profile yet). */
   APPLICATION_SCALES_FEATURE: 'application-scales',
   /** Application form: tree auto-refresh toggle (not in viewer client profile yet). */
@@ -63,13 +63,6 @@ export const PROD_FEATURE_FLAGS: Record<FeatureFlagKeys, FeatureFlagConfig> = {
     description: 'featureFlags.servicesParametersFeature.description',
     category: 'Services'
   },
-  LAYERS_LEGEND_TAB_FEATURE: {
-    key: FEATURE_FLAGS.LAYERS_LEGEND_TAB_FEATURE,
-    enabled: false,
-    experimental: true,
-    description: 'featureFlags.layersLegendTab.description',
-    category: 'Layers'
-  },
   LAYERS_CARTOGRAPHY_STYLES_TAB_FEATURE: {
     key: FEATURE_FLAGS.LAYERS_CARTOGRAPHY_STYLES_TAB_FEATURE,
     enabled: false,
@@ -89,6 +82,12 @@ export const PROD_FEATURE_FLAGS: Record<FeatureFlagKeys, FeatureFlagConfig> = {
     enabled: false,
     experimental: true,
     description: 'featureFlags.layersFeatureInformationTab.description',
+    category: 'Layers'
+  },
+  LAYERS_SERVICE_PARAMETERS_FEATURE: {
+    key: FEATURE_FLAGS.LAYERS_SERVICE_PARAMETERS_FEATURE,
+    enabled: true,
+    description: 'featureFlags.layersServiceParameters.description',
     category: 'Layers'
   },
   APPLICATION_SCALES_FEATURE: {
@@ -139,13 +138,6 @@ export const DEV_FEATURE_FLAGS: Record<FeatureFlagKeys, FeatureFlagConfig> = {
     description: 'featureFlags.servicesParametersFeature.description',
     category: 'Services'
   },
-  LAYERS_LEGEND_TAB_FEATURE: {
-    key: FEATURE_FLAGS.LAYERS_LEGEND_TAB_FEATURE,
-    enabled: true,
-    experimental: true,
-    description: 'featureFlags.layersLegendTab.description',
-    category: 'Layers'
-  },
   LAYERS_CARTOGRAPHY_STYLES_TAB_FEATURE: {
     key: FEATURE_FLAGS.LAYERS_CARTOGRAPHY_STYLES_TAB_FEATURE,
     enabled: true,
@@ -165,6 +157,13 @@ export const DEV_FEATURE_FLAGS: Record<FeatureFlagKeys, FeatureFlagConfig> = {
     enabled: true,
     experimental: true,
     description: 'featureFlags.layersFeatureInformationTab.description',
+    category: 'Layers'
+  },
+  LAYERS_SERVICE_PARAMETERS_FEATURE: {
+    key: FEATURE_FLAGS.LAYERS_SERVICE_PARAMETERS_FEATURE,
+    enabled: true,
+    experimental: false,
+    description: 'featureFlags.layersServiceParameters.description',
     category: 'Layers'
   },
   APPLICATION_SCALES_FEATURE: {

@@ -4,10 +4,11 @@ SQL Oracle **ilustrativo** que copia un catálogo **núcleo** de SITMUN 2 a un e
 
 ## Requisitos previos
 
-1. Oracle 19c+ recomendado (`JSON_OBJECT` / `JSON_ARRAYAGG` con `RETURNING CLOB`).
-2. El esquema destino ya creado con el **master Liquibase Oracle completo**:
-   [`profiles/oracle/liquibase/master.xml`](../../../profiles/oracle/liquibase/master.xml)
-   (`01_schema.oracle.sql` más los incrementos hasta `18_*.sql`).
+1. Oracle 19c es obligatorio para este ejemplo (`JSON_OBJECT` / `JSON_ARRAYAGG` con `RETURNING CLOB`). No es la versión mínima de SITMUN en ejecución, que sigue siendo Oracle 11g Release 2 (11.2).
+2. El esquema destino ya creado con el **master Liquibase Oracle completo**
+   [`profiles/oracle/liquibase/master.xml`](../../../profiles/oracle/liquibase/master.xml).
+   Ese fichero incluye el changelog del backend,
+   `classpath:/db/changelog/db.changelog-master.yaml`.
 3. Filas de plataforma ya presentes: codelists, idiomas, `STM_CONF`. **No** las recreéis desde v2.
 4. Las tablas de catálogo a migrar (incl. `STM_TSK_TYP`, `STM_GTER_TYP`) están vacías o truncadas. No mezcléis con seed demo de esos tipos.
 5. Las tablas origen SITMUN 2 son legibles como `SITMUN2.<tabla>` (véase `00_setup_dblink.sql`).

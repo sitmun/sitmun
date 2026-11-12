@@ -24,6 +24,7 @@ import { environment } from 'src/environments/environment';
 
 import {
   filterEnabledLanguages,
+  readBrowserLanguages,
   resolveUiLanguage,
   sortByLanguageOrder
 } from './ui-language.resolver';
@@ -50,15 +51,21 @@ export class LanguageService {
   readonly languagesToUse$ = this.languagesToUseSubject.asObservable();
 
   /**
-   * Get the current language: localStorage → language.default → static. Never browser.
+   * Stored choice, then language.default when the server provided one.
+   * When it did not, the closest browser language among the configured list.
    */
   getCurrentLanguage(): string {
     const available = this.availableShortnames();
+    const serverProvidedDefault =
+      !!this.backendDefault && available.includes(this.backendDefault);
     return resolveUiLanguage({
       stored: localStorage.getItem(this.STORED_LANGUAGE),
+      browser: serverProvidedDefault ? undefined : readBrowserLanguages(),
       backendDefault: this.backendDefault,
       availableShortnames: available,
-      staticFallback: this.appConfigService.getDefaultLanguage() || 'en'
+      staticFallback: serverProvidedDefault
+        ? this.appConfigService.getDefaultLanguage() || 'en'
+        : available[0] || 'en'
     });
   }
 
@@ -94,7 +101,7 @@ export class LanguageService {
     this.backendDefault = await firstValueFrom(this.loadBackendDefaultLanguage());
     await firstValueFrom(this.getLanguagesForSwitcher());
     const lang = this.getCurrentLanguage();
-    this.translateService.setDefaultLang(lang);
+    this.translateService.setFallbackLang(lang);
     await firstValueFrom(this.translateService.use(lang));
     this.bootstrapped = true;
   }
@@ -107,7 +114,7 @@ export class LanguageService {
       return;
     }
     const lang = this.getCurrentLanguage();
-    this.translateService.setDefaultLang(lang);
+    this.translateService.setFallbackLang(lang);
     this.translateService.use(lang);
   }
 

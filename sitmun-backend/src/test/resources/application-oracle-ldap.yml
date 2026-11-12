@@ -21,23 +21,17 @@ spring:
       connection-timeout: 30000
       idle-timeout: 300000
       max-lifetime: 600000
-      data-source-properties:
-        cachePrepStmts: true
-        prepStmtCacheSize: 250
-        prepStmtCacheSqlLimit: 2048
-        useServerPrepStmts: true
 
   # JPA Configuration for Oracle
   jpa:
-    hibernate.ddl-auto: validate
-    properties.hibernate.dialect: org.hibernate.dialect.OracleDialect
+    properties.hibernate.dialect: org.sitmun.infrastructure.persistence.dialect.SitmunOracleDialect
     properties.hibernate.type.preferred_boolean_jdbc_type: SMALLINT
 
   # Liquibase Configuration for Oracle
   liquibase:
-    change-log: classpath:/db/changelog/db.changelog-oracle.yaml
+    change-log: classpath:/db/changelog-test/db.changelog-master.yaml
     enabled: true
-    drop-first: true
+    drop-first: false
     url: jdbc:oracle:thin:@//localhost:1521/sitmun3?oracle.net.CONNECT_TIMEOUT=30000
     user: ${spring.datasource.username}
     password: ${spring.datasource.password}

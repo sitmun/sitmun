@@ -1,4 +1,4 @@
-import {Component} from '@angular/core';
+import {Component, ChangeDetectionStrategy} from '@angular/core';
 import {UntypedFormControl, UntypedFormGroup, Validators} from '@angular/forms';
 import {MatDialog} from '@angular/material/dialog';
 import {ActivatedRoute, Router} from '@angular/router';
@@ -20,11 +20,13 @@ import {UtilsService} from '@app/services/utils.service';
     selector: 'app-configuration-parameter-form',
     templateUrl: './configuration-parameter-form.component.html',
     styles: [],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class ConfigurationParameterFormComponent extends BaseFormComponent<ConfigurationParameter> {
   readonly config = Configuration.CONFIGURATION_PARAMETER;
   isProtectedParameter = false;
+  readonly protectionMessageKey = 'entity.configurationParameter.languageDefaultProtection';
   /** Info keys from the last create/update response (not reloaded by GET). */
   saveInfoKeys: string[] = [];
 
@@ -43,10 +45,6 @@ export class ConfigurationParameterFormComponent extends BaseFormComponent<Confi
     public utils: UtilsService,
   ) {
     super(dialog, translateService, translationService, codeListService, loggerService, errorHandler, activatedRoute, router, loadingService, messagesInterceptorState);
-  }
-
-  override async preFetchData() {
-    // No special initialization needed
   }
 
   override fetchOriginal(): Promise<ConfigurationParameter> {
@@ -73,8 +71,8 @@ export class ConfigurationParameterFormComponent extends BaseFormComponent<Confi
     this.isProtectedParameter = this.entityToEdit.name === 'language.default';
 
     this.entityForm = new UntypedFormGroup({
-      name: new UntypedFormControl(this.entityToEdit.name, [Validators.required]),
-      value: new UntypedFormControl(this.entityToEdit.value, []),
+      name: new UntypedFormControl(this.entityToEdit.name, [Validators.maxLength(50), Validators.required]),
+      value: new UntypedFormControl(this.entityToEdit.value, [Validators.maxLength(250)]),
     });
 
     // Disable form fields for protected parameters
@@ -113,7 +111,7 @@ export class ConfigurationParameterFormComponent extends BaseFormComponent<Confi
 
   override async createEntity(): Promise<number> {
     if (this.isProtectedParameter) {
-      const message = this.translateService.instant('entity.configurationParameter.languageDefaultProtection');
+      const message = this.translateService.instant(this.protectionMessageKey);
       throw new Error(message);
     }
     const entityToCreate = this.createObject();
@@ -124,7 +122,7 @@ export class ConfigurationParameterFormComponent extends BaseFormComponent<Confi
 
   override async updateEntity(): Promise<void> {
     if (this.isProtectedParameter) {
-      const message = this.translateService.instant('entity.configurationParameter.languageDefaultProtection');
+      const message = this.translateService.instant(this.protectionMessageKey);
       throw new Error(message);
     }
     const entityToUpdate = this.createObject(this.entityID);

@@ -12,7 +12,7 @@ import {
 import { withViewerPage } from './helpers/viewer-context';
 import { expectOverlayContains, waitForMiaRender } from './helpers/overlay';
 
-const SEEDED_QUERY_CHILD_ID = 38;
+const SEEDED_QUERY_CHILD_ID = 10038;
 const CHILD_TASK_SEARCH = 'Web API direct';
 const CHILD_TASK_OPTION = /Web API direct \(template param\)/;
 

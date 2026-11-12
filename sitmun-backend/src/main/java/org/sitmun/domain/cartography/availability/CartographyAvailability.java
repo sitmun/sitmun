@@ -39,7 +39,7 @@ public class CartographyAvailability {
       allocationSize = 1)
   @Id
   @GeneratedValue(strategy = GenerationType.TABLE, generator = "STM_AVAIL_GI_GEN")
-  @Column(name = "AGI_ID")
+  @Column(name = "AGI_ID", nullable = false)
   private Integer id;
 
   /** Creation date. */
@@ -56,14 +56,14 @@ public class CartographyAvailability {
   private String owner;
 
   /** Territory allowed to access to the cartography. */
-  @ManyToOne
+  @ManyToOne(optional = false)
   @JoinColumn(name = "AGI_TERID", foreignKey = @ForeignKey(name = "STM_AGI_FK_TER"))
   @OnDelete(action = OnDeleteAction.CASCADE)
   @NotNull
   private Territory territory;
 
   /** Cartography allowed to the territory. */
-  @ManyToOne
+  @ManyToOne(optional = false)
   @JoinColumn(name = "AGI_GIID", foreignKey = @ForeignKey(name = "STM_AGI_FK_GEO"))
   @OnDelete(action = OnDeleteAction.CASCADE)
   @NotNull

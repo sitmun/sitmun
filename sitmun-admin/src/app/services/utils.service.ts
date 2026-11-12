@@ -1,5 +1,5 @@
 import {Location} from '@angular/common';
-import {Component, Injectable, Injector, NgZone} from '@angular/core';
+import {Component, Injectable, Injector, NgZone, ChangeDetectionStrategy} from '@angular/core';
 import {MatDialog} from '@angular/material/dialog';
 
 import {ICellRendererAngularComp} from '@ag-grid-community/angular';
@@ -376,7 +376,7 @@ export class UtilsService {
    * Gets the column definition for a status column in AG Grid.
    * @returns Column definition object for status column.
    */
-  getStatusColumnDef() {
+  getStatusColumnDef(statusLabelKey?: (status: string) => string) {
     const statusHeader = this.getTranslate('common.form.status');
     const statusColors = {
       pendingModify: '#ff9300',
@@ -402,7 +402,8 @@ export class UtilsService {
         }
         const span = document.createElement('span');
         span.className = 'sitmun-status-dot';
-        span.title = this.getTranslate('common.status.' + key);
+        const labelKey = statusLabelKey ? statusLabelKey(key) : 'common.status.' + key;
+        span.title = this.getTranslate(labelKey);
         span.setAttribute('aria-label', span.title);
         span.style.backgroundColor = statusColors[key] ?? statusColors.pendingModify;
         return span;
@@ -433,6 +434,10 @@ export class UtilsService {
       filter: 'agDateColumnFilter',
       filterParams: this.getDateFilterParams(options),
       editable: editable ?? false,
+      // HAL Instant ISO strings are not AG Grid dateString (YYYY-MM-DD). Leaving
+      // cellDataType on lets DataTypeModule infer "text", then
+      // agDateStringCellEditor crashes: getDateParserFunction is not a function.
+      cellDataType: false,
       emptyValueKey: options?.emptyValueKey,
       headerTooltip: options?.headerTooltipKey
         ? this.getTranslate(options.headerTooltipKey)
@@ -443,7 +448,8 @@ export class UtilsService {
         }
         return this.getDateFormated(data);
       },
-      cellEditor: 'agDateStringCellEditor',
+      // Native datePicker parses Instant via Date(); agDateStringCellEditor does not.
+      cellEditor: 'datePicker',
       cellClass: (editable ?? false) ? null : 'read-only-cell'
     };
   }
@@ -1069,6 +1075,7 @@ export class UtilsService {
 @Component({
   selector: 'app-empty-renderer',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   template: '<div></div>'
 })
 export class EmptyRendererComponent implements ICellRendererAngularComp {

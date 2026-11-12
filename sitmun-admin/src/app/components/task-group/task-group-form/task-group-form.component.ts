@@ -1,4 +1,4 @@
-import {Component} from '@angular/core';
+import {Component, ChangeDetectionStrategy} from '@angular/core';
 import {FormControl, FormGroup, Validators} from '@angular/forms';
 import {MatDialog} from '@angular/material/dialog';
 import {ActivatedRoute, Router} from '@angular/router';
@@ -29,6 +29,7 @@ import {UtilsService} from '@app/services/utils.service';
     selector: 'app-task-group-form',
     templateUrl: './task-group-form.component.html',
     styles: [],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class TaskGroupFormComponent extends BaseFormComponent<TaskGroup> {
@@ -121,7 +122,7 @@ export class TaskGroupFormComponent extends BaseFormComponent<TaskGroup> {
 
     this.entityForm = new FormGroup({
       name: new FormControl(this.entityToEdit.name, {
-        validators: [Validators.required],
+        validators: [Validators.required, Validators.maxLength(80)],
         nonNullable: true
       }),
     });
@@ -131,7 +132,6 @@ export class TaskGroupFormComponent extends BaseFormComponent<TaskGroup> {
   /**
    * Creates a Task  object from the current form values.
    * Applies the form values to a copy of the current entity and converts it to a Task  domain object.
-   * This method ensures that entity data is not directly modified until explicitly saved.
    *
    * @param id - Optional ID for the new object, used when updating
    * @returns New Task instance populated with form values

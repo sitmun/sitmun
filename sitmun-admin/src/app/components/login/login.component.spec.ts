@@ -5,7 +5,7 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { provideRouter, RouterModule } from '@angular/router';
 
-import { TranslateLoader, TranslateModule } from '@ngx-translate/core';
+import { TranslateLoader, TranslatePipe, provideTranslateService } from '@ngx-translate/core';
 import { of } from 'rxjs';
 
 import {ExternalService, ResourceService} from '@app/core/hal/services';
@@ -19,14 +19,6 @@ import { MaterialModule } from '../../material-module';
 describe('LoginComponent', () => {
   let component: LoginComponent;
   let fixture: ComponentFixture<LoginComponent>;
-  let loginService: LoginService;
-  let authService: AuthService;
-  let accountService: AccountService;
-  let principal: Principal;
-  let codeListService: CodeListService;
-  let translationService: TranslationService;
-  let resourceService: ResourceService;
-  let externalService: ExternalService;
 
   beforeAll(async () => {
      
@@ -40,16 +32,17 @@ describe('LoginComponent', () => {
         MatIconTestingModule,
         MaterialModule,
         RouterModule,
-        TranslateModule.forRoot({
+        TranslatePipe
+      ],
+      providers: [
+      provideTranslateService({
           loader: {
             provide: TranslateLoader,
             useFactory: () => ({
               getTranslation: () => of({})
             })
           }
-        })
-      ],
-      providers: [
+        }),
         provideRouter([]),
         provideHttpClient(),
         provideHttpClientTesting(),
@@ -70,73 +63,32 @@ describe('LoginComponent', () => {
   beforeEach(() => {
     fixture = TestBed.createComponent(LoginComponent);
     component = fixture.componentInstance;
-    loginService= TestBed.inject(LoginService);
-    authService= TestBed.inject(AuthService);
-    accountService= TestBed.inject(AccountService);
-    principal= TestBed.inject(Principal);
-    codeListService= TestBed.inject(CodeListService);
-    translationService= TestBed.inject(TranslationService);
-    resourceService= TestBed.inject(ResourceService);
-    externalService= TestBed.inject(ExternalService);
+
     fixture.detectChanges();
   });
 
   afterEach(() => fixture?.destroy());
   afterAll(() => TestBed.resetTestingModule());
 
-  it('should create', () => {
-    expect(component).toBeTruthy();
+  
+
+  it('requires a username and a password', () => {
+    expect(component.form.get('username')?.hasError('required')).toBe(true);
+    expect(component.form.get('password')?.hasError('required')).toBe(true);
   });
 
-  it('should instantiate loginService', () => {
-    expect(loginService).toBeTruthy();
-  });
-
-  it('should instantiate authService', () => {
-    expect(authService).toBeTruthy();
-  });
-
-  it('should instantiate accountService', () => {
-    expect(accountService).toBeTruthy();
-  });
-
-  it('should instantiate principal', () => {
-    expect(principal).toBeTruthy();
-  });
-
-  it('should instantiate codeListService', () => {
-    expect(codeListService).toBeTruthy();
-  });
-
-  it('should instantiate translationService', () => {
-    expect(translationService).toBeTruthy();
-  });
-
-  it('should instantiate resourceService', () => {
-    expect(resourceService).toBeTruthy();
-  });
-
-  it('should instantiate externalService', () => {
-    expect(externalService).toBeTruthy();
-  });
-
-  it('form invalid when empty', () => {
-    expect(component.form.valid).toBeFalsy();
-  });
-
-  it('form invalid when mid-empty', () => {
+  it('requires a username', () => {
     component.form.patchValue({
       password: 'password',
-    })
-    //Miss username
-    expect(component.form.valid).toBeFalsy();
+    });
+    expect(component.form.get('username')?.hasError('required')).toBe(true);
   });
 
-  it('form valid', () => {
+  it('accepts a username and a password', () => {
     component.form.patchValue({
       username: 'username',
       password: 'password',
-    })
-    expect(component.form.valid).toBeTruthy();
+    });
+    expect(component.form.valid).toBe(true);
   });
 });

@@ -6,7 +6,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { Router, ActivatedRoute } from '@angular/router';
 
 import { AuthenticationService } from '@auth/services/authentication.service';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService, provideTranslateService } from '@ngx-translate/core';
 import { FormFieldInputComponent } from '@ui/components/form-field-input/form-field-input.component';
 import { PrimaryButtonComponent } from '@ui/components/primary-button/primary-button.component';
 import { SecondaryButtonComponent } from '@ui/components/secondary-button/secondary-button.component';
@@ -22,7 +22,7 @@ describe('LoginComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [
-        TranslateModule.forRoot(),
+        TranslatePipe,
         NgOptimizedImage,
         MatIconModule
       ],
@@ -33,6 +33,7 @@ describe('LoginComponent', () => {
         FormFieldInputComponent
       ],
       providers: [
+      provideTranslateService(),
         provideHttpClient(),
         provideHttpClientTesting(),
         {
@@ -53,7 +54,11 @@ describe('LoginComponent', () => {
             isLoggedIn: jest.fn(),
             getAuthConfig: jest.fn(),
             getAuthMethods: jest.fn().mockReturnValue(of([])),
-            getLoggedDetails: jest.fn()
+            getLoggedDetails: jest.fn(),
+            rememberReturnUrl: jest.fn(),
+            retainReturnUrl: jest.fn(),
+            initOidcAuth: jest.fn(),
+            loginRedirect: jest.fn()
           }
         },
         {
@@ -77,6 +82,23 @@ describe('LoginComponent', () => {
     expect(component).toBeTruthy();
   });
 
+  it('keeps the shared map when the external login starts', () => {
+    const route = TestBed.inject(ActivatedRoute);
+    route.snapshot.queryParams['redirect-after-login'] =
+      '/user/map/12/4?mapState=tok';
+    const auth = TestBed.inject(AuthenticationService) as unknown as {
+      rememberReturnUrl: jest.Mock;
+      initOidcAuth: jest.Mock;
+    };
+
+    component.initAuth('oidc-provider');
+
+    expect(auth.rememberReturnUrl).toHaveBeenCalledWith(
+      '/user/map/12/4?mapState=tok'
+    );
+    expect(auth.initOidcAuth).toHaveBeenCalledWith('oidc-provider');
+  });
+
   it('publicDashboard navigates to the public dashboard URL', () => {
     const router = TestBed.inject(Router) as jest.Mocked<Router>;
     component.publicDashboard();
@@ -89,7 +111,6 @@ describe('LoginComponent', () => {
     const authService = TestBed.inject(AuthenticationService) as jest.Mocked<AuthenticationService<unknown>>;
     component.publicDashboard();
     expect(authService.login).not.toHaveBeenCalled();
-    expect((authService as any).clearAuthentication).toBeUndefined();
   });
 
   it('shows a session-expired notification when session-expired=true is in query params', async () => {
@@ -97,7 +118,7 @@ describe('LoginComponent', () => {
 
     await TestBed.resetTestingModule();
     await TestBed.configureTestingModule({
-      imports: [TranslateModule.forRoot(), NgOptimizedImage, MatIconModule],
+      imports: [TranslatePipe, NgOptimizedImage, MatIconModule],
       declarations: [
         LoginComponent,
         PrimaryButtonComponent,
@@ -105,6 +126,7 @@ describe('LoginComponent', () => {
         FormFieldInputComponent
       ],
       providers: [
+      provideTranslateService(),
         provideHttpClient(),
         provideHttpClientTesting(),
         { provide: Router, useValue: { navigate: jest.fn(), navigateByUrl: jest.fn() } },
@@ -119,7 +141,9 @@ describe('LoginComponent', () => {
             isLoggedIn: jest.fn().mockReturnValue(false),
             getAuthConfig: jest.fn(),
             getAuthMethods: jest.fn().mockReturnValue(of([])),
-            getLoggedDetails: jest.fn()
+            getLoggedDetails: jest.fn(),
+            retainReturnUrl: jest.fn(),
+            loginRedirect: jest.fn()
           }
         },
         {

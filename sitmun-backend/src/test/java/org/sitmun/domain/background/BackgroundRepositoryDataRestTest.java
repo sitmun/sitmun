@@ -15,8 +15,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
@@ -66,22 +66,28 @@ class BackgroundRepositoryDataRestTest {
         "name":"test",
         "description":"test",
         "active":"true",
-        "cartographyGroup":"http://localhost/api/cartography-group/1"
+        "cartographyGroup":"http://localhost/api/cartography-group/10001"
         }""";
     mvc.perform(post(BACKGROUNDS_URI).content(content))
         .andExpect(status().isBadRequest())
-        .andExpect(jsonPath("$.errors[0].rejectedValue").value("C"));
+        .andExpect(jsonPath("$.errors[0].field").value("cartographyGroup.type"))
+        .andExpect(jsonPath("$.errors[0].rejectedValue").value("C"))
+        .andExpect(jsonPath("$.errors[0].message").value("It must be of type \"F\"."));
   }
 
   @Test
   @DisplayName("PUT: fail update of cartography group with invalid background map")
   @WithMockUser(roles = "ADMIN")
   void failUpdateBackgroundWithInvalidMap() throws Exception {
-    String content = "http://localhost/api/cartography-group/1";
+    String content = "http://localhost/api/cartography-group/10001";
     mvc.perform(
-            put(BACKGROUND_URI_CARTOGRAPHY_GROUP, 1).content(content).contentType("text/uri-list"))
+            put(BACKGROUND_URI_CARTOGRAPHY_GROUP, 10001)
+                .content(content)
+                .contentType("text/uri-list"))
         .andExpect(status().isBadRequest())
-        .andExpect(jsonPath("$.errors[0].rejectedValue").value("C"));
+        .andExpect(jsonPath("$.errors[0].field").value("cartographyGroup.type"))
+        .andExpect(jsonPath("$.errors[0].rejectedValue").value("C"))
+        .andExpect(jsonPath("$.errors[0].message").value("It must be of type \"F\"."));
   }
 
   @AfterEach

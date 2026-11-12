@@ -5,6 +5,7 @@ import org.sitmun.upstream.signal.ExchangeSignals;
 import org.sitmun.upstream.signal.RequestContext;
 import org.sitmun.upstream.signal.ServiceStatuses;
 import org.sitmun.upstream.signal.SignalCapture;
+import org.sitmun.upstream.signal.TransportError;
 import org.springframework.core.annotation.Order;
 
 @Order(11)
@@ -12,10 +13,11 @@ public final class InterruptedReadCapture implements SignalCapture {
 
   @Override
   public CaptureResult capture(RequestContext context, ExchangeSignals signals) {
-    String name = signals.transportError();
-    if (!"InterruptedIOException".equals(name) && !"ClosedByInterruptException".equals(name)) {
+    TransportError error = TransportError.parse(signals.transportError());
+    if (error != TransportError.INTERRUPTED_IO && error != TransportError.CLOSED_BY_INTERRUPT) {
       return new CaptureResult.Undecided();
     }
+    String name = signals.transportError();
     return new CaptureResult.Definitive(ServiceStatuses.TIMEOUT, name);
   }
 }

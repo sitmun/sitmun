@@ -6,12 +6,11 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { Router } from '@angular/router';
 
-import { TranslateService , TranslateModule } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService, provideTranslateService } from '@ngx-translate/core';
 
 import { LoggerService } from '@app/services/logger.service';
 
 import { ErrorPageComponent } from './error-page.component';
-
 
 describe('ErrorPageComponent', () => {
   let component: ErrorPageComponent;
@@ -39,9 +38,10 @@ describe('ErrorPageComponent', () => {
         MatCardModule,
         MatToolbarModule,
         MatTooltipModule,
-        TranslateModule.forRoot()
+        TranslatePipe
       ],
       providers: [
+      provideTranslateService(),
         { provide: Router, useValue: { navigate: jest.fn() } },
         { provide: TranslateService, useValue: { instant: jest.fn() } },
         { provide: LoggerService, useValue: loggerService }
@@ -58,9 +58,7 @@ describe('ErrorPageComponent', () => {
   afterEach(() => fixture?.destroy());
   afterAll(() => TestBed.resetTestingModule());
 
-  it('should create', () => {
-    expect(component).toBeTruthy();
-  });
+  
 
   it('should process string error correctly', () => {
     component.error = 'Test error message';
@@ -84,6 +82,15 @@ describe('ErrorPageComponent', () => {
     });
   });
 
+  it('explains a setup status version mismatch', () => {
+    component.error = { source: 'setup-status', error: { message: 'backend.error.setupStatus' } };
+    component.errorType = 'initialization';
+    component.ngOnInit();
+
+    expect(component.errorMessage).toBe('backend.error.setupStatus');
+    expect(component.titleKey).toBe('backend.error.setupStatus.title');
+  });
+
   it('should toggle details visibility', () => {
     expect(component.showDetails).toBeFalsy();
     
@@ -95,21 +102,12 @@ describe('ErrorPageComponent', () => {
   });
 
   it('should call window.location.reload on retry', () => {
-    // Create a mock location object
-    const mockReload = jest.fn();
-    const originalLocation = window.location;
-    
-    // Replace window.location with a mock
-    delete (window as any).location;
-    (window as any).location = {
-      ...originalLocation,
-      reload: mockReload
-    };
-    
-    component.retry();
-    expect(mockReload).toHaveBeenCalled();
-    
-    // Restore original location
-    (window as any).location = originalLocation;
+    const reloadSpy = jest.spyOn(component, 'reloadPage').mockImplementation(() => undefined);
+    try {
+      component.retry();
+      expect(reloadSpy).toHaveBeenCalled();
+    } finally {
+      reloadSpy.mockRestore();
+    }
   });
 }); 

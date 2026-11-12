@@ -1,4 +1,4 @@
-import {
+import type {
   SitnaBaseLayer,
   SitnaControls,
   SitnaViews
@@ -61,6 +61,18 @@ export interface AppBackground {
   /** Application-background order from admin (`ApplicationBackground.order` / `ABC_ORDER`). */
   order?: number;
 }
+export interface FeatureInfoField {
+  name: string;
+  label: string;
+  format?: string | null;
+  order?: number | null;
+  fractionDigits?: number | null;
+  padFractionDigits?: boolean | null;
+  dateStyle?: string | null;
+  maxWidth?: number | null;
+  maxHeight?: number | null;
+}
+
 export interface AppGroup {
   id?: string;
   title?: string;
@@ -82,6 +94,13 @@ export interface AppLayer {
   description?: string;
   layers: string[];
   service: string;
+  /**
+   * Per-cartography proxy URL. Present when the owning service is proxied.
+   * Requests for this layer use this URL so the proxy can apply the layer's parameters.
+   */
+  url?: string;
+  /** Fixed parameters for this layer, applied by the proxy. Omitted when unset. */
+  parameters?: Record<string, string>;
   /** Profile JSON key; omitted when unset (merged onto GetCapabilities in RasterLayerService). */
   minScaleDenominator?: number;
   /** Profile JSON key; omitted when unset (merged onto GetCapabilities in RasterLayerService). */
@@ -108,11 +127,29 @@ export interface AppLayer {
    * (non-empty replaces, empty removes, omitted unchanged).
    */
   datasetURL?: string;
+  /** Stored legend choice. Omitted when the administrator chose none. */
+  legendType?: string;
+  /** Image address used when legendType is LINK. */
+  legendURL?: string;
   /**
    * When false, merged WMS GetCapabilities set `queryable` false for this profile layer.
    * Omitted or undefined: legacy profiles behave as queryable (true).
    */
   queryableFeatureEnabled?: boolean;
+  /**
+   * Ordered GetFeatureInfo include list. Omitted when the layer has no INFO rows,
+   * which leaves the service table unchanged.
+   */
+  featureInfoFields?: FeatureInfoField[];
+  /**
+   * DescribeFeatureType property SITNA should use as the layer geometry.
+   * Omitted when unset, so SITNA keeps the last geometry property.
+   */
+  geometryName?: string;
+  /** Geometry kind of `geometryName`. Curve and surface kinds request GML 3.2. */
+  geometryKind?: string;
+  /** Preferred geometry id when the chosen property is generic Geometry. */
+  preferredGeometryType?: string;
 }
 
 export interface AppService {
@@ -170,6 +207,8 @@ export interface AppNodeInfo {
   isRadio: boolean;
   children: string[];
   order: number;
+  /** Folder description from the tree node (client profile). */
+  description?: string;
   /** Optional folder-level metadata URL from tree node (client profile). */
   metadataURL?: string;
   /** Optional folder-level dataset URL from tree node (client profile). */

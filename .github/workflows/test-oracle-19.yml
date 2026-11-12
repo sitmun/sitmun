@@ -1,0 +1,61 @@
+name: Test Oracle 21c (stand-in for 19c)
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+on:
+  pull_request:
+    branches: [dev, main]
+  merge_group:
+  workflow_dispatch:
+
+jobs:
+  changes:
+    name: Select Oracle 21c (stand-in for 19c) scope
+    timeout-minutes: 5
+    runs-on: ubuntu-latest
+    outputs:
+      db: ${{ steps.scope.outputs.db }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - name: Test the database selector
+        run: python3 tools/tests/test_ci_db_scope.py
+      - name: Select the database tier
+        id: scope
+        env:
+          EVENT: ${{ github.event_name }}
+          BASE_REF: ${{ github.base_ref }}
+          BASE: ${{ github.event_name == 'merge_group' && github.event.merge_group.base_sha || github.event.pull_request.base.sha }}
+          HEAD: ${{ github.event_name == 'merge_group' && github.event.merge_group.head_sha || github.event.pull_request.head.sha }}
+          INSTALL: oracle-19
+        run: |
+          if [ "$EVENT" = "workflow_dispatch" ]; then
+            python3 tools/bin/ci_scope.py --all --event "$EVENT" --base-ref "$BASE_REF" --install "$INSTALL" >> "$GITHUB_OUTPUT"
+          else
+            python3 tools/bin/ci_scope.py --base "$BASE" --head "$HEAD" --event "$EVENT" --base-ref "$BASE_REF" --install "$INSTALL" >> "$GITHUB_OUTPUT"
+          fi
+
+  # gvenzl/oracle-xe:21-slim is amd64 only and stands in for the 19c install.
+  # ORACLE_DATABASE=sitmun3 is set by tools/tests/test_backend_db_boot.sh.
+  test-oracle-19:
+    name: Test Oracle 21c (stand-in for 19c)
+    needs: changes
+    if: github.event_name == 'workflow_dispatch' || needs.changes.outputs.db == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+      - name: Test the backend on Oracle 21c (stand-in for 19c)
+        uses: ./.github/actions/backend-database
+        with:
+          db: oracle-19
+          gradle-task: testOracle19
+          report-name: test-oracle-19-report

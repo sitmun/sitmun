@@ -13,8 +13,8 @@ import org.sitmun.domain.user.User;
 import org.sitmun.domain.user.UserRepository;
 import org.sitmun.infrastructure.security.service.JsonWebTokenService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
@@ -49,10 +49,10 @@ class ProxyConfigurationControllerTest {
     String content =
         """
         {
-          "appId": 1,
-          "terId": 1,
+          "appId": 10001,
+          "terId": 10001,
           "type": "SQL",
-          "typeId": 23,
+          "typeId": 10023,
           "method": "GET"
         }
       """;
@@ -68,10 +68,10 @@ class ProxyConfigurationControllerTest {
     String content =
         """
         {
-          "appId": 1,
-          "terId": 1,
+          "appId": 10001,
+          "terId": 10001,
           "type": "SQL",
-          "typeId": 23,
+          "typeId": 10023,
           "method": "GET"
         }
       """;
@@ -92,10 +92,10 @@ class ProxyConfigurationControllerTest {
     String content =
         """
         {
-          "appId": 1,
-          "terId": 1,
+          "appId": 10001,
+          "terId": 10001,
           "type": "SQL",
-          "typeId": 23,
+          "typeId": 10023,
           "method": "GET"
         }
       """;
@@ -116,10 +116,10 @@ class ProxyConfigurationControllerTest {
     String content =
         """
         {
-          "appId": 1,
-          "terId": 1,
+          "appId": 10001,
+          "terId": 10001,
           "type": "SQL",
-          "typeId": 23,
+          "typeId": 10023,
           "method": "GET"
         }
       """;
@@ -140,10 +140,10 @@ class ProxyConfigurationControllerTest {
     String content =
         """
         {
-          "appId": 1,
-          "terId": 1,
+          "appId": 10001,
+          "terId": 10001,
           "type": "WMTS",
-          "typeId": 1,
+          "typeId": 10001,
           "method": "GET"
         }
       """;
@@ -153,8 +153,8 @@ class ProxyConfigurationControllerTest {
         .andExpect(
             jsonPath("$.payload.uri")
                 .value("https://geoserveis.icgc.cat/icc_mapesmultibase/utm/wmts/service"))
-        .andExpect(jsonPath("$.payload.parameters.format").value("image/jpeg"))
-        .andExpect(jsonPath("$.payload.parameters.matrixSet").value("UTM25831"));
+        .andExpect(jsonPath("$.payload.parameters.format").doesNotExist())
+        .andExpect(jsonPath("$.payload.parameters.matrixSet").doesNotExist());
   }
 
   @Test
@@ -165,10 +165,10 @@ class ProxyConfigurationControllerTest {
     String content =
         """
         {
-          "appId": 1,
-          "terId": 1,
+          "appId": 10001,
+          "terId": 10001,
           "type": "SQL",
-          "typeId": 23,
+          "typeId": 10023,
           "method": "GET"
         }
       """;
@@ -184,10 +184,10 @@ class ProxyConfigurationControllerTest {
     String content =
         """
         {
-          "appId": 1,
-          "terId": 1,
+          "appId": 10001,
+          "terId": 10001,
           "type": "SQL",
-          "typeId": 23,
+          "typeId": 10023,
           "method": "GET",
           "parameters": {
             "OFFSET": "100",
@@ -201,7 +201,7 @@ class ProxyConfigurationControllerTest {
         .andExpect(
             jsonPath("$.payload.sql")
                 .value(
-                    "SELECT * FROM EXAMPLE WHERE 1=1 AND columnA=? AND columnB=? LIMIT 100 OFFSET 100"));
+                    "SELECT * FROM EXAMPLE WHERE columnA=? AND columnB=? OFFSET 100 ROWS FETCH NEXT 100 ROWS ONLY"));
   }
 
   @Test
@@ -212,10 +212,10 @@ class ProxyConfigurationControllerTest {
     String content =
         """
         {
-          "appId": 1,
-          "terId": 1,
+          "appId": 10001,
+          "terId": 10001,
           "type": "SQL",
-          "typeId": 28,
+          "typeId": 10028,
           "method": "GET"
         }
       """;
@@ -229,7 +229,7 @@ class ProxyConfigurationControllerTest {
         .andExpect(
             jsonPath("$.payload.sql")
                 .value(
-                    "SELECT * FROM EXAMPLE WHERE USER_ID=1 AND TERR_ID=1 AND APP_ID=1 AND TERR_COD=60001"));
+                    "SELECT * FROM EXAMPLE WHERE USER_ID=? AND TERR_ID=? AND APP_ID=? AND TERR_COD=?"));
   }
 
   @Test
@@ -239,10 +239,10 @@ class ProxyConfigurationControllerTest {
     String content =
         """
         {
-          "appId": 1,
-          "terId": 1,
+          "appId": 10001,
+          "terId": 10001,
           "type": "SQL",
-          "typeId": 23,
+          "typeId": 10023,
           "method": "GET",
           "parameters": {
             "columnA": "123",
@@ -254,10 +254,9 @@ class ProxyConfigurationControllerTest {
     mvc.perform(post(CONFIG_PROXY_URI).contentType(APPLICATION_JSON).content(content))
         .andExpect(status().isOk())
         .andExpect(
-            jsonPath("$.payload.sql")
-                .value("SELECT * FROM EXAMPLE WHERE 1=1 AND columnA=? AND columnB=?"))
-        .andExpect(jsonPath("$.payload.parameters[0]").value("123"))
-        .andExpect(jsonPath("$.payload.parameters[1]").value("valueB"));
+            jsonPath("$.payload.sql").value("SELECT * FROM EXAMPLE WHERE columnA=? AND columnB=?"))
+        .andExpect(jsonPath("$.payload.parameters[0].value").value("123"))
+        .andExpect(jsonPath("$.payload.parameters[1].value").value("valueB"));
   }
 
   @Test
@@ -267,10 +266,10 @@ class ProxyConfigurationControllerTest {
     String content =
         """
         {
-          "appId": 1,
-          "terId": 1,
+          "appId": 10001,
+          "terId": 10001,
           "type": "SQL",
-          "typeId": 27,
+          "typeId": 10027,
           "method": "GET",
           "parameters": {
             "columnA": "123"
@@ -285,8 +284,8 @@ class ProxyConfigurationControllerTest {
                 .content(content))
         .andExpect(status().isOk())
         .andExpect(
-            jsonPath("$.payload.sql")
-                .value("SELECT * FROM EXAMPLE WHERE TERR_COD=60001 AND columnA=?"))
-        .andExpect(jsonPath("$.payload.parameters[0]").value("123"));
+            jsonPath("$.payload.sql").value("SELECT * FROM EXAMPLE WHERE TERR_COD=? AND columnA=?"))
+        .andExpect(jsonPath("$.payload.parameters[0].value").value("60001"))
+        .andExpect(jsonPath("$.payload.parameters[1].value").value("123"));
   }
 }

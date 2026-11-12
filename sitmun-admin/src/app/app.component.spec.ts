@@ -5,7 +5,7 @@ import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { provideRouter } from '@angular/router';
 
-import { TranslateLoader, TranslateModule } from '@ngx-translate/core';
+import { TranslateLoader, TranslatePipe, provideTranslateService } from '@ngx-translate/core';
 import { of } from 'rxjs';
 
 import { SideMenuComponent } from '@app/components/shared/side-menu/side-menu.component';
@@ -32,14 +32,7 @@ describe('AppComponent', () => {
         MaterialModule,
         SitmunFrontendGuiModule,
         BrowserAnimationsModule,
-        TranslateModule.forRoot({
-          loader: {
-            provide: TranslateLoader,
-            useFactory: () => ({
-              getTranslation: () => of({})
-            })
-          }
-        })
+        TranslatePipe
       ],
       declarations: [
         AppComponent,
@@ -47,6 +40,14 @@ describe('AppComponent', () => {
         ToolbarComponent
       ],
       providers: [
+      provideTranslateService({
+          loader: {
+            provide: TranslateLoader,
+            useFactory: () => ({
+              getTranslation: () => of({})
+            })
+          }
+        }),
         provideRouter([]),
         provideHttpClient(),
         provideHttpClientTesting(),
@@ -66,15 +67,10 @@ describe('AppComponent', () => {
     configureLoggerForTests(loggerService);
   });
 
-  it('should create the app', () => {
-    const fixture = TestBed.createComponent(AppComponent);
-    const app = fixture.componentInstance;
-    expect(app).toBeTruthy();
-  });
-
   it(`should have as title 'admin-app'`, () => {
     const fixture = TestBed.createComponent(AppComponent);
     const app = fixture.componentInstance;
     expect(app.title).toEqual('admin-app');
+    fixture.destroy();
   });
 });

@@ -8,7 +8,8 @@ import {
   AfterViewInit,
   OnDestroy,
   SimpleChanges,
-  inject
+  inject,
+  ChangeDetectionStrategy
 } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { Router } from '@angular/router';
@@ -23,9 +24,12 @@ import { DashboardTerritorySelectionDialogComponent } from '../dashboard-territo
   standalone: false,
   selector: 'app-dashboard-items',
   templateUrl: './dashboard-items.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./dashboard-items.component.scss']
 })
-export class DashboardItemsComponent implements OnInit, OnChanges, AfterViewInit, OnDestroy {
+export class DashboardItemsComponent
+  implements OnInit, OnChanges, AfterViewInit, OnDestroy
+{
   @Input() items: DashboardItem[] = [];
   @Input() hasMorePages = false;
   @Input() loadingMore = false;
@@ -36,7 +40,6 @@ export class DashboardItemsComponent implements OnInit, OnChanges, AfterViewInit
   public publicItems: DashboardItem[] = [];
   public allItems: DashboardItem[] = [];
 
-  // Infinite scroll properties
   private observers: IntersectionObserver[] = [];
   private readonly LOAD_MORE_THRESHOLD = 0;
   private readonly LOAD_MORE_ROOT_MARGIN = '120px';
@@ -46,7 +49,10 @@ export class DashboardItemsComponent implements OnInit, OnChanges, AfterViewInit
 
   private readonly appConfigService = inject(AppConfigService);
 
-  constructor(private router: Router, private dialog: MatDialog) {}
+  constructor(
+    private router: Router,
+    private dialog: MatDialog
+  ) {}
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes['items'] && this.items) {
@@ -155,7 +161,6 @@ export class DashboardItemsComponent implements OnInit, OnChanges, AfterViewInit
   }
 
   private detectGridColumns(): void {
-    // Detect current number of columns based on window width
     const updateColumns = () => {
       const width = window.innerWidth;
       if (width > 1500) {
@@ -169,18 +174,14 @@ export class DashboardItemsComponent implements OnInit, OnChanges, AfterViewInit
 
     updateColumns();
 
-    // Store original ngOnDestroy
     const originalDestroy = this.ngOnDestroy.bind(this);
-    
-    // Listen for resize events
+
     const resizeHandler = () => {
       updateColumns();
-      // Re-check incomplete rows on resize
       setTimeout(() => this.checkIncompleteRows(), 50);
     };
     window.addEventListener('resize', resizeHandler);
-    
-    // Override ngOnDestroy to clean up
+
     this.ngOnDestroy = () => {
       window.removeEventListener('resize', resizeHandler);
       originalDestroy();
@@ -192,26 +193,22 @@ export class DashboardItemsComponent implements OnInit, OnChanges, AfterViewInit
       return;
     }
 
-    // Determine which items array to check based on route
     let itemCount: number;
     if (this.isPublic()) {
       itemCount = this.allItems.length;
     } else {
-      // For authenticated routes with tabs, check the larger section
       itemCount = Math.max(this.publicItems.length, this.privateItems.length);
     }
 
-    // Check if we have an incomplete row
     const remainder = itemCount % this.currentColumns;
     if (remainder !== 0 && itemCount > 0) {
-      // Incomplete row detected, automatically fetch more data
       this.loadMore.emit();
     }
   }
 
   private setupIntersectionObservers(): void {
     this.cleanupObservers();
-    
+
     const options: IntersectionObserverInit = {
       root: null,
       rootMargin: this.LOAD_MORE_ROOT_MARGIN,
@@ -219,10 +216,16 @@ export class DashboardItemsComponent implements OnInit, OnChanges, AfterViewInit
     };
 
     const createObserver = (section: 'public' | 'private' | 'all') => {
-      const sentinel = document.querySelector(`.loading-sentinel[data-section="${section}"]`);
+      const sentinel = document.querySelector(
+        `.loading-sentinel[data-section="${section}"]`
+      );
       if (sentinel && this.hasMorePages) {
         const observer = new IntersectionObserver((entries) => {
-          if (entries[0].isIntersecting && this.hasMorePages && !this.loadingMore) {
+          if (
+            entries[0].isIntersecting &&
+            this.hasMorePages &&
+            !this.loadingMore
+          ) {
             this.onSentinelVisible();
           }
         }, options);
@@ -238,13 +241,12 @@ export class DashboardItemsComponent implements OnInit, OnChanges, AfterViewInit
 
   private onSentinelVisible(): void {
     if (this.loadingMore || !this.hasMorePages) return;
-    
-    // Emit event to parent to load more items
+
     this.loadMore.emit();
   }
 
   private cleanupObservers(): void {
-    this.observers.forEach(observer => observer.disconnect());
+    this.observers.forEach((observer) => observer.disconnect());
     this.observers = [];
   }
 }

@@ -3,6 +3,7 @@ package org.sitmun.domain.cartography.filter;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import java.util.List;
 import java.util.Objects;
 import lombok.*;
@@ -10,6 +11,7 @@ import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 import org.sitmun.domain.CodeListsConstants;
 import org.sitmun.domain.PersistenceConstants;
+import org.sitmun.domain.StoredFlagListener;
 import org.sitmun.domain.cartography.Cartography;
 import org.sitmun.domain.territory.type.TerritoryType;
 import org.sitmun.infrastructure.persistence.type.codelist.CodeList;
@@ -17,6 +19,7 @@ import org.sitmun.infrastructure.persistence.type.list.StringListAttributeConver
 
 /** Geographic Information filter. */
 @Entity
+@EntityListeners(StoredFlagListener.class)
 @Table(name = "STM_FIL_GI")
 @Builder
 @Getter
@@ -35,21 +38,22 @@ public class CartographyFilter {
       allocationSize = 1)
   @Id
   @GeneratedValue(strategy = GenerationType.TABLE, generator = "STM_FIL_GI_GEN")
-  @Column(name = "FGI_ID")
+  @Column(name = "FGI_ID", nullable = false)
   private Integer id;
 
   /** Filter name. */
-  @Column(name = "FGI_NAME", length = PersistenceConstants.IDENTIFIER)
+  @Column(name = "FGI_NAME", length = 80, nullable = false)
+  @Size(max = 80)
   @NotBlank
   private String name;
 
   /** If <code>true</code>, this filter is required. */
-  @Column(name = "FGI_REQUIRED")
+  @Column(name = "FGI_REQUIRED", nullable = false)
   @NotNull
   private Boolean required;
 
   /** Type of filter: custom or required. */
-  @Column(name = "FGI_TYPE", length = PersistenceConstants.IDENTIFIER)
+  @Column(name = "FGI_TYPE", length = PersistenceConstants.IDENTIFIER, nullable = false)
   @NotNull
   @CodeList(CodeListsConstants.CARTOGRAPHY_FILTER_TYPE)
   private String type;
@@ -60,7 +64,8 @@ public class CartographyFilter {
   private TerritoryType territorialLevel;
 
   /** Column where the filter applies. */
-  @Column(name = "FGI_COLUMN", length = PersistenceConstants.IDENTIFIER)
+  @Column(name = "FGI_COLUMN", length = 250)
+  @Size(max = 250)
   private String column;
 
   /** A row is part of the filter if the value of the column is one of these values. */
@@ -74,7 +79,7 @@ public class CartographyFilter {
   private String valueType;
 
   /** Cartography on which this filter can be applied. */
-  @ManyToOne
+  @ManyToOne(optional = false)
   @OnDelete(action = OnDeleteAction.CASCADE)
   @JoinColumn(name = "FGI_GIID", foreignKey = @ForeignKey(name = "STM_FGI_FK_GEO"))
   @NotNull

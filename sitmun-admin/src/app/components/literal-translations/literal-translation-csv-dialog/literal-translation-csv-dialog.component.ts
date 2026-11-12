@@ -1,9 +1,8 @@
-import { CommonModule } from '@angular/common';
-import { Component, ElementRef, Inject, ViewChild } from '@angular/core';
+import { Component, ElementRef, Inject, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslatePipe } from '@ngx-translate/core';
 
 import { Language } from '@app/domain';
 import { MaterialModule } from '@app/material-module';
@@ -28,8 +27,9 @@ export interface LiteralTranslationCsvDialogResult {
 @Component({
   selector: 'app-literal-translation-csv-dialog',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, MaterialModule, TranslateModule],
+  imports: [ReactiveFormsModule, MaterialModule, TranslatePipe],
   templateUrl: './literal-translation-csv-dialog.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./literal-translation-csv-dialog.component.scss'],
 })
 export class LiteralTranslationCsvDialogComponent {

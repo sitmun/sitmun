@@ -1,162 +1,44 @@
-# SITMUN Coordinated Release Runbook
+# Release
 
-This runbook describes the coordinated release workflow for the stack repository and its submodules:
+This repository has one version in the root `gradle.properties` file. `tools/scripts/bump-version.sh` copies it into the admin and viewer `package.json` files and the README badges. `mise.toml` wires that script as the `bump-version` task. The old per-repository release runbook no longer applies.
 
-- `front/admin/sitmun-admin-app`
-- `front/viewer/sitmun-viewer-app`
-- `back/backend/sitmun-backend-core`
-- `back/proxy/sitmun-proxy-middleware`
-- `apps/edition-mobile-app` (when mobile release is in scope)
-- `apps/touristic-mobile-app` (when mobile release is in scope)
-- `back/mbtiles/sitmun-mbtiles` (pin only; source-unchanged internal service)
+This repository is [sitmun/sitmun](https://github.com/sitmun/sitmun). Components are directories in this repository. `dev` is the integration branch. `main` receives release pull requests from `dev`.
 
-It assumes:
+A release tag is an annotated tag. Its name is `v` plus `MAJOR.MINOR.PATCH`. The image tag is that name without the leading `v`. `git clone --branch` selects that tag once it exists. The platform version in `gradle.properties` is `1.3.0`.
 
-- `dev` is the integration branch.
-- `main` is the stable branch.
-- Tags use the repository prefix format (for example: `sitmun-admin-app/1.2.6`).
-- Release version follows Semantic Versioning (for example: `1.2.6`).
+Tags imported from the previous repositories use `legacy/<repository>/<tag>`, for example `legacy/sitmun-application-stack/sitmun-application-stack/1.2.6`.
 
-## 1) Preflight Checks
+## Images
 
-1. Ensure local branches are up to date:
-   - `git checkout dev && git pull` in stack and every submodule.
-2. Ensure no unresolved conflicts and no unintended local changes.
-3. Confirm release target version and date.
-4. Confirm CI pipelines are green on `dev`.
+[`.github/workflows/publish-images.yml`](.github/workflows/publish-images.yml) pushes `ghcr.io/sitmun/front`, `ghcr.io/sitmun/backend`, `ghcr.io/sitmun/proxy`, and `ghcr.io/sitmun/mbtiles` for `linux/amd64` and `linux/arm64`. CI and a local checkout both call [`tools/scripts/publish-images.sh`](tools/scripts/publish-images.sh), which runs `docker compose build --push`. A manual run publishes image tag `1.3.0`. Pushing a tag `vMAJOR.MINOR.PATCH` or `vMAJOR.MINOR.PATCH-*` publishes the image tag with the leading `v` removed. The front image is built with `PUBLIC_BASE_PATH=/` and `ENVIRONMENT=production`.
 
-## 2) Prepare Submodule Releases on `dev`
+GitHub creates each package private. After the first push, set `front`, `backend`, `proxy`, and `mbtiles` to public in Package settings. The Packages API cannot change visibility, and later pushes keep it. An anonymous `docker pull ghcr.io/sitmun/front:1.3.0` confirms it. Operators run the images with the steps in [README.md](README.md).
 
-For each submodule (`admin`, `viewer`, `backend-core`, `proxy`):
+### Republish a tag from a local checkout
 
-1. Update changelog:
-   - Move `## [Unreleased]` release-ready entries into `## [X.Y.Z] - YYYY-MM-DD`.
-   - Keep a fresh empty `## [Unreleased]`.
-   - Update compare links at file bottom.
-2. Bump versioned files to `X.Y.Z`:
-   - Frontend: `package.json`, environments, README badge (and lockfile if needed).
-   - Backend/proxy: `build.gradle`, API docs/app config versions, README badge.
-3. Run repository checks (build/tests/lint as applicable).
-4. Commit release changes on `dev`.
-5. Create and push tag on `dev` commit:
-   - Example: `sitmun-admin-app/1.2.6`.
+The account needs package scopes. `delete:packages` is plural. `delete:package` is rejected as `invalid_scope`.
 
-## 3) Merge Submodule `dev -> main` (Gate)
+```bash
+gh auth refresh -h github.com -s read:packages,write:packages,delete:packages
+gh auth token | docker login ghcr.io -u "$(gh api user --jq .login)" --password-stdin
+git switch dev && git pull --ff-only
+git status   # must be clean; the script refuses a dirty tree
+T=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+tools/scripts/publish-images.sh 1.3.0
+```
 
-For each submodule, after tag and CI pass:
+Docker needs about 4 GiB of memory for the viewer build. The script builds both platforms and fails unless each image lists `linux/amd64` and `linux/arm64`.
 
-1. `git checkout main`
-2. `git merge --no-ff dev`
-3. Resolve conflicts if any, then run validation checks.
-4. Push `main`.
-5. Verify `main` contains the tagged commit.
+### Remove superseded versions
 
-## 4) Sync Stack to Released Submodule SHAs
+List versions created before `T`. Every listed line must show no tags (`[]`). The new per-platform manifests are untagged children of the tag, so do not delete all untagged versions.
 
-In stack repo (`dev` branch):
+```bash
+for n in front backend proxy mbtiles; do
+  gh api --paginate "/orgs/sitmun/packages/container/$n/versions" \
+    --jq ".[] | select(.created_at < \"$T\") | \"\(.id) \(.created_at) \(.metadata.container.tags)\"" \
+    | sed "s/^/$n /"
+done
+```
 
-1. Update submodule pointers to intended released commits.
-2. Verify each pointer matches the expected `X.Y.Z` tag commit in its submodule.
-3. Commit submodule pointer updates.
-
-## 5) Bump Stack Version and Changelog
-
-1. Set stack `VERSION` to `X.Y.Z`.
-2. Run version propagation script:
-   - `bash tools/scripts/bump-version.sh X.Y.Z`
-   - Verify with `bash tools/scripts/bump-version.sh --status`
-3. Verify lockfile updates were generated and are staged for both frontend submodules:
-   - `front/admin/sitmun-admin-app/package-lock.json`
-   - `front/viewer/sitmun-viewer-app/package-lock.json`
-   - If either lockfile did not update but `package.json` did, run `npm install --package-lock-only` in that submodule and re-check.
-4. Run immediate post-bump validation gates (mandatory):
-   - JSON parse checks:
-     - `node -e "JSON.parse(require('fs').readFileSync('front/admin/sitmun-admin-app/package.json','utf8'))"`
-     - `node -e "JSON.parse(require('fs').readFileSync('front/viewer/sitmun-viewer-app/package.json','utf8'))"`
-   - Frontend compile checks:
-     - Admin: run build/watch compile and ensure no TypeScript errors.
-     - Viewer: run build/watch compile and ensure no TypeScript errors.
-   - If any parse/type error appears, stop release and fix before proceeding.
-5. Update `CHANGELOG.md`:
-   - Move release-ready `Unreleased` entries into `## [X.Y.Z]`.
-   - Update compare links.
-6. Commit stack release metadata changes.
-
-## 6) Stack Release Gate and Publish
-
-1. Run stack validation checks (compose/build/tests as required).
-2. Confirm active dev terminals/watchers are free of compile errors before tagging.
-3. Ensure submodule pointer policy is explicit and documented in commit message:
-   - Either pointers reference the tagged `X.Y.Z` commit in each submodule, or
-   - pointers reference merged `main` commits that include `X.Y.Z`.
-   - Recommended: reference merged `main` commits after submodule `dev -> main` gates.
-4. Create stack tag:
-   - `sitmun-application-stack/X.Y.Z`
-5. Push `dev` and tags.
-
-## 7) Merge Stack `dev -> main`
-
-1. `git checkout main`
-2. `git merge --no-ff dev`
-3. Resolve conflicts, run quick verification, push `main`.
-
-## 8) Evidence Checklist
-
-Keep release evidence (links/screenshots/log excerpts):
-
-- Submodule tags created and pushed.
-- Submodule `main` includes release commits.
-- Stack submodule pointers match released commits.
-- Stack `VERSION` and `bump-version.sh --status` are consistent.
-- Frontend lockfiles (`admin` and `viewer`) were updated and committed with the release bump.
-- Changelogs updated (stack + submodules).
-- Stack tag created and pushed.
-- Final `dev -> main` merges complete.
-
-## Notes
-
-- Prefer one coordinated version across stack and submodules for each release wave.
-- If a submodule has no functional changes, still document explicit release alignment in changelog when bumping version.
-- Do not force-push release branches.
-
-## Upgrade notes
-
-- Liquibase upgrades are supported from `sitmun-application-stack/1.2.2` through the previous release.
-- Upgrade from 1.2.0 or 1.2.1 is not supported via Liquibase. Those tags have no `profiles/postgres` or `profiles/oracle` trees. Dump and restore, or deploy fresh.
-- Origin tag 1.2.6 CSVs cannot be re-applied with Liquibase 4.29 (unquoted commas and short rows). Postgres `sitmun:1` at 1.2.6 matches 1.2.7, so the 1.2.7 upgrade job covers that checksum. Pre-1.2.7 auth-mode rows are covered by `test_liquibase_codelist_auth_mode_swap.sh`. Already-applied 1.2.6 databases are unaffected.
-
-## Troubleshooting During Release
-
-- **Malformed frontend environment object after bump**
-  - Symptom: TypeScript errors around `environment.version` / `buildTimestamp`.
-  - Action: repair `src/environments/environment.ts` and `environment.prod.ts` object syntax, then re-run compile checks.
-- **Malformed `package.json` after bump**
-  - Symptom: `Unexpected token` JSON parse errors.
-  - Action: fix malformed `version` line in `package.json`, then run `npm install --package-lock-only` and re-check.
-- **Angular component missing from compilation/module**
-  - Symptom: `is missing from TypeScript compilation` or `is not a known element`.
-  - Action: restore file inclusion/module declaration, then re-run build/watch compile.
-- **After any fix**
-  - Re-run `bash tools/scripts/bump-version.sh --status` and all validation gates before continuing.
-
-## Post-Release Correction and Retag (Dev-Centric)
-
-Use this only when `X.Y.Z` tags were published with incorrect content and must be corrected on `dev`.
-
-1. For each affected submodule, checkout and update `dev`:
-   - `git checkout dev && git pull origin dev`
-2. Apply the required correction(s) on `dev` and commit.
-3. Move local release tag to the corrected `dev` commit:
-   - `git tag -d <repo-prefix>/X.Y.Z`
-   - `git tag -a <repo-prefix>/X.Y.Z -m "<repo-prefix> X.Y.Z (retag)"`
-4. Update remote tag to point at corrected commit:
-   - `git push origin :refs/tags/<repo-prefix>/X.Y.Z`
-   - `git push origin <repo-prefix>/X.Y.Z`
-5. Push corrected `dev` branch:
-   - `git push origin dev`
-6. Repeat for all submodules, then update stack submodule pointers on stack `dev`, commit, and retag stack if needed:
-   - `git tag -d sitmun-application-stack/X.Y.Z`
-   - `git tag -a sitmun-application-stack/X.Y.Z -m "sitmun-application-stack X.Y.Z (retag)"`
-   - `git push origin :refs/tags/sitmun-application-stack/X.Y.Z`
-   - `git push origin sitmun-application-stack/X.Y.Z`
-7. Record explicit release evidence noting this was a corrective retag.
+Delete only those ids: `gh api -X DELETE "/orgs/sitmun/packages/container/<name>/versions/<id>"`. The account must be an admin of the `sitmun` organization.

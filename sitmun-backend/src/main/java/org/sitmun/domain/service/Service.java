@@ -11,6 +11,7 @@ import lombok.*;
 import org.sitmun.authorization.client.dto.ClientConfigurationViews;
 import org.sitmun.domain.CodeListsConstants;
 import org.sitmun.domain.PersistenceConstants;
+import org.sitmun.domain.StoredFlagListener;
 import org.sitmun.domain.cartography.Cartography;
 import org.sitmun.domain.service.parameter.ServiceParameter;
 import org.sitmun.infrastructure.persistence.type.basic.Http;
@@ -24,7 +25,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 /** Service. */
 @Entity
-@EntityListeners({AuditingEntityListener.class, I18nListener.class})
+@EntityListeners({AuditingEntityListener.class, I18nListener.class, StoredFlagListener.class})
 @Table(name = "STM_SERVICE")
 @Builder
 @Getter
@@ -43,12 +44,12 @@ public class Service {
       allocationSize = 1)
   @Id
   @GeneratedValue(strategy = GenerationType.TABLE, generator = "STM_SERVICE_GEN")
-  @Column(name = "SER_ID")
+  @Column(name = "SER_ID", nullable = false)
   @JsonView(ClientConfigurationViews.ApplicationTerritory.class)
   private Integer id;
 
   /** Service name. */
-  @Column(name = "SER_NAME", length = 60)
+  @Column(name = "SER_NAME", length = 60, nullable = false)
   @NotBlank
   @I18n
   @JsonView(ClientConfigurationViews.ApplicationTerritory.class)
@@ -60,7 +61,7 @@ public class Service {
   private String description;
 
   /** Service endpoint. */
-  @Column(name = "SER_URL", length = PersistenceConstants.URL)
+  @Column(name = "SER_URL", length = PersistenceConstants.URL, nullable = false)
   @NotNull
   @Http
   @JsonView(ClientConfigurationViews.ApplicationTerritory.class)
@@ -92,7 +93,7 @@ public class Service {
   private Date createdDate;
 
   /** Service type. The protocol that can be used to request the service. */
-  @Column(name = "SER_PROTOCOL", length = PersistenceConstants.IDENTIFIER)
+  @Column(name = "SER_PROTOCOL", length = PersistenceConstants.IDENTIFIER, nullable = false)
   @NotNull
   @CodeList(CodeListsConstants.SERVICE_TYPE)
   @JsonView(ClientConfigurationViews.ApplicationTerritory.class)
@@ -108,11 +109,10 @@ public class Service {
 
   /** <code>true</code> if the service is blocked and cannot be used. */
   @NotNull
-  @Column(name = "SER_BLOCKED")
+  @Column(name = "SER_BLOCKED", nullable = false)
   private Boolean blocked;
 
-  /** <code>true</code> if the service is blocked and cannot be used. */
-  @NotNull
+  /** <code>true</code> if the service is proxied. */
   @Column(name = "SER_PROXIED", nullable = false)
   @Builder.Default
   private Boolean isProxied = false;

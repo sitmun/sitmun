@@ -4,7 +4,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { provideRouter, RouterModule } from '@angular/router';
 
-import { TranslateLoader, TranslateModule } from '@ngx-translate/core';
+import { TranslateLoader, TranslatePipe, provideTranslateService } from '@ngx-translate/core';
 import { of } from 'rxjs';
 
 import { ExternalConfigurationService } from '@app/core/config/external-configuration.service';
@@ -32,16 +32,17 @@ describe('BaseListComponent', () => {
         SitmunFrontendGuiModule,
         MaterialModule,
         RouterModule,
-        TranslateModule.forRoot({
+        TranslatePipe
+      ],
+      providers: [
+      provideTranslateService({
           loader: {
             provide: TranslateLoader,
             useFactory: () => ({
               getTranslation: () => of({})
             })
           }
-        })
-      ],
-      providers: [
+        }),
         provideRouter([]),
         provideHttpClient(),
         provideHttpClientTesting(),
@@ -63,11 +64,9 @@ describe('BaseListComponent', () => {
     component = fixture.componentInstance;
   });
 
-  it('should create', () => {
-    expect(component).toBeTruthy();
-  });
+  
 
-  describe('default dataFetchFn behavior', () => {
+  describe('dataFetchFn is present', () => {
     it('should have dataFetchFn defined', () => {
       // Test that dataFetchFn exists on the component
       // The actual default behavior (of([])) is tested in data-tables.util.spec.ts

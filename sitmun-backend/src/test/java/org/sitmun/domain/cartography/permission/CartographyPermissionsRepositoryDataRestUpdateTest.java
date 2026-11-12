@@ -16,8 +16,8 @@ import org.json.JSONObject;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -33,7 +33,7 @@ class CartographyPermissionsRepositoryDataRestUpdateTest {
   @WithMockUser(roles = "ADMIN")
   void itemResourceUpdate() throws Exception {
     String item =
-        mvc.perform(get(CARTOGRAPHY_PERMISSION_URI, 1))
+        mvc.perform(get(CARTOGRAPHY_PERMISSION_URI, 10001))
             .andExpect(status().isOk())
             .andReturn()
             .getResponse()
@@ -43,19 +43,19 @@ class CartographyPermissionsRepositoryDataRestUpdateTest {
     String oldName = json.getString("name");
     json.put("name", "New name");
 
-    mvc.perform(put(CARTOGRAPHY_PERMISSION_URI, 1).content(json.toString()))
+    mvc.perform(put(CARTOGRAPHY_PERMISSION_URI, 10001).content(json.toString()))
         .andExpect(status().isOk());
 
-    mvc.perform(get(CARTOGRAPHY_PERMISSION_URI, 1))
+    mvc.perform(get(CARTOGRAPHY_PERMISSION_URI, 10001))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.name").value("New name"));
 
     json.put("name", oldName);
 
-    mvc.perform(put(CARTOGRAPHY_PERMISSION_URI, 1).content(json.toString()))
+    mvc.perform(put(CARTOGRAPHY_PERMISSION_URI, 10001).content(json.toString()))
         .andExpect(status().isOk());
 
-    mvc.perform(get(CARTOGRAPHY_PERMISSION_URI, 1))
+    mvc.perform(get(CARTOGRAPHY_PERMISSION_URI, 10001))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.name").value(oldName));
   }
@@ -65,7 +65,7 @@ class CartographyPermissionsRepositoryDataRestUpdateTest {
   @WithMockUser(roles = "ADMIN")
   void associationResourceUpdate() throws Exception {
     String item =
-        mvc.perform(get(CARTOGRAPHY_PERMISSION_ROLES_URI, 1))
+        mvc.perform(get(CARTOGRAPHY_PERMISSION_ROLES_URI, 10001))
             .andExpect(status().isOk())
             .andReturn()
             .getResponse()
@@ -80,18 +80,18 @@ class CartographyPermissionsRepositoryDataRestUpdateTest {
     String update = links.stream().skip(1).collect(Collectors.joining("\n"));
 
     mvc.perform(
-        put(CARTOGRAPHY_PERMISSION_ROLES_URI, 1).content(update).contentType("text/uri-list"));
+        put(CARTOGRAPHY_PERMISSION_ROLES_URI, 10001).content(update).contentType("text/uri-list"));
 
-    mvc.perform(get(CARTOGRAPHY_PERMISSION_ROLES_URI, 1))
+    mvc.perform(get(CARTOGRAPHY_PERMISSION_ROLES_URI, 10001))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$._embedded.roles[*]._links.self.href", hasSize(links.size() - 1)));
 
     update = String.join("\n", links);
 
     mvc.perform(
-        put(CARTOGRAPHY_PERMISSION_ROLES_URI, 1).content(update).contentType("text/uri-list"));
+        put(CARTOGRAPHY_PERMISSION_ROLES_URI, 10001).content(update).contentType("text/uri-list"));
 
-    mvc.perform(get(CARTOGRAPHY_PERMISSION_ROLES_URI, 1))
+    mvc.perform(get(CARTOGRAPHY_PERMISSION_ROLES_URI, 10001))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$._embedded.roles[*]._links.self.href", hasSize(links.size())))
         .andExpect(

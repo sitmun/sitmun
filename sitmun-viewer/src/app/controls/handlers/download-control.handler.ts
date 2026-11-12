@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 
-import { AppCfg, AppTasks } from '@api/model/app-cfg';
+import type { AppCfg, AppTasks } from '@api/model/app-cfg';
 
 import { SitnaApiService } from '../../services/sitna-api.service';
 import { UIStateService } from '../../services/ui-state.service';
@@ -21,7 +21,7 @@ import { SitnaControlConfig } from '../control-handler.interface';
 export class DownloadControlHandler extends ControlHandlerBase {
   readonly controlIdentifier = 'sitna.download';
   readonly sitnaConfigKey = 'download';
-  readonly requiredPatches = undefined; // No patches needed
+  readonly requiredPatches = undefined;
 
   constructor(
     sitnaApi: SitnaApiService,

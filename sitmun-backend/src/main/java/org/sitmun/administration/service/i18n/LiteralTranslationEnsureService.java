@@ -1,26 +1,23 @@
 package org.sitmun.administration.service.i18n;
 
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.sitmun.infrastructure.persistence.type.i18n.DatabaseDefaultLanguageResolver;
 import org.sitmun.infrastructure.persistence.type.i18n.Language;
+import org.sitmun.infrastructure.persistence.type.i18n.LanguageRepository;
 import org.sitmun.infrastructure.persistence.type.i18n.LiteralTranslation;
 import org.sitmun.infrastructure.persistence.type.i18n.LiteralTranslationRepository;
 import org.sitmun.infrastructure.persistence.type.i18n.LiteralTranslationValue;
 import org.sitmun.infrastructure.persistence.type.i18n.LiteralTranslationValueRepository;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 @Service
-@RequiredArgsConstructor
-@Slf4j
 public class LiteralTranslationEnsureService {
 
   private static final Pattern TAG_PATTERN = Pattern.compile("<t>(.*?)</t>", Pattern.DOTALL);
@@ -28,6 +25,21 @@ public class LiteralTranslationEnsureService {
   private final LiteralTranslationRepository literalTranslationRepository;
   private final LiteralTranslationValueRepository literalTranslationValueRepository;
   private final DatabaseDefaultLanguageResolver databaseDefaultLanguageResolver;
+  private final LiteralTranslationWriteLock literalTranslationWriteLock;
+  private final LanguageRepository languageRepository;
+
+  public LiteralTranslationEnsureService(
+      LiteralTranslationRepository literalTranslationRepository,
+      LiteralTranslationValueRepository literalTranslationValueRepository,
+      DatabaseDefaultLanguageResolver databaseDefaultLanguageResolver,
+      LiteralTranslationWriteLock literalTranslationWriteLock,
+      LanguageRepository languageRepository) {
+    this.literalTranslationRepository = literalTranslationRepository;
+    this.literalTranslationValueRepository = literalTranslationValueRepository;
+    this.databaseDefaultLanguageResolver = databaseDefaultLanguageResolver;
+    this.literalTranslationWriteLock = literalTranslationWriteLock;
+    this.languageRepository = languageRepository;
+  }
 
   public static Set<String> extractLiteralKeys(String html) {
     Set<String> keys = new LinkedHashSet<>();
@@ -47,35 +59,46 @@ public class LiteralTranslationEnsureService {
   @Transactional
   public void ensureLiteralsFromTemplateHtml(String templateHtml) {
     Set<String> keys = extractLiteralKeys(templateHtml);
-    if (keys.isEmpty()) {
+    if (keys.isEmpty() || ready(keys)) {
       return;
     }
+    literalTranslationWriteLock.acquire();
     Language sourceLanguage = databaseDefaultLanguageResolver.requireLanguage();
+    List<LiteralTranslation> stored = literalTranslationRepository.findByLiteralIn(keys);
     for (String key : keys) {
-      ensureLiteral(key, sourceLanguage);
+      Optional<LiteralTranslation> existing =
+          stored.stream().filter(row -> key.equals(row.getLiteral())).findFirst();
+      if (existing.isEmpty()) {
+        insertLiteral(key, sourceLanguage);
+      } else {
+        syncSourceValueIfMissing(existing.get(), key);
+      }
     }
   }
 
-  @Transactional
-  public void ensureLiteral(String literal, Language sourceLanguage) {
-    if (!StringUtils.hasText(literal) || sourceLanguage == null) {
-      return;
+  private boolean ready(Set<String> keys) {
+    List<LiteralTranslation> rows = literalTranslationRepository.findByLiteralIn(keys);
+    if (rows.size() != keys.size()) {
+      return false;
     }
-    Optional<LiteralTranslation> existing = literalTranslationRepository.findByLiteral(literal);
-    if (existing.isPresent()) {
-      syncSourceValueIfMissing(existing.get(), literal);
-      return;
+    for (LiteralTranslation row : rows) {
+      if (sourceValue(row).isEmpty()) {
+        return false;
+      }
     }
-    try {
-      LiteralTranslation saved =
-          literalTranslationRepository.save(
-              LiteralTranslation.builder().literal(literal).sourceLanguage(sourceLanguage).build());
-      upsertValue(saved, sourceLanguage, literal);
-    } catch (DataIntegrityViolationException ex) {
-      log.debug("Literal already exists concurrently: {}", literal);
-      literalTranslationRepository
-          .findByLiteral(literal)
-          .ifPresent(found -> syncSourceValueIfMissing(found, literal));
+    return true;
+  }
+
+  private void insertLiteral(String literal, Language sourceLanguage) {
+    LiteralTranslation saved =
+        literalTranslationRepository.saveAndFlush(
+            LiteralTranslation.builder().literal(literal).sourceLanguage(sourceLanguage).build());
+    for (Language language : languageRepository.findAll()) {
+      LiteralTranslationValue row = new LiteralTranslationValue();
+      row.setLiteralTranslation(saved);
+      row.setLanguage(language);
+      row.setValue(literal);
+      literalTranslationValueRepository.save(row);
     }
   }
 
@@ -84,12 +107,18 @@ public class LiteralTranslationEnsureService {
     if (source == null || !StringUtils.hasText(source.getShortname())) {
       return;
     }
-    Optional<LiteralTranslationValue> existing =
-        literalTranslationValueRepository.findByLiteralTranslationIdAndLanguageShortname(
-            literalTranslation.getId(), source.getShortname());
-    if (existing.isEmpty()) {
+    if (sourceValue(literalTranslation).isEmpty()) {
       upsertValue(literalTranslation, source, literal);
     }
+  }
+
+  private Optional<LiteralTranslationValue> sourceValue(LiteralTranslation literalTranslation) {
+    Language source = literalTranslation.getSourceLanguage();
+    if (source == null || !StringUtils.hasText(source.getShortname())) {
+      return Optional.empty();
+    }
+    return literalTranslationValueRepository.findByLiteralTranslationIdAndLanguageShortname(
+        literalTranslation.getId(), source.getShortname());
   }
 
   private void upsertValue(LiteralTranslation literalTranslation, Language language, String value) {

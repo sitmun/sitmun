@@ -12,7 +12,7 @@
     "filteringEnabled": true
   },
   "externalLinkTypes": ["E"],
-  "defaultLanguage": "es",
+  "defaultLanguage": "ca",
   "languages": [
     {
       "name": "Español",
@@ -43,12 +43,16 @@
       "shortname": "oc-aranes",
       "locale": "oc-aranes-ES",
       "icon": "assets/flags/val-aran.svg"
+    },
+    {
+      "name": "Português",
+      "shortname": "pt-PT",
+      "locale": "pt-PT",
+      "icon": "assets/flags/portugal.svg"
     }
   ],
   "enabledByDefault": [
-    "sitna.loadingIndicator",
-    "sitna.helloWorld",
-    "sitmun.locator"
+    "sitna.loadingIndicator"
   ],
   "disabledControls": [
     "sitna.WFSEdit",
@@ -111,7 +115,7 @@
       "displayElevation": {
         "resolution": 100
       },
-      "persistentHighlights": true
+      "persistentHighlights": false
     },
     "sitna.multiFeatureInfo": {
       "div": "tc-slot-multifeatureinfo",
@@ -119,7 +123,7 @@
         "resolution": 100
       },
       "active": true,
-      "persistentHighlights": true,
+      "persistentHighlights": false,
       "share": true,
       "modes": {
         "point": { "active": true },

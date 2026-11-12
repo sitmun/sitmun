@@ -10,11 +10,9 @@ import {RouterModule, } from '@angular/router';
 
 //import * as ol from 'openlayers';
 import {AgGridModule} from '@ag-grid-community/angular';
-import {TranslateModule} from '@ngx-translate/core';
+import { TranslatePipe } from '@ngx-translate/core';
 import {NgxEchartsModule} from 'ngx-echarts';
 //import { AngularHalModule } from '@sitmun/frontend-core';
-
-
 
 // import { SitmunFrontendCoreModule } from '@sitmun/frontend-core';
 import {CharacterCountPipe} from '@app/components/shared/character-counter-hint/character-count.pipe';
@@ -22,18 +20,19 @@ import {CharacterCountPipe} from '@app/components/shared/character-counter-hint/
 import {BtnCheckboxFilterComponent} from './btn-checkbox-filter/btn-checkbox-filter.component';
 import {BtnCheckboxRenderedComponent} from './btn-checkbox-rendered/btn-checkbox-rendered.component';
 import {BtnEditRenderedComponent} from './btn-edit-rendered/btn-edit-rendered.component';
+import {ChartCardComponent} from './chart-card/chart-card.component';
 import {DatagraphComponent} from './data-graph/datagraph.component';
 import {DataTreeComponent} from './data-tree/data-tree.component';
 import {DialogFormComponent} from './dialog-form/dialog-form.component';
 import {DialogMessageComponent} from './dialog-message/dialog-message.component';
 import {DialogTranslationComponent} from './dialog-translation/dialog-translation.component';
+import {EmptyStateComponent} from './empty-state/empty-state.component';
+import {KpiCardComponent} from './kpi-card/kpi-card.component';
 import {MapTreeComponent} from './map-tree/map-tree.component';
 import {MaterialModule} from './material-module';
 
-
 registerLocaleData(localeCa, 'ca');
 registerLocaleData(localeEs, 'es');
-
 
 /** SITMUN plugin core module */
 @NgModule({ declarations: [
@@ -45,6 +44,9 @@ registerLocaleData(localeEs, 'es');
         DialogMessageComponent,
         DialogTranslationComponent,
         DatagraphComponent,
+        KpiCardComponent,
+        ChartCardComponent,
+        EmptyStateComponent,
         MapTreeComponent,
         CharacterCountPipe,
     ],
@@ -53,7 +55,7 @@ registerLocaleData(localeEs, 'es');
         FormsModule,
         NoopAnimationsModule,
         //AngularHalModule,
-        TranslateModule,
+        TranslatePipe,
         ReactiveFormsModule,
         NgxEchartsModule,
         DataTreeComponent,
@@ -61,6 +63,9 @@ registerLocaleData(localeEs, 'es');
         DialogMessageComponent,
         DialogTranslationComponent,
         DatagraphComponent,
+        KpiCardComponent,
+        ChartCardComponent,
+        EmptyStateComponent,
         // SitmunFrontendCoreModule
         MapTreeComponent,
         CharacterCountPipe,
@@ -75,7 +80,7 @@ registerLocaleData(localeEs, 'es');
         AgGridModule,
         // SitmunFrontendCoreModule,
         MaterialModule,
-        TranslateModule,
+        TranslatePipe,
         NgxEchartsModule.forRoot({
             echarts: () => import('echarts')
         })

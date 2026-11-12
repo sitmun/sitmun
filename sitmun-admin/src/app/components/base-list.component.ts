@@ -1,8 +1,8 @@
-import {Component, OnInit} from '@angular/core';
+import {Component, OnInit, ChangeDetectionStrategy} from '@angular/core';
 import {MatDialog} from '@angular/material/dialog';
 import {ActivatedRoute, Router} from '@angular/router';
 
-import {TranslateService} from '@ngx-translate/core';
+import { TranslateService } from '@ngx-translate/core';
 import {firstValueFrom, Observable, of, Subject} from 'rxjs';
 
 import {HalOptions, HalParam, Resource} from '@app/core';
@@ -18,6 +18,7 @@ import {config} from '@config';
 @Component({
     template: '',
     styles: [],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export abstract class BaseListComponent<T extends Resource>
@@ -51,7 +52,7 @@ export abstract class BaseListComponent<T extends Resource>
     if (localStorage.lang) {
       return localStorage.lang;
     }
-    return this.translateService.currentLang || config.defaultLang;
+    return this.translateService.getCurrentLang() || config.defaultLang;
   }
 
   /**
@@ -250,7 +251,6 @@ export abstract class BaseListComponent<T extends Resource>
 
     dialogRef.afterClosed().subscribe((result) => {
       if (result?.event === DIALOG_EVENTS.ACCEPT) {
-        // Wrap batch delete operation with loading overlay
         this.loadingOverlay.wrap(
           async () => {
             // Use allSettled instead of all to handle partial failures
@@ -259,10 +259,8 @@ export abstract class BaseListComponent<T extends Resource>
               data.map((item) => this.dataDeleteFn(item))
             );
 
-            // Check for any failures and log them
             const failures = results.filter((result) => result.status === 'rejected');
             if (failures.length > 0) {
-              // Log errors for failed deletions
               failures.forEach((failure, index) => {
                 if (failure.status === 'rejected') {
                   this.loggerService.error(`Failed to delete item at index ${index}:`, failure.reason);

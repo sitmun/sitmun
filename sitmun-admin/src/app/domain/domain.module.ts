@@ -1,13 +1,13 @@
 import { CommonModule } from '@angular/common';
 import {ModuleWithProviders, NgModule} from '@angular/core';
 
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslatePipe } from '@ngx-translate/core';
 
 import {ExternalService, ResourceService} from '@app/core/hal';
 // Import services from feature folders
 import { ApplicationBackgroundService, ApplicationParameterService, ApplicationService, ApplicationTreeService } from '@app/domain/application';
 import { CapabilitiesService } from '@app/domain/capabilities';
-import { BackgroundService , CartographyAvailabilityService , CartographyFilterService , CartographyGroupService , CartographyParameterService , CartographySpatialSelectionParameterService , CartographyStyleService , CartographyService } from '@app/domain/cartography';
+import { BackgroundService , CartographyAvailabilityService , CartographyFilterService , CartographyGroupService , CartographyParameterService , CartographyServiceParameterService , CartographySpatialSelectionParameterService , CartographyStyleService , CartographyService } from '@app/domain/cartography';
 import { CodeListService } from '@app/domain/codelist';
 import { ConfigurationParametersService } from '@app/domain/configuration';
 import { ConnectionService } from '@app/domain/connection';
@@ -26,12 +26,12 @@ import { UserConfigurationService , UserPositionService , UserService } from '@a
 @NgModule({
   imports: [
     CommonModule,
-    TranslateModule,
+    TranslatePipe,
   ],
   declarations: [
   ],
   exports: [
-    TranslateModule
+    TranslatePipe
   ]
 })
 export class DomainModule {
@@ -63,6 +63,7 @@ export class DomainModule {
         CartographyGroupService,
         CartographyAvailabilityService,
         CartographyParameterService,
+        CartographyServiceParameterService,
         CartographySpatialSelectionParameterService,
         CartographyStyleService,
         CartographyFilterService,

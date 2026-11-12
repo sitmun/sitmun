@@ -23,8 +23,8 @@ export { includedOwner, mappingAddTestId } from './mia-mapping-testid';
 export const MIA_CREATE_PATH = '/#/tasksMoreInfoAdvanced/-1/16';
 export const CARTOGRAPHY_SEARCH = 'Toponimia';
 export const CARTOGRAPHY_OPTION = /Toponimia 1:25\.000/;
-export const ROLE_ID = 1;
-export const TERRITORY_ID = 1;
+export const ROLE_ID = 10001;
+export const TERRITORY_ID = 10001;
 
 export async function createMiaWithChild(
   page: Page,
@@ -85,10 +85,20 @@ export async function addMiaParameterRow(
     .filter({ has: page.locator('mat-icon', { hasText: 'add_circle_outline' }) })
     .first()
     .click();
-  const dialog = page.locator('mat-dialog-container').last();
+  const dialog = page
+    .locator('mat-dialog-container')
+    .filter({ has: page.locator('[formControlName="label"]') })
+    .last();
   await expect(dialog).toBeVisible({ timeout: 15_000 });
-  await dialog.locator('[formControlName="label"]').fill(options.label);
-  await dialog.locator('[formControlName="value"]').fill(options.value);
+  await expect(dialog).not.toHaveClass(/mdc-dialog--opening/);
+  const label = dialog.locator('[formControlName="label"]');
+  const value = dialog.locator('[formControlName="value"]');
+  await label.click();
+  await label.fill(options.label);
+  await value.click();
+  await value.fill(options.value);
+  await expect(label).toHaveValue(options.label);
+  await expect(value).toHaveValue(options.value);
   await dialog
     .locator('mat-dialog-actions button')
     .filter({ has: page.locator('mat-icon', { hasText: 'add_circle_outline' }) })
@@ -148,44 +158,6 @@ export async function addMiaParameter(
     request: options.request,
     expectedLabels: options.request && options.taskId != null ? [options.label] : undefined,
   });
-}
-
-/** Ensure Plantilla exposes a child param label for MIA mapping UI. */
-export async function putPlantillaParameter(
-  request: APIRequestContext,
-  taskId: number,
-  options: { variable: string; label: string; templateHtml: string },
-): Promise<void> {
-  const get = await request.get(`/backend/api/tasks/${taskId}`, {
-    headers: { 'X-SITMUN-Client': 'admin' },
-  });
-  expect(get.ok(), await get.text()).toBeTruthy();
-  const task = (await get.json()) as {
-    name?: string;
-    properties?: Record<string, unknown>;
-  };
-  const put = await request.put(`/backend/api/tasks/${taskId}`, {
-    headers: {
-      'X-SITMUN-Client': 'admin',
-      'Content-Type': 'application/json',
-    },
-    data: {
-      name: task.name,
-      properties: {
-        ...(task.properties ?? {}),
-        templateHtml: options.templateHtml,
-        parameters: [
-          {
-            variable: options.variable,
-            label: options.label,
-            type: 'string',
-            required: false,
-          },
-        ],
-      },
-    },
-  });
-  expect(put.ok(), `put plantilla params: ${put.status()} ${await put.text()}`).toBeTruthy();
 }
 
 export async function gotoMiaDetailsTab(page: Page): Promise<void> {
@@ -364,8 +336,8 @@ const ADMIN_URI_LIST_HEADERS = {
   'Content-Type': 'text/uri-list',
 } as const;
 
-/** Toponímia GEO_ID 6 — same cartography as MIA parent 42 / mia-cross GFI. */
-export const TOPONIMIA_CARTOGRAPHY_ID = 6;
+/** Toponímia GEO_ID 10006 — same cartography as MIA parent 10042 / mia-cross GFI. */
+export const TOPONIMIA_CARTOGRAPHY_ID = 10006;
 
 function localhostApiUri(href: string, resource: string): string {
   const match = href.match(new RegExp(`/api/${resource}/\\d+`));

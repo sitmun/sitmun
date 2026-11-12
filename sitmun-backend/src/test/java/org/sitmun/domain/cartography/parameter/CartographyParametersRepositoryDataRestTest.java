@@ -8,8 +8,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.util.UriTemplate;
@@ -33,7 +33,7 @@ class CartographyParametersRepositoryDataRestTest {
         "format":"I",
         "order":null,
         "type":"INFO",
-        "cartography":"http://localhost/api/cartographies/1"
+        "cartography":"http://localhost/api/cartographies/10001"
         }""";
 
     String location =
@@ -52,7 +52,7 @@ class CartographyParametersRepositoryDataRestTest {
 
     mvc.perform(get("/api/cartography-parameters/{id}/cartography", id))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.id").value(1));
+        .andExpect(jsonPath("$.id").value(10001));
 
     mvc.perform(delete("/api/cartography-parameters/{id}", id)).andExpect(status().isNoContent());
   }

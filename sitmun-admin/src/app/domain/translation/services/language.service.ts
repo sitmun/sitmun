@@ -55,7 +55,6 @@ export class LanguageService extends RestService<Language> {
   /** Enabled languages for selectors (toolbar, login, translation dialogs). */
   readonly languagesToUse$ = this.languagesToUseSubject.asObservable();
 
-  /** constructor */
   constructor(injector: Injector) {
     super(Language, "languages", injector);
     this.http = injector.get(HttpClient);
@@ -64,6 +63,23 @@ export class LanguageService extends RestService<Language> {
   /**
    * Updates app config, localStorage, and notifies language selectors.
    */
+  /**
+   * Stores the languages from setup status and gives each one the self link a
+   * relation save expects. Setup status does not return HAL links.
+   */
+  languagesFromSetup(
+    languages: ReadonlyArray<{ id: number; shortname: string; name: string; order?: number | null }>,
+  ): Language[] {
+    return this.applyLanguagesToUse(
+      languages.map((language) =>
+        Language.fromObject({
+          ...language,
+          _links: this.createProxy(language.id)?._links,
+        }),
+      ),
+    );
+  }
+
   applyLanguagesToUse(languages: Language[]): Language[] {
     const enabled = filterEnabledLanguages(sortByLanguageOrder(languages));
     config.languagesToUse = enabled;
@@ -90,7 +106,7 @@ export class LanguageService extends RestService<Language> {
    */
   getCurrentDefaultLanguage(): Observable<string> {
     return new Observable(observer => {
-      this.http.get<{ value: string }>(`${this.resourceService.getResourceUrl()}/configuration-parameters/search/findByName?name=language.default`)
+      this.http.get<{ value: string }>(this.apiUrl('configuration-parameters/search/findByName?name=language.default'))
         .subscribe({
           next: (config) => {
             observer.next(config.value);
@@ -106,7 +122,7 @@ export class LanguageService extends RestService<Language> {
    */
   previewDefaultLanguageChange(from: string, to: string): Observable<DefaultLanguageChangePreview> {
     return this.http.post<DefaultLanguageChangePreview>(
-      `${this.resourceService.getResourceUrl()}/language-default/change-preview`,
+      this.apiUrl('language-default/change-preview'),
       { from, to },
       {context: new HttpContext().set(SUPPRESS_HTTP_NOTIFICATION, true)}
     );
@@ -117,9 +133,14 @@ export class LanguageService extends RestService<Language> {
    */
   applyDefaultLanguageChange(request: DefaultLanguageChangeRequest): Observable<DefaultLanguageChangeResult> {
     return this.http.post<DefaultLanguageChangeResult>(
-      `${this.resourceService.getResourceUrl()}/language-default/change`,
+      this.apiUrl('language-default/change'),
       request,
       {context: new HttpContext().set(SUPPRESS_HTTP_NOTIFICATION, true)}
     );
+  }
+
+  /** Avoid `…/api//path` from getResourceUrl()'s trailing slash (401 under Spring Security 7). */
+  private apiUrl(path: string): string {
+    return `${this.resourceService.getResourceUrl().replace(/\/$/, '')}/${path.replace(/^\//, '')}`;
   }
 }

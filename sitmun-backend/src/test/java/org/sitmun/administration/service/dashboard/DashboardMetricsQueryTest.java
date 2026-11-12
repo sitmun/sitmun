@@ -30,20 +30,27 @@ import org.sitmun.infrastructure.persistence.type.i18n.I18nTestConfiguration;
 import org.sitmun.infrastructure.security.core.SecurityConstants;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
+import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
 import org.springframework.context.annotation.Import;
-import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.core.env.Environment;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
 
 @DataJpaTest
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
+@Import(I18nTestConfiguration.class)
 @EnableConfigurationProperties(DashboardProperties.class)
 @DisplayName("Dashboard metric queries")
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 class DashboardMetricsQueryTest {
 
+  @DynamicPropertySource
+  static void rollBackOnSuiteDatabase(DynamicPropertyRegistry registry) {
+    registry.add("spring.datasource.hikari.auto-commit", () -> "false");
+  }
+
   @Autowired private EntityManager entityManager;
+  @Autowired private Environment environment;
   @Autowired private DashboardProperties dashboardProperties;
   @Autowired private TerritoryRepository territoryRepository;
   @Autowired private TerritoryTypeRepository territoryTypeRepository;
@@ -54,12 +61,22 @@ class DashboardMetricsQueryTest {
   @Autowired private UserPositionRepository userPositionRepository;
 
   @Test
+  @DisplayName("Uses the suite database")
+  void usesSuiteDatabase() {
+    String url = environment.getProperty("spring.datasource.url");
+    assertThat(url).doesNotContain("dashboard-metrics");
+    if (url != null && url.startsWith("jdbc:h2:")) {
+      assertThat(url).startsWith("jdbc:h2:mem:testdb");
+    }
+  }
+
+  @Test
   @DisplayName("Users created on a day are bucketed by year, month, and day")
   void publishesDayBucketForCreatedDate() {
+    LocalDate written = LocalDate.of(2011, 4, 9);
+    long before = bucketCount(written);
     User user = persistUser("dash-day");
-    Date created =
-        Date.from(
-            LocalDate.of(2011, 4, 9).atTime(12, 0).atZone(ZoneId.systemDefault()).toInstant());
+    Date created = Date.from(written.atTime(12, 0).atZone(ZoneId.systemDefault()).toInstant());
     user.setCreatedDate(created);
     user = userRepository.saveAndFlush(user);
     Date persisted = userRepository.findById(user.getId()).orElseThrow().getCreatedDate();
@@ -67,6 +84,7 @@ class DashboardMetricsQueryTest {
 
     List<Object[]> rows = run(dashboardProperties.getUsersByCreatedDate().getQuery());
 
+    assertThat(bucket).isEqualTo(written);
     assertThat(rows)
         .filteredOn(row -> row.length == 4 && row[0] != null && row[1] != null && row[2] != null)
         .anySatisfy(
@@ -74,7 +92,7 @@ class DashboardMetricsQueryTest {
               assertThat(number(row[0])).isEqualTo(bucket.getYear());
               assertThat(number(row[1])).isEqualTo(bucket.getMonthValue());
               assertThat(number(row[2])).isEqualTo(bucket.getDayOfMonth());
-              assertThat(number(row[3])).isGreaterThanOrEqualTo(1);
+              assertThat(number(row[3])).isEqualTo(before + 1);
             });
   }
 
@@ -143,6 +161,19 @@ class DashboardMetricsQueryTest {
     return run(dashboardProperties.getUsersPerApplication().getQuery()).stream()
         .filter(row -> applicationName.equals(String.valueOf(row[0])))
         .map(row -> ((Number) row[1]).longValue())
+        .findFirst()
+        .orElse(0L);
+  }
+
+  private long bucketCount(LocalDate bucket) {
+    return run(dashboardProperties.getUsersByCreatedDate().getQuery()).stream()
+        .filter(row -> row.length == 4 && row[0] != null && row[1] != null && row[2] != null)
+        .filter(
+            row ->
+                number(row[0]) == bucket.getYear()
+                    && number(row[1]) == bucket.getMonthValue()
+                    && number(row[2]) == bucket.getDayOfMonth())
+        .map(row -> number(row[3]))
         .findFirst()
         .orElse(0L);
   }
@@ -241,8 +272,4 @@ class DashboardMetricsQueryTest {
             .atStartOfDay(ZoneId.systemDefault())
             .toInstant());
   }
-
-  @TestConfiguration
-  @Import(I18nTestConfiguration.class)
-  static class Configuration {}
 }

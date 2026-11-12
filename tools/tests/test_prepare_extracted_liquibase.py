@@ -44,6 +44,29 @@ class RewriteCsvWidthTest(unittest.TestCase):
             self.assertEqual(rows[1][-1], "JPEG (.jpg, .jpeg)")
             self.assertIn('"JPEG (.jpg, .jpeg)"', path.read_text(encoding="utf-8"))
 
+    def test_trailing_blank_line_is_dropped_not_padded(self) -> None:
+        # Padding it produced ",,,," and loadData inserted NULLs, failing with
+        # ORA-01400 on STM_TRANSLATION.TRA_ID for tag 1.2.6.
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "STM_TRANSLATION_ES.csv"
+            path.write_text(
+                "TRA_ID,TRA_ELEID,TRA_COLUMN,TRA_LANID,TRA_NAME\n"
+                "2020104,104,description,2,URL\n"
+                "\n",
+                encoding="utf-8",
+            )
+            pel.rewrite_csv_width(Path(tmp))
+            lines = path.read_text(encoding="utf-8").splitlines()
+            self.assertEqual(lines, ["TRA_ID,TRA_ELEID,TRA_COLUMN,TRA_LANID,TRA_NAME", "2020104,104,description,2,URL"])
+
+    def test_explicit_all_empty_row_is_preserved(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "empties.csv"
+            path.write_text("A,B,C\n,,\n", encoding="utf-8")
+            changed = pel.rewrite_csv_width(Path(tmp))
+            self.assertEqual(changed, 0)
+            self.assertEqual(path.read_text(encoding="utf-8"), "A,B,C\n,,\n")
+
     def test_short_row_is_padded_to_header_width(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "short.csv"
@@ -66,21 +89,37 @@ class AliasCsvCaseTest(unittest.TestCase):
             root = Path(tmp)
             data = root / "changelog" / "04_initial_data_prod"
             data.mkdir(parents=True)
+            (data / "probe").write_text("x", encoding="utf-8")
+            if (data / "PROBE").exists():
+                self.skipTest("filesystem is case-insensitive")
+            (data / "probe").unlink()
             (data / "STM_USER.csv").write_text("USE_ID\n1\n", encoding="utf-8")
             (root / "changelog" / "04_initial_data_prod.yaml").write_text(
                 "            file: 04_initial_data_prod/stm_user.csv\n",
                 encoding="utf-8",
             )
-            (data / "probe").write_text("x", encoding="utf-8")
-            case_sensitive = not (data / "PROBE").exists()
-            (data / "probe").unlink()
             created = pel.alias_csv_case(root)
-            if case_sensitive:
-                self.assertEqual(created, 1)
-                self.assertTrue(pel.exists_exact(data / "stm_user.csv"))
-                self.assertTrue(pel.exists_exact(data / "STM_USER.csv"))
-            else:
-                self.assertEqual(created, 0)
+            self.assertEqual(created, 1)
+            self.assertTrue(pel.exists_exact(data / "stm_user.csv"))
+            self.assertTrue(pel.exists_exact(data / "STM_USER.csv"))
+
+
+class RewriteOracleBooleansTest(unittest.TestCase):
+    def test_unquoted_boolean_literals_become_digits(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "01_schema.oracle.sql"
+            path.write_text(
+                "CREATE TABLE T (FLAG NUMBER DEFAULT FALSE);\n"
+                "INSERT INTO T VALUES ('FALSE', TRUE);\n",
+                encoding="utf-8",
+            )
+            changed = pel.rewrite_oracle_booleans(Path(tmp))
+            self.assertEqual(changed, 1)
+            self.assertEqual(
+                path.read_text(encoding="utf-8"),
+                "CREATE TABLE T (FLAG NUMBER DEFAULT 0);\n"
+                "INSERT INTO T VALUES ('FALSE', 1);\n",
+            )
 
 
 if __name__ == "__main__":

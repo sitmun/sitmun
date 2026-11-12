@@ -15,7 +15,7 @@ import {
 } from '@api/api-config';
 import { AUTH_CONFIG_DI } from '@auth/authentication.options';
 import { CustomAuthConfig, NavigationPath } from '@config/app.config';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslatePipe, provideTranslateService } from '@ngx-translate/core';
 import { NEVER } from 'rxjs';
 import { environment } from 'src/environments/environment';
 
@@ -59,8 +59,9 @@ describe('AuthenticationService (FS-03)', () => {
     });
 
     TestBed.configureTestingModule({
-      imports: [TranslateModule.forRoot()],
+      imports: [TranslatePipe],
       providers: [
+      provideTranslateService(),
         provideHttpClient(),
         provideHttpClientTesting(),
         AuthenticationService,
@@ -356,6 +357,23 @@ describe('AuthenticationService (FS-03)', () => {
 
     httpMock.expectNone(`${environment.apiUrl}${URL_AUTH_PROXY}`);
     expect(warning).toHaveBeenCalledTimes(1);
+  });
+
+  it('returns to the stored map after an external login and forgets it', () => {
+    service.rememberReturnUrl('/user/map/12/4?mapState=tok');
+    service.rememberReturnUrl('//evil.example');
+
+    service.loginRedirect({ snapshot: { queryParams: {} } } as never);
+
+    expect(router.navigateByUrl).toHaveBeenCalledWith(
+      '/user/map/12/4?mapState=tok'
+    );
+
+    service.loginRedirect({ snapshot: { queryParams: {} } } as never);
+
+    expect(router.navigateByUrl).toHaveBeenLastCalledWith(
+      NavigationPath.Section.User.Dashboard
+    );
   });
 
   it('deduplicates repeated proxy denial warnings', () => {

@@ -3,9 +3,7 @@ package org.sitmun.proxy.middleware.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.sitmun.proxy.middleware.test.fixtures.AuthorizationProxyFixtures.*;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.nio.charset.StandardCharsets;
-import java.util.Objects;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
@@ -15,10 +13,14 @@ import org.sitmun.proxy.middleware.test.interceptors.DoNotRequest;
 import org.sitmun.proxy.middleware.test.interceptors.HostnameCheck;
 import org.sitmun.proxy.middleware.test.interceptors.QueryCheck;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
+import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.json.JacksonTester;
 import org.springframework.http.ResponseEntity;
+import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
+import tools.jackson.databind.json.JsonMapper;
 
 @SpringBootTest
 @AutoConfigureTestDatabase
@@ -35,13 +37,20 @@ class ExecutionRequestExecutorServiceTest {
 
   @BeforeAll
   void setup() {
-    ObjectMapper objectMapper = new ObjectMapper();
+    JsonMapper objectMapper = new JsonMapper();
     JacksonTester.initFields(this, objectMapper);
+  }
+
+  @BeforeEach
+  void bindRequest() {
+    RequestContextHolder.setRequestAttributes(
+        new ServletRequestAttributes(new MockHttpServletRequest()));
   }
 
   @AfterEach
   void clearInterceptors() {
     httpClientFactoryService.removeAllInterceptors();
+    RequestContextHolder.resetRequestAttributes();
   }
 
   /** Public user access to the public WMS service. */
@@ -50,8 +59,7 @@ class ExecutionRequestExecutorServiceTest {
   void publicWms() {
     ResponseEntity<Object> response = requestExecutorService.executeRequest("", wmsService(false));
     assertThat(response.getStatusCode().value()).isEqualTo(200);
-    assertThat(Objects.requireNonNull(response.getHeaders().get("Content-Type")).get(0))
-        .isEqualTo("image/png");
+    assertThat(UpstreamContentType.current()).isEqualTo("image/png");
   }
 
   /** Public user access to the public WMS service. */
@@ -61,8 +69,7 @@ class ExecutionRequestExecutorServiceTest {
     ResponseEntity<Object> response =
         requestExecutorService.executeRequest("", wmsServiceWithURIWithParameters());
     assertThat(response.getStatusCode().value()).isEqualTo(200);
-    assertThat(Objects.requireNonNull(response.getHeaders().get("Content-Type")).get(0))
-        .isEqualTo("image/png");
+    assertThat(UpstreamContentType.current()).isEqualTo("image/png");
   }
 
   /**
@@ -75,12 +82,10 @@ class ExecutionRequestExecutorServiceTest {
   void publicWfs() throws Exception {
     ResponseEntity<Object> response = requestExecutorService.executeRequest("", wfsService(false));
     assertThat(response.getStatusCode().value()).isEqualTo(200);
-    assertThat(Objects.requireNonNull(response.getHeaders().get("Content-Type")).get(0))
-        .isEqualTo("application/json;charset=UTF-8");
+    assertThat(UpstreamContentType.current()).isEqualTo("application/json;charset=UTF-8");
     Object body = response.getBody();
     assertThat(body).isNotNull().isInstanceOf(byte[].class);
     String text = new String((byte[]) body, StandardCharsets.UTF_8);
-    // Updated from 273 to 294 to reflect current external WMS service state
     assertThat(jsonTester.parse(text)).extracting("totalFeatures").isEqualTo(294);
   }
 
@@ -104,7 +109,6 @@ class ExecutionRequestExecutorServiceTest {
     assertThat(interceptor.getExpectation()).isEqualTo("154.58.18.33");
   }
 
-  /** Public user access to a private WMS service, adding a filter to the request. */
   @Test
   @DisplayName("Request to service with filters")
   void privateWfsWithFilter() {
@@ -123,23 +127,7 @@ class ExecutionRequestExecutorServiceTest {
     ResponseEntity<Object> response =
         requestExecutorService.executeRequest("", inMemoryH2Database(false));
     assertThat(response.getStatusCode().value()).isEqualTo(200);
-    assertThat(Objects.requireNonNull(response.getHeaders().get("Content-Type")).get(0))
-        .isEqualTo("application/json");
-    Object body = response.getBody();
-    assertThat(body).isNotNull().asInstanceOf(InstanceOfAssertFactories.LIST).hasSize(35);
-  }
-
-  /** Public user access to a relational service filtered. */
-  @Test
-  @DisplayName("Request to a JDBC service with filters")
-  @Disabled(
-      "Redundant test: the test is identical to jdbcAccess because the SQL query is built on the Configuration and Authorization API")
-  void jdbcAccessWithFilters() {
-    ResponseEntity<Object> response =
-        requestExecutorService.executeRequest("", inMemoryH2Database(false));
-    assertThat(response.getStatusCode().value()).isEqualTo(200);
-    assertThat(Objects.requireNonNull(response.getHeaders().get("Content-Type")).get(0))
-        .isEqualTo("application/json");
+    assertThat(UpstreamContentType.current()).isEqualTo("application/json");
     Object body = response.getBody();
     assertThat(body).isNotNull().asInstanceOf(InstanceOfAssertFactories.LIST).hasSize(35);
   }

@@ -18,30 +18,19 @@ import org.sitmun.domain.territory.type.TerritoryTypeRepository;
 import org.sitmun.domain.user.User;
 import org.sitmun.domain.user.UserRepository;
 import org.sitmun.domain.user.configuration.UserConfiguration;
-import org.sitmun.infrastructure.persistence.type.i18n.I18nTestConfiguration;
 import org.sitmun.infrastructure.security.core.SecurityConstants;
+import org.sitmun.test.BaseTest;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Import;
-import org.springframework.context.annotation.Primary;
-import org.springframework.core.task.SyncTaskExecutor;
-import org.springframework.core.task.TaskExecutor;
-import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Tests for UserPositionBusinessLogic. Positions for a user are updated (created) when
  * UserConfiguration is saved (via UserConfigurationEventHandler), not when a user is retrieved with
  * a projection; projections are read-only.
  */
-@DataJpaTest
-@Import({UserPositionBusinessLogic.class, I18nTestConfiguration.class})
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 @DisplayName("User Position Business Logic JPA Test")
-@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-class UserPositionBusinessLogicTest {
+@Transactional
+class UserPositionBusinessLogicTest extends BaseTest {
 
   @Autowired private UserPositionBusinessLogic userPositionBusinessLogic;
 
@@ -199,8 +188,8 @@ class UserPositionBusinessLogicTest {
   }
 
   @Test
-  @DisplayName("Handle null user gracefully without throwing exception")
-  void handleNullUserGracefully() {
+  @DisplayName("Null user does not throw")
+  void nullUserDoesNotThrow() {
     UserConfiguration configWithNullUser =
         UserConfiguration.builder()
             .user(null)
@@ -214,8 +203,8 @@ class UserPositionBusinessLogicTest {
   }
 
   @Test
-  @DisplayName("Handle null territory gracefully without throwing exception")
-  void handleNullTerritoryGracefully() {
+  @DisplayName("Null territory does not throw")
+  void nullTerritoryDoesNotThrow() {
     UserConfiguration configWithNullTerritory =
         UserConfiguration.builder()
             .user(user)
@@ -226,14 +215,5 @@ class UserPositionBusinessLogicTest {
     Assertions.assertThatCode(
             () -> userPositionBusinessLogic.createUserPositionIfNotExists(configWithNullTerritory))
         .doesNotThrowAnyException();
-  }
-
-  @TestConfiguration
-  static class Configuration {
-    @Bean
-    @Primary
-    TaskExecutor taskExecutor() {
-      return new SyncTaskExecutor();
-    }
   }
 }

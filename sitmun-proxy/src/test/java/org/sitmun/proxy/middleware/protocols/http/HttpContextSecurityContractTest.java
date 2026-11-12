@@ -8,18 +8,18 @@ import static org.sitmun.proxy.middleware.protocols.http.HttpSecurityConstants.T
 import static org.sitmun.proxy.middleware.protocols.http.HttpSecurityConstants.TYPE_HTTP;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Map;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.sitmun.proxy.middleware.dto.ConfigProxyDto;
 import org.sitmun.proxy.middleware.dto.HttpSecurityDto;
 import org.sitmun.proxy.middleware.protocols.wms.WmsPayloadDto;
+import tools.jackson.databind.json.JsonMapper;
 
 @DisplayName("HttpContextSecurity / HttpSecurityDto contract")
 class HttpContextSecurityContractTest {
 
-  private final ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
+  private final JsonMapper objectMapper = new JsonMapper();
 
   @Test
   @DisplayName("HttpSecurityDto is HttpContextSecurity and holds http/basic vs apiKey field shapes")
@@ -65,18 +65,14 @@ class HttpContextSecurityContractTest {
     assertThat(
             HttpSecurityDto.builder()
                 .type(TYPE_API_KEY)
-                .headers(java.util.Map.of(HEADER_X_API_KEY, "secret"))
+                .headers(Map.of(HEADER_X_API_KEY, "secret"))
                 .build()
                 .describeForLog())
         .contains(
             "type=apiKey", "headerNames=[%s]".formatted(HEADER_X_API_KEY), "queryParamNames=[]")
         .doesNotContain("secret");
     assertThat(
-            HttpSecurityDto.builder()
-                .type(TYPE_API_KEY)
-                .headers(java.util.Map.of())
-                .build()
-                .describeForLog())
+            HttpSecurityDto.builder().type(TYPE_API_KEY).headers(Map.of()).build().describeForLog())
         .isEqualTo("type=apiKey, headerNames=[], queryParamNames=[]");
     assertThat(
             HttpSecurityDto.builder()

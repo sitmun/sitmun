@@ -10,7 +10,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatTreeModule } from '@angular/material/tree';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService, provideTranslateService } from '@ngx-translate/core';
 import { of } from 'rxjs';
 
 import { FileDatabase , DataTreeComponent } from './data-tree.component';
@@ -94,7 +94,7 @@ describe('DataTreeComponent', () => {
       teardown: { destroyAfterEach: 0 as any },
       declarations: [ DataTreeComponent ],
       imports: [
-        TranslateModule.forRoot(),
+        TranslatePipe,
         MatTreeModule,
         MatIconModule,
         MatButtonModule,
@@ -107,6 +107,7 @@ describe('DataTreeComponent', () => {
         NoopAnimationsModule
       ],
       providers: [
+      provideTranslateService(),
         FileDatabase,
         TranslateService
       ]
@@ -130,9 +131,7 @@ describe('DataTreeComponent', () => {
 
   afterAll(() => TestBed.resetTestingModule());
 
-  it('should create', () => {
-    expect(component).toBeTruthy();
-  });
+  
 
   describe('showMappingInTaskPanelForNodeType', () => {
     it.each([

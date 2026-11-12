@@ -1,4 +1,4 @@
-import {Component} from '@angular/core';
+import {Component, ChangeDetectionStrategy} from '@angular/core';
 import {UntypedFormControl, UntypedFormGroup, Validators} from '@angular/forms';
 import {MatDialog} from '@angular/material/dialog';
 import {ActivatedRoute, Router} from '@angular/router';
@@ -20,6 +20,7 @@ import {UtilsService} from '@app/services/utils.service';
     selector: 'app-task-type-form',
     templateUrl: './task-type-form.component.html',
     styles: [],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class TaskTypeFormComponent extends BaseFormComponent<TaskType> {
@@ -104,7 +105,7 @@ export class TaskTypeFormComponent extends BaseFormComponent<TaskType> {
     }
 
     this.entityForm = new UntypedFormGroup({
-      title: new UntypedFormControl(this.entityToEdit.title, [Validators.required]),
+      title: new UntypedFormControl(this.entityToEdit.title, [Validators.maxLength(50)]),
     });
   }
 

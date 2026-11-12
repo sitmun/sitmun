@@ -1,12 +1,19 @@
 import { Injectable } from '@angular/core';
 
-import { AppCfg, AppTasks } from '@api/model/app-cfg';
+import type { AppCfg, AppTasks } from '@api/model/app-cfg';
 
 import { SitnaApiService } from '../../services/sitna-api.service';
 import { UIStateService } from '../../services/ui-state.service';
 import type { Meld, MeldJoinPoint } from '../../types/meld.types';
 import { ControlHandlerBase } from '../control-handler-base';
 import { SitnaControlConfig } from '../control-handler.interface';
+import {
+  isLegendHeadingToggleTarget,
+  shouldRefreshLegendOnPanelClick,
+  syncLegendSymbolCollapse,
+  toggleLegendSymbols
+} from './legend-symbol-collapse';
+import { syncLegendOrder } from './legend-work-layer-order';
 
 declare function require(module: string): unknown;
 const meld = require('meld') as Meld;
@@ -16,9 +23,35 @@ type LegendInfo = { legend?: Array<{ src?: string }> };
 type RasterLegendTarget = {
   availableNames?: string[];
   names?: string[] | string;
+  customLegend?: string;
+  options?: { legendType?: string; legendURL?: string; stealth?: boolean };
   getInfo?: (name?: string) => LegendInfo;
   wrap?: { getInfo?: (name?: string) => LegendInfo };
 };
+
+type LegendChoice =
+  | { kind: 'none' }
+  | { kind: 'prioritize' }
+  | { kind: 'legendUrl' }
+  | { kind: 'static'; url: string };
+
+function legendChoice(layer: {
+  options?: { legendType?: string; legendURL?: string };
+}): LegendChoice {
+  const type = layer.options?.legendType;
+  const url =
+    typeof layer.options?.legendURL === 'string' ? layer.options.legendURL.trim() : '';
+  if (type === 'LINK' && url) {
+    return { kind: 'static', url };
+  }
+  if (type === 'LEGENDURL') {
+    return { kind: 'legendUrl' };
+  }
+  if (type === 'LEGENDGRAPHIC') {
+    return { kind: 'prioritize' };
+  }
+  return { kind: 'none' };
+}
 
 /**
  * Handler for the native SITNA legend control.
@@ -87,6 +120,27 @@ export class LegendControlHandler extends ControlHandlerBase {
               );
             };
 
+            const choice = legendChoice(this);
+            if (choice.kind === 'none') {
+              return Promise.resolve([]);
+            }
+            if (choice.kind === 'legendUrl') {
+              return buildFromCapabilities();
+            }
+            if (choice.kind === 'static') {
+              delete this.customLegend;
+              const names = Array.isArray(this.availableNames)
+                ? this.availableNames
+                : Array.isArray(this.names)
+                  ? this.names
+                  : typeof this.names === 'string' && this.names
+                    ? [this.names]
+                    : [];
+              return Promise.resolve(
+                names.map((name) => [{ layerName: name, src: choice.url }])
+              );
+            }
+
             return Promise.resolve(jp.proceed() as Promise<unknown>)
               .then((result) => {
                 if (Array.isArray(result) && result.filter(Boolean).length > 0) {
@@ -120,13 +174,51 @@ export class LegendControlHandler extends ControlHandlerBase {
             const layer = jp.args[0] as {
               id?: string;
               isBase?: boolean;
-              options?: { stealth?: boolean };
+              options?: { stealth?: boolean; legendType?: string; legendURL?: string };
+              customLegend?: string;
               availableNames?: string[];
               getInfo?: (name?: string) => LegendInfo;
             };
+            const choice = layer ? legendChoice(layer) : ({ kind: 'none' } as const);
+            const restore: Array<() => void> = [];
+            if (choice.kind === 'static' && layer) {
+              delete layer.customLegend;
+            }
+            if (choice.kind === 'none' && layer) {
+              const originalInfo = layer.getInfo;
+              const originalNames = layer.availableNames;
+              layer.getInfo = () => ({});
+              layer.availableNames = [];
+              restore.push(() => {
+                layer.getInfo = originalInfo;
+                layer.availableNames = originalNames;
+              });
+            } else if (
+              choice.kind === 'static' &&
+              layer?.availableNames?.length &&
+              !layer.availableNames.some((name) => !!layer.getInfo?.(name)?.legend?.length)
+            ) {
+              const originalInfo = layer.getInfo;
+              layer.getInfo = (name?: string) => {
+                const info = originalInfo?.(name) ?? {};
+                return info.legend?.length
+                  ? info
+                  : { ...info, legend: [{ src: choice.url }] };
+              };
+              restore.push(() => {
+                layer.getInfo = originalInfo;
+              });
+            }
             const shouldShow = (target: typeof layer): boolean => {
               if (!target || target.isBase || target.options?.stealth) {
                 return false;
+              }
+              const targetChoice = legendChoice(target);
+              if (targetChoice.kind === 'none') {
+                return false;
+              }
+              if (targetChoice.kind === 'static' || target.customLegend) {
+                return true;
               }
               if (!target.availableNames) {
                 return true;
@@ -136,7 +228,9 @@ export class LegendControlHandler extends ControlHandlerBase {
               );
             };
 
-            return Promise.resolve(jp.proceed() as Promise<unknown>).then(
+            const pending = Promise.resolve(jp.proceed() as Promise<unknown>);
+            restore.forEach((undo) => undo());
+            return pending.then(
               (result) => {
                 const ul = this.div?.querySelector('ul.tc-ctl-legend-branch');
                 const existing =
@@ -166,6 +260,8 @@ export class LegendControlHandler extends ControlHandlerBase {
       // Issue repro opens Legend after LAYERADD. LayerLegend.getLegend no-ops while
       // the left drawer is off-screen; refresh tree + symbology when it expands.
       this.wireLegendPanelOpenRefresh(TC);
+      this.wireLegendSymbolCollapse();
+      this.wireLegendWorkLayerOrder();
     });
   }
 
@@ -237,6 +333,13 @@ export class LegendControlHandler extends ControlHandlerBase {
       refreshTimer = setTimeout(() => refresh(attachedPanel!), 150);
     };
 
+    const onPanelClick = (event: Event): void => {
+      if (!shouldRefreshLegendOnPanelClick(event.target)) {
+        return;
+      }
+      scheduleRefresh();
+    };
+
     const attach = (leftPanel: HTMLElement): void => {
       if ((leftPanel as any).__sitmunLegendPanelRefresh) {
         return;
@@ -247,7 +350,7 @@ export class LegendControlHandler extends ControlHandlerBase {
         attributes: true,
         attributeFilter: ['class']
       });
-      leftPanel.addEventListener('click', scheduleRefresh, true);
+      leftPanel.addEventListener('click', onPanelClick, true);
       (leftPanel as any).__sitmunLegendPanelRefresh = true;
       waitObserver?.disconnect();
       waitObserver = null;
@@ -277,13 +380,160 @@ export class LegendControlHandler extends ControlHandlerBase {
       panelObserver?.disconnect();
       waitObserver?.disconnect();
       if (attachedPanel) {
-        attachedPanel.removeEventListener('click', scheduleRefresh, true);
+        attachedPanel.removeEventListener('click', onPanelClick, true);
         delete (attachedPanel as any).__sitmunLegendPanelRefresh;
       }
       if (refreshTimer) {
         clearTimeout(refreshTimer);
       }
       delete (document as any).__sitmunLegendPanelRefreshPending;
+    });
+  }
+
+  private wireLegendSymbolCollapse(): void {
+    if ((document as Document & { __sitmunLegendSymbolCollapse?: boolean })
+      .__sitmunLegendSymbolCollapse) {
+      return;
+    }
+    (
+      document as Document & { __sitmunLegendSymbolCollapse?: boolean }
+    ).__sitmunLegendSymbolCollapse = true;
+
+    const knownIds = new Set<string>();
+    let slot: HTMLElement | null = null;
+    let listObserver: MutationObserver | null = null;
+    let waitObserver: MutationObserver | null = null;
+
+    const sync = (): void => {
+      if (!slot) {
+        return;
+      }
+      syncLegendSymbolCollapse(
+        Array.from(slot.querySelectorAll('sitna-layer-legend')),
+        knownIds
+      );
+    };
+
+    const onClick = (event: Event): void => {
+      if (!isLegendHeadingToggleTarget(event.target)) {
+        return;
+      }
+      const entry = (event.target as Element).closest('sitna-layer-legend');
+      if (entry instanceof HTMLElement) {
+        toggleLegendSymbols(entry);
+      }
+    };
+
+    const attach = (next: HTMLElement): void => {
+      if (slot === next) {
+        return;
+      }
+      slot?.removeEventListener('click', onClick);
+      listObserver?.disconnect();
+      slot = next;
+      slot.addEventListener('click', onClick);
+      listObserver = new MutationObserver(sync);
+      listObserver.observe(slot, { childList: true, subtree: true });
+      sync();
+    };
+
+    const existing = document.getElementById('tc-slot-legend');
+    if (existing) {
+      attach(existing);
+    } else {
+      waitObserver = new MutationObserver(() => {
+        const found = document.getElementById('tc-slot-legend');
+        if (found) {
+          attach(found);
+          waitObserver?.disconnect();
+          waitObserver = null;
+        }
+      });
+      waitObserver.observe(document.documentElement, {
+        childList: true,
+        subtree: true
+      });
+    }
+
+    this.patchManager.add(() => {
+      listObserver?.disconnect();
+      waitObserver?.disconnect();
+      slot?.removeEventListener('click', onClick);
+      delete (document as Document & { __sitmunLegendSymbolCollapse?: boolean })
+        .__sitmunLegendSymbolCollapse;
+    });
+  }
+
+  private wireLegendWorkLayerOrder(): void {
+    const doc = document as Document & { __sitmunLegendWorkLayerOrder?: boolean };
+    if (doc.__sitmunLegendWorkLayerOrder) {
+      return;
+    }
+    doc.__sitmunLegendWorkLayerOrder = true;
+
+    let scheduled = false;
+    let wlmList: HTMLElement | null = null;
+    let legendList: HTMLElement | null = null;
+    let wlmObserver: MutationObserver | null = null;
+    let legendObserver: MutationObserver | null = null;
+    let waitObserver: MutationObserver | null = null;
+
+    const sync = (): void => {
+      scheduled = false;
+      if (!wlmList || !legendList) {
+        return;
+      }
+      syncLegendOrder(legendList, wlmList);
+    };
+
+    const schedule = (): void => {
+      if (scheduled) {
+        return;
+      }
+      scheduled = true;
+      queueMicrotask(sync);
+    };
+
+    const attach = (): void => {
+      const nextWlm = document.querySelector(
+        '.tc-ctl-wlm .tc-ctl-wlm-content > ul'
+      ) as HTMLElement | null;
+      const nextLegend = document.querySelector(
+        '#tc-slot-legend ul.tc-ctl-legend-branch'
+      ) as HTMLElement | null;
+      if (nextWlm && nextWlm !== wlmList) {
+        wlmObserver?.disconnect();
+        wlmList = nextWlm;
+        wlmObserver = new MutationObserver(schedule);
+        wlmObserver.observe(wlmList, { childList: true });
+      }
+      if (nextLegend && nextLegend !== legendList) {
+        legendObserver?.disconnect();
+        legendList = nextLegend;
+        legendObserver = new MutationObserver(schedule);
+        legendObserver.observe(legendList, { childList: true });
+      }
+      if (wlmList && legendList) {
+        schedule();
+        waitObserver?.disconnect();
+        waitObserver = null;
+      }
+    };
+
+    attach();
+    if (!wlmList || !legendList) {
+      waitObserver = new MutationObserver(attach);
+      waitObserver.observe(document.documentElement, {
+        childList: true,
+        subtree: true
+      });
+    }
+
+    this.patchManager.add(() => {
+      wlmObserver?.disconnect();
+      legendObserver?.disconnect();
+      waitObserver?.disconnect();
+      delete doc.__sitmunLegendWorkLayerOrder;
     });
   }
 

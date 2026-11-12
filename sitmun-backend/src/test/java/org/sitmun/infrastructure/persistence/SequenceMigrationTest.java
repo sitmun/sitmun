@@ -1,6 +1,7 @@
 package org.sitmun.infrastructure.persistence;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
 import static org.assertj.core.api.SoftAssertions.assertSoftly;
 
 import java.nio.file.Path;
@@ -13,19 +14,20 @@ import liquibase.Contexts;
 import liquibase.Liquibase;
 import liquibase.database.DatabaseFactory;
 import liquibase.database.jvm.JdbcConnection;
+import liquibase.resource.CompositeResourceAccessor;
 import liquibase.resource.DirectoryResourceAccessor;
 import org.h2.jdbcx.JdbcDataSource;
 import org.junit.jupiter.api.Test;
-import org.springframework.jdbc.datasource.DriverManagerDataSource;
 
 class SequenceMigrationTest {
 
   private static final Path PROJECT_ROOT = Path.of(".").toAbsolutePath().normalize();
-  private static final String CHANGELOG = "config/db/changelog/db.changelog-master.yaml";
+  private static final String CHANGELOG = "db/changelog-test/db.changelog-master.yaml";
 
   private static final List<Generator> GENERATORS =
       List.of(
           new Generator("ABC_ID", "STM_APP_BCKG", "ABC_ID"),
+          new Generator("ATR_ID", "STM_APP_TREE", "ATR_ID"),
           new Generator("AGI_ID", "STM_AVAIL_GI", "AGI_ID"),
           new Generator("APP_ID", "STM_APP", "APP_ID"),
           new Generator("ATE_ID", "STM_APP_TER", "ATE_ID"),
@@ -64,7 +66,11 @@ class SequenceMigrationTest {
           new Generator("USER_TOKEN_ID", "STM_TOKEN_USER", "USER_TOKEN_ID"));
 
   @Test
-  void productionChangelogInitializesEveryTableGeneratorAboveSeededIds() throws Exception {
+  void testChangelogSetsEveryCounterOnePastTheHighestId() throws Exception {
+    assertThat(GENERATORS)
+        .extracting(Generator::sequenceName, Generator::tableName, Generator::idColumn)
+        .contains(tuple("ATR_ID", "STM_APP_TREE", "ATR_ID"));
+
     var dataSource = createDataSource();
 
     applyLiquibase(dataSource);
@@ -75,12 +81,12 @@ class SequenceMigrationTest {
               GENERATORS.forEach(
                   generator -> {
                     try {
-                      var expected = selectNextId(connection, generator);
+                      long nextId = selectNextId(connection, generator);
                       var actual = selectSequenceCount(connection, generator.sequenceName());
                       softly
                           .assertThat(actual)
                           .as("%s generator", generator.sequenceName())
-                          .isEqualTo(expected);
+                          .isEqualTo(nextId);
                     } catch (SQLException exception) {
                       throw new AssertionError(generator.sequenceName(), exception);
                     }
@@ -89,16 +95,6 @@ class SequenceMigrationTest {
   }
 
   private static DataSource createDataSource() {
-    var profiles = System.getProperty("spring.profiles.active", "test,h2");
-    if (profiles.contains("postgres")) {
-      return new DriverManagerDataSource(
-          "jdbc:postgresql://localhost:5432/sitmun3", "sitmun3", "sitmun3");
-    }
-    if (profiles.contains("oracle")) {
-      return new DriverManagerDataSource(
-          "jdbc:oracle:thin:@//localhost:1521/sitmun3", "sitmun3", "sitmun3");
-    }
-
     var dataSource = new JdbcDataSource();
     dataSource.setURL("jdbc:h2:mem:sequence-" + UUID.randomUUID() + ";DB_CLOSE_DELAY=-1");
     dataSource.setUser("sa");
@@ -110,8 +106,11 @@ class SequenceMigrationTest {
       var database =
           DatabaseFactory.getInstance()
               .findCorrectDatabaseImplementation(new JdbcConnection(connection));
-      try (var liquibase =
-          new Liquibase(CHANGELOG, new DirectoryResourceAccessor(PROJECT_ROOT), database)) {
+      var resources =
+          new CompositeResourceAccessor(
+              new DirectoryResourceAccessor(PROJECT_ROOT.resolve("src/test/resources")),
+              new DirectoryResourceAccessor(PROJECT_ROOT.resolve("src/main/resources")));
+      try (var liquibase = new Liquibase(CHANGELOG, resources, database)) {
         liquibase.dropAll();
         liquibase.update(new Contexts());
       }

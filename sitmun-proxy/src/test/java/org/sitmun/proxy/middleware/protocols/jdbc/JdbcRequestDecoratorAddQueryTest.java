@@ -2,9 +2,11 @@ package org.sitmun.proxy.middleware.protocols.jdbc;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.sql.Types;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.sitmun.proxy.contract.JdbcParameter;
 
 class JdbcRequestDecoratorAddQueryTest {
 
@@ -16,7 +18,7 @@ class JdbcRequestDecoratorAddQueryTest {
     JdbcPayloadDto payload =
         JdbcPayloadDto.builder()
             .sql("SELECT * FROM test WHERE id=?")
-            .parameters(List.of("123"))
+            .parameters(List.of(new JdbcParameter(Types.VARCHAR, "123")))
             .build();
 
     decorator.addBehavior(executor, payload);

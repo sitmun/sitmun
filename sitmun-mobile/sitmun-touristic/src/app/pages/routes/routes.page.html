@@ -1,0 +1,314 @@
+<ion-header [translucent]="true" mode="md">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button (click)="backPage()">
+        <ion-icon name="arrow-back" size="large"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title>{{rootNode['title']}}</ion-title>
+    <ion-buttons slot="end">
+      <ion-select
+        [(ngModel)]="selectedLanguage"
+        (ionChange)="setLanguage($event.detail.value)"
+        interface="popover"
+      >
+        @for (lang of languageOptions; track lang) {
+        <ion-select-option [value]="lang.code">
+          {{ lang.name }}
+        </ion-select-option>
+        }
+      </ion-select>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <div id="container">
+    @if (rootNode['image']) {
+    <div class="root-img-container">
+      <ion-img [src]="rootNode['image']"></ion-img>
+    </div>
+    }
+    <div class="grid-container">
+      <div class="container">
+        @if (loaded) { @for (elem of elements; track elem) {
+        <div class="row">
+          <div class="card list-item mb-1">
+            <div class="row g-0">
+              <div
+                class="col-3 list-img-container-sm my-auto"
+                (click)="openModalImg($event, elem['image'])"
+              >
+                <ion-img
+                  class="list-img-sm img-cover"
+                  src="{{elem['image'] || '../../assets/icon/no-image.jpg'}}"
+                ></ion-img>
+              </div>
+              <div class="col-7">
+                <div class="card-body">
+                  <h5 class="card-title">{{elem['name']}}</h5>
+                  @if (elem['length'] || elem['difficulty']) {
+                  <div class="card-text d-flex">
+                    <div>
+                      @switch (getDifficultyValue(elem['difficulty'])) { @case
+                      ('-1') {
+                      <span class="fw-bold text-white p-2 rounded bg-dark"
+                        >{{ 'routes.unclassified' | translate }}
+                      </span>
+                      } @case ('0') {
+                      <span class="fw-bold text-white p-2 rounded bg-medium"
+                        >{{ 'routes.notsuitable' | translate }}
+                      </span>
+                      } @case ('1') {
+                      <span class="fw-bold text-white p-2 rounded bg-success"
+                        >{{ 'routes.easy' | translate }}
+                      </span>
+                      } @case ('2') {
+                      <span class="fw-bold text-white p-2 rounded bg-warning"
+                        >{{ 'routes.medium' | translate }}
+                      </span>
+                      } @case ('3') {
+                      <span class="fw-bold text-white p-2 rounded bg-danger"
+                        >{{ 'routes.hard' | translate }}
+                      </span>
+                      } }
+                    </div>
+                    <div>
+                      @if (elem['length']) {
+                      <span class="fw-bold text-dark ms-3"
+                        >{{elem['length']}} km</span
+                      >
+                      }
+                    </div>
+                  </div>
+                  }
+                </div>
+              </div>
+              <div class="col-2 my-auto">
+                <ion-button
+                  shape="round"
+                  class="favorite-btn dl-btn"
+                  [ngClass]="{'active' : elem['isFav']}"
+                  (click)="toggleFavorite($event, elem)"
+                >
+                  <ion-icon slot="icon-only" name="heart"></ion-icon>
+                </ion-button>
+                <ion-button
+                  shape="round"
+                  class="location-btn dl-btn"
+                  (click)="locateElement(elem)"
+                >
+                  <ion-icon slot="icon-only" name="location"></ion-icon>
+                </ion-button>
+              </div>
+            </div>
+            @if (elem['description'] || elem['leftbtn'] || elem['rightbtn']) {
+            <div class="row">
+              <ion-accordion-group>
+                <ion-accordion value="first">
+                  <ion-item slot="header" class="mx-auto">
+                    <ion-label class="extraInfo-label"
+                      >{{'moreInfo' | translate}}</ion-label
+                    >
+                    <ion-icon
+                      name="chevron-down"
+                      slot="end"
+                      class="ion-accordion-toggle-icon"
+                    ></ion-icon>
+                  </ion-item>
+                  <div
+                    class="extraInfo-content ion-padding container"
+                    slot="content"
+                  >
+                    @if (elem['time'] || elem['start'] || elem['end'] ||
+                    elem['circ']) {
+                    <div
+                      class="extraInfo-data mb-3 align-items-center justify-content-center"
+                    >
+                      @if (elem['time']) {
+                      <div>
+                        <ion-icon name="time-outline"></ion-icon>
+                        {{ elem['time'] }} min
+                      </div>
+                      } @if (elem['circ'] === 'SI') {
+                      <div>
+                        <ion-icon name="refresh-outline"></ion-icon>
+                        {{ 'routes.circular' | translate }}
+                      </div>
+                      } @if (elem['start']) {
+                      <div>
+                        <span class="fw-bold me-1"
+                          >{{ 'routes.start' | translate }}:</span
+                        >{{ elem['start'] }}
+                      </div>
+                      } @if (elem['end']) {
+                      <div>
+                        <span class="fw-bold me-1"
+                          >{{ 'routes.end' | translate }}:</span
+                        >{{ elem['end'] }}
+                      </div>
+                      }
+                    </div>
+                    } @if (elem['description']) {
+                    <div class="row extraInfo-data longText mb-5">
+                      <div [innerHTML]="elem['description']"></div>
+                    </div>
+                    } @if (elem['graphic']) {
+                    <div (click)="openModalImg($event, elem['graphic'])">
+                      <img class="route-img" src="{{elem['graphic']}}" />
+                    </div>
+                    } @if (elem['leftbtn'] || elem['rightbtn'] ||
+                    taskNode.children) {
+                    <div class="row justify-content-evenly">
+                      <div class="col-6">
+                        @if (elem.leftbtn || taskNode.children) {
+                        <div>
+                          @if (isValidHref(elem.leftbtn)) {
+                          <ion-button
+                            class="access-btn w-100"
+                            shape="round"
+                            (click)="openLink(elem.leftbtn)"
+                          >
+                            {{elem.leftbtnLabel | translate}}
+                          </ion-button>
+                          } @if (!isValidHref(elem.leftbtn)) {
+                          <ion-button
+                            class="access-btn w-100"
+                            shape="round"
+                            (click)="openExtraInfo(elem, 'leftbtn', 'leftbtnLabel')"
+                          >
+                            {{elem.leftbtnLabel | translate}}
+                          </ion-button>
+                          }
+                        </div>
+                        }
+                      </div>
+                      <div class="col-6">
+                        @if (elem.rightbtn || (taskNode.children &&
+                        elem.leftbtn)) {
+                        <div>
+                          @if (isValidHref(elem.rightbtn)) {
+                          <ion-button
+                            class="access-btn w-100"
+                            shape="round"
+                            (click)="openLink(elem.rightbtn)"
+                          >
+                            {{elem.rightbtnLabel | translate}}
+                          </ion-button>
+                          } @if (!isValidHref(elem.rightbtn)) {
+                          <ion-button
+                            class="access-btn w-100"
+                            shape="round"
+                            (click)="openExtraInfo(elem, 'rightbtn', 'rightbtnLabel')"
+                          >
+                            {{elem.rightbtnLabel | translate}}
+                          </ion-button>
+                          }
+                        </div>
+                        }
+                      </div>
+                    </div>
+                    }
+                  </div>
+                </ion-accordion>
+              </ion-accordion-group>
+            </div>
+            }
+          </div>
+        </div>
+        } } @else { @for (i of arraySkeleton; track i) {
+        <div class="row">
+          <div class="card list-item mb-1 p-2">
+            <div class="row g-0">
+              <div class="col-3 list-img-container-sm my-auto">
+                <ion-skeleton-text [animated]="true"></ion-skeleton-text>
+              </div>
+              <div class="col-7">
+                <div class="card-body">
+                  <h5 class="card-title">
+                    <ion-skeleton-text [animated]="true"></ion-skeleton-text>
+                  </h5>
+                  <p class="card-text">
+                    <ion-skeleton-text [animated]="true"></ion-skeleton-text>
+                  </p>
+                  <p class="card-text">
+                    <ion-skeleton-text [animated]="true"></ion-skeleton-text>
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        } }
+      </div>
+    </div>
+  </div>
+
+  <ion-modal
+    id="extraInfo-modal"
+    #modal
+    [isOpen]="isModalOpen"
+    (ionModalDidDismiss)="closeExtraInfoModal()"
+  >
+    <ng-template>
+      <div class="wrapper container">
+        <div class="row">
+          <h1>{{currentExtraInfo.title | translate}}</h1>
+        </div>
+        <div class="row">
+          <div
+            class="extraInfo-content"
+            [innerHTML]="currentExtraInfo.content"
+          ></div>
+        </div>
+        <div class="row">
+          <div class="col">
+            <ion-button
+              class="access-btn"
+              expand="block"
+              (click)="closeExtraInfoModal()"
+              >Ok</ion-button
+            >
+          </div>
+        </div>
+      </div>
+    </ng-template>
+  </ion-modal>
+
+  <ion-modal
+    class="modal-img"
+    [isOpen]="isModalOpenImg"
+    (ionModalDidDismiss)="closeModalImg()"
+  >
+    <ng-template>
+      <ion-img
+        src="{{ imageModal || '../../assets/icon/no-image.jpg' }}"
+      ></ion-img>
+    </ng-template>
+  </ion-modal>
+</ion-content>
+
+<ion-footer [translucent]="true">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <div class="vertical-btn" (click)="startPage()">
+        <ion-icon name="home" size="large"></ion-icon>
+        <ion-label class="ion-text-wrap text-dark"
+          >{{'home.title' | translate}}</ion-label
+        >
+      </div>
+    </ion-buttons>
+    <ion-buttons slot="end">
+      <div class="vertical-btn">
+        <ion-icon
+          [routerLink]="['/']"
+          name="exit-outline"
+          size="large"
+        ></ion-icon>
+        <ion-label class="ion-text-wrap text-dark">
+          {{ 'exit.exit' | translate }}
+        </ion-label>
+      </div>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-footer>

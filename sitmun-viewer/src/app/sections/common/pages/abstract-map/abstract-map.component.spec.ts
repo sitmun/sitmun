@@ -4,7 +4,7 @@ import { TestBed } from '@angular/core/testing';
 import { MatDialog } from '@angular/material/dialog';
 import { ActivatedRoute, Router } from '@angular/router';
 
-import { AppCfg, GeneralCfg } from '@api/model/app-cfg';
+import type { AppCfg, GeneralCfg } from '@api/model/app-cfg';
 import { CommonService } from '@api/services/common.service';
 import { TranslateService } from '@ngx-translate/core';
 import { of } from 'rxjs';
@@ -146,7 +146,7 @@ describe('AbstractMapComponent lifecycle', () => {
         {
           provide: TranslateService,
           useValue: {
-            currentLang: 'es',
+            getCurrentLang: () => 'es',
             onLangChange: of({ lang: 'es' })
           }
         },
@@ -154,7 +154,8 @@ describe('AbstractMapComponent lifecycle', () => {
         {
           provide: ActivatedRoute,
           useValue: {
-            params: of({ applicationId: '1', territoryId: '2' })
+            params: of({ applicationId: '1', territoryId: '2' }),
+            snapshot: { queryParamMap: { get: () => null } }
           }
         },
         { provide: Router, useValue: {} },

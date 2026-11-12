@@ -1,0 +1,6 @@
+{
+  "columns": {},
+  "codelists": {},
+  "projections": {"unique_function_index": {"STM_LITERAL_TRANSLATION.LTR_LITERAL": "stm_ltr_literal_uk"}},
+  "uniques": {}
+}

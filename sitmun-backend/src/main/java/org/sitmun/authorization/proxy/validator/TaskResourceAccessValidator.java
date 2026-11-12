@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.sitmun.authorization.proxy.dto.ConfigProxyRequestDto;
 import org.sitmun.domain.application.ApplicationRepository;
+import org.sitmun.domain.role.RoleRepository;
 import org.sitmun.domain.task.TaskRepository;
 import org.sitmun.domain.territory.TerritoryRepository;
 import org.sitmun.domain.user.UserRepository;
@@ -26,16 +27,12 @@ import org.springframework.stereotype.Component;
  *   <li>User existence validation
  *   <li>Application existence validation
  *   <li>Territory existence validation (when terId > 0)
- *   <li>Role-based access: validates user has roles granting access to the task via task
- *       availabilities and roles
+ *   <li>Role-based access: the user must hold a role of this application in the territory, and that
+ *       role must grant the task there
  * </ul>
  *
- * <p>This validator uses the same logic as {@code AuthorizationService.buildProfile()} which calls
- * {@code taskRepository.findByRolesAndTerritory(roles, territoryId)} to ensure consistent
- * permissions. The SQL query guarantees that returned tasks have non-null roles collections through
- * JOIN constraints.
- *
- * <p>This validator is invoked when {@code sitmun.proxy-middleware.validate-user-access=true}.
+ * <p>Roles are {@code RoleRepository.findRolesByApplicationAndUserAndTerritory}, the same link the
+ * client profile uses. Accessible tasks are then {@code taskRepository.findByRolesAndTerritory}.
  */
 @Slf4j
 @Component
@@ -49,6 +46,7 @@ public class TaskResourceAccessValidator implements ResourceAccessValidator {
   private final UserRepository userRepository;
   private final ApplicationRepository applicationRepository;
   private final TerritoryRepository territoryRepository;
+  private final RoleRepository roleRepository;
 
   @Override
   public boolean supports(String type) {
@@ -64,22 +62,18 @@ public class TaskResourceAccessValidator implements ResourceAccessValidator {
         request.getTerId(),
         request.getTypeId());
 
-    // For now, implement basic validation - can be enhanced based on business rules
-    // Check if task exists
     var taskExists = taskRepository.existsById(request.getTypeId());
     if (!taskExists) {
       log.warn("Task not found: {}", request.getTypeId());
       return false;
     }
 
-    // Check if user exists
     var userOpt = userRepository.findByUsername(userName);
     if (userOpt.isEmpty()) {
       log.warn("User not found: {}", userName);
       return false;
     }
 
-    // Check if application exists
     var applicationExists = applicationRepository.existsById(request.getAppId());
     if (!applicationExists) {
       log.warn("Application not found: {}", request.getAppId());
@@ -95,29 +89,20 @@ public class TaskResourceAccessValidator implements ResourceAccessValidator {
       }
     }
 
-    // Role-based access control: Check if user has roles that grant access to this task
-    // This follows the same logic as AuthorizationService.buildProfile()
-    var user = userOpt.get();
     var userRoles =
-        user.getPermissions().stream()
-            .filter(
-                config ->
-                    config.getTerritory() != null
-                        && config.getTerritory().getId().equals(request.getTerId()))
-            .map(config -> config.getRole())
-            .toList();
+        roleRepository.findRolesByApplicationAndUserAndTerritory(
+            userName, request.getAppId(), request.getTerId());
 
     if (userRoles.isEmpty()) {
       log.warn(
-          "Access denied: User {} has no roles for territory {} - taskId={}",
+          "Access denied: User {} has no role of application {} in territory {} - taskId={}",
           userName,
+          request.getAppId(),
           request.getTerId(),
           request.getTypeId());
       return false;
     }
 
-    // Check if user has access to this task via roles and territory
-    // Uses the same query as AuthorizationService: findByRolesAndTerritory
     var accessibleTasks = taskRepository.findByRolesAndTerritory(userRoles, request.getTerId());
     var hasAccess =
         accessibleTasks.stream().anyMatch(task -> task.getId().equals(request.getTypeId()));
@@ -131,8 +116,6 @@ public class TaskResourceAccessValidator implements ResourceAccessValidator {
       return false;
     }
 
-    // Role-based access control implemented
-    // Task permissions validated via roles and territory availabilities
     log.debug("Task access validation passed for user: {}", userName);
     return true;
   }

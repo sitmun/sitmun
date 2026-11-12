@@ -8,11 +8,13 @@ import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
 import java.sql.Connection;
+import java.sql.DatabaseMetaData;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Types;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.DisplayName;
@@ -20,6 +22,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.sitmun.proxy.contract.JdbcParameter;
+import org.sitmun.proxy.contract.ProxyHeaders;
 import org.sitmun.proxy.middleware.dto.ProblemDetail;
 import org.slf4j.LoggerFactory;
 
@@ -34,7 +38,7 @@ class JdbcRequestExecutorTest {
     var executor = new JdbcRequestExecutor();
     executor.setConnection(connection);
     executor.setSql("select secret_value from private_table where tenant = ?");
-    executor.setParameters(List.of("tenant-secret"));
+    executor.setParameters(List.of(new JdbcParameter(Types.VARCHAR, "tenant-secret")));
     when(connection.prepareStatement(executorSql())).thenThrow(hostileFailure());
 
     List<ILoggingEvent> events = captureLogs(() -> assertSanitizedFailure(executor));
@@ -59,7 +63,10 @@ class JdbcRequestExecutorTest {
     var executor = new JdbcRequestExecutor();
     executor.setConnection(connection);
     executor.setSql("select password from users");
-    executor.setParameters(List.of("first-secret", "second-secret"));
+    executor.setParameters(
+        List.of(
+            new JdbcParameter(Types.VARCHAR, "first-secret"),
+            new JdbcParameter(Types.VARCHAR, "second-secret")));
 
     assertThat(executor.describe())
         .contains("connectionPresent=true", "sqlPresent=true", "parameterCount=2")
@@ -156,7 +163,8 @@ class JdbcRequestExecutorTest {
     JdbcRequestExecutor executor = new JdbcRequestExecutor();
     executor.setConnection(connection);
     executor.setSql("SELECT * FROM test WHERE a=? AND b=?");
-    executor.setParameters(List.of("x", "y"));
+    executor.setParameters(
+        List.of(new JdbcParameter(Types.VARCHAR, "x"), new JdbcParameter(Types.VARCHAR, "y")));
 
     var responseEntity = executor.execute().asResponseEntity();
 
@@ -167,9 +175,81 @@ class JdbcRequestExecutorTest {
     assertThat(body.get(0)).containsEntry("value", "ok");
 
     verify(connection).prepareStatement("SELECT * FROM test WHERE a=? AND b=?");
-    verify(preparedStatement).setString(1, "x");
-    verify(preparedStatement).setString(2, "y");
+    verify(preparedStatement).setObject(1, "x", Types.VARCHAR);
+    verify(preparedStatement).setObject(2, "y", Types.VARCHAR);
     verify(preparedStatement).executeQuery();
     verify(connection, never()).createStatement();
+  }
+
+  @Test
+  @DisplayName("execute is read-only, times out, and flags a truncated page")
+  void executeIsReadOnlyAndTruncates() throws Exception {
+    PreparedStatement preparedStatement = mock(PreparedStatement.class);
+    ResultSet resultSet = mock(ResultSet.class);
+    ResultSetMetaData metadata = mock(ResultSetMetaData.class);
+    when(connection.prepareStatement("SELECT id FROM t")).thenReturn(preparedStatement);
+    when(preparedStatement.executeQuery()).thenReturn(resultSet);
+    when(resultSet.getMetaData()).thenReturn(metadata);
+    when(metadata.getColumnCount()).thenReturn(1);
+    when(metadata.getColumnLabel(1)).thenReturn("id");
+    when(resultSet.next()).thenReturn(true, true, true, false);
+    when(resultSet.getObject(1)).thenReturn(1, 2, 3);
+
+    JdbcRequestExecutor executor = new JdbcRequestExecutor();
+    executor.setConnection(connection);
+    executor.setSql("SELECT id FROM t");
+    executor.setParameters(List.of(new JdbcParameter(Types.INTEGER, 1)));
+    executor.setMaxRows(2);
+    executor.setTimeoutSeconds(60);
+
+    var response = executor.execute().asResponseEntity();
+
+    @SuppressWarnings("unchecked")
+    List<Map<String, Object>> body = (List<Map<String, Object>>) response.getBody();
+    assertThat(body).hasSize(2);
+    assertThat(response.getHeaders().getFirst(ProxyHeaders.TRUNCATED)).isEqualTo("true");
+    verify(connection).setReadOnly(true);
+    verify(connection).rollback();
+    verify(preparedStatement).setQueryTimeout(60);
+    verify(preparedStatement).setMaxRows(3);
+    verify(preparedStatement).setObject(1, 1, Types.INTEGER);
+  }
+
+  @Test
+  @DisplayName("Oracle boolean binds as 1 or 0")
+  void oracleBooleanBindsAsNumber() throws Exception {
+    PreparedStatement preparedStatement = mock(PreparedStatement.class);
+    ResultSet resultSet = mock(ResultSet.class);
+    ResultSetMetaData metadata = mock(ResultSetMetaData.class);
+    DatabaseMetaData databaseMetaData = mock(DatabaseMetaData.class);
+    when(connection.getMetaData()).thenReturn(databaseMetaData);
+    when(databaseMetaData.getDatabaseProductName()).thenReturn("Oracle");
+    when(connection.prepareStatement("SELECT ?")).thenReturn(preparedStatement);
+    when(preparedStatement.executeQuery()).thenReturn(resultSet);
+    when(resultSet.getMetaData()).thenReturn(metadata);
+    when(resultSet.next()).thenReturn(false);
+
+    JdbcRequestExecutor executor = new JdbcRequestExecutor();
+    executor.setConnection(connection);
+    executor.setSql("SELECT ?");
+    executor.setParameters(List.of(new JdbcParameter(Types.BOOLEAN, true)));
+
+    executor.execute();
+
+    verify(preparedStatement).setObject(1, 1, Types.NUMERIC);
+  }
+
+  @Test
+  @DisplayName("a missing connection is a SQL error, not a null pointer")
+  void missingConnectionIsASqlError() {
+    JdbcRequestExecutor executor = new JdbcRequestExecutor();
+    executor.setSql("SELECT 1");
+
+    var response = executor.execute().asResponseEntity();
+
+    assertThat(response.getStatusCode().value()).isEqualTo(500);
+    assertThat(response.getBody()).isInstanceOf(ProblemDetail.class);
+    assertThat(((ProblemDetail) response.getBody()).getDetail())
+        .isEqualTo("The JDBC service request failed");
   }
 }

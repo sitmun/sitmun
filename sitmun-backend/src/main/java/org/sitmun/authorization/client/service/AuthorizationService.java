@@ -21,6 +21,7 @@ import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.sitmun.authorization.access.UserApplicationAccessPolicy;
+import org.sitmun.domain.DomainConstants;
 import org.sitmun.domain.application.Application;
 import org.sitmun.domain.application.ApplicationRepository;
 import org.sitmun.domain.application.tree.ApplicationTreeRepository;
@@ -35,6 +36,7 @@ import org.sitmun.domain.configuration.ConfigurationParameterRepository;
 import org.sitmun.domain.role.Role;
 import org.sitmun.domain.role.RoleRepository;
 import org.sitmun.domain.service.ServiceBlockPolicy;
+import org.sitmun.domain.service.usage.ViewerUsage;
 import org.sitmun.domain.task.Task;
 import org.sitmun.domain.task.TaskRepository;
 import org.sitmun.domain.territory.Territory;
@@ -75,6 +77,7 @@ public class AuthorizationService {
   private final TreeNodeRepository treeNodeRepository;
   private final TranslationService translationService;
   private final UserApplicationAccessPolicy userApplicationAccessPolicy;
+  private final ViewerUsage viewerUsage;
 
   public AuthorizationService(
       ApplicationRepository applicationRepository,
@@ -88,7 +91,8 @@ public class AuthorizationService {
       ApplicationTreeRepository applicationTreeRepository,
       TreeNodeRepository treeNodeRepository,
       TranslationService translationService,
-      UserApplicationAccessPolicy userApplicationAccessPolicy) {
+      UserApplicationAccessPolicy userApplicationAccessPolicy,
+      ViewerUsage viewerUsage) {
     this.applicationRepository = applicationRepository;
     this.territoryRepository = territoryRepository;
     this.roleRepository = roleRepository;
@@ -101,6 +105,7 @@ public class AuthorizationService {
     this.treeNodeRepository = treeNodeRepository;
     this.translationService = translationService;
     this.userApplicationAccessPolicy = userApplicationAccessPolicy;
+    this.viewerUsage = viewerUsage;
   }
 
   /**
@@ -135,7 +140,7 @@ public class AuthorizationService {
    */
   public Page<Application> findApplicationsByUser(String username, Pageable pageable) {
     Page<Application> page;
-    if (isPublic() || isPublicPrincipal(username)) {
+    if (usesPublicCatalog(username)) {
       page = applicationRepository.findByPublicUser(username, pageable);
     } else {
       page = applicationRepository.findByUser(username, pageable);
@@ -149,7 +154,7 @@ public class AuthorizationService {
       return findApplicationsByUser(username, pageable);
     }
     String normalizedKeywords = keywords.trim();
-    if (isPublic() || isPublicPrincipal(username)) {
+    if (usesPublicCatalog(username)) {
       return applicationRepository.findByPublicUserAndKeywords(
           username, normalizedKeywords, pageable);
     }
@@ -172,7 +177,7 @@ public class AuthorizationService {
   public Page<Territory> findTerritoriesByUser(String username, Pageable pageable) {
     Page<Territory> page;
 
-    if (isPublic() || isPublicPrincipal(username)) {
+    if (usesPublicCatalog(username)) {
       page = territoryRepository.findByPublicUser(username, pageable);
     } else {
       page = territoryRepository.findByRestrictedUser(username, pageable);
@@ -186,7 +191,7 @@ public class AuthorizationService {
       return findTerritoriesByUser(username, pageable);
     }
     String normalizedKeywords = keywords.trim();
-    if (isPublic() || isPublicPrincipal(username)) {
+    if (usesPublicCatalog(username)) {
       return territoryRepository.findByPublicUserAndKeywords(
           username, normalizedKeywords, pageable);
     }
@@ -207,7 +212,7 @@ public class AuthorizationService {
   public Page<Territory> findTerritoriesByUserAndApplication(
       String username, Integer appId, Pageable pageable) {
     Page<Territory> page;
-    if (isPublic() || isPublicPrincipal(username)) {
+    if (usesPublicCatalog(username)) {
       page = territoryRepository.findByPublicUserAndApplication(username, appId, pageable);
     } else {
       page = territoryRepository.findByRestrictedUserAndApplication(username, appId, pageable);
@@ -228,7 +233,7 @@ public class AuthorizationService {
   public Page<Application> findApplicationsByUserAndTerritory(
       String username, Integer territoryId, Pageable pageable) {
     Page<Application> page;
-    if (isPublic() || isPublicPrincipal(username)) {
+    if (usesPublicCatalog(username)) {
       page = applicationRepository.findByPublicUserAndTerritory(username, territoryId, pageable);
     } else {
       page =
@@ -241,7 +246,7 @@ public class AuthorizationService {
   public Optional<Application> findApplicationByUserApplicationAndTerritory(
       String username, Integer appId, Integer territoryId) {
     Optional<Application> application;
-    if (isPublic() || isPublicPrincipal(username)) {
+    if (usesPublicCatalog(username)) {
       application =
           applicationRepository.findByPublicUserApplicationAndTerritory(
               username, appId, territoryId);
@@ -273,7 +278,7 @@ public class AuthorizationService {
   private List<Task> findProfileTasks(List<Role> roles, Integer territoryId) {
     return taskRepository.findByRolesAndTerritory(roles, territoryId).stream()
         .filter(task -> task.getRoles() != null)
-        .filter(task -> ServiceBlockPolicy.isAccessibleInClientProfileOrNull(task.getService()))
+        .filter(task -> taskServiceAllowedInProfile(task.getService()))
         .toList();
   }
 
@@ -379,11 +384,14 @@ public class AuthorizationService {
         new ArrayList<>(
             cartographyRepository.findByRolesAndTerritory(roles, context.getTerritoryId()).stream()
                 .filter(CartographyBlockPolicy::isNotDirectlyBlocked)
-                .filter(l -> ServiceBlockPolicy.isAccessibleInClientProfile(l.getService()))
+                .filter(l -> serviceAllowedInProfile(l.getService()))
                 .toList());
     layers.forEach(translationService::updateInternationalization);
 
-    List<Task> tasks = findProfileTasks(roles, context.getTerritoryId());
+    List<Task> tasks =
+        findProfileTasks(roles, context.getTerritoryId()).stream()
+            .filter(DomainConstants.Tasks::isIncludedInProfile)
+            .toList();
     tasks.forEach(translationService::updateInternationalization);
 
     List<ApplicationTreeView> treeViews =
@@ -409,15 +417,12 @@ public class AuthorizationService {
     layers.forEach(layer -> services.add(layer.getService()));
     tasks.forEach(task -> services.add(task.getService()));
 
-    // Add situation-map group, layers, and services if application has one
     CartographyPermission situationMap = application.get().getSituationMap();
     if (situationMap != null) {
       translationService.updateInternationalization(situationMap);
-      // Add situation-map group if not already present
       if (!cartographyPermissions.contains(situationMap)) {
         cartographyPermissions.add(situationMap);
       }
-      // Add situation-map layers (members) if not already present
       if (situationMap.getMembers() != null) {
         Set<Integer> existingLayerIds =
             layers.stream().map(Cartography::getId).collect(Collectors.toUnmodifiableSet());
@@ -427,7 +432,6 @@ public class AuthorizationService {
                 .toList();
         situationMapLayers.forEach(translationService::updateInternationalization);
         layers.addAll(situationMapLayers);
-        // Add services from situation-map layers
         situationMapLayers.stream()
             .map(Cartography::getService)
             .filter(Objects::nonNull)
@@ -438,9 +442,10 @@ public class AuthorizationService {
     List<org.sitmun.domain.service.Service> filteredServices =
         services.stream()
             .filter(Objects::nonNull)
-            .filter(ServiceBlockPolicy::isAccessibleInClientProfile)
+            .filter(AuthorizationService::serviceAllowedInProfile)
             .filter(distinctByKey(org.sitmun.domain.service.Service::getId))
             .toList();
+    viewerUsage.record(context.getAppId(), filteredServices);
 
     return Optional.of(
         Profile.builder()
@@ -475,7 +480,16 @@ public class AuthorizationService {
       Cartography member, Set<Integer> existingLayerIds) {
     return CartographyBlockPolicy.isNotDirectlyBlocked(member)
         && !existingLayerIds.contains(member.getId())
-        && ServiceBlockPolicy.isAccessibleInClientProfile(member.getService());
+        && serviceAllowedInProfile(member.getService());
+  }
+
+  private static boolean serviceAllowedInProfile(org.sitmun.domain.service.Service service) {
+    return ServiceBlockPolicy.isAccessibleInClientProfile(service)
+        && DomainConstants.Services.isSupported(service.getType());
+  }
+
+  private static boolean taskServiceAllowedInProfile(org.sitmun.domain.service.Service service) {
+    return service == null || serviceAllowedInProfile(service);
   }
 
   private static boolean treeHasAnyNodes(Tree tree, Map<Tree, List<TreeNode>> treeNodes) {
@@ -720,6 +734,10 @@ public class AuthorizationService {
     profile.setGroups(groupsFiltered);
     profile.setServices(servicesFiltered);
     return profile;
+  }
+
+  private static boolean usesPublicCatalog(String username) {
+    return isPublic() || isPublicPrincipal(username);
   }
 
   public static <T> Predicate<T> distinctByKey(Function<? super T, ?> keyExtractor) {

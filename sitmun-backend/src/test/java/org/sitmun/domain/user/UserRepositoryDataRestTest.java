@@ -12,8 +12,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.sitmun.test.URIConstants;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
@@ -66,7 +66,8 @@ class UserRepositoryDataRestTest {
                     "blocked":false,
                     "password":""
                     }"""))
-        .andExpect(status().isBadRequest());
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.detail").value("Password cannot be empty"));
   }
 
   @Test
@@ -101,6 +102,7 @@ class UserRepositoryDataRestTest {
                         "email":"false@false.com"
                         }"""))
             .andExpect(status().isCreated())
+            .andExpect(jsonPath("$.email").value("false@false.com"))
             .andReturn()
             .getResponse();
   }

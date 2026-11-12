@@ -53,7 +53,9 @@ class TaskRepositoryDataRestTest extends BaseTest {
 
     TaskType basic = taskTypeRepository.findById(1).orElseThrow();
 
-    territory = Territory.builder().name("Territorio 1").code("some-code").blocked(false).build();
+    String suffix = UUID.randomUUID().toString().substring(0, 8);
+    territory =
+        Territory.builder().name("Territorio " + suffix).code("c-" + suffix).blocked(false).build();
     territoryRepository.save(territory);
     tasks = new ArrayList<>();
 
@@ -173,7 +175,7 @@ class TaskRepositoryDataRestTest extends BaseTest {
     mvc.perform(get(location))
         .andDo(print())
         .andExpect(status().isOk())
-        .andExpect(content().contentType(MediaTypes.HAL_JSON))
+        .andExpect(content().contentType(MediaTypes.VND_HAL_JSON))
         .andExpect(jsonPath("$.name", equalTo(TASK_NAME)))
         .andExpect(jsonPath("$.properties.parameters[0].name", equalTo(TYPE_STRING)));
 
@@ -186,13 +188,13 @@ class TaskRepositoryDataRestTest extends BaseTest {
   @WithMockUser(roles = "ADMIN")
   @DisplayName("GET: Get tasks per application")
   void getTasksAvailableForApplication() throws Exception {
-    mvc.perform(get(URIConstants.TASKS_AVAILABLE_URI, 1))
+    mvc.perform(get(URIConstants.TASKS_AVAILABLE_URI, 10001))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$._embedded.tasks", hasSize(43)));
+        .andExpect(jsonPath("$._embedded.tasks", hasSize(46)));
 
-    mvc.perform(get(URIConstants.TASKS_AVAILABLE_URI, 2))
+    mvc.perform(get(URIConstants.TASKS_AVAILABLE_URI, 10002))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$._embedded.tasks", hasSize(43)));
+        .andExpect(jsonPath("$._embedded.tasks", hasSize(46)));
   }
 
   @Test
@@ -206,30 +208,11 @@ class TaskRepositoryDataRestTest extends BaseTest {
   @DisplayName("GET: This endpoint is enabled for ROLE_ADMIN")
   void getTasksAsSitmunAdmin() throws Exception {
     // Full task projection includes this class's @BeforeEach fixtures (+2) atop seeded tasks
-    // (41 CSV + MIA control 43 + MIA parent 42). Explicit size=100 (default page size is 10).
+    // (10041 CSV + MIA control 10043 + MIA parent 10042). Explicit size=100 (default page size is
+    // 10).
     mvc.perform(get(URIConstants.TASKS_URI_PROJECTION_VIEW + "&size=100"))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$._embedded.tasks", hasSize(45)));
-  }
-
-  @Test
-  @WithMockUser(roles = "ADMIN")
-  @DisplayName("GET: Access enabled to the cartography of a task")
-  @Disabled("Requires additional test data")
-  void getCartographyView() throws Exception {
-    mvc.perform(get(URIConstants.TASK_PROJECTION_CARTOGRAPHY_VIEW, 1))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.id", is(88)));
-  }
-
-  @Test
-  @WithMockUser(roles = "ADMIN")
-  @DisplayName("GET: Tasks can be filtered")
-  @Disabled("Requires additional test data")
-  void getTaskFilteredByTypeAsSitmunAdmin() throws Exception {
-    mvc.perform(get(URIConstants.TASKS_URI_FILTER, "type.id", "2", "10"))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$._embedded.tasks", hasSize(10)));
+        .andExpect(jsonPath("$._embedded.tasks", hasSize(52)));
   }
 
   @Test
@@ -259,7 +242,7 @@ class TaskRepositoryDataRestTest extends BaseTest {
   void getTasksSortedByNameAsc() throws Exception {
     mvc.perform(get(URIConstants.TASKS_URI_PROJECTION_VIEW + "&sort=name,ASC&size=100"))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$._embedded.tasks", hasSize(45)))
+        .andExpect(jsonPath("$._embedded.tasks", hasSize(52)))
         .andExpect(jsonPath("$._embedded.tasks[0].name", lessThanOrEqualTo("ZZZ")))
         .andExpect(jsonPath("$._embedded.tasks[41].name", greaterThanOrEqualTo("AAA")));
   }
@@ -270,7 +253,7 @@ class TaskRepositoryDataRestTest extends BaseTest {
   void getTasksSortedByNameDesc() throws Exception {
     mvc.perform(get(URIConstants.TASKS_URI_PROJECTION_VIEW + "&sort=name,DESC&size=100"))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$._embedded.tasks", hasSize(45)))
+        .andExpect(jsonPath("$._embedded.tasks", hasSize(52)))
         .andExpect(jsonPath("$._embedded.tasks[0].name", greaterThanOrEqualTo("AAA")))
         .andExpect(jsonPath("$._embedded.tasks[41].name", lessThanOrEqualTo("ZZZ")));
   }

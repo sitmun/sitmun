@@ -1,7 +1,7 @@
 # SITMUN Backend Core
 
 [![License: EUPL v1.2](https://img.shields.io/badge/License-EUPL%20v1.2-blue.svg)](LICENSE)
-![Version](https://img.shields.io/badge/version-1.2.9-blue.svg)
+![Version](https://img.shields.io/badge/version-1.3.0-blue.svg)
 
 Spring Boot service providing REST APIs for geospatial application management, authentication, and configuration in the [SITMUN](https://sitmun.github.io/) platform.
 
@@ -59,7 +59,7 @@ SITMUN Backend Core provides:
 - Database support (H2, PostgreSQL, Oracle)
 - JWT-based security and OpenAPI documentation
 
-Integrates with the [SITMUN Map Viewer](https://github.com/sitmun/sitmun-map-viewer) and [SITMUN Proxy Middleware](https://github.com/sitmun/sitmun-proxy-middleware).
+Integrates with the [SITMUN viewer](https://github.com/sitmun/sitmun/tree/dev/sitmun-viewer) and the [SITMUN proxy](https://github.com/sitmun/sitmun/tree/dev/sitmun-proxy).
 
 ## Quick Start
 
@@ -76,24 +76,26 @@ Integrates with the [SITMUN Map Viewer](https://github.com/sitmun/sitmun-map-vie
 1. **Clone the repository**
 
    ```bash
-   git clone https://github.com/sitmun/sitmun-backend-core.git
-   cd sitmun-backend-core
+   git clone --branch dev https://github.com/sitmun/sitmun.git
+   cd sitmun
    ```
+
+   Gradle runs from this repository root. The boot jar is `sitmun-backend/build/libs/sitmun-backend-<version>.jar`, where `<version>` is `version` in `gradle.properties`. Do not run the `-plain` jar.
 
 2. **Build the application**
 
    ```bash
-   ./gradlew build -x test
+   ./gradlew :sitmun-backend:build -x test
    ```
 
 3. **Run the application**
 
    ```bash
    # Run with Java directly (recommended)
-   java -jar build/libs/sitmun-backend-core.jar --spring.profiles.active=dev
+   java -jar sitmun-backend/build/libs/sitmun-backend-$(awk -F= '/^version=/{print $2}' gradle.properties).jar --spring.profiles.active=dev
    
    # Or use Gradle bootRun directly
-   ./gradlew bootRun --args='--spring.profiles.active=dev'
+   ./gradlew :sitmun-backend:bootRun --args='--spring.profiles.active=dev'
    ```
 
 4. **Verify the service is running**
@@ -110,32 +112,13 @@ Integrates with the [SITMUN Map Viewer](https://github.com/sitmun/sitmun-map-vie
 
 ### Docker Deployment
 
-1. **Start with Docker Compose (H2 - Development)**
+From the repository root, the published stack runs `ghcr.io/sitmun/backend:1.3.0` from `compose.yaml`. Copy a profile, run `./setup.sh` (Windows: `./setup.ps1`), then `docker compose up -d --pull always --no-build`. `docker compose up -d` builds this checkout. Profiles and URLs are in the [repository README](../README.md).
 
-   ```bash
-   cd docker/development
-   docker-compose up
-   ```
+**Verify deployment**
 
-2. **PostgreSQL Database**
-
-   ```bash
-   cd docker/postgres
-   docker-compose up
-   ```
-
-3. **Oracle Database**
-
-   ```bash
-   cd docker/oracle
-   docker-compose up
-   ```
-
-4. **Verify deployment**
-
-   ```bash
-   curl http://localhost:8080/api/dashboard/health
-   ```
+```bash
+curl http://localhost:9001/api/dashboard/health
+```
 
 ### Troubleshooting
 
@@ -143,22 +126,21 @@ Integrates with the [SITMUN Map Viewer](https://github.com/sitmun/sitmun-map-vie
 
 ```bash
 # Use different port
-./gradlew bootRun --args='--spring.profiles.active=dev --server.port=8081'
+./gradlew :sitmun-backend:bootRun --args='--spring.profiles.active=dev --server.port=8081'
 ```
 
 #### Memory Issues
 
 ```bash
 # Increase heap size
-./gradlew bootRun --args='--spring.profiles.active=dev -Xmx4g -Xms2g'
+./gradlew :sitmun-backend:bootRun --args='--spring.profiles.active=dev -Xmx4g -Xms2g'
 ```
 
 #### Docker Issues
 
 ```bash
 # Clean up Docker resources
-cd docker/development
-docker-compose down -v
+docker compose down -v
 docker system prune -f
 ```
 
@@ -166,11 +148,11 @@ docker system prune -f
 
 ```bash
 # Check database connectivity
-docker exec sitmun-backend ping postgres
-docker exec sitmun-backend ping oracle
+docker compose exec backend ping postgres
+docker compose exec backend ping oracle
 
 # Verify database configuration
-curl http://localhost:8080/api/dashboard/health
+curl http://localhost:9001/api/dashboard/health
 ```
 
 ### Packaging Options
@@ -183,13 +165,13 @@ Standalone executable JAR with embedded Tomcat server.
 
 ```bash
 # Build JAR (default)
-./gradlew build
+./gradlew :sitmun-backend:build
 
 # Or explicitly
-./gradlew build -Ppackaging=jar
+./gradlew :sitmun-backend:build -Ppackaging=jar
 
 # Run JAR
-java -jar build/libs/sitmun-backend-core.jar --spring.profiles.active=dev
+java -jar sitmun-backend/build/libs/sitmun-backend-$(awk -F= '/^version=/{print $2}' gradle.properties).jar --spring.profiles.active=dev
 ```
 
 **Use JAR when:**
@@ -204,9 +186,9 @@ Web Application Archive for deployment to external servlet containers.
 
 ```bash
 # Build WAR
-./gradlew build -Ppackaging=war
+./gradlew :sitmun-backend:build -Ppackaging=war
 
-# Output: build/libs/sitmun-backend-core.war
+# Output: sitmun-backend/build/libs/sitmun-backend-<version>.war
 ```
 
 **Use WAR when:**
@@ -219,13 +201,13 @@ Web Application Archive for deployment to external servlet containers.
 
 ```bash
 # Copy WAR to Tomcat
-cp build/libs/sitmun-backend-core.war /path/to/tomcat/webapps/
+cp sitmun-backend/build/libs/sitmun-backend-$(awk -F= '/^version=/{print $2}' gradle.properties).war /path/to/tomcat/webapps/
 
 # Tomcat will auto-deploy at:
-# http://localhost:8080/sitmun-backend-core/
+# http://localhost:8080/sitmun-backend-<version>/
 
 # Or rename to ROOT.war for root context:
-cp build/libs/sitmun-backend-core.war /path/to/tomcat/webapps/ROOT.war
+cp sitmun-backend/build/libs/sitmun-backend-$(awk -F= '/^version=/{print $2}' gradle.properties).war /path/to/tomcat/webapps/ROOT.war
 # http://localhost:8080/
 ```
 
@@ -482,7 +464,8 @@ Security responses use `application/problem+json` with generic details. Invalid 
 | `SPRING_DATASOURCE_USERNAME`             | Database username | `sa`                                     | Yes (prod) |
 | `SPRING_DATASOURCE_PASSWORD`             | Database password | ``                                       | Yes (prod) |
 | `SITMUN_USER_SECRET`                     | JWT signing secret (min 32 chars; startup-validated) | -                            | Yes |
-| `SITMUN_BOOTSTRAP_ADMIN_PASSWORD`        | Optional plaintext used only to create a missing built-in `admin` or restore an empty admin password at startup. No default. Remove after health is UP and rotate via the admin UI. | - | Only when admin is missing/passwordless |
+| `SITMUN_BOOTSTRAP_ADMIN_PASSWORD`        | Optional admin password applied by first-run setup when the built-in admin password is null. 8 to 50 characters, and not the username. No default. Remove after health is UP. | - | Only when admin is passwordless |
+| `SITMUN_BOOTSTRAP_LANGUAGE`              | Optional database default language applied with the bootstrap password. Unknown, disabled, or already-current values do not swap translations. Missing translations keep the existing text. | - | No |
 | `SITMUN_USER_TOKEN_VALIDITY_IN_MILLISECONDS` | User session JWT validity in milliseconds | `900000` (15 min)                        | No |
 | `SITMUN_USER_COOKIE_MAX_AGE_IN_SECONDS` | Max-Age for viewer/admin session cookies | `900`                                    | No |
 | `SITMUN_USER_MAX_SESSION_DURATION_MILLISECONDS` | Hard cap from `auth_time` for `/api/authenticate/refresh` | `28800000` (8 h)                         | No |
@@ -518,7 +501,7 @@ spring:
   application:
     name: SITMUN
   liquibase:
-    change-log: file:./config/db/changelog/db.changelog-master.yaml
+    change-log: file:./src/test/resources/db/changelog-test/db.changelog-master.yaml
   jpa:
     hibernate:
       ddl-auto: none
@@ -569,26 +552,14 @@ spring:
   jpa:
     properties:
       hibernate:
-        dialect: org.hibernate.dialect.OracleDialect
+        dialect: org.sitmun.infrastructure.persistence.dialect.SitmunOracleDialect
 ```
 
 ## Architecture
 
 ### Technology Stack
 
-- **Java**: 17 (LTS)
-- **Spring Boot**: 3.5.4
-- **Spring Security**: JWT authentication and authorization
-- **Spring Data JPA**: Data persistence layer
-- **Spring Data REST**: REST API generation
-- **QueryDSL**: Type-safe query building
-- **MapStruct**: Object mapping
-- **Liquibase**: Database migration
-- **H2/PostgreSQL/Oracle**: Database support
-- **OpenAPI/Swagger**: API documentation
-- **JUnit 5**: Testing framework
-- **Gradle**: Build system
-- **Docker**: Containerization
+Java is the root `.java-version`. Library versions, including Spring Boot, are the keys in [`gradle/libs.versions.toml`](../gradle/libs.versions.toml). The root [README](../README.md) is the stack description.
 
 ### System Architecture
 
@@ -673,46 +644,61 @@ src/
 
 ### Build System
 
-The project uses Gradle with version catalogs for dependency management:
-
-```toml
-# gradle/libs.versions.toml
-[versions]
-spring-boot = "3.5.4"
-project-version = "0.9.0-SNAPSHOT"
-
-[libraries]
-spring-boot-starter-data-jpa = { module = "org.springframework.boot:spring-boot-starter-data-jpa" }
-spring-boot-starter-security = { module = "org.springframework.boot:spring-boot-starter-security" }
-# ... additional dependencies
-```
+The project uses the root Gradle version catalog, [`gradle/libs.versions.toml`](../gradle/libs.versions.toml). Do not copy versions into this README.
 
 ### Code Quality
 
 The project enforces high code quality standards:
 
 - **Spotless**: Automated code formatting
-- **SonarQube**: Code quality analysis
 - **JaCoCo**: Code coverage reporting
 - **Conventional Commits**: Structured commit messages
-- **Git Hooks**: Pre-commit validation
-
 ### Testing
 
 Comprehensive testing strategy:
 
 ```bash
 # Run all tests
-./gradlew test
+./gradlew :sitmun-backend:test
 
-# Test with PostgreSQL
-./gradlew testPostgres
+# Test with PostgreSQL 16 (Docker Compose)
+./gradlew :sitmun-backend:testPostgres
 
-# Test with Oracle
-./gradlew testOracle
+# Test with Oracle Free 23 (Docker Compose)
+./gradlew :sitmun-backend:testOracle
 
+# Test against a database that is already running
+./gradlew :sitmun-backend:testOracle11
+./gradlew :sitmun-backend:testOracle19
+./gradlew :sitmun-backend:testPostgres12
+./gradlew :sitmun-backend:testPostgres16
+```
+
+`test` and `testH2` use H2 and leave `sitmun.test.database.enabled` unset. The tasks above set `sitmun.test.database.enabled=true` plus `product` and `version` (`oracle`/`11`, `oracle`/`19`, `oracle`/`23`, `postgres`/`12`, `postgres`/`16`). A test that must not run on H2 uses `@EnabledOnDatabase`. `@EnabledOnOracleSince11` runs on Oracle 11 and newer.
+
+One database, fresh install and then each upgrade from 1.2.6, 1.2.7, and 1.2.8. Oracle 11 runs on Linux only. Oracle 19 on Apple Silicon uses an x86_64 Colima profile and `SITMUN_DB_URL`.
+
+| Database | Fresh install | Upgrade jobs |
+| --- | --- | --- |
+| `postgres-12` | `test-postgres-12.yml` | `postgres-12-from` |
+| `postgres-16` | `test-postgres-16.yml` | `postgres-16-from`, `postgres-1-2-7-to-head`, `postgres-auth-mode-swap`, `dev-postgres-from` |
+| `oracle-11` | `test-oracle-11.yml` | `oracle-11-from` |
+| `oracle-19` | `test-oracle-19.yml` | `oracle-19-from` |
+| `oracle-23` | none | `oracle-23-from`, `dev-oracle-from` |
+
+```bash
+SITMUN_DB=postgres-12 SITMUN_DB_KEEP=1 bash tools/tests/test_backend_db_boot.sh && ./gradlew :sitmun-backend:testPostgres12
+for s in 1.2.6 1.2.7 1.2.8; do
+  git fetch --no-tags origin tag "legacy/sitmun-application-stack/sitmun-application-stack/$s"
+  SITMUN_POSTGRES_IMAGE=postgres:12-alpine bash tools/tests/test_liquibase_1.2.7_to_head_upgrade.sh postgres-from "$s"
+done
+```
+
+In GitHub Actions, start the matching fresh-install workflow and the upgrade workflow with `-f db=postgres-12`. Add `-f source=1.2.7` for one starting version.
+
+```bash
 # Run specific test class
-./gradlew test --tests AuthenticationControllerTest
+./gradlew :sitmun-backend:test --tests AuthenticationControllerTest
 ```
 
 **Oracle Test Notes:**
@@ -722,7 +708,7 @@ Comprehensive testing strategy:
 - If Oracle startup fails and containers are retained for troubleshooting, clean them with:
 
   ```bash
-  ./gradlew oracleComposeDownForced
+  ./gradlew :sitmun-backend:oracleComposeDownForced
   ```
 
 ### Development Workflow
@@ -895,16 +881,16 @@ On every start, `BuiltInUserStartupRepairer` soft-repairs the built-in `admin` a
 - Clears stale `public` personal data/password and deletes `public` positions only.
 - If built-in `admin` still has positions, keeps them and emits a stable warning `admin-has-positions` (remove via admin UI). Health stays `UP` when repair otherwise succeeds.
 - Creates a missing `public` automatically.
-- Creates a missing `admin`, or restores an empty admin password, only when `SITMUN_BOOTSTRAP_ADMIN_PASSWORD` is set. The value is BCrypt-encoded; plaintext is never logged or stored.
+- Creates a missing `admin` with a null password. The password is set only by first-run setup (`POST /api/setup/first-run` or `SITMUN_BOOTSTRAP_ADMIN_PASSWORD`).
 - Never aborts the JVM. `/api/dashboard/health` stays `DOWN` (HTTP 503) until repair succeeds.
-- `/api/dashboard/startup` is a public, read-only diagnostic that returns `{ "state": "ready|blocked|initializing" }`, when blocked a stable `"reason"` such as `admin-missing-bootstrap-password`, and optional `"warnings"` (e.g. `["admin-has-positions"]`). It never exposes secrets, hashes, or exception text. Do not enable global Actuator health details for this purpose — that would leak details from every health contributor.
+- `/api/dashboard/startup` is a public, read-only diagnostic that returns `{ "state": "ready|blocked|initializing" }`, when blocked a stable `"reason"` such as `repair-failed`, and optional `"warnings"` (e.g. `["admin-has-positions"]`). It never exposes secrets, hashes, or exception text. Do not enable global Actuator health details for this purpose — that would leak details from every health contributor.
 - Under the `dev` profile, property dump logging redacts keys containing `password`, `secret`, `token`, or `credential` (including `SITMUN_BOOTSTRAP_ADMIN_PASSWORD`).
 
-Operator sequence when admin is missing or passwordless:
+Operator sequence when the admin password is null:
 
-1. Inject `SITMUN_BOOTSTRAP_ADMIN_PASSWORD` through the deployment secret mechanism (no committed default).
-2. Start the backend and wait for `/api/dashboard/health` to become `UP`. Use `GET /api/dashboard/startup` if you need the stable reason.
-3. Remove the bootstrap secret from deployment configuration.
+1. Inject `SITMUN_BOOTSTRAP_ADMIN_PASSWORD` through the deployment secret mechanism (no committed default). Optionally set `SITMUN_BOOTSTRAP_LANGUAGE`.
+2. Start the backend and wait for `/api/dashboard/health` to become `UP`. Setup endpoints return 503 `{ "status": "configuring" }` until that startup step finishes.
+3. Remove the bootstrap variables from deployment configuration.
 4. Rotate the password through the normal admin UI.
 
 #### Actuator Endpoints
@@ -1092,8 +1078,8 @@ The Backend Core supports different service types that can be configured:
 export LOGGING_LEVEL_ORG_SITMUN=DEBUG
 export LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY=DEBUG
 
-# Restart the backend
-docker-compose restart sitmun-backend
+# Restart the backend from the repository root
+docker compose up -d backend
 ```
 
 ## Contributing
@@ -1144,16 +1130,6 @@ git commit -m "fix(api): resolve JWT token validation issue"
 git commit -m "docs: update README with deployment instructions"
 git commit -m "test: add integration tests for user verification"
 git commit -m "style: format code with Google Java Format"
-```
-
-#### Managing Git Hooks
-
-```bash
-# Install Git hooks (automatic with build)
-./gradlew setupGitHooks
-
-# Remove Git hooks
-./gradlew removeGitHooks
 ```
 
 ## Support

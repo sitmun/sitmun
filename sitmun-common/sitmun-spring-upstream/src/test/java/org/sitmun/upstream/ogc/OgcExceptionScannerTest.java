@@ -3,6 +3,7 @@ package org.sitmun.upstream.ogc;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.ByteArrayInputStream;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import org.junit.jupiter.api.Test;
 
@@ -31,6 +32,124 @@ class OgcExceptionScannerTest {
 
     assertThat(scan.code()).isNull();
     assertThat(scan.text()).isEmpty();
+  }
+
+  @Test
+  void indentedServiceExceptionCollapsesWhitespace() {
+    String xml =
+        "<ServiceExceptionReport><ServiceException code=\"LayerNotDefined\">missing\n"
+            + "    second</ServiceException></ServiceExceptionReport>";
+
+    OgcExceptionScan scan = scan(xml, xml.length(), 40);
+
+    assertThat(scan.code()).isEqualTo("LayerNotDefined");
+    assertThat(scan.text()).isEqualTo("missing second");
+  }
+
+  @Test
+  void serviceExceptionReportReadsCodeAndText() {
+    String xml =
+        "<ServiceExceptionReport><ServiceException code=\"LayerNotDefined\">missing</ServiceException></ServiceExceptionReport>";
+
+    OgcExceptionScan scan = scan(xml, xml.length(), 40);
+
+    assertThat(scan.code()).isEqualTo("LayerNotDefined");
+    assertThat(scan.text()).isEqualTo("missing");
+  }
+
+  @Test
+  void owsExceptionReportReadsCodeAndText() {
+    String xml =
+        "<ows:ExceptionReport xmlns:ows=\"http://www.opengis.net/ows/1.1\">"
+            + "<ows:Exception exceptionCode=\"NoApplicableCode\">"
+            + "<ows:ExceptionText>missing</ows:ExceptionText>"
+            + "</ows:Exception>"
+            + "</ows:ExceptionReport>";
+
+    OgcExceptionScan scan = scan(xml, xml.length(), 40);
+
+    assertThat(scan.code()).isEqualTo("NoApplicableCode");
+    assertThat(scan.text()).isEqualTo("missing");
+  }
+
+  @Test
+  void serviceExceptionRootReadsCodeAndText() {
+    String xml = "<ServiceException code=\"LayerNotDefined\">missing</ServiceException>";
+
+    OgcExceptionScan scan = scan(xml, xml.length(), 40);
+
+    assertThat(scan.code()).isEqualTo("LayerNotDefined");
+    assertThat(scan.text()).isEqualTo("missing");
+  }
+
+  @Test
+  void capabilitiesDocumentIsNotAnException() {
+    String xml =
+        "<WMS_Capabilities><Service><Name>WMS</Name></Service>"
+            + "<ServiceException code=\"LayerNotDefined\">missing</ServiceException>"
+            + "</WMS_Capabilities>";
+
+    OgcExceptionScan scan = scan(xml, xml.length(), 40);
+
+    assertThat(scan).isEqualTo(OgcExceptionScan.none());
+  }
+
+  @Test
+  void exceptionRootIsNotAnOgcError() {
+    String xml = "<Exception><Format>XML</Format></Exception>";
+
+    OgcExceptionScan scan = scan(xml, xml.length(), 40);
+
+    assertThat(scan).isEqualTo(OgcExceptionScan.none());
+  }
+
+  @Test
+  void partialScanKeepsACodeAlreadyRead() {
+    String xml = "<ServiceExceptionReport><ServiceException code=\"LayerNotDefined\">missing";
+
+    OgcExceptionScan scan = scan(xml, xml.length(), 40);
+
+    assertThat(scan.code()).isEqualTo("LayerNotDefined");
+    assertThat(scan.text()).isEmpty();
+  }
+
+  @Test
+  void namedCharacterSetReadsLatin1Text() {
+    byte[] body =
+        "<ServiceException code=\"LayerNotDefined\">caf\u00f3n</ServiceException>"
+            .getBytes(Charset.forName("ISO-8859-1"));
+
+    OgcExceptionScan scan =
+        OgcExceptionScanner.scan(new ByteArrayInputStream(body), body.length, 40, "ISO-8859-1");
+
+    assertThat(scan.code()).isEqualTo("LayerNotDefined");
+    assertThat(scan.text()).isEqualTo("caf\u00f3n");
+  }
+
+  @Test
+  void latin1TextStaysUnreadWithoutANamedCharacterSet() {
+    byte[] body =
+        "<ServiceException code=\"LayerNotDefined\">caf\u00f3n</ServiceException>"
+            .getBytes(Charset.forName("ISO-8859-1"));
+
+    OgcExceptionScan scan =
+        OgcExceptionScanner.scan(new ByteArrayInputStream(body), body.length, 40);
+
+    assertThat(scan.text()).isEmpty();
+  }
+
+  @Test
+  void xmlDeclarationSuppliesTheCharacterSet() {
+    byte[] body =
+        ("<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>"
+                + "<ServiceException code=\"LayerNotDefined\">caf\u00f3n</ServiceException>")
+            .getBytes(Charset.forName("ISO-8859-1"));
+
+    OgcExceptionScan scan =
+        OgcExceptionScanner.scan(new ByteArrayInputStream(body), body.length, 40);
+
+    assertThat(scan.code()).isEqualTo("LayerNotDefined");
+    assertThat(scan.text()).isEqualTo("caf\u00f3n");
   }
 
   @Test

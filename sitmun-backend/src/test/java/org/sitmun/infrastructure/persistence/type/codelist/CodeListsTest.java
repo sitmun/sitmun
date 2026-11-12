@@ -4,28 +4,28 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.sitmun.domain.CodeListsConstants.*;
 import static org.sitmun.domain.DomainConstants.Tasks.*;
 
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.sitmun.domain.cartography.permission.CartographyPermission;
-import org.sitmun.infrastructure.persistence.type.i18n.TranslationService;
+import org.sitmun.infrastructure.persistence.type.i18n.TranslationRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Import;
 
 @SpringBootTest
-@Import(TranslationService.class)
 @DisplayName("Code Lists Integration Test")
 class CodeListsTest {
 
   @Autowired private CodeListValueRepository codeListValueRepository;
+  @Autowired private TranslationRepository translationRepository;
 
   @Test
   @DisplayName("Verify all code list constants are available in database")
   void verifyAllCodeListConstantsAvailable() {
     assertThat(codeListValueRepository.findDistinctCodeListName())
-        .containsExactlyInAnyOrder(
+        .contains(
             APPLICATION_PARAMETER_TYPE,
             APPLICATION_TYPE,
             CARTOGRAPHY_FILTER_TYPE,
@@ -33,7 +33,10 @@ class CodeListsTest {
             CARTOGRAPHY_GEOMETRY_TYPE,
             CARTOGRAPHY_LEGEND_TYPE,
             CARTOGRAPHY_PARAMETER_FORMAT,
+            CARTOGRAPHY_PARAMETER_GEOMETRY_KIND,
+            CARTOGRAPHY_PARAMETER_PREFERRED_GEOMETRY_TYPE,
             CARTOGRAPHY_PARAMETER_TYPE,
+            CARTOGRAPHY_SERVICE_PARAMETER_TYPE,
             CARTOGRAPHY_PERMISSION_TYPE,
             CARTOGRAPHY_SPATIAL_SELECTION_PARAMETER_FORMAT,
             CARTOGRAPHY_SPATIAL_SELECTION_PARAMETER_TYPE,
@@ -67,6 +70,15 @@ class CodeListsTest {
         .collect(Collectors.toList());
   }
 
+  private Map<String, String> descriptions(String list) {
+    return StreamSupport.stream(
+            codeListValueRepository
+                .findAll(QCodeListValue.codeListValue.codeListName.eq(list))
+                .spliterator(),
+            false)
+        .collect(Collectors.toMap(CodeListValue::getValue, CodeListValue::getDescription));
+  }
+
   @Test
   @DisplayName("Verify application.type code list values")
   void checkApplicationType() {
@@ -91,7 +103,11 @@ class CodeListsTest {
   @DisplayName("Verify cartography.legendType code list values")
   void checkCartographyLegendType() {
     assertThat(select(CARTOGRAPHY_LEGEND_TYPE))
-        .containsExactlyInAnyOrder("LINK", "LEGENDGRAPHIC", "CAPABILITIES");
+        .containsExactlyInAnyOrder("LINK", "LEGENDGRAPHIC", "LEGENDURL");
+    assertThat(descriptions(CARTOGRAPHY_LEGEND_TYPE))
+        .containsEntry("LEGENDGRAPHIC", "Prioritize Get Legend Graphic (capabilities)")
+        .containsEntry("LEGENDURL", "Legend URL (capabilities)")
+        .containsEntry("LINK", "Static legend URL");
   }
 
   @Test
@@ -110,7 +126,41 @@ class CodeListsTest {
   @DisplayName("Verify cartographyParameter.format code list values")
   void checkCartographyParameterFormat() {
     assertThat(select(CARTOGRAPHY_PARAMETER_FORMAT))
-        .containsExactlyInAnyOrder("I", "N", "P", "T", "U", "F");
+        .containsExactlyInAnyOrder("I", "N", "P", "T", "U", "F", "AUTO", "Geometry");
+    assertThat(descriptions(CARTOGRAPHY_PARAMETER_FORMAT)).containsEntry("Geometry", "Geometry");
+  }
+
+  @Test
+  @DisplayName("Verify cartographyParameter.geometryKind stored codes and English labels")
+  void checkCartographyParameterGeometryKind() {
+    assertThat(descriptions(CARTOGRAPHY_PARAMETER_GEOMETRY_KIND))
+        .containsExactlyInAnyOrderEntriesOf(
+            Map.ofEntries(
+                Map.entry("Point", "Point"),
+                Map.entry("MultiPoint", "Multipoint"),
+                Map.entry("LineString", "Line"),
+                Map.entry("MultiLineString", "Multiline"),
+                Map.entry("Curve", "Curve"),
+                Map.entry("MultiCurve", "Multicurve"),
+                Map.entry("Polygon", "Polygon"),
+                Map.entry("MultiPolygon", "Multipolygon"),
+                Map.entry("Surface", "Surface"),
+                Map.entry("MultiSurface", "Multisurface"),
+                Map.entry("Geometry", "Geometry")));
+  }
+
+  @Test
+  @DisplayName("Verify cartographyParameter.preferredGeometryType stored codes and English labels")
+  void checkCartographyParameterPreferredGeometryType() {
+    assertThat(descriptions(CARTOGRAPHY_PARAMETER_PREFERRED_GEOMETRY_TYPE))
+        .containsExactlyInAnyOrderEntriesOf(
+            Map.of(
+                "point", "Point",
+                "multipoint", "Multipoint",
+                "polyline", "Polyline",
+                "polygon", "Polygon",
+                "multipolyline", "Multipolyline",
+                "multipolygon", "Multipolygon"));
   }
 
   @Test
@@ -150,6 +200,7 @@ class CodeListsTest {
         .containsExactlyInAnyOrder(
             SCOPE_URL_QUERY,
             SCOPE_CARTOGRAPHY_QUERY,
+            SCOPE_RESOURCE_QUERY,
             SCOPE_SQL_QUERY,
             SCOPE_WEB_API_QUERY,
             SCOPE_WEB_API_QUERY_NO_PROXY);
@@ -162,17 +213,61 @@ class CodeListsTest {
   }
 
   @Test
+  @DisplayName("Verify cartographyServiceParameter.type code list values")
+  void checkCartographyServiceParameterType() {
+    assertThat(select(CARTOGRAPHY_SERVICE_PARAMETER_TYPE))
+        .containsExactlyInAnyOrder("WMS", "WMTS", "WFS", "OLPARAM", "GETMAP", "INFO");
+  }
+
+  @Test
   @DisplayName("Verify service.parameterType code list values")
   void checkServiceParameterType() {
     assertThat(select(SERVICE_PARAMETER_TYPE))
-        .containsExactlyInAnyOrder("INFO", "WMS", "OLPARAM", "WMTS");
+        .containsExactlyInAnyOrder("INFO", "WMS", "OLPARAM", "WMTS", "GETMAP", "WFS");
   }
 
   @Test
   @DisplayName("Verify service.type code list values")
   void checkServiceType() {
-    assertThat(select(SERVICE_TYPE))
-        .containsExactlyInAnyOrder("AIMS", "FME", "TC", "WFS", "WMS", "WMTS");
+    assertThat(select(SERVICE_TYPE)).containsExactlyInAnyOrder("WFS", "WMS", "WMTS");
+  }
+
+  @Test
+  @DisplayName("Drivers stay below the fixture id band and are system rows")
+  void driversAreSystem() {
+    var drivers =
+        StreamSupport.stream(
+                codeListValueRepository
+                    .findAll(
+                        QCodeListValue.codeListValue.codeListName.eq(DATABASE_CONNECTION_DRIVER))
+                    .spliterator(),
+                false)
+            .toList();
+    assertThat(drivers)
+        .extracting(CodeListValue::getValue)
+        .containsExactlyInAnyOrder(
+            "org.h2.Driver",
+            "org.postgresql.Driver",
+            "oracle.jdbc.OracleDriver",
+            "com.microsoft.sqlserver.jdbc.SQLServerDriver");
+    assertThat(drivers).allSatisfy(row -> assertThat(row.getSystem()).isTrue());
+    assertThat(drivers).allSatisfy(row -> assertThat(row.getId()).isLessThan(10000));
+  }
+
+  @Test
+  @DisplayName("English service.type translations match the protocol name")
+  void englishServiceTypeTranslations() {
+    StreamSupport.stream(
+            codeListValueRepository
+                .findAll(QCodeListValue.codeListValue.codeListName.eq(SERVICE_TYPE))
+                .spliterator(),
+            false)
+        .forEach(
+            row ->
+                assertThat(
+                        translationRepository.findTranslation(row.getId(), "CodeListValue", "en"))
+                    .extracting(translation -> translation.getTranslation())
+                    .contains(row.getValue()));
   }
 
   @Test
@@ -198,9 +293,7 @@ class CodeListsTest {
   @Test
   @DisplayName("Verify userPosition.type code list values")
   void checkUserPositionType() {
-    assertThat(select(USER_POSITION_TYPE))
-        .containsExactlyInAnyOrder(
-            "AJ", "AR", "DB", "DM", "EM", "EN", "ER", "EX", "GN", "PR", "TS");
+    assertThat(select(USER_POSITION_TYPE)).containsExactlyInAnyOrder("POC");
   }
 
   @Test

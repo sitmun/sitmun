@@ -4,7 +4,6 @@
 
 sitmun:
   module: SITMUN Core
-  version: 3.0-SNAPSHOT
   language:
   user:
     secret: dev-only-insecure-user-secret-32-bytes
@@ -111,6 +110,7 @@ spring:
       ddl-auto: none
     properties:
       hibernate.jdbc.time_zone: UTC
+      hibernate.type.java_time_use_direct_jdbc: true
       hibernate.id.new_generator_mappings: true
       hibernate.connection.provider_disables_autocommit: true
       hibernate.cache.use_second_level_cache: false

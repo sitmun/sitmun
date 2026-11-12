@@ -1,5 +1,5 @@
 [![License: EUPL v1.2](https://img.shields.io/badge/License-EUPL%20v1.2-blue.svg)](LICENSE)
-![Version](https://img.shields.io/badge/version-1.2.9-blue.svg)
+![Version](https://img.shields.io/badge/version-1.3.0-blue.svg)
 
 # SITMUN Proxy Middleware
 
@@ -57,7 +57,7 @@ A Spring Boot microservice that acts as a reverse proxy and middleware to facili
   - [Security Configuration](#security-configuration)
   - [Monitoring and Health Checks](#monitoring-and-health-checks)
   - [Troubleshooting Integration](#troubleshooting-integration)
-  - [SITMUN Application Stack](#sitmun-application-stack)
+  - [Running in the stack](#running-in-the-stack)
 - [Support](#support)
 - [License](#license)
 
@@ -71,7 +71,7 @@ The SITMUN Proxy Middleware provides secure proxy functionality to:
 - **Response Processing**: Modify service responses before returning to client applications
 - **Security Layer**: Provide an additional security layer for sensitive geospatial services
 
-This service integrates with the [SITMUN Backend Core](https://github.com/sitmun/sitmun-backend-core) to provide secure proxy capabilities for the SITMUN platform.
+This service integrates with the [SITMUN backend](https://github.com/sitmun/sitmun/tree/dev/sitmun-backend) to provide secure proxy capabilities for the SITMUN platform.
 
 ## Quick Start
 
@@ -80,31 +80,33 @@ This service integrates with the [SITMUN Backend Core](https://github.com/sitmun
 - Java 17 or later
 - Docker CE or Docker Desktop
 - Git
-- Running instance of [sitmun-backend-core](https://github.com/sitmun/sitmun-backend-core)
+- Running instance of the [SITMUN backend](https://github.com/sitmun/sitmun/tree/dev/sitmun-backend)
 
 ### Local Development
 
 1. **Clone the repository**
 
    ```bash
-   git clone https://github.com/sitmun/sitmun-proxy-middleware.git
-   cd sitmun-proxy-middleware
+   git clone --branch dev https://github.com/sitmun/sitmun.git
+   cd sitmun
    ```
+
+   Gradle runs from this repository root. The boot jar is `sitmun-proxy/build/libs/sitmun-proxy-<version>.jar`, where `<version>` is `version` in `gradle.properties`. Do not run the `-plain` jar.
 
 2. **Build the application**
 
    ```bash
-   ./gradlew build -x test
+   ./gradlew :sitmun-proxy:build -x test
    ```
 
 3. **Run the application**
 
    ```bash
    # Run with Java directly (recommended)
-   java -jar build/libs/sitmun-proxy-middleware.jar --spring.profiles.active=prod
+   java -jar sitmun-proxy/build/libs/sitmun-proxy-$(awk -F= '/^version=/{print $2}' gradle.properties).jar --spring.profiles.active=prod
    
    # Or use Gradle bootRun directly
-   ./gradlew bootRun --args='--spring.profiles.active=prod'
+   ./gradlew :sitmun-proxy:bootRun --args='--spring.profiles.active=prod'
    ```
 
 4. **Verify the service is running**
@@ -121,28 +123,13 @@ This service integrates with the [SITMUN Backend Core](https://github.com/sitmun
 
 > **Note:** Docker builds use JAR packaging only. For WAR deployments, build locally and deploy to your application server.
 
-1. **Create environment configuration**
+From the repository root, the published stack runs `ghcr.io/sitmun/proxy:1.3.0` from `compose.yaml`. Copy a profile, run `./setup.sh` (Windows: `./setup.ps1`), then `docker compose up -d --pull always --no-build`. `docker compose up -d` builds this checkout. Profiles and URLs are in the [repository README](../README.md).
 
-   ```bash
-   # Create .env file
-   cat > .env << EOF
-   SITMUN_BACKEND_CONFIG_URL=http://localhost:9001/api/config/proxy
-   SITMUN_BACKEND_CONFIG_SECRET=<32+ char random value>
-   EOF
-   ```
+**Verify deployment**
 
-2. **Start with Docker Compose**
-
-   ```bash
-   cd docker/development
-   docker-compose up
-   ```
-
-3. **Verify deployment**
-
-   ```bash
-   curl http://localhost:8080/actuator/health
-   ```
+```bash
+curl http://localhost:9002/actuator/health
+```
 
 ### Troubleshooting
 
@@ -150,48 +137,47 @@ This service integrates with the [SITMUN Backend Core](https://github.com/sitmun
 
 ```bash
 # Use different port
-./gradlew bootRun --args='--spring.profiles.active=prod --server.port=8081'
+./gradlew :sitmun-proxy:bootRun --args='--spring.profiles.active=prod --server.port=8081'
 ```
 
 #### Memory Issues
 
 ```bash
 # Increase heap size
-./gradlew bootRun --args='--spring.profiles.active=prod -Xmx4g -Xms2g'
+./gradlew :sitmun-proxy:bootRun --args='--spring.profiles.active=prod -Xmx4g -Xms2g'
 ```
 
 #### Docker Issues
 
 ```bash
 # Clean up Docker resources
-cd docker/development
-docker-compose down -v
+docker compose down -v
 docker system prune -f
 ```
 
 ### Building
 
 ```bash
-# Build the project (includes Git hooks setup)
-./gradlew build
+# Build the project
+./gradlew :sitmun-proxy:build
 
 # Build without tests (faster for development)
-./gradlew build -x test
+./gradlew :sitmun-proxy:build -x test
 
 # Run tests
-./gradlew test
+./gradlew :sitmun-proxy:test
 
 # Create JAR file
-./gradlew jar
+./gradlew :sitmun-proxy:jar
 
 # Format code
-./gradlew spotlessApply
+./gradlew :sitmun-proxy:spotlessApply
 
 # Check code coverage
-./gradlew jacocoTestReport
+./gradlew :sitmun-proxy:jacocoTestReport
 ```
 
-> **💡 Tip**: For development, use `./gradlew build -x test` for faster builds, then run the JAR directly with `java -jar build/libs/sitmun-proxy-middleware.jar --spring.profiles.active=dev`
+> **💡 Tip**: For development, use `./gradlew :sitmun-proxy:build -x test` for faster builds, then run the JAR directly with `java -jar sitmun-proxy/build/libs/sitmun-proxy-$(awk -F= '/^version=/{print $2}' gradle.properties).jar --spring.profiles.active=dev`
 
 ### Packaging Options
 
@@ -203,13 +189,13 @@ Standalone executable JAR with embedded Tomcat server.
 
 ```bash
 # Build JAR (default)
-./gradlew build
+./gradlew :sitmun-proxy:build
 
 # Or explicitly
-./gradlew build -Ppackaging=jar
+./gradlew :sitmun-proxy:build -Ppackaging=jar
 
 # Run JAR
-java -jar build/libs/sitmun-proxy-middleware.jar --spring.profiles.active=prod
+java -jar sitmun-proxy/build/libs/sitmun-proxy-$(awk -F= '/^version=/{print $2}' gradle.properties).jar --spring.profiles.active=prod
 ```
 
 **Use JAR when:**
@@ -224,9 +210,9 @@ Web Application Archive for deployment to external servlet containers.
 
 ```bash
 # Build WAR
-./gradlew build -Ppackaging=war
+./gradlew :sitmun-proxy:build -Ppackaging=war
 
-# Output: build/libs/sitmun-proxy-middleware.war
+# Output: sitmun-proxy/build/libs/sitmun-proxy-<version>.war
 ```
 
 **Use WAR when:**
@@ -239,13 +225,13 @@ Web Application Archive for deployment to external servlet containers.
 
 ```bash
 # Copy WAR to Tomcat
-cp build/libs/sitmun-proxy-middleware.war /path/to/tomcat/webapps/
+cp sitmun-proxy/build/libs/sitmun-proxy-$(awk -F= '/^version=/{print $2}' gradle.properties).war /path/to/tomcat/webapps/
 
 # Tomcat will auto-deploy at:
-# http://localhost:8080/sitmun-proxy-middleware/
+# http://localhost:8080/sitmun-proxy-<version>/
 
 # Or rename to ROOT.war for root context:
-cp build/libs/sitmun-proxy-middleware.war /path/to/tomcat/webapps/ROOT.war
+cp sitmun-proxy/build/libs/sitmun-proxy-$(awk -F= '/^version=/{print $2}' gradle.properties).war /path/to/tomcat/webapps/ROOT.war
 # http://localhost:8080/
 ```
 
@@ -317,7 +303,7 @@ spring.profiles.active=prod
 - **Debug Logging**: Detailed logging for development (dev profile only)
 - **Automated Quality Checks**: Git hooks for pre-commit validation
 - **Conventional Commits**: Enforced commit message format
-- **Version Management**: Automated versioning with Axion Release
+- **Version**: `project.version` in `build.gradle`
 - **Code Formatting**: Automated code formatting with Spotless
 - **Coverage Reporting**: JaCoCo integration for code coverage
 - **Testing**: Unit and integration tests
@@ -565,21 +551,7 @@ server:
 
 ### Technology Stack
 
-- **Spring Boot 3.5.4**: Application framework with Spring Web, JDBC, and Actuator
-- **Spring Web**: REST API support
-- **Spring JDBC**: Database connectivity
-- **Spring Actuator**: Health checks and monitoring
-- **OkHttp 4.12.0**: HTTP client for service communication
-- **JJWT 0.12.6**: JWT token handling with API, implementation, and Jackson modules
-- **PostgreSQL/Oracle**: Database drivers for JDBC connections
-- **H2 2.2.224**: In-memory database for testing
-- **JSON 20240303**: JSON processing library
-- **Gradle**: Build system with Version Catalogs
-- **Docker**: Multi-stage containerization with Amazon Corretto
-- **Spotless 7.2.0**: Code formatting with Google Java Format
-- **JaCoCo**: Code coverage reporting
-- **Axion Release 1.19.0**: Version management with semantic versioning
-- **Lombok 8.6**: Reduces boilerplate code
+Library versions, including Spring Boot and OkHttp, are the keys in [`gradle/libs.versions.toml`](../gradle/libs.versions.toml). The root [README](../README.md) is the stack description. Do not copy those versions into this README.
 
 ### System Architecture
 
@@ -704,24 +676,17 @@ WmsCapabilitiesResponseDecorator       // Modifies WMS capabilities responses
 #### Docker Deployment
 
 ```bash
-# Build and run with Docker Compose
-cd docker/development
-docker-compose up --build
-
-# Run in background
-docker-compose up -d
-
-# View logs
-docker-compose logs -f
-
-# Stop services
-docker-compose down
+# From the repository root
+./setup.sh
+docker compose up -d --build
+docker compose logs -f
+docker compose down
 ```
 
 **Docker Configuration:**
 
-- **Multi-stage build** using Amazon Corretto 17 (`docker/Dockerfile`)
-- **Development environment** with Docker Compose (`docker/development/docker-compose.yml`)
+- **Multi-stage build** using Amazon Corretto 17 on Amazon Linux 2023 (`docker/proxy/Dockerfile`)
+- **Stack compose** at the repository root (`compose.yaml`)
 - **Health checks** with curl-based monitoring
 - **External configuration** mounting from host
 - **JVM optimization** with G1GC and container support
@@ -731,16 +696,16 @@ docker-compose down
 
 ```bash
 # Build JAR
-./gradlew build
+./gradlew :sitmun-proxy:build
 
 # Run with production profile
-java -jar build/libs/sitmun-proxy-middleware.jar --spring.profiles.active=prod
+java -jar sitmun-proxy/build/libs/sitmun-proxy-$(awk -F= '/^version=/{print $2}' gradle.properties).jar --spring.profiles.active=prod
 ```
 
 ### Project Structure
 
 ```text
-sitmun-proxy-middleware/
+sitmun-proxy/
 ├── src/
 │   ├── main/
 │   │   ├── java/org/sitmun/proxy/middleware/
@@ -782,7 +747,7 @@ sitmun-proxy-middleware/
 │   ├── application.yml                             # External base config
 │   └── application-prod.yml                        # External production config
 ├── docker/                                        # Docker configuration
-│   ├── Dockerfile                                  # Multi-stage build with Amazon Corretto
+│   ├── Dockerfile                                  # Multi-stage build with Amazon Corretto 17 on Amazon Linux 2023
 │   └── development/
 │       └── docker-compose.yml                     # Development environment
 ├── gradle/                                        # Gradle configuration
@@ -817,15 +782,9 @@ The project uses Gradle with Version Catalogs for dependency management:
 
 - **Version Catalog**: `gradle/libs.versions.toml` - Centralized dependency versions
 - **Packaging**: Configurable JAR or WAR output via `-Ppackaging` property
-- **Plugins**: Spring Boot 3.5.4, Lombok 8.6, Spotless 7.2.0, Axion Release 1.19.0
+- **Plugins**: Spring Boot, Lombok, Spotless, from the root version catalog
 - **Quality Tools**: JaCoCo for coverage, Spotless for formatting
-- **Dependencies**:
-  - Spring Boot Starters (Web, JDBC, Actuator)
-  - OkHttp 4.12.0 for HTTP client
-  - JJWT 0.12.6 for JWT handling
-  - PostgreSQL and Oracle JDBC drivers
-  - H2 2.2.224 for testing
-  - JSON 20240303 for JSON processing
+- **Dependencies**: Spring Boot starters, OkHttp, JJWT, and the database drivers named in [`gradle/libs.versions.toml`](../gradle/libs.versions.toml)
 
 ### Code Quality
 
@@ -833,76 +792,28 @@ Code quality tools:
 
 - **Spotless**: Code formatting with Google Java Format
 - **JaCoCo**: Code coverage reporting
-- **Axion Release**: Version management with semantic versioning
+- **Version**: `project.version` in `build.gradle`
 - **Git Hooks**: Automated quality checks and commit validation
 
 ### Running Quality Checks
 
 ```bash
 # Format code
-./gradlew spotlessApply
+./gradlew :sitmun-proxy:spotlessApply
 
 # Check formatting without applying
-./gradlew spotlessCheck
+./gradlew :sitmun-proxy:spotlessCheck
 
 # Check code coverage
-./gradlew jacocoTestReport
+./gradlew :sitmun-proxy:jacocoTestReport
 
 # View coverage report
 open build/reports/jacoco/test/html/index.html
 ```
 
-### Version Management
+### Version
 
-The project uses Axion Release for automated version management:
-
-```bash
-# Check current version
-./gradlew currentVersion
-
-# Create a new release
-./gradlew release
-
-# Create a new patch version
-./gradlew patch
-```
-
-#### Creating a Release
-
-**Prerequisites:**
-
-1. **Clean Git State**: Ensure all changes are committed
-2. **Working Directory**: No uncommitted changes
-3. **Git Repository**: Must be a valid Git repository
-
-**Step-by-Step Release Process:**
-
-```bash
-# 1. Check current Git status
-git status
-
-# 2. Add and commit any pending changes
-git add .
-git commit -m "docs: update documentation for release"
-
-# 3. Verify the repository is clean
-git status
-
-# 4. Check current version
-./gradlew currentVersion
-
-# 5. Create a new release
-./gradlew release
-
-# 6. Push the release tag
-git push --tags
-```
-
-**Release Types:**
-
-- `./gradlew release`: Creates a new patch version (e.g., 1.0.0 → 1.0.1)
-- `./gradlew release -Prelease.scope=minor`: Creates a new minor version (e.g., 1.0.0 → 1.1.0)
-- `./gradlew release -Prelease.scope=major`: Creates a new major version (e.g., 1.0.0 → 2.0.0)
+The module version is `project.version` in `build.gradle`. Dependencies come from the root `gradle/libs.versions.toml`. Run Gradle from the repository root, for example `./gradlew :sitmun-proxy:test`.
 
 ### Testing
 
@@ -910,21 +821,21 @@ Testing commands:
 
 ```bash
 # Run all tests
-./gradlew test
+./gradlew :sitmun-proxy:test
 
 # Run specific test class
-./gradlew test --tests ProxyMiddlewareControllerTest
+./gradlew :sitmun-proxy:test --tests ProxyMiddlewareControllerTest
 
 # Run protocol-specific tests
-./gradlew test --tests *HttpExecutionRequestExecutorServiceTest
-./gradlew test --tests *JdbcExecutionRequestExecutorServiceTest
-./gradlew test --tests *WmsExecutionRequestExecutorServiceTest
+./gradlew :sitmun-proxy:test --tests *HttpExecutionRequestExecutorServiceTest
+./gradlew :sitmun-proxy:test --tests *JdbcExecutionRequestExecutorServiceTest
+./gradlew :sitmun-proxy:test --tests *WmsExecutionRequestExecutorServiceTest
 
 # Run service tests
-./gradlew test --tests *ServiceExecutionRequestExecutorServiceTest
+./gradlew :sitmun-proxy:test --tests *ServiceExecutionRequestExecutorServiceTest
 
 # Run tests with coverage
-./gradlew test jacocoTestReport
+./gradlew :sitmun-proxy:test jacocoTestReport
 ```
 
 #### Test Coverage
@@ -942,21 +853,6 @@ Testing commands:
 - **Edge Cases**: Boundary conditions and error handling
 
 ### Development Workflow
-
-#### Git Hooks
-
-Automated Git hooks run on every commit:
-
-**Pre-commit checks:**
-
-- Code formatting validation (Spotless)
-- Unit and integration tests
-- Code coverage verification
-
-**Commit message validation:**
-
-- Conventional commit format enforcement
-- SITMUN-specific scope support `(proxy)`
 
 #### Commit Message Format
 
@@ -991,16 +887,6 @@ git commit -m "fix(proxy): resolve authentication token handling"
 git commit -m "docs: update README with proxy configuration info"
 git commit -m "test: add integration tests for proxy requests"
 git commit -m "style: format code with Google Java Format"
-```
-
-#### Managing Git Hooks
-
-```bash
-# Install Git hooks (automatic with build)
-./gradlew setupGitHooks
-
-# Remove Git hooks
-./gradlew removeGitHooks
 ```
 
 ## Advanced Features
@@ -1290,13 +1176,13 @@ logging:
 export LOGGING_LEVEL_ORG_SITMUN_PROXY_MIDDLEWARE=DEBUG
 export LOGGING_LEVEL_ORG_SITMUN=DEBUG
 
-# Restart the proxy middleware
-docker-compose restart sitmun-proxy-middleware
+# Restart the proxy from the repository root
+docker compose up -d proxy
 ```
 
-### SITMUN Application Stack
+### Running in the stack
 
-See [SITMUN Application Stack](https://github.com/sitmun/sitmun-application-stack) as an example of how to deploy and run the proxy as part of the SITMUN stack.
+See the [repository README](../README.md) for how the proxy runs in the published images.
 
 ## Support
 

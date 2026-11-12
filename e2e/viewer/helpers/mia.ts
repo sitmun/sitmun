@@ -6,6 +6,7 @@ import {
   MENORCA_TERRITORY_ID,
   MIA_PARENT_TASK_ID,
   NON_RADIO_ROOT_FOLDER_TITLE,
+  QUERYABLE_LEAF_CARTOGRAPHY_ID,
   QUERYABLE_LEAF_NODE_ID,
   RADIO_FOLDER_TITLE,
   readViewerCredentials,
@@ -20,13 +21,15 @@ export async function loginAndOpenMap(
   options?: {
     appId?: number;
     territoryId?: number;
-    /** Cartography id of the expected type-16 MIA parent (default Toponímia 6). */
+    /** Cartography id of the expected type-16 MIA parent (default Toponímia). */
     miaCartographyId?: number | string;
+    /** Set false when the spec removes that MIA parent so the attribute popup can render. */
+    requireMiaParent?: boolean;
   },
 ): Promise<void> {
   const appId = options?.appId ?? APP_ID;
   const territoryId = options?.territoryId ?? TERRITORY_ID;
-  const miaCartographyId = String(options?.miaCartographyId ?? 6);
+  const miaCartographyId = String(options?.miaCartographyId ?? QUERYABLE_LEAF_CARTOGRAPHY_ID);
   const credentials = await readViewerCredentials();
 
   await page.addInitScript(() => {
@@ -73,12 +76,14 @@ export async function loginAndOpenMap(
     profileBody.tasks?.some((task) => task['ui-control'] === 'sitna.moreInfoAdvanced'),
     'profile must include sitna.moreInfoAdvanced (setup task-availability)',
   ).toBeTruthy();
-  expect(
-    profileBody.tasks?.some(
-      (task) => task.typeId === 16 && String(task.cartographyId) === miaCartographyId,
-    ),
-    `profile must include MIA parent on cartography ${miaCartographyId}`,
-  ).toBeTruthy();
+  if (options?.requireMiaParent !== false) {
+    expect(
+      profileBody.tasks?.some(
+        (task) => task.typeId === 16 && String(task.cartographyId) === miaCartographyId,
+      ),
+      `profile must include MIA parent on cartography ${miaCartographyId}`,
+    ).toBeTruthy();
+  }
   await page.locator('#tc-slot-toc').waitFor({ state: 'attached', timeout: 90_000 });
   await page.locator('.tc-tools-panel').evaluate((panel) => {
     panel.classList.remove('tc-collapsed-right');
@@ -314,6 +319,41 @@ export async function openPublicDashboard(page: Page): Promise<void> {
     .click();
   await dashboardApps;
   await expect(page).toHaveURL(/\/public\/dashboard/);
+}
+
+/** Drive FeatureInfo.callback at the map center (stub GetFeatureInfo, not responseCallback). */
+export async function identifyAtMapCenter(page: Page): Promise<void> {
+  await page.evaluate(async () => {
+    const w = window as unknown as {
+      TC?: {
+        Map?: {
+          get: (el: Element) => {
+            controls?: Array<{ callback?: (coords: number[]) => Promise<unknown> }>;
+            getCenter?: () => number[];
+            wrap?: { map?: { getView: () => { getCenter: () => number[] } } };
+          };
+        };
+        control?: { FeatureInfo?: new () => unknown };
+      };
+    };
+    const mapEl = document.querySelector('.tc-map');
+    if (!w.TC?.Map?.get || !mapEl) {
+      throw new Error('TC.Map not available');
+    }
+    const map = w.TC.Map.get(mapEl);
+    const FeatureInfo = w.TC.control?.FeatureInfo;
+    const fi = (map.controls || []).find(
+      (ctl) => FeatureInfo && ctl instanceof (FeatureInfo as unknown as Function),
+    );
+    if (!fi?.callback) {
+      throw new Error('FeatureInfo.callback not found');
+    }
+    const center = map.getCenter?.() || map.wrap?.map?.getView()?.getCenter() || null;
+    if (!center) {
+      throw new Error('map center unavailable');
+    }
+    await fi.callback(center);
+  });
 }
 
 /** Enable Capas GFI toggle so map clicks issue GetFeatureInfo for the loaded leaf. */

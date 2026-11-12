@@ -1,4 +1,4 @@
-import {Component, Injector, ViewChild, afterNextRender, inject} from '@angular/core';
+import {Component, Injector, ViewChild, afterNextRender, inject, ChangeDetectionStrategy} from '@angular/core';
 import {UntypedFormControl, UntypedFormGroup, Validators} from '@angular/forms';
 import {MatDialog} from '@angular/material/dialog';
 import {MatTabChangeEvent, MatTabGroup} from '@angular/material/tabs';
@@ -48,6 +48,7 @@ import {TreeNodesComponent} from './tree-nodes/tree-nodes.component';
     selector: 'app-trees-form',
     templateUrl: './trees-form.component.html',
     styleUrls: ['./trees-form.component.scss'],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class TreesFormComponent extends BaseFormComponent<Tree> {
@@ -557,11 +558,11 @@ export class TreesFormComponent extends BaseFormComponent<Tree> {
   initializeTreesForm(): void {
     this.entityForm = new UntypedFormGroup({
       id: new UntypedFormControl(null, []),
-      name: new UntypedFormControl(null, [Validators.required]),
-      description: new UntypedFormControl(null, []),
-      type: new UntypedFormControl(null, [Validators.required]),
+      name: new UntypedFormControl(null, [Validators.required, Validators.maxLength(100)]),
+      description: new UntypedFormControl(null, [Validators.maxLength(250)]),
+      type: new UntypedFormControl(null, [Validators.maxLength(50)]),
       image: new UntypedFormControl(null, []),
-      imageName: new UntypedFormControl(null, [])
+      imageName: new UntypedFormControl(null, [Validators.maxLength(255)])
     })
   }
 

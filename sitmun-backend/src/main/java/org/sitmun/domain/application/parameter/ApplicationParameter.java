@@ -6,6 +6,7 @@ import static org.sitmun.domain.PersistenceConstants.VALUE;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import java.util.Objects;
 import lombok.*;
 import org.hibernate.annotations.OnDelete;
@@ -34,21 +35,22 @@ public class ApplicationParameter {
       allocationSize = 1)
   @Id
   @GeneratedValue(strategy = GenerationType.TABLE, generator = "STM_PAR_APP_GEN")
-  @Column(name = "PAP_ID")
+  @Column(name = "PAP_ID", nullable = false)
   private Integer id;
 
   /** Application parameter name. */
-  @Column(name = "PAP_NAME", length = IDENTIFIER)
+  @Column(name = "PAP_NAME", length = IDENTIFIER, nullable = false)
   @NotBlank
   private String name;
 
   /** Parameter value. */
-  @Column(name = "PAP_VALUE", length = VALUE)
+  @Column(name = "PAP_VALUE", length = VALUE, nullable = false)
   @NotNull
   private String value;
 
   /** Parameter type. */
-  @Column(name = "PAP_TYPE", length = IDENTIFIER)
+  @Column(name = "PAP_TYPE", length = 250, nullable = false)
+  @Size(max = 250)
   @NotNull
   @CodeList(CodeListsConstants.APPLICATION_PARAMETER_TYPE)
   private String type;

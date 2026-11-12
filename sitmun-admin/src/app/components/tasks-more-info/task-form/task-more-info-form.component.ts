@@ -1,4 +1,4 @@
-import {Component, OnInit, TemplateRef, ViewChild} from "@angular/core";
+import {Component, OnInit, TemplateRef, ViewChild, ChangeDetectionStrategy} from "@angular/core";
 import {FormControl, FormGroup, FormGroupDirective, NgForm, Validators} from "@angular/forms";
 import {MatAutocompleteSelectedEvent} from "@angular/material/autocomplete";
 import {ErrorStateMatcher} from "@angular/material/core";
@@ -56,6 +56,7 @@ import {magic} from "@environments/constants";
   selector: 'app-task-more-info-form',
   templateUrl: './task-more-info-form.component.html',
   styleUrl: './task-more-info-form.component.scss',
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false
 })
 export class TaskMoreInfoFormComponent extends BaseFormComponent<TaskProjection> implements OnInit {
@@ -205,7 +206,7 @@ export class TaskMoreInfoFormComponent extends BaseFormComponent<TaskProjection>
 
     this.entityForm = new FormGroup({
       name: new FormControl(this.entityToEdit.name, {
-        validators: [Validators.required],
+        validators: [Validators.maxLength(512), Validators.required],
         nonNullable: true
       }),
       taskGroupId: new FormControl(this.entityToEdit.groupId, {

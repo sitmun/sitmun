@@ -12,9 +12,9 @@ import org.sitmun.infrastructure.security.core.SecurityConstants;
 import org.sitmun.infrastructure.security.health.BuiltInUserHealthIndicator;
 import org.sitmun.infrastructure.startup.BuiltInUserRepairResult;
 import org.sitmun.infrastructure.startup.BuiltInUserStartupStatus;
-import org.sitmun.infrastructure.startup.BuiltInUsersStartupProperties;
+import org.sitmun.infrastructure.startup.FirstRunStartupProperties;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.actuate.health.Status;
+import org.springframework.boot.health.contributor.Status;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,7 +26,7 @@ class BuiltInUserStartupRepairIntegrationTest {
   @Autowired private BuiltInUserRepairService repairService;
   @Autowired private BuiltInUserStartupStatus status;
   @Autowired private BuiltInUserHealthIndicator healthIndicator;
-  @Autowired private BuiltInUsersStartupProperties properties;
+  @Autowired private FirstRunStartupProperties properties;
   @Autowired private UserRepository userRepository;
 
   @AfterEach
@@ -38,8 +38,8 @@ class BuiltInUserStartupRepairIntegrationTest {
   @Test
   @Order(1)
   @Transactional
-  @DisplayName("passwordless admin without bootstrap secret keeps process usable and health DOWN")
-  void passwordlessAdminWithoutSecretBlocksHealth() {
+  @DisplayName("passwordless admin without bootstrap secret stays null and health UP")
+  void passwordlessAdminWithoutSecretStaysReady() {
     properties.setAdminPassword(null);
     User admin =
         userRepository.findByUsername(SecurityConstants.BUILT_IN_ADMIN_PRINCIPAL).orElseThrow();
@@ -47,24 +47,22 @@ class BuiltInUserStartupRepairIntegrationTest {
     userRepository.saveAndFlush(admin);
 
     BuiltInUserRepairResult result = repairService.repair();
-    assertThat(result.success()).isFalse();
-    assertThat(result.blockedReason())
-        .isEqualTo(BuiltInUserStartupStatus.REASON_ADMIN_MISSING_BOOTSTRAP_PASSWORD);
+    assertThat(result.success()).isTrue();
+    assertThat(result.blockedReason()).isNull();
 
-    status.markBlocked(result.blockedReason());
-    var health = healthIndicator.health();
-    assertThat(health.getStatus()).isEqualTo(Status.DOWN);
-    assertThat(health.getDetails())
-        .containsEntry("reason", BuiltInUserStartupStatus.REASON_ADMIN_MISSING_BOOTSTRAP_PASSWORD);
-    assertThat(health.getDetails().toString()).doesNotContain("$2a$");
+    User repaired =
+        userRepository.findByUsername(SecurityConstants.BUILT_IN_ADMIN_PRINCIPAL).orElseThrow();
+    assertThat(repaired.getPassword()).isNull();
+
+    status.markReady(result.warnings());
+    assertThat(healthIndicator.health().getStatus()).isEqualTo(Status.UP);
   }
 
   @Test
   @Order(2)
   @Transactional
-  @DisplayName(
-      "passwordless admin with bootstrap secret restores encoded password and READY health")
-  void passwordlessAdminWithSecretBecomesReady() {
+  @DisplayName("passwordless admin stays null; the bootstrap password is not written here")
+  void passwordlessAdminStaysNull() {
     properties.setAdminPassword("probe-bootstrap-password");
     User admin =
         userRepository.findByUsername(SecurityConstants.BUILT_IN_ADMIN_PRINCIPAL).orElseThrow();
@@ -76,9 +74,7 @@ class BuiltInUserStartupRepairIntegrationTest {
 
     User repaired =
         userRepository.findByUsername(SecurityConstants.BUILT_IN_ADMIN_PRINCIPAL).orElseThrow();
-    assertThat(repaired.getPassword()).isNotBlank();
-    assertThat(repaired.getPassword()).isNotEqualTo("probe-bootstrap-password");
-    assertThat(repaired.getPassword()).startsWith("$2a$");
+    assertThat(repaired.getPassword()).isNull();
 
     status.markReady();
     assertThat(healthIndicator.health().getStatus()).isEqualTo(Status.UP);

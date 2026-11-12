@@ -6,6 +6,106 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.3.0] - 2026-11-12
+
+### Added
+
+#### Backend Core
+
+- **First run**: `GET /api/setup/status` is the only setup read. It returns the default language, the enabled languages, and whether the built-in admin password is empty. `POST /api/setup/first-run` is anonymous only while that password is empty, stores the password, and can set the database language. A new 1.3.0 database clears the seeded password. A 1.2.9 upgrade keeps its password. `SITMUN_BOOTSTRAP_ADMIN_PASSWORD` and `SITMUN_BOOTSTRAP_LANGUAGE` run the same setup. While startup is still applying setup, those endpoints return 503 `{ "status": "configuring" }`.
+- **i18n**: A fresh database and an upgrade store Portuguese for code-list descriptions, task names, territory types, the Basic task group, and the literal sentences that were missing.
+- **Profile**: A vector layer publishes `geometryName` and, for generic Geometry, `preferredGeometryType`. `kind` is `vector` for WFS and `raster` for WMS and WMTS. Layers publish ordered `featureInfoFields` for `INFO` parameters.
+- **Proxy**: A proxied layer is requested at `/proxy/{app}/{ter}/{type}/{serviceId}/{cartographyId}`. `INFO` parameters go only on GetFeatureInfo. `GETMAP` parameters go only on GetMap.
+- **Map**: `POST /api/config/client/short-url` shortens a viewer map URL when the caller can open that application and territory. `sitmun.short-url.provider` defaults to `none`.
+- **Templates**: A template has an optional title of 250 characters.
+
+#### Admin Application
+
+- **First run**: While the built-in admin password is empty, every route shows the three-step setup. A missing status endpoint says the admin and backend versions do not match.
+- **SQL query tasks**: The SQL field is a CodeMirror editor. Test runs the saved task twice and shows the bound SQL and values.
+- **Layers**: The list and the form show the linked service protocol. Feature information can set geometry properties, fixed service parameters on a proxied service, and translated identify fields.
+
+#### Viewer Application
+
+- **Map**: A share link stores the view in `mapState` and restores extent, background, catalog layers, drawings, an imported file, and a shared feature. It does not restore the 3D camera. The browser does not call tinyurl.com.
+- **Map**: A proxied layer uses its own proxy address. A non-empty field list replaces the GetFeatureInfo table, in order, with the translated label.
+
+#### Proxy Middleware
+
+- **Proxy**: The five-segment cartography path forwards `cartographyId`. `POST` stays `application/xml`.
+
+#### Mobile Editor
+
+- **WFS**: A layer and its offline download use `layer.url` when the profile sets it.
+- **Download**: A background job that fails shows `download.backgroundFailed` and does not mark the application downloaded.
+
+#### SITMUN Touristic
+
+- **Android**: Capacitor 8 targets API 36. Denied location access opens Android Location settings. Tablet landscape menu icons no longer overlap.
+
+#### Stack
+
+- **Images**: `front`, `backend`, `proxy`, and `mbtiles` publish `linux/amd64` and `linux/arm64` at tag `1.3.0`. Java runtimes use Amazon Corretto 17.0.21. The front image uses nginx 1.30. GitHub creates each package private; an admin sets them public after the first push.
+- **Upgrade**: Compose passes `SITMUN_UPGRADE_DEFAULT_LANGUAGE` into the backend. An empty value leaves a new install unchanged.
+- **Showcase**: `profiles/showcase.env` loads SDI Viewer, Camí de Cavalls, and Case processing support. `demo` / `demo` sees all three. Anonymous visitors see the two public ones. Stored text is English.
+- **CI**: `ci-gate` selects changed components. PostgreSQL 16 runs for a backend change. PostgreSQL 12, Oracle 11g, and Oracle 21c (stand-in for 19c) run for a persistence change, a pull request into `main`, or a manual run. Liquibase upgrade jobs start from 1.2.6, 1.2.7, and 1.2.8.
+
+### Changed
+
+#### Stack
+
+- **SQL** (breaking): `${name}` and `#{VAR}` are bound as typed parameters. Nothing from the request is pasted into the SQL. See `sitmun-backend/CHANGELOG.md`.
+- **JDBC** (breaking): Query parameters sent to the proxy are typed `{sqlType, value}` values, not strings. See `sitmun-proxy/CHANGELOG.md`.
+- **Database**: Spring profile `oracle` sets `org.sitmun.infrastructure.persistence.dialect.SitmunOracleDialect`. Profile `oracle-11` sets `org.sitmun.infrastructure.persistence.dialect.SitmunOracleLegacyDialect`.
+- **Toolchain**: Spring Boot is 4.1.2. Admin and viewer use Angular 22. Node is `.nvmrc` 24.22.0. The Gradle wrapper is 9.8.2.
+- **Database**: A fresh install sets each `STM_SEQUENCE` counter to one past the highest id.
+- **Docker**: The front server returns the SITMUN icon for `/favicon.ico`, `/viewer/favicon.ico`, and `/admin/favicon.ico`.
+- **LDAP**: A role-lookup failure fails the login.
+
+### Fixed
+
+#### Backend Core
+
+- **Database**: A fresh 1.3.0 database uses the same columns, foreign keys, constraint names, and system code lists on H2, Oracle, and PostgreSQL. The literal-translation-value primary key is `stm_ltv_pkey`.
+- **Database**: Service-check times are stored with a time zone. Existing values are copied as UTC before the column changes. An upgrade from 1.2.9 removes AIMS, FME, and TC from the service-type list. Stored services of those types stay.
+- **Database**: The Oracle dialects take the connected database version. A user position created today grants access today. A position that expires today stays active.
+- **i18n**: Creating a task with a new template literal no longer returns HTTP 500 on Oracle.
+
+#### Mobile Editor
+
+- **Map**: Delete stays hidden while a point is added. Saving a point closes the form. Closing the form clears the selected point.
+- **Upload**: A refused change says the user is not allowed. No connection says the changes stay on the device. An expired session says the session expired.
+
+#### Viewer Application
+
+- **Map**: A feature layer with several saved type names is added once per name. The information button on a feature layer says feature type.
+
+#### Admin Application
+
+- **Layers**: A feature layer accepts one type name. A map-image layer still accepts a comma-separated list.
+
+#### Stack
+
+- **Compose**: The web container waits until the proxy health check passes before it starts.
+- **Setup**: `setup.ps1` and `setup.sh` fill a missing secret in an existing `.env` and leave a value that is already set.
+- **Mobile**: The Mobile Editor and SITMUN Touristic READMEs list Angular 22, Ionic 8, Capacitor 8, JDK 21, and Android SDK 36. Each app's `package.json` description is its app name ([#326](https://github.com/sitmun/sitmun/pull/326)).
+
+### Security
+
+#### Stack
+
+- **Upstream TLS**: The backend and the proxy check the certificate and the hostname unless `SITMUN_CLIENT_UNSAFE_ALLOWED_HOSTS` lists those hosts, or is `*`.
+- **Auth**: A session cookie accepts only a session JWT. An edition or mobile proxy token sent as that cookie is rejected.
+- **Auth**: `POST /api/password-reset/confirm` returns the same HTTP 400 for an unknown email, a missing code, and a wrong code.
+- **Docker**: Compose refuses to start when `SITMUN_USER_SECRET`, `MIDDLEWARE_SECRET`, or `SITMUN_MBTILES_JOB_HANDLE_SECRET` is unset.
+
+### Removed
+
+#### Stack
+
+- **Seed**: The per-language translation JSON files are removed. Seed text is edited in `tools/seed-data/baseline`.
+- **Docker**: `profiles/postgres/docker-compose.yml` and `profiles/oracle/docker-compose.yml` are removed. PostgreSQL and Oracle start from the root Compose file.
+
 ## [1.2.9] - 2026-09-19
 
 ### Changed
@@ -1152,14 +1252,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 For detailed changelogs of individual components, see:
 
-- [Backend Core Changelog](back/backend/sitmun-backend-core/CHANGELOG.md)
-- [Admin Application Changelog](front/admin/sitmun-admin-app/CHANGELOG.md)
-- [Viewer Application Changelog](front/viewer/sitmun-viewer-app/CHANGELOG.md)
-- [Proxy Middleware Changelog](back/proxy/sitmun-proxy-middleware/CHANGELOG.md)
+- [Backend Core Changelog](sitmun-backend/CHANGELOG.md)
+- [Admin Application Changelog](sitmun-admin/CHANGELOG.md)
+- [Viewer Application Changelog](sitmun-viewer/CHANGELOG.md)
+- [Proxy Middleware Changelog](sitmun-proxy/CHANGELOG.md)
+- [Mobile Editor Changelog](sitmun-mobile/sitmun-edition/CHANGELOG.md)
+- [SITMUN Touristic Changelog](sitmun-mobile/sitmun-touristic/CHANGELOG.md)
 
 ## Links
 
-[unreleased]: https://github.com/sitmun/sitmun-application-stack/compare/sitmun-application-stack/1.2.9...HEAD
+[unreleased]: https://github.com/sitmun/sitmun/compare/v1.3.0...HEAD
+[1.3.0]: https://github.com/sitmun/sitmun/compare/legacy/sitmun-application-stack/sitmun-application-stack/1.2.9...v1.3.0
 [1.2.9]: https://github.com/sitmun/sitmun-application-stack/compare/sitmun-application-stack/1.2.8...sitmun-application-stack/1.2.9
 [1.2.8]: https://github.com/sitmun/sitmun-application-stack/compare/sitmun-application-stack/1.2.7...sitmun-application-stack/1.2.8
 [1.2.7]: https://github.com/sitmun/sitmun-application-stack/compare/sitmun-application-stack/1.2.6...sitmun-application-stack/1.2.7

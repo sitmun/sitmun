@@ -1,101 +1,346 @@
 name: Liquibase upgrade
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
 on:
+  pull_request:
+    branches: [dev]
+    paths:
+      - 'profiles/postgres/liquibase/**'
+      - 'profiles/oracle/liquibase/**'
+      - 'profiles/development/backend/liquibase/**'
+      - 'sitmun-backend/src/main/resources/db/changelog/**'
+      - 'tools/tests/test_liquibase_1.2.7_to_head_upgrade.sh'
+      - 'tools/tests/test_liquibase_upgrade_from_1.2.9.sh'
+      - 'tools/tests/test_prepare_extracted_liquibase.py'
+      - 'tools/bin/prepare_extracted_liquibase.py'
+      - '.github/workflows/liquibase-upgrade.yml'
   workflow_dispatch:
+    inputs:
+      db:
+        description: Database to upgrade, or all
+        required: true
+        type: choice
+        default: all
+        options:
+          - all
+          - postgres-12
+          - postgres-16
+          - oracle-11
+          - oracle-19
+          - oracle-23
+      source:
+        description: Optional X.Y.Z override for a single upgrade-from run
+        required: false
+        default: ''
 
 jobs:
   prepare-extracted-unit:
+    name: Prepare extracted unit
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Extracted-tree helper unit tests
         run: python3 tools/tests/test_prepare_extracted_liquibase.py
 
-  postgres-1-2-7-to-head:
+  postgres-12-from:
+    name: Upgrade PostgreSQL 12 from 1.2.9
+    if: github.event_name != 'workflow_dispatch' || inputs.db == 'all' || inputs.db == 'postgres-12'
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 45
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0
           fetch-tags: true
-
-      - name: Fetch 1.2.7 and 1.2.8 tags
+      - name: Set up Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version-file: .java-version
+      - name: Fetch the 1.2.7, 1.2.8, and 1.2.9 tags
         run: |
-          git fetch --no-tags origin tag sitmun-application-stack/1.2.7
-          git fetch --no-tags origin tag sitmun-application-stack/1.2.8
+          git fetch --no-tags origin tag legacy/sitmun-application-stack/sitmun-application-stack/1.2.7
+          git fetch --no-tags origin tag legacy/sitmun-application-stack/sitmun-application-stack/1.2.8
+          git fetch --no-tags origin tag legacy/sitmun-application-stack/sitmun-application-stack/1.2.9
+      - name: Upgrade 1.2.9 to the shipped master
+        run: bash tools/tests/test_liquibase_upgrade_from_1.2.9.sh postgres-12
 
-      - name: Upgrade 1.2.7 then 1.2.8 fail then HEAD
-        run: bash tools/tests/test_liquibase_1.2.7_to_head_upgrade.sh postgres
-
-  postgres-from:
+  postgres-16-from:
+    name: Upgrade PostgreSQL 16 from 1.2.9
+    if: github.event_name != 'workflow_dispatch' || inputs.db == 'all' || inputs.db == 'postgres-16'
     runs-on: ubuntu-latest
-    timeout-minutes: 20
-    strategy:
-      fail-fast: false
-      matrix:
-        source: ['1.2.8']
+    timeout-minutes: 70
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+      - name: Set up Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version-file: .java-version
+      - name: Fetch the 1.2.7, 1.2.8, and 1.2.9 tags
+        run: |
+          git fetch --no-tags origin tag legacy/sitmun-application-stack/sitmun-application-stack/1.2.7
+          git fetch --no-tags origin tag legacy/sitmun-application-stack/sitmun-application-stack/1.2.8
+          git fetch --no-tags origin tag legacy/sitmun-application-stack/sitmun-application-stack/1.2.9
+      - name: Upgrade 1.2.9 to the shipped master
+        env:
+          SITMUN_UPGRADE_KEEP_DB: "1"
+        run: bash tools/tests/test_liquibase_upgrade_from_1.2.9.sh postgres-16
+      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
+        with:
+          version: 12.15.0
+      - name: Set up Node
+        uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+      - name: Install dependencies
+        run: pnpm ci --filter . --filter ./sitmun-admin...
+      - name: Read the Playwright version
+        id: playwright-version
+        run: |
+          version=$(python3 -c "import pathlib,re; text=pathlib.Path('pnpm-lock.yaml').read_text(); match=re.search(r'playwright@(\d+\.\d+\.\d+)', text); assert match; print(match.group(1))")
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+      - name: Cache Playwright browsers
+        id: playwright-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ steps.playwright-version.outputs.version }}
+      - name: Install Chromium
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: pnpm exec playwright install chromium
+      - name: Run admin end-to-end on the upgraded database
+        env:
+          CI: "true"
+          SITMUN_E2E_DATASOURCE_URL: jdbc:postgresql://127.0.0.1:54360/sitmun3
+          SITMUN_E2E_DATASOURCE_USERNAME: sitmun3
+          SITMUN_E2E_DATASOURCE_PASSWORD: sitmun3
+        run: pnpm run e2e
+      - name: Upload Playwright artifacts
+        if: failure()
+        uses: actions/upload-artifact@v6
+        with:
+          name: playwright-admin-upgraded-artifacts
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7
+      - name: Remove the upgraded database
+        if: always()
+        run: |
+          docker rm -f sitmun-upgrade-129-postgres-16
+          docker network rm sitmun_up_129_postgres16 || true
+
+  oracle-23-from:
+    name: Upgrade Oracle 23ai from 1.2.9
+    if: github.event_name != 'workflow_dispatch' || inputs.db == 'all' || inputs.db == 'oracle-23'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+      - name: Set up Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version-file: .java-version
+      - name: Fetch the 1.2.7, 1.2.8, and 1.2.9 tags
+        run: |
+          git fetch --no-tags origin tag legacy/sitmun-application-stack/sitmun-application-stack/1.2.7
+          git fetch --no-tags origin tag legacy/sitmun-application-stack/sitmun-application-stack/1.2.8
+          git fetch --no-tags origin tag legacy/sitmun-application-stack/sitmun-application-stack/1.2.9
+      - name: Upgrade 1.2.9 to the shipped master
+        run: bash tools/tests/test_liquibase_upgrade_from_1.2.9.sh oracle-23
+
+  oracle-19-from:
+    name: Upgrade Oracle 21c (stand-in for 19c) stopped at 22c
+    if: github.event_name != 'workflow_dispatch' || inputs.db == 'all' || inputs.db == 'oracle-19'
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+      - name: Set up Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version-file: .java-version
+      - name: Fetch the 1.2.7, 1.2.8, and 1.2.9 tags
+        run: |
+          git fetch --no-tags origin tag legacy/sitmun-application-stack/sitmun-application-stack/1.2.7
+          git fetch --no-tags origin tag legacy/sitmun-application-stack/sitmun-application-stack/1.2.8
+          git fetch --no-tags origin tag legacy/sitmun-application-stack/sitmun-application-stack/1.2.9
+      - name: Install 1.2.9 until changeset 22c, then upgrade
+        run: bash tools/tests/test_liquibase_upgrade_from_1.2.9.sh oracle-21 1.2.9 stopped-22c
+
+  oracle-11-from:
+    name: Upgrade Oracle 11g stopped at 22c
+    if: github.event_name != 'workflow_dispatch' || inputs.db == 'all' || inputs.db == 'oracle-11'
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+      - name: Set up Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version-file: .java-version
+      - name: Fetch the 1.2.7, 1.2.8, and 1.2.9 tags
+        run: |
+          git fetch --no-tags origin tag legacy/sitmun-application-stack/sitmun-application-stack/1.2.7
+          git fetch --no-tags origin tag legacy/sitmun-application-stack/sitmun-application-stack/1.2.8
+          git fetch --no-tags origin tag legacy/sitmun-application-stack/sitmun-application-stack/1.2.9
+      - name: Install 1.2.9 until changeset 22c, then upgrade
+        run: bash tools/tests/test_liquibase_upgrade_from_1.2.9.sh oracle-11 1.2.9 stopped-22c
+
+  postgres-16-from-128:
+    name: Upgrade PostgreSQL 16 from 1.2.8
+    if: github.event_name != 'workflow_dispatch' || inputs.db == 'all' || inputs.db == 'postgres-16'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+      - name: Set up Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version-file: .java-version
+      - name: Fetch the 1.2.7, 1.2.8, and 1.2.9 tags
+        run: |
+          git fetch --no-tags origin tag legacy/sitmun-application-stack/sitmun-application-stack/1.2.7
+          git fetch --no-tags origin tag legacy/sitmun-application-stack/sitmun-application-stack/1.2.8
+          git fetch --no-tags origin tag legacy/sitmun-application-stack/sitmun-application-stack/1.2.9
+      - name: Upgrade 1.2.8 to the shipped master
+        run: bash tools/tests/test_liquibase_upgrade_from_1.2.9.sh postgres-16 1.2.8
+
+  oracle-11-from-128:
+    name: Upgrade Oracle 11g from 1.2.8
+    if: github.event_name != 'workflow_dispatch' || inputs.db == 'all' || inputs.db == 'oracle-11'
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+      - name: Set up Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version-file: .java-version
+      - name: Fetch the 1.2.7, 1.2.8, and 1.2.9 tags
+        run: |
+          git fetch --no-tags origin tag legacy/sitmun-application-stack/sitmun-application-stack/1.2.7
+          git fetch --no-tags origin tag legacy/sitmun-application-stack/sitmun-application-stack/1.2.8
+          git fetch --no-tags origin tag legacy/sitmun-application-stack/sitmun-application-stack/1.2.9
+      - name: Upgrade 1.2.8 to the shipped master
+        run: bash tools/tests/test_liquibase_upgrade_from_1.2.9.sh oracle-11 1.2.8
+
+  oracle-19-from-128:
+    name: Upgrade Oracle 21c (stand-in for 19c) from 1.2.8
+    if: github.event_name != 'workflow_dispatch' || inputs.db == 'all' || inputs.db == 'oracle-19'
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+      - name: Set up Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version-file: .java-version
+      - name: Fetch the 1.2.7, 1.2.8, and 1.2.9 tags
+        run: |
+          git fetch --no-tags origin tag legacy/sitmun-application-stack/sitmun-application-stack/1.2.7
+          git fetch --no-tags origin tag legacy/sitmun-application-stack/sitmun-application-stack/1.2.8
+          git fetch --no-tags origin tag legacy/sitmun-application-stack/sitmun-application-stack/1.2.9
+      - name: Upgrade 1.2.8 to the shipped master
+        run: bash tools/tests/test_liquibase_upgrade_from_1.2.9.sh oracle-21 1.2.8
+
+  dev-postgres-from:
+    name: Upgrade development PostgreSQL from 1.2.6
+    if: github.event_name != 'workflow_dispatch' || inputs.db == 'all' || inputs.db == 'postgres-16'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0
           fetch-tags: true
 
-      - name: Fetch source tag
-        run: git fetch --no-tags origin tag sitmun-application-stack/${{ matrix.source }}
+      - name: Validate the source version
+        env:
+          SOURCE: ${{ inputs.source || '1.2.6' }}
+        run: '[[ "$SOURCE" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]'
 
-      - name: Upgrade ${{ matrix.source }} to HEAD
-        run: bash tools/tests/test_liquibase_1.2.7_to_head_upgrade.sh postgres-from ${{ matrix.source }}
+      - name: Fetch the source tag
+        env:
+          SOURCE: ${{ inputs.source || '1.2.6' }}
+        run: git fetch --no-tags origin tag "legacy/sitmun-application-stack/sitmun-application-stack/${SOURCE}"
 
-  postgres-auth-mode-swap:
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Auth-mode COD_ID swap (#45)
-        run: bash tools/tests/test_liquibase_codelist_auth_mode_swap.sh
-
-  oracle-from:
-    runs-on: ubuntu-latest
-    timeout-minutes: 40
-    strategy:
-      fail-fast: false
-      matrix:
-        source: ['1.2.6', '1.2.7', '1.2.8']
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          fetch-tags: true
-
-      - name: Fetch source tag
-        run: git fetch --no-tags origin tag sitmun-application-stack/${{ matrix.source }}
-
-      - name: Upgrade Oracle ${{ matrix.source }} to HEAD
-        run: bash tools/tests/test_liquibase_1.2.7_to_head_upgrade.sh oracle-from ${{ matrix.source }}
+      - name: Upgrade development PostgreSQL to HEAD
+        env:
+          SOURCE: ${{ inputs.source || '1.2.6' }}
+        run: bash tools/tests/test_liquibase_1.2.7_to_head_upgrade.sh dev-postgres-from "$SOURCE"
 
   dev-oracle-from:
+    name: Upgrade development Oracle from 1.2.6
+    if: github.event_name != 'workflow_dispatch' || inputs.db == 'all' || inputs.db == 'oracle-23'
     runs-on: ubuntu-latest
     timeout-minutes: 40
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0
           fetch-tags: true
 
-      - name: Fetch 1.2.6 tag
-        run: git fetch --no-tags origin tag sitmun-application-stack/1.2.6
+      - name: Validate the source version
+        env:
+          SOURCE: ${{ inputs.source || '1.2.6' }}
+        run: '[[ "$SOURCE" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]'
 
-      - name: Upgrade development Oracle 1.2.6 to HEAD
-        run: bash tools/tests/test_liquibase_1.2.7_to_head_upgrade.sh dev-oracle-from 1.2.6
+      - name: Fetch the source tag
+        env:
+          SOURCE: ${{ inputs.source || '1.2.6' }}
+        run: git fetch --no-tags origin tag "legacy/sitmun-application-stack/sitmun-application-stack/${SOURCE}"
+
+      - name: Upgrade development Oracle to HEAD
+        env:
+          SOURCE: ${{ inputs.source || '1.2.6' }}
+        run: bash tools/tests/test_liquibase_1.2.7_to_head_upgrade.sh dev-oracle-from "$SOURCE"

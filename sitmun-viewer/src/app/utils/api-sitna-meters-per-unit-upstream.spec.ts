@@ -17,6 +17,11 @@ import { get as getProjection, METERS_PER_UNIT } from 'ol/proj';
 import { register } from 'ol/proj/proj4';
 import proj4 from 'proj4';
 
+/** proj4 2.22 types Proj.datum as an object. OpenLayers still declares it as a string. */
+function registerInstalledProj4(): void {
+  register(proj4 as unknown as Parameters<typeof register>[0]);
+}
+
 /** Same formula as SITNA Raster.getOgcScale */
 function sitnaGetOgcScale(
   resolution: number,
@@ -52,7 +57,7 @@ describe('api-sitna upstream: WKT metre CRS METERS_PER_UNIT miss (#152)', () => 
     // SITNA TC.loadProjDef: loadDef(data.code, data.wkt || data.proj4, ...)
     const code = 'EPSG:3763-upstream-char';
     proj4.defs(code, data.wkt || data.proj4);
-    register(proj4);
+    registerInstalledProj4();
 
     const proj = getProjection(code);
     expect(proj).toBeTruthy();
@@ -78,7 +83,7 @@ describe('api-sitna upstream: WKT metre CRS METERS_PER_UNIT miss (#152)', () => 
     // Contrast: same CRS via +units=m proj4 string is fine
     const viaProj4 = 'EPSG:3763-via-proj4';
     proj4.defs(viaProj4, data.proj4);
-    register(proj4);
+    registerInstalledProj4();
     const proj4Proj = getProjection(viaProj4)!;
     expect(proj4Proj.getUnits()).toBe('m');
     expect(sitnaMetersPerUnitLookup(proj4Proj.getUnits())).toBe(1);

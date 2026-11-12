@@ -12,7 +12,8 @@ import {
   OnInit,
   DoCheck,
   OnDestroy,
-  ViewChild
+  ViewChild,
+  ChangeDetectionStrategy
 } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { MatMenuTrigger } from '@angular/material/menu';
@@ -43,6 +44,7 @@ import { resolveUiLanguage } from 'src/app/services/ui-language.resolver';
   selector: 'app-navigation-bar',
   templateUrl: './navigation-bar.component.html',
   styleUrls: ['./navigation-bar.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
   animations: [
     trigger('toolbarCollapse', [
       state(
@@ -117,7 +119,8 @@ export class NavigationBarComponent implements OnInit, DoCheck, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe((languages) => this.applyLanguages(languages));
     if (this.languageService.getAvailableLanguages().length === 0) {
-      this.languageService.refreshLanguagesToUse()
+      this.languageService
+        .refreshLanguagesToUse()
         .pipe(takeUntil(this.destroy$))
         .subscribe();
     }
@@ -131,7 +134,6 @@ export class NavigationBarComponent implements OnInit, DoCheck, OnDestroy {
         }
         this.checkWhichClassIsActive();
         this.overrideNavbar(this.router.url);
-        // Update visibility flags on navigation
         this.updateButtonVisibility();
         // Dismiss menu overlays so nested submenus cannot orphan on route change
         this.closeToolbarMenu();
@@ -144,13 +146,13 @@ export class NavigationBarComponent implements OnInit, DoCheck, OnDestroy {
         this.overrideNavbar(this.router.url);
         this.updateButtonVisibility();
       });
-    // Initial update
     this.updateButtonVisibility();
   }
 
   /** Re-fetch enabled/order when the user opens the language menu. */
   onLanguageMenuOpened(): void {
-    this.languageService.refreshLanguagesToUse()
+    this.languageService
+      .refreshLanguagesToUse()
       .pipe(takeUntil(this.destroy$))
       .subscribe();
   }
@@ -178,7 +180,6 @@ export class NavigationBarComponent implements OnInit, DoCheck, OnDestroy {
 
   overrideNavbar(url: string) {
     if (url.startsWith('/public/map') || url.startsWith('/user/map')) {
-      // We get the application headers params of the app selected in the map
       this.commonService
         .fetchDashboardItems(DashboardTypes.APPLICATIONS)
         .subscribe({
@@ -208,7 +209,6 @@ export class NavigationBarComponent implements OnInit, DoCheck, OnDestroy {
                 visible: obj?.visible ?? false
               });
 
-              // We overide the left side
               const headerLeftSection = headerParams.headerLeftSection;
               for (const key of leftBaseKeys) {
                 if (headerLeftSection[key])
@@ -221,7 +221,6 @@ export class NavigationBarComponent implements OnInit, DoCheck, OnDestroy {
                   ); // Future logo in header in the left section
               }
 
-              // We look each button on the right side and dot not show if visible param is false
               const headerRightSection = headerParams.headerRightSection;
               for (const key of rightBaseKeys) {
                 if (headerRightSection[key])
@@ -255,9 +254,7 @@ export class NavigationBarComponent implements OnInit, DoCheck, OnDestroy {
   }
 
   private closeToolbarMenu(): void {
-    // Close nested submenus first (e.g., language menu)
     this.menuComponent?.closeAllMenus();
-    // Then close the root menu
     this.toolbarMenuTrigger?.closeMenu();
   }
 
@@ -319,7 +316,7 @@ export class NavigationBarComponent implements OnInit, DoCheck, OnDestroy {
     }
     const chosen = resolveUiLanguage({
       stored:
-        this.translate.currentLang ||
+        this.translate.getCurrentLang() ||
         localStorage.getItem(this.languageService.STORED_LANGUAGE),
       backendDefault: null,
       availableShortnames: languages.map((language) => language.shortname),
@@ -367,15 +364,12 @@ export class NavigationBarComponent implements OnInit, DoCheck, OnDestroy {
   }
 
   shouldShowDashboardButton(): boolean {
-    // Don't show on dashboard pages
     if (this.router.url.includes('/dashboard')) {
       return false;
     }
-    // Don't show on login/auth pages
     if (this.isInAuthLoginSection()) {
       return false;
     }
-    // Show on all other pages (map, profile, territory, application, etc.)
     return true;
   }
 
@@ -412,9 +406,7 @@ export class NavigationBarComponent implements OnInit, DoCheck, OnDestroy {
       }
     );
 
-    dialogRef.afterClosed().subscribe(() => {
-      // Dialog closed
-    });
+    dialogRef.afterClosed().subscribe(() => {});
   }
 }
 

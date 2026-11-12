@@ -12,12 +12,23 @@
 #   bash tools/scripts/compare-schema-drift.sh postgres --against jpa
 #   bash tools/scripts/compare-schema-drift.sh postgres --out /tmp/drift-pg
 #   bash tools/scripts/compare-schema-drift.sh postgres --fail-on none
+#   bash tools/scripts/compare-schema-drift.sh fresh-vs-upgraded postgres-16 [1.2.9]
 
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 TARGET="${1:-postgres}"
 shift || true
+FVU_ENGINE=""
+FVU_SOURCE="1.2.9"
+if [[ "$TARGET" == "fresh-vs-upgraded" ]]; then
+  FVU_ENGINE="${1:?usage: $0 fresh-vs-upgraded postgres-16|postgres-12|oracle-23|oracle-21|oracle-11 [source-tag]}"
+  shift
+  if [[ $# -gt 0 && "$1" != --* ]]; then
+    FVU_SOURCE="$1"
+    shift
+  fi
+fi
 
 AGAINST="profiles"
 OUT_ROOT=""
@@ -34,7 +45,7 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-if [[ "$AGAINST" != "profiles" && "$AGAINST" != "jpa" ]]; then
+if [[ -z "$FVU_ENGINE" && "$AGAINST" != "profiles" && "$AGAINST" != "jpa" ]]; then
   echo "--against must be profiles or jpa" >&2
   exit 2
 fi
@@ -92,7 +103,8 @@ dump_pg_schema() {
       string_agg(upper(kcu.column_name), ',' ORDER BY kcu.ordinal_position),
       upper(ccu.table_name),
       string_agg(upper(ccu.column_name), ',' ORDER BY kcu.ordinal_position),
-      tc.constraint_name
+      tc.constraint_name,
+      lower(rc.delete_rule)
     FROM information_schema.table_constraints tc
     JOIN information_schema.key_column_usage kcu
       ON tc.constraint_schema = kcu.constraint_schema
@@ -101,12 +113,25 @@ dump_pg_schema() {
     JOIN information_schema.constraint_column_usage ccu
       ON ccu.constraint_schema = tc.constraint_schema
      AND ccu.constraint_name = tc.constraint_name
+    JOIN information_schema.referential_constraints rc
+      ON rc.constraint_schema = tc.constraint_schema
+     AND rc.constraint_name = tc.constraint_name
     WHERE tc.table_schema = 'public'
       AND tc.table_name LIKE 'stm_%'
       AND tc.constraint_type = 'FOREIGN KEY'
-    GROUP BY kcu.table_name, ccu.table_name, tc.constraint_name
+    GROUP BY kcu.table_name, ccu.table_name, tc.constraint_name, rc.delete_rule
     ORDER BY 1, 6;
   " >> "${out_prefix}.constraints"
+
+  docker exec "$container" psql -U "$user" -d "$db" -v ON_ERROR_STOP=1 -At -F '|' -c "
+    SELECT upper(tablename), upper(indexname),
+           CASE WHEN indexdef ILIKE 'CREATE UNIQUE%' THEN 'YES' ELSE 'NO' END,
+           replace(indexdef, '|', '/')
+    FROM pg_indexes
+    WHERE schemaname = 'public'
+      AND tablename LIKE 'stm_%'
+    ORDER BY 1, 2;
+  " > "${out_prefix}.indexes"
 
   if [[ ! -s "${out_prefix}.columns" ]]; then
     echo "ERROR: empty column dump for ${out_prefix}" >&2
@@ -141,43 +166,50 @@ liquibase_pg() {
   fi
 }
 
-run_jpa_pg() {
-  local network="$1" host="$2" db="$3" user="$4" pass="$5"
-  local backend="$REPO_ROOT/back/backend/sitmun-backend-core"
+jpa_reference_schema() {
+  local jdbc_url="$1" user="$2" pass="$3" dialect="$4"
+  shift 4
+  local backend="$REPO_ROOT/sitmun-backend"
+  local log=/tmp/sitmun-jpa-schema-export.log
   if [[ ! -d "$backend" ]]; then
-    echo "sitmun-backend-core missing; cannot --against jpa" >&2
+    echo "sitmun-backend missing; cannot --against jpa" >&2
     return 2
   fi
+  local -a spring_args=(
+    --spring.main.web-application-type=none
+    --spring.main.lazy-initialization=true
+    --spring.liquibase.enabled=false
+    --spring.jpa.hibernate.ddl-auto=create
+    "--spring.datasource.url=${jdbc_url}"
+    "--spring.datasource.username=${user}"
+    "--spring.datasource.password=${pass}"
+    "--spring.jpa.properties.hibernate.dialect=${dialect}"
+  )
+  spring_args+=("$@")
   (
     cd "$backend"
-    ./gradlew --quiet bootRun \
-      -Dspring-boot.run.arguments="--spring.main.web-application-type=none" \
-      -Dspring.liquibase.enabled=false \
-      -Dspring.jpa.hibernate.ddl-auto=create \
-      -Dspring.datasource.url="jdbc:postgresql://${host}:5432/${db}" \
-      -Dspring.datasource.username="$user" \
-      -Dspring.datasource.password="$pass" \
-      -Dspring.datasource.driver-class-name=org.postgresql.Driver \
-      -Dspring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect \
-      >/tmp/sitmun-jpa-schema-export.log 2>&1 &
+    SITMUN_USER_SECRET=verify-schema-drift-user-secret-32chars \
+      SITMUN_PROXY_MIDDLEWARE_SECRET=verify-schema-drift-middleware-secret-32 \
+      ./gradlew --quiet bootRun --args="${spring_args[*]}" >"$log" 2>&1 &
     local pid=$!
-    # Wait until STM_APP exists or timeout
-    for _ in $(seq 1 90); do
-      if docker exec "$host" psql -U "$user" -d "$db" -At -c \
-        "SELECT 1 FROM information_schema.tables WHERE table_name='stm_app'" 2>/dev/null | grep -q 1; then
+    local _
+    for _ in $(seq 1 180); do
+      if grep -q "Started Application in" "$log" 2>/dev/null; then
         kill "$pid" 2>/dev/null || true
         wait "$pid" 2>/dev/null || true
         return 0
       fi
       if ! kill -0 "$pid" 2>/dev/null; then
         wait "$pid" || true
-        echo "JPA export process exited early; see /tmp/sitmun-jpa-schema-export.log" >&2
+        echo "JPA export process exited early; see $log" >&2
+        tail -80 "$log" >&2 || true
         return 1
       fi
       sleep 2
     done
     kill "$pid" 2>/dev/null || true
-    echo "Timed out waiting for Hibernate schema" >&2
+    echo "Timed out waiting for Started Application in; see $log" >&2
+    tail -80 "$log" >&2 || true
     return 1
   )
 }
@@ -238,32 +270,10 @@ run_postgres() {
       PORT=55432
     fi
     echo "── Hibernate ddl-auto=create → sitmun_ref ──"
-    (
-      cd "$REPO_ROOT/back/backend/sitmun-backend-core"
-      ./gradlew --quiet bootRun \
-        --args="--spring.main.web-application-type=none --spring.main.lazy-initialization=true" \
-        -Dspring.liquibase.enabled=false \
-        -Dspring.jpa.hibernate.ddl-auto=create \
-        -Dspring.datasource.url="jdbc:postgresql://127.0.0.1:${PORT}/sitmun_ref" \
-        -Dspring.datasource.username="$DB_USER" \
-        -Dspring.datasource.password="$DB_PASS" \
-        >/tmp/sitmun-jpa-schema-export.log 2>&1 &
-      local pid=$!
-      for _ in $(seq 1 120); do
-        if docker exec "$CONTAINER" psql -U "$DB_USER" -d sitmun_ref -At -c \
-          "SELECT 1 FROM information_schema.tables WHERE table_name='stm_app'" 2>/dev/null | grep -q 1; then
-          kill "$pid" 2>/dev/null || true
-          wait "$pid" 2>/dev/null || true
-          break
-        fi
-        if ! kill -0 "$pid" 2>/dev/null; then
-          echo "JPA export failed; log:" >&2
-          tail -50 /tmp/sitmun-jpa-schema-export.log >&2 || true
-          return 1
-        fi
-        sleep 2
-      done
-    )
+    jpa_reference_schema \
+      "jdbc:postgresql://127.0.0.1:${PORT}/sitmun_ref" \
+      "$DB_USER" "$DB_PASS" \
+      org.hibernate.dialect.PostgreSQLDialect
     echo "── Liquibase postgres profile → sitmun_fix ──"
     liquibase_pg "$NETWORK" "$CONTAINER" sitmun_fix "$DB_USER" "$DB_PASS" "$PROD_LB"
   else
@@ -317,16 +327,39 @@ run_postgres() {
 dump_oracle_schema() {
   local container="$1" user="$2" pass="$3" service="$4" out_prefix="$5"
   local connect="${user}/${pass}@//localhost:1521/${service}"
-  docker exec "$container" bash -c "echo \"
-SET PAGESIZE 0 FEEDBACK OFF VERIFY OFF HEADING OFF ECHO OFF LINESIZE 32767 LONG 100000 WRAP OFF
-SELECT table_name||'|'||column_name||'|'||data_type||'|'||
-       NVL(TO_CHAR(CASE WHEN data_type IN ('VARCHAR2','NVARCHAR2','CHAR','NCHAR')
-                        THEN char_length ELSE data_length END),'')||'|'||
-       CASE nullable WHEN 'N' THEN 'NO' WHEN 'Y' THEN 'YES' ELSE nullable END||'|'
-FROM user_tab_columns
-WHERE table_name LIKE 'STM_%'
+  # data_default is LONG. SUBSTR on it raises ORA-00932, and sqlplus still exits 0,
+  # so a failed dump must be rejected here. DBMS_XMLGEN reads the LONG into XML.
+  cat > "${out_prefix}.columns.sql" <<'SQL'
+SET PAGESIZE 0 FEEDBACK OFF VERIFY OFF HEADING OFF ECHO OFF LINESIZE 32767 WRAP OFF TRIMSPOOL ON
+WHENEVER SQLERROR EXIT FAILURE
+SELECT table_name||'|'||column_name||'|'||data_type||'|'||NVL(len, '')||'|'||
+       CASE nullable WHEN 'N' THEN 'NO' WHEN 'Y' THEN 'YES' ELSE nullable END||'|'||
+       NVL(REPLACE(REPLACE(REPLACE(SUBSTR(data_default, 1, 200), '|', '/'), CHR(10), ' '), CHR(13), ' '), '')
+FROM XMLTABLE(
+  '/ROWSET/ROW'
+  PASSING XMLTYPE(DBMS_XMLGEN.GETXML(
+    'SELECT table_name, column_name, data_type,
+            CASE WHEN data_type IN (''VARCHAR2'',''NVARCHAR2'',''CHAR'',''NCHAR'')
+                 THEN TO_CHAR(char_length) END len,
+            nullable, data_default
+       FROM user_tab_columns
+      WHERE table_name LIKE ''STM_%'''))
+  COLUMNS
+    table_name   VARCHAR2(128) PATH 'TABLE_NAME',
+    column_name  VARCHAR2(128) PATH 'COLUMN_NAME',
+    data_type    VARCHAR2(128) PATH 'DATA_TYPE',
+    len          VARCHAR2(40)  PATH 'LEN',
+    nullable     VARCHAR2(1)   PATH 'NULLABLE',
+    data_default VARCHAR2(400) PATH 'DATA_DEFAULT'
+)
 ORDER BY table_name, column_name;
-\" | sqlplus -s ${connect}" > "${out_prefix}.columns"
+EXIT
+SQL
+  if ! docker exec -i "$container" sqlplus -s "$connect" < "${out_prefix}.columns.sql" > "${out_prefix}.columns"; then
+    echo "ERROR: oracle column dump failed for ${out_prefix}:" >&2
+    head -20 "${out_prefix}.columns" >&2 || true
+    exit 1
+  fi
 
   docker exec "$container" bash -c "echo \"
 SET PAGESIZE 0 FEEDBACK OFF VERIFY OFF HEADING OFF ECHO OFF LINESIZE 32767 LONG 100000 WRAP OFF
@@ -347,21 +380,33 @@ SELECT acc.table_name||'|FK|'||
        LISTAGG(acc.column_name, ',') WITHIN GROUP (ORDER BY acc.position)||'|'||
        r.table_name||'|'||
        LISTAGG(rcc.column_name, ',') WITHIN GROUP (ORDER BY acc.position)||'|'||
-       ac.constraint_name
+       ac.constraint_name||'|'||lower(nvl(ac.delete_rule, 'NO ACTION'))
 FROM user_constraints ac
 JOIN user_cons_columns acc ON ac.constraint_name = acc.constraint_name
 JOIN user_constraints r ON ac.r_constraint_name = r.constraint_name
 JOIN user_cons_columns rcc ON r.constraint_name = rcc.constraint_name AND rcc.position = acc.position
 WHERE ac.constraint_type = 'R'
   AND ac.table_name LIKE 'STM_%'
-GROUP BY acc.table_name, r.table_name, ac.constraint_name
+GROUP BY acc.table_name, r.table_name, ac.constraint_name, ac.delete_rule
 ORDER BY 1;
 \" | sqlplus -s ${connect}" >> "${out_prefix}.constraints"
+
+  docker exec "$container" bash -c "echo \"
+SET PAGESIZE 0 FEEDBACK OFF VERIFY OFF HEADING OFF ECHO OFF LINESIZE 32767 LONG 100000 WRAP OFF
+SELECT i.table_name||'|'||i.index_name||'|'||
+       CASE i.uniqueness WHEN 'UNIQUE' THEN 'YES' ELSE 'NO' END||'|'||
+       LISTAGG(ic.column_name, ',') WITHIN GROUP (ORDER BY ic.column_position)
+FROM user_indexes i
+JOIN user_ind_columns ic ON i.index_name = ic.index_name
+WHERE i.table_name LIKE 'STM_%'
+GROUP BY i.table_name, i.index_name, i.uniqueness
+ORDER BY 1;
+\" | sqlplus -s ${connect}" > "${out_prefix}.indexes"
 
   if ! grep -q '^STM_' "${out_prefix}.columns" 2>/dev/null; then
     echo "ERROR: oracle column dump failed for ${out_prefix}:" >&2
     head -20 "${out_prefix}.columns" >&2 || true
-    return 1
+    exit 1
   fi
 }
 
@@ -401,11 +446,6 @@ run_oracle() {
   local SERVICE=FREEPDB1
   mkdir -p "$OUT"
 
-  if [[ "$AGAINST" == "jpa" ]]; then
-    echo "Oracle --against jpa not implemented in v1 (use profiles mode)." >&2
-    return 2
-  fi
-
   echo ""
   echo "════════════════════════════════════════════════════"
   echo " Oracle schema drift (against=$AGAINST)"
@@ -414,9 +454,16 @@ run_oracle() {
   docker rm -f "$CONTAINER" 2>/dev/null || true
   docker network rm "$NETWORK" 2>/dev/null || true
   docker network create "$NETWORK"
-  docker run -d --name "$CONTAINER" --network "$NETWORK" \
-    -e ORACLE_PASSWORD="$SYS_PASS" \
-    gvenzl/oracle-free:23-slim >/dev/null
+  if [[ "$AGAINST" == "jpa" ]]; then
+    docker run -d --name "$CONTAINER" --network "$NETWORK" \
+      -p 21521:1521 \
+      -e ORACLE_PASSWORD="$SYS_PASS" \
+      gvenzl/oracle-free:23-slim >/dev/null
+  else
+    docker run -d --name "$CONTAINER" --network "$NETWORK" \
+      -e ORACLE_PASSWORD="$SYS_PASS" \
+      gvenzl/oracle-free:23-slim >/dev/null
+  fi
 
   echo "Waiting for Oracle..."
   for _ in $(seq 1 120); do
@@ -435,10 +482,25 @@ CREATE USER sitmun_fix IDENTIFIED BY sitmun3 QUOTA UNLIMITED ON USERS;
 GRANT CONNECT, RESOURCE TO sitmun_fix;
 \" | sqlplus -s sys/${SYS_PASS} as sysdba"
 
-  echo "── Liquibase development (contexts=dev) → sitmun_ref ──"
-  liquibase_oracle "$NETWORK" "$CONTAINER" sitmun_ref sitmun3 "$SERVICE" "$DEV_LB" "dev"
-  echo "── Liquibase oracle profile → sitmun_fix ──"
-  liquibase_oracle "$NETWORK" "$CONTAINER" sitmun_fix sitmun3 "$SERVICE" "$PROD_LB"
+  local mode_arg="profiles"
+  local left_label="development"
+  if [[ "$AGAINST" == "jpa" ]]; then
+    mode_arg="jpa"
+    left_label="jpa"
+    echo "── Hibernate ddl-auto=create → sitmun_ref ──"
+    jpa_reference_schema \
+      "jdbc:oracle:thin:@//127.0.0.1:21521/${SERVICE}" \
+      sitmun_ref sitmun3 \
+      org.hibernate.dialect.OracleDialect \
+      --spring.jpa.properties.hibernate.type.preferred_boolean_jdbc_type=INTEGER
+    echo "── Liquibase oracle profile → sitmun_fix ──"
+    liquibase_oracle "$NETWORK" "$CONTAINER" sitmun_fix sitmun3 "$SERVICE" "$PROD_LB"
+  else
+    echo "── Liquibase development (contexts=dev) → sitmun_ref ──"
+    liquibase_oracle "$NETWORK" "$CONTAINER" sitmun_ref sitmun3 "$SERVICE" "$DEV_LB" "dev"
+    echo "── Liquibase oracle profile → sitmun_fix ──"
+    liquibase_oracle "$NETWORK" "$CONTAINER" sitmun_fix sitmun3 "$SERVICE" "$PROD_LB"
+  fi
 
   dump_oracle_schema "$CONTAINER" sitmun_ref sitmun3 "$SERVICE" "$OUT/left"
   dump_oracle_schema "$CONTAINER" sitmun_fix sitmun3 "$SERVICE" "$OUT/right"
@@ -452,9 +514,9 @@ GRANT CONNECT, RESOURCE TO sitmun_fix;
     --right-columns "$OUT/right.columns" \
     --left-constraints "$OUT/left.constraints" \
     --right-constraints "$OUT/right.constraints" \
-    --left-label "development" \
+    --left-label "$left_label" \
     --right-label "oracle" \
-    --mode profiles \
+    --mode "$mode_arg" \
     --dbms oracle \
     --out-dir "$OUT" \
     --changeset-prefix "$CHANGESET_PREFIX" \
@@ -580,8 +642,15 @@ case "$TARGET" in
   dev-dialects)
     run_dev_dialects || OVERALL=$?
     ;;
+  fresh-vs-upgraded)
+    # shellcheck source=fresh-vs-upgraded.sh
+    source "$REPO_ROOT/tools/scripts/fresh-vs-upgraded.sh"
+    run_fresh_vs_upgraded "$FVU_ENGINE" "$FVU_SOURCE" || OVERALL=$?
+    exit "$OVERALL"
+    ;;
   *)
     echo "Usage: $0 postgres|oracle|both|dev-dialects [--against profiles|jpa] [--out DIR] [--fail-on problem|any|none]" >&2
+    echo "       $0 fresh-vs-upgraded postgres-16|postgres-12|oracle-23|oracle-21|oracle-11 [source-tag]" >&2
     exit 2
     ;;
 esac

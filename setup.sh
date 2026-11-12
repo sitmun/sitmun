@@ -6,15 +6,12 @@ GREEN='\033[0;32m'   # Green for success messages
 YELLOW='\033[0;33m'  # Yellow for warnings or process info
 NC='\033[0m'         # Reset color
 
-# Define the expected Git repository URL
-EXPECTED_REPO="https://github.com/sitmun/sitmun-application-stack.git"
-
 # Display a banner
 display_banner() {
     echo -e "${GREEN}"
     echo -e "############################################################"
     echo -e "#                                                          #"
-    echo -e "#              SITMUN Application Stack Setup              #"
+    echo -e "#                       SITMUN setup                       #"
     echo -e "#                                                          #"
     echo -e "############################################################"
     echo -e "${NC}"
@@ -30,62 +27,29 @@ check_git_repository() {
     fi
 }
 
-# Check if the repository matches the expected one
-check_repository_url() {
-    echo -e "${YELLOW}Checking if the repository matches the expected SITMUN Application Stack repository...${NC}"
-    REMOTE_URL=$(git config --get remote.origin.url)
-    if [ "$REMOTE_URL" != "$EXPECTED_REPO" ]; then
-        echo -e "${RED}Error: The repository does not match the expected SITMUN Application Stack repository.${NC}"
-        echo -e "Expected: ${YELLOW}$EXPECTED_REPO${NC}"
-        echo -e "Found:    ${YELLOW}$REMOTE_URL${NC}"
-        exit 1
+append_compose_secret_if_missing() {
+    local key="$1"
+    if ! grep -q "^${key}=" .env; then
+        echo "${key}=$(openssl rand -hex 32)" >> .env
     fi
 }
 
-# Update from the remote branch without overriding .env file if it exists
-update_from_remote() {
-    CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
-    echo -e "${YELLOW}Updating from the remote ${CURRENT_BRANCH} branch...${NC}"
-
-    # Fetch latest changes from remote
-    git fetch origin "$CURRENT_BRANCH"
-
-    # Check if local is up to date
-    LOCAL_COMMIT=$(git rev-parse @)
-    REMOTE_COMMIT=$(git rev-parse @{u})
-
-    if [ "$LOCAL_COMMIT" = "$REMOTE_COMMIT" ]; then
-        echo -e "${GREEN}Your $CURRENT_BRANCH branch is already up to date.${NC}"
-        git submodule update --recursive --remote
-    else
-        echo -e "${YELLOW}Pulling latest changes from remote...${NC}"
-
-        if [ -f ".env" ]; then
-            echo -e "${YELLOW}.env file exists. Creating a backup...${NC}"
-            cp .env .env.backup
-        fi
-
-        git pull --recurse-submodules origin "$CURRENT_BRANCH"
-
-        if [ -f ".env.backup" ]; then
-            echo -e "${YELLOW}Restoring .env file from backup...${NC}"
-            cp .env.backup .env
-        fi
-    fi
-}
-
-# Copy default development profile to .env if .env does not exist
+# Copy default development profile to .env if .env does not exist.
+# Profile files do not store secrets. Generate any of the three that are absent,
+# including when .env was copied from a profile by hand.
 copy_env_file_if_missing() {
     if [ ! -f ".env" ]; then
         echo -e "${YELLOW}.env file is missing. Copying profiles/development-postgres.env to .env...${NC}"
         cp profiles/development-postgres.env .env
         echo -e "${GREEN}.env file created from profiles/development-postgres.env.${NC}"
     fi
+    append_compose_secret_if_missing SITMUN_USER_SECRET
+    append_compose_secret_if_missing MIDDLEWARE_SECRET
+    append_compose_secret_if_missing SITMUN_MBTILES_JOB_HANDLE_SECRET
 }
 
-# Main logic
-display_banner
-check_git_repository
-check_repository_url
-update_from_remote
-copy_env_file_if_missing
+if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
+    display_banner
+    check_git_repository
+    copy_env_file_if_missing
+fi

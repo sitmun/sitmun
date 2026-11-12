@@ -1,11 +1,11 @@
 import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 
-import { TranslateLoader, TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslateLoader, TranslatePipe, TranslateService, provideTranslateService } from '@ngx-translate/core';
 import { of } from 'rxjs';
 
 import { BtnCheckboxFilterComponent } from './btn-checkbox-filter.component';
 
-describe('BtnCheckboxFilterRenderedComponent', () => {
+describe('BtnCheckboxFilterComponent', () => {
   let component: BtnCheckboxFilterComponent;
   let fixture: ComponentFixture<BtnCheckboxFilterComponent>;
 
@@ -13,16 +13,17 @@ describe('BtnCheckboxFilterRenderedComponent', () => {
     TestBed.configureTestingModule({
       declarations: [ BtnCheckboxFilterComponent ],
       imports: [
-          TranslateModule.forRoot({
+          TranslatePipe
+      ],
+      providers: [
+      provideTranslateService({
           loader: {
             provide: TranslateLoader,
             useFactory: () => ({
               getTranslation: () => of({})
             })
           }
-        })
-      ],
-      providers: [
+        }),
         TranslateService
       ]
     })
@@ -35,7 +36,25 @@ describe('BtnCheckboxFilterRenderedComponent', () => {
     fixture.detectChanges();
   });
 
-  it('should create', () => {
-    expect(component).toBeTruthy();
+  it('reports equals to the parent filter when the value is non-empty', () => {
+    const onFloatingFilterChanged = jest.fn();
+    component.agInit({
+      parentFilterInstance: (callback: (instance: {onFloatingFilterChanged: typeof onFloatingFilterChanged}) => void) => {
+        callback({onFloatingFilterChanged});
+      },
+    } as never);
+    component.onChange('true');
+    expect(onFloatingFilterChanged).toHaveBeenCalledWith('equals', 'true');
+  });
+
+  it('clears the parent filter when the value is empty', () => {
+    const onFloatingFilterChanged = jest.fn();
+    component.agInit({
+      parentFilterInstance: (callback: (instance: {onFloatingFilterChanged: typeof onFloatingFilterChanged}) => void) => {
+        callback({onFloatingFilterChanged});
+      },
+    } as never);
+    component.onChange('');
+    expect(onFloatingFilterChanged).toHaveBeenCalledWith(null, null);
   });
 });

@@ -3,7 +3,8 @@ import {
   effect,
   OnInit,
   signal,
-  WritableSignal
+  WritableSignal,
+  ChangeDetectionStrategy
 } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 
@@ -12,7 +13,7 @@ import {
   AuthProvider
 } from '@auth/authentication.options';
 import { AuthenticationService } from '@auth/services/authentication.service';
-import { NavigationPath } from '@config/app.config';
+import { NavigationPath, QueryParam } from '@config/app.config';
 import { TranslateService } from '@ngx-translate/core';
 import { NotificationService } from 'src/app/notifications/services/NotificationService';
 import { environment } from 'src/environments/environment';
@@ -26,6 +27,7 @@ import {
   standalone: false,
   selector: 'app-login',
   templateUrl: './login.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./login.component.scss']
 })
 export class LoginComponent implements OnInit {
@@ -74,12 +76,14 @@ export class LoginComponent implements OnInit {
   }
 
   ngOnInit() {
+    this.authenticationService.retainReturnUrl(
+      this.route.snapshot.queryParams[QueryParam.Login.RedirectAfterLogin]
+    );
     if (this.authenticationService.isLoggedIn()) {
-      void this.router.navigateByUrl('/');
+      this.authenticationService.loginRedirect(this.route);
     }
     this.displayDNIEButton = !((environment as any).hideDNIEAccess ?? true);
     this.backgroundImageUrl = (environment as any).loginBackgroundImageUrl;
-    // If loginBackgroundImageUrl is null or undefined, hide the background image
     if (!this.backgroundImageUrl) {
       this.displayBackgroundImage = false;
     } else {
@@ -128,6 +132,9 @@ export class LoginComponent implements OnInit {
   }
 
   initAuth(providerId: string) {
+    const redirectUrl =
+      this.route.snapshot.queryParams[QueryParam.Login.RedirectAfterLogin];
+    this.authenticationService.rememberReturnUrl(redirectUrl);
     this.authenticationService.initOidcAuth(providerId);
   }
 

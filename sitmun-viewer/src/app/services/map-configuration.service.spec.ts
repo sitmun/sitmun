@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 
-import { AppCfg } from '@api/model/app-cfg';
+import type { AppCfg } from '@api/model/app-cfg';
 import { TranslateService } from '@ngx-translate/core';
 
 import { AppConfigService } from './app-config.service';
@@ -505,6 +505,160 @@ describe('MapConfigurationService', () => {
       expect(wmtsLayer?.type).toBe('WMTS');
       expect(wmtsLayer?.layerNames).toBe('wmts-layer-1'); // WMTS uses first layer name as string
       expect(wmtsLayer?.matrixSet).toBe('EPSG:25831');
+      expect(wmtsLayer?.format).toBe('image/jpeg');
+    });
+
+    it('copies service format onto a WMS background and ignores layer parameters and VERSION', () => {
+      const cfg: AppCfg = {
+        ...mockAppCfg,
+        layers: mockAppCfg.layers.map((layer) =>
+          layer.id === 'layer-1'
+            ? {
+                ...layer,
+                parameters: {
+                  format: 'image/tiff',
+                  matrixSet: 'EPSG:4326',
+                  SRS: 'EPSG:4326'
+                }
+              }
+            : layer
+        ),
+        services: mockAppCfg.services.map((svc) =>
+          svc.id === 'service-1'
+            ? {
+                ...svc,
+                parameters: {
+                  format: 'image/png',
+                  matrixSet: 'EPSG:25831',
+                  SRS: 'EPSG:25831',
+                  VERSION: '1.1.1'
+                }
+              }
+            : svc
+        )
+      };
+      configLookup.initialize(cfg);
+
+      const layer = service.toBaseLayers(cfg).find((l) => l.title === 'Base Layer 1');
+      expect(layer?.type).toBe('WMS');
+      expect(layer?.format).toBe('image/png');
+      expect(layer?.matrixSet).toBe('EPSG:25831');
+      expect(layer).not.toHaveProperty('version');
+      expect(layer).not.toHaveProperty('VERSION');
+    });
+
+    it('emits a WFS background as a WFS base layer from service parameters only', () => {
+      const cfg: AppCfg = {
+        ...mockAppCfg,
+        backgrounds: [{ id: 'bg-wfs', title: 'WFS background', thumbnail: '' }],
+        groups: [{ id: 'bg-wfs', title: 'WFS group', layers: ['layer-wfs'] }],
+        layers: [
+          {
+            id: 'layer-wfs',
+            title: 'WFS Layer',
+            layers: ['wfs-a', 'wfs-b'],
+            service: 'service-wfs',
+            parameters: { format: 'application/json', SRS: 'EPSG:4326' }
+          }
+        ],
+        services: [
+          {
+            id: 'service-wfs',
+            url: 'http://example.com/wfs',
+            type: 'WFS',
+            parameters: { format: 'text/xml', VERSION: '2.0.0' }
+          }
+        ]
+      };
+      configLookup.initialize(cfg);
+
+      const layers = service.toBaseLayers(cfg).filter((item) => item.type === 'WFS');
+      expect(layers.map((item) => item.featureType)).toEqual(['wfs-a', 'wfs-b']);
+      expect(layers.map((item) => item.layerNames)).toEqual([['wfs-a'], ['wfs-b']]);
+      expect(layers.every((item) => item.format === 'text/xml')).toBe(true);
+      expect(layers.every((item) => !Object.prototype.hasOwnProperty.call(item, 'version'))).toBe(true);
+      expect(new Set(layers.map((item) => item.id)).size).toBe(2);
+    });
+
+    it('emits WFS featureType and resolution bounds and points the overview at a non-WFS layer', () => {
+      const cfg: AppCfg = {
+        ...mockAppCfg,
+        backgrounds: [
+          { id: 'bg-wfs', title: 'WFS background', thumbnail: '' },
+          { id: 'bg-1', title: 'Background 1', thumbnail: 'thumb.png' }
+        ],
+        groups: [
+          { id: 'bg-wfs', title: 'WFS group', layers: ['layer-wfs'] },
+          { id: 'bg-1', title: 'Group 1', layers: ['layer-1'] }
+        ],
+        layers: [
+          ...mockAppCfg.layers,
+          {
+            id: 'layer-wfs',
+            title: 'WFS Layer',
+            layers: ['wfs-a', 'wfs-b'],
+            service: 'service-wfs',
+            minScaleDenominator: 1000,
+            maxScaleDenominator: 500000
+          }
+        ],
+        services: [
+          ...mockAppCfg.services,
+          {
+            id: 'service-wfs',
+            url: 'http://example.com/wfs',
+            type: 'WFS',
+            parameters: { format: 'text/xml' }
+          }
+        ]
+      };
+      configLookup.initialize(cfg);
+
+      const layers = service.toBaseLayers(cfg);
+      const wfsLayers = layers.filter((item) => item.type === 'WFS');
+      const wms = layers.find((item) => item.title === 'Base Layer 1');
+
+      expect(wfsLayers.map((item) => item.featureType)).toEqual(['wfs-a', 'wfs-b']);
+      expect(wfsLayers.map((item) => item.layerNames)).toEqual([['wfs-a'], ['wfs-b']]);
+      for (const wfs of wfsLayers) {
+        expect(wfs.minResolution).toBeCloseTo((1000 * 0.00028) / 1);
+        expect(wfs.maxResolution).toBeCloseTo((500000 * 0.00028) / 1);
+        expect(wfs.overviewMapLayer).toBe(wms?.id);
+        expect(wfs.overviewMapLayer).not.toBe(wfs.id);
+        expect(wfs).not.toHaveProperty('geometryName');
+        expect(wfs).not.toHaveProperty('geometryType');
+      }
+    });
+
+    it('passes a published WFS geometry property and explicit SITNA type onto the base layer', () => {
+      const cfg: AppCfg = {
+        ...mockAppCfg,
+        backgrounds: [{ id: 'bg-wfs', title: 'WFS background', thumbnail: '' }],
+        groups: [{ id: 'bg-wfs', title: 'WFS group', layers: ['layer-wfs'] }],
+        layers: [
+          {
+            id: 'layer-wfs',
+            title: 'WFS Layer',
+            layers: ['app:mixed'],
+            service: 'service-wfs',
+            geometryName: 'shape',
+            preferredGeometryType: 'polygon'
+          }
+        ],
+        services: [
+          {
+            id: 'service-wfs',
+            url: 'http://example.com/wfs',
+            type: 'WFS',
+            parameters: { format: 'text/xml' }
+          }
+        ]
+      };
+      configLookup.initialize(cfg);
+
+      const layer = service.toBaseLayers(cfg).find((item) => item.title === 'WFS Layer');
+      expect(layer?.geometryName).toBe('shape');
+      expect(layer?.geometryType).toBe('polygon');
     });
 
     it('should use thumbnail from background if available', () => {

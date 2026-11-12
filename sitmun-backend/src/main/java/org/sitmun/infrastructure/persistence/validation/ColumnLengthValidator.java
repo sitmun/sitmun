@@ -2,6 +2,7 @@ package org.sitmun.infrastructure.persistence.validation;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Lob;
+import jakarta.validation.constraints.Size;
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.Field;
 import java.util.Optional;
@@ -37,7 +38,6 @@ public class ColumnLengthValidator implements Validator {
    * Constructs a new ColumnLengthValidator with the specified validator factory.
    *
    * @param validatorFactory The Spring validator factory used for standard validation
-   * @throws IllegalArgumentException if validatorFactory is null
    */
   public ColumnLengthValidator(LocalValidatorFactoryBean validatorFactory) {
     this.validatorFactory = validatorFactory;
@@ -49,7 +49,6 @@ public class ColumnLengthValidator implements Validator {
    *
    * @param clazz The class to check for validation support
    * @return true for all classes
-   * @throws IllegalArgumentException if clazz is null
    */
   @Override
   public boolean supports(@NotNull Class<?> clazz) {
@@ -66,14 +65,11 @@ public class ColumnLengthValidator implements Validator {
    *
    * @param target The object to validate
    * @param errors The {@code Errors} object to store validation errors
-   * @throws IllegalArgumentException if target or errors is null
    */
   @Override
   public void validate(@NotNull Object target, @NotNull Errors errors) {
-    // First validate using standard validators
     validatorFactory.validate(target, errors);
 
-    // Then handle string truncation using Spring's BeanWrapper
     BeanWrapper beanWrapper = new BeanWrapperImpl(target);
     PropertyDescriptor[] propertyDescriptors = beanWrapper.getPropertyDescriptors();
 
@@ -92,7 +88,6 @@ public class ColumnLengthValidator implements Validator {
    * @param beanWrapper The Spring BeanWrapper for property access
    * @param propertyName The name of the property to process
    * @return A consumer that truncates the field if needed
-   * @throws IllegalArgumentException if beanWrapper or propertyName is null
    */
   private static @NotNull Consumer<Field> getFieldConsumer(
       BeanWrapper beanWrapper, String propertyName) {
@@ -102,6 +97,11 @@ public class ColumnLengthValidator implements Validator {
       if (lob == null && column != null && column.length() > 0) {
         String value = (String) beanWrapper.getPropertyValue(propertyName);
         if (value != null && value.length() > column.length()) {
+          Size size = field.getAnnotation(Size.class);
+          // Leave a @Size violation intact so the repository validator can reject it.
+          if (size != null && value.length() > size.max()) {
+            return;
+          }
           beanWrapper.setPropertyValue(propertyName, value.substring(0, column.length()));
           log.info(
               "Truncated field {} from {} to {} characters",
@@ -119,7 +119,6 @@ public class ColumnLengthValidator implements Validator {
    * @param clazz The class to search in
    * @param fieldName The name of the field to find
    * @return Optional containing the field if found, empty otherwise
-   * @throws IllegalArgumentException if clazz or fieldName is null
    */
   private Optional<Field> getField(Class<?> clazz, String fieldName) {
     try {

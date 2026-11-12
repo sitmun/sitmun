@@ -200,6 +200,10 @@ public class JsonWebTokenService {
       return false;
     }
 
+    if (getClaimFromToken(token, claims -> claims.get(TOKEN_USE, String.class)) != null) {
+      return false;
+    }
+
     if (lastPasswordChange == null) return true;
     Long tokenTimestamp = getClaimFromToken(token, c -> c.get(LAST_PASSWORD_CHANGE, Long.class));
     return tokenTimestamp != null
@@ -247,11 +251,16 @@ public class JsonWebTokenService {
   }
 
   public boolean validateLegacyProxyToken(String token) {
+    return validateLegacyProxyToken(token, null);
+  }
+
+  public boolean validateLegacyProxyToken(String token, Date lastPasswordChange) {
     Claims claims = getAllClaimsFromToken(token);
     return isLegacyProxyToken(claims)
         && claims.getSubject() != null
         && !claims.getSubject().isBlank()
-        && !isTokenExpired(claims);
+        && !isTokenExpired(claims)
+        && matchesPasswordChange(claims, lastPasswordChange);
   }
 
   public List<String> getScopes(Claims claims) {

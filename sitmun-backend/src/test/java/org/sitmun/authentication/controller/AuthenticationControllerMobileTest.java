@@ -8,8 +8,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -20,13 +18,15 @@ import org.sitmun.infrastructure.security.jwt.MobileJwtClaims;
 import org.sitmun.infrastructure.security.service.JsonWebTokenService;
 import org.sitmun.test.TestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -41,7 +41,7 @@ class AuthenticationControllerMobileTest {
 
   @BeforeEach
   void ensureEditionApplication() {
-    Application app = applicationRepository.findById(1).orElseThrow();
+    Application app = applicationRepository.findById(10001).orElseThrow();
     app.setType("ED");
     applicationRepository.saveAndFlush(app);
   }
@@ -135,7 +135,7 @@ class AuthenticationControllerMobileTest {
   @Test
   @DisplayName("Mobile Bearer can list applications and only receives ED apps")
   void mobileBearerListsOnlyEditionApplications() throws Exception {
-    Application touristic = applicationRepository.findById(6).orElseThrow();
+    Application touristic = applicationRepository.findById(10006).orElseThrow();
     touristic.setType("T");
     applicationRepository.saveAndFlush(touristic);
 
@@ -158,12 +158,12 @@ class AuthenticationControllerMobileTest {
     mvc.perform(get("/api/account").header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
         .andExpect(status().isForbidden());
 
-    Application nonEdition = applicationRepository.findById(2).orElseThrow();
+    Application nonEdition = applicationRepository.findById(10002).orElseThrow();
     nonEdition.setType("I");
     applicationRepository.saveAndFlush(nonEdition);
 
     mvc.perform(
-            get("/api/config/client/profile/2/1")
+            get("/api/config/client/profile/10002/10001")
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
         .andExpect(status().isForbidden());
 

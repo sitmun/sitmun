@@ -1,6 +1,8 @@
 package org.sitmun.upstream.http;
 
 import java.io.IOException;
+import java.security.SecureRandom;
+import java.security.cert.X509Certificate;
 import java.time.Duration;
 import java.util.List;
 import javax.net.ssl.SSLContext;
@@ -27,18 +29,22 @@ public final class UpstreamHttpClient {
       Duration connectTimeout,
       Duration readTimeout,
       List<Interceptor> interceptors) {
-    this.unsafeAllowedHosts = List.copyOf(unsafeAllowedHosts);
+    this.unsafeAllowedHosts = UnsafeHostList.normalize(log, unsafeAllowedHosts);
     this.safeClient = base(connectTimeout, readTimeout, interceptors).build();
-    this.unsafeClient = ignoreCertificate(base(connectTimeout, readTimeout, interceptors)).build();
+    this.unsafeClient =
+        ignoreCertificate(base(connectTimeout, readTimeout, interceptors))
+            .followRedirects(false)
+            .followSslRedirects(false)
+            .build();
   }
 
   public Response execute(Request request) throws IOException {
-    return clientFor(request.url().host()).newCall(request).execute();
+    return ManualRedirects.execute(request, this::clientFor);
   }
 
   public OkHttpClient clientFor(String host) {
     if (unsafeAllowedHosts.contains("*") || unsafeAllowedHosts.contains(host)) {
-      log.warn("Using Unsafe Client");
+      log.debug("Using Unsafe Client");
       return unsafeClient;
     }
     return safeClient;
@@ -69,21 +75,19 @@ public final class UpstreamHttpClient {
           new TrustManager[] {
             new X509TrustManager() {
               @Override
-              public void checkClientTrusted(
-                  java.security.cert.X509Certificate[] chain, String authType) {}
+              public void checkClientTrusted(X509Certificate[] chain, String authType) {}
 
               @Override
-              public void checkServerTrusted(
-                  java.security.cert.X509Certificate[] chain, String authType) {}
+              public void checkServerTrusted(X509Certificate[] chain, String authType) {}
 
               @Override
-              public java.security.cert.X509Certificate[] getAcceptedIssuers() {
-                return new java.security.cert.X509Certificate[] {};
+              public X509Certificate[] getAcceptedIssuers() {
+                return new X509Certificate[] {};
               }
             }
           };
       final SSLContext sslContext = SSLContext.getInstance("SSL");
-      sslContext.init(null, trustAllCerts, new java.security.SecureRandom());
+      sslContext.init(null, trustAllCerts, new SecureRandom());
       final SSLSocketFactory sslSocketFactory = sslContext.getSocketFactory();
       builder.sslSocketFactory(sslSocketFactory, (X509TrustManager) trustAllCerts[0]);
       builder.hostnameVerifier((hostname, session) -> true);

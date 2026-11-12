@@ -6,7 +6,8 @@ import {
   Output,
   EventEmitter,
   ViewChild,
-  VERSION
+  VERSION,
+  ChangeDetectionStrategy
 } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { MatMenu, MatMenuTrigger } from '@angular/material/menu';
@@ -28,11 +29,16 @@ import {
   AboutDialogComponent,
   AboutDialogData
 } from '../about-dialog/about-dialog.component';
+import {
+  openLayersVersion,
+  sitnaVersion
+} from '../about-dialog/library-versions';
 
 @Component({
   standalone: false,
   selector: 'app-menu',
   templateUrl: './menu.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./menu.component.scss']
 })
 export class MenuComponent implements OnInit, OnDestroy {
@@ -78,7 +84,6 @@ export class MenuComponent implements OnInit, OnDestroy {
     this.currentLang = this.languageService.getCurrentLanguage();
     this.updateErrorCount();
 
-    // Subscribe to error changes
     this.errorsSubscription = this.errorTrackingService.errors$.subscribe(
       () => {
         this.updateErrorCount();
@@ -137,7 +142,6 @@ export class MenuComponent implements OnInit, OnDestroy {
   selectLanguage(languageShortname: string) {
     this.currentLang = languageShortname;
     this.languageService.setLanguage(languageShortname).subscribe(() => {
-      // Reload languages with names in the new language
       this.loadLanguages();
       this.languageEvent.emit(languageShortname);
     });
@@ -172,7 +176,6 @@ export class MenuComponent implements OnInit, OnDestroy {
   }
 
   openAboutDialog(): void {
-    // Get translated application name
     const applicationName = this.translateService.instant(
       'systemInfo.applicationName'
     );
@@ -183,7 +186,8 @@ export class MenuComponent implements OnInit, OnDestroy {
       environmentName: this.environment.environmentName || 'N/A',
       angularVersion: this.angularVersion,
       buildTimestamp: (this.environment as any).buildTimestamp,
-      sitnaVersion: this.environment.sitnaVersion
+      sitnaVersion,
+      openLayersVersion
     };
 
     this.dialog.open(AboutDialogComponent, {

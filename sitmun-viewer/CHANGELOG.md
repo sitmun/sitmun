@@ -4,6 +4,55 @@ All notable changes to this project will be documented in this file. The format 
 
 ## [Unreleased]
 
+## [1.3.0] - 2026-11-12
+
+### Added
+
+- **Language**: Portuguese (`pt-PT`) translations, map-style strings, and flag ([sitmun-viewer-app#204](https://github.com/sitmun/sitmun-viewer-app/pull/204)).
+- **Map**: A drag in Loaded Layers writes that list into the map stack. The first row is the layer drawn on top. The profile order still applies only when a layer is added. The legend follows the same list.
+- **Map**: Each legend entry folds its symbol rows from either catalog heading and leaves those two lines visible. The only open legend starts expanded. Opening another legend collapses the ones already listed, and a later redraw keeps a heading that was toggled by hand. The click does not reload the legend. A folded row drops its margin. Reduced motion turns the fold animation off. `e2e/viewer/legend.spec.ts` covers the painted entry.
+- **Map**: A folder with a description, a metadata URL, or a dataset URL shows the same information button as a layer. The window shows the folder name, the description, and those links. An empty folder has no button ([#173](https://github.com/sitmun/sitmun-viewer-app/issues/173)).
+- **Map**: Adding a WFS layer passes `geometryName` to SITNA when the profile publishes one, and passes `geometryType` only when the profile publishes `preferredGeometryType`. A specific DescribeFeatureType kind is left for SITNA to read. The identify table skips a feature-information field whose format is `Geometry`. The geometry-property contract is the operator's change on top of [sitmun-admin-app#499](https://github.com/sitmun/sitmun-admin-app/issues/499).
+- **Map**: A layer with GetFeatureInfo fields shows only that include list, in order, with the translated label. `T`, `N`, `F`, `U`, `P`, and `I` format the cell in the map locale. `AUTO` keeps API-SITNA detection. `feature.data` is not rewritten. More-info reads `data-feature-path` and dotted paths such as `address.city` ([sitmun-application-stack#77](https://github.com/sitmun/sitmun-application-stack/issues/77)).
+- **Tests**: Field-list specs cover a tree-title heading and two WMS group children that share a title but use different profile layer ids.
+
+### Changed
+
+- **About**: The About window shows API-SITNA 4.10.0 and OpenLayers 10.9.0.
+- **Language**: Portuguese includes the feature-type catalog messages, the denied-map message, and the OpenLayers version label. Every language file drops keys that no screen uses, including the empty job label. `i18n-parity.spec.ts` requires each language file to match the English keys and to contain no empty value.
+- **Login**: The browser tab uses the SITMUN mark. The icon file is a PNG, and the page declares that type.
+- **Login**: The login page and the password page no longer use a default image.
+- **Tooling**: Node.js is `24.22.0` (`engines` `^24.22.0 || ^26.0.0`) and Angular is `22.2.3`, with TypeScript `6.0.x`. Production builds no longer set `--openssl-legacy-provider`. Custom webpack skips Angular Babel on `jszip` and `util`, disables the webpack-dev-server HMR client (Angular 22 otherwise whitescreens on `import hotEmitter`), and appends the catastro proxy without dropping the e2e `/backend` and `/middleware` proxies. `npm run start:e2e` builds the e2e configuration and serves `dist/viewer-app` statically with those proxies instead of `ng serve`, so Playwright does not depend on webpack-dev-server under suite load. The `@angular-devkit/build-angular:browser` / `@angular-builders/custom-webpack:browser` deprecation warning is accepted for this pin; migration to `@angular/build:application` is deferred (Cesium/`@spz-loader` custom webpack still required).
+- **Map**: A proxied layer is requested through `layer.url` when the profile sets it. The catalog still resolves that address back to the tree node ([sitmun-application-stack#90](https://github.com/sitmun/sitmun-application-stack/issues/90)).
+- **Map**: The field list is chosen by the profile layer id (`layer/{id}` on the tree node that owns the map layer) and then by the WMS layer name, including a child of a group. The result heading is not the key.
+- **Map**: `sitna.featureInfo` and `sitna.multiFeatureInfo` default `persistentHighlights` to false. A new click replaces the highlight, and closing the popup clears it. A task that sets the flag still overrides the default.
+- **Map**: A visible identify popup is solid white, including the tail. The drag fade still applies while `tc-drag` is set.
+- **Map / MIA**: The report docks to the map frame, 12px from the top and right, and moves left when the layers panel is open. A later identify with no MiaTask layer, or with no features, closes the previous report.
+
+### Fixed
+
+- **Map**: Clicking Tools opens the left drawer when the overview map is not ready to disable yet. That call no longer stops the rest of layout setup, and a later layout pass does not add a second click handler that closes the drawer.
+- **Map**: A feature layer with several saved type names is added once per name, as its own layer. The map does not keep only the first name, and it does not combine the names into one grouped layer ([#157](https://github.com/sitmun/sitmun/issues/157)).
+- **Catalog**: The information button on a feature layer says feature type on hover. A map image layer still says layer. Portuguese includes that sentence ([#173](https://github.com/sitmun/sitmun/issues/173)).
+- **Identify**: A named WMS group stays the request layer for GetFeatureInfo and GetLegendGraphic ([sitmun-viewer-app#224](https://github.com/sitmun/sitmun-viewer-app/pull/224)).
+- **Map**: The Loaded Layers drag handle shows a six-dot grip. The previous mark is a character this font does not draw.
+- **Map**: A restricted share link keeps `mapState` through the password form and the external login button. A person who cannot open that application and territory sees `map.error.access.denied`, and the map does not start ([#221](https://github.com/sitmun/sitmun-viewer-app/issues/221)).
+- **Map**: A share link stores an empty background and opens with no background. The profile default background stays out of the link ([#196](https://github.com/sitmun/sitmun-viewer-app/issues/196)).
+- **Map**: A share link omits an empty measurement, feature-info, or draw layer. A drawing, a measurement, or an imported file is still stored and restored ([#194](https://github.com/sitmun/sitmun-viewer-app/issues/194)).
+- **Map**: A share link stores the WMS sublayers that differ from the profile and restores that list. A layer whose sublayers still match the profile omits the list ([#195](https://github.com/sitmun/sitmun-viewer-app/issues/195)).
+- **Map**: Hello World and the locator stay off the tools panel unless the map includes that task. `enabledByDefault` keeps only `sitna.loadingIndicator`. A locator task still opens the locator, and its search parameters stay on the task ([sitmun-application-stack#140](https://github.com/sitmun/sitmun-application-stack/issues/140)).
+- **About**: The About window shows the installed API SITNA version and the installed OpenLayers version. Both values are read from the installed packages when the viewer is built ([#218](https://github.com/sitmun/sitmun-viewer-app/issues/218)).
+- **Map**: A WFS row in Loaded Layers uses the root folder as its heading, the same folder path as a WMS row, and the leaf name as its title. The toolbar overflow control shows › when the extra tools are hidden and ‹ when they are open, on every Loaded Layers row that has that control.
+- **Map**: A WFS entry in the legend lists the root folder and each intermediate folder above the layer, the same way a WMS legend does. The point swatch stays on the layer.
+- **Map**: An identify field with format Image keeps the original address and SITNA's `img.tc-img-attr`. `maxWidth` and `maxHeight` on the field set those limits. A field without them stays `width:auto;height:auto`.
+- **Map**: An identify field matches a WFS property by its local name. A namespace prefix on the feature key, such as `turisme:nom`, still fills the configured cell.
+- **Map**: Automatic identify cells keep a SITNA link, and a bare `http`, `https`, `ftp`, or `mailto` value becomes a link when that cell was plain text.
+- **Map**: A share link keeps the current map route and stores the view in `mapState`. Opening that link restores the extent, a non-default background, catalog layers that were turned on, reordered, or changed (including their opacity, sublayers, stacking order, and the selected layer of a radio group), drawings, an imported file, and a shared feature. The link does not restore the 3D camera yet ([#175](https://github.com/sitmun/sitmun/issues/175)). A missing background, layer, drawing, or file does not stop the rest of the restore. The browser posts the link to `POST /api/config/client/short-url` and does not call tinyurl.com. A failed shorten shows `shortUrlRejected`, `shortUrlForbidden`, or `shortUrlFailed` from the map theme, and does not show the backend detail ([#189](https://github.com/sitmun/sitmun-viewer-app/issues/189), [#190](https://github.com/sitmun/sitmun-viewer-app/issues/190), [#191](https://github.com/sitmun/sitmun-viewer-app/issues/191)).
+- **Map**: A print preview taller than the window scrolls, so the bottom of a portrait page is reachable ([#181](https://github.com/sitmun/sitmun-viewer-app/issues/181)).
+- **Map**: Print preview buttons sit on the page instead of covering the header menu ([#182](https://github.com/sitmun/sitmun-viewer-app/issues/182)).
+- **Map**: A long Available Layers name stays on one line, shortened with an ellipsis, and the metadata button stays visible. A folder's children start on the next line, including a one-letter name ([#186](https://github.com/sitmun/sitmun-viewer-app/issues/186)).
+- **Map**: Releasing a drag over a result cell or the coordinate bar ends the drag, so the popup does not stay at 40% opacity.
+
 ## [1.2.9] - 2026-09-19
 
 ### Added
@@ -382,7 +431,8 @@ All notable changes to this project will be documented in this file. The format 
 - API integration errors
 - Performance optimization issues
 
-[unreleased]: https://github.com/sitmun/sitmun-viewer-app/compare/sitmun-viewer-app/1.2.9...HEAD
+[unreleased]: https://github.com/sitmun/sitmun/compare/v1.3.0...HEAD
+[1.3.0]: https://github.com/sitmun/sitmun/compare/legacy/sitmun-viewer-app/sitmun-viewer-app/1.2.9...v1.3.0
 [1.2.9]: https://github.com/sitmun/sitmun-viewer-app/compare/sitmun-viewer-app/1.2.8...sitmun-viewer-app/1.2.9
 [1.2.8]: https://github.com/sitmun/sitmun-viewer-app/compare/sitmun-viewer-app/1.2.7...sitmun-viewer-app/1.2.8
 [1.2.7]: https://github.com/sitmun/sitmun-viewer-app/compare/sitmun-viewer-app/1.2.6...sitmun-viewer-app/1.2.7

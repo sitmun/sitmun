@@ -3,12 +3,16 @@
 
 import { LogLevel } from '@app/services/log-level.enum';
 
+import packageJson from '../../package.json';
+
 export const environment = {
   production: false,
   apiBaseURL: 'http://localhost:9000/backend',
   logLevel: LogLevel.Debug,
-  version: '1.2.9',
+  version: packageJson.version,
   buildTimestamp: new Date().toISOString(),
   environmentName: 'development',
-  sessionTokenRefreshIntervalMs: 2 * 60 * 1000
+  sessionTokenRefreshIntervalMs: 2 * 60 * 1000,
+  // Interface languages on the waiting page. The rest of the app uses the database list.
+  waitingPageLanguages: ['es', 'en', 'fr', 'ca', 'oc-aranes', 'pt-PT']
 };

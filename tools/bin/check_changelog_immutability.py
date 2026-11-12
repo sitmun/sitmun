@@ -7,6 +7,10 @@ upgrade. This gate looks at the PR diff, not git ancestry.
 Allow edits to the highest numbered include in that tree, includes that were
 not on the diff base, master files, and the seed paths in TREE_ALLOWLIST.
 Everything else with a lower number fails.
+
+Once a vMAJOR.MINOR.PATCH tag exists, a file in a checked tree that exists at
+the newest such tag must keep that tag's content, whatever its name. Master
+files may still change, so a release can include new files.
 """
 
 from __future__ import annotations
@@ -22,12 +26,11 @@ INCLUDE_XML = re.compile(r"<include\s+file=\"([^\"]+)\"")
 INCLUDE_YAML = re.compile(r"^\s+file:\s+(\S+)", re.M)
 PREFIX_RE = re.compile(r"(?:^|/)(\d+)_")
 VALID_CHECKSUM_LINE = re.compile(r"^--validCheckSum(?:\s|:)\s*\S+")
+RELEASE_TAG = re.compile(r"^v\d+\.\d+\.\d+$")
 
 DEFAULT_TREES = (
-    "profiles/development/backend/liquibase",
-    "profiles/postgres/liquibase",
-    "profiles/oracle/liquibase",
-    "back/backend/sitmun-backend-core/config/db/changelog",
+    "sitmun-backend/src/main/resources/db/changelog",
+    "profiles/showcase/liquibase",
 )
 
 TREE_ALLOWLIST: dict[str, tuple[str, ...]] = {
@@ -247,6 +250,38 @@ def check_tree(
     return violations
 
 
+def latest_release_tag(repo_root: Path) -> str | None:
+    listed = subprocess.run(
+        ["git", "tag", "--list", "v*", "--sort=-v:refname"],
+        cwd=repo_root,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if listed.returncode != 0:
+        return None
+    return next((t for t in listed.stdout.split() if RELEASE_TAG.match(t)), None)
+
+
+def released_file_violations(
+    repo_root: Path, tree_rels: list[str], changed_files: list[str], tag: str
+) -> list[str]:
+    prefixes = [t.rstrip("/") + "/" for t in tree_rels]
+    violations: list[str] = []
+    for rel in sorted({f.replace("\\", "/") for f in changed_files if f}):
+        if not any(rel.startswith(p) for p in prefixes) or Path(rel).name in MASTER_NAMES:
+            continue
+        shipped = subprocess.run(
+            ["git", "show", f"{tag}:{rel}"], cwd=repo_root, capture_output=True, check=False
+        )
+        if shipped.returncode != 0:
+            continue
+        current = repo_root / rel
+        if not current.is_file() or current.read_bytes() != shipped.stdout:
+            violations.append(rel)
+    return violations
+
+
 def git_changed_files(repo_root: Path, base: str | None) -> list[str]:
     files: set[str] = set()
     if base:
@@ -319,14 +354,35 @@ def main(argv: list[str] | None = None) -> int:
             continue
         kept.append(v)
 
+    tag = None if args.no_git else latest_release_tag(repo_root)
+    released: list[str] = []
+    if tag:
+        tree_rels = [posix_rel(t, repo_root) for t in trees if t.is_dir()]
+        released = [
+            rel
+            for rel in released_file_violations(repo_root, tree_rels, changed, tag)
+            if not is_valid_checksum_only_diff(
+                subprocess.run(
+                    ["git", "diff", tag, "--", rel], cwd=repo_root, capture_output=True, text=True, check=False
+                ).stdout
+            )
+        ]
+
     if kept:
         print("Liquibase immutability: do not edit includes below the tree tip.")
         print("Add a new numbered changeset and a master include instead.")
         print()
         for v in kept:
             print(f"  {v.tree}/{v.rel_path}  (changelog {v.prefix} < tip {v.max_prefix})")
-        return 1
-    return 0
+    if released:
+        if kept:
+            print()
+        print(f"Liquibase immutability: these files shipped in {tag}. Do not edit or delete them.")
+        print("Add a new file under db/changelog/releases/ and include it from the master.")
+        print()
+        for rel in released:
+            print(f"  {rel}")
+    return 1 if kept or released else 0
 
 
 if __name__ == "__main__":

@@ -1,0 +1,90 @@
+:host {
+  display: block;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  margin: 0;
+  background: linear-gradient(135deg, rgba(255, 147, 0, 0.15) 0%, rgba(255, 147, 0, 0.08) 100%);
+  overflow: auto;
+}
+
+.first-run-container {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  padding: 16px;
+  padding-top: calc(64px + 16px);
+  box-sizing: border-box;
+
+  mat-card {
+    max-width: min(560px, 90vw);
+    width: 100%;
+    padding: 24px;
+  }
+}
+
+.toolbar-spacer {
+  flex: 1 1 auto;
+}
+
+.sitmun-logo-container,
+.sitmun-logo {
+  display: flex;
+  align-items: center;
+  height: 100%;
+}
+
+.product-title {
+  margin: 0 0 4px;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.2;
+  color: rgba(0, 0, 0, 0.6);
+}
+
+h4 {
+  margin: 0;
+}
+
+.full {
+  width: 100%;
+}
+
+h5 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.hint,
+.summary {
+  color: rgba(0, 0, 0, 0.6);
+}
+
+.summary p {
+  margin: 0 0 4px;
+}
+
+.field-error {
+  color: #d32f2f;
+  margin: 0 0 8px;
+}
+
+.step-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.step-actions-end {
+  display: flex;
+  gap: 8px;
+  margin-left: auto;
+}
+
+button[mat-raised-button] mat-spinner {
+  display: inline-block;
+}

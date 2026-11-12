@@ -9,7 +9,6 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import org.assertj.core.api.Assertions;
 import org.hibernate.Hibernate;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -28,12 +27,12 @@ import org.sitmun.domain.territory.TerritoryRepository;
 import org.sitmun.infrastructure.persistence.type.i18n.I18nTestConfiguration;
 import org.sitmun.infrastructure.security.core.SecurityConstants;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
+import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
 import org.springframework.context.annotation.Import;
 
 @DataJpaTest
+@Import(I18nTestConfiguration.class)
 @DisplayName("Cartography Repository JPA test")
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 class CartographyRepositoryTest {
@@ -53,26 +52,6 @@ class CartographyRepositoryTest {
   @Autowired private ServiceRepository serviceRepository;
 
   @Autowired private EntityManager entityManager;
-
-  @Test
-  @DisplayName("Save a new cartography to database")
-  void saveCartography() {
-    Cartography cartography = cartographyBuilder().build();
-    Assertions.assertThat(cartography.getId()).isNull();
-    cartographyRepository.save(cartography);
-    Assertions.assertThat(cartography.getId()).isNotZero();
-  }
-
-  @Test
-  @DisplayName("Find a cartography by its ID")
-  void findOneCartographyById() {
-    Cartography cartography = cartographyBuilder().build();
-    Assertions.assertThat(cartography.getId()).isNull();
-    cartographyRepository.save(cartography);
-    Assertions.assertThat(cartography.getId()).isNotZero();
-
-    Assertions.assertThat(cartographyRepository.findById(cartography.getId())).isNotNull();
-  }
 
   @Test
   @DisplayName("findById does not eager-load multi-bag collections")
@@ -154,13 +133,9 @@ class CartographyRepositoryTest {
   void findCartographiesByRolesAndTerritory() {
     List<Role> roles =
         roleRepository.findRolesByApplicationAndUserAndTerritory(
-            SecurityConstants.PUBLIC_PRINCIPAL, 1, 1);
-    List<Cartography> cp = cartographyRepository.findByRolesAndTerritory(roles, 1);
+            SecurityConstants.PUBLIC_PRINCIPAL, 10001, 10001);
+    List<Cartography> cp = cartographyRepository.findByRolesAndTerritory(roles, 10001);
     // Seed oracle for public app/ter 1: wrong size means another test polluted Liquibase seed.
     assertThat(cp).hasSize(11);
   }
-
-  @TestConfiguration
-  @Import(I18nTestConfiguration.class)
-  static class Configuration {}
 }

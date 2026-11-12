@@ -24,10 +24,9 @@ import org.sitmun.domain.territory.TerritoryRepository;
 import org.sitmun.domain.user.configuration.UserConfiguration;
 import org.sitmun.domain.user.configuration.UserConfigurationRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.hateoas.MediaTypes;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -42,7 +41,10 @@ import org.springframework.test.web.servlet.MockMvc;
 @DisplayName("User Resource Test")
 class UserResourceTest {
 
-  private static final String USER_PASSWORD = "admin";
+  /** BCrypt ({@code $2a$}, cost 10) of {@code admin}. */
+  private static final String USER_PASSWORD_HASH =
+      "$2a$10$hJNDCDoNWPAaTJT.gDDwJeyA.0ceHSFR9TRwJU54iByWk8yDE7vDW";
+
   private static final String USER_FIRSTNAME = "Admin";
   private static final String USER_CHANGEDFIRSTNAME = "Administrator";
   private static final String USER_LASTNAME = "Admin";
@@ -53,7 +55,6 @@ class UserResourceTest {
   @Autowired UserConfigurationRepository userConfigurationRepository;
   @Autowired RoleRepository roleRepository;
   @Autowired TerritoryRepository territoryRepository;
-  @Autowired PasswordEncoder passwordEncoder;
   @Autowired private MockMvc mockMvc;
   private User organizacionAdmin;
 
@@ -74,7 +75,6 @@ class UserResourceTest {
     territory1AdminUsername = "territory1-admin-" + suffix;
     territory1UserUsername = "territory1-user-" + suffix;
     territory2UserUsername = "territory2-user-" + suffix;
-    String encodedPassword = passwordEncoder.encode(USER_PASSWORD);
 
     organizacionAdminRole = Role.builder().name("ADMIN_ORGANIZACION-" + suffix).build();
     roleRepository.save(organizacionAdminRole);
@@ -108,7 +108,7 @@ class UserResourceTest {
             .blocked(USER_BLOCKED)
             .firstName(USER_FIRSTNAME)
             .lastName(USER_LASTNAME)
-            .password(encodedPassword)
+            .password(USER_PASSWORD_HASH)
             .username(territory1AdminUsername)
             .build();
 
@@ -121,7 +121,7 @@ class UserResourceTest {
             .blocked(USER_BLOCKED)
             .firstName(USER_FIRSTNAME)
             .lastName(USER_LASTNAME)
-            .password(encodedPassword)
+            .password(USER_PASSWORD_HASH)
             .username(territory1UserUsername)
             .build();
 
@@ -134,7 +134,7 @@ class UserResourceTest {
             .blocked(USER_BLOCKED)
             .firstName(USER_FIRSTNAME)
             .lastName(USER_LASTNAME)
-            .password(encodedPassword)
+            .password(USER_PASSWORD_HASH)
             .username(territory2UserUsername)
             .build();
     territory2User = userRepository.save(territory2User);
@@ -207,7 +207,7 @@ class UserResourceTest {
   }
 
   @Test
-  @DisplayName("POST: Create a new user")
+  @DisplayName("POST: Create a new user and GET after delete returns 404")
   @WithMockUser(roles = "ADMIN")
   void createUser() throws Exception {
     String username = "new-user-" + UUID.randomUUID().toString().substring(0, 8);
@@ -236,11 +236,13 @@ class UserResourceTest {
     mockMvc
         .perform(get(uri))
         .andExpect(status().isOk())
-        .andExpect(content().contentType(MediaTypes.HAL_JSON))
+        .andExpect(content().contentType(MediaTypes.VND_HAL_JSON))
         .andExpect(jsonPath("$.username", CoreMatchers.equalTo(username)))
         .andExpect(jsonPath("$.passwordSet").value(true));
 
     mockMvc.perform(delete(uri)).andExpect(status().isNoContent());
+
+    mockMvc.perform(get(uri)).andExpect(status().isNotFound());
   }
 
   @Test
@@ -273,7 +275,7 @@ class UserResourceTest {
     mockMvc
         .perform(get(uri))
         .andExpect(status().isOk())
-        .andExpect(content().contentType(MediaTypes.HAL_JSON))
+        .andExpect(content().contentType(MediaTypes.VND_HAL_JSON))
         .andExpect(jsonPath("$.passwordSet").value(true));
 
     String withNullPassword =
@@ -291,7 +293,7 @@ class UserResourceTest {
     mockMvc
         .perform(put(uri).content(withNullPassword))
         .andExpect(status().isOk())
-        .andExpect(content().contentType(MediaTypes.HAL_JSON))
+        .andExpect(content().contentType(MediaTypes.VND_HAL_JSON))
         .andExpect(jsonPath("$.passwordSet").value(true));
 
     String withoutField =
@@ -308,7 +310,7 @@ class UserResourceTest {
     mockMvc
         .perform(put(uri).content(withoutField))
         .andExpect(status().isOk())
-        .andExpect(content().contentType(MediaTypes.HAL_JSON))
+        .andExpect(content().contentType(MediaTypes.VND_HAL_JSON))
         .andExpect(jsonPath("$.passwordSet").value(true));
 
     String withEmptyPassword =
@@ -345,7 +347,7 @@ class UserResourceTest {
     mockMvc
         .perform(put(uri).content(withNonEmptyPassword))
         .andExpect(status().isOk())
-        .andExpect(content().contentType(MediaTypes.HAL_JSON))
+        .andExpect(content().contentType(MediaTypes.VND_HAL_JSON))
         .andExpect(jsonPath("$.passwordSet").value(true));
 
     mockMvc.perform(delete(uri)).andExpect(status().isNoContent());
@@ -363,7 +365,7 @@ class UserResourceTest {
   }
 
   @Test
-  @DisplayName("POST: User update")
+  @DisplayName("PUT updates first and last name and leaves passwordSet true")
   @WithMockUser(roles = "ADMIN")
   void updateUser() throws Exception {
     String content =
@@ -388,7 +390,7 @@ class UserResourceTest {
     mockMvc
         .perform(get(USER_URI + "/" + organizacionAdmin.getId()))
         .andExpect(status().isOk())
-        .andExpect(content().contentType(MediaTypes.HAL_JSON))
+        .andExpect(content().contentType(MediaTypes.VND_HAL_JSON))
         .andExpect(jsonPath("$.firstName", CoreMatchers.equalTo(USER_CHANGEDFIRSTNAME)))
         .andExpect(jsonPath("$.lastName", CoreMatchers.equalTo(USER_CHANGEDLASTNAME)))
         .andExpect(jsonPath("$.passwordSet").value(true));
@@ -401,7 +403,7 @@ class UserResourceTest {
     mockMvc
         .perform(get(USER_URI + "?size=100"))
         .andExpect(status().isOk())
-        .andExpect(content().contentType(MediaTypes.HAL_JSON))
+        .andExpect(content().contentType(MediaTypes.VND_HAL_JSON))
         .andExpect(
             jsonPath(
                 "$._embedded.users[*].username",

@@ -3,11 +3,14 @@ package org.sitmun.domain.tree;
 import com.fasterxml.jackson.annotation.JsonView;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 import lombok.*;
 import org.hibernate.Length;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 import org.sitmun.authorization.client.dto.ClientConfigurationViews;
 import org.sitmun.domain.CodeListsConstants;
 import org.sitmun.domain.PersistenceConstants;
@@ -40,12 +43,13 @@ public class Tree {
       allocationSize = 1)
   @Id
   @GeneratedValue(strategy = GenerationType.TABLE, generator = "STM_TREE_GEN")
-  @Column(name = "TRE_ID")
+  @Column(name = "TRE_ID", nullable = false)
   @JsonView(ClientConfigurationViews.ApplicationTerritory.class)
   private Integer id;
 
   /** Tree name. */
-  @Column(name = "TRE_NAME", length = PersistenceConstants.IDENTIFIER)
+  @Column(name = "TRE_NAME", length = 100, nullable = false)
+  @Size(max = 100)
   @NotBlank
   @JsonView(ClientConfigurationViews.ApplicationTerritory.class)
   @I18n
@@ -77,20 +81,27 @@ public class Tree {
   @JoinColumn(name = "TRE_USERID", foreignKey = @ForeignKey(name = "STM_TRE_FK_USE"))
   private User owner;
 
-  /** All three nodes. */
+  /** All tree nodes. */
   @OneToMany(mappedBy = "tree", cascade = CascadeType.ALL, orphanRemoval = true)
   @Builder.Default
   @JsonView(ClientConfigurationViews.ApplicationTerritory.class)
   private Set<TreeNode> allNodes = new HashSet<>();
 
-  /** Roles that can access to this three. */
+  /** Roles that can access this tree. */
   @ManyToMany(cascade = {CascadeType.MERGE, CascadeType.PERSIST})
+  @OnDelete(action = OnDeleteAction.CASCADE)
   @JoinTable(
       name = "STM_TREE_ROL",
       joinColumns =
-          @JoinColumn(name = "TRO_TREEID", foreignKey = @ForeignKey(name = "STM_TRO_FK_TRE")),
+          @JoinColumn(
+              name = "TRO_TREEID",
+              nullable = false,
+              foreignKey = @ForeignKey(name = "STM_TRO_FK_TRE")),
       inverseJoinColumns =
-          @JoinColumn(name = "TRO_ROLEID", foreignKey = @ForeignKey(name = "STM_TRO_FK_ROL")))
+          @JoinColumn(
+              name = "TRO_ROLEID",
+              nullable = false,
+              foreignKey = @ForeignKey(name = "STM_TRO_FK_ROL")))
   @Builder.Default
   private Set<Role> availableRoles = new HashSet<>();
 

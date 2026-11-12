@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { TranslateLoader, TranslateModule } from '@ngx-translate/core';
+import { TranslateLoader, TranslatePipe, provideTranslateService } from '@ngx-translate/core';
 import { of , firstValueFrom, Observable, toArray } from 'rxjs';
 
 import { Resource } from '@app/core';
@@ -37,7 +37,10 @@ describe('EntityListComponent', () => {
       imports: [
         MaterialModule,
         DataGridComponent,
-        TranslateModule.forRoot({
+        TranslatePipe
+      ],
+    providers: [
+      provideTranslateService({
           loader: {
             provide: TranslateLoader,
             useFactory: () => ({
@@ -45,8 +48,7 @@ describe('EntityListComponent', () => {
             })
           }
         })
-      ]
-    })
+    ]})
     .compileComponents();
   });
 
@@ -58,9 +60,7 @@ describe('EntityListComponent', () => {
   afterEach(() => fixture?.destroy());
   afterAll(() => TestBed.resetTestingModule());
 
-  it('should create', () => {
-    expect(component).toBeTruthy();
-  });
+  
 
   describe('default dataFetchFn fallback', () => {
     it('should return of([]) when config is not provided', async () => {

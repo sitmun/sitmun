@@ -8,6 +8,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -17,6 +18,7 @@ import org.sitmun.infrastructure.persistence.type.i18n.LiteralTranslationReposit
 import org.sitmun.infrastructure.persistence.type.i18n.LiteralTranslationValueRepository;
 import org.sitmun.test.BaseTest;
 import org.sitmun.test.URIConstants;
+import org.sitmun.test.UniqueContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
@@ -24,6 +26,8 @@ import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.transaction.annotation.Transactional;
 
 @DisplayName("Task Data REST literal enrollment")
+@UniqueContext(
+    "The ensure service is a spy that throws for one create and runs the real enroll path for the other.")
 class TaskLiteralEnrollmentDataRestTest extends BaseTest {
 
   @Autowired private TaskRepository taskRepository;
@@ -83,5 +87,31 @@ class TaskLiteralEnrollmentDataRestTest extends BaseTest {
 
     assertThat(taskRepository.findAll()).noneMatch(task -> taskName.equals(task.getName()));
     assertThat(literalTranslationRepository.findByLiteral(key)).isEmpty();
+  }
+
+  @Test
+  @Transactional
+  @DisplayName("a new placeholder persists the inner HTML for every language")
+  void newPlaceholderPersistsInnerHtmlForEveryLanguage() {
+    String key = "Inner sentence " + System.nanoTime();
+    literalTranslationEnsureService.ensureLiteralsFromTemplateHtml("<p><t>" + key + "</t></p>");
+
+    LiteralTranslation enrolled = literalTranslationRepository.findByLiteral(key).orElseThrow();
+    for (String language : List.of("ca", "es", "en", "fr", "oc-aranes")) {
+      assertThat(
+              literalTranslationValueRepository.findValueByLiteralIdAndLanguage(
+                  enrolled.getId(), language))
+          .contains(key);
+    }
+
+    LiteralTranslation noData = literalTranslationRepository.findByLiteral("No data").orElseThrow();
+    literalTranslationEnsureService.ensureLiteralsFromTemplateHtml("<p><t>No data</t></p>");
+    assertThat(
+            literalTranslationValueRepository.findValueByLiteralIdAndLanguage(noData.getId(), "ca"))
+        .contains("Sense dades");
+    assertThat(
+            literalTranslationValueRepository.findValueByLiteralIdAndLanguage(
+                noData.getId(), "oc-aranes"))
+        .contains("Cap de donades");
   }
 }

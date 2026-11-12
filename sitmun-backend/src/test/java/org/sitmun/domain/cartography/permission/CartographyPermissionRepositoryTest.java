@@ -10,12 +10,12 @@ import org.sitmun.domain.role.RoleRepository;
 import org.sitmun.infrastructure.persistence.type.i18n.I18nTestConfiguration;
 import org.sitmun.infrastructure.security.core.SecurityConstants;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
+import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
 import org.springframework.context.annotation.Import;
 
 @DataJpaTest
+@Import(I18nTestConfiguration.class)
 @DisplayName("Cartography Permission Repository JPA test")
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 class CartographyPermissionRepositoryTest {
@@ -28,13 +28,9 @@ class CartographyPermissionRepositoryTest {
   void findPermissionsByUsernameApplicationAndTerritory() {
     List<Role> roles =
         roleRepository.findRolesByApplicationAndUserAndTerritory(
-            SecurityConstants.PUBLIC_PRINCIPAL, 1, 1);
+            SecurityConstants.PUBLIC_PRINCIPAL, 10001, 10001);
     List<CartographyPermission> cp =
-        cartographyPermissionRepository.findByRolesAndTerritory(roles, 1);
+        cartographyPermissionRepository.findByRolesAndTerritory(roles, 10001);
     assertThat(cp).hasSize(3);
   }
-
-  @TestConfiguration
-  @Import(I18nTestConfiguration.class)
-  static class Configuration {}
 }

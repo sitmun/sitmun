@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 
-import { AppCfg, AppTasks } from '@api/model/app-cfg';
-import { SitnaControls } from '@api/model/sitna-cfg';
+import type { AppCfg, AppTasks } from '@api/model/app-cfg';
+import type { SitnaControls } from '@api/model/sitna-cfg';
 
 import { AppConfigService } from './app-config.service';
 import { SitnaApiService } from './sitna-api.service';
@@ -165,13 +165,11 @@ export class ControlRegistryService {
       buildConfigMs: performance.now() - bootstrapStart
     });
 
-    // Step 1: Identify active controls that have handlers
     // Filter out disabled controls first (takes precedence over backend configuration)
     const activeControlsWithHandlers = tasks
-      .filter((task) => task['ui-control']?.startsWith('sitna.'))
       .filter((task) => {
-        // Skip if control is disabled in app-config.json
-        return !this.appConfigService.isDisabled(task['ui-control']);
+        const controlId = task['ui-control'];
+        return !!controlId && !this.appConfigService.isDisabled(controlId);
       })
       .map((task) => ({
         task,
@@ -202,17 +200,13 @@ export class ControlRegistryService {
         this.controlTimings.set(bid, { buildConfigMs });
 
         if (config !== null) {
-          let controlKey: string;
-          if (typeof (handler as any).getSitnaConfigKey === 'function') {
-            controlKey = (handler as any).getSitnaConfigKey(task);
-          } else if (handler.sitnaConfigKey) {
-            controlKey = handler.sitnaConfigKey;
-          } else {
+          if (!handler.sitnaConfigKey) {
             console.error(
               `[ControlRegistry] Handler for '${task['ui-control']}' missing sitnaConfigKey`
             );
             continue;
           }
+          const controlKey = handler.sitnaConfigKey;
           (sitnaControls as any)[controlKey] = config;
 
         }
@@ -248,35 +242,26 @@ export class ControlRegistryService {
 
     await Promise.all(patchLoaders);
 
-    // Post-process: Remove any disabled controls that may have been added
     // This ensures disabledControls takes precedence over everything
     for (const [controlIdentifier, handler] of this.handlers.entries()) {
       if (this.appConfigService.isDisabled(controlIdentifier)) {
-        let controlKey: string;
-        if (typeof (handler as any).getSitnaConfigKey === 'function') {
-          controlKey = (handler as any).getSitnaConfigKey();
-        } else if (handler.sitnaConfigKey) {
-          controlKey = handler.sitnaConfigKey;
-        } else {
+        if (!handler.sitnaConfigKey) {
           continue;
         }
+        const controlKey = handler.sitnaConfigKey;
 
-        // Remove disabled control from configuration
         if (sitnaControls[controlKey as keyof SitnaControls] !== undefined) {
           delete (sitnaControls as any)[controlKey];
         }
       }
     }
 
-    // Post-process: Resolve control dependencies
     // This ensures dependent controls (e.g., Modify for DrawMeasureModify) are enabled
     this.resolveControlDependencies(sitnaControls, activeControls, context);
 
-    // Post-process: Set default values for controls that are registered but NOT requested
     // Each handler can define its own default value via getDefaultValueWhenMissing()
     this.setDefaultValuesForMissingControls(sitnaControls, context);
 
-    // Validate div usage after all controls are processed
     this.validateDivUsage(sitnaControls);
 
     return sitnaControls;
@@ -300,20 +285,12 @@ export class ControlRegistryService {
     sitnaControls: Partial<SitnaControls>,
     context: AppCfg
   ): void {
-    // Iterate through all registered handlers
     for (const [controlIdentifier, handler] of this.handlers.entries()) {
-      // Get the SITNA config key for this handler
-      let controlKey: string;
-      if (typeof (handler as any).getSitnaConfigKey === 'function') {
-        controlKey = (handler as any).getSitnaConfigKey();
-      } else if (handler.sitnaConfigKey) {
-        controlKey = handler.sitnaConfigKey;
-      } else {
-        // Skip handlers without a config key
+      if (!handler.sitnaConfigKey) {
         continue;
       }
+      const controlKey = handler.sitnaConfigKey;
 
-      // Only process if control is not already configured by backend
       // Note: undefined = not configured by backend (we can enable it)
       //       false = explicitly disabled by backend (we respect that)
       //       any object = enabled by backend (we respect that)
@@ -324,11 +301,8 @@ export class ControlRegistryService {
           continue;
         }
 
-        // Check if this control should be enabled by default
         // Only enable if backend hasn't configured it (either enabled or disabled)
         if (this.appConfigService.isEnabledByDefault(controlIdentifier)) {
-          // Build configuration using handler with minimal task
-          // This will use the default config from controlDefaults in app-config.json
           const minimalTask: AppTasks = {
             id: '',
             'ui-control': controlIdentifier,
@@ -349,7 +323,6 @@ export class ControlRegistryService {
           }
         }
 
-        // Fall back to handler's getDefaultValueWhenMissing() method
         // This method MUST return a value (never undefined)
         const defaultValue = (handler as any).getDefaultValueWhenMissing?.();
 
@@ -389,21 +362,14 @@ export class ControlRegistryService {
 
           const depHandler = this.getHandler(depIdentifier);
           if (depHandler) {
-            // Get the SITNA config key for the dependency
-            let depConfigKey: string;
-            if (typeof (depHandler as any).getSitnaConfigKey === 'function') {
-              depConfigKey = (depHandler as any).getSitnaConfigKey();
-            } else if (depHandler.sitnaConfigKey) {
-              depConfigKey = depHandler.sitnaConfigKey;
-            } else {
+            if (!depHandler.sitnaConfigKey) {
               continue;
             }
+            const depConfigKey = depHandler.sitnaConfigKey;
 
-            // Check if dependency is already configured
             const currentValue =
               sitnaControls[depConfigKey as keyof SitnaControls];
             if (currentValue === undefined) {
-              // Auto-enable dependency by building its configuration
               const depConfig = depHandler.buildConfiguration(
                 { 'ui-control': depIdentifier } as AppTasks,
                 context
@@ -431,9 +397,7 @@ export class ControlRegistryService {
   private validateDivUsage(sitnaControls: Partial<SitnaControls>): void {
     const divUsage = new Map<string, string[]>();
 
-    // Iterate through all configured controls
     for (const [controlKey, config] of Object.entries(sitnaControls)) {
-      // Extract div from config (handle both string and object configs)
       // Some control types (like WFSQuery) don't have a div property
       const div =
         typeof config === 'object' && config !== null && 'div' in config
@@ -451,7 +415,6 @@ export class ControlRegistryService {
       }
     }
 
-    // Show warnings for duplicates
     for (const [div, controls] of divUsage.entries()) {
       if (controls.length > 1) {
         this.notificationService.warning(

@@ -7,7 +7,6 @@ import static org.sitmun.proxy.middleware.config.ProxyMiddlewareConstants.TYPE_S
 import static org.sitmun.proxy.middleware.config.ProxyMiddlewareConstants.TYPE_WMS;
 import static org.sitmun.proxy.middleware.config.ProxyMiddlewareConstants.TYPE_WMTS;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
@@ -18,6 +17,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
@@ -35,6 +35,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
+import tools.jackson.databind.ObjectMapper;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("RequestConfigurationService tests")
@@ -224,7 +225,7 @@ class RequestConfigurationServiceTest {
 
     // Then
     assertThat(result.getStatusCode().value()).isEqualTo(status);
-    assertThat(result.getHeaders()).doesNotContainKey(HttpHeaders.WWW_AUTHENTICATE);
+    assertThat(result.getHeaders().headerNames()).doesNotContain(HttpHeaders.WWW_AUTHENTICATE);
     assertThat(result.getBody()).isInstanceOf(ProblemDetail.class);
     ProblemDetail problem = (ProblemDetail) result.getBody();
     assertThat(problem.getType()).isEqualTo(type);
@@ -512,7 +513,7 @@ class RequestConfigurationServiceTest {
         appId, terId, type, typeId, token, params, TEST_URL, null);
 
     // Then: Verify the request sent to backend includes all required fields
-    var httpEntityCaptor = org.mockito.ArgumentCaptor.forClass(HttpEntity.class);
+    var httpEntityCaptor = ArgumentCaptor.forClass(HttpEntity.class);
     verify(restTemplate)
         .exchange(
             eq(CONFIG_URL),
@@ -559,7 +560,7 @@ class RequestConfigurationServiceTest {
         appId, terId, TYPE_SQL, typeId, token, params, TEST_URL, null);
 
     // Then: Verify the X-SITMUN-Proxy-Key header is present
-    var httpEntityCaptor = org.mockito.ArgumentCaptor.forClass(HttpEntity.class);
+    var httpEntityCaptor = ArgumentCaptor.forClass(HttpEntity.class);
     verify(restTemplate)
         .exchange(
             eq(CONFIG_URL),
@@ -570,7 +571,7 @@ class RequestConfigurationServiceTest {
     HttpEntity<?> capturedEntity = httpEntityCaptor.getValue();
     HttpHeaders headers = capturedEntity.getHeaders();
 
-    assertThat(headers.containsKey(PROXY_MIDDLEWARE_KEY)).isTrue();
+    assertThat(headers.containsHeader(PROXY_MIDDLEWARE_KEY)).isTrue();
     assertThat(headers.getFirst(PROXY_MIDDLEWARE_KEY)).isEqualTo(SECRET);
     assertThat(headers.getFirst(HttpHeaders.AUTHORIZATION)).isEqualTo("Bearer " + token);
   }
@@ -600,7 +601,7 @@ class RequestConfigurationServiceTest {
     requestConfigurationService.doRequest(appId, terId, type, typeId, null, params, TEST_URL, null);
 
     // Then: Verify all body fields are present and Authorization is absent for public users
-    var httpEntityCaptor = org.mockito.ArgumentCaptor.forClass(HttpEntity.class);
+    var httpEntityCaptor = ArgumentCaptor.forClass(HttpEntity.class);
     verify(restTemplate)
         .exchange(
             eq(CONFIG_URL),
@@ -617,6 +618,6 @@ class RequestConfigurationServiceTest {
     assertThat(requestDto.getTerId()).isEqualTo(terId);
     assertThat(requestDto.getType()).isEqualTo(type);
     assertThat(requestDto.getTypeId()).isEqualTo(typeId);
-    assertThat(capturedEntity.getHeaders().containsKey(HttpHeaders.AUTHORIZATION)).isFalse();
+    assertThat(capturedEntity.getHeaders().containsHeader(HttpHeaders.AUTHORIZATION)).isFalse();
   }
 }

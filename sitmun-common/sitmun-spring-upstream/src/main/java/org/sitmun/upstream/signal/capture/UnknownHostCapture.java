@@ -5,6 +5,7 @@ import org.sitmun.upstream.signal.ExchangeSignals;
 import org.sitmun.upstream.signal.RequestContext;
 import org.sitmun.upstream.signal.ServiceStatuses;
 import org.sitmun.upstream.signal.SignalCapture;
+import org.sitmun.upstream.signal.TransportError;
 import org.springframework.core.annotation.Order;
 
 @Order(12)
@@ -12,7 +13,7 @@ public final class UnknownHostCapture implements SignalCapture {
 
   @Override
   public CaptureResult capture(RequestContext context, ExchangeSignals signals) {
-    if (!"UnknownHostException".equals(signals.transportError())) {
+    if (TransportError.parse(signals.transportError()) != TransportError.UNKNOWN_HOST) {
       return new CaptureResult.Undecided();
     }
     return new CaptureResult.Definitive(

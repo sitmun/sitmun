@@ -1,0 +1,13 @@
+import { LogLevel } from '@app/services/log-level.enum';
+
+export const environment = {
+  production: true,
+  apiBaseURL: '${PUBLIC_BASE_PATH}backend',
+  logLevel: LogLevel.Error,
+  version: '${APP_VERSION}',
+  buildTimestamp: '${BUILD_TIMESTAMP}' as string | undefined,
+  environmentName: '${FRONT_ENV}',
+  sessionTokenRefreshIntervalMs: 2 * 60 * 1000,
+  // Interface languages on the waiting page. The rest of the app uses the database list.
+  waitingPageLanguages: ['es', 'en', 'fr', 'ca', 'oc-aranes', 'pt-PT']
+};

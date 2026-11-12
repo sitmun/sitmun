@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
@@ -34,16 +36,18 @@ public class DatabaseConnection {
       allocationSize = 1)
   @Id
   @GeneratedValue(strategy = GenerationType.TABLE, generator = "STM_CONNECT_GEN")
-  @Column(name = "CON_ID")
+  @Column(name = "CON_ID", nullable = false)
   private Integer id;
 
   /** Connection name. */
-  @Column(name = "CON_NAME", length = PersistenceConstants.IDENTIFIER)
+  @Column(name = "CON_NAME", length = 80, nullable = false)
+  @Size(max = 80)
   @NotBlank
   private String name;
 
   /** JDBC driver. */
-  @Column(name = "CON_DRIVER", length = PersistenceConstants.IDENTIFIER)
+  @NotNull
+  @Column(name = "CON_DRIVER", length = PersistenceConstants.IDENTIFIER, nullable = false)
   @CodeList(CodeListsConstants.DATABASE_CONNECTION_DRIVER)
   private String driver;
 

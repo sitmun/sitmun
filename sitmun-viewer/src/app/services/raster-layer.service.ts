@@ -1,6 +1,6 @@
 import { inject, Injectable } from '@angular/core';
 
-import { AppCfg, AppLayer, AppService } from '@api/model/app-cfg';
+import type { AppCfg, AppLayer, AppService } from '@api/model/app-cfg';
 
 import { ConfigLookupService } from './config-lookup.service';
 import { inferOgcLinkFormat, LayerInfoService } from './layer-info.service';
@@ -27,14 +27,6 @@ export class RasterLayerService {
   private readonly configLookup = inject(ConfigLookupService);
   private readonly layerInfoService = inject(LayerInfoService);
 
-  /**
-   * Check if a layer is a Raster that plans to build a WMTS service.
-   *
-   * @param layer - The layer instance to check
-   * @param capabilitiesUrl - Optional capabilities URL (for virtual service detection)
-   * @param appCfg - Optional app configuration (for virtual service detection)
-   * @returns true if the layer is a Raster that will build a WMTS, false otherwise
-   */
   /**
    * Check if layer instance is a Raster type (WMS, WMTS, or Raster constructor).
    */

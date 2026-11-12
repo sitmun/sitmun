@@ -10,8 +10,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -28,7 +28,7 @@ class TerritoryTypesRepositoryDataRestTest {
   void allTypes() throws Exception {
     mvc.perform(get(TERRITORY_TYPES_URI).contentType(APPLICATION_JSON))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$._embedded.territory-types", hasSize(8)));
+        .andExpect(jsonPath("$._embedded.territory-types", hasSize(12)));
   }
 
   @Test
@@ -38,7 +38,7 @@ class TerritoryTypesRepositoryDataRestTest {
     mvc.perform(get(TERRITORY_TYPE_URI, 2).contentType(APPLICATION_JSON))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.id").value(2))
-        .andExpect(jsonPath("$.name").value("Consell Comarcal"))
+        .andExpect(jsonPath("$.name").value("Autonomous Community"))
         .andExpect(jsonPath("$.official").value(true))
         .andExpect(jsonPath("$.topType").value(false))
         .andExpect(jsonPath("$.bottomType").value(false));

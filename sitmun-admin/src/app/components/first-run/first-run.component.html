@@ -1,0 +1,146 @@
+<mat-toolbar color="primary">
+  <mat-toolbar-row class="top-toolbar-row">
+    <div class="sitmun-logo-container">
+      <div class="sitmun-logo">
+        <img alt="logo" class="logo" height="48" ngSrc="assets/img/logos/logo_sitmun.svg" width="128">
+      </div>
+    </div>
+    <span class="toolbar-spacer"></span>
+    <button
+      mat-button
+      type="button"
+      [matMenuTriggerFor]="languageMenu"
+      [attr.aria-label]="'entity.login.language' | translate"
+      class="language-toolbar-button">
+      <mat-icon>language</mat-icon>
+      <span>{{ isoCode(currentShortname) }}</span>
+    </button>
+    <mat-menu #languageMenu="matMenu">
+      @for (lang of languages; track lang.shortname) {
+        <button mat-menu-item type="button" (click)="changeLanguage(lang.shortname)">
+          {{ lang.name }}
+        </button>
+      }
+    </mat-menu>
+  </mat-toolbar-row>
+</mat-toolbar>
+
+<div class="first-run-container">
+  <mat-card>
+    <mat-card-header>
+      <mat-card-title>
+        <p class="product-title">{{ productTitle }}</p>
+        <h4 id="first-run-title">{{ 'firstRun.title' | translate }}</h4>
+      </mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <mat-vertical-stepper linear aria-labelledby="first-run-title">
+        <mat-step [completed]="true" [label]="'firstRun.step.welcome' | translate">
+          <p>{{ 'firstRun.welcome.bodyAdmin' | translate }}</p>
+          <div class="step-actions">
+            <span class="step-actions-end">
+              <button mat-raised-button color="primary" type="button" matStepperNext>
+                {{ 'firstRun.welcome.next' | translate }}
+              </button>
+            </span>
+          </div>
+        </mat-step>
+
+        <mat-step [stepControl]="languageForm" [label]="'firstRun.step.language' | translate">
+          <h5 id="first-run-language">
+            <mat-icon aria-hidden="true">translate</mat-icon>
+            {{ 'firstRun.language.title' | translate }}
+          </h5>
+          <p>{{ 'firstRun.language.description' | translate }}</p>
+          <mat-form-field appearance="outline" class="full">
+            <mat-select
+              aria-labelledby="first-run-language"
+              [value]="languageModel().language"
+              (selectionChange)="chooseLanguage($event.value)">
+              @for (lang of languages; track lang.shortname) {
+                <mat-option [value]="lang.shortname">{{ lang.name }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+          <div class="step-actions">
+            <span class="step-actions-end">
+              <button mat-button type="button" matStepperPrevious>{{ 'firstRun.back' | translate }}</button>
+              <button
+                mat-raised-button
+                color="primary"
+                type="button"
+                matStepperNext
+                [disabled]="languageForm().invalid()">
+                {{ 'firstRun.language.next' | translate }}
+              </button>
+            </span>
+          </div>
+        </mat-step>
+
+        <mat-step [stepControl]="passwordForm" [label]="'firstRun.step.password' | translate">
+          <h5>
+            <mat-icon aria-hidden="true">lock</mat-icon>
+            {{ 'firstRun.password.title' | translate }}
+          </h5>
+          <p class="hint">{{ 'firstRun.password.hint' | translate }}</p>
+          <mat-form-field appearance="outline" class="full">
+            <mat-label>{{ 'firstRun.password.new' | translate }}</mat-label>
+            <input
+              matInput
+              [type]="showPassword ? 'text' : 'password'"
+              [formField]="passwordForm.password"
+              autocomplete="new-password">
+            <button
+              mat-icon-button
+              matSuffix
+              type="button"
+              (click)="togglePassword()"
+              [attr.aria-label]="(showPassword ? 'firstRun.password.hide' : 'firstRun.password.show') | translate">
+              <mat-icon>{{ showPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+            </button>
+          </mat-form-field>
+          <mat-form-field appearance="outline" class="full">
+            <mat-label>{{ 'firstRun.password.confirm' | translate }}</mat-label>
+            <input
+              matInput
+              [type]="showPassword ? 'text' : 'password'"
+              [formField]="passwordForm.confirmPassword"
+              autocomplete="new-password">
+          </mat-form-field>
+          @if (hasPasswordError('mismatch')) {
+            <p class="field-error">{{ 'firstRun.password.mismatch' | translate }}</p>
+          }
+          @if (hasPasswordError('tooShort')) {
+            <p class="field-error">{{ 'firstRun.password.tooShort' | translate }}</p>
+          }
+          @if (hasPasswordError('tooLong')) {
+            <p class="field-error">{{ 'firstRun.password.tooLong' | translate }}</p>
+          }
+          @if (hasPasswordError('sameAsUsername')) {
+            <p class="field-error">{{ 'firstRun.password.sameAsUsername' | translate }}</p>
+          }
+          <div class="summary">
+            @if (languageModel().language) {
+              <p>{{ 'firstRun.summary.language' | translate:{ name: selectedLanguageName() } }}</p>
+            }
+            @if (passwordModel().password.trim()) {
+              <p>{{ 'firstRun.summary.password' | translate }}</p>
+            }
+          </div>
+          <div class="step-actions">
+            <span class="step-actions-end">
+              <button mat-button type="button" matStepperPrevious>{{ 'firstRun.back' | translate }}</button>
+              <button mat-raised-button color="primary" type="button" (click)="save()" [disabled]="!canSave()">
+                @if (saving()) {
+                  <mat-spinner diameter="20"></mat-spinner>
+                } @else {
+                  {{ 'firstRun.save' | translate }}
+                }
+              </button>
+            </span>
+          </div>
+        </mat-step>
+      </mat-vertical-stepper>
+    </mat-card-content>
+  </mat-card>
+</div>

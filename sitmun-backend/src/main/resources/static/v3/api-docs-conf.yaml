@@ -39,7 +39,7 @@ info:
   license:
     name: EUPL 1.2
     url: https://raw.githubusercontent.com/sitmun/sitmun-backend-core/master/LICENSE
-  version: 1.2.9
+  version: @version@
   contact:
     name: Comité técnico SITMUN
     url: https://sitmun.github.io/contacto/
@@ -825,6 +825,7 @@ components:
           description: Identificador de la aplicación.
         title:
           type: string
+          maxLength: 250
           description: Nombre de la aplicación.
         pointOfContact:
           type: string
@@ -832,6 +833,7 @@ components:
           description: Email del contacto institucional; nulo cuando no hay contacto elegible con email.
         responsibleInstitutionName:
           type: string
+          maxLength: 250
           nullable: true
           maxLength: 250
           description: Nombre de la institución responsable de la aplicación.
@@ -845,6 +847,7 @@ components:
           description: Identificador del territorio.
         name:
           type: string
+          maxLength: 250
           description: Nombre del territorio.
 
     ErrorResponse:

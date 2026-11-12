@@ -1,9 +1,9 @@
-import {CommonModule} from '@angular/common';
 import {
-  Component, 
+  Component,
   OnInit,
   HostBinding,
-  inject
+  inject,
+  ChangeDetectionStrategy
 } from '@angular/core';
 import {MatButtonModule} from '@angular/material/button';
 import {MatCardModule} from '@angular/material/card';
@@ -18,7 +18,7 @@ import {MatProgressSpinnerModule} from '@angular/material/progress-spinner';
 import {MatTabsModule} from '@angular/material/tabs';
 import {MatTooltipModule} from '@angular/material/tooltip';
 
-import {TranslateModule} from '@ngx-translate/core';
+import { TranslatePipe } from '@ngx-translate/core';
 import { Observable, Subject, forkJoin, of, firstValueFrom } from 'rxjs';
 
 import { LoadingOverlayService } from '@app/services/loading-overlay.service';
@@ -178,17 +178,17 @@ export async function openDialogGridWithPreload(
     templateUrl: './dialog-grid.component.html',
   standalone: true,
     imports: [
-        CommonModule,
-        MatDialogModule,
-        MatButtonModule,
-        MatCardModule,
-        MatIconModule,
-        MatProgressSpinnerModule,
-        MatTabsModule,
-        MatTooltipModule,
-        TranslateModule,
-        DataGridComponent
-    ],
+    MatDialogModule,
+    MatButtonModule,
+    MatCardModule,
+    MatIconModule,
+    MatProgressSpinnerModule,
+    MatTabsModule,
+    MatTooltipModule,
+    TranslatePipe,
+    DataGridComponent
+],
+    changeDetection: ChangeDetectionStrategy.Eager,
     styles: [`
     :host {
       display: block;

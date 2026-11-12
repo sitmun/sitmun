@@ -9,36 +9,41 @@ import org.junit.jupiter.params.provider.CsvSource;
 class JdbcSqlDialectTest {
 
   @ParameterizedTest
-  @CsvSource({
-    "jdbc:oracle:thin:@//host:1521/xe,,ORACLE_FETCH",
-    "JDBC:ORACLE:OCI:,,ORACLE_FETCH",
-    ",oracle.jdbc.OracleDriver,ORACLE_FETCH",
-    ",oracle.jdbc.driver.OracleDriver,ORACLE_FETCH",
-    "jdbc:postgresql://localhost/db,,LIMIT_OFFSET",
-    "jdbc:h2:mem:testdb,,LIMIT_OFFSET",
-    "jdbc:h2:file:./data,,LIMIT_OFFSET",
-    ",org.postgresql.Driver,LIMIT_OFFSET",
-    ",org.h2.Driver,LIMIT_OFFSET",
-    ",,LIMIT_OFFSET",
-    "jdbc:mysql://localhost/db,,LIMIT_OFFSET",
-  })
-  @DisplayName("fromJdbcMetadata maps URL and driver to dialect")
-  void fromJdbcMetadata(String url, String driver, JdbcSqlDialect expected) {
-    assertThat(JdbcSqlDialect.fromJdbcMetadata(driver, url)).isEqualTo(expected);
+  @CsvSource(
+      nullValues = "NULL",
+      value = {
+        "10,20,SELECT 1 OFFSET 20 ROWS FETCH NEXT 10 ROWS ONLY",
+        "10,NULL,SELECT 1 FETCH NEXT 10 ROWS ONLY",
+        "NULL,5,SELECT 1 OFFSET 5 ROWS",
+        "NULL,NULL,SELECT 1"
+      })
+  @DisplayName("PostgreSQL keeps OFFSET and FETCH")
+  void postgresqlKeepsOffsetFetch(Integer limit, Integer offset, String expected) {
+    assertThat(
+            JdbcSqlDialect.appendPagination(
+                "SELECT 1", limit, offset, "jdbc:postgresql://localhost/sitmun"))
+        .isEqualTo(expected);
   }
 
   @ParameterizedTest
-  @CsvSource({
-    "LIMIT_OFFSET, 'SELECT 1', 10, 20, 'SELECT 1 LIMIT 10 OFFSET 20'",
-    "LIMIT_OFFSET, 'SELECT 1', 10, , 'SELECT 1 LIMIT 10'",
-    "LIMIT_OFFSET, 'SELECT 1', , 5, 'SELECT 1 OFFSET 5'",
-    "ORACLE_FETCH, 'SELECT 1', 10, 20, 'SELECT 1 OFFSET 20 ROWS FETCH NEXT 10 ROWS ONLY'",
-    "ORACLE_FETCH, 'SELECT 1', 10, , 'SELECT 1 FETCH NEXT 10 ROWS ONLY'",
-    "ORACLE_FETCH, 'SELECT 1', , 5, 'SELECT 1 OFFSET 5 ROWS'",
-  })
-  @DisplayName("appendPagination uses dialect-specific syntax")
-  void appendPagination(
-      JdbcSqlDialect dialect, String sql, String limit, String offset, String expected) {
-    assertThat(dialect.appendPagination(sql, limit, offset)).isEqualTo(expected);
+  @CsvSource(
+      delimiter = '|',
+      nullValues = "NULL",
+      value = {
+        "10|20|SELECT * FROM (SELECT q.*, ROWNUM rn FROM (SELECT 1) q WHERE ROWNUM <= 30) WHERE rn > 20",
+        "10|NULL|SELECT * FROM (SELECT 1) q WHERE ROWNUM <= 10",
+        "NULL|5|SELECT * FROM (SELECT q.*, ROWNUM rn FROM (SELECT 1) q) WHERE rn > 5",
+        "NULL|NULL|SELECT 1"
+      })
+  @DisplayName("every Oracle connection uses a ROWNUM wrapper")
+  void oracleUsesRownum(Integer limit, Integer offset, String expected) {
+    assertThat(
+            JdbcSqlDialect.appendPagination(
+                "SELECT 1", limit, offset, "jdbc:oracle:thin:@//localhost:1521/xe"))
+        .isEqualTo(expected);
+    assertThat(
+            JdbcSqlDialect.appendPagination(
+                "SELECT 1", limit, offset, "jdbc:oracle:thin:@//db.example:1521/orcl19"))
+        .isEqualTo(expected);
   }
 }

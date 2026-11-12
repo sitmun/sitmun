@@ -3,10 +3,14 @@ package org.sitmun.domain.task;
 import com.fasterxml.jackson.annotation.JsonView;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import java.util.*;
 import lombok.*;
 import org.hibernate.Length;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 import org.sitmun.authorization.client.dto.ClientConfigurationViews;
+import org.sitmun.domain.PersistenceConstants;
 import org.sitmun.domain.cartography.Cartography;
 import org.sitmun.domain.database.DatabaseConnection;
 import org.sitmun.domain.role.Role;
@@ -43,16 +47,23 @@ public class Task {
       allocationSize = 1)
   @Id
   @GeneratedValue(strategy = GenerationType.TABLE, generator = "STM_TASK_GEN")
-  @Column(name = "TAS_ID")
+  @Column(name = "TAS_ID", nullable = false)
   @JsonView(ClientConfigurationViews.ApplicationTerritory.class)
   private Integer id;
 
   /** Name. */
-  @Column(name = "TAS_NAME", length = 512)
+  @Column(name = "TAS_NAME", length = 512, nullable = false)
   @NotBlank
   @I18n
   @JsonView(ClientConfigurationViews.ApplicationTerritory.class)
   private String name;
+
+  /** Optional title shown to the user. Templates use it as the MIA tab label. */
+  @Column(name = "TAS_TITLE", length = PersistenceConstants.SHORT_DESCRIPTION)
+  @Size(max = PersistenceConstants.SHORT_DESCRIPTION)
+  @I18n
+  @JsonView(ClientConfigurationViews.ApplicationTerritory.class)
+  private String title;
 
   /** Created date. */
   @Column(name = "TAS_CREATED")
@@ -108,12 +119,19 @@ public class Task {
 
   /** Roles allowed to access to this task. */
   @ManyToMany(cascade = {CascadeType.MERGE, CascadeType.PERSIST})
+  @OnDelete(action = OnDeleteAction.CASCADE)
   @JoinTable(
       name = "STM_ROL_TSK",
       joinColumns =
-          @JoinColumn(name = "RTS_TASKID", foreignKey = @ForeignKey(name = "STM_RTS_FK_TAS")),
+          @JoinColumn(
+              name = "RTS_TASKID",
+              nullable = false,
+              foreignKey = @ForeignKey(name = "STM_RTS_FK_TAS")),
       inverseJoinColumns =
-          @JoinColumn(name = "RTS_ROLEID", foreignKey = @ForeignKey(name = "STM_RTS_FK_ROL")))
+          @JoinColumn(
+              name = "RTS_ROLEID",
+              nullable = false,
+              foreignKey = @ForeignKey(name = "STM_RTS_FK_ROL")))
   @Builder.Default
   private Set<Role> roles = new HashSet<>();
 

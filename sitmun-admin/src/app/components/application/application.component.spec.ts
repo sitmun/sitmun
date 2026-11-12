@@ -4,7 +4,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { provideRouter, RouterModule } from '@angular/router';
 
-import {TranslateLoader, TranslateModule} from '@ngx-translate/core';
+import { TranslateLoader, TranslatePipe, provideTranslateService } from '@ngx-translate/core';
 import {of} from 'rxjs';
 
 import {EntityListComponent} from '@app/components/shared/entity-list/entity-list.component';
@@ -16,14 +16,10 @@ import { MaterialModule } from '@app/material-module';
 
 import { ApplicationComponent } from './application.component';
 
-
 describe('ApplicationComponent', () => {
   let component: ApplicationComponent;
   let fixture: ComponentFixture<ApplicationComponent>;
-  let applicationService: ApplicationService;
-  let codeListService: CodeListService;
-  let resourceService: ResourceService;
-  let externalService: ExternalService;
+
   let httpMock: HttpTestingController;
 
   beforeAll(async () => {
@@ -32,15 +28,16 @@ describe('ApplicationComponent', () => {
       teardown: { destroyAfterEach: 0 as any },
       declarations: [ ApplicationComponent, EntityListComponent ],
       imports : [SitmunFrontendGuiModule, MaterialModule, MatIconTestingModule, RouterModule,
-        TranslateModule.forRoot({
+        TranslatePipe],
+      providers: [
+      provideTranslateService({
           loader: {
             provide: TranslateLoader,
             useFactory: () => ({
               getTranslation: () => of({})
             })
           }
-        })],
-      providers: [
+        }),
         ApplicationService,
         CodeListService,
         TranslationService,
@@ -59,10 +56,7 @@ describe('ApplicationComponent', () => {
     httpMock = TestBed.inject(HttpTestingController);
     fixture = TestBed.createComponent(ApplicationComponent);
     component = fixture.componentInstance;
-    applicationService = TestBed.inject(ApplicationService);
-    codeListService = TestBed.inject(CodeListService);
-    resourceService = TestBed.inject(ResourceService);
-    externalService = TestBed.inject(ExternalService);
+
     fixture.detectChanges();
     await new Promise((r) => setTimeout(r, 0));
     httpMock.match((req) => req.url.includes('codelist-values')).forEach((req) =>
@@ -78,27 +72,7 @@ describe('ApplicationComponent', () => {
 
   afterAll(() => TestBed.resetTestingModule());
 
-  it('should create', () => {
-    expect(component).toBeTruthy();
-  });
-
-
-  it('should instantiate applicationService', () => {
-    expect(applicationService).toBeTruthy();
-  });
-
-  it('should instantiate codeListService', () => {
-    expect(codeListService).toBeTruthy();
-  });
-
-
-  it('should instantiate resourceService', () => {
-    expect(resourceService).toBeTruthy();
-  });
-
-  it('should instantiate externalService', () => {
-    expect(externalService).toBeTruthy();
-  });
+  
 
   describe('warnings column', () => {
     beforeEach(async () => {
@@ -157,7 +131,4 @@ describe('ApplicationComponent', () => {
   });
 
 });
-
-
-
 

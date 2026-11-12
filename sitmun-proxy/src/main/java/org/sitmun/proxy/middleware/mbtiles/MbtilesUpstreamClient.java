@@ -1,7 +1,7 @@
 package org.sitmun.proxy.middleware.mbtiles;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
+import java.io.InputStream;
 import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 import lombok.extern.slf4j.Slf4j;
@@ -13,6 +13,7 @@ import okhttp3.Response;
 import org.sitmun.proxy.middleware.protocols.http.HttpRequestExecutor;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * Calls the configured MBTiles service. Never forwards client Authorization or proxy key headers.
@@ -57,9 +58,7 @@ public class MbtilesUpstreamClient {
     Response response = httpClient.newCall(request).execute();
     return new HttpRequestExecutor.StreamedHttpResponse(
         response,
-        response.body() != null
-            ? response.body().byteStream()
-            : java.io.InputStream.nullInputStream());
+        response.body() != null ? response.body().byteStream() : InputStream.nullInputStream());
   }
 
   private Request post(String url, Object tileRequest) throws IOException {

@@ -9,6 +9,7 @@ import lombok.*;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 import org.sitmun.authorization.client.dto.ClientConfigurationViews;
+import org.sitmun.domain.StoredFlagListener;
 import org.sitmun.domain.application.Application;
 import org.sitmun.domain.role.Role;
 import org.sitmun.domain.territory.Territory;
@@ -18,7 +19,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 /** User role in a territory. */
 @Entity
-@EntityListeners(AuditingEntityListener.class)
+@EntityListeners({AuditingEntityListener.class, StoredFlagListener.class})
 @Table(
     name = "STM_USR_CONF",
     uniqueConstraints =
@@ -42,26 +43,26 @@ public class UserConfiguration {
       allocationSize = 1)
   @Id
   @GeneratedValue(strategy = GenerationType.TABLE, generator = "STM_USR_CONF_GEN")
-  @Column(name = "UCO_ID")
+  @Column(name = "UCO_ID", nullable = false)
   @JsonView(ClientConfigurationViews.Base.class)
   private Integer id;
 
   /** User. */
   @JoinColumn(name = "UCO_USERID", foreignKey = @ForeignKey(name = "STM_UCF_FK_USU"))
   @NotNull
-  @ManyToOne
+  @ManyToOne(optional = false)
   @OnDelete(action = OnDeleteAction.CASCADE)
   private User user;
 
   /** Territory. */
-  @ManyToOne
+  @ManyToOne(optional = false)
   @NotNull
   @OnDelete(action = OnDeleteAction.CASCADE)
   @JoinColumn(name = "UCO_TERID", foreignKey = @ForeignKey(name = "STM_UCF_FK_TER"))
   private Territory territory;
 
   /** Role. */
-  @ManyToOne
+  @ManyToOne(optional = false)
   @OnDelete(action = OnDeleteAction.CASCADE)
   @NotNull
   @JoinColumn(name = "UCO_ROLEID", foreignKey = @ForeignKey(name = "STM_UCF_FK_ROL"))
@@ -75,7 +76,7 @@ public class UserConfiguration {
    * <p>This role only applies when {@link Application#getAccessChildrenTerritory()} is {@code
    * true}.
    */
-  @Column(name = "UCO_ROLEM")
+  @Column(name = "UCO_ROLEM", nullable = false)
   @NotNull
   private Boolean appliesToChildrenTerritories;
 

@@ -1,8 +1,6 @@
 package org.sitmun.domain.user;
 
-import java.time.Clock;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
@@ -12,8 +10,6 @@ import org.sitmun.domain.user.position.UserPositionRepository;
 import org.sitmun.infrastructure.security.core.SecurityConstants;
 import org.sitmun.infrastructure.startup.BuiltInUserRepairResult;
 import org.sitmun.infrastructure.startup.BuiltInUserStartupStatus;
-import org.sitmun.infrastructure.startup.BuiltInUsersStartupProperties;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,21 +20,11 @@ public class BuiltInUserRepairService {
 
   private final UserRepository userRepository;
   private final UserPositionRepository userPositionRepository;
-  private final PasswordEncoder passwordEncoder;
-  private final BuiltInUsersStartupProperties properties;
-  private final Clock clock;
 
   public BuiltInUserRepairService(
-      UserRepository userRepository,
-      UserPositionRepository userPositionRepository,
-      PasswordEncoder passwordEncoder,
-      BuiltInUsersStartupProperties properties,
-      Clock clock) {
+      UserRepository userRepository, UserPositionRepository userPositionRepository) {
     this.userRepository = userRepository;
     this.userPositionRepository = userPositionRepository;
-    this.passwordEncoder = passwordEncoder;
-    this.properties = properties;
-    this.clock = clock;
   }
 
   @Transactional
@@ -52,26 +38,10 @@ public class BuiltInUserRepairService {
 
     Optional<User> existingAdmin =
         userRepository.findByUsername(SecurityConstants.BUILT_IN_ADMIN_PRINCIPAL);
-    boolean passwordNeeded =
-        existingAdmin.isEmpty() || StringUtils.isBlank(existingAdmin.get().getPassword());
-
-    if (passwordNeeded && properties.normalizedAdminPassword().isEmpty()) {
-      existingAdmin.ifPresent(
-          admin -> {
-            repairAdminFlags(admin);
-            userRepository.save(admin);
-            warnAdminPositions(admin, warnings);
-          });
-      return BuiltInUserRepairResult.blocked(
-          BuiltInUserStartupStatus.REASON_ADMIN_MISSING_BOOTSTRAP_PASSWORD, warnings);
-    }
-
     User admin = existingAdmin.orElseGet(this::newAdminShell);
     repairAdminFlags(admin);
     if (StringUtils.isBlank(admin.getPassword())) {
-      String plaintext = properties.normalizedAdminPassword().orElseThrow();
-      admin.setPassword(passwordEncoder.encode(plaintext));
-      admin.setLastPasswordChange(Date.from(clock.instant()));
+      admin.setPassword(null);
     }
     userRepository.save(admin);
     warnAdminPositions(admin, warnings);

@@ -1,4 +1,4 @@
-import { Component, TemplateRef, ViewChild } from '@angular/core';
+import { Component, TemplateRef, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormArray, FormControl, FormGroup, Validators } from '@angular/forms';
 import { MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
@@ -74,6 +74,7 @@ interface MapImageSelectedLayerGridRow extends MapImageSelectedLayerRow, Status 
     '.full { width: 100%; }',
     '@media (max-width: 959px) { .map-source-filters { grid-template-columns: 1fr; } .map-source-filter-action { min-height: auto; } .row-fields { grid-template-columns: 1fr; gap: 0; } }'
   ],
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false,
 })
 export class TaskMapImageFormComponent extends BaseFormComponent<TaskProjection> {
@@ -228,7 +229,7 @@ export class TaskMapImageFormComponent extends BaseFormComponent<TaskProjection>
     const properties = TaskPropertiesContract.fromRaw(this.entityToEdit?.properties);
     this.entityForm = new FormGroup({
       name: new FormControl(this.entityToEdit?.name ?? '', {
-        validators: [Validators.required],
+        validators: [Validators.maxLength(512), Validators.required],
         nonNullable: true,
       }),
       taskGroupId: new FormControl(this.entityToEdit?.groupId ?? null, {
@@ -701,8 +702,8 @@ export class TaskMapImageFormComponent extends BaseFormComponent<TaskProjection>
       taskAvailabilityService: this.taskAvailabilityService,
       taskService: this.taskService,
       isNew: () => this.isNew(),
-      entity: this.entityToEdit,
-      entityId: this.entityID,
+      entity: () => this.entityToEdit,
+      entityId: () => this.entityID,
     };
   }
 

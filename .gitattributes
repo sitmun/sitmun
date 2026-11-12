@@ -29,7 +29,14 @@ profiles/**/liquibase/changelog/**/*.yml text eol=lf
 *.woff2 binary
 *.ttf binary
 *.eot binary
+*.wasm binary
+*.docx binary
 
 # Gradle wrapper scripts (shell = LF, bat = CRLF)
 gradlew text eol=lf
 gradlew.bat text eol=crlf
+
+# GitHub Linguist. Checkout and line endings stay the same.
+sitmun-mobile/*/src/assets/external/** linguist-vendored
+pnpm-lock.yaml linguist-generated
+profiles/development/demo-data/*.sql linguist-generated

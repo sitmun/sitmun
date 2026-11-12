@@ -1,15 +1,19 @@
 name: CI shared
 
+permissions:
+  contents: read
+
 on:
   workflow_call:
   workflow_dispatch:
 
 jobs:
   build:
+    timeout-minutes: 20
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: sitmun-common
+        working-directory: .
     steps:
       - uses: actions/checkout@v5
         with:
@@ -17,7 +21,9 @@ jobs:
       - uses: actions/setup-java@v5
         with:
           distribution: temurin
-          java-version: "17"
-          cache: gradle
-      - run: chmod +x gradlew
-      - run: ./gradlew spotlessCheck test
+          java-version-file: .java-version
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@ed408507eac070d1f99cc633dbcf757c94c7933a # v4
+        with:
+          cache-read-only: ${{ github.ref != 'refs/heads/dev' }}
+      - run: ./gradlew :sitmun-spring-upstream:spotlessCheck :sitmun-spring-upstream:test :sitmun-proxy-contract:spotlessCheck :sitmun-proxy-contract:test

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonView;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import java.util.Objects;
 import lombok.*;
 import org.hibernate.annotations.OnDelete;
@@ -34,30 +35,31 @@ public class ServiceParameter {
       allocationSize = 1)
   @Id
   @GeneratedValue(strategy = GenerationType.TABLE, generator = "STM_PAR_SER_GEN")
-  @Column(name = "PSE_ID")
+  @Column(name = "PSE_ID", nullable = false)
   @JsonView(ClientConfigurationViews.ApplicationTerritory.class)
   private Integer id;
 
   /** Parameter name. */
-  @Column(name = "PSE_NAME", length = PersistenceConstants.IDENTIFIER)
+  @Column(name = "PSE_NAME", length = PersistenceConstants.IDENTIFIER, nullable = false)
   @NotBlank
   @JsonView(ClientConfigurationViews.ApplicationTerritory.class)
   private String name;
 
   /** Parameter value. */
-  @Column(name = "PSE_VALUE", length = PersistenceConstants.VALUE)
+  @NotNull
+  @Column(name = "PSE_VALUE", length = PersistenceConstants.VALUE, nullable = false)
   @JsonView(ClientConfigurationViews.ApplicationTerritory.class)
   private String value;
 
   /** Parameter type. */
-  @Column(name = "PSE_TYPE", length = PersistenceConstants.IDENTIFIER)
+  @Column(name = "PSE_TYPE", length = 250)
+  @Size(max = 250)
   @CodeList(CodeListsConstants.SERVICE_PARAMETER_TYPE)
-  @NotNull
   @JsonView(ClientConfigurationViews.ApplicationTerritory.class)
   private String type;
 
   /** Service that applies this parameter. */
-  @ManyToOne
+  @ManyToOne(optional = false)
   @NotNull
   @OnDelete(action = OnDeleteAction.CASCADE)
   @JoinColumn(name = "PSE_SERID", foreignKey = @ForeignKey(name = "STM_PSE_FK_SER"))

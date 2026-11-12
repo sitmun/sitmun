@@ -5,7 +5,7 @@ package org.sitmun.domain.user.position;
  *
  * <p>Named {@code hasActivePosition(user, grantTerritory)} in the #184 plan. Evaluates the interval
  * on the grant territory. Exempts usernames {@code public} and {@code admin}. Inclusive last civil
- * day in the JVM default zone.
+ * day in UTC, the JDBC time zone.
  */
 public final class UserPositionActiveGrant {
 

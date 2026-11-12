@@ -8,19 +8,19 @@
 #   bash tools/scripts/verify-compose-profiles.sh
 #   bash tools/scripts/verify-compose-profiles.sh --skip-oracle   # skip oracle targets
 #   bash tools/scripts/verify-compose-profiles.sh --only-build    # build only, no up/down
+#   ONLY_TARGETS="dev/postgres dev/oracle" bash tools/scripts/verify-compose-profiles.sh
+#   VERIFY_DDL_AUTO=none bash tools/scripts/verify-compose-profiles.sh
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 cd "$REPO_ROOT"
 
 SKIP_ORACLE=false
-SKIP_STANDALONE=false
 SKIP_BUILD=false
 ONLY_BUILD=false
 for arg in "$@"; do
   case "$arg" in
     --skip-oracle)      SKIP_ORACLE=true      ;;
-    --skip-standalone)  SKIP_STANDALONE=true  ;;
     --skip-build)       SKIP_BUILD=true       ;;
     --only-build)       ONLY_BUILD=true       ;;
   esac
@@ -37,9 +37,10 @@ ERRORS=()
 pass() { echo "[PASS] $*"; PASS=$((PASS + 1)); }
 fail() { echo "[FAIL] $*"; FAIL=$((FAIL + 1)); ERRORS+=("$*"); }
 
-# Ephemeral secrets injected for production and standalone profiles (required by :?).
+# Ephemeral secrets injected for every target (required by :?).
 EPHEMERAL_USER_SECRET="verify-compose-profiles-user-secret-32ch"
 EPHEMERAL_MIDDLEWARE_SECRET="verify-compose-profiles-middleware-secret-32"
+EPHEMERAL_MBTILES_JOB_HANDLE_SECRET="verify-compose-profiles-mbtiles-job-secret"
 
 # Fixed project names, one per ENVIRONMENT. All targets within a project share images,
 # so images are built once (not once per target as the old per-target project names caused).
@@ -52,9 +53,11 @@ make_env_file() {
     cat "$base"
     echo "SITMUN_USER_SECRET=${EPHEMERAL_USER_SECRET}"
     echo "MIDDLEWARE_SECRET=${EPHEMERAL_MIDDLEWARE_SECRET}"
+    echo "SITMUN_MBTILES_JOB_HANDLE_SECRET=${EPHEMERAL_MBTILES_JOB_HANDLE_SECRET}"
     if [[ -n "$extra" ]]; then
       echo "$extra"
     fi
+    echo "SPRING_JPA_HIBERNATE_DDL_AUTO=${VERIFY_DDL_AUTO:-validate}"
   } > "$out"
 }
 
@@ -91,6 +94,7 @@ BACKEND_FAILURE_MARKERS=(
   "liquibase.exception"
   "Migration failed for changeset"
   "LiquibaseException"
+  "Schema-validation"
 )
 
 # Assert the backend container started cleanly:
@@ -107,8 +111,11 @@ assert_backend_log() {
   restarts="$(docker inspect -f '{{.RestartCount}}' "$cid" 2>/dev/null || echo 0)"
 
   for marker in "${BACKEND_FAILURE_MARKERS[@]}"; do
-    if echo "$log" | grep -q "$marker"; then
+    if [[ "$log" == *"$marker"* ]]; then
       fail "$label: backend log: failure marker '$marker'"
+      if [[ "$marker" == "Schema-validation" ]]; then
+        printf '%s\n' "$log" | grep "Schema-validation" || true
+      fi
       gate_ok=false
     fi
   done
@@ -137,6 +144,16 @@ assert_backend_log() {
 
 run_target() {
   local label="$1" env_file="$2" compose_file="${3:-}"
+  if [[ -n "${ONLY_TARGETS:-}" ]]; then
+    case " ${ONLY_TARGETS} " in
+      *" ${label} "*) ;;
+      *)
+        echo "=== $label skipped (not in ONLY_TARGETS) ==="
+        return
+        ;;
+    esac
+  fi
+
   local project
   project="$(project_for "$env_file")"
 
@@ -160,6 +177,7 @@ run_target() {
 
   if [[ "$up_ok" == "false" ]]; then
     fail "$label: up failed"
+    assert_backend_log "$label" "${compose_args[@]}"
     docker compose "${compose_args[@]}" down -v --remove-orphans 2>/dev/null || true
     return
   fi
@@ -196,6 +214,24 @@ run_target() {
 
   # Backend-log gate: assert Liquibase completed before accepting requests, no restarts.
   assert_backend_log "$label" "${compose_args[@]}"
+
+  if [[ "$project" == "$PROJECT_DEV" && "$ok" == "true" ]]; then
+    local jar
+    jar="$(mktemp)"
+    if ! curl -sf -c "$jar" -H 'Content-Type: application/json' \
+      -d '{"username":"admin","password":"admin"}' \
+      "http://localhost:${backend_port}/api/authenticate" >/dev/null; then
+      fail "$label: admin login failed before profile 12/4 check"
+      ok=false
+    elif ! curl -sf -b "$jar" -o "$jar.profile" "http://localhost:${backend_port}/api/config/client/profile/12/4"; then
+      fail "$label: profile 12/4 request failed"
+      ok=false
+    elif ! grep -q '/WFS/9401' "$jar.profile"; then
+      fail "$label: Menorca Fars layer missing from profile 12/4"
+      ok=false
+    fi
+    rm -f "$jar" "$jar.profile"
+  fi
 
   if [[ "$ok" == "true" ]]; then
     pass "$label"
@@ -247,7 +283,7 @@ else
 fi
 
 # ---------------------------------------------------------------------------
-# Development targets (root docker-compose.yml, ENVIRONMENT=development)
+# Development targets (root compose.yaml, ENVIRONMENT=development)
 # ---------------------------------------------------------------------------
 
 echo ""
@@ -292,7 +328,7 @@ if [[ "$SKIP_ORACLE" == "false" ]]; then
 fi
 
 # ---------------------------------------------------------------------------
-# Production targets (root docker-compose.yml, ENVIRONMENT=production)
+# Production targets (root compose.yaml, ENVIRONMENT=production)
 # ---------------------------------------------------------------------------
 
 echo ""
@@ -334,30 +370,6 @@ if [[ "$SKIP_ORACLE" == "false" ]]; then
   make_env_file "profiles/oracle.env" "COMPOSE_PROFILES=oracle,demo,mbtiles" \
     "$TMPDIR_ENV/prod-oracle-demo-mbtiles.env"
   run_target "prod/oracle+demo+mbtiles" "$TMPDIR_ENV/prod-oracle-demo-mbtiles.env"
-fi
-
-# ---------------------------------------------------------------------------
-# Standalone profiles (their own docker-compose.yml, no root .env)
-# Standalone profiles bind standard ports (8080, 8081, 5432/1521).
-# Skip with --skip-standalone if those ports are already in use on the host.
-# ---------------------------------------------------------------------------
-
-if [[ "$SKIP_STANDALONE" == "false" ]]; then
-  echo ""
-  echo "=== Standalone profiles ==="
-
-  make_env_file /dev/null "" "$TMPDIR_ENV/standalone-postgres.env"
-  run_target "standalone/profiles/postgres" "$TMPDIR_ENV/standalone-postgres.env" \
-    "profiles/postgres/docker-compose.yml"
-
-  if [[ "$SKIP_ORACLE" == "false" ]]; then
-    make_env_file /dev/null "" "$TMPDIR_ENV/standalone-oracle.env"
-    run_target "standalone/profiles/oracle" "$TMPDIR_ENV/standalone-oracle.env" \
-      "profiles/oracle/docker-compose.yml"
-  fi
-else
-  echo ""
-  echo "=== Standalone profiles: skipped (--skip-standalone) ==="
 fi
 
 # ---------------------------------------------------------------------------

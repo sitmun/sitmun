@@ -8,12 +8,15 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import javax.net.ssl.SSLHandshakeException;
 import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -21,12 +24,18 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.sitmun.proxy.middleware.dto.ProblemDetail;
 import org.sitmun.proxy.middleware.service.RequestExecutorResponse;
+import org.sitmun.proxy.middleware.service.RequestExecutorResponseImpl;
+import org.sitmun.proxy.middleware.service.UpstreamContentType;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
+import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("HttpRequestExecutor tests")
@@ -43,6 +52,13 @@ class HttpRequestExecutorTest {
   @BeforeEach
   void setUp() {
     httpRequestExecutor = new HttpRequestExecutor(BASE_URL, httpClient);
+    RequestContextHolder.setRequestAttributes(
+        new ServletRequestAttributes(new MockHttpServletRequest()));
+  }
+
+  @AfterEach
+  void resetRequest() {
+    RequestContextHolder.resetRequestAttributes();
   }
 
   @Test
@@ -65,8 +81,7 @@ class HttpRequestExecutorTest {
     // Then
     assertThat(result).isNotNull();
     assertThat(result.asResponseEntity().getStatusCode().value()).isEqualTo(200);
-    assertThat(result.asResponseEntity().getHeaders().getFirst("content-type"))
-        .isEqualTo("application/json");
+    assertThat(UpstreamContentType.current()).isEqualTo("application/json");
     assertThat(result.asResponseEntity().getBody()).isEqualTo(responseBytes);
   }
 
@@ -86,7 +101,7 @@ class HttpRequestExecutorTest {
 
     RequestExecutorResponse<?> result = httpRequestExecutor.execute();
 
-    var requestCaptor = org.mockito.ArgumentCaptor.forClass(Request.class);
+    var requestCaptor = ArgumentCaptor.forClass(Request.class);
     verify(httpClient).executeRequest(requestCaptor.capture());
     assertThat(requestCaptor.getValue().body().contentType().toString())
         .contains("application/json");
@@ -98,7 +113,7 @@ class HttpRequestExecutorTest {
   void shouldStreamResponseBodyWithoutBuffering() throws IOException {
     httpRequestExecutor.setUrl(TEST_URL);
     byte[] payload = "streamed-bytes".getBytes();
-    when(responseBody.byteStream()).thenReturn(new java.io.ByteArrayInputStream(payload));
+    when(responseBody.byteStream()).thenReturn(new ByteArrayInputStream(payload));
     when(response.body()).thenReturn(responseBody);
     when(httpClient.executeRequest(any(Request.class))).thenReturn(response);
 
@@ -121,7 +136,7 @@ class HttpRequestExecutorTest {
 
     httpRequestExecutor.execute();
 
-    var requestCaptor = org.mockito.ArgumentCaptor.forClass(Request.class);
+    var requestCaptor = ArgumentCaptor.forClass(Request.class);
     verify(httpClient).executeRequest(requestCaptor.capture());
     assertThat(requestCaptor.getValue().body().contentType().toString()).contains("text/xml");
   }
@@ -167,8 +182,7 @@ class HttpRequestExecutorTest {
     // Then
     assertThat(result).isNotNull();
     assertThat(result.asResponseEntity().getStatusCode().value()).isEqualTo(503);
-    assertThat(result.asResponseEntity().getHeaders().getFirst("content-type"))
-        .isEqualTo("application/problem+json");
+    assertThat(UpstreamContentType.current()).isEqualTo("application/problem+json");
 
     Object body = result.asResponseEntity().getBody();
     assertThat(body).isInstanceOf(ProblemDetail.class);
@@ -199,9 +213,8 @@ class HttpRequestExecutorTest {
 
     // Then
     assertThat(result.getStatusCode().value()).isEqualTo(502);
-    assertThat(result.getHeaders().getContentType().toString())
-        .isEqualTo("application/problem+json");
-    assertThat(result.getHeaders()).doesNotContainKey(HttpHeaders.WWW_AUTHENTICATE);
+    assertThat(UpstreamContentType.current()).isEqualTo("application/problem+json");
+    assertThat(result.getHeaders().headerNames()).doesNotContain(HttpHeaders.WWW_AUTHENTICATE);
     assertThat(result.getBody()).isInstanceOf(ProblemDetail.class);
     ProblemDetail problem = (ProblemDetail) result.getBody();
     assertThat(problem.getType())
@@ -625,5 +638,21 @@ class HttpRequestExecutorTest {
         .startsWith("https://api.example.com/search/alpha")
         .doesNotContain("?TERM=")
         .doesNotContain("&TERM=");
+  }
+
+  @Test
+  @DisplayName("A rejected certificate names the allow-list setting")
+  void rejectedCertificateNamesTheSetting() throws IOException {
+    httpRequestExecutor.setUrl(TEST_URL);
+    when(httpClient.executeRequest(any(Request.class)))
+        .thenThrow(new SSLHandshakeException("PKIX path building failed"));
+
+    RequestExecutorResponseImpl<?> result =
+        (RequestExecutorResponseImpl<?>) httpRequestExecutor.execute();
+    ProblemDetail problem = (ProblemDetail) result.getBody();
+
+    assertThat(problem.getDetail())
+        .contains("certificate")
+        .contains("sitmun.client.unsafe-allowed-hosts");
   }
 }

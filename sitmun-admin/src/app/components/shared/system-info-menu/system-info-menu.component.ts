@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectorRef, VERSION, DestroyRef, inject, signal } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, VERSION, DestroyRef, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -25,6 +25,7 @@ import { environment } from '@environments/environment';
     selector: 'app-system-info-menu',
     templateUrl: './system-info-menu.component.html',
     styleUrls: ['./system-info-menu.component.scss'],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class SystemInfoMenuComponent implements OnInit {
@@ -65,13 +66,11 @@ export class SystemInfoMenuComponent implements OnInit {
     private featureFlagService: FeatureFlagService,
     private snackBar: MatSnackBar
   ) {
-    // Initialize current category with first available category
     if (!this.environment.production) {
       const categories = this.featureFlagService.getCategories();
       if (categories.length > 0) {
         this.currentCategory = categories[0];
       }
-      // Subscribe to feature flag changes for auto-update
       this.featureFlagService.featureFlags$
         .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe(() => {
@@ -95,12 +94,10 @@ export class SystemInfoMenuComponent implements OnInit {
    * Called when the menu is opened to load data
    */
   onMenuOpened(): void {
-    // Ensure user is loaded when menu opens
     if (!this.currentUser()) {
       this.loadCurrentUser();
     }
 
-    // Ensure current category is set when menu opens
     if (!this.environment.production && !this.currentCategory) {
       const categories = this.featureFlagService.getCategories();
       if (categories.length > 0) {
@@ -162,7 +159,6 @@ export class SystemInfoMenuComponent implements OnInit {
   }
 
   openAboutDialog(): void {
-    // Get translated application name
     const applicationName = this.translateService.instant('systemInfo.applicationName');
 
     const dialogData: AboutDialogData = {
@@ -181,17 +177,14 @@ export class SystemInfoMenuComponent implements OnInit {
   }
 
   triggerTestError(): void {
-    // Create a test error for debugging - add directly to ErrorTrackingService
     const testError = {
       test: true,
       timestamp: new Date().toISOString(),
       source: 'System Info Menu'
     };
 
-    // Log via logger service (LoggerService will also track it once)
     this.loggerService.error('Test error triggered from system menu', testError);
 
-    // Open the error sidebar to show the error
     this.openErrorSidebar();
   }
 
@@ -289,10 +282,8 @@ export class SystemInfoMenuComponent implements OnInit {
 
     if (!this.environment.production) {
       try {
-        // Call the service's toggleFeature method
         this.featureFlagService.toggleFeature(flag);
 
-        // Get updated config to show current state
         const config = this.featureFlagService.getFeatureConfig(flag);
         const state = config?.enabled ? 'enabled' : 'disabled';
         const message = this.translateService.instant(
@@ -301,7 +292,6 @@ export class SystemInfoMenuComponent implements OnInit {
         );
         this.snackBar.open(message, '', { duration: 2000 });
 
-        // Mark for check - let Angular's change detection handle the update naturally
         // The observable subscription will trigger FeatureFlagDirective updates automatically
         this.cdr.markForCheck();
       } catch (error) {
@@ -316,7 +306,6 @@ export class SystemInfoMenuComponent implements OnInit {
   resetFeatureFlags(): void {
     if (!this.environment.production) {
       this.featureFlagService.resetFeatures();
-      // Reset to first category
       const categories = this.featureFlagService.getCategories();
       if (categories.length > 0) {
         this.currentCategory = categories[0];

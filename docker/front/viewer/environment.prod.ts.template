@@ -1,0 +1,13 @@
+export const environment = {
+  production: true,
+  hashLocationStrategy: true,
+  hideBackgroundImage: false,
+  hideDNIEAccess: true,
+  apiUrl: '${PUBLIC_BASE_PATH}backend',
+  version: '${APP_VERSION}',
+  environmentName: '${FRONT_ENV}',
+  buildTimestamp: '${BUILD_TIMESTAMP}' as string | undefined,
+  loginBackgroundImageUrl: '',
+  proxyTokenRefreshIntervalMs: 2 * 60 * 1000,
+  sessionTokenRefreshIntervalMs: 2 * 60 * 1000
+};

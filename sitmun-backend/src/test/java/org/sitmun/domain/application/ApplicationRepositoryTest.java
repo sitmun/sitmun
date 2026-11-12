@@ -2,14 +2,13 @@ package org.sitmun.domain.application;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import jakarta.persistence.EntityManager;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Date;
 import java.util.HashSet;
-import org.assertj.core.api.Assumptions;
 import org.assertj.core.api.SoftAssertions;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -23,18 +22,20 @@ import org.sitmun.domain.role.Role;
 import org.sitmun.infrastructure.persistence.type.i18n.I18nTestConfiguration;
 import org.sitmun.infrastructure.security.core.SecurityConstants;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
+import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 
 @DataJpaTest
+@Import(I18nTestConfiguration.class)
 @DisplayName("Application Repository JPA Test")
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 class ApplicationRepositoryTest {
 
   @Autowired private ApplicationRepository applicationRepository;
+  @Autowired private EntityManager entityManager;
   @Autowired private CartographyPermissionRepository cartographyPermissionRepository;
   @Autowired private BackgroundRepository backgroundRepository;
   private Application application;
@@ -46,6 +47,7 @@ class ApplicationRepositoryTest {
         Application.builder()
             .name("Test")
             .createdDate(Date.from(Instant.now()))
+            .lastUpdate(Date.from(Instant.now()))
             .trees(null)
             .treeAutoRefresh(true)
             .scales(null)
@@ -54,7 +56,7 @@ class ApplicationRepositoryTest {
             .srs(null)
             .parameters(new HashSet<>())
             .theme(null)
-            .type(null)
+            .type("T")
             .title("Test")
             .availableRoles(new HashSet<>())
             .backgrounds(new HashSet<>())
@@ -91,21 +93,15 @@ class ApplicationRepositoryTest {
   }
 
   @Test
-  @DisplayName("Create a new application with all related entities")
-  void createApplicationWithAllEntities() {
-    assertThat(application.getId()).isNull();
-    applicationRepository.save(application);
-    assertThat(application.getId()).isNotZero();
-  }
-
-  @Test
   @DisplayName("Find an application by its ID with all related entities")
   void findApplicationByIdWithAllEntities() {
     assertThat(application.getId()).isNull();
     applicationRepository.save(application);
     assertThat(application.getId()).isNotZero();
+    entityManager.flush();
+    entityManager.detach(application);
 
-    application = applicationRepository.findById(application.getId()).orElseGet(Assertions::fail);
+    application = applicationRepository.findById(application.getId()).orElseThrow();
     SoftAssertions softly = new SoftAssertions();
     softly.assertThat(application.getAvailableRoles()).isNotEmpty();
     softly.assertThat(application.getBackgrounds()).isNotEmpty();
@@ -118,7 +114,7 @@ class ApplicationRepositoryTest {
   void removeApplicationById() {
     assertThat(application.getId()).isNull();
     applicationRepository.save(application);
-    Assumptions.assumeThat(application.getId()).isNotZero();
+    assertThat(application.getId()).isNotZero();
 
     Integer id = application.getId();
     applicationRepository.delete(application);
@@ -128,22 +124,46 @@ class ApplicationRepositoryTest {
   @Test
   @DisplayName("Find applications filtered by username")
   void findApplicationsByUsername() {
-    assertThat(
-            applicationRepository.findByUser(
-                SecurityConstants.PUBLIC_PRINCIPAL, PageRequest.of(0, 10)))
-        .hasSize(4);
+    assertThat(titles(applicationRepository.findByUser(SecurityConstants.PUBLIC_PRINCIPAL, page())))
+        .containsExactlyInAnyOrder(
+            "SITMUN - Externa",
+            "SITMUN - Municipal",
+            "SITMUN - Provincial",
+            "SITMUN - Supramunicipal");
+    assertThat(titles(applicationRepository.findByUser("internal", page())))
+        .containsExactlyInAnyOrder(
+            "SITMUN - Externa",
+            "SITMUN - Externa protegida",
+            "SITMUN - Municipal",
+            "SITMUN - Provincial",
+            "SITMUN - Supramunicipal");
   }
 
   @Test
-  @DisplayName("Find applications filtered by username and territory")
+  @DisplayName("Territory 2 omits the application granted only on territory 1")
   void findApplicationsByUsernameAndTerritory() {
     assertThat(
-            applicationRepository.findByRestrictedUserAndTerritory(
-                SecurityConstants.PUBLIC_PRINCIPAL, 1, PageRequest.of(0, 10)))
-        .hasSize(4);
+            titles(
+                applicationRepository.findByRestrictedUserAndTerritory("internal", 10002, page())))
+        .containsExactlyInAnyOrder(
+            "SITMUN - Externa",
+            "SITMUN - Municipal",
+            "SITMUN - Provincial",
+            "SITMUN - Supramunicipal");
+    assertThat(
+            titles(applicationRepository.findByPublicUserAndTerritory("internal", 10002, page())))
+        .containsExactlyInAnyOrder(
+            "SITMUN - Externa",
+            "SITMUN - Municipal",
+            "SITMUN - Provincial",
+            "SITMUN - Supramunicipal");
   }
 
-  @TestConfiguration
-  @Import(I18nTestConfiguration.class)
-  static class Configuration {}
+  private static PageRequest page() {
+    return PageRequest.of(0, 10);
+  }
+
+  private static Iterable<String> titles(Page<Application> applications) {
+    return applications.getContent().stream().map(Application::getTitle).toList();
+  }
 }

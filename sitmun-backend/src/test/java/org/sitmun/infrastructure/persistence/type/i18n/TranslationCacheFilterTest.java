@@ -21,7 +21,6 @@ import org.sitmun.infrastructure.web.config.RequestLocaleResolutionService;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
-import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
@@ -43,7 +42,6 @@ class TranslationCacheFilterTest {
     filter =
         new TranslationCacheFilter(
             translationRepository, requestLocaleResolutionService, databaseDefaultLanguageResolver);
-    ReflectionTestUtils.setField(filter, "defaultLanguage", "ca");
     request = new MockHttpServletRequest();
     response = new MockHttpServletResponse();
     RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(request));
@@ -61,8 +59,7 @@ class TranslationCacheFilterTest {
   @DisplayName("clears LocaleContextHolder after preload request with lang parameter")
   void clearsLocaleAfterPreloadRequest() throws Exception {
     request.setParameter("lang", "es");
-    when(requestLocaleResolutionService.resolveLanguage(any(), any(), any(), any()))
-        .thenReturn("es");
+    when(requestLocaleResolutionService.resolveLanguage(any(), any(), any())).thenReturn("es");
     when(databaseDefaultLanguageResolver.resolveShortnameFromDatabase()).thenReturn("ca");
     when(translationRepository.findAllByLocaleRows("es")).thenReturn(Collections.emptyList());
     doAnswer(
@@ -94,8 +91,7 @@ class TranslationCacheFilterTest {
   @DisplayName("preload stores default language shortname on request translation cache")
   void preloadStoresDefaultLanguageOnCache() throws Exception {
     request.setParameter("lang", "es");
-    when(requestLocaleResolutionService.resolveLanguage(any(), any(), any(), any()))
-        .thenReturn("es");
+    when(requestLocaleResolutionService.resolveLanguage(any(), any(), any())).thenReturn("es");
     when(databaseDefaultLanguageResolver.resolveShortnameFromDatabase()).thenReturn("ca");
     when(translationRepository.findAllByLocaleRows("es")).thenReturn(Collections.emptyList());
     AtomicReference<String> cachedDefault = new AtomicReference<>();
@@ -118,7 +114,7 @@ class TranslationCacheFilterTest {
 
   @Test
   @DisplayName("preloads locale for proxy configuration requests")
-  void shouldPreload_clientConfigAndProxyAndLangParam() {
+  void preloads_clientConfigAndProxyAndLangParam() {
     assertThat(TranslationCacheFilter.shouldPreload("/api/config/client/profile", null)).isTrue();
     assertThat(TranslationCacheFilter.shouldPreload("/api/config/proxy", null)).isTrue();
     assertThat(TranslationCacheFilter.shouldPreload("/api/config/proxy", "ca")).isTrue();

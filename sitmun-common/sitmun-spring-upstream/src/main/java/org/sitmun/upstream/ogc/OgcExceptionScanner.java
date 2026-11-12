@@ -13,6 +13,11 @@ public final class OgcExceptionScanner {
   private OgcExceptionScanner() {}
 
   public static OgcExceptionScan scan(InputStream input, int maxBytes, int textMaxLength) {
+    return scan(input, maxBytes, textMaxLength, null);
+  }
+
+  public static OgcExceptionScan scan(
+      InputStream input, int maxBytes, int textMaxLength, String charset) {
     if (input == null || maxBytes <= 0) {
       return OgcExceptionScan.none();
     }
@@ -21,8 +26,8 @@ public final class OgcExceptionScanner {
       if (bytes.length == 0) {
         return OgcExceptionScan.none();
       }
-      return parse(bytes, textMaxLength);
-    } catch (IOException | XMLStreamException e) {
+      return parse(bytes, textMaxLength, charset);
+    } catch (IOException | XMLStreamException | IllegalArgumentException e) {
       return OgcExceptionScan.none();
     }
   }
@@ -45,70 +50,141 @@ public final class OgcExceptionScanner {
     return copy;
   }
 
-  private static OgcExceptionScan parse(byte[] bytes, int textMaxLength) throws XMLStreamException {
+  private static OgcExceptionScan parse(byte[] bytes, int textMaxLength, String charset)
+      throws XMLStreamException {
     XMLInputFactory factory = XMLInputFactory.newFactory();
     factory.setProperty(XMLInputFactory.SUPPORT_DTD, false);
     factory.setProperty(XMLInputFactory.IS_SUPPORTING_EXTERNAL_ENTITIES, false);
-    XMLStreamReader reader = factory.createXMLStreamReader(new ByteArrayInputStream(bytes));
+    XMLStreamReader reader = open(factory, bytes, charset);
     try {
-      String code = null;
-      String text = null;
-      int depth = 0;
-      boolean matched = false;
-      while (reader.hasNext()) {
-        int event = reader.next();
-        if (event == XMLStreamConstants.START_ELEMENT) {
-          String local = reader.getLocalName();
-          if (!matched && isTarget(local)) {
-            matched = true;
-            depth = 1;
-            code = readCode(reader);
-            if ("ServiceException".equals(local)) {
-              text = reader.getElementText();
-              break;
-            }
-          } else if (matched) {
-            if (code == null) {
-              code = readCode(reader);
-            }
-            if ("ServiceException".equals(local) || "ExceptionText".equals(local)) {
-              if (text == null) {
-                text = reader.getElementText();
-              } else {
-                reader.getElementText();
-              }
-              continue;
-            }
-            depth++;
-          }
-        } else if (event == XMLStreamConstants.END_ELEMENT && matched) {
-          depth--;
-          if (depth == 0) {
-            break;
-          }
-        }
+      if (!advanceToFirstStart(reader)) {
+        return OgcExceptionScan.none();
       }
-      return new OgcExceptionScan(code, cut(text, textMaxLength));
+      String root = reader.getLocalName();
+      if ("ServiceExceptionReport".equals(root)) {
+        return serviceExceptionReport(reader, textMaxLength);
+      }
+      if ("ExceptionReport".equals(root)) {
+        return exceptionReport(reader, textMaxLength);
+      }
+      if ("ServiceException".equals(root)) {
+        return serviceException(reader, textMaxLength);
+      }
+      return OgcExceptionScan.none();
     } finally {
       reader.close();
     }
   }
 
-  private static boolean isTarget(String localName) {
-    return "ServiceException".equals(localName)
-        || "ServiceExceptionReport".equals(localName)
-        || "ExceptionReport".equals(localName);
+  private static XMLStreamReader open(XMLInputFactory factory, byte[] bytes, String charset)
+      throws XMLStreamException {
+    ByteArrayInputStream stream = new ByteArrayInputStream(bytes);
+    if (charset == null || charset.isBlank()) {
+      return factory.createXMLStreamReader(stream);
+    }
+    return factory.createXMLStreamReader(stream, charset.trim());
   }
 
-  private static String readCode(XMLStreamReader reader) {
-    String code = reader.getAttributeValue(null, "code");
-    if (code == null || code.isBlank()) {
-      code = reader.getAttributeValue(null, "exceptionCode");
+  private static boolean advanceToFirstStart(XMLStreamReader reader) throws XMLStreamException {
+    while (reader.hasNext()) {
+      int event = reader.next();
+      if (event == XMLStreamConstants.START_ELEMENT) {
+        return true;
+      }
     }
-    if (code == null || code.isBlank()) {
+    return false;
+  }
+
+  private static OgcExceptionScan serviceExceptionReport(XMLStreamReader reader, int textMaxLength)
+      throws XMLStreamException {
+    String code = null;
+    String text = null;
+    try {
+      while (reader.hasNext()) {
+        int event = reader.next();
+        if (event == XMLStreamConstants.START_ELEMENT
+            && "ServiceException".equals(reader.getLocalName())) {
+          code = readAttribute(reader, "code");
+          text = reader.getElementText();
+          break;
+        }
+      }
+    } catch (XMLStreamException ex) {
+      return partial(code, text, textMaxLength, ex);
+    }
+    return finish(code, text, textMaxLength);
+  }
+
+  private static OgcExceptionScan exceptionReport(XMLStreamReader reader, int textMaxLength)
+      throws XMLStreamException {
+    String code = null;
+    String text = null;
+    try {
+      while (reader.hasNext()) {
+        int event = reader.next();
+        if (event != XMLStreamConstants.START_ELEMENT) {
+          continue;
+        }
+        String local = reader.getLocalName();
+        if ("Exception".equals(local) && code == null) {
+          code = readAttribute(reader, "exceptionCode");
+        }
+        if ("ExceptionText".equals(local)) {
+          text = reader.getElementText();
+          break;
+        }
+      }
+    } catch (XMLStreamException ex) {
+      return partial(code, text, textMaxLength, ex);
+    }
+    return finish(code, text, textMaxLength);
+  }
+
+  private static OgcExceptionScan serviceException(XMLStreamReader reader, int textMaxLength)
+      throws XMLStreamException {
+    String code = readAttribute(reader, "code");
+    String text = null;
+    try {
+      text = reader.getElementText();
+    } catch (XMLStreamException ex) {
+      return partial(code, text, textMaxLength, ex);
+    }
+    return finish(code, text, textMaxLength);
+  }
+
+  private static OgcExceptionScan partial(
+      String code, String text, int textMaxLength, XMLStreamException ex)
+      throws XMLStreamException {
+    if (blank(code) && blank(text)) {
+      throw ex;
+    }
+    return finish(code, text, textMaxLength);
+  }
+
+  private static OgcExceptionScan finish(String code, String text, int textMaxLength) {
+    if (blank(code) && blank(text)) {
+      return OgcExceptionScan.none();
+    }
+    return new OgcExceptionScan(blank(code) ? null : code, cut(collapse(text), textMaxLength));
+  }
+
+  private static String readAttribute(XMLStreamReader reader, String name) {
+    String value = reader.getAttributeValue(null, name);
+    if (value == null || value.isBlank()) {
       return null;
     }
-    return code;
+    return value;
+  }
+
+  private static String collapse(String text) {
+    if (text == null) {
+      return null;
+    }
+    return text.replaceAll("\\s+", " ").strip();
+  }
+
+  private static boolean blank(String value) {
+    return value == null || value.isBlank();
   }
 
   private static String cut(String text, int textMaxLength) {

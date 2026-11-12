@@ -1,14 +1,22 @@
 import { CommonModule } from '@angular/common';
-import { Component, DestroyRef, ElementRef, OnInit, ViewChild, inject } from '@angular/core';
+import { Component, DestroyRef, ElementRef, OnInit, ViewChild, inject, ChangeDetectionStrategy } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 
 import { AgGridModule } from '@ag-grid-community/angular';
-import { CellClickedEvent, ColDef, FilterChangedEvent, GridApi, GridReadyEvent, ModuleRegistry } from '@ag-grid-community/core';
+import {
+  CellClickedEvent,
+  ColDef,
+  CommunityFeaturesModule,
+  FilterChangedEvent,
+  GridApi,
+  GridReadyEvent,
+  ModuleRegistry,
+} from '@ag-grid-community/core';
 import { InfiniteRowModelModule } from '@ag-grid-community/infinite-row-model';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { debounceTime, forkJoin, tap } from 'rxjs';
 
 import {
@@ -35,14 +43,15 @@ import {
 import { filterEnabledLanguages } from '@app/services/ui-language.resolver';
 import { config } from '@config';
 
-ModuleRegistry.registerModules([InfiniteRowModelModule]);
+ModuleRegistry.registerModules([CommunityFeaturesModule, InfiniteRowModelModule]);
 
 @Component({
   selector: 'app-literal-translations',
   templateUrl: './literal-translations.component.html',
   styleUrls: ['./literal-translations.component.scss'],
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, MaterialModule, TranslateModule, AgGridModule],
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [CommonModule, ReactiveFormsModule, MaterialModule, TranslatePipe, AgGridModule],
 })
 export class LiteralTranslationsComponent implements CanComponentDeactivate, OnInit {
   private readonly destroyRef = inject(DestroyRef);
@@ -339,7 +348,8 @@ export class LiteralTranslationsComponent implements CanComponentDeactivate, OnI
     this.generation += 1;
     const currentGeneration = this.generation;
     this.showGridLoadingOverlay();
-    this.gridApi.setDatasource(
+    this.gridApi.setGridOption(
+      'datasource',
       createInfiniteDatasource(
         (request) => this.literalTranslationsService.fetchPage(request, this.languageControl.value).pipe(
           tap({

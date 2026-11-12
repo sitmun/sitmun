@@ -1,9 +1,9 @@
 import { NgOptimizedImage, registerLocaleData } from '@angular/common';
 import {
-  HttpClient,
   HTTP_INTERCEPTORS,
   provideHttpClient,
-  withInterceptorsFromDi
+  withInterceptorsFromDi,
+  withXhr
 } from '@angular/common/http';
 import localeEs from '@angular/common/locales/es';
 import {
@@ -31,8 +31,8 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { AuthenticationModule } from '@auth/auth.module';
 import { AUTH_CONFIG_DI } from '@auth/authentication.options';
 import { CustomAuthConfig } from '@config/app.config';
-import { TranslateLoader, TranslateModule } from '@ngx-translate/core';
-import { TranslateHttpLoader } from '@ngx-translate/http-loader';
+import { TranslatePipe, provideTranslateService } from '@ngx-translate/core';
+import { provideTranslateHttpLoader } from '@ngx-translate/http-loader';
 import { ErrorModalComponent } from '@sections/common/modals/error-modal/error-modal.component';
 import { LoginModalComponent } from '@sections/common/modals/login-modal/login-modal.component';
 import { WarningModalComponent } from '@sections/common/modals/warning-modal/warning-modal.component';
@@ -45,7 +45,10 @@ import { AppComponent } from './app.component';
 import { CredentialsInterceptor } from './config/credentials.interceptor';
 import { ErrorHandlerInterceptor } from './config/error-handler.interceptor';
 import { ALL_CONTROL_HANDLERS } from './controls/handlers';
-import { MessageBoxDialogComponent, MessageBoxService } from '../util/message-box-service';
+import {
+  MessageBoxDialogComponent,
+  MessageBoxService
+} from '../util/message-box-service';
 import { AuthorizedLayoutComponent } from './layout/authorized-layout/authorized-layout.component';
 import { FooterComponent } from './layout/footer/footer.component';
 import { NavigationBarComponent } from './layout/navigation-bar/navigation-bar.component';
@@ -88,13 +91,7 @@ registerLocaleData(localeEs);
     AppRoutingModule,
     AuthenticationModule,
     UiModule,
-    TranslateModule.forRoot({
-      loader: {
-        provide: TranslateLoader,
-        useFactory: HttpLoaderFactory,
-        deps: [HttpClient]
-      }
-    }),
+    TranslatePipe,
     FormsModule,
     BrowserAnimationsModule,
     SharedPipesModule,
@@ -111,6 +108,12 @@ registerLocaleData(localeEs);
     NgOptimizedImage
   ],
   providers: [
+      provideTranslateService({
+        loader: provideTranslateHttpLoader({
+          prefix: 'assets/i18n/',
+          suffix: '.json',
+        }),
+      }),
     { provide: LOCALE_ID, useValue: 'es-ES' },
     { provide: AUTH_CONFIG_DI, useValue: CustomAuthConfig },
     { provide: ErrorHandler, useClass: GlobalErrorHandler },
@@ -129,9 +132,7 @@ registerLocaleData(localeEs);
     provideAppInitializer(() =>
       initializeAppConfig(inject(AppConfigService))()
     ),
-    provideAppInitializer(() =>
-      inject(LanguageService).bootstrapUiLanguage()
-    ),
+    provideAppInitializer(() => inject(LanguageService).bootstrapUiLanguage()),
     provideAppInitializer(() => initializeApp(inject(AppInitializerService))()),
     provideAppInitializer(() => {
       const injector = inject(Injector);
@@ -144,20 +145,11 @@ registerLocaleData(localeEs);
     provideAppInitializer(() =>
       initializeSitnaLoader(inject(SitnaLoaderService))()
     ),
-    provideHttpClient(withInterceptorsFromDi()),
+    provideHttpClient(withXhr(), withInterceptorsFromDi()),
     MessageBoxService
   ]
 })
 export class AppModule {}
-
-export function HttpLoaderFactory(http: HttpClient): TranslateHttpLoader {
-  return new TranslateHttpLoader(
-    http,
-    'assets/i18n/', // By default, this seems to be an absolute path, see:
-    // <https://github.com/ngx-translate/core/blob/master/packages/http-loader/lib/http-loader.ts>
-    '.json'
-  );
-}
 
 /**
  * Initialize control handlers at application startup.
@@ -181,11 +173,9 @@ export function initializeSitnaLoader(
   loader: SitnaLoaderService
 ): () => Promise<void> {
   return () => {
-    // Start polling in background, don't block bootstrap
     loader.waitForSITNAMap().catch((err) => {
       console.error('[Bootstrap] SITNA failed to load:', err);
     });
-    // Return resolved promise to not block bootstrap
     return Promise.resolve();
   };
 }

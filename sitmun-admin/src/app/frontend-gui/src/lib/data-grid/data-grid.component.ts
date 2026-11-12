@@ -1,4 +1,3 @@
-import {CommonModule} from '@angular/common';
 import {
   Component,
   ElementRef,
@@ -11,7 +10,8 @@ import {
   SimpleChanges,
   ViewChild,
   DestroyRef,
-  inject
+  inject,
+  ChangeDetectionStrategy
 } from '@angular/core';
 import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
 import {FormsModule} from '@angular/forms';
@@ -27,10 +27,10 @@ import {MatTooltipModule} from '@angular/material/tooltip';
 
 import {AgGridModule} from '@ag-grid-community/angular';
 import {ClientSideRowModelModule} from '@ag-grid-community/client-side-row-model';
-import {GridOptions, ModuleRegistry} from '@ag-grid-community/core';
+import {CommunityFeaturesModule, GridOptions, ModuleRegistry} from '@ag-grid-community/core';
 import {CsvExportModule} from '@ag-grid-community/csv-export';
 import {InfiniteRowModelModule} from '@ag-grid-community/infinite-row-model';
-import {TranslateModule, TranslateService} from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import {debounceTime, firstValueFrom, Observable, Subject, Subscription} from 'rxjs';
 
 import type {HalPage} from '@app/core/hal/hal-page';
@@ -61,9 +61,11 @@ import {DialogMessageComponent} from '../dialog-message/dialog-message.component
 import {EditableLinkRendererComponent} from '../editable-link-renderer/editable-link-renderer.component';
 import {RouterLinkRendererComponent} from '../router-link-renderer/router-link-renderer.component';
 
-// Removed jQuery dependency
-
+// AG Grid 32 moved editors/filters into CommunityFeaturesModule; without it,
+// inline editors never mount. Date columns still use the grid's datePicker
+// component (Instant-safe); CommunityFeaturesModule covers text/select editors.
 ModuleRegistry.registerModules([
+  CommunityFeaturesModule,
   ClientSideRowModelModule,
   InfiniteRowModelModule,
   CsvExportModule
@@ -140,7 +142,6 @@ export function notAvailable(status: Status): boolean {
 export function onNotAvailable<T>(data: (T & Status)[]): Executor<T> {
   return new Executor(data.filter(notAvailable))
 }
-
 
 export function onCreate<T>(data: (T & Status)[]): Executor<T> {
   return new Executor(data.filter(canCreate))
@@ -239,21 +240,21 @@ export class Executor<T> {
 
     `],
   standalone: true,
+    changeDetection: ChangeDetectionStrategy.Eager,
     imports: [
-        CommonModule,
-        MatButtonModule,
-        MatTooltipModule,
-        MatDialogModule,
-        MatToolbarModule,
-        MatMenuModule,
-        MatIconModule,
-        MatInputModule,
-        TranslateModule,
-        AgGridModule,
-        MatButtonToggleModule,
-        MatCardModule,
-        FormsModule,
-    ]
+    MatButtonModule,
+    MatTooltipModule,
+    MatDialogModule,
+    MatToolbarModule,
+    MatMenuModule,
+    MatIconModule,
+    MatInputModule,
+    TranslatePipe,
+    AgGridModule,
+    MatButtonToggleModule,
+    MatCardModule,
+    FormsModule
+]
 })
 export class DataGridComponent implements OnInit, OnDestroy, OnChanges {
   /** Tracks if this is the first time loading data */
@@ -305,7 +306,6 @@ export class DataGridComponent implements OnInit, OnDestroy, OnChanges {
 
   /** Generation counter to drop stale infinite block responses */
   private infiniteDatasourceGeneration = 0;
-
 
   /** Last parameters of the grid */
   params: any;
@@ -380,6 +380,9 @@ export class DataGridComponent implements OnInit, OnDestroy, OnChanges {
 
   /** Grid components */
   @Input() components: any;
+
+  /** Components merged onto the shared grid registry (column filters, cell renderers) */
+  @Input() extraComponents: Record<string, unknown>;
 
   /** Column definitions */
   @Input() columnDefs: any[];
@@ -640,6 +643,9 @@ export class DataGridComponent implements OnInit, OnDestroy, OnChanges {
    * Handles component initialization
    */
   ngOnInit(): void {
+    if (this.extraComponents) {
+      this.components = {...this.components, ...this.extraComponents};
+    }
     this.configureAutoSizeStrategy();
 
     // Set up debounced search (300ms delay)
@@ -807,6 +813,21 @@ export class DataGridComponent implements OnInit, OnDestroy, OnChanges {
 
   get showDuplicateButton(): boolean {
     return !this.hideDuplicateButton && !this.readOnly;
+  }
+
+  get showToolbar(): boolean {
+    return this.showDiscardChangesButton
+      || this.showUndoButton
+      || this.showRedoButton
+      || !!this.applyChangesButton
+      || (this.globalSearch && (!this.isInfiniteMode || this.progressiveLocalFilter || this.backendSearch))
+      || this.showReplaceControls
+      || (!this.hideExportButton && !this.isInfiniteMode)
+      || this.showDeleteButton
+      || this.showDuplicateButton
+      || this.showNewButton
+      || this.showAddButton
+      || this.showRegisterButton;
   }
 
   private expandTruncatedCellColumn(params): void {
@@ -1134,10 +1155,8 @@ export class DataGridComponent implements OnInit, OnDestroy, OnChanges {
           this.applyPreRenderColumnWidths(nextRowData);
           this.rowData = nextRowData;
 
-          // Set the data
           this.gridApi.setGridOption('rowData', this.rowData);
 
-          // Wait for next frame to ensure DOM is updated
           requestAnimationFrame(() => {
             if (this.gridApi && !this.gridApi.isDestroyed()) {
               this.applyColumnSizing();
@@ -1336,6 +1355,7 @@ export class DataGridComponent implements OnInit, OnDestroy, OnChanges {
     }
 
     if (this.rowModelMode === 'infinite') {
+      this.primeServerFilters();
       this.setupInfiniteGrid();
       return;
     }
@@ -1344,9 +1364,22 @@ export class DataGridComponent implements OnInit, OnDestroy, OnChanges {
     this.loadData();
   }
 
+  /**
+   * AG Grid creates filters lazily, so a server filter preset outside the grid (a query param)
+   * would not mark its header until opened. Build those filters before the datasource is set.
+   */
+  private primeServerFilters(): void {
+    const serverFilters = new Set(Object.keys(this.extraComponents ?? {}));
+    const columns = this.columnDefs.filter((col) => typeof col.filter === 'string' && serverFilters.has(col.filter));
+    const active = columns.some((col) => this.gridApi.getFilterInstance(col.colId ?? col.field)?.isFilterActive());
+    if (active) {
+      this.gridApi.onFilterChanged();
+    }
+  }
+
   private prepareColumnDefsForRowModel(columnDefs: any[]): any[] {
     if (this.rowModelMode === 'infinite') {
-      return prepareInfiniteColumnDefs(columnDefs);
+      return prepareInfiniteColumnDefs(columnDefs, new Set(Object.keys(this.extraComponents ?? {})));
     }
     return prepareClientSideColumnDefs(columnDefs);
   }
@@ -1462,20 +1495,17 @@ export class DataGridComponent implements OnInit, OnDestroy, OnChanges {
       return;
     }
 
-    // Use requestAnimationFrame for better timing
     requestAnimationFrame(() => {
       if (this.gridApi && !this.gridApi.isDestroyed()) {
         try {
           // Only use autoSizeAllColumns to avoid the width warning
           this.gridApi.autoSizeAllColumns();
         } catch (error) {
-          // If autoSizeAllColumns fails, try again after a delay
           setTimeout(() => {
             if (this.gridApi && !this.gridApi.isDestroyed()) {
               try {
                 this.gridApi.autoSizeAllColumns();
               } catch (retryError) {
-                // Final fallback - do nothing if all else fails
                 console.warn(`AG Grid: Could not auto-size columns: first fail ${error}, next ${retryError}`);
               }
             }
@@ -1530,7 +1560,6 @@ export class DataGridComponent implements OnInit, OnDestroy, OnChanges {
       return this.eInput.value;
     };
 
-
     NativeDatepicker.prototype.destroy = function () {
     };
 
@@ -1561,7 +1590,6 @@ export class DataGridComponent implements OnInit, OnDestroy, OnChanges {
   oneRowSelected(): boolean {
     return (this.gridApi != null && this.gridApi?.getSelectedNodes().length == 1);
   }
-
 
   /**
    * Emits currently selected rows
@@ -1658,12 +1686,10 @@ export class DataGridComponent implements OnInit, OnDestroy, OnChanges {
         header.push(element.userProvidedColDef.headerName);
       }
 
-
     });
 
     return header.join(",");
   }
-
 
   /**
    * Exports grid data to CSV
@@ -1708,7 +1734,6 @@ export class DataGridComponent implements OnInit, OnDestroy, OnChanges {
       return;
     }
 
-    // Store current grid state
     const currentFilterModel = this.gridApi.getFilterModel();
     const currentQuickFilter = this.searchValue;
     const currentSortModel = this.gridApi.getColumnState();
@@ -1799,7 +1824,6 @@ export class DataGridComponent implements OnInit, OnDestroy, OnChanges {
 
     const itemsToAdd: any[] = [];
     const condition = (this.addFieldRestriction) ? this.addFieldRestriction : 'id';
-
 
     newItems.forEach(item => {
 
@@ -1936,7 +1960,6 @@ export class DataGridComponent implements OnInit, OnDestroy, OnChanges {
     }
   }
 
-
   /**
    * Deletes all pending changes and reverts the grid to its original state
    */
@@ -2006,7 +2029,6 @@ export class DataGridComponent implements OnInit, OnDestroy, OnChanges {
     //this.gridApi.redrawRows();
   }
 
-
   /**
    * Performs undo operation on the last cell edit
    */
@@ -2029,7 +2051,6 @@ export class DataGridComponent implements OnInit, OnDestroy, OnChanges {
     this.redoCounter -= 1;
   }
 
-
   /**
    * Handles cell editing stopped event
    * @param params - Cell editing parameters
@@ -2045,7 +2066,6 @@ export class DataGridComponent implements OnInit, OnDestroy, OnChanges {
       this.modificationChange = false;
     }
   }
-
 
   /**
    * Handles cell value changed event
@@ -2368,7 +2388,6 @@ export class DataGridComponent implements OnInit, OnDestroy, OnChanges {
         this.undoNoChanges = false;
       }
 
-
     } else {
       //With the internally undo will enter at this function, so we have to control when done the undo or not
       if (!this.undoNoChanges) {
@@ -2390,21 +2409,8 @@ export class DataGridComponent implements OnInit, OnDestroy, OnChanges {
     this.changesMap = changesMap;
     const row = this.gridApi.getDisplayedRowAtIndex(params.rowIndex);
 
-    // this.changeCellStyleColumns(params, changesMap, '#E8F1DE');
     this.gridApi.redrawRows({rowNodes: [row]});
-    // this.changeCellStyleColumns(params, changesMap, '#FFFFFF');
-    // We will define cellStyle white to future modifications (like filter)
   }
-
-  // changeCellStyleColumns(params: any, changesMap: Map<number, Map<string, number>>, color: string) {
-
-  //   for (const key of changesMap.get(params.node.id).keys()) {
-  //     const columnNumber = this.getColumnIndexByColId(this.gridColumnApi, key);
-  //     this.gridColumnApi.columnController.gridColumns[columnNumber].colDef.cellStyle = { backgroundColor: color };
-  //   }
-
-
-  // }
 
   @Input() redraw!: boolean;
 

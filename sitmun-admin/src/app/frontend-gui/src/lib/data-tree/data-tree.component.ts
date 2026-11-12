@@ -1,5 +1,5 @@
 import {CdkDragDrop, CdkDragEnd, CdkDragSortEvent, CdkDragStart} from '@angular/cdk/drag-drop';
-import {Component, DestroyRef, EventEmitter, inject, Injectable, Input, OnInit, Output, ViewChild} from '@angular/core';
+import {Component, DestroyRef, EventEmitter, inject, Injectable, Input, OnInit, Output, ViewChild, ChangeDetectionStrategy} from '@angular/core';
 import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
 import {MatTree} from '@angular/material/tree';
 
@@ -387,6 +387,7 @@ type NodeUpdatePayload = Partial<Omit<FileNode, 'id' | 'children'>> & {
     templateUrl: 'data-tree.component.html',
     styleUrls: ['data-tree.component.scss'],
     providers: [FileDatabase],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class DataTreeComponent implements OnInit {
@@ -1089,7 +1090,7 @@ export class DataTreeComponent implements OnInit {
     }
     // CDK may emit drag-end before drop; reconstruct drag state from drop event.
     this.isDragging = true;
-    const dropPoint = (event as unknown as { dropPoint?: { x: number; y: number } }).dropPoint;
+    const dropPoint = event.dropPoint;
     const targetNodeIdFromList = this.getTargetNodeIdFromDropListData(event?.container?.data as DndNodeLike[] | undefined, event.currentIndex);
     const targetNodeIdFromPoint = this.getTargetNodeIdFromDropPoint(dropPoint);
     const sameAsSourceFromList = this.isSameId(targetNodeIdFromList, this.dragNodeId);
@@ -1251,8 +1252,8 @@ export class DataTreeComponent implements OnInit {
     if (!node || !this.currentTreeType || node.nodeType == null) return false;
     const nodeCfg = config.treeTypeNodeTypes?.[this.currentTreeType]?.nodeTypes?.[node.nodeType];
     if (!nodeCfg?.folderHintForTaskGroupContainer) return false;
-    const taskId = (node as any).taskId;
-    const viewMode = (node as any).viewMode;
+    const taskId = node.taskId;
+    const viewMode = node.viewMode;
     return (taskId == null || taskId === '') && (viewMode == null || viewMode === '');
   }
 

@@ -1,0 +1,7 @@
+{
+  "name": "touristic-mobile-app",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular"
+}

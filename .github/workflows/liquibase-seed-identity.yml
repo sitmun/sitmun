@@ -1,6 +1,21 @@
 name: Liquibase seed identity
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
 on:
+  pull_request:
+    branches: [dev]
+    paths:
+      - '**/02_codelists/STM_CODELIST.csv'
+      - '**/02_codelists/stm_codelist.csv'
+      - 'tools/bin/check_seed_identity_swap.py'
+      - 'tools/tests/test_seed_identity_swap.py'
+      - '.github/workflows/liquibase-seed-identity.yml'
   workflow_dispatch:
 
 jobs:
@@ -9,12 +24,12 @@ jobs:
     timeout-minutes: 5
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: '3.12'
 

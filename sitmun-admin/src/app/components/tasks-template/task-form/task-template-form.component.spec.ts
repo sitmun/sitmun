@@ -4,7 +4,7 @@ import { FormControl, FormGroup } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
 import { DomSanitizer } from '@angular/platform-browser';
 
-import { TranslateLoader, TranslateModule } from '@ngx-translate/core';
+import { TranslateLoader, TranslatePipe, provideTranslateService } from '@ngx-translate/core';
 import { of, throwError } from 'rxjs';
 
 import { LanguageService } from '@app/domain/translation/services/language.service';
@@ -104,7 +104,10 @@ describe('TaskTemplateFormComponent', () => {
     await TestBed.configureTestingModule({
       imports: [
         MatCardModule,
-        TranslateModule.forRoot({
+        TranslatePipe,
+      ],
+      providers: [
+      provideTranslateService({
           loader: {
             provide: TranslateLoader,
             useFactory: () => ({
@@ -112,8 +115,6 @@ describe('TaskTemplateFormComponent', () => {
             }),
           },
         }),
-      ],
-      providers: [
         {
           provide: ChangeDetectorRef,
           useValue: { markForCheck: jest.fn(), detectChanges: jest.fn() },
@@ -135,9 +136,9 @@ describe('TaskTemplateFormComponent', () => {
       ],
     });
 
-    const translateService = createSpyObj(['instant', 'get']);
+    const translateService = createSpyObj(['instant', 'get', 'getCurrentLang']);
     translateService.instant.mockImplementation((key: string) => key);
-    (translateService as any).currentLang = 'ca';
+    translateService.getCurrentLang.mockReturnValue('ca');
     dialog = createSpyObj(['open']);
     dialog.open.mockReturnValue({
       componentInstance: {},
@@ -196,9 +197,7 @@ describe('TaskTemplateFormComponent', () => {
     ];
   });
 
-  it('should create', () => {
-    expect(component).toBeTruthy();
-  });
+  
 
   it('should expose map image tasks as template children', () => {
     const mapImageTasks = (component as any).filterLinkableMapImageTasks([
@@ -227,9 +226,10 @@ describe('TaskTemplateFormComponent', () => {
     expect((component as any).parametersTable).toBeTruthy();
   });
 
-  it('should create a form with name and task group controls', () => {
+  it('should create a form with name, title, and task group controls', () => {
     component.entityToEdit = {
       name: 'Template 1',
+      title: 'Parcel information',
       groupId: 2,
       properties: {},
     } as any;
@@ -237,8 +237,43 @@ describe('TaskTemplateFormComponent', () => {
     component.postFetchData();
 
     expect(component.entityForm.get('name')?.value).toBe('Template 1');
+    expect(component.entityForm.get('title')?.value).toBe('Parcel information');
+    expect(component.entityForm.get('title')?.hasValidator?.(jest.requireActual('@angular/forms').Validators.required)).toBe(false);
     expect(component.entityForm.get('taskGroupId')?.value).toBe(2);
     expect(component.entityForm.get('templateHtml')?.value).toBe('');
+  });
+
+  it('should save a blank title as empty', () => {
+    component.entityToEdit = {
+      id: 99,
+      name: 'Template 1',
+      title: 'Parcel information',
+      properties: {},
+    } as any;
+    component.entityForm = new FormGroup({
+      name: new FormControl('Template 1'),
+      title: new FormControl('   '),
+      taskGroupId: new FormControl(2),
+      templateHtml: new FormControl(''),
+    });
+    (component as any).linkedTasks = [];
+
+    const task = (component as any).createObject(99);
+
+    expect(task.title).toBe('');
+  });
+
+  it('should prefix the name and keep the title when duplicating', async () => {
+    (component as any).duplicateID = 15;
+    (component as any).taskService.fetchProjectionById.mockReturnValue(of({
+      name: 'URB_Barcelona_parcel',
+      title: 'Parcel information',
+    }));
+
+    const copy = await component.fetchCopy();
+
+    expect(copy.name).toBe('common.copyPrefixURB_Barcelona_parcel');
+    expect(copy.title).toBe('Parcel information');
   });
 
   it('should remove linked task from local list', () => {

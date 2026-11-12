@@ -1,4 +1,4 @@
-import {Component} from '@angular/core';
+import {Component, ChangeDetectionStrategy} from '@angular/core';
 import {MatDialog} from '@angular/material/dialog';
 import {ActivatedRoute, Router} from '@angular/router';
 
@@ -26,6 +26,7 @@ import {UtilsService} from '@app/services/utils.service';
     selector: 'app-layers',
     templateUrl: './layers.component.html',
     styles: [],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class LayersComponent extends BaseListComponent<CartographyProjection> {
@@ -128,11 +129,15 @@ export class LayersComponent extends BaseListComponent<CartographyProjection> {
     serviceCol.minWidth = 160;
     serviceCol.tooltipField = 'serviceName';
 
+    const serviceTypeCol: any = this.utils.getNonEditableColumnDef('entity.service.type', 'serviceType', 120);
+    serviceTypeCol.flex = 1;
+
     this.entityListConfig.columnDefs = [
       this.utils.getRowCheckboxColumnDef(),
       nameCol,
       layerCol,
       serviceCol,
+      serviceTypeCol,
     ];
   }
 

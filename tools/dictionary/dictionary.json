@@ -1,0 +1,5626 @@
+{
+  "codelists": {
+    "apiKey.cookie": {
+      "X-API-Key": {
+        "default": "true",
+        "description": "X-API-Key",
+        "system": "true"
+      }
+    },
+    "apiKey.header": {
+      "X-API-Key": {
+        "default": "true",
+        "description": "X-API-Key",
+        "system": "true"
+      }
+    },
+    "apiKey.queryParam": {
+      "API-Key": {
+        "default": "true",
+        "description": "API-Key",
+        "system": "true"
+      }
+    },
+    "application.type": {
+      "E": {
+        "default": "false",
+        "description": "External application",
+        "system": "true"
+      },
+      "ED": {
+        "default": "false",
+        "description": "Edition application",
+        "system": "true"
+      },
+      "I": {
+        "default": "false",
+        "description": "Internal application",
+        "system": "true"
+      },
+      "T": {
+        "default": "false",
+        "description": "Tourist application",
+        "system": "true"
+      }
+    },
+    "applicationParameter.type": {
+      "MOBILE": {
+        "default": "false",
+        "description": "Mobile app parameter",
+        "system": "true"
+      },
+      "Nomenclator": {
+        "default": "false",
+        "description": "Nomenclator parameter",
+        "system": "true"
+      },
+      "PRINT_TEMPLATE": {
+        "default": "false",
+        "description": "Print template",
+        "system": "true"
+      }
+    },
+    "cartography.geometryType": {
+      "LINE": {
+        "default": "false",
+        "description": "Line",
+        "system": "true"
+      },
+      "POINT": {
+        "default": "false",
+        "description": "Point",
+        "system": "true"
+      },
+      "POLYGON": {
+        "default": "false",
+        "description": "Polygon",
+        "system": "true"
+      }
+    },
+    "cartography.legendType": {
+      "LEGENDGRAPHIC": {
+        "default": "false",
+        "description": "Prioritize Get Legend Graphic (capabilities)",
+        "system": "true"
+      },
+      "LEGENDURL": {
+        "default": "false",
+        "description": "Legend URL (capabilities)",
+        "system": "true"
+      },
+      "LINK": {
+        "default": "false",
+        "description": "Static legend URL",
+        "system": "true"
+      }
+    },
+    "cartographyFilter.type": {
+      "C": {
+        "default": "false",
+        "description": "Custom",
+        "system": "true"
+      },
+      "D": {
+        "default": "false",
+        "description": "Defined",
+        "system": "true"
+      }
+    },
+    "cartographyFilter.valueType": {
+      "A": {
+        "default": "false",
+        "description": "Alphanumeric",
+        "system": "true"
+      },
+      "D": {
+        "default": "false",
+        "description": "Date",
+        "system": "true"
+      },
+      "N": {
+        "default": "false",
+        "description": "Number",
+        "system": "true"
+      }
+    },
+    "cartographyParameter.format": {
+      "AUTO": {
+        "default": "false",
+        "description": "Automatic",
+        "system": "true"
+      },
+      "F": {
+        "default": "false",
+        "description": "Date",
+        "system": "true"
+      },
+      "Geometry": {
+        "default": "false",
+        "description": "Geometry",
+        "system": "true"
+      },
+      "I": {
+        "default": "false",
+        "description": "Image",
+        "system": "true"
+      },
+      "N": {
+        "default": "false",
+        "description": "Number",
+        "system": "true"
+      },
+      "P": {
+        "default": "false",
+        "description": "Percentage",
+        "system": "true"
+      },
+      "T": {
+        "default": "false",
+        "description": "Text",
+        "system": "true"
+      },
+      "U": {
+        "default": "false",
+        "description": "URL",
+        "system": "true"
+      }
+    },
+    "cartographyParameter.geometryKind": {
+      "Curve": {
+        "default": "false",
+        "description": "Curve",
+        "system": "true"
+      },
+      "Geometry": {
+        "default": "false",
+        "description": "Geometry",
+        "system": "true"
+      },
+      "LineString": {
+        "default": "false",
+        "description": "Line",
+        "system": "true"
+      },
+      "MultiCurve": {
+        "default": "false",
+        "description": "Multicurve",
+        "system": "true"
+      },
+      "MultiLineString": {
+        "default": "false",
+        "description": "Multiline",
+        "system": "true"
+      },
+      "MultiPoint": {
+        "default": "false",
+        "description": "Multipoint",
+        "system": "true"
+      },
+      "MultiPolygon": {
+        "default": "false",
+        "description": "Multipolygon",
+        "system": "true"
+      },
+      "MultiSurface": {
+        "default": "false",
+        "description": "Multisurface",
+        "system": "true"
+      },
+      "Point": {
+        "default": "false",
+        "description": "Point",
+        "system": "true"
+      },
+      "Polygon": {
+        "default": "false",
+        "description": "Polygon",
+        "system": "true"
+      },
+      "Surface": {
+        "default": "false",
+        "description": "Surface",
+        "system": "true"
+      }
+    },
+    "cartographyParameter.preferredGeometryType": {
+      "multipoint": {
+        "default": "false",
+        "description": "Multipoint",
+        "system": "true"
+      },
+      "multipolygon": {
+        "default": "false",
+        "description": "Multipolygon",
+        "system": "true"
+      },
+      "multipolyline": {
+        "default": "false",
+        "description": "Multipolyline",
+        "system": "true"
+      },
+      "point": {
+        "default": "false",
+        "description": "Point",
+        "system": "true"
+      },
+      "polygon": {
+        "default": "false",
+        "description": "Polygon",
+        "system": "true"
+      },
+      "polyline": {
+        "default": "false",
+        "description": "Polyline",
+        "system": "true"
+      }
+    },
+    "cartographyParameter.type": {
+      "INFO": {
+        "default": "true",
+        "description": "INFO",
+        "system": "true"
+      }
+    },
+    "cartographyPermission.type": {
+      "C": {
+        "default": "false",
+        "description": "Cartography group",
+        "system": "true"
+      },
+      "F": {
+        "default": "false",
+        "description": "Background map",
+        "system": "true"
+      },
+      "I": {
+        "default": "false",
+        "description": "Report",
+        "system": "true"
+      },
+      "M": {
+        "default": "false",
+        "description": "Location map",
+        "system": "true"
+      }
+    },
+    "cartographyServiceParameter.type": {
+      "GETMAP": {
+        "default": "false",
+        "description": "GetMap",
+        "system": "true"
+      },
+      "INFO": {
+        "default": "false",
+        "description": "GetFeatureInfo",
+        "system": "true"
+      },
+      "OLPARAM": {
+        "default": "false",
+        "description": "OpenLayers",
+        "system": "true"
+      },
+      "WFS": {
+        "default": "false",
+        "description": "All WFS operations",
+        "system": "true"
+      },
+      "WMS": {
+        "default": "false",
+        "description": "All WMS operations",
+        "system": "true"
+      },
+      "WMTS": {
+        "default": "false",
+        "description": "Viewer tile settings",
+        "system": "true"
+      }
+    },
+    "cartographySpatialSelectionParameter.format": {
+      "F": {
+        "default": "false",
+        "description": "Date",
+        "system": "true"
+      },
+      "I": {
+        "default": "false",
+        "description": "Image",
+        "system": "true"
+      },
+      "N": {
+        "default": "false",
+        "description": "Number",
+        "system": "true"
+      },
+      "P": {
+        "default": "false",
+        "description": "Percentage",
+        "system": "true"
+      },
+      "T": {
+        "default": "false",
+        "description": "Text",
+        "system": "true"
+      },
+      "U": {
+        "default": "false",
+        "description": "URL",
+        "system": "true"
+      }
+    },
+    "cartographySpatialSelectionParameter.type": {
+      "EDIT": {
+        "default": "true",
+        "description": "EDIT",
+        "system": "true"
+      },
+      "SELECT": {
+        "default": "false",
+        "description": "SELECT",
+        "system": "true"
+      }
+    },
+    "databaseConnection.driver": {
+      "com.microsoft.sqlserver.jdbc.SQLServerDriver": {
+        "default": "false",
+        "description": "Microsoft SQL Server JDBC Driver",
+        "system": "true"
+      },
+      "oracle.jdbc.OracleDriver": {
+        "default": "false",
+        "description": "Oracle JDBC driver",
+        "system": "true"
+      },
+      "org.h2.Driver": {
+        "default": "false",
+        "description": "H2 JDBC Driver",
+        "system": "true"
+      },
+      "org.postgresql.Driver": {
+        "default": "false",
+        "description": "PostgreSQL JDBC Driver",
+        "system": "true"
+      }
+    },
+    "documentExport.engine": {
+      "openhtmltopdf": {
+        "default": "true",
+        "description": "OpenHTMLToPDF",
+        "system": "true"
+      }
+    },
+    "documentExport.output": {
+      "pdf": {
+        "default": "false",
+        "description": "pdf",
+        "system": "true"
+      }
+    },
+    "editTask.fieldType": {
+      "date": {
+        "default": "false",
+        "description": "Date",
+        "system": "true"
+      },
+      "image": {
+        "default": "false",
+        "description": "Image",
+        "system": "true"
+      },
+      "listbox": {
+        "default": "false",
+        "description": "ListBox",
+        "system": "true"
+      },
+      "number": {
+        "default": "false",
+        "description": "Number",
+        "system": "true"
+      },
+      "text": {
+        "default": "false",
+        "description": "Text",
+        "system": "true"
+      }
+    },
+    "editTask.scope": {
+      "db-edit": {
+        "default": "false",
+        "description": "Database edition",
+        "system": "true"
+      },
+      "feat-edit": {
+        "default": "false",
+        "description": "Features service edition (WFS)",
+        "system": "true"
+      }
+    },
+    "moreInfo.type": {
+      "API": {
+        "default": "false",
+        "description": "API",
+        "system": "true"
+      },
+      "RESOURCE": {
+        "default": "false",
+        "description": "RESOURCE",
+        "system": "true"
+      },
+      "SQL": {
+        "default": "false",
+        "description": "SQL",
+        "system": "true"
+      },
+      "URL": {
+        "default": "false",
+        "description": "URL",
+        "system": "true"
+      }
+    },
+    "queryTask.mimeType": {
+      "application/json": {
+        "default": "false",
+        "description": "JSON (.json)",
+        "system": "true"
+      },
+      "application/msword": {
+        "default": "false",
+        "description": "Word (.doc)",
+        "system": "true"
+      },
+      "application/pdf": {
+        "default": "false",
+        "description": "PDF (.pdf)",
+        "system": "true"
+      },
+      "application/vnd.ms-excel": {
+        "default": "false",
+        "description": "Excel (.xls)",
+        "system": "true"
+      },
+      "application/vnd.oasis.opendocument.spreadsheet": {
+        "default": "false",
+        "description": "ODS (.ods)",
+        "system": "true"
+      },
+      "application/vnd.oasis.opendocument.text": {
+        "default": "false",
+        "description": "ODT (.odt)",
+        "system": "true"
+      },
+      "application/xml": {
+        "default": "false",
+        "description": "XML (.xml)",
+        "system": "true"
+      },
+      "image/gif": {
+        "default": "false",
+        "description": "GIF (.gif)",
+        "system": "true"
+      },
+      "image/jpeg": {
+        "default": "false",
+        "description": "\"JPEG (.jpg, .jpeg)\"",
+        "system": "true"
+      },
+      "image/png": {
+        "default": "false",
+        "description": "PNG (.png)",
+        "system": "true"
+      },
+      "image/svg+xml": {
+        "default": "false",
+        "description": "SVG (.svg)",
+        "system": "true"
+      }
+    },
+    "queryTask.parameterType": {
+      "query": {
+        "default": "false",
+        "description": "Query parameter",
+        "system": "true"
+      },
+      "template": {
+        "default": "false",
+        "description": "Template parameter",
+        "system": "true"
+      }
+    },
+    "queryTask.scope": {
+      "cartography-query": {
+        "default": "false",
+        "description": "Cartography Query",
+        "system": "true"
+      },
+      "external-link": {
+        "default": "false",
+        "description": "External link",
+        "system": "true"
+      },
+      "resource-query": {
+        "default": "false",
+        "description": "resource-query",
+        "system": "true"
+      },
+      "sql-query": {
+        "default": "false",
+        "description": "SQL Query",
+        "system": "true"
+      },
+      "web-api-query": {
+        "default": "false",
+        "description": "Web API Query",
+        "system": "true"
+      },
+      "web-api-query-no-proxy": {
+        "default": "false",
+        "description": "Web API Query (No Proxy)",
+        "system": "true"
+      }
+    },
+    "service.authenticationMode": {
+      "API key": {
+        "default": "false",
+        "description": "API key",
+        "system": "true"
+      },
+      "HTTP Basic authentication": {
+        "default": "false",
+        "description": "HTTP Basic authentication",
+        "system": "true"
+      },
+      "None": {
+        "default": "true",
+        "description": "None",
+        "system": "true"
+      }
+    },
+    "service.type": {
+      "WFS": {
+        "default": "false",
+        "description": "WFS",
+        "system": "true"
+      },
+      "WMS": {
+        "default": "false",
+        "description": "WMS",
+        "system": "true"
+      },
+      "WMTS": {
+        "default": "false",
+        "description": "WMTS",
+        "system": "true"
+      }
+    },
+    "serviceParameter.type": {
+      "GETMAP": {
+        "default": "false",
+        "description": "GetMap",
+        "system": "true"
+      },
+      "INFO": {
+        "default": "false",
+        "description": "GetFeatureInfo",
+        "system": "true"
+      },
+      "OLPARAM": {
+        "default": "false",
+        "description": "OpenLayers",
+        "system": "true"
+      },
+      "WFS": {
+        "default": "false",
+        "description": "All WFS operations",
+        "system": "true"
+      },
+      "WMS": {
+        "default": "false",
+        "description": "GetMap",
+        "system": "true"
+      },
+      "WMTS": {
+        "default": "false",
+        "description": "WMTS",
+        "system": "true"
+      }
+    },
+    "taskEntity.jsonParamType": {
+      "__NULL_VALUE__": {
+        "default": "false",
+        "description": "__NULL_VALUE__",
+        "system": "true"
+      },
+      "array": {
+        "default": "false",
+        "description": "array",
+        "system": "true"
+      },
+      "boolean": {
+        "default": "false",
+        "description": "boolean",
+        "system": "true"
+      },
+      "null": {
+        "default": "false",
+        "description": "null",
+        "system": "true"
+      },
+      "number": {
+        "default": "false",
+        "description": "number",
+        "system": "true"
+      },
+      "object": {
+        "default": "false",
+        "description": "object",
+        "system": "true"
+      },
+      "string": {
+        "default": "false",
+        "description": "string",
+        "system": "true"
+      }
+    },
+    "territory.scope": {
+      "M": {
+        "default": "false",
+        "description": "Municipality",
+        "system": "true"
+      },
+      "R": {
+        "default": "false",
+        "description": "Regional",
+        "system": "true"
+      },
+      "T": {
+        "default": "false",
+        "description": "Total",
+        "system": "true"
+      }
+    },
+    "tree.type": {
+      "cartography": {
+        "default": "true",
+        "description": "Cartography",
+        "system": "true"
+      },
+      "edition": {
+        "default": "false",
+        "description": "Edition tree",
+        "system": "true"
+      },
+      "touristic": {
+        "default": "false",
+        "description": "Tourist application",
+        "system": "true"
+      }
+    },
+    "treenode.node.type": {
+      "cartography": {
+        "default": "false",
+        "description": "Cartography",
+        "system": "true"
+      },
+      "fav": {
+        "default": "false",
+        "description": "Favorites",
+        "system": "true"
+      },
+      "folder": {
+        "default": "false",
+        "description": "Folder",
+        "system": "true"
+      },
+      "list": {
+        "default": "false",
+        "description": "List",
+        "system": "true"
+      },
+      "map": {
+        "default": "false",
+        "description": "Map",
+        "system": "true"
+      },
+      "menu": {
+        "default": "false",
+        "description": "Menu",
+        "system": "true"
+      },
+      "nm": {
+        "default": "false",
+        "description": "Near me",
+        "system": "true"
+      },
+      "task": {
+        "default": "false",
+        "description": "Task",
+        "system": "true"
+      }
+    },
+    "treenode.viewmode": {
+      "dl": {
+        "default": "false",
+        "description": "Detailed list",
+        "system": "true"
+      },
+      "evt": {
+        "default": "false",
+        "description": "Events",
+        "system": "true"
+      },
+      "evtcat": {
+        "default": "false",
+        "description": "Events categories",
+        "system": "true"
+      },
+      "evtloc": {
+        "default": "false",
+        "description": "Events locations",
+        "system": "true"
+      },
+      "gallery": {
+        "default": "false",
+        "description": "Gallery",
+        "system": "true"
+      },
+      "ms": {
+        "default": "false",
+        "description": "Map search",
+        "system": "true"
+      },
+      "ne": {
+        "default": "false",
+        "description": "Near elements",
+        "system": "true"
+      },
+      "rt": {
+        "default": "false",
+        "description": "Routes list",
+        "system": "true"
+      },
+      "sch": {
+        "default": "false",
+        "description": "Schedule",
+        "system": "true"
+      }
+    },
+    "user.identificationType": {
+      "DNI": {
+        "default": "false",
+        "description": "DNI",
+        "system": "true"
+      },
+      "NIE": {
+        "default": "false",
+        "description": "NIE",
+        "system": "true"
+      },
+      "PAS": {
+        "default": "false",
+        "description": "Passport",
+        "system": "true"
+      }
+    },
+    "userPosition.type": {
+      "POC": {
+        "default": "false",
+        "description": "Point of contact",
+        "system": "true"
+      }
+    }
+  },
+  "columns": {
+    "STM_APP.APP_CREATED": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.application.Application#createdDate"
+      },
+      "default": "current_timestamp",
+      "enforcement": null,
+      "length": null,
+      "required": true,
+      "status": "decided",
+      "type": "timestamp"
+    },
+    "STM_APP.APP_CREATORID": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.application.Application#creator"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "references": {
+        "column": "STM_USER.USE_ID"
+      },
+      "required": false,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_APP.APP_DESCRIPTION": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.application.Application#description"
+      },
+      "default": null,
+      "enforcement": "truncate",
+      "length": 4000,
+      "required": false,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_APP.APP_ENTRYM": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.application.Application#accessChildrenTerritory"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "required": false,
+      "status": "decided",
+      "type": "boolean"
+    },
+    "STM_APP.APP_ENTRYS": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.application.Application#accessParentTerritory"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "required": false,
+      "status": "decided",
+      "type": "boolean"
+    },
+    "STM_APP.APP_GGIID": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.application.Application#situationMap"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "references": {
+        "column": "STM_GRP_GI.GGI_ID"
+      },
+      "required": false,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_APP.APP_HEADERPARAMS": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.application.Application#headerParams"
+      },
+      "default": null,
+      "enforcement": "truncate",
+      "length": null,
+      "required": false,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_APP.APP_ID": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.application.Application#id"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "required": true,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_APP.APP_LAST_UPDATE": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.application.Application#lastUpdate"
+      },
+      "default": "current_timestamp",
+      "enforcement": null,
+      "length": null,
+      "required": true,
+      "status": "decided",
+      "type": "timestamp"
+    },
+    "STM_APP.APP_LOGO": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.application.Application#logo"
+      },
+      "default": null,
+      "enforcement": "truncate",
+      "length": 4000,
+      "required": false,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_APP.APP_MAINTENANCE_INFORMATION": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.application.Application#maintenanceInformation"
+      },
+      "default": null,
+      "enforcement": "truncate",
+      "length": 4000,
+      "required": false,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_APP.APP_NAME": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.application.Application#name"
+      },
+      "default": null,
+      "enforcement": "reject",
+      "length": 80,
+      "required": true,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_APP.APP_PRIVATE": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.application.Application#appPrivate"
+      },
+      "default": "false",
+      "enforcement": null,
+      "length": null,
+      "required": true,
+      "status": "decided",
+      "type": "boolean"
+    },
+    "STM_APP.APP_PROJECT": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.application.Application#srs"
+      },
+      "default": null,
+      "enforcement": "reject",
+      "length": 250,
+      "required": false,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_APP.APP_REFRESH": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.application.Application#treeAutoRefresh"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "required": false,
+      "status": "decided",
+      "type": "boolean"
+    },
+    "STM_APP.APP_RESPONSIBLE_INSTITUTION": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.application.Application#responsibleInstitutionName"
+      },
+      "default": null,
+      "enforcement": "reject",
+      "length": 250,
+      "required": false,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_APP.APP_SCALES": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.application.Application#scales"
+      },
+      "default": null,
+      "enforcement": "truncate",
+      "length": 250,
+      "required": false,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_APP.APP_TEMPLATE": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.application.Application#jspTemplate"
+      },
+      "default": null,
+      "enforcement": "truncate",
+      "length": 250,
+      "required": false,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_APP.APP_THEME": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.application.Application#theme"
+      },
+      "default": null,
+      "enforcement": "truncate",
+      "length": 30,
+      "required": false,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_APP.APP_TITLE": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.application.Application#title"
+      },
+      "default": null,
+      "enforcement": "truncate",
+      "length": 250,
+      "required": false,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_APP.APP_TYPE": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.application.Application#type"
+      },
+      "default": null,
+      "enforcement": "reject",
+      "length": 250,
+      "required": false,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_APP.APP_UNAVAILABLE": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.application.Application#isUnavailable"
+      },
+      "default": "false",
+      "enforcement": null,
+      "length": null,
+      "required": true,
+      "status": "decided",
+      "type": "boolean"
+    },
+    "STM_APP_BCKG.ABC_APPID": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.application.background.ApplicationBackground#application"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "references": {
+        "column": "STM_APP.APP_ID",
+        "on_delete": "cascade"
+      },
+      "required": true,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_APP_BCKG.ABC_BACKID": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.application.background.ApplicationBackground#background"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "references": {
+        "column": "STM_BACKGRD.BAC_ID",
+        "on_delete": "cascade"
+      },
+      "required": true,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_APP_BCKG.ABC_ID": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.application.background.ApplicationBackground#id"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "required": true,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_APP_BCKG.ABC_ORDER": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.application.background.ApplicationBackground#order"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "required": false,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_APP_ROL.ARO_APPID": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.role.Role#applications"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "references": {
+        "column": "STM_APP.APP_ID",
+        "on_delete": "cascade"
+      },
+      "required": true,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_APP_ROL.ARO_ROLEID": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.role.Role#applications"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "references": {
+        "column": "STM_ROLE.ROL_ID",
+        "on_delete": "cascade"
+      },
+      "required": true,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_APP_TER.ATE_APPID": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.application.territory.ApplicationTerritory#application"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "references": {
+        "column": "STM_APP.APP_ID",
+        "on_delete": "cascade"
+      },
+      "required": true,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_APP_TER.ATE_ID": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.application.territory.ApplicationTerritory#id"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "required": true,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_APP_TER.ATE_INIEXT": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.application.territory.ApplicationTerritory#initialExtent"
+      },
+      "default": null,
+      "enforcement": "truncate",
+      "length": 250,
+      "required": false,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_APP_TER.ATE_TERID": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.application.territory.ApplicationTerritory#territory"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "references": {
+        "column": "STM_TERRITORY.TER_ID",
+        "on_delete": "cascade"
+      },
+      "required": true,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_APP_TREE.ATR_APPID": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.application.tree.ApplicationTree#application"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "references": {
+        "column": "STM_APP.APP_ID",
+        "on_delete": "cascade"
+      },
+      "required": true,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_APP_TREE.ATR_ID": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.application.tree.ApplicationTree#id"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "required": true,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_APP_TREE.ATR_ORDER": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.application.tree.ApplicationTree#order"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "required": false,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_APP_TREE.ATR_TREEID": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.application.tree.ApplicationTree#tree"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "references": {
+        "column": "STM_TREE.TRE_ID",
+        "on_delete": "cascade"
+      },
+      "required": true,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_AVAIL_GI.AGI_CREATED": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.cartography.availability.CartographyAvailability#createdDate"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "required": false,
+      "status": "decided",
+      "type": "timestamp"
+    },
+    "STM_AVAIL_GI.AGI_GIID": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.cartography.availability.CartographyAvailability#cartography"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "references": {
+        "column": "STM_GEOINFO.GEO_ID",
+        "on_delete": "cascade"
+      },
+      "required": true,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_AVAIL_GI.AGI_ID": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.cartography.availability.CartographyAvailability#id"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "required": true,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_AVAIL_GI.AGI_OWNER": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.cartography.availability.CartographyAvailability#owner"
+      },
+      "default": null,
+      "enforcement": "truncate",
+      "length": 50,
+      "required": false,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_AVAIL_GI.AGI_TERID": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.cartography.availability.CartographyAvailability#territory"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "references": {
+        "column": "STM_TERRITORY.TER_ID",
+        "on_delete": "cascade"
+      },
+      "required": true,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_AVAIL_TSK.ATS_CREATED": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.task.availability.TaskAvailability#createdDate"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "required": false,
+      "status": "decided",
+      "type": "timestamp"
+    },
+    "STM_AVAIL_TSK.ATS_ID": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.task.availability.TaskAvailability#id"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "required": true,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_AVAIL_TSK.ATS_TASKID": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.task.availability.TaskAvailability#task"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "references": {
+        "column": "STM_TASK.TAS_ID",
+        "on_delete": "cascade"
+      },
+      "required": true,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_AVAIL_TSK.ATS_TERID": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.task.availability.TaskAvailability#territory"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "references": {
+        "column": "STM_TERRITORY.TER_ID",
+        "on_delete": "cascade"
+      },
+      "required": true,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_BACKGRD.BAC_ACTIVE": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.background.Background#active"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "required": false,
+      "status": "decided",
+      "type": "boolean"
+    },
+    "STM_BACKGRD.BAC_CREATED": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.background.Background#createdDate"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "required": false,
+      "status": "decided",
+      "type": "timestamp"
+    },
+    "STM_BACKGRD.BAC_DESC": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.background.Background#description"
+      },
+      "default": null,
+      "enforcement": "truncate",
+      "length": 250,
+      "required": false,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_BACKGRD.BAC_GGIID": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.background.Background#cartographyGroup"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "references": {
+        "column": "STM_GRP_GI.GGI_ID"
+      },
+      "required": false,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_BACKGRD.BAC_ID": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.background.Background#id"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "required": true,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_BACKGRD.BAC_IMAGE": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.background.Background#image"
+      },
+      "default": null,
+      "enforcement": "truncate",
+      "length": 4000,
+      "required": false,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_BACKGRD.BAC_NAME": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.background.Background#name"
+      },
+      "default": null,
+      "enforcement": "truncate",
+      "length": 50,
+      "required": true,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_CODELIST.COD_DEFAULT": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.infrastructure.persistence.type.codelist.CodeListValue#defaultCode"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "required": true,
+      "status": "decided",
+      "type": "boolean"
+    },
+    "STM_CODELIST.COD_DESCRIPTION": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.infrastructure.persistence.type.codelist.CodeListValue#description"
+      },
+      "default": null,
+      "enforcement": "truncate",
+      "length": 250,
+      "required": true,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_CODELIST.COD_ID": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.infrastructure.persistence.type.codelist.CodeListValue#id"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "required": true,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_CODELIST.COD_LIST": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.infrastructure.persistence.type.codelist.CodeListValue#codeListName"
+      },
+      "default": null,
+      "enforcement": "reject",
+      "length": 250,
+      "required": true,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_CODELIST.COD_SYSTEM": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.infrastructure.persistence.type.codelist.CodeListValue#system"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "required": true,
+      "status": "decided",
+      "type": "boolean"
+    },
+    "STM_CODELIST.COD_VALUE": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.infrastructure.persistence.type.codelist.CodeListValue#value"
+      },
+      "default": null,
+      "enforcement": "reject",
+      "length": 250,
+      "required": true,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_COMMENT.COM_APPID": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.comment.Comment#application"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "references": {
+        "column": "STM_APP.APP_ID",
+        "on_delete": "cascade"
+      },
+      "required": true,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_COMMENT.COM_COORD_X": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.comment.Comment#coordinateX"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "required": true,
+      "status": "decided",
+      "type": "decimal"
+    },
+    "STM_COMMENT.COM_COORD_Y": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.comment.Comment#coordinateY"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "required": true,
+      "status": "decided",
+      "type": "decimal"
+    },
+    "STM_COMMENT.COM_CREATED": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.comment.Comment#createdDate"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "required": false,
+      "status": "decided",
+      "type": "timestamp"
+    },
+    "STM_COMMENT.COM_DESC": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.comment.Comment#description"
+      },
+      "default": null,
+      "enforcement": "truncate",
+      "length": 1000,
+      "required": false,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_COMMENT.COM_EMAIL": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.comment.Comment#email"
+      },
+      "default": null,
+      "enforcement": "truncate",
+      "length": 250,
+      "required": false,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_COMMENT.COM_ID": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.comment.Comment#id"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "required": true,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_COMMENT.COM_NAME": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.comment.Comment#name"
+      },
+      "default": null,
+      "enforcement": "truncate",
+      "length": 250,
+      "required": false,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_COMMENT.COM_TITLE": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.comment.Comment#title"
+      },
+      "default": null,
+      "enforcement": "truncate",
+      "length": 500,
+      "required": false,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_COMMENT.COM_USERID": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.comment.Comment#user"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "references": {
+        "column": "STM_USER.USE_ID",
+        "on_delete": "cascade"
+      },
+      "required": true,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_CONF.CNF_ID": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.configuration.ConfigurationParameter#id"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "required": true,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_CONF.CNF_NAME": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.configuration.ConfigurationParameter#name"
+      },
+      "default": null,
+      "enforcement": "truncate",
+      "length": 50,
+      "required": true,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_CONF.CNF_VALUE": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.configuration.ConfigurationParameter#value"
+      },
+      "default": null,
+      "enforcement": "truncate",
+      "length": 250,
+      "required": false,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_CONNECT.CON_CONNECTION": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.database.DatabaseConnection#url"
+      },
+      "default": null,
+      "enforcement": "truncate",
+      "length": 250,
+      "required": false,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_CONNECT.CON_DRIVER": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.database.DatabaseConnection#driver"
+      },
+      "default": null,
+      "enforcement": "truncate",
+      "length": 50,
+      "required": true,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_CONNECT.CON_ID": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.database.DatabaseConnection#id"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "required": true,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_CONNECT.CON_NAME": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.database.DatabaseConnection#name"
+      },
+      "default": null,
+      "enforcement": "reject",
+      "length": 80,
+      "required": true,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_CONNECT.CON_PWD": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.database.DatabaseConnection#password"
+      },
+      "default": null,
+      "enforcement": "truncate",
+      "length": 50,
+      "required": false,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_CONNECT.CON_USER": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.database.DatabaseConnection#user"
+      },
+      "default": null,
+      "enforcement": "truncate",
+      "length": 50,
+      "required": false,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_FIL_GI.FGI_COLUMN": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.cartography.filter.CartographyFilter#column"
+      },
+      "default": null,
+      "enforcement": "reject",
+      "length": 250,
+      "required": false,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_FIL_GI.FGI_GIID": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.cartography.filter.CartographyFilter#cartography"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "references": {
+        "column": "STM_GEOINFO.GEO_ID",
+        "on_delete": "cascade"
+      },
+      "required": true,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_FIL_GI.FGI_ID": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.cartography.filter.CartographyFilter#id"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "required": true,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_FIL_GI.FGI_NAME": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.cartography.filter.CartographyFilter#name"
+      },
+      "default": null,
+      "enforcement": "reject",
+      "length": 80,
+      "required": true,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_FIL_GI.FGI_REQUIRED": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.cartography.filter.CartographyFilter#required"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "required": true,
+      "status": "decided",
+      "type": "boolean"
+    },
+    "STM_FIL_GI.FGI_TYPE": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.cartography.filter.CartographyFilter#type"
+      },
+      "default": null,
+      "enforcement": "truncate",
+      "length": 50,
+      "required": true,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_FIL_GI.FGI_TYPID": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.cartography.filter.CartographyFilter#territorialLevel"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "references": {
+        "column": "STM_TER_TYP.TET_ID"
+      },
+      "required": false,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_FIL_GI.FGI_VALUE": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.cartography.filter.CartographyFilter#values"
+      },
+      "default": null,
+      "enforcement": "truncate",
+      "length": 4000,
+      "required": false,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_FIL_GI.FGI_VALUETYPE": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.cartography.filter.CartographyFilter#valueType"
+      },
+      "default": null,
+      "enforcement": "truncate",
+      "length": 50,
+      "required": false,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_GEOINFO.GEO_ABSTRACT": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.cartography.Cartography#description"
+      },
+      "default": null,
+      "enforcement": "truncate",
+      "length": 4000,
+      "required": false,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_GEOINFO.GEO_BLOCKED": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.cartography.Cartography#blocked"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "required": true,
+      "status": "decided",
+      "type": "boolean"
+    },
+    "STM_GEOINFO.GEO_CONNID": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.cartography.Cartography#spatialSelectionConnection"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "references": {
+        "column": "STM_CONNECT.CON_ID"
+      },
+      "required": false,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_GEOINFO.GEO_CREATED": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.cartography.Cartography#createdDate"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "required": false,
+      "status": "decided",
+      "type": "timestamp"
+    },
+    "STM_GEOINFO.GEO_DATAURL": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.cartography.Cartography#datasetURL"
+      },
+      "default": null,
+      "enforcement": "truncate",
+      "length": 4000,
+      "required": false,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_GEOINFO.GEO_FILTER_GFI": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.cartography.Cartography#applyFilterToGetFeatureInfo"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "required": false,
+      "status": "decided",
+      "type": "boolean"
+    },
+    "STM_GEOINFO.GEO_FILTER_GM": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.cartography.Cartography#applyFilterToGetMap"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "required": false,
+      "status": "decided",
+      "type": "boolean"
+    },
+    "STM_GEOINFO.GEO_FILTER_SS": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.cartography.Cartography#applyFilterToSpatialSelection"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "required": false,
+      "status": "decided",
+      "type": "boolean"
+    },
+    "STM_GEOINFO.GEO_GEOMTYPE": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.cartography.Cartography#geometryType"
+      },
+      "default": null,
+      "enforcement": "truncate",
+      "length": 50,
+      "required": false,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_GEOINFO.GEO_ID": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.cartography.Cartography#id"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "required": true,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_GEOINFO.GEO_LAYERS": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.cartography.Cartography#layersSearchString"
+      },
+      "default": null,
+      "enforcement": "truncate",
+      "length": 800,
+      "required": true,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_GEOINFO.GEO_LEGENDTIP": {
+      "codelist": "cartography.legendType",
+      "consumers": {
+        "jpa": "org.sitmun.domain.cartography.Cartography#legendType"
+      },
+      "default": null,
+      "enforcement": "truncate",
+      "length": 50,
+      "required": false,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_GEOINFO.GEO_LEGENDURL": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.cartography.Cartography#legendURL"
+      },
+      "default": null,
+      "enforcement": "truncate",
+      "length": 4000,
+      "required": false,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_GEOINFO.GEO_MAXSCALE": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.cartography.Cartography#maximumScale"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "required": false,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_GEOINFO.GEO_METAURL": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.cartography.Cartography#metadataURL"
+      },
+      "default": null,
+      "enforcement": "truncate",
+      "length": 4000,
+      "required": false,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_GEOINFO.GEO_MINSCALE": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.cartography.Cartography#minimumScale"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "required": false,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_GEOINFO.GEO_NAME": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.cartography.Cartography#name"
+      },
+      "default": null,
+      "enforcement": "truncate",
+      "length": 100,
+      "required": true,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_GEOINFO.GEO_ORDER": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.cartography.Cartography#order"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "required": false,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_GEOINFO.GEO_QUERYABL": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.cartography.Cartography#queryableFeatureAvailable"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "required": true,
+      "status": "decided",
+      "type": "boolean"
+    },
+    "STM_GEOINFO.GEO_QUERYACT": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.cartography.Cartography#queryableFeatureEnabled"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "required": true,
+      "status": "decided",
+      "type": "boolean"
+    },
+    "STM_GEOINFO.GEO_QUERYLAY": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.cartography.Cartography#queryableLayers"
+      },
+      "default": null,
+      "enforcement": "truncate",
+      "length": 500,
+      "required": false,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_GEOINFO.GEO_SELECTABL": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.cartography.Cartography#selectableFeatureEnabled"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "required": false,
+      "status": "decided",
+      "type": "boolean"
+    },
+    "STM_GEOINFO.GEO_SELECTLAY": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.cartography.Cartography#selectableLayers"
+      },
+      "default": null,
+      "enforcement": "truncate",
+      "length": 500,
+      "required": false,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_GEOINFO.GEO_SERID": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.cartography.Cartography#service"
+      },
+      "default": null,
+      "enforcement": "reject",
+      "length": null,
+      "references": {
+        "column": "STM_SERVICE.SER_ID"
+      },
+      "required": false,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_GEOINFO.GEO_SERSELID": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.cartography.Cartography#spatialSelectionService"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "references": {
+        "column": "STM_SERVICE.SER_ID"
+      },
+      "required": false,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_GEOINFO.GEO_SOURCE": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.cartography.Cartography#source"
+      },
+      "default": null,
+      "enforcement": "reject",
+      "length": 80,
+      "required": false,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_GEOINFO.GEO_STYID": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.cartography.Cartography#defaultStyle"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "references": {
+        "column": "STM_STY_GI.SGI_ID"
+      },
+      "required": false,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_GEOINFO.GEO_STYUSEALL": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.cartography.Cartography#useAllStyles"
+      },
+      "default": "false",
+      "enforcement": null,
+      "length": null,
+      "required": true,
+      "status": "decided",
+      "type": "boolean"
+    },
+    "STM_GEOINFO.GEO_THEMATIC": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.cartography.Cartography#thematic"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "required": false,
+      "status": "decided",
+      "type": "boolean"
+    },
+    "STM_GEOINFO.GEO_TRANSP": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.cartography.Cartography#transparency"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "required": false,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_GEOINFO.GEO_TYPE": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.cartography.Cartography#type"
+      },
+      "default": null,
+      "enforcement": "truncate",
+      "length": 50,
+      "required": false,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_GGI_GI.GGG_GGIID": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.cartography.permission.CartographyPermission#members"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "references": {
+        "column": "STM_GRP_GI.GGI_ID",
+        "on_delete": "cascade"
+      },
+      "required": true,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_GGI_GI.GGG_GIID": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.cartography.permission.CartographyPermission#members"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "references": {
+        "column": "STM_GEOINFO.GEO_ID",
+        "on_delete": "cascade"
+      },
+      "required": true,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_GRP_GI.GGI_ID": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.cartography.permission.CartographyPermission#id"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "required": true,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_GRP_GI.GGI_NAME": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.cartography.permission.CartographyPermission#name"
+      },
+      "default": null,
+      "enforcement": "reject",
+      "length": 80,
+      "required": true,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_GRP_GI.GGI_TYPE": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.cartography.permission.CartographyPermission#type"
+      },
+      "default": null,
+      "enforcement": "truncate",
+      "length": 50,
+      "required": false,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_GRP_TER.GTE_TERID": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.territory.Territory#members"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "references": {
+        "column": "STM_TERRITORY.TER_ID",
+        "on_delete": "cascade"
+      },
+      "required": true,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_GRP_TER.GTE_TERMID": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.territory.Territory#members"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "references": {
+        "column": "STM_TERRITORY.TER_ID",
+        "on_delete": "cascade"
+      },
+      "required": true,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_GRP_TSK.GTS_ID": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.task.group.TaskGroup#id"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "required": true,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_GRP_TSK.GTS_NAME": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.task.group.TaskGroup#name"
+      },
+      "default": null,
+      "enforcement": "reject",
+      "length": 80,
+      "required": true,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_GTER_TYP.GTT_ID": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.territory.type.TerritoryGroupType#id"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "required": true,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_GTER_TYP.GTT_NAME": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.territory.type.TerritoryGroupType#name"
+      },
+      "default": null,
+      "enforcement": "truncate",
+      "length": 250,
+      "required": true,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_LANGUAGE.LAN_ENABLED": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.infrastructure.persistence.type.i18n.Language#enabled"
+      },
+      "default": "true",
+      "enforcement": null,
+      "length": null,
+      "required": true,
+      "status": "decided",
+      "type": "boolean"
+    },
+    "STM_LANGUAGE.LAN_ID": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.infrastructure.persistence.type.i18n.Language#id"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "required": true,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_LANGUAGE.LAN_NAME": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.infrastructure.persistence.type.i18n.Language#name"
+      },
+      "default": null,
+      "enforcement": "truncate",
+      "length": 50,
+      "required": true,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_LANGUAGE.LAN_ORDER": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.infrastructure.persistence.type.i18n.Language#order"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "required": false,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_LANGUAGE.LAN_SHORTNAME": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.infrastructure.persistence.type.i18n.Language#shortname"
+      },
+      "default": null,
+      "enforcement": "truncate",
+      "length": 20,
+      "required": true,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_LITERAL_TRANSLATION.LTR_ID": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.infrastructure.persistence.type.i18n.LiteralTranslation#id"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "required": true,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_LITERAL_TRANSLATION.LTR_LANID": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.infrastructure.persistence.type.i18n.LiteralTranslation#sourceLanguage"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "references": {
+        "column": "STM_LANGUAGE.LAN_ID"
+      },
+      "required": true,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_LITERAL_TRANSLATION.LTR_LITERAL": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.infrastructure.persistence.type.i18n.LiteralTranslation#literal"
+      },
+      "default": null,
+      "enforcement": "reject",
+      "length": 4000,
+      "required": true,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_LITERAL_TRANSLATION_VALUE.LTV_ID": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.infrastructure.persistence.type.i18n.LiteralTranslationValue#id"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "required": true,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_LITERAL_TRANSLATION_VALUE.LTV_LANID": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.infrastructure.persistence.type.i18n.LiteralTranslationValue#language"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "references": {
+        "column": "STM_LANGUAGE.LAN_ID"
+      },
+      "required": true,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_LITERAL_TRANSLATION_VALUE.LTV_LTRID": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.infrastructure.persistence.type.i18n.LiteralTranslationValue#literalTranslation"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "references": {
+        "column": "STM_LITERAL_TRANSLATION.LTR_ID",
+        "on_delete": "cascade"
+      },
+      "required": true,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_LITERAL_TRANSLATION_VALUE.LTV_VALUE": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.infrastructure.persistence.type.i18n.LiteralTranslationValue#value"
+      },
+      "default": null,
+      "enforcement": "reject",
+      "length": 4000,
+      "required": true,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_LOG.LOG_APPID": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.log.Log#application"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "references": {
+        "column": "STM_APP.APP_ID"
+      },
+      "required": false,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_LOG.LOG_BUFFER": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.log.Log#buffer"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "required": false,
+      "status": "decided",
+      "type": "boolean"
+    },
+    "STM_LOG.LOG_COUNT": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.log.Log#counter"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "required": false,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_LOG.LOG_DATA": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.log.Log#data"
+      },
+      "default": null,
+      "enforcement": "truncate",
+      "length": 250,
+      "required": false,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_LOG.LOG_DATE": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.log.Log#date"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "required": false,
+      "status": "decided",
+      "type": "timestamp"
+    },
+    "STM_LOG.LOG_EMAIL": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.log.Log#email"
+      },
+      "default": null,
+      "enforcement": "truncate",
+      "length": 250,
+      "required": false,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_LOG.LOG_FORMAT": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.log.Log#format"
+      },
+      "default": null,
+      "enforcement": "reject",
+      "length": 250,
+      "required": false,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_LOG.LOG_GIID": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.log.Log#cartography"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "references": {
+        "column": "STM_GEOINFO.GEO_ID"
+      },
+      "required": false,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_LOG.LOG_ID": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.log.Log#id"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "required": true,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_LOG.LOG_OTHER": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.log.Log#other"
+      },
+      "default": null,
+      "enforcement": "truncate",
+      "length": 4000,
+      "required": false,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_LOG.LOG_SRS": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.log.Log#srs"
+      },
+      "default": null,
+      "enforcement": "reject",
+      "length": 250,
+      "required": false,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_LOG.LOG_TASKID": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.log.Log#task"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "references": {
+        "column": "STM_TASK.TAS_ID"
+      },
+      "required": false,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_LOG.LOG_TER": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.log.Log#territoryCode"
+      },
+      "default": null,
+      "enforcement": "reject",
+      "length": 250,
+      "required": false,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_LOG.LOG_TEREXT": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.log.Log#territories"
+      },
+      "default": null,
+      "enforcement": "truncate",
+      "length": 250,
+      "required": false,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_LOG.LOG_TERID": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.log.Log#territory"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "references": {
+        "column": "STM_TERRITORY.TER_ID"
+      },
+      "required": false,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_LOG.LOG_TYPE": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.log.Log#type"
+      },
+      "default": null,
+      "enforcement": "truncate",
+      "length": 50,
+      "required": false,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_LOG.LOG_USERID": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.log.Log#user"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "references": {
+        "column": "STM_USER.USE_ID"
+      },
+      "required": false,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_PAR_APP.PAP_APPID": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.application.parameter.ApplicationParameter#application"
+      },
+      "default": null,
+      "enforcement": "reject",
+      "length": null,
+      "references": {
+        "column": "STM_APP.APP_ID",
+        "on_delete": "cascade"
+      },
+      "required": false,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_PAR_APP.PAP_ID": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.application.parameter.ApplicationParameter#id"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "required": true,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_PAR_APP.PAP_NAME": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.application.parameter.ApplicationParameter#name"
+      },
+      "default": null,
+      "enforcement": "truncate",
+      "length": 50,
+      "required": true,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_PAR_APP.PAP_TYPE": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.application.parameter.ApplicationParameter#type"
+      },
+      "default": null,
+      "enforcement": "reject",
+      "length": 250,
+      "required": true,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_PAR_APP.PAP_VALUE": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.application.parameter.ApplicationParameter#value"
+      },
+      "default": null,
+      "enforcement": "truncate",
+      "length": 250,
+      "required": true,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_PAR_GI.PGI_FORMAT": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.cartography.parameter.CartographyParameter#format"
+      },
+      "default": null,
+      "enforcement": "reject",
+      "length": 250,
+      "required": false,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_PAR_GI.PGI_GIID": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.cartography.parameter.CartographyParameter#cartography"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "references": {
+        "column": "STM_GEOINFO.GEO_ID",
+        "on_delete": "cascade"
+      },
+      "required": true,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_PAR_GI.PGI_ID": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.cartography.parameter.CartographyParameter#id"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "required": true,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_PAR_GI.PGI_NAME": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.cartography.parameter.CartographyParameter#name"
+      },
+      "default": null,
+      "enforcement": "reject",
+      "length": 250,
+      "required": true,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_PAR_GI.PGI_OPTIONS": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.cartography.parameter.CartographyParameter#options"
+      },
+      "default": null,
+      "enforcement": "truncate",
+      "length": null,
+      "required": false,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_PAR_GI.PGI_ORDER": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.cartography.parameter.CartographyParameter#order"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "required": false,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_PAR_GI.PGI_TYPE": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.cartography.parameter.CartographyParameter#type"
+      },
+      "default": null,
+      "enforcement": "reject",
+      "length": 250,
+      "required": true,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_PAR_GI.PGI_VALUE": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.cartography.parameter.CartographyParameter#value"
+      },
+      "default": null,
+      "enforcement": "truncate",
+      "length": 250,
+      "required": true,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_PAR_GS.GS_GEOID": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.cartography.parameter.CartographyServiceParameter#cartography"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "references": {
+        "column": "STM_GEOINFO.GEO_ID",
+        "on_delete": "cascade"
+      },
+      "required": true,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_PAR_GS.GS_ID": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.cartography.parameter.CartographyServiceParameter#id"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "required": true,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_PAR_GS.GS_NAME": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.cartography.parameter.CartographyServiceParameter#name"
+      },
+      "default": null,
+      "enforcement": "truncate",
+      "length": 50,
+      "required": true,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_PAR_GS.GS_TYPE": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.cartography.parameter.CartographyServiceParameter#type"
+      },
+      "default": null,
+      "enforcement": "truncate",
+      "length": 50,
+      "required": true,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_PAR_GS.GS_VALUE": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.cartography.parameter.CartographyServiceParameter#value"
+      },
+      "default": null,
+      "enforcement": "truncate",
+      "length": 250,
+      "required": false,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_PAR_SER.PSE_ID": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.service.parameter.ServiceParameter#id"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "required": true,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_PAR_SER.PSE_NAME": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.service.parameter.ServiceParameter#name"
+      },
+      "default": null,
+      "enforcement": "truncate",
+      "length": 50,
+      "required": true,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_PAR_SER.PSE_SERID": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.service.parameter.ServiceParameter#service"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "references": {
+        "column": "STM_SERVICE.SER_ID",
+        "on_delete": "cascade"
+      },
+      "required": true,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_PAR_SER.PSE_TYPE": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.service.parameter.ServiceParameter#type"
+      },
+      "default": null,
+      "enforcement": "reject",
+      "length": 250,
+      "required": false,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_PAR_SER.PSE_VALUE": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.service.parameter.ServiceParameter#value"
+      },
+      "default": null,
+      "enforcement": "truncate",
+      "length": 250,
+      "required": true,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_PAR_SGI.PSG_FORMAT": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.cartography.parameter.CartographySpatialSelectionParameter#format"
+      },
+      "default": null,
+      "enforcement": "reject",
+      "length": 250,
+      "required": false,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_PAR_SGI.PSG_GIID": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.cartography.parameter.CartographySpatialSelectionParameter#cartography"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "references": {
+        "column": "STM_GEOINFO.GEO_ID",
+        "on_delete": "cascade"
+      },
+      "required": true,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_PAR_SGI.PSG_ID": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.cartography.parameter.CartographySpatialSelectionParameter#id"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "required": true,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_PAR_SGI.PSG_NAME": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.cartography.parameter.CartographySpatialSelectionParameter#name"
+      },
+      "default": null,
+      "enforcement": "reject",
+      "length": 250,
+      "required": true,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_PAR_SGI.PSG_ORDER": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.cartography.parameter.CartographySpatialSelectionParameter#order"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "required": false,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_PAR_SGI.PSG_TYPE": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.cartography.parameter.CartographySpatialSelectionParameter#type"
+      },
+      "default": null,
+      "enforcement": "reject",
+      "length": 250,
+      "required": true,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_PAR_SGI.PSG_VALUE": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.cartography.parameter.CartographySpatialSelectionParameter#value"
+      },
+      "default": null,
+      "enforcement": "truncate",
+      "length": 250,
+      "required": true,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_POST.POS_CREATED": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.user.position.UserPosition#createdDate"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "required": false,
+      "status": "decided",
+      "type": "timestamp"
+    },
+    "STM_POST.POS_EMAIL": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.user.position.UserPosition#email"
+      },
+      "default": null,
+      "enforcement": "truncate",
+      "length": 250,
+      "required": false,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_POST.POS_EXPIRATION": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.user.position.UserPosition#expirationDate"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "required": false,
+      "status": "decided",
+      "type": "timestamp"
+    },
+    "STM_POST.POS_ID": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.user.position.UserPosition#id"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "required": true,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_POST.POS_ORG": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.user.position.UserPosition#organization"
+      },
+      "default": null,
+      "enforcement": "truncate",
+      "length": 250,
+      "required": false,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_POST.POS_POST": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.user.position.UserPosition#name"
+      },
+      "default": null,
+      "enforcement": "truncate",
+      "length": 250,
+      "required": false,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_POST.POS_TERID": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.user.position.UserPosition#territory"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "references": {
+        "column": "STM_TERRITORY.TER_ID",
+        "on_delete": "cascade"
+      },
+      "required": true,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_POST.POS_TYPE": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.user.position.UserPosition#type"
+      },
+      "default": null,
+      "enforcement": "truncate",
+      "length": 50,
+      "required": false,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_POST.POS_UPDATED": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.user.position.UserPosition#lastModifiedDate"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "required": false,
+      "status": "decided",
+      "type": "timestamp"
+    },
+    "STM_POST.POS_USERID": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.user.position.UserPosition#user"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "references": {
+        "column": "STM_USER.USE_ID",
+        "on_delete": "cascade"
+      },
+      "required": true,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_ROLE.ROL_ID": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.role.Role#id"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "required": true,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_ROLE.ROL_NAME": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.role.Role#name"
+      },
+      "default": null,
+      "enforcement": "reject",
+      "length": 250,
+      "required": true,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_ROLE.ROL_NOTE": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.role.Role#description"
+      },
+      "default": null,
+      "enforcement": "truncate",
+      "length": 500,
+      "required": false,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_ROL_GGI.RGG_GGIID": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.role.Role#permissions"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "references": {
+        "column": "STM_GRP_GI.GGI_ID",
+        "on_delete": "cascade"
+      },
+      "required": true,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_ROL_GGI.RGG_ROLEID": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.role.Role#permissions"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "references": {
+        "column": "STM_ROLE.ROL_ID",
+        "on_delete": "cascade"
+      },
+      "required": true,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_ROL_TSK.RTS_ROLEID": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.role.Role#tasks"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "references": {
+        "column": "STM_ROLE.ROL_ID",
+        "on_delete": "cascade"
+      },
+      "required": true,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_ROL_TSK.RTS_TASKID": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.role.Role#tasks"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "references": {
+        "column": "STM_TASK.TAS_ID",
+        "on_delete": "cascade"
+      },
+      "required": true,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_SEQUENCE.SEQ_COUNT": {
+      "codelist": null,
+      "consumers": {},
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "required": false,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_SEQUENCE.SEQ_NAME": {
+      "codelist": null,
+      "consumers": {},
+      "default": null,
+      "enforcement": "truncate",
+      "length": 255,
+      "required": true,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_SERVICE.SER_ABSTRACT": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.service.Service#description"
+      },
+      "default": null,
+      "enforcement": "truncate",
+      "length": 4000,
+      "required": false,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_SERVICE.SER_AUTH_MOD": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.service.Service#authenticationMode"
+      },
+      "default": null,
+      "enforcement": "truncate",
+      "length": 50,
+      "required": false,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_SERVICE.SER_BLOCKED": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.service.Service#blocked"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "required": true,
+      "status": "decided",
+      "type": "boolean"
+    },
+    "STM_SERVICE.SER_CREATED": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.service.Service#createdDate"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "required": false,
+      "status": "decided",
+      "type": "timestamp"
+    },
+    "STM_SERVICE.SER_ID": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.service.Service#id"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "required": true,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_SERVICE.SER_INFOURL": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.service.Service#getInformationURL"
+      },
+      "default": null,
+      "enforcement": "truncate",
+      "length": 4000,
+      "required": false,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_SERVICE.SER_LEGEND": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.service.Service#legendURL"
+      },
+      "default": null,
+      "enforcement": "truncate",
+      "length": 4000,
+      "required": false,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_SERVICE.SER_NAME": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.service.Service#name"
+      },
+      "default": null,
+      "enforcement": "truncate",
+      "length": 60,
+      "required": true,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_SERVICE.SER_NAT_PROT": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.service.Service#nativeProtocol"
+      },
+      "default": null,
+      "enforcement": "truncate",
+      "length": 50,
+      "required": false,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_SERVICE.SER_PROJECTS": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.service.Service#supportedSRS"
+      },
+      "default": null,
+      "enforcement": "truncate",
+      "length": 1000,
+      "required": false,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_SERVICE.SER_PROTOCOL": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.service.Service#type"
+      },
+      "default": null,
+      "enforcement": "truncate",
+      "length": 50,
+      "required": true,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_SERVICE.SER_PROXIED": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.service.Service#isProxied"
+      },
+      "default": "false",
+      "enforcement": null,
+      "length": null,
+      "required": true,
+      "status": "decided",
+      "type": "boolean"
+    },
+    "STM_SERVICE.SER_PWD": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.service.Service#password"
+      },
+      "default": null,
+      "enforcement": "truncate",
+      "length": 50,
+      "required": false,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_SERVICE.SER_URL": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.service.Service#serviceURL"
+      },
+      "default": null,
+      "enforcement": "truncate",
+      "length": 4000,
+      "required": true,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_SERVICE.SER_USER": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.service.Service#user"
+      },
+      "default": null,
+      "enforcement": "truncate",
+      "length": 50,
+      "required": false,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_SERVICE_CHECK.SEC_DETAIL": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.service.check.ServiceCheck#detail"
+      },
+      "default": null,
+      "enforcement": "truncate",
+      "length": 4000,
+      "required": false,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_SERVICE_CHECK.SEC_ELAPSED": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.service.check.ServiceCheck#elapsedMs"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "required": true,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_SERVICE_CHECK.SEC_ID": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.service.check.ServiceCheck#id"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "required": true,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_SERVICE_CHECK.SEC_OBSERVED": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.service.check.ServiceCheck#observedAt"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "required": true,
+      "status": "decided",
+      "type": "instant"
+    },
+    "STM_SERVICE_CHECK.SEC_OBSERVER": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.service.check.ServiceCheck#observer"
+      },
+      "default": null,
+      "enforcement": "truncate",
+      "length": 16,
+      "required": true,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_SERVICE_CHECK.SEC_RANK": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.service.check.ServiceCheck#statusRank"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "required": true,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_SERVICE_CHECK.SEC_SERID": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.service.check.ServiceCheck#service"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "references": {
+        "column": "STM_SERVICE.SER_ID",
+        "on_delete": "cascade"
+      },
+      "required": true,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_SERVICE_CHECK.SEC_STATUS": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.service.check.ServiceCheck#status"
+      },
+      "default": null,
+      "enforcement": "truncate",
+      "length": 50,
+      "required": true,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_SERVICE_CHECK_SAMPLE.SCS_ELAPSED": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.service.check.ServiceCheckSample#elapsedMs"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "required": true,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_SERVICE_CHECK_SAMPLE.SCS_ID": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.service.check.ServiceCheckSample#id"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "required": true,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_SERVICE_CHECK_SAMPLE.SCS_OBSERVED": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.service.check.ServiceCheckSample#observedAt"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "required": true,
+      "status": "decided",
+      "type": "instant"
+    },
+    "STM_SERVICE_CHECK_SAMPLE.SCS_OBSERVER": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.service.check.ServiceCheckSample#observer"
+      },
+      "default": null,
+      "enforcement": "truncate",
+      "length": 16,
+      "required": true,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_SERVICE_CHECK_SAMPLE.SCS_RANK": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.service.check.ServiceCheckSample#statusRank"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "required": true,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_SERVICE_CHECK_SAMPLE.SCS_SERID": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.service.check.ServiceCheckSample#service"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "references": {
+        "column": "STM_SERVICE.SER_ID",
+        "on_delete": "cascade"
+      },
+      "required": true,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_SERVICE_CHECK_SAMPLE.SCS_STATUS": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.service.check.ServiceCheckSample#status"
+      },
+      "default": null,
+      "enforcement": "truncate",
+      "length": 50,
+      "required": true,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_SERVICE_USAGE.SUS_APPID": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.service.usage.ServiceUsage#id"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "references": {
+        "column": "STM_APP.APP_ID",
+        "on_delete": "cascade"
+      },
+      "required": true,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_SERVICE_USAGE.SUS_DAY": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.service.usage.ServiceUsage#id"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "required": true,
+      "status": "decided",
+      "type": "date"
+    },
+    "STM_SERVICE_USAGE.SUS_FAILED": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.service.usage.ServiceUsage#failed"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "required": true,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_SERVICE_USAGE.SUS_OPERATION": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.service.usage.ServiceUsage#id"
+      },
+      "default": null,
+      "enforcement": "truncate",
+      "length": 32,
+      "required": true,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_SERVICE_USAGE.SUS_REQUESTS": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.service.usage.ServiceUsage#requests"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "required": true,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_SERVICE_USAGE.SUS_SERID": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.service.usage.ServiceUsage#id"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "references": {
+        "column": "STM_SERVICE.SER_ID",
+        "on_delete": "cascade"
+      },
+      "required": true,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_STY_GI.SGI_ABSTRACT": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.cartography.style.CartographyStyle#description"
+      },
+      "default": null,
+      "enforcement": "truncate",
+      "length": 250,
+      "required": false,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_STY_GI.SGI_DEFAULT": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.cartography.style.CartographyStyle#defaultStyle"
+      },
+      "default": "false",
+      "enforcement": null,
+      "length": null,
+      "required": true,
+      "status": "decided",
+      "type": "boolean"
+    },
+    "STM_STY_GI.SGI_GIID": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.cartography.style.CartographyStyle#cartography"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "references": {
+        "column": "STM_GEOINFO.GEO_ID"
+      },
+      "required": false,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_STY_GI.SGI_ID": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.cartography.style.CartographyStyle#id"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "required": true,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_STY_GI.SGI_LURL_FORMAT": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.cartography.style.CartographyStyle#legendURL"
+      },
+      "default": null,
+      "enforcement": "truncate",
+      "length": 255,
+      "required": false,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_STY_GI.SGI_LURL_HEIGHT": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.cartography.style.CartographyStyle#legendURL"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "required": false,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_STY_GI.SGI_LURL_URL": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.cartography.style.CartographyStyle#legendURL"
+      },
+      "default": null,
+      "enforcement": "reject",
+      "length": 4000,
+      "required": false,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_STY_GI.SGI_LURL_WIDTH": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.cartography.style.CartographyStyle#legendURL"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "required": false,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_STY_GI.SGI_NAME": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.cartography.style.CartographyStyle#name"
+      },
+      "default": null,
+      "enforcement": "reject",
+      "length": 80,
+      "required": true,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_STY_GI.SGI_TITLE": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.cartography.style.CartographyStyle#title"
+      },
+      "default": null,
+      "enforcement": "reject",
+      "length": 250,
+      "required": false,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_TASK.TAS_CONNID": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.task.Task#connection"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "references": {
+        "column": "STM_CONNECT.CON_ID"
+      },
+      "required": false,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_TASK.TAS_CREATED": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.task.Task#createdDate"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "required": false,
+      "status": "decided",
+      "type": "timestamp"
+    },
+    "STM_TASK.TAS_GIID": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.task.Task#cartography"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "references": {
+        "column": "STM_GEOINFO.GEO_ID"
+      },
+      "required": false,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_TASK.TAS_GTASKID": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.task.Task#group"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "references": {
+        "column": "STM_GRP_TSK.GTS_ID"
+      },
+      "required": false,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_TASK.TAS_ID": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.task.Task#id"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "required": true,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_TASK.TAS_NAME": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.task.Task#name"
+      },
+      "default": null,
+      "enforcement": "truncate",
+      "length": 512,
+      "required": true,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_TASK.TAS_ORDER": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.task.Task#order"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "required": false,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_TASK.TAS_PARAMS": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.task.Task#properties"
+      },
+      "default": null,
+      "enforcement": "truncate",
+      "length": null,
+      "required": false,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_TASK.TAS_SERID": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.task.Task#service"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "references": {
+        "column": "STM_SERVICE.SER_ID"
+      },
+      "required": false,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_TASK.TAS_TITLE": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.task.Task#title"
+      },
+      "default": null,
+      "enforcement": "reject",
+      "length": 250,
+      "required": false,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_TASK.TAS_TTASKID": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.task.Task#type"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "references": {
+        "column": "STM_TSK_TYP.TTY_ID"
+      },
+      "required": false,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_TASK.TAS_TUIID": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.task.Task#ui"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "references": {
+        "column": "STM_TSK_UI.TUI_ID"
+      },
+      "required": false,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_TASKREL.TAR_ALIAS": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.task.relation.TaskRelation#referenceAlias"
+      },
+      "default": null,
+      "enforcement": "truncate",
+      "length": 50,
+      "required": false,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_TASKREL.TAR_ID": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.task.relation.TaskRelation#id"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "required": true,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_TASKREL.TAR_TASKID": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.task.relation.TaskRelation#task"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "references": {
+        "column": "STM_TASK.TAS_ID",
+        "on_delete": "cascade"
+      },
+      "required": true,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_TASKREL.TAR_TASKRELID": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.task.relation.TaskRelation#relatedTask"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "references": {
+        "column": "STM_TASK.TAS_ID"
+      },
+      "required": true,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_TASKREL.TAR_TYPE": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.task.relation.TaskRelation#relationType"
+      },
+      "default": null,
+      "enforcement": "truncate",
+      "length": 50,
+      "required": true,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_TERRITORY.TER_ADDRESS": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.territory.Territory#territorialAuthorityAddress"
+      },
+      "default": null,
+      "enforcement": "truncate",
+      "length": 250,
+      "required": false,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_TERRITORY.TER_ADMNAME": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.territory.Territory#territorialAuthorityName"
+      },
+      "default": null,
+      "enforcement": "truncate",
+      "length": 250,
+      "required": false,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_TERRITORY.TER_BLOCKED": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.territory.Territory#blocked"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "required": true,
+      "status": "decided",
+      "type": "boolean"
+    },
+    "STM_TERRITORY.TER_CENTER": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.territory.Territory#center"
+      },
+      "default": null,
+      "enforcement": "truncate",
+      "length": 250,
+      "required": false,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_TERRITORY.TER_CODTER": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.territory.Territory#code"
+      },
+      "default": null,
+      "enforcement": "truncate",
+      "length": 50,
+      "required": true,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_TERRITORY.TER_CREATED": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.territory.Territory#createdDate"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "required": false,
+      "status": "decided",
+      "type": "timestamp"
+    },
+    "STM_TERRITORY.TER_DESCRIPTION": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.territory.Territory#description"
+      },
+      "default": null,
+      "enforcement": "truncate",
+      "length": 4000,
+      "required": false,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_TERRITORY.TER_EMAIL": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.territory.Territory#territorialAuthorityEmail"
+      },
+      "default": null,
+      "enforcement": "reject",
+      "length": 250,
+      "required": false,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_TERRITORY.TER_EXTENT": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.territory.Territory#extent"
+      },
+      "default": null,
+      "enforcement": "truncate",
+      "length": 250,
+      "required": false,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_TERRITORY.TER_GTYPID": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.territory.Territory#groupType"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "references": {
+        "column": "STM_GTER_TYP.GTT_ID"
+      },
+      "required": false,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_TERRITORY.TER_ID": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.territory.Territory#id"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "required": true,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_TERRITORY.TER_LEGAL": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.territory.Territory#legal"
+      },
+      "default": null,
+      "enforcement": "truncate",
+      "length": 50,
+      "required": false,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_TERRITORY.TER_LOGO": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.territory.Territory#territorialAuthorityLogo"
+      },
+      "default": null,
+      "enforcement": "truncate",
+      "length": 4000,
+      "required": false,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_TERRITORY.TER_NAME": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.territory.Territory#name"
+      },
+      "default": null,
+      "enforcement": "truncate",
+      "length": 250,
+      "required": true,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_TERRITORY.TER_NOTE": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.territory.Territory#note"
+      },
+      "default": null,
+      "enforcement": "truncate",
+      "length": 250,
+      "required": false,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_TERRITORY.TER_PROJECT": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.territory.Territory#srs"
+      },
+      "default": null,
+      "enforcement": "reject",
+      "length": 250,
+      "required": false,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_TERRITORY.TER_SCOPE": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.territory.Territory#scope"
+      },
+      "default": null,
+      "enforcement": "reject",
+      "length": 250,
+      "required": false,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_TERRITORY.TER_TYPID": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.territory.Territory#type"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "references": {
+        "column": "STM_TER_TYP.TET_ID"
+      },
+      "required": false,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_TERRITORY.TER_ZOOM": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.territory.Territory#defaultZoomLevel"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "required": false,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_TER_TYP.TET_BOTTOM": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.territory.type.TerritoryType#bottomType"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "required": true,
+      "status": "decided",
+      "type": "boolean"
+    },
+    "STM_TER_TYP.TET_ID": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.territory.type.TerritoryType#id"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "required": true,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_TER_TYP.TET_NAME": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.territory.type.TerritoryType#name"
+      },
+      "default": null,
+      "enforcement": "reject",
+      "length": 250,
+      "required": true,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_TER_TYP.TET_OFFICIAL": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.territory.type.TerritoryType#official"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "required": true,
+      "status": "decided",
+      "type": "boolean"
+    },
+    "STM_TER_TYP.TET_TOP": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.territory.type.TerritoryType#topType"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "required": true,
+      "status": "decided",
+      "type": "boolean"
+    },
+    "STM_TOKEN_USER.ACTIVE": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.user.token.UserToken#active"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "required": true,
+      "status": "decided",
+      "type": "boolean"
+    },
+    "STM_TOKEN_USER.ATTEMPT_COUNTER": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.user.token.UserToken#attemptCounter"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "required": true,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_TOKEN_USER.CODE_OTP": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.user.token.UserToken#codeOTP"
+      },
+      "default": null,
+      "enforcement": "truncate",
+      "length": 255,
+      "required": true,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_TOKEN_USER.EXPIRE_AT": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.user.token.UserToken#expireAt"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "required": false,
+      "status": "decided",
+      "type": "timestamp"
+    },
+    "STM_TOKEN_USER.USER_ID": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.user.token.UserToken#userID"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "required": true,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_TOKEN_USER.USER_TOKEN_ID": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.user.token.UserToken#id"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "required": true,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_TRANSLATION.TRA_COLUMN": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.infrastructure.persistence.type.i18n.Translation#column"
+      },
+      "default": null,
+      "enforcement": "reject",
+      "length": 100,
+      "required": true,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_TRANSLATION.TRA_ELEID": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.infrastructure.persistence.type.i18n.Translation#element"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "required": true,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_TRANSLATION.TRA_ID": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.infrastructure.persistence.type.i18n.Translation#id"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "required": true,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_TRANSLATION.TRA_LANID": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.infrastructure.persistence.type.i18n.Translation#language"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "references": {
+        "column": "STM_LANGUAGE.LAN_ID"
+      },
+      "required": true,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_TRANSLATION.TRA_NAME": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.infrastructure.persistence.type.i18n.Translation#translation"
+      },
+      "default": null,
+      "enforcement": "truncate",
+      "length": 4000,
+      "required": true,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_TREE.TRE_ABSTRACT": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.tree.Tree#description"
+      },
+      "default": null,
+      "enforcement": "truncate",
+      "length": 250,
+      "required": false,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_TREE.TRE_ID": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.tree.Tree#id"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "required": true,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_TREE.TRE_IMAGE": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.tree.Tree#image"
+      },
+      "default": null,
+      "enforcement": "truncate",
+      "length": null,
+      "required": false,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_TREE.TRE_IMAGE_NAME": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.tree.Tree#imageName"
+      },
+      "default": null,
+      "enforcement": "truncate",
+      "length": 255,
+      "required": false,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_TREE.TRE_NAME": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.tree.Tree#name"
+      },
+      "default": null,
+      "enforcement": "reject",
+      "length": 100,
+      "required": true,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_TREE.TRE_TYPE": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.tree.Tree#type"
+      },
+      "default": null,
+      "enforcement": "truncate",
+      "length": 50,
+      "required": false,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_TREE.TRE_USERID": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.tree.Tree#owner"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "references": {
+        "column": "STM_USER.USE_ID"
+      },
+      "required": false,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_TREE_NOD.TNO_ABSTRACT": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.tree.node.TreeNode#description"
+      },
+      "default": null,
+      "enforcement": "truncate",
+      "length": 250,
+      "required": false,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_TREE_NOD.TNO_ACTIVE": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.tree.node.TreeNode#visible"
+      },
+      "default": "true",
+      "enforcement": null,
+      "length": null,
+      "required": true,
+      "status": "decided",
+      "type": "boolean"
+    },
+    "STM_TREE_NOD.TNO_DATAURL": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.tree.node.TreeNode#datasetURL"
+      },
+      "default": null,
+      "enforcement": "truncate",
+      "length": 4000,
+      "required": false,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_TREE_NOD.TNO_DEFAULT": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.tree.node.TreeNode#active"
+      },
+      "default": "false",
+      "enforcement": null,
+      "length": null,
+      "required": true,
+      "status": "decided",
+      "type": "boolean"
+    },
+    "STM_TREE_NOD.TNO_FILTERABLE": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.tree.node.TreeNode#filterable"
+      },
+      "default": "false",
+      "enforcement": null,
+      "length": null,
+      "required": false,
+      "status": "decided",
+      "type": "boolean"
+    },
+    "STM_TREE_NOD.TNO_FILTER_GFI": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.tree.node.TreeNode#filterGetFeatureInfo"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "required": false,
+      "status": "decided",
+      "type": "boolean"
+    },
+    "STM_TREE_NOD.TNO_FILTER_GM": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.tree.node.TreeNode#filterGetMap"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "required": false,
+      "status": "decided",
+      "type": "boolean"
+    },
+    "STM_TREE_NOD.TNO_FILTER_SE": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.tree.node.TreeNode#filterSelectable"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "required": false,
+      "status": "decided",
+      "type": "boolean"
+    },
+    "STM_TREE_NOD.TNO_GIID": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.tree.node.TreeNode#cartography"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "references": {
+        "column": "STM_GEOINFO.GEO_ID"
+      },
+      "required": false,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_TREE_NOD.TNO_ID": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.tree.node.TreeNode#id"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "required": true,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_TREE_NOD.TNO_IMAGE": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.tree.node.TreeNode#image"
+      },
+      "default": null,
+      "enforcement": "truncate",
+      "length": null,
+      "required": false,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_TREE_NOD.TNO_IMAGE_NAME": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.tree.node.TreeNode#imageName"
+      },
+      "default": null,
+      "enforcement": "reject",
+      "length": 4000,
+      "required": false,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_TREE_NOD.TNO_LOAD_DATA": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.tree.node.TreeNode#loadData"
+      },
+      "default": "false",
+      "enforcement": null,
+      "length": null,
+      "required": true,
+      "status": "decided",
+      "type": "boolean"
+    },
+    "STM_TREE_NOD.TNO_MAPPING": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.tree.node.TreeNode#mapping"
+      },
+      "default": null,
+      "enforcement": "truncate",
+      "length": null,
+      "required": false,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_TREE_NOD.TNO_METAURL": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.tree.node.TreeNode#metadataURL"
+      },
+      "default": null,
+      "enforcement": "truncate",
+      "length": 4000,
+      "required": false,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_TREE_NOD.TNO_NAME": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.tree.node.TreeNode#name"
+      },
+      "default": null,
+      "enforcement": "truncate",
+      "length": 80,
+      "required": true,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_TREE_NOD.TNO_ORDER": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.tree.node.TreeNode#order"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "required": false,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_TREE_NOD.TNO_PARENTID": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.tree.node.TreeNode#parent"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "references": {
+        "column": "STM_TREE_NOD.TNO_ID"
+      },
+      "required": false,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_TREE_NOD.TNO_QUERYACT": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.tree.node.TreeNode#queryableActive"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "required": false,
+      "status": "decided",
+      "type": "boolean"
+    },
+    "STM_TREE_NOD.TNO_RADIO": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.tree.node.TreeNode#radio"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "required": false,
+      "status": "decided",
+      "type": "boolean"
+    },
+    "STM_TREE_NOD.TNO_STYLE": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.tree.node.TreeNode#style"
+      },
+      "default": null,
+      "enforcement": "truncate",
+      "length": 255,
+      "required": false,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_TREE_NOD.TNO_TASKID": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.tree.node.TreeNode#task"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "references": {
+        "column": "STM_TASK.TAS_ID"
+      },
+      "required": false,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_TREE_NOD.TNO_TOOLTIP": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.tree.node.TreeNode#tooltip"
+      },
+      "default": null,
+      "enforcement": "truncate",
+      "length": 100,
+      "required": false,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_TREE_NOD.TNO_TREEID": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.tree.node.TreeNode#tree"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "references": {
+        "column": "STM_TREE.TRE_ID",
+        "on_delete": "cascade"
+      },
+      "required": true,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_TREE_NOD.TNO_TYPE": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.tree.node.TreeNode#type"
+      },
+      "default": null,
+      "enforcement": "truncate",
+      "length": 50,
+      "required": false,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_TREE_NOD.TNO_VIEW_MODE": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.tree.node.TreeNode#viewMode"
+      },
+      "default": null,
+      "enforcement": "truncate",
+      "length": 255,
+      "required": false,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_TREE_ROL.TRO_ROLEID": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.role.Role#trees"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "references": {
+        "column": "STM_ROLE.ROL_ID",
+        "on_delete": "cascade"
+      },
+      "required": true,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_TREE_ROL.TRO_TREEID": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.role.Role#trees"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "references": {
+        "column": "STM_TREE.TRE_ID",
+        "on_delete": "cascade"
+      },
+      "required": true,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_TSK_TYP.TTY_ENABLED": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.task.type.TaskType#enabled"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "required": true,
+      "status": "decided",
+      "type": "boolean"
+    },
+    "STM_TSK_TYP.TTY_ID": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.task.type.TaskType#id"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "required": true,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_TSK_TYP.TTY_NAME": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.task.type.TaskType#name"
+      },
+      "default": null,
+      "enforcement": "truncate",
+      "length": 50,
+      "required": false,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_TSK_TYP.TTY_ORDER": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.task.type.TaskType#order"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "required": false,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_TSK_TYP.TTY_PARENTID": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.task.type.TaskType#parent"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "references": {
+        "column": "STM_TSK_TYP.TTY_ID",
+        "on_delete": "cascade"
+      },
+      "required": false,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_TSK_TYP.TTY_SPEC": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.task.type.TaskType#specification"
+      },
+      "default": null,
+      "enforcement": "truncate",
+      "length": null,
+      "required": false,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_TSK_TYP.TTY_TITLE": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.task.type.TaskType#title"
+      },
+      "default": null,
+      "enforcement": "truncate",
+      "length": 50,
+      "required": false,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_TSK_UI.TUI_ID": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.task.ui.TaskUI#id"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "required": true,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_TSK_UI.TUI_NAME": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.task.ui.TaskUI#name"
+      },
+      "default": null,
+      "enforcement": "truncate",
+      "length": 50,
+      "required": true,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_TSK_UI.TUI_ORDER": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.task.ui.TaskUI#order"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "required": false,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_TSK_UI.TUI_TOOLTIP": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.task.ui.TaskUI#tooltip"
+      },
+      "default": null,
+      "enforcement": "truncate",
+      "length": 100,
+      "required": false,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_TSK_UI.TUI_TYPE": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.task.ui.TaskUI#type"
+      },
+      "default": null,
+      "enforcement": "truncate",
+      "length": 30,
+      "required": false,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_USER.USE_ADM": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.user.User#administrator"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "required": true,
+      "status": "decided",
+      "type": "boolean"
+    },
+    "STM_USER.USE_BLOCKED": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.user.User#blocked"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "required": true,
+      "status": "decided",
+      "type": "boolean"
+    },
+    "STM_USER.USE_CREATED": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.user.User#createdDate"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "required": false,
+      "status": "decided",
+      "type": "timestamp"
+    },
+    "STM_USER.USE_EMAIL": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.user.User#email"
+      },
+      "default": null,
+      "enforcement": "reject",
+      "length": 250,
+      "required": false,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_USER.USE_ID": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.user.User#id"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "required": true,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_USER.USE_IDENT": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.user.User#identificationNumber"
+      },
+      "default": null,
+      "enforcement": "truncate",
+      "length": 50,
+      "required": false,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_USER.USE_IDENTTYPE": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.user.User#identificationType"
+      },
+      "default": null,
+      "enforcement": "truncate",
+      "length": 50,
+      "required": false,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_USER.USE_LAST_PASSWORD_CHANGE": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.user.User#lastPasswordChange"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "required": false,
+      "status": "decided",
+      "type": "timestamp"
+    },
+    "STM_USER.USE_NAME": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.user.User#firstName"
+      },
+      "default": null,
+      "enforcement": "truncate",
+      "length": 50,
+      "required": false,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_USER.USE_PWD": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.user.User#password"
+      },
+      "default": null,
+      "enforcement": "truncate",
+      "length": 128,
+      "required": false,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_USER.USE_SURNAME": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.user.User#lastName"
+      },
+      "default": null,
+      "enforcement": "truncate",
+      "length": 50,
+      "required": false,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_USER.USE_UPDATED": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.user.User#lastModifiedDate"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "required": false,
+      "status": "decided",
+      "type": "timestamp"
+    },
+    "STM_USER.USE_USER": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.user.User#username"
+      },
+      "default": null,
+      "enforcement": "truncate",
+      "length": 50,
+      "required": false,
+      "status": "decided",
+      "type": "string"
+    },
+    "STM_USR_CONF.UCO_CREATED": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.user.configuration.UserConfiguration#createdDate"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "required": false,
+      "status": "decided",
+      "type": "timestamp"
+    },
+    "STM_USR_CONF.UCO_ID": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.user.configuration.UserConfiguration#id"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "required": true,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_USR_CONF.UCO_ROLEID": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.user.configuration.UserConfiguration#role"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "references": {
+        "column": "STM_ROLE.ROL_ID",
+        "on_delete": "cascade"
+      },
+      "required": true,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_USR_CONF.UCO_ROLEM": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.user.configuration.UserConfiguration#appliesToChildrenTerritories"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "required": true,
+      "status": "decided",
+      "type": "boolean"
+    },
+    "STM_USR_CONF.UCO_TERID": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.user.configuration.UserConfiguration#territory"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "references": {
+        "column": "STM_TERRITORY.TER_ID",
+        "on_delete": "cascade"
+      },
+      "required": true,
+      "status": "decided",
+      "type": "integer"
+    },
+    "STM_USR_CONF.UCO_USERID": {
+      "codelist": null,
+      "consumers": {
+        "jpa": "org.sitmun.domain.user.configuration.UserConfiguration#user"
+      },
+      "default": null,
+      "enforcement": null,
+      "length": null,
+      "references": {
+        "column": "STM_USER.USE_ID",
+        "on_delete": "cascade"
+      },
+      "required": true,
+      "status": "decided",
+      "type": "integer"
+    }
+  },
+  "configuration": {
+    "language.default": {
+      "fresh": "en",
+      "upgraded": "en"
+    },
+    "srs.default.identifier": {
+      "fresh": "EPSG:25831",
+      "upgraded": "EPSG:25831"
+    },
+    "srs.default.proj4": {
+      "fresh": "+proj=utm +zone=31 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs",
+      "upgraded": "+proj=utm +zone=31 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"
+    },
+    "srs.default.x": {
+      "fresh": "x",
+      "upgraded": "x"
+    },
+    "srs.default.y": {
+      "fresh": "y",
+      "upgraded": "y"
+    }
+  },
+  "fields": {
+    "org.sitmun.authentication.dto.UserPasswordAuthenticationRequest#username": {
+      "same_as": "STM_USER.USE_USER"
+    },
+    "org.sitmun.domain.user.UserDTO#email": {
+      "same_as": "STM_USER.USE_EMAIL"
+    },
+    "org.sitmun.domain.user.UserDTO#firstName": {
+      "same_as": "STM_USER.USE_NAME"
+    },
+    "org.sitmun.domain.user.UserDTO#identificationNumber": {
+      "same_as": "STM_USER.USE_IDENT"
+    },
+    "org.sitmun.domain.user.UserDTO#identificationType": {
+      "same_as": "STM_USER.USE_IDENTTYPE"
+    },
+    "org.sitmun.domain.user.UserDTO#lastName": {
+      "same_as": "STM_USER.USE_SURNAME"
+    },
+    "org.sitmun.domain.user.UserDTO#username": {
+      "same_as": "STM_USER.USE_USER"
+    },
+    "org.sitmun.infrastructure.security.password.dto.RequestNewPassword#email": {
+      "same_as": "STM_USER.USE_EMAIL"
+    }
+  },
+  "projections": {
+    "unique_function_index": {
+      "STM_LITERAL_TRANSLATION.LTR_LITERAL": "stm_ltr_literal_uk"
+    }
+  },
+  "uniques": {
+    "STM_APP_BCKG": [
+      "ABC_APPID,ABC_BACKID"
+    ],
+    "STM_APP_TER": [
+      "ATE_APPID,ATE_TERID"
+    ],
+    "STM_APP_TREE": [
+      "ATR_APPID,ATR_TREEID"
+    ],
+    "STM_AVAIL_GI": [
+      "AGI_GIID,AGI_TERID"
+    ],
+    "STM_AVAIL_TSK": [
+      "ATS_TASKID,ATS_TERID"
+    ],
+    "STM_CODELIST": [
+      "COD_LIST,COD_VALUE"
+    ],
+    "STM_CONF": [
+      "CNF_NAME"
+    ],
+    "STM_GEOINFO": [
+      "GEO_STYID"
+    ],
+    "STM_GTER_TYP": [
+      "GTT_NAME"
+    ],
+    "STM_LANGUAGE": [
+      "LAN_SHORTNAME"
+    ],
+    "STM_LITERAL_TRANSLATION_VALUE": [
+      "LTV_LANID,LTV_LTRID"
+    ],
+    "STM_ROLE": [
+      "ROL_NAME"
+    ],
+    "STM_SERVICE_CHECK": [
+      "SEC_OBSERVER,SEC_SERID"
+    ],
+    "STM_TASKREL": [
+      "TAR_ALIAS,TAR_TASKID"
+    ],
+    "STM_TERRITORY": [
+      "TER_NAME"
+    ],
+    "STM_TER_TYP": [
+      "TET_NAME"
+    ],
+    "STM_TOKEN_USER": [
+      "USER_ID"
+    ],
+    "STM_TRANSLATION": [
+      "TRA_COLUMN,TRA_ELEID,TRA_LANID"
+    ],
+    "STM_USER": [
+      "USE_USER"
+    ],
+    "STM_USR_CONF": [
+      "UCO_ROLEID,UCO_ROLEM,UCO_TERID,UCO_USERID"
+    ]
+  }
+}

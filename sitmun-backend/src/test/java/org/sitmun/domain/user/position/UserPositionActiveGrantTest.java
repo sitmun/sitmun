@@ -3,7 +3,7 @@ package org.sitmun.domain.user.position;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.time.LocalDate;
-import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
@@ -25,15 +25,13 @@ import org.sitmun.domain.user.configuration.UserConfigurationRepository;
 import org.sitmun.infrastructure.persistence.type.i18n.I18nTestConfiguration;
 import org.sitmun.infrastructure.security.core.SecurityConstants;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
+import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.test.annotation.DirtiesContext;
 
 @DataJpaTest
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
+@Import(I18nTestConfiguration.class)
 @DisplayName("UserPosition active grant interval")
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 class UserPositionActiveGrantTest {
@@ -271,7 +269,8 @@ class UserPositionActiveGrantTest {
             .build());
   }
 
-  private void persistPosition(User user, Territory territory, Date createdDate, Date expirationDate) {
+  private void persistPosition(
+      User user, Territory territory, Date createdDate, Date expirationDate) {
     UserPosition position =
         UserPosition.builder()
             .user(user)
@@ -287,18 +286,12 @@ class UserPositionActiveGrantTest {
     userPositionRepository.save(position);
   }
 
+  /** UTC civil day, matching {@code hibernate.jdbc.time_zone} and the H2 session zone. */
   private static Date atStartOfDay(int dayOffset) {
     return Date.from(
-        LocalDate.now(ZoneId.systemDefault())
-            .plusDays(dayOffset)
-            .atStartOfDay(ZoneId.systemDefault())
-            .toInstant());
+        LocalDate.now(ZoneOffset.UTC).plusDays(dayOffset).atStartOfDay(ZoneOffset.UTC).toInstant());
   }
 
   private record Fixture(
       User user, Territory live, Territory expired, Role role, Application application) {}
-
-  @TestConfiguration
-  @Import(I18nTestConfiguration.class)
-  static class Configuration {}
 }

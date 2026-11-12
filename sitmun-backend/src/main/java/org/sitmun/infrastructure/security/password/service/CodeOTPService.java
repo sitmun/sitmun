@@ -2,8 +2,8 @@ package org.sitmun.infrastructure.security.password.service;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 import java.util.Base64;
-import java.util.Random;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -11,7 +11,7 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public class CodeOTPService {
 
-  private static final Random random = new Random();
+  private static final SecureRandom random = new SecureRandom();
 
   public String createCodeOTP() {
     int randomNum = random.nextInt(100_000_000);
@@ -22,7 +22,6 @@ public class CodeOTPService {
     try {
       MessageDigest digest = MessageDigest.getInstance("SHA-256");
       byte[] hashedBytes = digest.digest(codeOTP.getBytes());
-      // Encodage en base64 pour rendre le hash lisible
       return Base64.getEncoder().encodeToString(hashedBytes);
     } catch (NoSuchAlgorithmException e) {
       log.error("Erreur lors du hashing du OTP", e);

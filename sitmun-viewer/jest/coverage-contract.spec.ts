@@ -12,7 +12,7 @@ function packageScripts(): Record<string, string> {
 describe('Viewer Jest coverage contract', () => {
   const scripts = packageScripts();
 
-  it('does not collect coverage on the default config npm test loads', () => {
+  it('does not collect coverage on the default config pnpm test loads', () => {
     expect(jestConfig.collectCoverage).toBe(false);
   });
 

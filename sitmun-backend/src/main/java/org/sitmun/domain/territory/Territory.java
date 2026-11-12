@@ -5,14 +5,18 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 import lombok.*;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 import org.sitmun.authorization.client.dto.ClientConfigurationViews;
 import org.sitmun.domain.CodeListsConstants;
 import org.sitmun.domain.PersistenceConstants;
+import org.sitmun.domain.StoredFlagListener;
 import org.sitmun.domain.application.territory.ApplicationTerritory;
 import org.sitmun.domain.cartography.availability.CartographyAvailability;
 import org.sitmun.domain.task.availability.TaskAvailability;
@@ -34,25 +38,8 @@ import org.sitmun.infrastructure.persistence.type.srs.Srs;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-/**
- * A Territory represents a geographical administrative unit in SITMUN.
- *
- * <p>Key features: - Represents administrative boundaries (municipalities, provinces, etc.) -
- * Supports hierarchical relationships (parent-child territories) - Manages territorial scope for
- * applications and cartography - Tracks user positions and permissions within territories
- *
- * <p>Geographical properties: - Envelope (bounding box) - Center point - Spatial reference system
- * (SRS) - Extent
- *
- * <p>Administrative properties: - Name and code - Type and group type - Contact information -
- * Address and scope
- *
- * <p>Relationships: - Can have parent and child territories - Links to applications through
- * ApplicationTerritory - Controls cartography and task availability - Manages user positions and
- * configurations
- */
 @Entity
-@EntityListeners({AuditingEntityListener.class, I18nListener.class})
+@EntityListeners({AuditingEntityListener.class, I18nListener.class, StoredFlagListener.class})
 @Table(
     name = "STM_TERRITORY",
     uniqueConstraints = @UniqueConstraint(name = "STM_TER_NOM_UK", columnNames = "TER_NAME"))
@@ -73,7 +60,7 @@ public class Territory {
       allocationSize = 1)
   @Id
   @GeneratedValue(strategy = GenerationType.TABLE, generator = "STM_TERRITORY_GEN")
-  @Column(name = "TER_ID")
+  @Column(name = "TER_ID", nullable = false)
   @JsonView({
     ClientConfigurationViews.Base.class,
     ClientConfigurationViews.ApplicationTerritory.class
@@ -81,12 +68,12 @@ public class Territory {
   private Integer id;
 
   /** Geographic code. */
-  @Column(name = "TER_CODTER", length = PersistenceConstants.IDENTIFIER)
+  @Column(name = "TER_CODTER", length = PersistenceConstants.IDENTIFIER, nullable = false)
   @NotBlank
   private String code;
 
   /** Territory name. */
-  @Column(name = "TER_NAME", length = PersistenceConstants.SHORT_DESCRIPTION)
+  @Column(name = "TER_NAME", length = PersistenceConstants.SHORT_DESCRIPTION, nullable = false)
   @NotBlank
   @I18n
   @JsonView({
@@ -115,7 +102,8 @@ public class Territory {
   private String territorialAuthorityAddress;
 
   /** Territorial authority email. */
-  @Column(name = "TER_EMAIL", length = PersistenceConstants.IDENTIFIER)
+  @Column(name = "TER_EMAIL", length = PersistenceConstants.SHORT_DESCRIPTION)
+  @Size(max = PersistenceConstants.SHORT_DESCRIPTION)
   @Email
   @JsonView(ClientConfigurationViews.ApplicationTerritory.class)
   private String territorialAuthorityEmail;
@@ -131,7 +119,8 @@ public class Territory {
    *
    * @deprecated
    */
-  @Column(name = "TER_SCOPE", length = PersistenceConstants.IDENTIFIER)
+  @Column(name = "TER_SCOPE", length = 250)
+  @Size(max = 250)
   @CodeList(CodeListsConstants.TERRITORY_SCOPE)
   @JsonView(ClientConfigurationViews.ApplicationTerritory.class)
   @Deprecated(forRemoval = true)
@@ -180,7 +169,7 @@ public class Territory {
   private Integer defaultZoomLevel;
 
   /** <code>true</code> if the territory is blocked. */
-  @Column(name = "TER_BLOCKED")
+  @Column(name = "TER_BLOCKED", nullable = false)
   @NotNull
   private Boolean blocked;
 
@@ -205,7 +194,8 @@ public class Territory {
   private Date createdDate;
 
   /** Projection to be used in this application when it is internal. */
-  @Column(name = "TER_PROJECT", length = PersistenceConstants.IDENTIFIER)
+  @Column(name = "TER_PROJECT", length = 250)
+  @Size(max = 250)
   @Srs
   private String srs;
 
@@ -222,23 +212,37 @@ public class Territory {
 
   /** Territories that are part of this territory. */
   @ManyToMany(cascade = {CascadeType.MERGE, CascadeType.PERSIST})
+  @OnDelete(action = OnDeleteAction.CASCADE)
   @JoinTable(
       name = "STM_GRP_TER",
       joinColumns =
-          @JoinColumn(name = "GTE_TERID", foreignKey = @ForeignKey(name = "STM_GTE_FK_TER")),
+          @JoinColumn(
+              name = "GTE_TERID",
+              nullable = false,
+              foreignKey = @ForeignKey(name = "STM_GTE_FK_TER")),
       inverseJoinColumns =
-          @JoinColumn(name = "GTE_TERMID", foreignKey = @ForeignKey(name = "STM_GTE_FK_TERM")))
+          @JoinColumn(
+              name = "GTE_TERMID",
+              nullable = false,
+              foreignKey = @ForeignKey(name = "STM_GTE_FK_TERM")))
   @Builder.Default
   private Set<Territory> members = new HashSet<>();
 
   /** Territories of which this territory is part of. */
   @ManyToMany(cascade = {CascadeType.MERGE, CascadeType.PERSIST})
+  @OnDelete(action = OnDeleteAction.CASCADE)
   @JoinTable(
       name = "STM_GRP_TER",
       joinColumns =
-          @JoinColumn(name = "GTE_TERMID", foreignKey = @ForeignKey(name = "STM_GTE_FK_TERM")),
+          @JoinColumn(
+              name = "GTE_TERMID",
+              nullable = false,
+              foreignKey = @ForeignKey(name = "STM_GTE_FK_TERM")),
       inverseJoinColumns =
-          @JoinColumn(name = "GTE_TERID", foreignKey = @ForeignKey(name = "STM_GTE_FK_TER")))
+          @JoinColumn(
+              name = "GTE_TERID",
+              nullable = false,
+              foreignKey = @ForeignKey(name = "STM_GTE_FK_TER")))
   @Builder.Default
   private Set<Territory> memberOf = new HashSet<>();
 

@@ -29,19 +29,19 @@ public class TaskRelation {
       allocationSize = 1)
   @Id
   @GeneratedValue(strategy = GenerationType.TABLE, generator = "STM_TASKREL_GEN")
-  @Column(name = "TAR_ID")
+  @Column(name = "TAR_ID", nullable = false)
   @JsonView(ClientConfigurationViews.ApplicationTerritory.class)
   private Integer id;
 
   /** Task owner of the relation. */
-  @ManyToOne
+  @ManyToOne(optional = false)
   @JoinColumn(name = "TAR_TASKID", foreignKey = @ForeignKey(name = "STM_TAR_FK_TAS"))
   @OnDelete(action = OnDeleteAction.CASCADE)
   @NotNull
   private Task task;
 
   /** A string that denotes traits or aspects of the relation */
-  @Column(name = "TAR_TYPE", length = PersistenceConstants.IDENTIFIER)
+  @Column(name = "TAR_TYPE", length = PersistenceConstants.IDENTIFIER, nullable = false)
   @NotNull
   private String relationType;
 
@@ -54,7 +54,7 @@ public class TaskRelation {
    *
    * <p>When a task is the target of a relation cannot be deleted.
    */
-  @ManyToOne
+  @ManyToOne(optional = false)
   @JoinColumn(name = "TAR_TASKRELID", foreignKey = @ForeignKey(name = "STM_TAR_FK_TAS_REL"))
   @NotNull
   private Task relatedTask;

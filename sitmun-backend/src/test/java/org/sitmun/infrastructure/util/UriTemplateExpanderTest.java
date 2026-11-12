@@ -124,21 +124,6 @@ class UriTemplateExpanderTest {
   }
 
   @Test
-  @DisplayName("expand handles missing variable gracefully")
-  void expandHandlesMissingVariableGracefully() {
-    // Given
-    String template = "https://api.example.com/users/{userId}";
-    Map<String, String> params = Map.of("otherId", "123");
-
-    // When
-    String result = UriTemplateExpander.expand(template, params);
-
-    // Then
-    // Undefined variables are left unexpanded or removed based on RFC 6570
-    assertNotNull(result);
-  }
-
-  @Test
   @DisplayName("expand throws exception when template is null")
   void expandThrowsExceptionWhenTemplateIsNull() {
     // Given
@@ -268,8 +253,8 @@ class UriTemplateExpanderTest {
   }
 
   @Test
-  @DisplayName("expand handles URL encoding correctly")
-  void expandHandlesUrlEncodingCorrectly() {
+  @DisplayName("expand percent-encodes the space in a query value")
+  void expandPercentEncodesSpaceInQueryValue() {
     // Given
     String template = "https://api.example.com/search{?query}";
     Map<String, String> params = Map.of("query", "hello world & goodbye");
@@ -277,8 +262,6 @@ class UriTemplateExpanderTest {
     // When
     String result = UriTemplateExpander.expand(template, params);
 
-    // Then
-    // The library should properly encode special characters
     assertTrue(result.contains("hello%20world"));
   }
 

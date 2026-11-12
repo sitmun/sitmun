@@ -30,6 +30,7 @@ import org.sitmun.domain.application.ApplicationRepository;
 import org.sitmun.domain.cartography.Cartography;
 import org.sitmun.domain.cartography.CartographyRepository;
 import org.sitmun.domain.role.Role;
+import org.sitmun.domain.role.RoleRepository;
 import org.sitmun.domain.service.Service;
 import org.sitmun.domain.service.ServiceRepository;
 import org.sitmun.domain.task.TaskRepository;
@@ -40,7 +41,6 @@ import org.sitmun.domain.user.User;
 import org.sitmun.domain.user.UserRepository;
 import org.sitmun.domain.user.configuration.UserConfiguration;
 import org.sitmun.infrastructure.variables.SystemVariableResolver;
-import org.springframework.test.util.ReflectionTestUtils;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -57,6 +57,7 @@ class ProxyValidateUserAccessGateTest {
   @Mock private ApplicationRepository applicationRepository;
   @Mock private TerritoryRepository territoryRepository;
   @Mock private CartographyRepository cartographyRepository;
+  @Mock private RoleRepository roleRepository;
   @Mock private TaskRepository taskRepository;
   @Mock private SqlUserParametrizationDecorator sqlUserParametrizationDecorator;
   @Mock private HttpUserParametrizationDecorator httpUserParametrizationDecorator;
@@ -75,7 +76,11 @@ class ProxyValidateUserAccessGateTest {
             userRepository,
             applicationRepository,
             territoryRepository,
-            cartographyRepository);
+            cartographyRepository,
+            mock(
+                org.sitmun.domain.cartography.parameter.CartographyServiceParameterRepository
+                    .class),
+            roleRepository);
 
     TaskParameterProcessor taskParameterProcessor =
         new TaskParameterProcessor(systemVariableResolver);
@@ -93,8 +98,11 @@ class ProxyValidateUserAccessGateTest {
             systemVariableResolver,
             moreInfoTaskResolver,
             taskParameterProcessor,
-            new UserApplicationAccessPolicy(userRepository, applicationRepository));
-    ReflectionTestUtils.setField(proxyConfigurationService, "validateUserAccessEnabled", true);
+            new UserApplicationAccessPolicy(userRepository, applicationRepository),
+            cartographyRepository,
+            mock(
+                org.sitmun.domain.cartography.parameter.CartographyServiceParameterRepository
+                    .class));
 
     accessibleService = Service.builder().id(SERVICE_ID).blocked(false).build();
     when(serviceRepository.findById(SERVICE_ID)).thenReturn(Optional.of(accessibleService));
@@ -158,17 +166,10 @@ class ProxyValidateUserAccessGateTest {
         .isTrue();
   }
 
-  @Test
-  @DisplayName("still allows blocked user when validate-user-access config is disabled")
-  void stillAllowsBlockedUserWhenValidateUserAccessConfigDisabled() {
-    ReflectionTestUtils.setField(proxyConfigurationService, "validateUserAccessEnabled", false);
-
-    assertThat(proxyConfigurationService.validateUserAccess(wmsRequest(), ACTIVE_USERNAME))
-        .isTrue();
-  }
-
   private void stubWmsAccessFor(String username, User user) {
     when(userRepository.findByUsername(username)).thenReturn(Optional.of(user));
+    when(roleRepository.findRolesByApplicationAndUserAndTerritory(username, APP_ID, TER_ID))
+        .thenReturn(List.of(mock(Role.class)));
     when(cartographyRepository.findByRolesAndTerritory(anyList(), eq(TER_ID)))
         .thenReturn(List.of(Cartography.builder().service(accessibleService).build()));
   }

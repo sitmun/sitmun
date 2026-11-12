@@ -26,9 +26,7 @@ describe('DataTableDefinitionBuilder', () => {
     builder = DataTableDefinition.builder(matDialog, errorHandler, loadingService);
   });
 
-  it('should create', () => {
-    expect(builder).toBeTruthy();
-  });
+  
 
   describe('default relationsFetchFn', () => {
     it('should return of([]) observable when not overridden', async () => {
@@ -37,43 +35,15 @@ describe('DataTableDefinitionBuilder', () => {
       const values = await firstValueFrom(result.pipe(toArray()));
       expect(values).toEqual([[]]);
     });
-
-    it('should emit empty array then complete when not overridden', (done) => {
-      const definition = builder.build();
-      const result = definition.relationsFetchFn();
-      let emittedValue: any;
-      result.subscribe({
-        next: (value) => { emittedValue = value; },
-        complete: () => {
-          expect(emittedValue).toEqual([]);
-          done();
-        }
-      });
-    });
   });
 
   describe('default targetsFetchFn', () => {
     it('should return of([]) observable when not overridden', async () => {
       const definition = builder.build();
-      // Access private property via type assertion for testing
       const targetsFetchFn = (definition as any).targetsFetchFn;
       const result = targetsFetchFn();
       const values = await firstValueFrom(result.pipe(toArray()));
       expect(values).toEqual([[]]);
-    });
-
-    it('should emit empty array then complete when not overridden', (done) => {
-      const definition = builder.build();
-      const targetsFetchFn = (definition as any).targetsFetchFn;
-      const result = targetsFetchFn();
-      let emittedValue: any;
-      result.subscribe({
-        next: (value) => { emittedValue = value; },
-        complete: () => {
-          expect(emittedValue).toEqual([]);
-          done();
-        }
-      });
     });
   });
 
@@ -307,7 +277,7 @@ describe('DataTableDefinitionBuilder', () => {
   describe('withFieldRestriction', () => {
     it('exposes a single scalar restriction as a string', () => {
       const definition = builder.withFieldRestriction('name').build();
-      expect((definition as any).addFieldRestriction).toBe('name');
+      expect(definition.addFieldRestriction).toBe('name');
     });
   });
 
@@ -316,12 +286,12 @@ describe('DataTableDefinitionBuilder', () => {
       const definition = builder
         .withFieldRestrictions(['userId', 'territoryId', 'appliesToChildrenTerritories'])
         .build();
-      expect((definition as any).addFieldRestriction).toEqual(['userId', 'territoryId', 'appliesToChildrenTerritories']);
+      expect(definition.addFieldRestriction).toEqual(['userId', 'territoryId', 'appliesToChildrenTerritories']);
     });
 
     it('returns undefined when no restrictions are configured', () => {
       const definition = builder.build();
-      expect((definition as any).addFieldRestriction).toBeUndefined();
+      expect(definition.addFieldRestriction).toBeUndefined();
     });
   });
 });
@@ -344,9 +314,7 @@ describe('DataTable2DefinitionBuilder', () => {
     builder = DataTable2Definition.builder(matDialog, errorHandler, loadingService);
   });
 
-  it('should create', () => {
-    expect(builder).toBeTruthy();
-  });
+  
 
   describe('Capability flags', () => {
     describe('default builder', () => {
@@ -469,7 +437,7 @@ describe('DataTable2DefinitionBuilder', () => {
   describe('withFieldRestriction', () => {
     it('exposes a single scalar restriction as a string', () => {
       const definition = builder.withFieldRestriction('name').build();
-      expect((definition as any).addFieldRestriction).toBe('name');
+      expect(definition.addFieldRestriction).toBe('name');
     });
   });
 
@@ -478,12 +446,12 @@ describe('DataTable2DefinitionBuilder', () => {
       const definition = builder
         .withFieldRestrictions(['userId', 'territoryId', 'appliesToChildrenTerritories'])
         .build();
-      expect((definition as any).addFieldRestriction).toEqual(['userId', 'territoryId', 'appliesToChildrenTerritories']);
+      expect(definition.addFieldRestriction).toEqual(['userId', 'territoryId', 'appliesToChildrenTerritories']);
     });
 
     it('returns undefined when no restrictions are configured', () => {
       const definition = builder.build();
-      expect((definition as any).addFieldRestriction).toBeUndefined();
+      expect(definition.addFieldRestriction).toBeUndefined();
     });
   });
 });

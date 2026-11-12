@@ -1,13 +1,18 @@
 package org.sitmun.administration.controller;
 
+import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.Matchers.startsWith;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 
+import java.io.IOException;
 import org.json.JSONObject;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.sitmun.administration.service.extractor.LocalHtmlServer;
 import org.sitmun.test.BaseTest;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
@@ -18,10 +23,21 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 class ServiceCapabilitiesExtractorIntegrationTest extends BaseTest {
 
   private static final String CAPABILITIES_URI = "/api/helpers/capabilities";
+  private static LocalHtmlServer html;
+
+  @BeforeAll
+  static void startHtml() throws IOException {
+    html = LocalHtmlServer.start();
+  }
+
+  @AfterAll
+  static void stopHtml() {
+    html.close();
+  }
 
   @Test
   @WithMockUser(roles = "ADMIN")
-  @DisplayName("GET leftovers are gone")
+  @DisplayName("GET /api/helpers/capabilities returns 405")
   void getIsNotSupported() throws Exception {
     mvc.perform(get(CAPABILITIES_URI).param("url", "https://example.com/wms"))
         .andExpect(MockMvcResultMatchers.status().isMethodNotAllowed());
@@ -42,10 +58,7 @@ class ServiceCapabilitiesExtractorIntegrationTest extends BaseTest {
   @WithMockUser(roles = "ADMIN")
   @DisplayName("WMS GetCapabilties: A request with a percent-encoded ampersand succeeds")
   void usePercentEncodedAmpersand() throws Exception {
-    postCapabilities(
-            body(
-                "https://sitmun.diba.cat/wms/servlet/ACE1M?request=GetCapabilities%26service=WMS",
-                "WMS"))
+    postCapabilities(body(html.url("/wms-130") + "?request=GetCapabilities%26service=WMS", "WMS"))
         .andExpect(MockMvcResultMatchers.status().isOk())
         .andExpect(jsonPath("$.success").value(true))
         .andExpect(jsonPath("$.type").value("OGC:WMS 1.3.0"))
@@ -58,7 +71,7 @@ class ServiceCapabilitiesExtractorIntegrationTest extends BaseTest {
   @WithMockUser(roles = "ADMIN")
   @DisplayName("WMS GetCapabilties: Extract from a GetCapabilities request to a WMS 1.3.0")
   void extractKnownWMSService130() throws Exception {
-    postCapabilities(body("https://www.ign.es/wms-inspire/ign-base?request=GetCapabilities", "WMS"))
+    postCapabilities(body(html.url("/wms-130") + "?request=GetCapabilities", "WMS"))
         .andExpect(MockMvcResultMatchers.status().isOk())
         .andExpect(jsonPath("$.success").value(true))
         .andExpect(jsonPath("$.type").value("OGC:WMS 1.3.0"))
@@ -70,10 +83,7 @@ class ServiceCapabilitiesExtractorIntegrationTest extends BaseTest {
   @WithMockUser(roles = "ADMIN")
   @DisplayName("WMS GetCapabilties: Extract from a GetCapabilities request to a WMS 1.1.1")
   void extractKnownWMSService111() throws Exception {
-    postCapabilities(
-            body(
-                "https://www.ign.es/wms-inspire/ign-base?request=GetCapabilities&version=1.1.1",
-                "WMS"))
+    postCapabilities(body(html.url("/wms-111") + "?request=GetCapabilities&version=1.1.1", "WMS"))
         .andExpect(MockMvcResultMatchers.status().isOk())
         .andExpect(jsonPath("$.success").value(true))
         .andExpect(jsonPath("$.type").value("OGC:WMS 1.1.1"))
@@ -83,34 +93,38 @@ class ServiceCapabilitiesExtractorIntegrationTest extends BaseTest {
 
   @Test
   @WithMockUser(roles = "ADMIN")
-  @DisplayName("HTML: Extract from a request to HTML page")
+  @DisplayName("POST of an HTML page returns 400 and the non-capabilities reason")
   void extractHtmlPage() throws Exception {
-    postCapabilities(body("https://www.ign.es/", "WMS"))
+    postCapabilities(body(html.url("/"), "WMS"))
         .andExpect(MockMvcResultMatchers.status().isBadRequest())
         .andExpect(jsonPath("$.success").value(false))
-        .andExpect(jsonPath("$.reason").value("Not a standard OGC:WMS Capabilities response"))
+        .andExpect(
+            jsonPath("$.reason").value("Not a standard OGC:WMS or OGC:WFS Capabilities response"))
         .andExpect(jsonPath("$.asText", startsWith("<!DOCTYPE")));
   }
 
   @Test
   @WithMockUser(roles = "ADMIN")
-  @DisplayName("HTML: Extract from a request to a not found page")
+  @DisplayName("HTML: a non-XML 404 reports the HTTP status")
   void extract404Page() throws Exception {
-    postCapabilities(body("https://www.ign.es/not-found", "WMS"))
+    postCapabilities(body(html.url("/not-found"), "WMS"))
         .andExpect(MockMvcResultMatchers.status().isBadRequest())
         .andExpect(jsonPath("$.success").value(false))
-        .andExpect(jsonPath("$.reason").value("Not a well formed XML"))
-        .andExpect(jsonPath("$.asText", startsWith("<html")));
+        .andExpect(jsonPath("$.reason").value("HTTP 404"))
+        .andExpect(jsonPath("$.asText", startsWith("<html")))
+        .andExpect(jsonPath("$.asJson").value(nullValue()));
   }
 
   @Test
   @WithMockUser(roles = "ADMIN")
-  @DisplayName("DNS: Extract from a request to an nonexistent domain")
+  @DisplayName("POST to an unknown host returns 400 and UnknownHostException")
   void extractNonExistentDomain() throws Exception {
     postCapabilities(body("https://fake", "WMS"))
         .andExpect(MockMvcResultMatchers.status().isBadRequest())
         .andExpect(jsonPath("$.success").value(false))
-        .andExpect(jsonPath("$.reason", startsWith("UnknownHostException: fake")));
+        .andExpect(jsonPath("$.reason", startsWith("UnknownHostException: fake")))
+        .andExpect(jsonPath("$.asText").value(nullValue()))
+        .andExpect(jsonPath("$.asJson").value(nullValue()));
   }
 
   private ResultActions postCapabilities(String json) throws Exception {

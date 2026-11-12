@@ -15,6 +15,8 @@ public class SimpleServiceCapabilitiesExtractor implements ServiceCapabilitiesEx
 
   public static final String WMS_CAPABILITIES = "WMS_Capabilities";
   public static final String WMT_MS_CAPABILITIES = "WMT_MS_Capabilities";
+  public static final String WFS_CAPABILITIES = "WFS_Capabilities";
+  public static final String WFS_CAPABILITIES_PREFIXED = "wfs:WFS_Capabilities";
   public static final String VERSION = "version";
   private final HttpClientFactory httpClientFactory;
 
@@ -47,7 +49,8 @@ public class SimpleServiceCapabilitiesExtractor implements ServiceCapabilitiesEx
       }
       return;
     }
-    builder.success(response.code() == 200 && response.body() != null);
+    int status = response.code();
+    builder.success(status == 200 && response.body() != null);
     ResponseBody body = response.body();
     if (body != null) {
       String text = body.string();
@@ -55,21 +58,36 @@ public class SimpleServiceCapabilitiesExtractor implements ServiceCapabilitiesEx
         builder.success(false).reason("Empty response");
       } else {
         builder.asText(text);
+        if (status != 200) {
+          builder.success(false).reason("HTTP " + status);
+        }
         JSONObject json;
         try {
           json = XML.toJSONObject(text);
         } catch (Exception ignored) {
-          builder.success(false).reason("Not a well formed XML");
+          builder.success(false);
+          if (status == 200) {
+            builder.reason("Not a well formed XML");
+          }
           return;
         }
         builder.asJson(json.toMap());
+        if (status != 200) {
+          return;
+        }
         if (json.has(WMS_CAPABILITIES) && json.getJSONObject(WMS_CAPABILITIES).has(VERSION)) {
           builder.type("OGC:WMS " + json.getJSONObject(WMS_CAPABILITIES).get(VERSION));
         } else if (json.has(WMT_MS_CAPABILITIES)
             && json.getJSONObject(WMT_MS_CAPABILITIES).has(VERSION)) {
           builder.type("OGC:WMS " + json.getJSONObject(WMT_MS_CAPABILITIES).get(VERSION));
+        } else if (json.has(WFS_CAPABILITIES)
+            && json.getJSONObject(WFS_CAPABILITIES).has(VERSION)) {
+          builder.type("OGC:WFS " + json.getJSONObject(WFS_CAPABILITIES).get(VERSION));
+        } else if (json.has(WFS_CAPABILITIES_PREFIXED)
+            && json.getJSONObject(WFS_CAPABILITIES_PREFIXED).has(VERSION)) {
+          builder.type("OGC:WFS " + json.getJSONObject(WFS_CAPABILITIES_PREFIXED).get(VERSION));
         } else {
-          builder.success(false).reason("Not a standard OGC:WMS Capabilities response");
+          builder.success(false).reason("Not a standard OGC:WMS or OGC:WFS Capabilities response");
         }
       }
     }

@@ -2,7 +2,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 
-import { AppCfg, AppTasks } from '@api/model/app-cfg';
+import type { AppCfg, AppTasks } from '@api/model/app-cfg';
 
 import { ControlHandlerBase } from './control-handler-base';
 import { SitnaControlConfig } from './control-handler.interface';
@@ -103,27 +103,18 @@ describe('ControlHandlerBase', () => {
     it('should initialize with patch manager', () => {
       expect(handler['patchManager']).toBeDefined();
     });
-
-    it('should initialize with empty load cache', () => {
-      expect(handler['loadPromiseCache'].size).toBe(0);
-    });
   });
 
   describe('loadPatches()', () => {
     it('should resolve successfully with context', async () => {
-      await handler.loadPatches(mockAppCfg);
-      // Default implementation does nothing, just resolves
-      expect(true).toBe(true);
+      await expect(handler.loadPatches(mockAppCfg)).resolves.toBeUndefined();
     });
 
     it('should handle no patches gracefully', async () => {
-      await noPatchHandler.loadPatches(mockAppCfg);
-      // Default implementation does nothing, just resolves
-      expect(true).toBe(true);
+      await expect(noPatchHandler.loadPatches(mockAppCfg)).resolves.toBeUndefined();
     });
 
-    it('should require context parameter', async () => {
-      // TypeScript will catch this, but we test runtime behavior
+    it('resolves undefined from the default loadPatches', async () => {
       await expect(handler.loadPatches(mockAppCfg)).resolves.toBeUndefined();
     });
 
@@ -139,9 +130,7 @@ describe('ControlHandlerBase', () => {
       const multiHandler = TestBed.runInInjectionContext(
         () => new MultiPatchHandler(mockSitnaApi)
       );
-      await multiHandler.loadPatches(mockAppCfg);
-      // Default implementation does nothing, just resolves
-      expect(true).toBe(true);
+      await expect(multiHandler.loadPatches(mockAppCfg)).resolves.toBeUndefined();
     });
   });
 
@@ -152,14 +141,6 @@ describe('ControlHandlerBase', () => {
       handler.cleanup();
 
       expect(handler['patchManager'].restoreAll).toHaveBeenCalled();
-    });
-
-    it('should clear load cache', () => {
-      handler['loadPromiseCache'].set('test', Promise.resolve());
-
-      handler.cleanup();
-
-      expect(handler['loadPromiseCache'].size).toBe(0);
     });
   });
 
@@ -218,93 +199,6 @@ describe('ControlHandlerBase', () => {
 
         expect(result).toEqual({ div: 'test', option: 'override' });
       });
-    });
-  });
-
-  describe('ensureControlLoaded()', () => {
-    it('should load control with dependencies', async () => {
-      const mockTC = { control: {} };
-      mockSitnaApi.getTC.mockReturnValue(mockTC);
-
-      let scriptLoaded = false;
-      await handler['ensureControlLoaded']({
-        dependencies: 'TC',
-        loadScript: () => {
-          scriptLoaded = true;
-        },
-        controlName: 'TestControl'
-      });
-
-      expect(mockSitnaApi.getTC).toHaveBeenCalled();
-      expect(scriptLoaded).toBe(true);
-    });
-
-    it('should return immediately if already loaded', async () => {
-      let checkCount = 0;
-      let scriptLoaded = false;
-
-      await handler['ensureControlLoaded']({
-        checkLoaded: () => {
-          checkCount++;
-          return true;
-        },
-        loadScript: () => {
-          scriptLoaded = true;
-        },
-        controlName: 'TestControl'
-      });
-
-      expect(checkCount).toBe(1);
-      expect(scriptLoaded).toBe(false);
-    });
-
-    it('should cache load promises', async () => {
-      const loadPromise = handler['ensureControlLoaded']({
-         
-        loadScript: () => {},
-        controlName: 'TestControl'
-      });
-
-      expect(handler['loadPromiseCache'].has('TestControl')).toBe(true);
-
-      await loadPromise;
-
-      // Cache should be cleared after completion
-      expect(handler['loadPromiseCache'].has('TestControl')).toBe(false);
-    });
-
-    it('should handle array of dependencies', async () => {
-      const mockTC = { control: { Search: {} } };
-      mockSitnaApi.getTC.mockReturnValue(mockTC);
-      mockSitnaApi.getTCProperty.mockReturnValue({});
-
-      await handler['ensureControlLoaded']({
-        dependencies: ['TC', 'TC.control.Search'],
-         
-        loadScript: () => {},
-        controlName: 'TestControl'
-      });
-
-      expect(mockSitnaApi.getTC).toHaveBeenCalled();
-      expect(mockSitnaApi.getTCProperty).toHaveBeenCalledWith(
-        'TC.control.Search'
-      );
-    });
-
-    it('should handle function dependencies', async () => {
-      let depResolved = false;
-      const depFunction = async () => {
-        depResolved = true;
-      };
-
-      await handler['ensureControlLoaded']({
-        dependencies: depFunction,
-         
-        loadScript: () => {},
-        controlName: 'TestControl'
-      });
-
-      expect(depResolved).toBe(true);
     });
   });
 

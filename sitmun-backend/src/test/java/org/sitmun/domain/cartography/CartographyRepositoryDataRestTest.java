@@ -28,17 +28,15 @@ import org.sitmun.domain.service.ServiceRepository;
 import org.sitmun.domain.territory.Territory;
 import org.sitmun.domain.territory.TerritoryRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.hateoas.MediaTypes;
 import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.web.servlet.MockMvc;
 
 @SpringBootTest
 @AutoConfigureMockMvc
 @DisplayName("Cartography Repository Data REST test")
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 class CartographyRepositoryDataRestTest {
 
   private static final String CARTOGRAPHY_NAME = "Cartography Name";
@@ -64,7 +62,7 @@ class CartographyRepositoryDataRestTest {
     service =
         Service.builder()
             .name("Service")
-            .serviceURL("http://localhost/api/services/1")
+            .serviceURL("http://localhost/api/services/10001")
             .type("service-type")
             .blocked(false)
             .build();
@@ -139,7 +137,7 @@ class CartographyRepositoryDataRestTest {
 
     mvc.perform(get(location))
         .andExpect(status().isOk())
-        .andExpect(content().contentType(MediaTypes.HAL_JSON))
+        .andExpect(content().contentType(MediaTypes.VND_HAL_JSON))
         .andExpect(jsonPath("$.name", equalTo(CARTOGRAPHY_NAME)))
         .andExpect(jsonPath("$.createdDate", isIso8601DateAndTime()));
 
@@ -148,7 +146,7 @@ class CartographyRepositoryDataRestTest {
   }
 
   @Test
-  @DisplayName("POST: fail as public user")
+  @DisplayName("Anonymous cartography POST returns 4xx")
   void postCartographyAsPublicUserFails() throws Exception {
     mvc.perform(
             post(CARTOGRAPHIES_URI)
@@ -173,18 +171,18 @@ class CartographyRepositoryDataRestTest {
   @DisplayName("GET: has cartography-groups property")
   @WithMockUser(roles = "ADMIN")
   void hasAccessToCartographyGroups() throws Exception {
-    mvc.perform(get(CARTOGRAPHY_URI_PERMISSION_URI, 1))
+    mvc.perform(get(CARTOGRAPHY_URI_PERMISSION_URI, 10001))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$._embedded.cartography-groups[*]", hasSize(1)));
   }
 
   /**
-   * This request must be rejected because applyFilterXXX should be a boolean instead of a number.
+   * The apply-filter flags are the strings "0" and "1".
    *
    * @see <a href="https://github.com/sitmun/sitmun-admin-app/issues/41"/>Github</a>
    */
   @Test
-  @DisplayName("PUT: applyFilterXXX must not use integers as use booleans")
+  @DisplayName("String 0 and 1 for apply-filter flags return 422")
   @WithMockUser(roles = "ADMIN")
   void checkIssueSitmunAdminApp41() throws Exception {
     String badRequest =
@@ -199,7 +197,7 @@ class CartographyRepositoryDataRestTest {
           "order": 3577,
           "transparency": 0,
           "metadataURL": "http://sitmun.diba.cat/sitmun2/metadada.jsp?title=SE${MUN_INE}&lang=${LANG}",
-          "legendType": "CAPABILITIES",
+          "legendType": "LEGENDURL",
           "legendURL": null,
           "description": null,
           "datasetURL": null,
@@ -223,20 +221,18 @@ class CartographyRepositoryDataRestTest {
   }
 
   /**
-   * Test values are null.
-   *
    * @see <a href="https://github.com/sitmun/sitmun-admin-app/issues/41"/>Github</a>
    */
   @Test
   @DisplayName("GET: filters are available in projections")
   @WithMockUser(roles = "ADMIN")
-  void applyFilterTestDataIsNull() throws Exception {
-    mvc.perform(get(CARTOGRAPHY_URI, 1).contentType(APPLICATION_JSON))
+  void applyFilterFlagsAreTrue() throws Exception {
+    mvc.perform(get(CARTOGRAPHY_URI, 10001).contentType(APPLICATION_JSON))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.applyFilterToGetFeatureInfo", is(true)))
         .andExpect(jsonPath("$.applyFilterToSpatialSelection", is(true)));
 
-    mvc.perform(get(CARTOGRAPHY_URI_PROJECTION, 1).contentType(APPLICATION_JSON))
+    mvc.perform(get(CARTOGRAPHY_URI_PROJECTION, 10001).contentType(APPLICATION_JSON))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.applyFilterToGetFeatureInfo", is(true)))
         .andExpect(jsonPath("$.applyFilterToSpatialSelection", is(true)));
@@ -299,7 +295,8 @@ class CartographyRepositoryDataRestTest {
         .andExpect(status().isOk())
         .andExpect(jsonPath("$._embedded.cartographies", hasSize(1)))
         .andExpect(
-            jsonPath("$._embedded.cartographies[0].serviceName", is("Unique Search Service")));
+            jsonPath("$._embedded.cartographies[0].serviceName", is("Unique Search Service")))
+        .andExpect(jsonPath("$._embedded.cartographies[0].serviceType", is("service-type")));
   }
 
   @Test

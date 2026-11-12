@@ -276,18 +276,43 @@ document.querySelectorAll('.tc-map').forEach(function (elm) {
        * out of sync (SITNA bug 23855). Match responsive layout: enable only
        * after the 0.3s slide completes.
        */
+      // OverviewMap.disable reads wrap.register. map.ready can run before that wrap exists.
+      const runWithOverviewWrap = function (fn) {
+        if (!ovmap) {
+          return;
+        }
+        const started = Date.now();
+        const tick = function () {
+          if (!map.div || !map.div.isConnected) {
+            return;
+          }
+          if (ovmap.wrap) {
+            fn();
+            return;
+          }
+          if (Date.now() - started < 3000) {
+            setTimeout(tick, 50);
+          }
+        };
+        tick();
+      };
+
       const syncOverviewMapControl = function (overviewCollapsed) {
         resetMapScroll();
         if (!ovmap) {
           return;
         }
         if (overviewCollapsed) {
-          ovmap.disable();
+          runWithOverviewWrap(function () {
+            ovmap.disable();
+          });
           return;
         }
         setTimeout(function () {
-          ovmap.enable();
-          resetMapScroll();
+          runWithOverviewWrap(function () {
+            ovmap.enable();
+            resetMapScroll();
+          });
         }, 300);
       };
 
@@ -296,9 +321,9 @@ document.querySelectorAll('.tc-map').forEach(function (elm) {
         if (!capasCollapsed && ovPanel) {
           // Capas covers the overview dock: collapse + stop OL sync.
           ovPanel.classList.add(rcollapsedClass);
-          if (ovmap) {
+          runWithOverviewWrap(function () {
             ovmap.disable();
-          }
+          });
         }
       };
 
@@ -306,9 +331,9 @@ document.querySelectorAll('.tc-map').forEach(function (elm) {
       if (ovPanel) {
         ovPanel.classList.add(rcollapsedClass);
       }
-      if (ovmap) {
+      runWithOverviewWrap(function () {
         ovmap.disable();
-      }
+      });
 
       if (rightPanel) {
         const initialCollapsed =
@@ -322,6 +347,10 @@ document.querySelectorAll('.tc-map').forEach(function (elm) {
           /* --- LEGACY --- */ `.${TC.Consts.classes.RIGHT_PANEL} > h1, .right-panel > h1`
         )
         .forEach(function (elm) {
+          if (elm.__sitmunPanelToggle) {
+            return;
+          }
+          elm.__sitmunPanelToggle = true;
           elm.addEventListener(SITNA.Consts.event.CLICK, function (e) {
             e.preventDefault();
             e.stopPropagation();
@@ -339,6 +368,11 @@ document.querySelectorAll('.tc-map').forEach(function (elm) {
       map.div
         .querySelectorAll(`.${TC.Consts.classes.LEFT_PANEL} > h1`)
         .forEach(function (h1) {
+          // Another layout init on the same heading would toggle the drawer shut.
+          if (h1.__sitmunPanelToggle) {
+            return;
+          }
+          h1.__sitmunPanelToggle = true;
           h1.addEventListener(SITNA.Consts.event.CLICK, function (e) {
             e.preventDefault();
             e.stopPropagation();
@@ -497,7 +531,7 @@ document.querySelectorAll('.tc-map').forEach(function (elm) {
         if (tab.tagName === 'H2') {
           for (let i = 0; i < map.controls.length; i++) {
             const ctl = map.controls[i];
-            if (ctl.div && ctl.div.contains(tab)) {
+            if (ctl.div && ctl.div !== map.div && ctl.div.contains(tab)) {
               if (ctl.isHighlighted()) {
                 ctl.unhighlight();
               } else {
@@ -694,7 +728,7 @@ document.querySelectorAll('.tc-map').forEach(function (elm) {
               // Find the control that contains this h2
               for (let i = 0; i < map.controls.length; i++) {
                 const ctl = map.controls[i];
-                if (ctl.div && ctl.div.contains(tab)) {
+                if (ctl.div && ctl.div !== map.div && ctl.div.contains(tab)) {
                   if (ctl.isHighlighted()) {
                     ctl.unhighlight();
                   } else {

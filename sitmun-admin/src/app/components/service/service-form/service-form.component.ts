@@ -1,9 +1,10 @@
 import {COMMA, ENTER} from '@angular/cdk/keycodes';
-import {Component, OnDestroy, OnInit, TemplateRef, ViewChild} from '@angular/core';
+import {ChangeDetectorRef, Component, inject, NgZone, OnDestroy, OnInit, TemplateRef, ViewChild, ChangeDetectionStrategy} from '@angular/core';
 import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
 import {UntypedFormControl, UntypedFormGroup, Validators} from '@angular/forms';
 import {MatChipInputEvent} from '@angular/material/chips';
 import {MatDialog} from '@angular/material/dialog';
+import {MatTabChangeEvent} from '@angular/material/tabs';
 import {ActivatedRoute, Router} from '@angular/router';
 
 import {TranslateService} from "@ngx-translate/core";
@@ -24,12 +25,21 @@ import {
   CodeList,
   CodeListService,
   Service,
+  ServiceAccessHour,
+  ServiceAccessObservation,
+  ServiceAccessSample,
+  ServiceUsageApplicationTotal,
+  ServiceUsageRange,
+  ServiceUsageView,
   ServiceCapabilitiesProbe,
   ServiceParameter,
   ServiceParameterService,
+  codesInScope,
+  parameterLeadProtocol,
   ServiceService,
   TranslationService,
 } from '@app/domain';
+import {DataSeries} from '@app/frontend-gui/src/lib/data-graph/datagraph.component';
 import {
   DialogMessageComponent,
   onCreate,
@@ -44,66 +54,40 @@ import {LoadingOverlayService} from "@app/services/loading-overlay.service";
 import {LoggerService} from '@app/services/logger.service';
 import {UtilsService} from '@app/services/utils.service';
 import {WMSCapabilitiesService, WMSLayersCapabilities} from "@app/services/wms-capabilities.service";
-import { compareNullableString } from '@app/utils/compare-nullable-string';
 import {config} from '@config';
 import {constants} from '@environments/constants';
 
-/**
- * Component for managing service forms in the application.
- * Extends SitmunMixedBase to provide base functionality for service management.
- *
- * This component provides a comprehensive interface for:
- * 1. Service Management
- *    - Creating new services
- *    - Editing existing services
- *    - Duplicating services with modified attributes
- *    - Form validation and submission
- *
- * 2. Service Configuration
- *    - Basic service information (name, description, URL)
- *    - Authentication settings (mode, credentials)
- *    - Service type configuration (WMS, etc.)
- *    - Proxy settings
- *    - Projection management (SRS)
- *
- * 3. WMS Integration
- *    - Automatic metadata retrieval from WMS GetCapabilities
- *    - Layer discovery and management
- *    - Style configuration
- *    - Projection support detection
- *
- * 4. Parameter Management
- *    - CRUD operations for service parameters
- *    - Parameter type configuration
- *    - Value validation
- *
- * 5. Cartography Integration
- *    - Layer management and configuration
- *    - Style association
- *    - Legend configuration
- *    - Metadata URL management
- *
- * The component uses a tabbed interface to organize:
- * - General Data: Basic service configuration
- * - Parameters: Service parameter management
- * - Cartographies: Layer and style management
- *
- * Key Features:
- * - Multi-language support through translations
- * - Real-time form validation
- * - Automatic WMS capabilities integration
- * - Grid-based parameter and layer management
- * - Support for various service types and authentication modes
- *
- * @example
- * // Route configuration
- * { path: 'service/:id/serviceForm', component: ServiceFormComponent }
- * { path: 'service/:id/serviceForm/:idDuplicate', component: ServiceFormComponent }
- */
+import {
+  accessDetailRequest,
+  accessDetailSentence,
+  accessSinceLabel,
+  AVAILABILITY_TARGET_PERCENT,
+  monitoringFacts,
+  operationErrorPercent as readOperationErrorPercent,
+  recentAccessChanges,
+  TIMEOUT_STATUS,
+  usageAsOfClock,
+  usageFacts as readUsageFacts,
+  type AccessChange,
+  type MonitoringFacts,
+  type UsageFacts,
+} from '../service-access-detail';
+import {
+  accessObserverLabel,
+  accessStatusLabel,
+  accessTrendSlots,
+  bucketStart,
+  healthyAccessStatus,
+  hourColor,
+  hourMinute,
+  mergeBackendObservation,
+} from '../service-access-trend';
+
 @Component({
     selector: 'app-service-form',
     templateUrl: './service-form.component.html',
     styleUrls: ['./service-form.component.scss'],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class ServiceFormComponent extends BaseFormComponent<Service> implements OnInit, OnDestroy {
@@ -159,6 +143,30 @@ export class ServiceFormComponent extends BaseFormComponent<Service> implements 
    * Defines columns, data fetching, and update operations for parameters.
    */
   protected readonly parametersTable: DataTableDefinition<ServiceParameter, ServiceParameter>;
+
+  accessObservation: ServiceAccessObservation | null = null;
+  usageRange: ServiceUsageRange = '30d';
+  usage: ServiceUsageView | null = null;
+  usageOperationColumns = ['operation', 'requests', 'failed', 'errorRate'];
+  usageApplicationColumns = ['name', 'requests', 'viewerLoads'];
+  private usageRequested = false;
+  private usageChart: {view: ServiceUsageView | null; lang: string; series: DataSeries[]} | null = null;
+
+  accessHours = accessTrendSlots(undefined, 'tenMinute');
+  accessSamples: ServiceAccessSample[] = [];
+  sampleTimeoutMs = 0;
+  private viewNow = new Date();
+  private viewClock: ReturnType<typeof setInterval> | null = null;
+  private readonly zone = inject(NgZone);
+  private readonly changeDetector = inject(ChangeDetectorRef);
+  private latencyChart: {
+    samples: ServiceAccessSample[];
+    timeoutMs: number;
+    lang: string;
+    series: DataSeries[];
+    reference: {value: number} | null;
+  } | null = null;
+  readonly availabilityTarget = AVAILABILITY_TARGET_PERCENT;
 
   /**
    * Flag indicating if the WMS capabilities table load button is disabled.
@@ -235,6 +243,21 @@ export class ServiceFormComponent extends BaseFormComponent<Service> implements 
     this.featureFlagService.featureFlags$
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(() => this.maybeRegisterParametersTable());
+    this.loadUsage(this.usageRange);
+    this.zone.runOutsideAngular(() => {
+      this.viewClock = setInterval(() => {
+        this.viewNow = new Date();
+        this.changeDetector.detectChanges();
+      }, 1000);
+    });
+  }
+
+  override ngOnDestroy(): void {
+    if (this.viewClock != null) {
+      clearInterval(this.viewClock);
+      this.viewClock = null;
+    }
+    super.ngOnDestroy();
   }
 
   /**
@@ -320,19 +343,19 @@ export class ServiceFormComponent extends BaseFormComponent<Service> implements 
 
     this.entityForm = new UntypedFormGroup({
       name: new UntypedFormControl(this.entityToEdit.name, [Validators.required, Validators.maxLength(60)]),
-      user: new UntypedFormControl(this.entityToEdit.user),
-      password: new UntypedFormControl(this.entityToEdit.password),
-      authenticationMode: new UntypedFormControl(this.entityToEdit.authenticationMode, [Validators.required]),
+      user: new UntypedFormControl(this.entityToEdit.user, [Validators.maxLength(50)]),
+      password: new UntypedFormControl(this.entityToEdit.password, [Validators.maxLength(50)]),
+      authenticationMode: new UntypedFormControl(this.entityToEdit.authenticationMode, [Validators.maxLength(50)]),
       description: new UntypedFormControl(this.entityToEdit.description, [Validators.maxLength(4000)]),
-      type: new UntypedFormControl(this.entityToEdit.type, [
+      type: new UntypedFormControl(this.entityToEdit.type, [Validators.maxLength(50), 
         Validators.required,
       ]),
-      serviceURL: new UntypedFormControl(this.entityToEdit.serviceURL, [
+      serviceURL: new UntypedFormControl(this.entityToEdit.serviceURL, [Validators.maxLength(4000), 
         Validators.required,
       ]),
       proxyUrl: new UntypedFormControl(this.entityToEdit.proxyUrl,),
-      supportedSRS: new UntypedFormControl(this.entityToEdit.supportedSRS),
-      getInformationURL: new UntypedFormControl(this.entityToEdit.getInformationURL,),
+      supportedSRS: new UntypedFormControl(this.entityToEdit.supportedSRS, [Validators.maxLength(1000)]),
+      getInformationURL: new UntypedFormControl(this.entityToEdit.getInformationURL, [Validators.maxLength(4000)]),
       blocked: new UntypedFormControl(this.entityToEdit.blocked, []),
       isProxied: new UntypedFormControl(this.entityToEdit.isProxied, []),
     });
@@ -340,7 +363,9 @@ export class ServiceFormComponent extends BaseFormComponent<Service> implements 
     this.initAuthImpliesProxy();
 
     const currentType = this.findInCodeList('service.type', this.entityToEdit.type);
-    this.tableLoadButtonDisabled = currentType ? currentType.value !== config.capabilitiesRequest.WMSIdentificator : false;
+    this.tableLoadButtonDisabled = currentType ? !this.acceptsCapabilitiesImport(currentType.value) : false;
+    this.refreshAccessTrend();
+    this.loadStoredAccessObservation();
   }
 
   /** Auth other than None forces proxied on; turning proxy off while auth is set snaps it back. */
@@ -368,8 +393,12 @@ export class ServiceFormComponent extends BaseFormComponent<Service> implements 
 
   private capabilitiesProbe(): ServiceCapabilitiesProbe {
     const raw = this.entityForm.getRawValue();
+    const url = typeof raw.serviceURL === 'string' ? raw.serviceURL.trim() : raw.serviceURL;
+    if (url !== raw.serviceURL) {
+      this.entityForm.get('serviceURL')!.setValue(url);
+    }
     const probe: ServiceCapabilitiesProbe = {
-      url: raw.serviceURL,
+      url,
       type: raw.type,
       authenticationMode: raw.authenticationMode,
       user: raw.user,
@@ -488,6 +517,456 @@ export class ServiceFormComponent extends BaseFormComponent<Service> implements 
     return this.entityForm?.value.type === constants.codeValue.serviceType.wms
   }
 
+  isWFS() {
+    return this.entityForm?.value.type === config.capabilitiesRequest.WFSIdentificator
+  }
+
+  capabilitiesButtonLabelKey(): string {
+    const action = this.isNewOrDuplicated() ? 'getLayers' : 'updateLayers';
+    return this.isWFS()
+      ? `entity.service.button.${action}.wfs`
+      : `entity.service.button.${action}`;
+  }
+
+  cartographyTabLabelKey(): string {
+    return this.isWFS() ? 'entity.service.featureTypes' : 'entity.cartography.plural';
+  }
+
+  private acceptsCapabilitiesImport(type: string): boolean {
+    return type === config.capabilitiesRequest.WMSIdentificator
+      || type === config.capabilitiesRequest.WFSIdentificator;
+  }
+
+  testAccess(): void {
+    this.serviceService
+      .accessCheck(this.entityID)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (observation) => {
+          this.accessObservation = observation;
+          this.refreshAccessTrend(observation);
+        },
+        error: (error) => this.errorHandler.handleError(error, 'common.error.loadingFailed'),
+      });
+  }
+
+  private loadStoredAccessObservation(): void {
+    if (this.entityID < 1) {
+      return;
+    }
+    this.serviceService.accessSummaries()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (summaries) => {
+          if (this.accessObservation != null) {
+            return;
+          }
+          const stored = (Array.isArray(summaries) ? summaries : [])
+            .find((summary) => summary.serviceId === this.entityID);
+          if (!stored) {
+            return;
+          }
+          this.accessObservation = {
+            status: stored.status,
+            statusRank: stored.statusRank,
+            observer: stored.observer,
+            elapsedMs: stored.elapsedMs,
+            observedAt: stored.observedAt,
+            detail: stored.detail,
+          };
+        },
+        error: (error) => this.loggerService.warn('Stored service access unavailable', error),
+      });
+  }
+
+  private refreshAccessTrend(observation?: ServiceAccessObservation): void {
+    const paint = (buckets: Array<ServiceAccessHour | null> | null | undefined) => {
+      this.accessHours = mergeBackendObservation(
+        accessTrendSlots(buckets, 'tenMinute'),
+        observation,
+        'tenMinute',
+      );
+    };
+
+    if (this.entityID < 1) {
+      paint(observation ? this.accessHours : undefined);
+      return;
+    }
+
+    this.loadAccessSamples();
+    this.serviceService.accessTrend(this.entityID)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (trend) => paint(trend.buckets),
+        error: (error) => {
+          this.loggerService.warn('Service access trend unavailable', error);
+          paint(this.accessHours);
+        },
+      });
+  }
+
+  onServiceTab(event: MatTabChangeEvent): void {
+    const usageLabel = this.translateService.instant('entity.service.usage.title');
+    if (event.tab.textLabel !== usageLabel || this.entityID < 1 || this.usageRequested) {
+      return;
+    }
+    this.usageRequested = true;
+    this.loadUsage(this.usageRange);
+  }
+
+  accessObserverText(observer: string | null | undefined): string {
+    return accessObserverLabel(observer, (key) => this.translateService.instant(key));
+  }
+
+  accessStatusText(code: string | null | undefined): string {
+    return accessStatusLabel(code, (key) => this.translateService.instant(key));
+  }
+
+  accessDetailText(detail: string | null | undefined): string {
+    return accessDetailSentence(detail, (key) => this.translateService.instant(key));
+  }
+
+  monitoring(): MonitoringFacts | null {
+    return monitoringFacts(this.accessObservation, this.accessHours, this.accessSamples, this.viewNow);
+  }
+
+  accessVerdictText(facts: MonitoringFacts): string {
+    if (facts.status !== TIMEOUT_STATUS || this.sampleTimeoutMs <= 0) {
+      return this.accessStatusText(facts.status);
+    }
+    return this.translateService.instant('entity.service.access.timedOutAfter', {seconds: this.timeoutSeconds()});
+  }
+
+  timedOutText(facts: MonitoringFacts): string {
+    if (facts.timedOut === 0) {
+      return '';
+    }
+    return facts.timedOut === 1
+      ? this.translateService.instant('entity.service.access.timedOutOne')
+      : this.translateService.instant('entity.service.access.timedOutCount', {count: facts.timedOut});
+  }
+
+  private timeoutSeconds(): string {
+    return new Intl.NumberFormat(this.translateService.getCurrentLang() || 'es', {maximumFractionDigits: 1})
+      .format(this.sampleTimeoutMs / 1000);
+  }
+
+  statusColor(status: string): string {
+    return hourColor({status});
+  }
+
+  healthyStatus(status: string | null | undefined): boolean {
+    return healthyAccessStatus(status);
+  }
+
+  accessClock(date: Date): string {
+    return hourMinute(date);
+  }
+
+  accessAgo(since: Date): string {
+    return relativeAgo(since, this.viewNow, this.translateService.getCurrentLang() || 'es');
+  }
+
+  checkedText(): string {
+    return accessSinceLabel(this.accessObservation?.observedAt, this.translateService.getCurrentLang() || 'es');
+  }
+
+  changeClock(index: number): string {
+    return hourMinute(bucketStart(index, this.viewNow, 'tenMinute'));
+  }
+
+  lastCheckText(facts: MonitoringFacts): string {
+    const time = this.checkedText();
+    const observer = this.accessObserverText(facts.observer);
+    if (facts.status === TIMEOUT_STATUS && this.sampleTimeoutMs > 0) {
+      return this.translateService.instant('entity.service.access.lastCheckTimeout', {
+        time, observer, seconds: this.timeoutSeconds(),
+      });
+    }
+    const elapsed = facts.elapsedMs ?? '';
+    const key = 'entity.service.access.lastCheck';
+    const translated = this.translateService.instant(key, {time, observer, elapsed});
+    if (translated === key) {
+      return `${time} · ${observer} · ${elapsed} ms`;
+    }
+    return translated;
+  }
+
+  /**
+   * Trend buckets keep only status and observers; the request lives in the latest stored check,
+   * so only the newest change can name it.
+   */
+  recentChanges(): Array<AccessChange & {what: string; failed: boolean; detail: boolean}> {
+    return recentAccessChanges(this.accessHours).map((change, position) => {
+      const failed = !healthyAccessStatus(change.to);
+      const observers = change.observers.map((observer) => this.accessObserverText(observer)).join(', ');
+      const detail = position === 0 && this.carriesDetail(change);
+      const check = !detail ? '' : failed
+        ? this.accessDetailText(this.accessObservation?.detail)
+        : accessDetailRequest(this.accessObservation?.detail);
+      return {...change, what: [check, observers].filter(Boolean).join(' · '), failed, detail};
+    });
+  }
+
+  loneDetail(): boolean {
+    if (this.accessObservation == null) {
+      return false;
+    }
+    const latest = recentAccessChanges(this.accessHours, 1)[0];
+    return !(latest && this.carriesDetail(latest));
+  }
+
+  trackChange(_position: number, change: AccessChange): number {
+    return change.index;
+  }
+
+  private carriesDetail(change: AccessChange): boolean {
+    return Boolean(this.accessObservation?.detail?.trim()) && this.accessObservation?.status === change.to;
+  }
+
+  /**
+   * Same array while the samples, limit, and language are unchanged: a fresh array per
+   * change detection makes the chart call setOption every frame.
+   */
+  latencySeries(): DataSeries[] {
+    return this.rememberLatency().series;
+  }
+
+  latencyReference(): {value: number} | null {
+    return this.rememberLatency().reference;
+  }
+
+  private rememberLatency(): NonNullable<ServiceFormComponent['latencyChart']> {
+    const lang = this.translateService.getCurrentLang();
+    if (
+      this.latencyChart?.samples !== this.accessSamples
+      || this.latencyChart.timeoutMs !== this.sampleTimeoutMs
+      || this.latencyChart.lang !== lang
+    ) {
+      this.latencyChart = {
+        samples: this.accessSamples,
+        timeoutMs: this.sampleTimeoutMs,
+        lang,
+        series: this.buildLatencySeries(),
+        reference: this.buildLatencyReference(),
+      };
+    }
+    return this.latencyChart;
+  }
+
+  /** A timeout has no response time: it breaks its observer's line and becomes a marker on the limit. */
+  private buildLatencySeries(): DataSeries[] {
+    const byObserver = new Map<string, DataSeries>();
+    const timeouts: DataSeries = {
+      name: this.accessStatusText(TIMEOUT_STATUS),
+      kind: 'scatter',
+      color: '#c62828',
+      data: [],
+    };
+    for (const sample of this.accessSamples) {
+      let series = byObserver.get(sample.observer);
+      if (!series) {
+        series = {
+          name: this.accessObserverText(sample.observer),
+          kind: 'line',
+          color: sample.observer === 'proxy' ? '#009688' : '#1565c0',
+          data: [],
+        };
+        byObserver.set(sample.observer, series);
+      }
+      const timedOut = sample.status === TIMEOUT_STATUS;
+      series.data.push({index: sample.observedAt, value: timedOut ? null : sample.elapsedMs});
+      if (timedOut) {
+        timeouts.data.push({
+          index: sample.observedAt,
+          value: this.sampleTimeoutMs > 0 ? this.sampleTimeoutMs : sample.elapsedMs,
+          note: this.translateService.instant('entity.service.access.timedOutAt', {
+            time: hourMinute(new Date(sample.observedAt)),
+            observer: this.accessObserverText(sample.observer),
+          }),
+        });
+      }
+    }
+    return timeouts.data.length ? [...byObserver.values(), timeouts] : [...byObserver.values()];
+  }
+
+  private buildLatencyReference(): {value: number} | null {
+    if (this.sampleTimeoutMs <= 0) {
+      return null;
+    }
+    return {value: this.sampleTimeoutMs};
+  }
+
+  private loadAccessSamples(): void {
+    if (this.entityID < 1) {
+      return;
+    }
+    this.serviceService.accessSamples(this.entityID)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (body) => {
+          this.accessSamples = body.samples ?? [];
+          this.sampleTimeoutMs = body.timeoutMs ?? 0;
+        },
+        error: (error) => this.loggerService.warn('Service access samples unavailable', error),
+      });
+  }
+
+  loadUsage(range: ServiceUsageRange): void {
+    this.usageRange = range;
+    if (this.entityID < 1) {
+      return;
+    }
+    this.serviceService
+      .usage(this.entityID, range)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (view) => {
+          this.usage = view;
+        },
+        error: (error) => this.errorHandler.handleError(error, 'common.error.loadingFailed'),
+      });
+  }
+
+  usageFacts(): UsageFacts | null {
+    return readUsageFacts(this.usage);
+  }
+
+  usageRangeLabel(): string {
+    switch (this.usageRange) {
+      case '30d':
+        return this.translateService.instant('entity.service.usage.range30');
+      case '90d':
+        return this.translateService.instant('entity.service.usage.range90');
+      case '12m':
+        return this.translateService.instant('entity.service.usage.range12m');
+      default: {
+        const unreachable: never = this.usageRange;
+        return unreachable;
+      }
+    }
+  }
+
+  usageAsOfText(): string | null {
+    return usageAsOfClock(this.usage?.asOf, this.translateService.getCurrentLang() || 'es');
+  }
+
+  usageDeltaText(percent: number): string {
+    const magnitude = Math.abs(percent);
+    if (percent > 0) {
+      return `▲ ${magnitude} %`;
+    }
+    if (percent < 0) {
+      return `▼ ${magnitude} %`;
+    }
+    return `${magnitude} %`;
+  }
+
+  operationErrorPercent(requests: number | null | undefined, failed: number | null | undefined): number | null {
+    return readOperationErrorPercent(requests, failed);
+  }
+
+  usageErrorRateText(requests: number | null | undefined, failed: number | null | undefined): string {
+    const percent = this.operationErrorPercent(requests, failed);
+    if (percent == null) {
+      return '';
+    }
+    return `${percent} %`;
+  }
+
+  formatCount(value: number | null | undefined): string {
+    if (value == null) {
+      return '';
+    }
+    return new Intl.NumberFormat(this.translateService.getCurrentLang() || 'es').format(value);
+  }
+
+  usageLastUsedText(): string {
+    const day = this.usageFacts()?.lastUsedDay;
+    if (day == null || day === '') {
+      return this.translateService.instant('entity.service.usage.unused');
+    }
+    const now = this.viewNow;
+    const today = [
+      now.getFullYear(),
+      String(now.getMonth() + 1).padStart(2, '0'),
+      String(now.getDate()).padStart(2, '0'),
+    ].join('-');
+    if (day === today) {
+      return this.translateService.instant('entity.service.usage.today');
+    }
+    return day;
+  }
+
+  usageOperations() {
+    return (this.usage?.operations ?? []).filter((row) => row.operation !== 'ViewerConfig');
+  }
+
+  usageSeries(): Array<{index: string; value: number | null}> {
+    if (!this.usage?.measured || !this.usage.series) {
+      return [];
+    }
+    return this.usage.series.map((point) => ({index: point.index, value: point.value}));
+  }
+
+  /**
+   * Same array while the payload and language are unchanged: a fresh array per change
+   * detection makes the chart call setOption every frame and restart its bar animation.
+   */
+  usageChartSeries(): DataSeries[] {
+    const lang = this.translateService.getCurrentLang();
+    if (this.usageChart?.view !== this.usage || this.usageChart.lang !== lang) {
+      this.usageChart = {view: this.usage, lang, series: this.buildUsageChartSeries()};
+    }
+    return this.usageChart.series;
+  }
+
+  usageChartPeriod(): 'day' | 'month' {
+    return this.usageRange === '12m' ? 'month' : 'day';
+  }
+
+  usageChartTitleKey(): string {
+    return this.usageChartPeriod() === 'month' ? 'entity.service.usage.perMonth' : 'entity.service.usage.perDay';
+  }
+
+  usageSlotsKey(): string {
+    return this.usageChartPeriod() === 'month' ? 'entity.service.usage.monthsWithUse' : 'entity.service.usage.daysWithUse';
+  }
+
+  private buildUsageChartSeries(): DataSeries[] {
+    const points = this.usage?.measured && this.usage.series ? this.usage.series : [];
+    return [
+      {
+        name: this.translateService.instant('entity.service.usage.successful'),
+        kind: 'bar',
+        color: '#FF9300',
+        data: points.map((point) => ({
+          index: point.index,
+          value: point.value == null ? null : Math.max(0, point.value - (point.failed ?? 0)),
+        })),
+      },
+      {
+        name: this.translateService.instant('entity.service.usage.failed'),
+        kind: 'bar',
+        color: '#c62828',
+        data: points.map((point) => ({index: point.index, value: point.failed ?? 0})),
+      },
+    ];
+  }
+
+  usageChartTotalLabel(): string {
+    return this.translateService.instant('entity.service.usage.requests');
+  }
+
+  usageChartLocale(): string {
+    return this.translateService.getCurrentLang() || 'es';
+  }
+
+  usageApplications(): ServiceUsageApplicationTotal[] {
+    return [...(this.usage?.applications ?? [])]
+      .sort((left, right) => (right.requests ?? 0) - (left.requests ?? 0));
+  }
+
   /**
    * Handles service type change events.
    * Enables/disables capabilities button based on service type.
@@ -495,7 +974,7 @@ export class ServiceFormComponent extends BaseFormComponent<Service> implements 
    * @param event - The change event containing the new service type value
    */
   onTypeChange(event: { value: string; }): void {
-    this.tableLoadButtonDisabled = event.value != config.capabilitiesRequest.WMSIdentificator;
+    this.tableLoadButtonDisabled = !this.acceptsCapabilitiesImport(event.value);
   }
 
   /**
@@ -509,8 +988,12 @@ export class ServiceFormComponent extends BaseFormComponent<Service> implements 
     dialogRef.componentInstance.message = this.utils.getTranslate('entity.service.getCapabilitiesMessage');
     dialogRef.afterClosed().subscribe(next => {
       if (next?.event === 'Accept') {
-        if (this.entityForm.get('type').value === constants.codeValue.serviceType.wms) {
-          this.wmsCapabilitiesService.processWMSServiceMetadata(this.capabilitiesProbe())
+        const type = this.entityForm.get('type').value;
+        if (this.acceptsCapabilitiesImport(type)) {
+          const metadata = type === config.capabilitiesRequest.WFSIdentificator
+            ? this.wmsCapabilitiesService.processWFSServiceMetadata(this.capabilitiesProbe())
+            : this.wmsCapabilitiesService.processWMSServiceMetadata(this.capabilitiesProbe());
+          metadata
             .then((capabilities) => {
               this.entityForm.patchValue({
                 name: capabilities.title?.substring(0, 60),
@@ -570,8 +1053,12 @@ export class ServiceFormComponent extends BaseFormComponent<Service> implements 
     dialogRef.componentInstance.message = this.utils.getTranslate('entity.service.getCapabilitiesMessage');
     dialogRef.afterClosed().subscribe(next => {
       if (next?.event === 'Accept') {
-        if (this.entityForm.get('type').value === constants.codeValue.serviceType.wms) {
-          this.wmsCapabilitiesService.processWMSServiceCapabilities(this.capabilitiesProbe())
+        const type = this.entityForm.get('type').value;
+        if (this.acceptsCapabilitiesImport(type)) {
+          const layers = type === config.capabilitiesRequest.WFSIdentificator
+            ? this.wmsCapabilitiesService.processWFSServiceCapabilities(this.capabilitiesProbe())
+            : this.wmsCapabilitiesService.processWMSServiceCapabilities(this.capabilitiesProbe());
+          layers
             .then((response: WMSLayersCapabilities) => {
               this.wmsLayersCapabilities = response
               this.layersTable.saveCommandEvent$.next("save")
@@ -604,9 +1091,19 @@ export class ServiceFormComponent extends BaseFormComponent<Service> implements 
           minWidth: 150,
           editable: (params) => !params.data?.id,
         },
-        Object.assign(this.utils.getNonEditableColumnDef('entity.service.layer.name', 'layers', 150), {flex: 3, minWidth: 180}),
+        Object.assign(this.utils.getNonEditableColumnDef('entity.service.layer.name', 'layers', 150), {
+          flex: 3,
+          minWidth: 180,
+          headerValueGetter: () => this.utils.getTranslate(
+            this.isWFS() ? 'entity.service.layer.name.wfs' : 'entity.service.layer.name'
+          ),
+        }),
         Object.assign(this.utils.getEditableColumnDef('entity.service.layer.abstract', 'description', 150), {flex: 2, minWidth: 150}),
-        this.utils.getStatusColumnDef()
+        this.utils.getStatusColumnDef((status) =>
+          this.isWFS() && status === 'unregisteredLayer'
+            ? 'common.status.unregisteredFeatureType'
+            : 'common.status.' + status
+        )
       ])
       .withRelationsOrder('name')
       .withRelationsFetcher(() => {
@@ -695,36 +1192,9 @@ export class ServiceFormComponent extends BaseFormComponent<Service> implements 
       .build();
   }
 
-  /**
-   * {@code serviceParameter.type} minus {@code service.type} values, except:
-   * the service’s selected type (e.g. WMS on a WMS service), non-service codes (e.g. VARY), and the dialog’s current parameter type.
-   * The service’s protocol type is listed first; remaining entries follow sorted by description.
-   */
   private parameterTypesForNewParameterDialog(selectedParameterType: string | null | undefined): CodeList[] {
-    const parameterTypes = this.codeList('serviceParameter.type');
-    const serviceTypeValues = new Set(this.codeList('service.type').map((c) => c.value));
     const selectedServiceType = this.entityForm?.get('type')?.value ?? this.entityToEdit?.type ?? null;
-    const filtered = parameterTypes.filter((pt) => {
-      if (!serviceTypeValues.has(pt.value)) {
-        return true;
-      }
-      return pt.value === selectedServiceType || pt.value === selectedParameterType;
-    });
-    return this.orderNewParameterTypesWithServiceTypeFirst(filtered, selectedServiceType);
-  }
-
-  /** Puts the service protocol type first when present; otherwise sorts by description. */
-  private orderNewParameterTypesWithServiceTypeFirst(
-    filtered: CodeList[],
-    selectedServiceType: string | null | undefined,
-  ): CodeList[] {
-    const byDescription = (a: CodeList, b: CodeList) => compareNullableString(a.description, b.description);
-    if (!selectedServiceType) {
-      return [...filtered].sort(byDescription);
-    }
-    const primary = filtered.find((pt) => pt.value === selectedServiceType);
-    const rest = filtered.filter((pt) => pt.value !== selectedServiceType).sort(byDescription);
-    return primary ? [primary, ...rest] : [...filtered].sort(byDescription);
+    return codesInScope(this.codeList('serviceParameter.type'), selectedServiceType, selectedParameterType);
   }
 
   /** Options for the new-parameter dialog type control (see {@link parameterTypesForNewParameterDialog}). */
@@ -733,18 +1203,14 @@ export class ServiceFormComponent extends BaseFormComponent<Service> implements 
     return this.parameterTypesForNewParameterDialog(selected);
   }
 
-  /**
-   * Label for the parameters grid and dialog: ngx-translate when {@code entity.serviceParameter.typeLabel.*}
-   * exists, otherwise codelist description (API / DB, may follow another language).
-   */
+  parameterLeadKey(audience: 'viewer' | 'proxy'): string | null {
+    const protocol = parameterLeadProtocol(this.entityForm?.get('type')?.value);
+    return protocol == null ? null : `entity.service.card.parametersLead.${audience}.${protocol}`;
+  }
+
   serviceParameterTypeDescription(type: string | undefined | null): string {
     if (type == null || type === '') {
       return '';
-    }
-    const key = `entity.serviceParameter.typeLabel.${type}`;
-    const translated = this.translateService.instant(key);
-    if (translated !== key) {
-      return translated;
     }
     return this.findInCodeList('serviceParameter.type', type)?.description ?? type;
   }
@@ -760,8 +1226,8 @@ export class ServiceFormComponent extends BaseFormComponent<Service> implements 
       .withRelationsColumns([
         this.utils.getSelCheckboxColumnDef(),
         Object.assign(this.utils.getEditableColumnDef('common.form.name', 'name', 150), {flex: 1, minWidth: 140}),
+        Object.assign(this.utils.getNonEditableColumnDef('common.form.type', 'typeDescription', 220), {flex: 1, minWidth: 200}),
         Object.assign(this.utils.getEditableColumnDef('common.form.value', 'value', 150), {flex: 2, minWidth: 160}),
-        Object.assign(this.utils.getNonEditableColumnDef('common.form.type', 'typeDescription', 150), {flex: 0, minWidth: 120}),
         this.utils.getStatusColumnDef()
       ])
       .withRelationsOrder('name')
@@ -810,4 +1276,23 @@ export class ServiceFormComponent extends BaseFormComponent<Service> implements 
       )
       .build();
   }
+}
+
+function relativeAgo(since: Date, now: Date, locale: string): string {
+  const rtf = new Intl.RelativeTimeFormat(locale, {numeric: 'auto'});
+  const seconds = Math.round((since.getTime() - now.getTime()) / 1000);
+  const units: Array<[Intl.RelativeTimeFormatUnit, number]> = [
+    ['year', 60 * 60 * 24 * 365],
+    ['month', 60 * 60 * 24 * 30],
+    ['week', 60 * 60 * 24 * 7],
+    ['day', 60 * 60 * 24],
+    ['hour', 60 * 60],
+    ['minute', 60],
+  ];
+  for (const [unit, size] of units) {
+    if (Math.abs(seconds) >= size) {
+      return rtf.format(Math.round(seconds / size), unit);
+    }
+  }
+  return rtf.format(seconds, 'second');
 }

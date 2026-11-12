@@ -1,4 +1,4 @@
-import {Component, TemplateRef, ViewChild} from "@angular/core";
+import {Component, TemplateRef, ViewChild, ChangeDetectionStrategy} from "@angular/core";
 import {FormControl, FormGroup, Validators} from "@angular/forms";
 import {MatDialog} from "@angular/material/dialog";
 import {ActivatedRoute, Router} from "@angular/router";
@@ -64,6 +64,7 @@ import {magic} from "@environments/constants";
     selector: 'app-task-basic-form',
     templateUrl: './task-basic-form.component.html',
     styles: [],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class TaskBasicFormComponent extends BaseFormComponent<TaskProjection> {
@@ -270,7 +271,7 @@ export class TaskBasicFormComponent extends BaseFormComponent<TaskProjection> {
 
     this.entityForm = new FormGroup({
       name: new FormControl(this.entityToEdit.name, {
-        validators: [Validators.required],
+        validators: [Validators.maxLength(512), Validators.required],
         nonNullable: true
       }),
       uiId: new FormControl(this.entityToEdit.uiId, {
@@ -287,7 +288,6 @@ export class TaskBasicFormComponent extends BaseFormComponent<TaskProjection> {
   /**
    * Creates a Task object from the current form values.
    * Applies the form values to a copy of the current entity and converts it to a Task domain object.
-   * This method ensures that entity data is not directly modified until explicitly saved.
    *
    * @param id - Optional ID for the new object, used when updating
    * @returns New Task instance populated with form values

@@ -5,31 +5,28 @@ import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
-import org.sitmun.infrastructure.config.Profiles;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.info.BuildProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Profile;
 import org.springframework.util.StringUtils;
 
 /**
  * OpenAPI configuration for SITMUN API documentation.
  *
- * <p>This configuration is active only when the "openapi" profile is enabled. It provides: - API
- * information (title, version, description) - Security scheme configuration (JWT bearer
- * authentication) - Module-specific customization through properties
+ * <p>The documented version is {@link BuildProperties#getVersion()}, written by the {@code
+ * bootBuildInfo} task from the platform version.
  */
 @Configuration
-@Profile(Profiles.OPENAPI)
 public class OpenApiConfigurer {
 
   private final String moduleName;
   private final String apiVersion;
 
   public OpenApiConfigurer(
-      @Value("${sitmun.module}") String moduleName, @Value("${sitmun.version}") String apiVersion) {
+      @Value("${sitmun.module}") String moduleName, BuildProperties buildProperties) {
     this.moduleName = moduleName;
-    this.apiVersion = apiVersion;
+    this.apiVersion = buildProperties.getVersion();
   }
 
   /**

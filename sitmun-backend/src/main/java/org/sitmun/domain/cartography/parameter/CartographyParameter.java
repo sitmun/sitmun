@@ -1,20 +1,26 @@
 package org.sitmun.domain.cartography.parameter;
 
 import jakarta.persistence.*;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import java.util.Objects;
 import lombok.*;
+import org.hibernate.Length;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 import org.sitmun.domain.CodeListsConstants;
 import org.sitmun.domain.PersistenceConstants;
 import org.sitmun.domain.cartography.Cartography;
 import org.sitmun.infrastructure.persistence.type.codelist.CodeList;
+import org.sitmun.infrastructure.persistence.type.i18n.I18n;
+import org.sitmun.infrastructure.persistence.type.i18n.I18nListener;
 
 /** Geographic Information parameter. */
 @Entity
+@EntityListeners(I18nListener.class)
 @Table(name = "STM_PAR_GI")
 @Builder
 @Getter
@@ -33,32 +39,36 @@ public class CartographyParameter {
       allocationSize = 1)
   @Id
   @GeneratedValue(strategy = GenerationType.TABLE, generator = "STM_PAR_GI_GEN")
-  @Column(name = "PGI_ID")
+  @Column(name = "PGI_ID", nullable = false)
   private Integer id;
 
   /** Name. */
-  @Column(name = "PGI_NAME", length = PersistenceConstants.IDENTIFIER)
+  @Column(name = "PGI_NAME", length = 250, nullable = false)
+  @Size(max = 250)
   @NotBlank
   private String name;
 
-  /** Value. */
-  @Column(name = "PGI_VALUE", length = PersistenceConstants.VALUE)
+  /** Default-language label. Other languages come from STM_TRANSLATION. */
+  @Column(name = "PGI_VALUE", length = PersistenceConstants.VALUE, nullable = false)
   @NotNull
+  @I18n
   private String value;
 
   /** Format. */
-  @Column(name = "PGI_FORMAT", length = PersistenceConstants.IDENTIFIER)
+  @Column(name = "PGI_FORMAT", length = 250)
+  @Size(max = 250)
   @CodeList(CodeListsConstants.CARTOGRAPHY_PARAMETER_FORMAT)
   private String format;
 
   /** Type. */
-  @Column(name = "PGI_TYPE", length = PersistenceConstants.IDENTIFIER)
+  @Column(name = "PGI_TYPE", length = 250, nullable = false)
+  @Size(max = 250)
   @NotNull
   @CodeList(CodeListsConstants.CARTOGRAPHY_PARAMETER_TYPE)
   private String type;
 
   /** Cartography that owns this parameter. */
-  @ManyToOne
+  @ManyToOne(optional = false)
   @OnDelete(action = OnDeleteAction.CASCADE)
   @JoinColumn(name = "PGI_GIID", foreignKey = @ForeignKey(name = "STM_PGI_FK_GEO"))
   @NotNull
@@ -68,6 +78,12 @@ public class CartographyParameter {
   @Column(name = "PGI_ORDER")
   @Min(0)
   private Integer order;
+
+  /** Format options for N, P, F, and I. Empty means the format defaults. */
+  @Column(name = "PGI_OPTIONS", length = Length.LONG32)
+  @Convert(converter = FeatureInfoFormatOptionsConverter.class)
+  @Valid
+  private FeatureInfoFormatOptions options;
 
   @Override
   public boolean equals(Object obj) {

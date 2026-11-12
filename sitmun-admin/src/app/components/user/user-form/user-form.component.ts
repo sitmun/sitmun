@@ -1,4 +1,4 @@
-import {Component} from '@angular/core';
+import {Component, ChangeDetectionStrategy} from '@angular/core';
 import {UntypedFormControl, UntypedFormGroup, Validators} from '@angular/forms';
 import {MatDialog} from '@angular/material/dialog';
 import {ActivatedRoute, Router} from '@angular/router';
@@ -43,6 +43,7 @@ import {canShowPositionsTab, PositionsSurface, positionsSurface} from './positio
     selector: 'app-user-form',
     templateUrl: './user-form.component.html',
     styleUrls: ['./user-form.component.scss'],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class UserFormComponent extends BaseFormComponent<UserProjection> {
@@ -75,19 +76,15 @@ export class UserFormComponent extends BaseFormComponent<UserProjection> {
 
   protected readonly applicationsAsContactTable: DataTableDefinition<Application, Application>
 
-  /** Flag indicating if the password is set */
   passwordSet = false;
 
   /** True when the loaded entity already had a stored password (server truth). */
   private persistedPasswordSet = false;
 
-  /** Flag indicating if the password is being edited */
   isPasswordBeingEdited = false;
 
-  /** Flag indicating if the password has been modified */
   passwordModified = false;
 
-  /** The actual password value */
   actualPassword: string = null;
 
   /** True after the user changes the password field during the current focus session. */
@@ -96,10 +93,8 @@ export class UserFormComponent extends BaseFormComponent<UserProjection> {
   /** Whether the account had a password when the current password focus session started. */
   private hadPasswordBeforeFocusSession = false;
 
-  /** Flag indicating if this is the built-in admin user */
   isBuiltInAdmin = false;
 
-  /** Flag indicating if this is the built-in public user */
   isBuiltInPublic = false;
 
   leftoverPositionCount = 0;
@@ -202,11 +197,11 @@ export class UserFormComponent extends BaseFormComponent<UserProjection> {
     this.entityForm = new UntypedFormGroup({
       username: new UntypedFormControl(
         {value: this.entityToEdit.username, disabled: this.isBuiltInAdmin || this.isBuiltInPublic},
-        [Validators.required, Validators.maxLength(50)]
+        [Validators.maxLength(50)]
       ),
       firstName: new UntypedFormControl(this.entityToEdit.firstName, [Validators.maxLength(50)]),
       lastName: new UntypedFormControl(this.entityToEdit.lastName, [Validators.maxLength(50)]),
-      email: new UntypedFormControl(this.entityToEdit.email, [Validators.email, Validators.maxLength(50)]),
+      email: new UntypedFormControl(this.entityToEdit.email, [Validators.email, Validators.maxLength(250)]),
       newPassword: new UntypedFormControl(
         this.passwordSet ? UserFormComponent.PASSWORD_PLACEHOLDER : '',
         []

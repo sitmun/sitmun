@@ -10,7 +10,6 @@ export enum TaskParameterType {
  * Task parameter model
  */
 export class TaskQueryParameter {
-  /** name */
   public name: string;
 
   /** label */
@@ -28,11 +27,16 @@ export class TaskQueryParameter {
   /** value */
   public value: string;
 
-  /** order */
   public order: number;
 
   /** provided - backend-only secret variable (not sent to client) */
   public provided?: boolean;
+
+  /** When true, a missing client value binds NULL. */
+  public optional?: boolean;
+
+  /** string, integer, number, date, timestamp or boolean. */
+  public dataType?: string;
 
   /**
    * Constructor for TaskParameter
@@ -61,11 +65,9 @@ export class TaskQueryParameter {
    */
   public static fromObject(source: any): TaskQueryParameter {
     const parameter = new TaskQueryParameter();
-    // Define the properties to copy
     const propertiesToCopy = [
-      'name', 'label', 'type', 'value', 'provided'
+      'name', 'label', 'type', 'value', 'provided', 'optional', 'dataType'
     ];
-    // Copy only defined properties that exist in our class
     propertiesToCopy.forEach(prop => {
       if (source[prop] !== undefined) {
         parameter[prop] = source[prop];

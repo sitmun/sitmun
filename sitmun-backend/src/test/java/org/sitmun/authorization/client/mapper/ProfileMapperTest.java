@@ -2,16 +2,19 @@ package org.sitmun.authorization.client.mapper;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
+import java.util.Set;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.sitmun.authorization.client.dto.CartographyDto;
 import org.sitmun.authorization.client.dto.NodeDto;
 import org.sitmun.domain.cartography.Cartography;
+import org.sitmun.domain.cartography.parameter.CartographyParameter;
+import org.sitmun.domain.cartography.parameter.FeatureInfoFormatOptions;
 import org.sitmun.domain.service.Service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import tools.jackson.databind.ObjectMapper;
 
 @SpringBootTest
 @DisplayName("ProfileMapper Cartography mapping")
@@ -92,7 +95,7 @@ class ProfileMapperTest {
   }
 
   @Test
-  @DisplayName("One-sided positive scale maps correctly")
+  @DisplayName("A positive min or max is kept and the other side stays null")
   void oneSidedScale() {
     CartographyDto minOnly = profileMapper.map(cartography(100, null));
     assertThat(minOnly.getMinScaleDenominator()).isEqualTo(100);
@@ -108,10 +111,10 @@ class ProfileMapperTest {
   void jacksonOmitsNullDenominators() throws Exception {
     CartographyDto dto =
         CartographyDto.builder()
-            .id("layer/1")
+            .id("layer/10001")
             .title("t")
             .layers(List.of("a"))
-            .service("service/1")
+            .service("service/10001")
             .minScaleDenominator(null)
             .maxScaleDenominator(null)
             .build();
@@ -126,10 +129,10 @@ class ProfileMapperTest {
   void jacksonSerializesPositiveDenominators() throws Exception {
     CartographyDto dto =
         CartographyDto.builder()
-            .id("layer/1")
+            .id("layer/10001")
             .title("t")
             .layers(List.of("a"))
-            .service("service/1")
+            .service("service/10001")
             .minScaleDenominator(500)
             .maxScaleDenominator(1000000)
             .build();
@@ -165,10 +168,10 @@ class ProfileMapperTest {
   void jacksonOmitsNullTransparency() throws Exception {
     CartographyDto dto =
         CartographyDto.builder()
-            .id("layer/1")
+            .id("layer/10001")
             .title("t")
             .layers(List.of("a"))
-            .service("service/1")
+            .service("service/10001")
             .build();
 
     String json = objectMapper.writeValueAsString(dto);
@@ -183,6 +186,33 @@ class ProfileMapperTest {
             cartography(null, null, null, "https://example.com/md", "https://example.com/data"));
     assertThat(dto.getMetadataURL()).isEqualTo("https://example.com/md");
     assertThat(dto.getDatasetURL()).isEqualTo("https://example.com/data");
+  }
+
+  @Test
+  @DisplayName("Maps legendType and legendURL when set")
+  void mapsLegendChoice() {
+    Cartography capabilities = cartography(null, null, null, null, null);
+    capabilities.setLegendType("LEGENDURL");
+    capabilities.setLegendURL("https://example.com/capabilities.png");
+    CartographyDto capabilitiesDto = profileMapper.map(capabilities);
+    assertThat(capabilitiesDto.getLegendType()).isEqualTo("LEGENDURL");
+    assertThat(capabilitiesDto.getLegendURL()).isEqualTo("https://example.com/capabilities.png");
+
+    Cartography link = cartography(null, null, null, null, null);
+    link.setLegendType("LINK");
+    link.setLegendURL("https://example.com/static.png");
+    CartographyDto linkDto = profileMapper.map(link);
+    assertThat(linkDto.getLegendType()).isEqualTo("LINK");
+    assertThat(linkDto.getLegendURL()).isEqualTo("https://example.com/static.png");
+  }
+
+  @Test
+  @DisplayName("Jackson omits a null legend type and legend URL")
+  void jacksonOmitsNullLegendChoice() throws Exception {
+    CartographyDto dto = profileMapper.map(cartography(null, null, null, null, null));
+    String json = objectMapper.writeValueAsString(dto);
+    assertThat(json).doesNotContain("legendType");
+    assertThat(json).doesNotContain("legendURL");
   }
 
   @Test
@@ -215,10 +245,10 @@ class ProfileMapperTest {
   void jacksonSerializesZeroTransparency() throws Exception {
     CartographyDto dto =
         CartographyDto.builder()
-            .id("layer/1")
+            .id("layer/10001")
             .title("t")
             .layers(List.of("a"))
-            .service("service/1")
+            .service("service/10001")
             .transparency(0)
             .build();
 
@@ -256,5 +286,124 @@ class ProfileMapperTest {
         profileMapper.map(cartography(null, null, null, null, null, "Some abstract"));
     String json = objectMapper.writeValueAsString(dto);
     assertThat(json).contains("\"description\":\"Some abstract\"");
+  }
+
+  @Test
+  @DisplayName("Publishes vector or raster from the linked service and omits a layer service type")
+  void publishesLayerKindFromServiceType() throws Exception {
+    CartographyDto pointLayer =
+        profileMapper.map(
+            cartographyWithService(
+                "WFS",
+                "POINT",
+                geometryParameter("the_geom", "Point", true, "polygon"),
+                textParameter("nom")));
+    assertThat(pointLayer.getKind()).isEqualTo("vector");
+    assertThat(pointLayer.getGeometryName()).isEqualTo("the_geom");
+    assertThat(pointLayer.getGeometryKind()).isEqualTo("Point");
+    assertThat(pointLayer.getPreferredGeometryType()).isNull();
+    assertThat(pointLayer.getFeatureInfoFields())
+        .extracting("name")
+        .containsExactlyInAnyOrder("nom", "the_geom");
+    assertThat(pointLayer.getFeatureInfoFields())
+        .filteredOn(field -> "the_geom".equals(field.getName()))
+        .extracting("format")
+        .containsExactly("Geometry");
+    assertThat(pointLayer.getFeatureInfoFields())
+        .filteredOn(field -> "nom".equals(field.getName()))
+        .extracting("format")
+        .containsOnlyNulls();
+    assertThat(objectMapper.writeValueAsString(pointLayer)).doesNotContain("\"geometry\":");
+
+    CartographyDto generic =
+        profileMapper.map(
+            cartographyWithService(
+                "WFS", "POINT", geometryParameter("shape", "Geometry", true, "polygon")));
+    assertThat(generic.getGeometryName()).isEqualTo("shape");
+    assertThat(generic.getGeometryKind()).isEqualTo("Geometry");
+    assertThat(generic.getPreferredGeometryType()).isEqualTo("polygon");
+    String genericJson = objectMapper.writeValueAsString(generic);
+    assertThat(genericJson).contains("\"kind\":\"vector\"");
+    assertThat(genericJson).contains("\"geometryName\":\"shape\"");
+    assertThat(genericJson).contains("\"preferredGeometryType\":\"polygon\"");
+
+    CartographyDto codeListType =
+        profileMapper.map(
+            cartographyWithService(
+                "WFS", "POINT", geometryParameter("shape", "Geometry", true, "POINT")));
+    assertThat(codeListType.getPreferredGeometryType()).isNull();
+
+    CartographyParameter first = geometryParameter("geom_a", "Point", false, null);
+    first.setOrder(1);
+    CartographyParameter last = geometryParameter("shape", "Point", false, null);
+    last.setOrder(2);
+    CartographyDto unmarked = profileMapper.map(cartographyWithService("WFS", null, first, last));
+    assertThat(unmarked.getGeometryName()).isEqualTo("shape");
+    assertThat(unmarked.getPreferredGeometryType()).isNull();
+    assertThat(unmarked.getFeatureInfoFields())
+        .filteredOn(field -> "shape".equals(field.getName()))
+        .extracting("format")
+        .containsExactly("Geometry");
+
+    CartographyDto curve =
+        profileMapper.map(
+            cartographyWithService(
+                "WFS", "LINE", geometryParameter("centrelineGeometry", "Curve", true, null)));
+    assertThat(curve.getGeometryName()).isEqualTo("centrelineGeometry");
+    assertThat(curve.getGeometryKind()).isEqualTo("Curve");
+    assertThat(curve.getPreferredGeometryType()).isNull();
+    assertThat(objectMapper.writeValueAsString(curve)).contains("\"geometryKind\":\"Curve\"");
+
+    CartographyDto wms =
+        profileMapper.map(
+            cartographyWithService(
+                "WMS", "LINE", geometryParameter("the_geom", "Point", true, null)));
+    assertThat(wms.getKind()).isEqualTo("raster");
+    assertThat(wms.getGeometryName()).isNull();
+    assertThat(wms.getGeometryKind()).isNull();
+    assertThat(wms.getPreferredGeometryType()).isNull();
+
+    CartographyDto wmts = profileMapper.map(cartographyWithService("WMTS", null));
+    assertThat(wmts.getKind()).isEqualTo("raster");
+    assertThat(wmts.getGeometryName()).isNull();
+    assertThat(wmts.getPreferredGeometryType()).isNull();
+  }
+
+  private Cartography cartographyWithService(
+      String serviceType, String geometryType, CartographyParameter... parameters) {
+    return Cartography.builder()
+        .id(42)
+        .name("Test layer")
+        .layers(List.of("L1"))
+        .geometryType(geometryType)
+        .parameters(Set.of(parameters))
+        .service(Service.builder().id(99).type(serviceType).build())
+        .build();
+  }
+
+  private static CartographyParameter geometryParameter(
+      String name, String kind, boolean chosen, String preferredGeometryType) {
+    FeatureInfoFormatOptions options = new FeatureInfoFormatOptions();
+    options.setGeometryKind(kind);
+    if (chosen) {
+      options.setLayerGeometry(true);
+    }
+    options.setPreferredGeometryType(preferredGeometryType);
+    return CartographyParameter.builder()
+        .id(name.hashCode())
+        .name(name)
+        .value(name)
+        .type("INFO")
+        .options(options)
+        .build();
+  }
+
+  private static CartographyParameter textParameter(String name) {
+    return CartographyParameter.builder()
+        .id(name.hashCode())
+        .name(name)
+        .value(name)
+        .type("INFO")
+        .build();
   }
 }

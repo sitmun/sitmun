@@ -1,0 +1,1 @@
+# Empty. NPM_CONFIG_USERCONFIG points here so pnpm does not read ~/.npmrc.

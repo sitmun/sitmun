@@ -12,7 +12,8 @@ class RequestContextTest {
   void stripsUserinfoQueryAndFragmentAndNamesTheForwardRequest() {
     URI uri = URI.create("https://user:secret@maps.example/wms/path?REQUEST=GetMap#frag");
 
-    RequestContext context = RequestContext.from("WMS", false, uri, "POST", Map.of("request", "getmap"));
+    RequestContext context =
+        RequestContext.from("WMS", false, uri, "POST", Map.of("request", "getmap"));
 
     assertThat(context.host()).isEqualTo("maps.example");
     assertThat(context.path()).isEqualTo("/wms/path");
@@ -27,6 +28,7 @@ class RequestContextTest {
 
     assertThat(RequestContext.from("WMS", true, uri, "POST", Map.of()).request())
         .isEqualTo("GetCapabilities");
-    assertThat(RequestContext.from("AIMS", false, uri, "POST", Map.of()).request()).isEqualTo("GET");
+    assertThat(RequestContext.from("AIMS", false, uri, "POST", Map.of()).request())
+        .isEqualTo("GET");
   }
 }

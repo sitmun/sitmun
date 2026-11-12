@@ -1,0 +1,8 @@
+TRE_ID,TRE_NAME,TRE_ABSTRACT,TRE_TYPE,TRE_IMAGE,TRE_IMAGE_NAME,TRE_USERID
+"1","INSPIRE IDEE","INSPIRE services of the IDEE","cartography",NULL,NULL,NULL
+"2","IDEE","Other IDEE services","cartography",NULL,NULL,NULL
+"3","IDEIB","Services of the Balearic Islands SDI","cartography",NULL,NULL,NULL
+"4","By theme","Menorca layers organised by theme","cartography",NULL,NULL,NULL
+"5","By data source","Menorca layers organised by source administration","cartography",NULL,NULL,NULL
+"6","Menorca tourism","Camí de Cavalls and tourist routes of Menorca","cartography",NULL,NULL,NULL
+"7","IDE Menorca","Layers for registered users only","cartography",NULL,NULL,NULL

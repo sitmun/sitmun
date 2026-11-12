@@ -2,7 +2,6 @@
  * Public API Surface of domain module
  */
 
-// Export the domain module
 export * from './domain.module';
 
 // Export all feature modules
@@ -23,7 +22,6 @@ export * from './getInfo';
 export * from './map';
 export * from './codelist';
 
-// Explicitly export all services to ensure they're available
 // Territory
 export { TerritoryService } from './territory/services/territory.service';
 export { TerritoryTypeService } from './territory/services/territory-type.service';
@@ -52,6 +50,7 @@ export { CartographyGroupService } from './cartography/services/cartography-grou
 export { CartographyAvailabilityService } from './cartography/services/cartography-availability.service';
 export { CartographyFilterService } from './cartography/services/cartography-filter.service';
 export { CartographyParameterService } from './cartography/services/cartography-parameter.service';
+export { CartographyServiceParameterService } from './cartography/services/cartography-service-parameter.service';
 export { CartographySpatialSelectionParameterService } from './cartography/services/cartography-spatial-selection-parameter.service';
 export { CartographyStyleService } from './cartography/services/cartography-style.service';
 export { BackgroundService } from './cartography/services/background.service';

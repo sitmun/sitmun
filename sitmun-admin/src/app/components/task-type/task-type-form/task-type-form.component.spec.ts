@@ -6,7 +6,7 @@ import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { RouterModule } from '@angular/router';
 
-import { TranslateLoader, TranslateModule } from '@ngx-translate/core';
+import { TranslateLoader, TranslatePipe, provideTranslateService } from '@ngx-translate/core';
 import { of } from 'rxjs';
 
 import { EntityFormAlertsComponent } from '@app/components/shared/entity-form-alerts/entity-form-alerts.component';
@@ -38,7 +38,10 @@ describe('TaskTypeFormComponent', () => {
         MaterialModule,
         MatIconTestingModule,
         BrowserAnimationsModule,
-        TranslateModule.forRoot({
+        TranslatePipe,
+      ],
+      providers: [
+      provideTranslateService({
           loader: {
             provide: TranslateLoader,
             useFactory: () => ({
@@ -46,8 +49,6 @@ describe('TaskTypeFormComponent', () => {
             }),
           },
         }),
-      ],
-      providers: [
         provideHttpClient(),
         provideHttpClientTesting(),
         provideErrorHandlerForTests(),
@@ -83,15 +84,15 @@ describe('TaskTypeFormComponent', () => {
   afterEach(() => fixture?.destroy());
   afterAll(() => TestBed.resetTestingModule());
 
-  it('should create', () => {
-    expect(component).toBeTruthy();
-  });
+  
 
-  it('requires title in the form', () => {
+  it('limits title to 50 characters', () => {
     component.entityForm.get('title')?.setValue('');
-    expect(component.entityForm.valid).toBe(false);
+    expect(component.entityForm.get('title')?.hasError('required')).toBe(false);
+    component.entityForm.get('title')?.setValue('Q'.repeat(51));
+    expect(component.entityForm.get('title')?.hasError('maxlength')).toBe(true);
     component.entityForm.get('title')?.setValue('Query');
-    expect(component.entityForm.valid).toBe(true);
+    expect(component.entityForm.get('title')?.valid).toBe(true);
   });
 
   it('keeps save disabled until the form is loaded and changed', () => {

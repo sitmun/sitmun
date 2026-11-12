@@ -8,11 +8,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { Router } from '@angular/router';
 
 import { CommonService } from '@api/services/common.service';
-import {
-  TranslateLoader,
-  TranslateModule,
-  TranslateFakeLoader
-} from '@ngx-translate/core';
+import { TranslateNoOpLoader, TranslatePipe, provideTranslateLoader, provideTranslateService } from '@ngx-translate/core';
 import { of } from 'rxjs';
 import { NotificationService } from 'src/app/notifications/services/NotificationService';
 import { AppConfigService } from 'src/app/services/app-config.service';
@@ -44,15 +40,16 @@ describe('DashboardItemComponent', () => {
     TestBed.configureTestingModule({
       imports: [
         NgOptimizedImage,
-        TranslateModule.forRoot({
-          loader: { provide: TranslateLoader, useClass: TranslateFakeLoader }
-        }),
+        TranslatePipe,
         MatCardModule,
         MatButtonModule,
         MatIconModule
       ],
       declarations: [DashboardItemComponent],
       providers: [
+      provideTranslateService({
+          loader: provideTranslateLoader(TranslateNoOpLoader)
+        }),
         provideHttpClient(),
         provideHttpClientTesting(),
         { provide: Router, useValue: router },

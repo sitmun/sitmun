@@ -1,18 +1,20 @@
 import {NgOptimizedImage} from "@angular/common";
-import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
+import { provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/common/http';
 import {ErrorHandler, inject, LOCALE_ID, NgModule, provideAppInitializer} from '@angular/core';
 import {FormsModule, ReactiveFormsModule} from '@angular/forms';
+import {FormField} from '@angular/forms/signals';
 import {MAT_TABS_CONFIG} from '@angular/material/tabs';
 import {BrowserModule} from '@angular/platform-browser';
 import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
 import {RouterModule} from '@angular/router';
 
-import { provideMissingTranslationHandler, TranslateModule, TranslateService } from '@ngx-translate/core';
+import {AgGridModule} from '@ag-grid-community/angular';
+import { TranslatePipe, TranslateService, provideMissingTranslationHandler, provideTranslateService } from '@ngx-translate/core';
 import { provideTranslateHttpLoader } from '@ngx-translate/http-loader';
-import {firstValueFrom} from 'rxjs';
 
 import {ApplicationFormComponent} from '@app/components/application/application-form/application-form.component';
 import {ApplicationComponent} from '@app/components/application/application.component';
+import {BackendWaitingComponent} from '@app/components/backend-waiting/backend-waiting.component';
 import {
   BackgroundLayersFormComponent
 } from '@app/components/background-layers/background-layers-form/background-layers-form.component';
@@ -25,8 +27,8 @@ import {ConfigurationParameterComponent} from '@app/components/configuration-par
 import {ConnectionFormComponent} from '@app/components/connection/connection-form/connection-form.component';
 import {ConnectionComponent} from '@app/components/connection/connection.component';
 import {DashboardComponent} from '@app/components/dashboard/dashboard.component';
-import {DataTablesRegistry} from "@app/components/data-tables.util";
 import {ErrorPageComponent} from "@app/components/error-page/error-page.component";
+import {FirstRunComponent} from '@app/components/first-run/first-run.component';
 import {DefaultLanguageChangeDialogComponent} from '@app/components/language/default-language-change-dialog/default-language-change-dialog.component';
 import {LanguageFormComponent} from '@app/components/language/language-form/language-form.component';
 import {LanguageComponent} from '@app/components/language/language.component';
@@ -42,6 +44,7 @@ import {LiteralTranslationsComponent} from '@app/components/literal-translations
 import {LoginComponent} from '@app/components/login/login.component';
 import {RoleFormComponent} from '@app/components/role/role-form/role-form.component';
 import {RoleComponent} from '@app/components/role/role.component';
+import {ServiceAccessTimelineComponent} from '@app/components/service/service-access-timeline.component';
 import {ServiceFormComponent} from '@app/components/service/service-form/service-form.component';
 import {ServiceComponent} from '@app/components/service/service.component';
 import {AuthenticatedLayoutComponent} from '@app/components/shared/authenticated-layout/authenticated-layout.component';
@@ -94,7 +97,6 @@ import {UserComponent} from '@app/components/user/user.component';
 import {CoreModule, MessagesInterceptorStateService} from '@app/core';
 import {ExternalConfigurationService} from '@app/core/config/external-configuration.service';
 import {ExternalService, HalModule, ResourceService} from '@app/core/hal';
-import {Resource} from "@app/core/hal/resource/resource.model";
 import { AppMissingTranslationHandler } from '@app/core/translate/missing-translation-handler';
 import {
   ApplicationBackgroundService,
@@ -137,7 +139,6 @@ import {DataGridComponent} from '@app/frontend-gui/src/lib/data-grid/data-grid.c
 import {DialogGridComponent} from '@app/frontend-gui/src/lib/dialog-grid/dialog-grid.component';
 import {ImagePreviewComponent} from '@app/frontend-gui/src/lib/image-preview/image-preview.component';
 import {SitmunFrontendGuiModule} from '@app/frontend-gui/src/lib/public_api';
-import {config} from '@config';
 
 import {APP_ROUTING} from './app-routes';
 import {AppComponent} from './app.component';
@@ -149,106 +150,12 @@ import {SystemInfoMenuComponent} from './components/shared/system-info-menu/syst
 import {GlobalErrorHandler} from './core/global-error-handler';
 import {MaterialModule} from './material-module';
 import {AppConfigService, initializeAppConfig} from './services/app-config.service';
+import {initializeFromSetupStatus} from './services/app-startup';
 import {AppStateService} from './services/app-state.service';
 import {IconsService, initializeIcons} from './services/icons.service';
 import {LoggerService} from './services/logger.service';
 import {ServicesModule} from './services/services.module';
-import {resolveUiLanguage} from './services/ui-language.resolver';
-
-
-// APP_INITIALIZER factory functions
-export function initializeLanguages(
-  languageService: LanguageService,
-  configurationService: ConfigurationParametersService,
-  translateService: TranslateService,
-  loggerService: LoggerService,
-  appStateService: AppStateService,
-  messagesInterceptorState: MessagesInterceptorStateService,
-  appConfigService: AppConfigService
-) {
-  return async () => {
-    messagesInterceptorState.disable();
-    DataTablesRegistry.setLoggerService(loggerService);
-    Resource.setLoggerService(loggerService);
-
-    try {
-      if (!config.defaultLang) {
-        try {
-          const configParams = await firstValueFrom(configurationService.fetchAllItems());
-          const defaultLangParam = configParams.find(element => element.name === 'language.default');
-          if (defaultLangParam?.value) {
-            config.defaultLang = defaultLangParam.value;
-          }
-        } catch {
-          // configuration may load in a parallel initializer; fall back below
-        }
-      }
-
-      const languages = languageService.applyLanguagesToUse(
-        await firstValueFrom(languageService.fetchAllItems())
-      );
-
-      const chosen = resolveUiLanguage({
-        stored: localStorage.getItem('lang'),
-        backendDefault: config.defaultLang,
-        availableShortnames: languages.map(l => l.shortname),
-        staticFallback: appConfigService.getDefaultLanguageFallback() || 'en',
-      });
-      translateService.setDefaultLang(chosen);
-      messagesInterceptorState.enable();
-      return await firstValueFrom(translateService.use(chosen));
-    } catch (error) {
-      const initError = {
-        message: 'Failed to initialize languages',
-        originalError: error,
-        source: 'languages',
-        timestamp: new Date().toISOString()
-      };
-      appStateService.setInitializationError(initError, 'languages');
-      messagesInterceptorState.enable();
-
-      const fallback =
-        config.defaultLang ||
-        appConfigService.getDefaultLanguageFallback() ||
-        'en';
-      translateService.setDefaultLang(fallback);
-      return await firstValueFrom(translateService.use(fallback));
-    }
-  };
-}
-
-export function initializeConfiguration(
-  configurationService: ConfigurationParametersService,
-  translateService: TranslateService,
-  loggerService: LoggerService,
-  appStateService: AppStateService,
-  messagesInterceptorState: MessagesInterceptorStateService
-) {
-  return async () => {
-    messagesInterceptorState.disable();
-    try {
-      const configParams = await firstValueFrom(configurationService.fetchAllItems());
-      const defaultLang = configParams.find(element => element.name === 'language.default');
-
-      if (defaultLang) {
-        config.defaultLang = defaultLang.value;
-      }
-
-      loggerService.debug(`Configuration initialized: ${configParams.length} parameters loaded`);
-      messagesInterceptorState.enable();
-    } catch (error) {
-      // Create a proper error object for initialization errors
-      const initError = {
-        message: 'Failed to initialize configuration',
-        originalError: error,
-        source: 'configuration',
-        timestamp: new Date().toISOString()
-      };
-      appStateService.setInitializationError(initError, 'configuration');
-      messagesInterceptorState.enable();
-    }
-  };
-}
+import {SetupStatusService} from './services/setup-status.service';
 
 @NgModule({ declarations: [
         BaseFormComponent,
@@ -292,6 +199,7 @@ export function initializeConfiguration(
         UserFormComponent,
         TerritoryFormComponent,
         ServiceFormComponent,
+        ServiceAccessTimelineComponent,
         ApplicationFormComponent,
         TreesFormComponent,
         TreeNodesComponent,
@@ -303,6 +211,7 @@ export function initializeConfiguration(
         TaskUIComponent,
         TaskUIFormComponent,
         LoginComponent,
+        FirstRunComponent,
         DashboardComponent,
         FormToolbarComponent,
         ExternalUrlLinkComponent,
@@ -329,20 +238,19 @@ export function initializeConfiguration(
     bootstrap: [AppComponent], imports: [BrowserModule,
         FormsModule,
         ReactiveFormsModule,
+        FormField,
         CoreModule.forRoot(),
         DomainModule.forRoot(),
         ServicesModule,
         SitmunFrontendGuiModule,
+        AgGridModule,
         DataGridComponent,
         RelationGridComponent,
         DialogGridComponent,
         MaterialModule,
         RouterModule,
         HalModule.forRoot(),
-        TranslateModule.forRoot({
-            loader: provideTranslateHttpLoader({ prefix: './assets/i18n/', suffix: '.json' }),
-            missingTranslationHandler: provideMissingTranslationHandler(AppMissingTranslationHandler)
-        }),
+        TranslatePipe,
         APP_ROUTING,
         BrowserAnimationsModule,
         NgOptimizedImage,
@@ -352,7 +260,12 @@ export function initializeConfiguration(
         ImagePreviewComponent,
         LiteralTranslationsComponent,
         LiteralTranslationCreateDialogComponent,
-        LiteralTranslationCsvDialogComponent], providers: [
+        LiteralTranslationCsvDialogComponent,
+        BackendWaitingComponent], providers: [
+      provideTranslateService({
+            loader: provideTranslateHttpLoader({ prefix: './assets/i18n/', suffix: '.json' }),
+            missingTranslationHandler: provideMissingTranslationHandler(AppMissingTranslationHandler)
+        }),
         { provide: LOCALE_ID, useValue: 'es-ES' },
         { provide: ErrorHandler, useClass: GlobalErrorHandler },
         { provide: 'ExternalConfigurationService', useClass: ExternalConfigurationService },
@@ -362,18 +275,9 @@ export function initializeConfiguration(
         provideAppInitializer(() => initializeAppConfig(inject(AppConfigService))()),
         provideAppInitializer(() => initializeIcons(inject(IconsService))()),
         provideAppInitializer(() =>
-            initializeConfiguration(
-                inject(ConfigurationParametersService),
-                inject(TranslateService),
-                inject(LoggerService),
-                inject(AppStateService),
-                inject(MessagesInterceptorStateService)
-            )()
-        ),
-        provideAppInitializer(() =>
-            initializeLanguages(
+            initializeFromSetupStatus(
+                inject(SetupStatusService),
                 inject(LanguageService),
-                inject(ConfigurationParametersService),
                 inject(TranslateService),
                 inject(LoggerService),
                 inject(AppStateService),
@@ -418,7 +322,7 @@ export function initializeConfiguration(
         ApplicationTreeService,
         TreeNodeService,
         UserPositionService,
-        provideHttpClient(withInterceptorsFromDi())
+        provideHttpClient(withXhr(), withInterceptorsFromDi())
     ] })
 export class AppModule {
 }

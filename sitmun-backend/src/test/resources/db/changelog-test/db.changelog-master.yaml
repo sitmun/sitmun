@@ -1,0 +1,121 @@
+databaseChangeLog:
+  - changeSet:
+      id: test-schema-h2
+      author: sitmun
+      dbms: h2
+      logicalFilePath: db/changelog-test/01-schema.h2.sql
+      changes:
+        - sqlFile:
+            path: 01-schema.h2.sql
+            relativeToChangelogFile: true
+            splitStatements: true
+            stripComments: false
+            endDelimiter: ";"
+  - changeSet:
+      id: test-languages-h2
+      author: sitmun
+      dbms: h2
+      logicalFilePath: db/changelog/baseline/03-languages.postgresql.sql
+      changes:
+        - sqlFile:
+            path: db/changelog/baseline/03-languages.postgresql.sql
+            relativeToChangelogFile: false
+            splitStatements: true
+            stripComments: false
+            endDelimiter: ";"
+  - changeSet:
+      id: test-codelists-h2
+      author: sitmun
+      dbms: h2
+      logicalFilePath: db/changelog/baseline/02-codelists.postgresql.sql
+      changes:
+        - sqlFile:
+            path: db/changelog/baseline/02-codelists.postgresql.sql
+            relativeToChangelogFile: false
+            splitStatements: true
+            stripComments: false
+            endDelimiter: ";"
+  - changeSet:
+      id: test-seed-h2
+      author: sitmun
+      dbms: h2
+      logicalFilePath: db/changelog/baseline/06-seed.postgresql.sql
+      changes:
+        - sqlFile:
+            path: db/changelog/baseline/06-seed.postgresql.sql
+            relativeToChangelogFile: false
+            splitStatements: true
+            stripComments: false
+            endDelimiter: "--end"
+  - include:
+      file: db/changelog/db.changelog-master.yaml
+      relativeToChangelogFile: false
+  - changeSet:
+      id: test-fixtures-postgresql
+      author: sitmun
+      dbms: h2,postgresql
+      logicalFilePath: db/changelog-test/02-fixtures.postgresql.sql
+      changes:
+        - sqlFile:
+            path: 02-fixtures.postgresql.sql
+            relativeToChangelogFile: true
+            splitStatements: true
+            stripComments: false
+            endDelimiter: "--end"
+  - changeSet:
+      id: test-fixtures-oracle
+      author: sitmun
+      dbms: oracle
+      logicalFilePath: db/changelog-test/02-fixtures.oracle.sql
+      changes:
+        - sqlFile:
+            path: 02-fixtures.oracle.sql
+            relativeToChangelogFile: true
+            splitStatements: true
+            stripComments: false
+            endDelimiter: "--end"
+  - changeSet:
+      id: test-sequence-counters-h2
+      author: sitmun
+      dbms: h2
+      logicalFilePath: db/changelog-test/05-sequence-counters.h2.sql
+      changes:
+        - sqlFile:
+            path: 05-sequence-counters.h2.sql
+            relativeToChangelogFile: true
+            splitStatements: true
+            stripComments: false
+            endDelimiter: ";"
+  - changeSet:
+      id: test-sequence-counters-postgresql
+      author: sitmun
+      dbms: postgresql
+      logicalFilePath: db/changelog/baseline/05-sequence-counters.postgresql.sql
+      changes:
+        - sqlFile:
+            path: db/changelog/baseline/05-sequence-counters.postgresql.sql
+            relativeToChangelogFile: false
+            splitStatements: true
+            stripComments: false
+            endDelimiter: ";"
+  - changeSet:
+      id: test-sequence-counters-oracle
+      author: sitmun
+      dbms: oracle
+      logicalFilePath: db/changelog/baseline/05-sequence-counters.oracle.sql
+      changes:
+        - sqlFile:
+            path: db/changelog/baseline/05-sequence-counters.oracle.sql
+            relativeToChangelogFile: false
+            splitStatements: true
+            stripComments: false
+            endDelimiter: ";"
+  - changeSet:
+      id: test-restore-admin-password
+      author: sitmun
+      dbms: h2,postgresql,oracle
+      changes:
+        - sql:
+            sql: UPDATE stm_user SET use_pwd = '$2a$10$fxkKe8bLwlWNitI49I6DBeNtOhjTqkMw2KKWg8pPd8k2jOT5dYc/W' WHERE use_user = 'admin' AND (use_pwd IS NULL OR TRIM(use_pwd) = '')
+        - sql:
+            sql: DELETE FROM stm_conf WHERE cnf_name IN ('sitmun.first-run', 'setup.languageConfigured')

@@ -1,6 +1,8 @@
 package org.sitmun.authorization.client.controller;
 
 import static org.sitmun.authorization.client.service.ProfileContext.NodeSectionBehaviour.*;
+import static org.sitmun.domain.DomainConstants.Tasks.PROFILE_LAYER_ID_PREFIX;
+import static org.sitmun.domain.DomainConstants.Tasks.PROFILE_SERVICE_ID_PREFIX;
 import static org.sitmun.infrastructure.security.core.SecurityRole.isMobileEdition;
 import static org.springframework.http.HttpStatus.*;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
@@ -62,12 +64,6 @@ public class ClientConfigurationController {
   @Value("${sitmun.backend.url:}")
   private String backendUrl;
 
-  /**
-   * Constructor for ClientConfigurationController.
-   *
-   * @param authorizationService the authorization service
-   * @param profileMapper the profile mapper
-   */
   public ClientConfigurationController(
       AuthorizationService authorizationService,
       ProfileMapper profileMapper,
@@ -228,7 +224,6 @@ public class ClientConfigurationController {
                   dto.setTerritoryCount(count);
                   dto.setHasTerritories(count > 0);
                   if (count == 1) {
-                    // Find the single territory ID
                     Page<Territory> terrs =
                         authorizationService.findTerritoriesByUserAndApplication(
                             username, app.getId(), Pageable.unpaged());
@@ -391,7 +386,6 @@ public class ClientConfigurationController {
         return Optional.of(Integer.parseInt(matcher.group(1)));
       } catch (NumberFormatException e) {
         log.error("Error parsing node from filter: {}", input);
-        // Log the exception if necessary
       }
     }
     return Optional.empty();
@@ -455,6 +449,30 @@ public class ClientConfigurationController {
                   service.setUrl(uri);
                 }
               });
+      if (profileDto.getLayers() != null && profileDto.getServices() != null) {
+        Map<String, ServiceDto> servicesById = new java.util.HashMap<>();
+        profileDto.getServices().forEach(service -> servicesById.put(service.getId(), service));
+        profileDto
+            .getLayers()
+            .forEach(
+                layer -> {
+                  ServiceDto service = servicesById.get(layer.getService());
+                  if (service == null || !Boolean.TRUE.equals(service.getIsProxied())) {
+                    return;
+                  }
+                  String uriTemplate =
+                      middlewareBase + "/proxy/{appId}/{terId}/{type}/{typeId}/{cartographyId}";
+                  Map<String, String> params =
+                      Map.of(
+                          "appId", context.getAppId().toString(),
+                          "terId", context.getTerritoryId().toString(),
+                          "type", service.getType(),
+                          "typeId", service.getId().substring(PROFILE_SERVICE_ID_PREFIX.length()),
+                          "cartographyId",
+                              layer.getId().substring(PROFILE_LAYER_ID_PREFIX.length()));
+                  layer.setUrl(UriTemplateExpander.expand(uriTemplate, params));
+                });
+      }
       return profileDto;
     };
   }

@@ -14,6 +14,7 @@ import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 import org.sitmun.authorization.client.dto.ClientConfigurationViews;
 import org.sitmun.domain.PersistenceConstants;
+import org.sitmun.domain.StoredFlagListener;
 import org.sitmun.infrastructure.persistence.type.i18n.I18n;
 import org.sitmun.infrastructure.persistence.type.i18n.I18nListener;
 import org.sitmun.infrastructure.persistence.type.map.HashMapConverter;
@@ -21,7 +22,7 @@ import org.sitmun.infrastructure.persistence.type.map.HashMapConverter;
 /** Task type. */
 @Entity
 @Table(name = "STM_TSK_TYP")
-@EntityListeners(I18nListener.class)
+@EntityListeners({I18nListener.class, StoredFlagListener.class})
 @Builder
 @Getter
 @Setter
@@ -39,7 +40,7 @@ public class TaskType {
       allocationSize = 1)
   @Id
   @GeneratedValue(strategy = GenerationType.TABLE, generator = "STM_TSK_TYP_GEN")
-  @Column(name = "TTY_ID")
+  @Column(name = "TTY_ID", nullable = false)
   @JsonView(ClientConfigurationViews.ApplicationTerritory.class)
   private Integer id;
 
@@ -55,7 +56,7 @@ public class TaskType {
   private String title;
 
   /** Is active. */
-  @Column(name = "TTY_ENABLED")
+  @Column(name = "TTY_ENABLED", nullable = false)
   private Boolean enabled;
 
   /** Task type parent. */
@@ -68,7 +69,6 @@ public class TaskType {
   @Column(name = "TTY_ORDER")
   private Integer order;
 
-  /** */
   @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL, orphanRemoval = true)
   @Builder.Default
   private Set<TaskType> children = new HashSet<>();

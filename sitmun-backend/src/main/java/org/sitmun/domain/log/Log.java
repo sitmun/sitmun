@@ -2,11 +2,13 @@ package org.sitmun.domain.log;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.Size;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import lombok.*;
 import org.sitmun.domain.PersistenceConstants;
+import org.sitmun.domain.StoredFlagListener;
 import org.sitmun.domain.application.Application;
 import org.sitmun.domain.cartography.Cartography;
 import org.sitmun.domain.task.Task;
@@ -17,6 +19,7 @@ import org.sitmun.infrastructure.persistence.type.srs.Srs;
 
 /** Log. */
 @Entity
+@EntityListeners(StoredFlagListener.class)
 @Table(name = "STM_LOG")
 @Builder
 @Getter
@@ -35,7 +38,7 @@ public class Log {
       allocationSize = 1)
   @Id
   @GeneratedValue(strategy = GenerationType.TABLE, generator = "STM_LOG_GEN")
-  @Column(name = "LOG_ID")
+  @Column(name = "LOG_ID", nullable = false)
   private Integer id;
 
   /** Action date. */
@@ -57,7 +60,7 @@ public class Log {
   @JoinColumn(name = "LOG_APPID")
   private Application application;
 
-  /** Originated in this application. */
+  /** Originated in this territory. */
   @ManyToOne
   @JoinColumn(name = "LOG_TERID")
   private Territory territory;
@@ -77,7 +80,8 @@ public class Log {
   private Integer counter;
 
   /** Territory code. */
-  @Column(name = "LOG_TER", length = PersistenceConstants.IDENTIFIER)
+  @Column(name = "LOG_TER", length = 250)
+  @Size(max = 250)
   private String territoryCode;
 
   /**
@@ -93,12 +97,14 @@ public class Log {
   private String data;
 
   /** SRS requested. */
-  @Column(name = "LOG_SRS", length = PersistenceConstants.IDENTIFIER)
+  @Column(name = "LOG_SRS", length = 250)
+  @Size(max = 250)
   @Srs
   private String srs;
 
   /** Format requested. */
-  @Column(name = "LOG_FORMAT", length = PersistenceConstants.IDENTIFIER)
+  @Column(name = "LOG_FORMAT", length = 250)
+  @Size(max = 250)
   private String format;
 
   /** True if the user used the add buffer option. */

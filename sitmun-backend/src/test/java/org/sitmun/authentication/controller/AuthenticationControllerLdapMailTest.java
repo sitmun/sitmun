@@ -19,8 +19,8 @@ import org.sitmun.test.AdditiveActiveProfiles;
 import org.sitmun.test.TestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -63,8 +63,8 @@ class AuthenticationControllerLdapMailTest {
   }
 
   @Test
-  @DisplayName("POST: Test authentication with LDAP + Mail profiles enabled")
-  void testAuthenticationWithLdapAndMail() throws Exception {
+  @DisplayName("POST /api/authenticate with LDAP and Mail returns 200 and an access-token cookie")
+  void postAuthenticateWithLdapAndMailReturnsAccessToken() throws Exception {
     UserPasswordAuthenticationRequest login = new UserPasswordAuthenticationRequest();
     login.setUsername("admin");
     login.setPassword("admin");

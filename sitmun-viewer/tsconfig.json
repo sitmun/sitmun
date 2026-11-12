@@ -2,6 +2,7 @@
 {
   "compileOnSave": false,
   "compilerOptions": {
+    "ignoreDeprecations": "6.0",
     "baseUrl": "./",
     "outDir": "./dist/out-tsc",
     "forceConsistentCasingInFileNames": true,
@@ -14,15 +15,12 @@
     "declaration": false,
     "downlevelIteration": true,
     "experimentalDecorators": true,
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "importHelpers": true,
     "esModuleInterop": true,
+    "resolveJsonModule": true,
     "target": "ES2022",
     "module": "es2020",
-    "lib": [
-            "es2020",
-            "dom"
-    ],
     "types": ["node"],
     "paths": {
       "@auth/*": ["src/app/auth/*"],
@@ -30,7 +28,9 @@
       "@api/*": ["src/app/api/*"],
       "@sections/*": ["src/app/sections/*"],
       "@shared/*": ["src/app/shared/*"],
-      "@ui/*": ["src/app/ui/*"]
+      "@ui/*": ["src/app/ui/*"],
+      "@environments/*": ["src/environments/*"],
+      "ol/package.json": ["node_modules/ol/package.json"]
     },
     "useDefineForClassFields": false,
     "skipLibCheck": true,

@@ -1,0 +1,1037 @@
+tra_id,tra_column,element,element_value,lan_shortname,tra_name
+1,Language.name,en,,ca,Anglès
+2,Language.name,es,,ca,Espanyol
+3,Language.name,ca,,ca,Català
+4,Language.name,oc-aranes,,ca,Aranès
+5,Language.name,fr,,ca,Francès
+6,CodeListValue.description,application.type,ED,ca,Edition application
+7,CodeListValue.description,application.type,E,ca,Aplicació externa
+8,CodeListValue.description,application.type,I,ca,Aplicació interna
+9,CodeListValue.description,application.type,T,ca,Aplicació turística
+10,CodeListValue.description,applicationParameter.type,MOBILE,ca,Paràmetre d'aplicació mòbil
+11,CodeListValue.description,applicationParameter.type,Nomenclator,ca,Paràmetre de nomenclàtor
+12,CodeListValue.description,applicationParameter.type,PRINT_TEMPLATE,ca,Plantilla d'impressió
+13,CodeListValue.description,cartography.geometryType,LINE,ca,Línia
+14,CodeListValue.description,cartography.geometryType,POINT,ca,Punt
+15,CodeListValue.description,cartography.geometryType,POLYGON,ca,Polígon
+16,CodeListValue.description,cartography.legendType,LEGENDGRAPHIC,ca,Prioritza Get Legend Graphic (capabilities)
+17,CodeListValue.description,cartography.legendType,LEGENDURL,ca,Legend URL (capabilities)
+18,CodeListValue.description,cartography.legendType,LINK,ca,URL de llegenda estàtica
+19,CodeListValue.description,cartographyFilter.type,C,ca,Personalitzat
+20,CodeListValue.description,cartographyFilter.type,D,ca,Definit
+21,CodeListValue.description,cartographyFilter.valueType,A,ca,Alfanumèric
+22,CodeListValue.description,cartographyFilter.valueType,D,ca,Data
+23,CodeListValue.description,cartographyFilter.valueType,N,ca,Nombre
+24,CodeListValue.description,cartographyParameter.format,F,ca,Data
+25,CodeListValue.description,cartographyParameter.format,I,ca,Imatge
+26,CodeListValue.description,cartographyParameter.format,N,ca,Nombre
+27,CodeListValue.description,cartographyParameter.format,P,ca,Percentatge
+28,CodeListValue.description,cartographyParameter.format,T,ca,Text
+29,CodeListValue.description,cartographyParameter.format,U,ca,URL
+30,CodeListValue.description,cartographyParameter.type,INFO,ca,INFO
+31,CodeListValue.description,cartographyPermission.type,F,ca,Mapa de fons
+32,CodeListValue.description,cartographyPermission.type,C,ca,Grup de cartografia
+33,CodeListValue.description,cartographyPermission.type,M,ca,Mapa de situació
+34,CodeListValue.description,cartographyPermission.type,I,ca,Informe
+35,CodeListValue.description,cartographySpatialSelectionParameter.format,F,ca,Data
+36,CodeListValue.description,cartographySpatialSelectionParameter.format,I,ca,Imatge
+37,CodeListValue.description,cartographySpatialSelectionParameter.format,N,ca,Nombre
+38,CodeListValue.description,cartographySpatialSelectionParameter.format,P,ca,Percentatge
+39,CodeListValue.description,cartographySpatialSelectionParameter.format,T,ca,Text
+40,CodeListValue.description,cartographySpatialSelectionParameter.format,U,ca,URL
+41,CodeListValue.description,cartographySpatialSelectionParameter.type,EDIT,ca,EDITAR
+42,CodeListValue.description,cartographySpatialSelectionParameter.type,SELECT,ca,SELECCIONAR
+43,CodeListValue.description,downloadTask.scope,A,ca,Aplicació
+44,CodeListValue.description,downloadTask.scope,U,ca,Isolated
+45,CodeListValue.description,downloadTask.scope,C,ca,Layer
+46,CodeListValue.description,editTask.fieldType,date,ca,Data
+47,CodeListValue.description,editTask.fieldType,image,ca,Imatge
+48,CodeListValue.description,editTask.fieldType,listbox,ca,ListBox
+49,CodeListValue.description,editTask.fieldType,number,ca,Nombre
+50,CodeListValue.description,editTask.fieldType,text,ca,Text
+51,CodeListValue.description,editTask.scope,db-edit,ca,Database edition
+52,CodeListValue.description,editTask.scope,feat-edit,ca,Features service edition (WFS)
+53,CodeListValue.description,queryTask.parameterType,query,ca,Query parameter
+54,CodeListValue.description,queryTask.parameterType,template,ca,Template parameter
+55,CodeListValue.description,queryTask.scope,cartography-query,ca,Cartography Query
+56,CodeListValue.description,queryTask.scope,sql-query,ca,SQL Query
+57,CodeListValue.description,queryTask.scope,web-api-query,ca,Web API Query
+58,CodeListValue.description,service.authenticationMode,HTTP Basic authentication,ca,Autenticació HTTP bàsica
+59,CodeListValue.description,service.authenticationMode,None,ca,Cap
+60,CodeListValue.description,service.type,WFS,ca,WFS
+61,CodeListValue.description,service.type,WMS,ca,WMS
+62,CodeListValue.description,service.type,WMTS,ca,WMTS
+63,CodeListValue.description,serviceParameter.type,INFO,ca,GetFeatureInfo
+64,CodeListValue.description,serviceParameter.type,WMS,ca,GetMap
+65,CodeListValue.description,serviceParameter.type,OLPARAM,ca,OpenLayers
+66,CodeListValue.description,serviceParameter.type,WMTS,ca,WMTS
+67,CodeListValue.description,taskEntity.jsonParamType,__NULL_VALUE__,ca,__NULL_VALUE__
+68,CodeListValue.description,taskEntity.jsonParamType,array,ca,array
+69,CodeListValue.description,taskEntity.jsonParamType,boolean,ca,boolean
+70,CodeListValue.description,taskEntity.jsonParamType,number,ca,number
+71,CodeListValue.description,taskEntity.jsonParamType,object,ca,object
+72,CodeListValue.description,taskEntity.jsonParamType,string,ca,string
+73,CodeListValue.description,territory.scope,M,ca,Municipi
+74,CodeListValue.description,territory.scope,R,ca,Regional
+75,CodeListValue.description,territory.scope,T,ca,Total
+76,CodeListValue.description,tree.type,cartography,ca,Cartografia
+77,CodeListValue.description,tree.type,edition,ca,Arbre d'edició
+78,CodeListValue.description,tree.type,touristic,ca,Aplicació turística
+79,CodeListValue.description,treenode.viewmode,dl,ca,Llista detallada
+80,CodeListValue.description,treenode.viewmode,evt,ca,Esdeveniments
+81,CodeListValue.description,treenode.viewmode,evtcat,ca,Categories d'esdeveniments
+82,CodeListValue.description,treenode.viewmode,evtloc,ca,Ubicacions d'esdeveniments
+83,CodeListValue.description,treenode.viewmode,gallery,ca,Galeria
+84,CodeListValue.description,treenode.viewmode,ms,ca,Cerca al mapa
+85,CodeListValue.description,treenode.viewmode,ne,ca,Elements propers
+86,CodeListValue.description,treenode.viewmode,rt,ca,Llista de rutes
+87,CodeListValue.description,treenode.viewmode,sch,ca,Horari
+88,CodeListValue.description,user.identificationType,DNI,ca,DNI
+89,CodeListValue.description,user.identificationType,NIE,ca,NIE
+90,CodeListValue.description,user.identificationType,PAS,ca,Passport
+91,CodeListValue.description,userPosition.type,POC,ca,Punt de contacte
+92,CodeListValue.description,treenode.node.type,cartography,ca,Cartografia
+93,CodeListValue.description,treenode.node.type,folder,ca,Carpeta
+94,CodeListValue.description,treenode.node.type,list,ca,Llista
+95,CodeListValue.description,treenode.node.type,menu,ca,Menú
+96,CodeListValue.description,treenode.node.type,task,ca,Tasca
+97,CodeListValue.description,treenode.node.type,fav,ca,Favorits
+98,CodeListValue.description,treenode.node.type,map,ca,Mapa
+99,CodeListValue.description,treenode.node.type,nm,ca,A prop meu
+146,Language.name,en,,en,English
+147,Language.name,es,,en,Spanish
+148,Language.name,ca,,en,Catalan
+149,Language.name,oc-aranes,,en,Aranese
+150,Language.name,fr,,en,French
+291,Language.name,en,,es,Inglés
+292,Language.name,es,,es,Español
+293,Language.name,ca,,es,Catalán
+294,Language.name,oc-aranes,,es,Aranés
+295,Language.name,fr,,es,Francés
+296,CodeListValue.description,application.type,ED,es,Edition application
+297,CodeListValue.description,application.type,E,es,Aplicación externa
+298,CodeListValue.description,application.type,I,es,Aplicación interna
+299,CodeListValue.description,application.type,T,es,Aplicación turística
+300,CodeListValue.description,applicationParameter.type,MOBILE,es,Parámetro de aplicación móvil
+301,CodeListValue.description,applicationParameter.type,Nomenclator,es,Parámetro de nomenclátor
+302,CodeListValue.description,applicationParameter.type,PRINT_TEMPLATE,es,Plantilla de impresión
+303,CodeListValue.description,cartography.geometryType,LINE,es,Línea
+304,CodeListValue.description,cartography.geometryType,POINT,es,Punto
+305,CodeListValue.description,cartography.geometryType,POLYGON,es,Polígono
+306,CodeListValue.description,cartography.legendType,LEGENDGRAPHIC,es,Priorizar Get Legend Graphic (capabilities)
+307,CodeListValue.description,cartography.legendType,LEGENDURL,es,Legend URL (capabilities)
+308,CodeListValue.description,cartography.legendType,LINK,es,URL de leyenda estática
+309,CodeListValue.description,cartographyFilter.type,C,es,Personalizado
+310,CodeListValue.description,cartographyFilter.type,D,es,Definido
+311,CodeListValue.description,cartographyFilter.valueType,A,es,Alfanumérico
+312,CodeListValue.description,cartographyFilter.valueType,D,es,Fecha
+313,CodeListValue.description,cartographyFilter.valueType,N,es,Número
+314,CodeListValue.description,cartographyParameter.format,F,es,Fecha
+315,CodeListValue.description,cartographyParameter.format,I,es,Imagen
+316,CodeListValue.description,cartographyParameter.format,N,es,Número
+317,CodeListValue.description,cartographyParameter.format,P,es,Porcentaje
+318,CodeListValue.description,cartographyParameter.format,T,es,Texto
+319,CodeListValue.description,cartographyParameter.format,U,es,URL
+320,CodeListValue.description,cartographyParameter.type,INFO,es,INFO
+321,CodeListValue.description,cartographyPermission.type,F,es,Mapa de fondo
+322,CodeListValue.description,cartographyPermission.type,C,es,Grupo de cartografía
+323,CodeListValue.description,cartographyPermission.type,M,es,Mapa de situación
+324,CodeListValue.description,cartographyPermission.type,I,es,Informe
+325,CodeListValue.description,cartographySpatialSelectionParameter.format,F,es,Fecha
+326,CodeListValue.description,cartographySpatialSelectionParameter.format,I,es,Imagen
+327,CodeListValue.description,cartographySpatialSelectionParameter.format,N,es,Número
+328,CodeListValue.description,cartographySpatialSelectionParameter.format,P,es,Porcentaje
+329,CodeListValue.description,cartographySpatialSelectionParameter.format,T,es,Texto
+330,CodeListValue.description,cartographySpatialSelectionParameter.format,U,es,URL
+331,CodeListValue.description,cartographySpatialSelectionParameter.type,EDIT,es,EDITAR
+332,CodeListValue.description,cartographySpatialSelectionParameter.type,SELECT,es,SELECCIONAR
+333,CodeListValue.description,downloadTask.scope,A,es,Aplicación
+334,CodeListValue.description,downloadTask.scope,U,es,Isolated
+335,CodeListValue.description,downloadTask.scope,C,es,Layer
+336,CodeListValue.description,editTask.fieldType,date,es,Fecha
+337,CodeListValue.description,editTask.fieldType,image,es,Imagen
+338,CodeListValue.description,editTask.fieldType,listbox,es,ListBox
+339,CodeListValue.description,editTask.fieldType,number,es,Número
+340,CodeListValue.description,editTask.fieldType,text,es,Texto
+341,CodeListValue.description,editTask.scope,db-edit,es,Database edition
+342,CodeListValue.description,editTask.scope,feat-edit,es,Features service edition (WFS)
+343,CodeListValue.description,queryTask.parameterType,query,es,Query parameter
+344,CodeListValue.description,queryTask.parameterType,template,es,Template parameter
+345,CodeListValue.description,queryTask.scope,cartography-query,es,Cartography Query
+346,CodeListValue.description,queryTask.scope,sql-query,es,SQL Query
+347,CodeListValue.description,queryTask.scope,web-api-query,es,Web API Query
+348,CodeListValue.description,service.authenticationMode,HTTP Basic authentication,es,Autenticación HTTP básica
+349,CodeListValue.description,service.authenticationMode,None,es,Ninguno
+350,CodeListValue.description,service.type,WFS,es,WFS
+351,CodeListValue.description,service.type,WMS,es,WMS
+352,CodeListValue.description,service.type,WMTS,es,WMTS
+353,CodeListValue.description,serviceParameter.type,INFO,es,GetFeatureInfo
+354,CodeListValue.description,serviceParameter.type,WMS,es,GetMap
+355,CodeListValue.description,serviceParameter.type,OLPARAM,es,OpenLayers
+356,CodeListValue.description,serviceParameter.type,WMTS,es,WMTS
+357,CodeListValue.description,taskEntity.jsonParamType,__NULL_VALUE__,es,__NULL_VALUE__
+358,CodeListValue.description,taskEntity.jsonParamType,array,es,array
+359,CodeListValue.description,taskEntity.jsonParamType,boolean,es,boolean
+360,CodeListValue.description,taskEntity.jsonParamType,number,es,number
+361,CodeListValue.description,taskEntity.jsonParamType,object,es,object
+362,CodeListValue.description,taskEntity.jsonParamType,string,es,string
+363,CodeListValue.description,territory.scope,M,es,Municipio
+364,CodeListValue.description,territory.scope,R,es,Regional
+365,CodeListValue.description,territory.scope,T,es,Total
+366,CodeListValue.description,tree.type,cartography,es,Cartografía
+367,CodeListValue.description,tree.type,edition,es,Árbol de edición
+368,CodeListValue.description,tree.type,touristic,es,Aplicación turística
+369,CodeListValue.description,treenode.viewmode,dl,es,Lista detallada
+370,CodeListValue.description,treenode.viewmode,evt,es,Eventos
+371,CodeListValue.description,treenode.viewmode,evtcat,es,Categorías de eventos
+372,CodeListValue.description,treenode.viewmode,evtloc,es,Ubicaciones de eventos
+373,CodeListValue.description,treenode.viewmode,gallery,es,Galería
+374,CodeListValue.description,treenode.viewmode,ms,es,Búsqueda en mapa
+375,CodeListValue.description,treenode.viewmode,ne,es,Elementos cercanos
+376,CodeListValue.description,treenode.viewmode,rt,es,Lista de rutas
+377,CodeListValue.description,treenode.viewmode,sch,es,Horario
+378,CodeListValue.description,user.identificationType,DNI,es,DNI
+379,CodeListValue.description,user.identificationType,NIE,es,NIE
+380,CodeListValue.description,user.identificationType,PAS,es,Passport
+381,CodeListValue.description,userPosition.type,POC,es,Punto de contacto
+382,CodeListValue.description,treenode.node.type,cartography,es,Cartografía
+383,CodeListValue.description,treenode.node.type,folder,es,Carpeta
+384,CodeListValue.description,treenode.node.type,list,es,Lista
+385,CodeListValue.description,treenode.node.type,menu,es,Menú
+386,CodeListValue.description,treenode.node.type,task,es,Tarea
+387,CodeListValue.description,treenode.node.type,fav,es,Favoritos
+388,CodeListValue.description,treenode.node.type,map,es,Mapa
+389,CodeListValue.description,treenode.node.type,nm,es,Cerca de mí
+436,Language.name,en,,fr,Anglais
+437,Language.name,es,,fr,Espagnol
+438,Language.name,ca,,fr,Catalan
+439,Language.name,oc-aranes,,fr,Aranais
+440,Language.name,fr,,fr,Français
+441,CodeListValue.description,application.type,ED,fr,Edition application
+442,CodeListValue.description,application.type,E,fr,Application externe
+443,CodeListValue.description,application.type,I,fr,Application interne
+444,CodeListValue.description,application.type,T,fr,Application touristique
+445,CodeListValue.description,applicationParameter.type,MOBILE,fr,Paramètre d'application mobile
+446,CodeListValue.description,applicationParameter.type,Nomenclator,fr,Paramètre de nomenclateur
+447,CodeListValue.description,applicationParameter.type,PRINT_TEMPLATE,fr,Modèle d'impression
+448,CodeListValue.description,cartography.geometryType,LINE,fr,Ligne
+449,CodeListValue.description,cartography.geometryType,POINT,fr,Point
+450,CodeListValue.description,cartography.geometryType,POLYGON,fr,Polygone
+451,CodeListValue.description,cartography.legendType,LEGENDGRAPHIC,fr,Prioriser Get Legend Graphic (capabilities)
+452,CodeListValue.description,cartography.legendType,LEGENDURL,fr,Legend URL (capabilities)
+453,CodeListValue.description,cartography.legendType,LINK,fr,URL de légende statique
+454,CodeListValue.description,cartographyFilter.type,C,fr,Personnalisé
+455,CodeListValue.description,cartographyFilter.type,D,fr,Défini
+456,CodeListValue.description,cartographyFilter.valueType,A,fr,Alphanumérique
+457,CodeListValue.description,cartographyFilter.valueType,D,fr,Date
+458,CodeListValue.description,cartographyFilter.valueType,N,fr,Nombre
+459,CodeListValue.description,cartographyParameter.format,F,fr,Date
+460,CodeListValue.description,cartographyParameter.format,I,fr,Image
+461,CodeListValue.description,cartographyParameter.format,N,fr,Nombre
+462,CodeListValue.description,cartographyParameter.format,P,fr,Pourcentage
+463,CodeListValue.description,cartographyParameter.format,T,fr,Texte
+464,CodeListValue.description,cartographyParameter.format,U,fr,URL
+465,CodeListValue.description,cartographyParameter.type,INFO,fr,INFO
+466,CodeListValue.description,cartographyPermission.type,F,fr,Carte de fond
+467,CodeListValue.description,cartographyPermission.type,C,fr,Groupe de cartographie
+468,CodeListValue.description,cartographyPermission.type,M,fr,Carte de situation
+469,CodeListValue.description,cartographyPermission.type,I,fr,Rapport
+470,CodeListValue.description,cartographySpatialSelectionParameter.format,F,fr,Date
+471,CodeListValue.description,cartographySpatialSelectionParameter.format,I,fr,Image
+472,CodeListValue.description,cartographySpatialSelectionParameter.format,N,fr,Nombre
+473,CodeListValue.description,cartographySpatialSelectionParameter.format,P,fr,Pourcentage
+474,CodeListValue.description,cartographySpatialSelectionParameter.format,T,fr,Texte
+475,CodeListValue.description,cartographySpatialSelectionParameter.format,U,fr,URL
+476,CodeListValue.description,cartographySpatialSelectionParameter.type,EDIT,fr,ÉDITER
+477,CodeListValue.description,cartographySpatialSelectionParameter.type,SELECT,fr,SÉLECTIONNER
+478,CodeListValue.description,downloadTask.scope,A,fr,Application
+479,CodeListValue.description,downloadTask.scope,U,fr,Isolated
+480,CodeListValue.description,downloadTask.scope,C,fr,Layer
+481,CodeListValue.description,editTask.fieldType,date,fr,Date
+482,CodeListValue.description,editTask.fieldType,image,fr,Image
+483,CodeListValue.description,editTask.fieldType,listbox,fr,ListBox
+484,CodeListValue.description,editTask.fieldType,number,fr,Nombre
+485,CodeListValue.description,editTask.fieldType,text,fr,Texte
+486,CodeListValue.description,editTask.scope,db-edit,fr,Database edition
+487,CodeListValue.description,editTask.scope,feat-edit,fr,Features service edition (WFS)
+488,CodeListValue.description,queryTask.parameterType,query,fr,Query parameter
+489,CodeListValue.description,queryTask.parameterType,template,fr,Template parameter
+490,CodeListValue.description,queryTask.scope,cartography-query,fr,Cartography Query
+491,CodeListValue.description,queryTask.scope,sql-query,fr,SQL Query
+492,CodeListValue.description,queryTask.scope,web-api-query,fr,Web API Query
+493,CodeListValue.description,service.authenticationMode,HTTP Basic authentication,fr,Authentification HTTP de base
+494,CodeListValue.description,service.authenticationMode,None,fr,Aucun
+495,CodeListValue.description,service.type,WFS,fr,WFS
+496,CodeListValue.description,service.type,WMS,fr,WMS
+497,CodeListValue.description,service.type,WMTS,fr,WMTS
+498,CodeListValue.description,serviceParameter.type,INFO,fr,GetFeatureInfo
+499,CodeListValue.description,serviceParameter.type,WMS,fr,GetMap
+500,CodeListValue.description,serviceParameter.type,OLPARAM,fr,OpenLayers
+501,CodeListValue.description,serviceParameter.type,WMTS,fr,WMTS
+502,CodeListValue.description,taskEntity.jsonParamType,__NULL_VALUE__,fr,__NULL_VALUE__
+503,CodeListValue.description,taskEntity.jsonParamType,array,fr,array
+504,CodeListValue.description,taskEntity.jsonParamType,boolean,fr,boolean
+505,CodeListValue.description,taskEntity.jsonParamType,number,fr,number
+506,CodeListValue.description,taskEntity.jsonParamType,object,fr,object
+507,CodeListValue.description,taskEntity.jsonParamType,string,fr,string
+508,CodeListValue.description,territory.scope,M,fr,Municipalité
+509,CodeListValue.description,territory.scope,R,fr,Régional
+510,CodeListValue.description,territory.scope,T,fr,Total
+511,CodeListValue.description,tree.type,cartography,fr,Cartographie
+512,CodeListValue.description,tree.type,edition,fr,Arbre d'édition
+513,CodeListValue.description,tree.type,touristic,fr,Application touristique
+514,CodeListValue.description,treenode.viewmode,dl,fr,Liste détaillée
+515,CodeListValue.description,treenode.viewmode,evt,fr,Événements
+516,CodeListValue.description,treenode.viewmode,evtcat,fr,Catégories d'événements
+517,CodeListValue.description,treenode.viewmode,evtloc,fr,Emplacements d'événements
+518,CodeListValue.description,treenode.viewmode,gallery,fr,Galerie
+519,CodeListValue.description,treenode.viewmode,ms,fr,Recherche sur carte
+520,CodeListValue.description,treenode.viewmode,ne,fr,Éléments proches
+521,CodeListValue.description,treenode.viewmode,rt,fr,Liste des itinéraires
+522,CodeListValue.description,treenode.viewmode,sch,fr,Horaire
+523,CodeListValue.description,user.identificationType,DNI,fr,DNI
+524,CodeListValue.description,user.identificationType,NIE,fr,NIE
+525,CodeListValue.description,user.identificationType,PAS,fr,Passport
+526,CodeListValue.description,userPosition.type,POC,fr,Point de contact
+527,CodeListValue.description,treenode.node.type,cartography,fr,Cartographie
+528,CodeListValue.description,treenode.node.type,folder,fr,Dossier
+529,CodeListValue.description,treenode.node.type,list,fr,Liste
+530,CodeListValue.description,treenode.node.type,menu,fr,Menu
+531,CodeListValue.description,treenode.node.type,task,fr,Tâche
+532,CodeListValue.description,treenode.node.type,fav,fr,Favoris
+533,CodeListValue.description,treenode.node.type,map,fr,Carte
+534,CodeListValue.description,treenode.node.type,nm,fr,Près de moi
+581,Language.name,en,,oc-aranes,Anglés
+582,Language.name,es,,oc-aranes,Espanhòl
+583,Language.name,ca,,oc-aranes,Catalan
+584,Language.name,oc-aranes,,oc-aranes,Aranés
+585,Language.name,fr,,oc-aranes,Francés
+586,CodeListValue.description,application.type,ED,oc-aranes,Edition application
+587,CodeListValue.description,application.type,E,oc-aranes,Aplicacion extèrna
+588,CodeListValue.description,application.type,I,oc-aranes,Aplicacion intèrna
+589,CodeListValue.description,application.type,T,oc-aranes,Aplicacion toristica
+590,CodeListValue.description,applicationParameter.type,MOBILE,oc-aranes,Paramètres d'aplicacion mobil
+591,CodeListValue.description,applicationParameter.type,Nomenclator,oc-aranes,Paramètres de nomenclator
+592,CodeListValue.description,applicationParameter.type,PRINT_TEMPLATE,oc-aranes,Modèl d'impression
+593,CodeListValue.description,cartography.geometryType,LINE,oc-aranes,Linha
+594,CodeListValue.description,cartography.geometryType,POINT,oc-aranes,Punt
+595,CodeListValue.description,cartography.geometryType,POLYGON,oc-aranes,Poligòn
+596,CodeListValue.description,cartography.legendType,LEGENDGRAPHIC,oc-aranes,Priorizar Get Legend Graphic (capabilities)
+597,CodeListValue.description,cartography.legendType,LEGENDURL,oc-aranes,Legend URL (capabilities)
+598,CodeListValue.description,cartography.legendType,LINK,oc-aranes,URL de legenda estatica
+599,CodeListValue.description,cartographyFilter.type,C,oc-aranes,Personalizat
+600,CodeListValue.description,cartographyFilter.type,D,oc-aranes,Definit
+601,CodeListValue.description,cartographyFilter.valueType,A,oc-aranes,Alfanumeric
+602,CodeListValue.description,cartographyFilter.valueType,D,oc-aranes,Data
+603,CodeListValue.description,cartographyFilter.valueType,N,oc-aranes,Numèro
+604,CodeListValue.description,cartographyParameter.format,F,oc-aranes,Data
+605,CodeListValue.description,cartographyParameter.format,I,oc-aranes,Imatge
+606,CodeListValue.description,cartographyParameter.format,N,oc-aranes,Numèro
+607,CodeListValue.description,cartographyParameter.format,P,oc-aranes,Percentatge
+608,CodeListValue.description,cartographyParameter.format,T,oc-aranes,Tèxte
+609,CodeListValue.description,cartographyParameter.format,U,oc-aranes,URL
+610,CodeListValue.description,cartographyParameter.type,INFO,oc-aranes,INFO
+611,CodeListValue.description,cartographyPermission.type,F,oc-aranes,Mapa de fons
+612,CodeListValue.description,cartographyPermission.type,C,oc-aranes,Grop de cartografia
+613,CodeListValue.description,cartographyPermission.type,M,oc-aranes,Mapa de situacion
+614,CodeListValue.description,cartographyPermission.type,I,oc-aranes,Infòrme
+615,CodeListValue.description,cartographySpatialSelectionParameter.format,F,oc-aranes,Data
+616,CodeListValue.description,cartographySpatialSelectionParameter.format,I,oc-aranes,Imatge
+617,CodeListValue.description,cartographySpatialSelectionParameter.format,N,oc-aranes,Numèro
+618,CodeListValue.description,cartographySpatialSelectionParameter.format,P,oc-aranes,Percentatge
+619,CodeListValue.description,cartographySpatialSelectionParameter.format,T,oc-aranes,Tèxte
+620,CodeListValue.description,cartographySpatialSelectionParameter.format,U,oc-aranes,URL
+621,CodeListValue.description,cartographySpatialSelectionParameter.type,EDIT,oc-aranes,EDITAR
+622,CodeListValue.description,cartographySpatialSelectionParameter.type,SELECT,oc-aranes,SELECCIONAR
+623,CodeListValue.description,downloadTask.scope,A,oc-aranes,Aplicacion
+624,CodeListValue.description,downloadTask.scope,U,oc-aranes,Isolated
+625,CodeListValue.description,downloadTask.scope,C,oc-aranes,Layer
+626,CodeListValue.description,editTask.fieldType,date,oc-aranes,Data
+627,CodeListValue.description,editTask.fieldType,image,oc-aranes,Imatge
+628,CodeListValue.description,editTask.fieldType,listbox,oc-aranes,ListBox
+629,CodeListValue.description,editTask.fieldType,number,oc-aranes,Numèro
+630,CodeListValue.description,editTask.fieldType,text,oc-aranes,Tèxte
+631,CodeListValue.description,editTask.scope,db-edit,oc-aranes,Database edition
+632,CodeListValue.description,editTask.scope,feat-edit,oc-aranes,Features service edition (WFS)
+633,CodeListValue.description,queryTask.parameterType,query,oc-aranes,Query parameter
+634,CodeListValue.description,queryTask.parameterType,template,oc-aranes,Template parameter
+635,CodeListValue.description,queryTask.scope,cartography-query,oc-aranes,Cartography Query
+636,CodeListValue.description,queryTask.scope,sql-query,oc-aranes,SQL Query
+637,CodeListValue.description,queryTask.scope,web-api-query,oc-aranes,Web API Query
+638,CodeListValue.description,service.authenticationMode,HTTP Basic authentication,oc-aranes,Autenticacion HTTP basica
+639,CodeListValue.description,service.authenticationMode,None,oc-aranes,Cap
+640,CodeListValue.description,service.type,WFS,oc-aranes,WFS
+641,CodeListValue.description,service.type,WMS,oc-aranes,WMS
+642,CodeListValue.description,service.type,WMTS,oc-aranes,WMTS
+643,CodeListValue.description,serviceParameter.type,INFO,oc-aranes,GetFeatureInfo
+644,CodeListValue.description,serviceParameter.type,WMS,oc-aranes,GetMap
+645,CodeListValue.description,serviceParameter.type,OLPARAM,oc-aranes,OpenLayers
+646,CodeListValue.description,serviceParameter.type,WMTS,oc-aranes,WMTS
+647,CodeListValue.description,taskEntity.jsonParamType,__NULL_VALUE__,oc-aranes,__NULL_VALUE__
+648,CodeListValue.description,taskEntity.jsonParamType,array,oc-aranes,array
+649,CodeListValue.description,taskEntity.jsonParamType,boolean,oc-aranes,boolean
+650,CodeListValue.description,taskEntity.jsonParamType,number,oc-aranes,number
+651,CodeListValue.description,taskEntity.jsonParamType,object,oc-aranes,object
+652,CodeListValue.description,taskEntity.jsonParamType,string,oc-aranes,string
+653,CodeListValue.description,territory.scope,M,oc-aranes,Ajuntament
+654,CodeListValue.description,territory.scope,R,oc-aranes,Regionau
+655,CodeListValue.description,territory.scope,T,oc-aranes,Totau
+656,CodeListValue.description,tree.type,cartography,oc-aranes,Cartografia
+657,CodeListValue.description,tree.type,edition,oc-aranes,Arbre d'edicion
+658,CodeListValue.description,tree.type,touristic,oc-aranes,Aplicacion toristica
+659,CodeListValue.description,treenode.viewmode,dl,oc-aranes,Lista detalhada
+660,CodeListValue.description,treenode.viewmode,evt,oc-aranes,Eveniments
+661,CodeListValue.description,treenode.viewmode,evtcat,oc-aranes,Categories d'eveniments
+662,CodeListValue.description,treenode.viewmode,evtloc,oc-aranes,Ubicacions d'eveniments
+663,CodeListValue.description,treenode.viewmode,gallery,oc-aranes,Galeria
+664,CodeListValue.description,treenode.viewmode,ms,oc-aranes,Cèrca ath mapa
+665,CodeListValue.description,treenode.viewmode,ne,oc-aranes,Elements pròps
+666,CodeListValue.description,treenode.viewmode,rt,oc-aranes,Lista de rotes
+667,CodeListValue.description,treenode.viewmode,sch,oc-aranes,Orari
+668,CodeListValue.description,user.identificationType,DNI,oc-aranes,DNI
+669,CodeListValue.description,user.identificationType,NIE,oc-aranes,NIE
+670,CodeListValue.description,user.identificationType,PAS,oc-aranes,Passport
+671,CodeListValue.description,userPosition.type,POC,oc-aranes,Punt de contacte
+672,CodeListValue.description,treenode.node.type,cartography,oc-aranes,Cartografia
+673,CodeListValue.description,treenode.node.type,folder,oc-aranes,Carpeta
+674,CodeListValue.description,treenode.node.type,list,oc-aranes,Lista
+675,CodeListValue.description,treenode.node.type,menu,oc-aranes,Menú
+676,CodeListValue.description,treenode.node.type,task,oc-aranes,Tasca
+677,CodeListValue.description,treenode.node.type,fav,oc-aranes,Favorits
+678,CodeListValue.description,treenode.node.type,map,oc-aranes,Mapa
+679,CodeListValue.description,treenode.node.type,nm,oc-aranes,A prop mèu
+680,CodeListValue.description,cartographyParameter.format,Geometry,ca,Geometria
+681,CodeListValue.description,cartographyParameter.format,Geometry,es,Geometría
+682,CodeListValue.description,cartographyParameter.format,Geometry,fr,Géométrie
+683,CodeListValue.description,cartographyParameter.format,Geometry,oc-aranes,Geometria
+684,CodeListValue.description,cartographyParameter.geometryKind,Curve,ca,Corba
+685,CodeListValue.description,cartographyParameter.geometryKind,Curve,es,Curva
+686,CodeListValue.description,cartographyParameter.geometryKind,Curve,fr,Courbe
+687,CodeListValue.description,cartographyParameter.geometryKind,Curve,oc-aranes,Corba
+688,CodeListValue.description,cartographyParameter.geometryKind,Geometry,ca,Geometria
+689,CodeListValue.description,cartographyParameter.geometryKind,Geometry,es,Geometría
+690,CodeListValue.description,cartographyParameter.geometryKind,Geometry,fr,Géométrie
+691,CodeListValue.description,cartographyParameter.geometryKind,Geometry,oc-aranes,Geometria
+692,CodeListValue.description,cartographyParameter.geometryKind,LineString,ca,Línia
+693,CodeListValue.description,cartographyParameter.geometryKind,LineString,es,Línea
+694,CodeListValue.description,cartographyParameter.geometryKind,LineString,fr,Ligne
+695,CodeListValue.description,cartographyParameter.geometryKind,LineString,oc-aranes,Linha
+696,CodeListValue.description,cartographyParameter.geometryKind,MultiCurve,ca,Multicorba
+697,CodeListValue.description,cartographyParameter.geometryKind,MultiCurve,es,Multicurva
+698,CodeListValue.description,cartographyParameter.geometryKind,MultiCurve,fr,Multicourbe
+699,CodeListValue.description,cartographyParameter.geometryKind,MultiCurve,oc-aranes,Multicorba
+700,CodeListValue.description,cartographyParameter.geometryKind,MultiLineString,ca,Multilínia
+701,CodeListValue.description,cartographyParameter.geometryKind,MultiLineString,es,Multilínea
+702,CodeListValue.description,cartographyParameter.geometryKind,MultiLineString,fr,Multiligne
+703,CodeListValue.description,cartographyParameter.geometryKind,MultiLineString,oc-aranes,Multilinha
+704,CodeListValue.description,cartographyParameter.geometryKind,MultiPoint,ca,Multipunt
+705,CodeListValue.description,cartographyParameter.geometryKind,MultiPoint,es,Multipunto
+706,CodeListValue.description,cartographyParameter.geometryKind,MultiPoint,fr,Multipoint
+707,CodeListValue.description,cartographyParameter.geometryKind,MultiPoint,oc-aranes,Multipunt
+708,CodeListValue.description,cartographyParameter.geometryKind,MultiPolygon,ca,Multipolígon
+709,CodeListValue.description,cartographyParameter.geometryKind,MultiPolygon,es,Multipolígono
+710,CodeListValue.description,cartographyParameter.geometryKind,MultiPolygon,fr,Multipolygone
+711,CodeListValue.description,cartographyParameter.geometryKind,MultiPolygon,oc-aranes,Multipoligòn
+712,CodeListValue.description,cartographyParameter.geometryKind,MultiSurface,ca,Multisuperfície
+713,CodeListValue.description,cartographyParameter.geometryKind,MultiSurface,es,Multisuperficie
+714,CodeListValue.description,cartographyParameter.geometryKind,MultiSurface,fr,Multisurface
+715,CodeListValue.description,cartographyParameter.geometryKind,MultiSurface,oc-aranes,Multisuperfícia
+716,CodeListValue.description,cartographyParameter.geometryKind,Point,ca,Punt
+717,CodeListValue.description,cartographyParameter.geometryKind,Point,es,Punto
+718,CodeListValue.description,cartographyParameter.geometryKind,Point,fr,Point
+719,CodeListValue.description,cartographyParameter.geometryKind,Point,oc-aranes,Punt
+720,CodeListValue.description,cartographyParameter.geometryKind,Polygon,ca,Polígon
+721,CodeListValue.description,cartographyParameter.geometryKind,Polygon,es,Polígono
+722,CodeListValue.description,cartographyParameter.geometryKind,Polygon,fr,Polygone
+723,CodeListValue.description,cartographyParameter.geometryKind,Polygon,oc-aranes,Poligòn
+724,CodeListValue.description,cartographyParameter.geometryKind,Surface,ca,Superfície
+725,CodeListValue.description,cartographyParameter.geometryKind,Surface,es,Superficie
+726,CodeListValue.description,cartographyParameter.geometryKind,Surface,fr,Surface
+727,CodeListValue.description,cartographyParameter.geometryKind,Surface,oc-aranes,Superfícia
+728,CodeListValue.description,cartographyParameter.preferredGeometryType,multipoint,ca,Multipunt
+729,CodeListValue.description,cartographyParameter.preferredGeometryType,multipoint,es,Multipunto
+730,CodeListValue.description,cartographyParameter.preferredGeometryType,multipoint,fr,Multipoint
+731,CodeListValue.description,cartographyParameter.preferredGeometryType,multipoint,oc-aranes,Multipunt
+732,CodeListValue.description,cartographyParameter.preferredGeometryType,multipolygon,ca,Multipolígon
+733,CodeListValue.description,cartographyParameter.preferredGeometryType,multipolygon,es,Multipolígono
+734,CodeListValue.description,cartographyParameter.preferredGeometryType,multipolygon,fr,Multipolygone
+735,CodeListValue.description,cartographyParameter.preferredGeometryType,multipolygon,oc-aranes,Multipoligòn
+736,CodeListValue.description,cartographyParameter.preferredGeometryType,multipolyline,ca,Multipolilínia
+737,CodeListValue.description,cartographyParameter.preferredGeometryType,multipolyline,es,Multipolilínea
+738,CodeListValue.description,cartographyParameter.preferredGeometryType,multipolyline,fr,Multipolyligne
+739,CodeListValue.description,cartographyParameter.preferredGeometryType,multipolyline,oc-aranes,Multipolilinha
+740,CodeListValue.description,cartographyParameter.preferredGeometryType,point,ca,Punt
+741,CodeListValue.description,cartographyParameter.preferredGeometryType,point,es,Punto
+742,CodeListValue.description,cartographyParameter.preferredGeometryType,point,fr,Point
+743,CodeListValue.description,cartographyParameter.preferredGeometryType,point,oc-aranes,Punt
+744,CodeListValue.description,cartographyParameter.preferredGeometryType,polygon,ca,Polígon
+745,CodeListValue.description,cartographyParameter.preferredGeometryType,polygon,es,Polígono
+746,CodeListValue.description,cartographyParameter.preferredGeometryType,polygon,fr,Polygone
+747,CodeListValue.description,cartographyParameter.preferredGeometryType,polygon,oc-aranes,Poligòn
+748,CodeListValue.description,cartographyParameter.preferredGeometryType,polyline,ca,Polilínia
+749,CodeListValue.description,cartographyParameter.preferredGeometryType,polyline,es,Polilínea
+750,CodeListValue.description,cartographyParameter.preferredGeometryType,polyline,fr,Polyligne
+751,CodeListValue.description,cartographyParameter.preferredGeometryType,polyline,oc-aranes,Polilinha
+752,CodeListValue.description,cartographyServiceParameter.type,GETMAP,ca,GetMap
+753,CodeListValue.description,cartographyServiceParameter.type,GETMAP,es,GetMap
+754,CodeListValue.description,cartographyServiceParameter.type,GETMAP,fr,GetMap
+755,CodeListValue.description,cartographyServiceParameter.type,GETMAP,oc-aranes,GetMap
+756,CodeListValue.description,cartographyServiceParameter.type,INFO,ca,GetFeatureInfo
+757,CodeListValue.description,cartographyServiceParameter.type,INFO,es,GetFeatureInfo
+758,CodeListValue.description,cartographyServiceParameter.type,INFO,fr,GetFeatureInfo
+759,CodeListValue.description,cartographyServiceParameter.type,INFO,oc-aranes,GetFeatureInfo
+760,CodeListValue.description,cartographyServiceParameter.type,OLPARAM,ca,OpenLayers
+761,CodeListValue.description,cartographyServiceParameter.type,OLPARAM,es,OpenLayers
+762,CodeListValue.description,cartographyServiceParameter.type,OLPARAM,fr,OpenLayers
+763,CodeListValue.description,cartographyServiceParameter.type,OLPARAM,oc-aranes,OpenLayers
+764,CodeListValue.description,cartographyServiceParameter.type,WFS,ca,Totes les operacions WFS
+765,CodeListValue.description,cartographyServiceParameter.type,WFS,es,Todas las operaciones WFS
+766,CodeListValue.description,cartographyServiceParameter.type,WFS,fr,Toutes les opérations WFS
+767,CodeListValue.description,cartographyServiceParameter.type,WFS,oc-aranes,Totes es operacions WFS
+768,CodeListValue.description,cartographyServiceParameter.type,WMS,ca,Totes les operacions WMS
+769,CodeListValue.description,cartographyServiceParameter.type,WMS,es,Todas las operaciones WMS
+770,CodeListValue.description,cartographyServiceParameter.type,WMS,fr,Toutes les opérations WMS
+771,CodeListValue.description,cartographyServiceParameter.type,WMS,oc-aranes,Totes es operacions WMS
+772,CodeListValue.description,cartographyServiceParameter.type,WMTS,ca,Ajustos de tessel·les del visor
+773,CodeListValue.description,cartographyServiceParameter.type,WMTS,es,Ajustes de teselas del visor
+774,CodeListValue.description,cartographyServiceParameter.type,WMTS,fr,Réglages de tuiles du visualiseur
+775,CodeListValue.description,cartographyServiceParameter.type,WMTS,oc-aranes,Ajustaments de tessèls deth visualizador
+776,CodeListValue.description,serviceParameter.type,GETMAP,ca,GetMap
+777,CodeListValue.description,serviceParameter.type,GETMAP,es,GetMap
+778,CodeListValue.description,serviceParameter.type,GETMAP,fr,GetMap
+779,CodeListValue.description,serviceParameter.type,GETMAP,oc-aranes,GetMap
+780,CodeListValue.description,serviceParameter.type,WFS,ca,Totes les operacions WFS
+781,CodeListValue.description,serviceParameter.type,WFS,es,Todas las operaciones WFS
+782,CodeListValue.description,serviceParameter.type,WFS,fr,Toutes les opérations WFS
+783,CodeListValue.description,serviceParameter.type,WFS,oc-aranes,Totes es operacions WFS
+784,Task.name,3D View,,ca,Vista 3D
+785,Task.name,3D View,,es,Vista 3D
+786,Task.name,3D View,,fr,Vue 3D
+787,Task.name,3D View,,oc-aranes,Vista 3D
+788,Task.name,Attribution,,ca,Atribució
+789,Task.name,Attribution,,es,Atribución
+790,Task.name,Attribution,,fr,Attribution
+791,Task.name,Attribution,,oc-aranes,Atribucion
+792,Task.name,Basemap Selector,,ca,Selector de mapa base
+793,Task.name,Basemap Selector,,es,Selector de mapa base
+794,Task.name,Basemap Selector,,fr,Sélecteur de fond de carte
+795,Task.name,Basemap Selector,,oc-aranes,Selector de mapa de basa
+796,Task.name,Click,,ca,Clic
+797,Task.name,Click,,es,Clic
+798,Task.name,Click,,fr,Clic
+799,Task.name,Click,,oc-aranes,Clic
+800,Task.name,Coordinates,,ca,Coordenades
+801,Task.name,Coordinates,,es,Coordenadas
+802,Task.name,Coordinates,,fr,Coordonnées
+803,Task.name,Coordinates,,oc-aranes,Coordenades
+804,Task.name,Data Loader,,ca,Carregador de dades
+805,Task.name,Data Loader,,es,Cargador de datos
+806,Task.name,Data Loader,,fr,Chargeur de données
+807,Task.name,Data Loader,,oc-aranes,Cargador de dades
+808,Task.name,Download,,ca,Descàrrega
+809,Task.name,Download,,es,Descarga
+810,Task.name,Download,,fr,Télécharger
+811,Task.name,Download,,oc-aranes,Descarga
+812,Task.name,"Draw, Measure and Modify",,ca,"Dibuixar, Mesurar i Modificar"
+813,Task.name,"Draw, Measure and Modify",,es,"Dibujar, Medir y Modificar"
+814,Task.name,"Draw, Measure and Modify",,fr,"Dessiner, Mesurer et Modifier"
+815,Task.name,"Draw, Measure and Modify",,oc-aranes,"Dessenhar, Mesurar e Modificar"
+816,Task.name,Feature Info,,ca,Informació d'entitat
+817,Task.name,Feature Info,,es,Información de entidad
+818,Task.name,Feature Info,,fr,Informations sur l'entité
+819,Task.name,Feature Info,,oc-aranes,Informacion d'entitat
+820,Task.name,Full Screen,,ca,Pantalla completa
+821,Task.name,Full Screen,,es,Pantalla completa
+822,Task.name,Full Screen,,fr,Plein écran
+823,Task.name,Full Screen,,oc-aranes,Pantalla completa
+824,Task.name,Geolocation,,ca,Geolocalització
+825,Task.name,Geolocation,,es,Geolocalización
+826,Task.name,Geolocation,,fr,Géolocalisation
+827,Task.name,Geolocation,,oc-aranes,Geolocalizacion
+828,Task.name,Layer Catalog,,ca,Catàleg de capes
+829,Task.name,Layer Catalog,,es,Catálogo de capas
+830,Task.name,Layer Catalog,,fr,Catalogue de couches
+831,Task.name,Layer Catalog,,oc-aranes,Catològ de capes
+832,Task.name,Legend,,ca,Llegenda
+833,Task.name,Legend,,es,Leyenda
+834,Task.name,Legend,,fr,Légende
+835,Task.name,Legend,,oc-aranes,Legenda
+836,Task.name,Loading Indicator,,ca,Indicador de càrrega
+837,Task.name,Loading Indicator,,es,Indicador de carga
+838,Task.name,Loading Indicator,,fr,Indicateur de chargement
+839,Task.name,Loading Indicator,,oc-aranes,Indicator de carga
+840,Task.name,Measure,,ca,Mesurar
+841,Task.name,Measure,,es,Medir
+842,Task.name,Measure,,fr,Mesurer
+843,Task.name,Measure,,oc-aranes,Mesurar
+844,Task.name,Multi Feature Info,,ca,Informació múltiple d'entitats
+845,Task.name,Multi Feature Info,,es,Información múltiple de entidades
+846,Task.name,Multi Feature Info,,fr,Informations multi-entités
+847,Task.name,Multi Feature Info,,oc-aranes,Informacion multipla d'entitats
+848,Task.name,Navigation Bar,,ca,Barra de navegació
+849,Task.name,Navigation Bar,,es,Barra de navegación
+850,Task.name,Navigation Bar,,fr,Barre de navigation
+851,Task.name,Navigation Bar,,oc-aranes,Barra de navegacion
+852,Task.name,Offline Map Maker,,ca,Creador de mapes sense connexió
+853,Task.name,Offline Map Maker,,es,Creador de mapas sin conexión
+854,Task.name,Offline Map Maker,,fr,Créateur de cartes hors ligne
+855,Task.name,Offline Map Maker,,oc-aranes,Creator de mapes sens connexion
+856,Task.name,Overview Map,,ca,Mapa de situació
+857,Task.name,Overview Map,,es,Mapa de situación
+858,Task.name,Overview Map,,fr,Carte de situation
+859,Task.name,Overview Map,,oc-aranes,Mapa de situacion
+860,Task.name,Popup,,ca,Finestra emergent
+861,Task.name,Popup,,es,Ventana emergente
+862,Task.name,Popup,,fr,Fenêtre contextuelle
+863,Task.name,Popup,,oc-aranes,Finèstra emergenta
+864,Task.name,Print Map,,ca,Imprimir mapa
+865,Task.name,Print Map,,es,Imprimir mapa
+866,Task.name,Print Map,,fr,Imprimer la carte
+867,Task.name,Print Map,,oc-aranes,Imprimir mapa
+868,Task.name,Scale,,ca,Escala
+869,Task.name,Scale,,es,Escala
+870,Task.name,Scale,,fr,Échelle
+871,Task.name,Scale,,oc-aranes,Escala
+872,Task.name,Scale Bar,,ca,Barra d'escala
+873,Task.name,Scale Bar,,es,Barra de escala
+874,Task.name,Scale Bar,,fr,Barre d'échelle
+875,Task.name,Scale Bar,,oc-aranes,Barra d'escala
+876,Task.name,Scale Selector,,ca,Selector d'escala
+877,Task.name,Scale Selector,,es,Selector de escala
+878,Task.name,Scale Selector,,fr,Sélecteur d'échelle
+879,Task.name,Scale Selector,,oc-aranes,Selector d'escala
+880,Task.name,Search,,ca,Cercar
+881,Task.name,Search,,es,Buscar
+882,Task.name,Search,,fr,Rechercher
+883,Task.name,Search,,oc-aranes,Cercar
+884,Task.name,Share,,ca,Compartir
+885,Task.name,Share,,es,Compartir
+886,Task.name,Share,,fr,Partager
+887,Task.name,Share,,oc-aranes,Compartir
+888,Task.name,Street View,,ca,Vista de carrer
+889,Task.name,Street View,,es,Vista de calle
+890,Task.name,Street View,,fr,Vue de rue
+891,Task.name,Street View,,oc-aranes,Vista de carrèr
+892,Task.name,WFS Query,,ca,Consulta WFS
+893,Task.name,WFS Query,,es,Consulta WFS
+894,Task.name,WFS Query,,fr,Requête WFS
+895,Task.name,WFS Query,,oc-aranes,Consulta WFS
+896,Task.name,WFSEdit,,ca,Edició WFS
+897,Task.name,WFSEdit,,es,Edición WFS
+898,Task.name,WFSEdit,,fr,Édition WFS
+899,Task.name,WFSEdit,,oc-aranes,Edicion WFS
+900,Task.name,Work Layer Manager,,ca,Gestor de capes de treball
+901,Task.name,Work Layer Manager,,es,Gestor de capas de trabajo
+902,Task.name,Work Layer Manager,,fr,Gestionnaire de couches de travail
+903,Task.name,Work Layer Manager,,oc-aranes,Gestionari de capes de trabalh
+904,TaskGroup.name,Basic,,ca,Bàsic
+905,TaskGroup.name,Basic,,es,Básico
+906,TaskGroup.name,Basic,,fr,Basique
+907,TaskGroup.name,Basic,,oc-aranes,Basic
+908,TerritoryType.name,Autonomous City,,ca,Ciutat Autònoma
+909,TerritoryType.name,Autonomous City,,es,Ciudad Autónoma
+910,TerritoryType.name,Autonomous City,,fr,Ville autonome
+911,TerritoryType.name,Autonomous City,,oc-aranes,Ciutat Autonòma
+912,TerritoryType.name,Autonomous Community,,ca,Comunitat Autònoma
+913,TerritoryType.name,Autonomous Community,,es,Comunidad Autónoma
+914,TerritoryType.name,Autonomous Community,,fr,Communauté autonome
+915,TerritoryType.name,Autonomous Community,,oc-aranes,Comunitat Autonòma
+916,TerritoryType.name,Comarca,,ca,Comarca
+917,TerritoryType.name,Comarca,,es,Comarca
+918,TerritoryType.name,Comarca,,fr,Comarca
+919,TerritoryType.name,Comarca,,oc-aranes,Comarca
+920,TerritoryType.name,Commonwealth of Municipalities,,ca,Mancomunitat
+921,TerritoryType.name,Commonwealth of Municipalities,,es,Mancomunidad
+922,TerritoryType.name,Commonwealth of Municipalities,,fr,Communauté de communes
+923,TerritoryType.name,Commonwealth of Municipalities,,oc-aranes,Mancomunitat
+924,TerritoryType.name,Country,,ca,País
+925,TerritoryType.name,Country,,es,País
+926,TerritoryType.name,Country,,fr,Pays
+927,TerritoryType.name,Country,,oc-aranes,País
+928,TerritoryType.name,Island Council (Balearic),,ca,Consell Insular (Balears)
+929,TerritoryType.name,Island Council (Balearic),,es,Consejo Insular (Baleares)
+930,TerritoryType.name,Island Council (Balearic),,fr,Conseil insulaire (Baléares)
+931,TerritoryType.name,Island Council (Balearic),,oc-aranes,Conselh Insulau (Balears)
+932,TerritoryType.name,Island Council (Canary),,ca,Cabildo Insular (Canàries)
+933,TerritoryType.name,Island Council (Canary),,es,Cabildo Insular (Canarias)
+934,TerritoryType.name,Island Council (Canary),,fr,Conseil insulaire (Canaries)
+935,TerritoryType.name,Island Council (Canary),,oc-aranes,Cabildo Insulau (Canàries)
+936,TerritoryType.name,Metropolitan Area,,ca,Àrea Metropolitana
+937,TerritoryType.name,Metropolitan Area,,es,Área Metropolitana
+938,TerritoryType.name,Metropolitan Area,,fr,Zone métropolitaine
+939,TerritoryType.name,Metropolitan Area,,oc-aranes,Aira Metropolitana
+940,TerritoryType.name,Municipal Grouping,,ca,Agrupació de Municipis
+941,TerritoryType.name,Municipal Grouping,,es,Agrupación de Municipios
+942,TerritoryType.name,Municipal Grouping,,fr,Groupement municipal
+943,TerritoryType.name,Municipal Grouping,,oc-aranes,Agropament de Municipis
+944,TerritoryType.name,Municipality,,ca,Ajuntament
+945,TerritoryType.name,Municipality,,es,Ayuntamiento
+946,TerritoryType.name,Municipality,,fr,Municipalité
+947,TerritoryType.name,Municipality,,oc-aranes,Ajuntament
+948,TerritoryType.name,Provincial Council,,ca,Diputació
+949,TerritoryType.name,Provincial Council,,es,Diputación
+950,TerritoryType.name,Provincial Council,,fr,Conseil provincial
+951,TerritoryType.name,Provincial Council,,oc-aranes,Deputacion
+952,TerritoryType.name,Sub-municipal Entity,,ca,Entitat d'Àmbit Inferior al Municipi
+953,TerritoryType.name,Sub-municipal Entity,,es,Entidad de Ámbito Inferior al Municipio
+954,TerritoryType.name,Sub-municipal Entity,,fr,Entité sous-municipale
+955,TerritoryType.name,Sub-municipal Entity,,oc-aranes,Entitat d'Ambit Inferior ath Municipi
+956,CodeListValue.description,databaseConnection.driver,org.h2.Driver,ca,Controlador JDBC H2
+957,CodeListValue.description,databaseConnection.driver,org.h2.Driver,es,Controlador JDBC H2
+958,CodeListValue.description,databaseConnection.driver,org.h2.Driver,fr,Pilote JDBC H2
+959,CodeListValue.description,databaseConnection.driver,org.h2.Driver,oc-aranes,Controlador JDBC H2
+960,CodeListValue.description,databaseConnection.driver,org.postgresql.Driver,ca,Controlador JDBC PostgreSQL
+961,CodeListValue.description,databaseConnection.driver,org.postgresql.Driver,es,Controlador JDBC PostgreSQL
+962,CodeListValue.description,databaseConnection.driver,org.postgresql.Driver,fr,Pilote JDBC PostgreSQL
+963,CodeListValue.description,databaseConnection.driver,org.postgresql.Driver,oc-aranes,Controlador JDBC PostgreSQL
+964,CodeListValue.description,databaseConnection.driver,oracle.jdbc.OracleDriver,ca,Controlador JDBC Oracle
+965,CodeListValue.description,databaseConnection.driver,oracle.jdbc.OracleDriver,es,Controlador JDBC Oracle
+966,CodeListValue.description,databaseConnection.driver,oracle.jdbc.OracleDriver,fr,Pilote JDBC Oracle
+967,CodeListValue.description,databaseConnection.driver,oracle.jdbc.OracleDriver,oc-aranes,Controlador JDBC Oracle
+968,CodeListValue.description,databaseConnection.driver,com.microsoft.sqlserver.jdbc.SQLServerDriver,ca,Controlador JDBC Microsoft SQL Server
+969,CodeListValue.description,databaseConnection.driver,com.microsoft.sqlserver.jdbc.SQLServerDriver,es,Controlador JDBC Microsoft SQL Server
+970,CodeListValue.description,databaseConnection.driver,com.microsoft.sqlserver.jdbc.SQLServerDriver,fr,Pilote JDBC Microsoft SQL Server
+971,CodeListValue.description,databaseConnection.driver,com.microsoft.sqlserver.jdbc.SQLServerDriver,oc-aranes,Controlador JDBC Microsoft SQL Server
+972,Task.name,More Info Advanced,,ca,Informació avançada
+973,Task.name,More Info Advanced,,es,Información avanzada
+974,Task.name,More Info Advanced,,fr,Informations avancées
+975,Task.name,More Info Advanced,,oc-aranes,Informacion avançada
+976,Language.name,pt-PT,,ca,Portuguès
+977,Language.name,pt-PT,,en,Portuguese
+978,Language.name,pt-PT,,es,Portugués
+979,Language.name,pt-PT,,fr,Portugais
+980,Language.name,pt-PT,,oc-aranes,Portugués
+981,Language.name,en,,pt-PT,Inglês
+982,Language.name,es,,pt-PT,Espanhol
+983,Language.name,ca,,pt-PT,Catalão
+984,Language.name,oc-aranes,,pt-PT,Aranês
+985,Language.name,fr,,pt-PT,Francês
+986,Language.name,pt-PT,,pt-PT,Português
+987,Task.name,Exportar PDF A4 Vertical,,ca,Exportar PDF A4 Vertical
+988,Task.name,Exportar PDF A4 Vertical,,es,Exportar PDF A4 vertical
+989,Task.name,Exportar PDF A4 Vertical,,fr,Exporter PDF A4 vertical
+990,Task.name,Exportar PDF A4 Vertical,,oc-aranes,Exportar PDF A4 verticau
+991,Task.name,Exportar PDF A4 Vertical,,pt-PT,Exportar PDF A4 vertical
+992,Task.name,Exportar PDF A3 Vertical,,ca,Exportar PDF A3 Vertical
+993,Task.name,Exportar PDF A3 Vertical,,es,Exportar PDF A3 vertical
+994,Task.name,Exportar PDF A3 Vertical,,fr,Exporter PDF A3 vertical
+995,Task.name,Exportar PDF A3 Vertical,,oc-aranes,Exportar PDF A3 verticau
+996,Task.name,Exportar PDF A3 Vertical,,pt-PT,Exportar PDF A3 vertical
+997,Task.name,Exportar PDF A4 Horitzontal,,ca,Exportar PDF A4 Horitzontal
+998,Task.name,Exportar PDF A4 Horitzontal,,es,Exportar PDF A4 horizontal
+999,Task.name,Exportar PDF A4 Horitzontal,,fr,Exporter PDF A4 horizontal
+1000,Task.name,Exportar PDF A4 Horitzontal,,oc-aranes,Exportar PDF A4 orizontau
+1001,Task.name,Exportar PDF A4 Horitzontal,,pt-PT,Exportar PDF A4 horizontal
+1002,Task.name,Exportar PDF A3 Horitzontal,,ca,Exportar PDF A3 Horitzontal
+1003,Task.name,Exportar PDF A3 Horitzontal,,es,Exportar PDF A3 horizontal
+1004,Task.name,Exportar PDF A3 Horitzontal,,fr,Exporter PDF A3 horizontal
+1005,Task.name,Exportar PDF A3 Horitzontal,,oc-aranes,Exportar PDF A3 orizontau
+1006,Task.name,Exportar PDF A3 Horitzontal,,pt-PT,Exportar PDF A3 horizontal
+1007,Task.name,Capçalera per defecte,,ca,Capçalera per defecte
+1008,Task.name,Capçalera per defecte,,es,Cabecera por defecto
+1009,Task.name,Capçalera per defecte,,fr,En-tête par défaut
+1010,Task.name,Capçalera per defecte,,oc-aranes,Entèsta per defaut
+1011,Task.name,Capçalera per defecte,,pt-PT,Cabeçalho predefinido
+1012,Task.name,Peu de pàgina per defecte,,ca,Peu de pàgina per defecte
+1013,Task.name,Peu de pàgina per defecte,,es,Pie de página por defecto
+1014,Task.name,Peu de pàgina per defecte,,fr,Pied de page par défaut
+1015,Task.name,Peu de pàgina per defecte,,oc-aranes,Pè de pagina per defaut
+1016,Task.name,Peu de pàgina per defecte,,pt-PT,Rodapé predefinido
+1017,CodeListValue.description,queryTask.scope,external-link,ca,Enllaç extern
+1018,CodeListValue.description,queryTask.scope,external-link,es,Enlace externo
+1019,CodeListValue.description,queryTask.scope,external-link,fr,Lien externe
+1020,CodeListValue.description,queryTask.scope,external-link,oc-aranes,Ligam extèrne
+1021,CodeListValue.description,queryTask.scope,external-link,pt-PT,Ligação externa
+1022,CodeListValue.description,queryTask.mimeType,image/png,ca,PNG (.png)
+1023,CodeListValue.description,queryTask.mimeType,image/png,es,PNG (.png)
+1024,CodeListValue.description,queryTask.mimeType,image/png,fr,PNG (.png)
+1025,CodeListValue.description,queryTask.mimeType,image/png,oc-aranes,PNG (.png)
+1026,CodeListValue.description,queryTask.mimeType,image/png,pt-PT,PNG (.png)
+1027,CodeListValue.description,queryTask.mimeType,image/jpeg,ca,"JPEG (.jpg, .jpeg)"
+1028,CodeListValue.description,queryTask.mimeType,image/jpeg,es,"JPEG (.jpg, .jpeg)"
+1029,CodeListValue.description,queryTask.mimeType,image/jpeg,fr,"JPEG (.jpg, .jpeg)"
+1030,CodeListValue.description,queryTask.mimeType,image/jpeg,oc-aranes,"JPEG (.jpg, .jpeg)"
+1031,CodeListValue.description,queryTask.mimeType,image/jpeg,pt-PT,"JPEG (.jpg, .jpeg)"
+1032,CodeListValue.description,queryTask.mimeType,image/gif,ca,GIF (.gif)
+1033,CodeListValue.description,queryTask.mimeType,image/gif,es,GIF (.gif)
+1034,CodeListValue.description,queryTask.mimeType,image/gif,fr,GIF (.gif)
+1035,CodeListValue.description,queryTask.mimeType,image/gif,oc-aranes,GIF (.gif)
+1036,CodeListValue.description,queryTask.mimeType,image/gif,pt-PT,GIF (.gif)
+1037,CodeListValue.description,queryTask.mimeType,image/svg+xml,ca,SVG (.svg)
+1038,CodeListValue.description,queryTask.mimeType,image/svg+xml,es,SVG (.svg)
+1039,CodeListValue.description,queryTask.mimeType,image/svg+xml,fr,SVG (.svg)
+1040,CodeListValue.description,queryTask.mimeType,image/svg+xml,oc-aranes,SVG (.svg)
+1041,CodeListValue.description,queryTask.mimeType,image/svg+xml,pt-PT,SVG (.svg)
+1042,CodeListValue.description,queryTask.mimeType,application/pdf,ca,PDF (.pdf)
+1043,CodeListValue.description,queryTask.mimeType,application/pdf,es,PDF (.pdf)
+1044,CodeListValue.description,queryTask.mimeType,application/pdf,fr,PDF (.pdf)
+1045,CodeListValue.description,queryTask.mimeType,application/pdf,oc-aranes,PDF (.pdf)
+1046,CodeListValue.description,queryTask.mimeType,application/pdf,pt-PT,PDF (.pdf)
+1047,CodeListValue.description,queryTask.mimeType,application/json,ca,JSON (.json)
+1048,CodeListValue.description,queryTask.mimeType,application/json,es,JSON (.json)
+1049,CodeListValue.description,queryTask.mimeType,application/json,fr,JSON (.json)
+1050,CodeListValue.description,queryTask.mimeType,application/json,oc-aranes,JSON (.json)
+1051,CodeListValue.description,queryTask.mimeType,application/json,pt-PT,JSON (.json)
+1052,CodeListValue.description,queryTask.mimeType,application/xml,ca,XML (.xml)
+1053,CodeListValue.description,queryTask.mimeType,application/xml,es,XML (.xml)
+1054,CodeListValue.description,queryTask.mimeType,application/xml,fr,XML (.xml)
+1055,CodeListValue.description,queryTask.mimeType,application/xml,oc-aranes,XML (.xml)
+1056,CodeListValue.description,queryTask.mimeType,application/xml,pt-PT,XML (.xml)
+1057,CodeListValue.description,queryTask.mimeType,application/msword,ca,Word (.doc)
+1058,CodeListValue.description,queryTask.mimeType,application/msword,es,Word (.doc)
+1059,CodeListValue.description,queryTask.mimeType,application/msword,fr,Word (.doc)
+1060,CodeListValue.description,queryTask.mimeType,application/msword,oc-aranes,Word (.doc)
+1061,CodeListValue.description,queryTask.mimeType,application/msword,pt-PT,Word (.doc)
+1062,CodeListValue.description,queryTask.mimeType,application/vnd.ms-excel,ca,Excel (.xls)
+1063,CodeListValue.description,queryTask.mimeType,application/vnd.ms-excel,es,Excel (.xls)
+1064,CodeListValue.description,queryTask.mimeType,application/vnd.ms-excel,fr,Excel (.xls)
+1065,CodeListValue.description,queryTask.mimeType,application/vnd.ms-excel,oc-aranes,Excel (.xls)
+1066,CodeListValue.description,queryTask.mimeType,application/vnd.ms-excel,pt-PT,Excel (.xls)
+1067,CodeListValue.description,queryTask.mimeType,application/vnd.oasis.opendocument.text,ca,ODT (.odt)
+1068,CodeListValue.description,queryTask.mimeType,application/vnd.oasis.opendocument.text,es,ODT (.odt)
+1069,CodeListValue.description,queryTask.mimeType,application/vnd.oasis.opendocument.text,fr,ODT (.odt)
+1070,CodeListValue.description,queryTask.mimeType,application/vnd.oasis.opendocument.text,oc-aranes,ODT (.odt)
+1071,CodeListValue.description,queryTask.mimeType,application/vnd.oasis.opendocument.text,pt-PT,ODT (.odt)
+1072,CodeListValue.description,queryTask.mimeType,application/vnd.oasis.opendocument.spreadsheet,ca,ODS (.ods)
+1073,CodeListValue.description,queryTask.mimeType,application/vnd.oasis.opendocument.spreadsheet,es,ODS (.ods)
+1074,CodeListValue.description,queryTask.mimeType,application/vnd.oasis.opendocument.spreadsheet,fr,ODS (.ods)
+1075,CodeListValue.description,queryTask.mimeType,application/vnd.oasis.opendocument.spreadsheet,oc-aranes,ODS (.ods)
+1076,CodeListValue.description,queryTask.mimeType,application/vnd.oasis.opendocument.spreadsheet,pt-PT,ODS (.ods)
+1077,CodeListValue.description,service.authenticationMode,API key,ca,Clau d'API
+1078,CodeListValue.description,service.authenticationMode,API key,es,Clave de API
+1079,CodeListValue.description,service.authenticationMode,API key,fr,Clé d'API
+1080,CodeListValue.description,service.authenticationMode,API key,oc-aranes,Clau d'API
+1081,CodeListValue.description,service.authenticationMode,API key,pt-PT,Chave de API
+1082,CodeListValue.description,apiKey.header,X-API-Key,ca,X-API-Key
+1083,CodeListValue.description,apiKey.header,X-API-Key,es,X-API-Key
+1084,CodeListValue.description,apiKey.header,X-API-Key,fr,X-API-Key
+1085,CodeListValue.description,apiKey.header,X-API-Key,oc-aranes,X-API-Key
+1086,CodeListValue.description,apiKey.header,X-API-Key,pt-PT,X-API-Key
+1087,CodeListValue.description,apiKey.cookie,X-API-Key,ca,X-API-Key
+1088,CodeListValue.description,apiKey.cookie,X-API-Key,es,X-API-Key
+1089,CodeListValue.description,apiKey.cookie,X-API-Key,fr,X-API-Key
+1090,CodeListValue.description,apiKey.cookie,X-API-Key,oc-aranes,X-API-Key
+1091,CodeListValue.description,apiKey.cookie,X-API-Key,pt-PT,X-API-Key
+1092,CodeListValue.description,apiKey.queryParam,API-Key,ca,API-Key
+1093,CodeListValue.description,apiKey.queryParam,API-Key,es,API-Key
+1094,CodeListValue.description,apiKey.queryParam,API-Key,fr,API-Key
+1095,CodeListValue.description,apiKey.queryParam,API-Key,oc-aranes,API-Key
+1096,CodeListValue.description,apiKey.queryParam,API-Key,pt-PT,API-Key
+1097,CodeListValue.description,queryTask.scope,web-api-query-no-proxy,ca,Consulta d'API web (sense intermediari)
+1098,CodeListValue.description,queryTask.scope,web-api-query-no-proxy,es,Consulta de API web (sin proxy)
+1099,CodeListValue.description,queryTask.scope,web-api-query-no-proxy,fr,Requête d'API web (sans proxy)
+1100,CodeListValue.description,queryTask.scope,web-api-query-no-proxy,oc-aranes,Consulta d'API web (sense intermediari)
+1101,CodeListValue.description,queryTask.scope,web-api-query-no-proxy,pt-PT,Consulta de API web (sem proxy)
+1102,CodeListValue.description,queryTask.scope,resource-query,ca,Consulta de recurs
+1103,CodeListValue.description,queryTask.scope,resource-query,es,Consulta de recurso
+1104,CodeListValue.description,queryTask.scope,resource-query,fr,Requête de ressource
+1105,CodeListValue.description,queryTask.scope,resource-query,oc-aranes,Consulta de recors
+1106,CodeListValue.description,queryTask.scope,resource-query,pt-PT,Consulta de recurso
+1107,CodeListValue.description,documentExport.output,pdf,ca,pdf
+1108,CodeListValue.description,documentExport.output,pdf,es,pdf
+1109,CodeListValue.description,documentExport.output,pdf,fr,pdf
+1110,CodeListValue.description,documentExport.output,pdf,oc-aranes,pdf
+1111,CodeListValue.description,documentExport.output,pdf,pt-PT,pdf
+1112,CodeListValue.description,documentExport.engine,openhtmltopdf,ca,OpenHTMLToPDF
+1113,CodeListValue.description,documentExport.engine,openhtmltopdf,es,OpenHTMLToPDF
+1114,CodeListValue.description,documentExport.engine,openhtmltopdf,fr,OpenHTMLToPDF
+1115,CodeListValue.description,documentExport.engine,openhtmltopdf,oc-aranes,OpenHTMLToPDF
+1116,CodeListValue.description,documentExport.engine,openhtmltopdf,pt-PT,OpenHTMLToPDF
+1117,CodeListValue.description,moreInfo.type,API,ca,API
+1118,CodeListValue.description,moreInfo.type,API,es,API
+1119,CodeListValue.description,moreInfo.type,API,fr,API
+1120,CodeListValue.description,moreInfo.type,API,oc-aranes,API
+1121,CodeListValue.description,moreInfo.type,API,pt-PT,API
+1122,CodeListValue.description,moreInfo.type,RESOURCE,ca,Recurs
+1123,CodeListValue.description,moreInfo.type,RESOURCE,es,Recurso
+1124,CodeListValue.description,moreInfo.type,RESOURCE,fr,Ressource
+1125,CodeListValue.description,moreInfo.type,RESOURCE,oc-aranes,Recors
+1126,CodeListValue.description,moreInfo.type,RESOURCE,pt-PT,Recurso
+1127,CodeListValue.description,moreInfo.type,SQL,ca,SQL
+1128,CodeListValue.description,moreInfo.type,SQL,es,SQL
+1129,CodeListValue.description,moreInfo.type,SQL,fr,SQL
+1130,CodeListValue.description,moreInfo.type,SQL,oc-aranes,SQL
+1131,CodeListValue.description,moreInfo.type,SQL,pt-PT,SQL
+1132,CodeListValue.description,moreInfo.type,URL,ca,URL
+1133,CodeListValue.description,moreInfo.type,URL,es,URL
+1134,CodeListValue.description,moreInfo.type,URL,fr,URL
+1135,CodeListValue.description,moreInfo.type,URL,oc-aranes,URL
+1136,CodeListValue.description,moreInfo.type,URL,pt-PT,URL
+1137,CodeListValue.description,taskEntity.jsonParamType,null,ca,nul
+1138,CodeListValue.description,taskEntity.jsonParamType,null,es,nulo
+1139,CodeListValue.description,taskEntity.jsonParamType,null,fr,nul
+1140,CodeListValue.description,taskEntity.jsonParamType,null,oc-aranes,nul
+1141,CodeListValue.description,taskEntity.jsonParamType,null,pt-PT,nulo
+1142,CodeListValue.description,cartographyParameter.format,AUTO,ca,Automàtic
+1143,CodeListValue.description,cartographyParameter.format,AUTO,es,Automático
+1144,CodeListValue.description,cartographyParameter.format,AUTO,fr,Automatique
+1145,CodeListValue.description,cartographyParameter.format,AUTO,oc-aranes,Automatic
+1146,CodeListValue.description,cartographyParameter.format,AUTO,pt-PT,Automático
+1147,CodeListValue.description,application.type,ED,pt-PT,Aplicação de edição
+1148,CodeListValue.description,application.type,E,pt-PT,Aplicação externa
+1149,CodeListValue.description,application.type,I,pt-PT,Aplicação interna
+1150,CodeListValue.description,application.type,T,pt-PT,Aplicação turística
+1151,CodeListValue.description,applicationParameter.type,MOBILE,pt-PT,Parâmetro de aplicação móvel
+1152,CodeListValue.description,applicationParameter.type,Nomenclator,pt-PT,Parâmetro de nomenclatura
+1153,CodeListValue.description,applicationParameter.type,PRINT_TEMPLATE,pt-PT,Modelo de impressão
+1154,CodeListValue.description,cartography.geometryType,LINE,pt-PT,Linha
+1155,CodeListValue.description,cartography.geometryType,POINT,pt-PT,Ponto
+1156,CodeListValue.description,cartography.geometryType,POLYGON,pt-PT,Polígono
+1157,CodeListValue.description,cartography.legendType,LEGENDGRAPHIC,pt-PT,Priorizar Get Legend Graphic (capabilities)
+1158,CodeListValue.description,cartography.legendType,LEGENDURL,pt-PT,Legend URL (capabilities)
+1159,CodeListValue.description,cartography.legendType,LINK,pt-PT,URL de legenda estática
+1160,CodeListValue.description,cartographyFilter.type,C,pt-PT,Personalizado
+1161,CodeListValue.description,cartographyFilter.type,D,pt-PT,Definido
+1162,CodeListValue.description,cartographyFilter.valueType,A,pt-PT,Alfanumérico
+1163,CodeListValue.description,cartographyFilter.valueType,D,pt-PT,Data
+1164,CodeListValue.description,cartographyFilter.valueType,N,pt-PT,Número
+1165,CodeListValue.description,cartographyParameter.format,F,pt-PT,Data
+1166,CodeListValue.description,cartographyParameter.format,I,pt-PT,Imagem
+1167,CodeListValue.description,cartographyParameter.format,N,pt-PT,Número
+1168,CodeListValue.description,cartographyParameter.format,P,pt-PT,Percentagem
+1169,CodeListValue.description,cartographyParameter.format,T,pt-PT,Texto
+1170,CodeListValue.description,cartographyParameter.format,U,pt-PT,URL
+1171,CodeListValue.description,cartographyParameter.type,INFO,pt-PT,INFO
+1172,CodeListValue.description,cartographyPermission.type,F,pt-PT,Mapa de fundo
+1173,CodeListValue.description,cartographyPermission.type,C,pt-PT,Grupo de cartografia
+1174,CodeListValue.description,cartographyPermission.type,M,pt-PT,Mapa de situação
+1175,CodeListValue.description,cartographyPermission.type,I,pt-PT,Relatório
+1176,CodeListValue.description,cartographySpatialSelectionParameter.format,F,pt-PT,Data
+1177,CodeListValue.description,cartographySpatialSelectionParameter.format,I,pt-PT,Imagem
+1178,CodeListValue.description,cartographySpatialSelectionParameter.format,N,pt-PT,Número
+1179,CodeListValue.description,cartographySpatialSelectionParameter.format,P,pt-PT,Percentagem
+1180,CodeListValue.description,cartographySpatialSelectionParameter.format,T,pt-PT,Texto
+1181,CodeListValue.description,cartographySpatialSelectionParameter.format,U,pt-PT,URL
+1182,CodeListValue.description,cartographySpatialSelectionParameter.type,EDIT,pt-PT,EDIT
+1183,CodeListValue.description,cartographySpatialSelectionParameter.type,SELECT,pt-PT,SELECT
+1184,CodeListValue.description,downloadTask.scope,A,pt-PT,Aplicação
+1185,CodeListValue.description,downloadTask.scope,U,pt-PT,Isolado
+1186,CodeListValue.description,downloadTask.scope,C,pt-PT,Camada
+1187,CodeListValue.description,editTask.fieldType,date,pt-PT,Data
+1188,CodeListValue.description,editTask.fieldType,image,pt-PT,Imagem
+1189,CodeListValue.description,editTask.fieldType,listbox,pt-PT,ListBox
+1190,CodeListValue.description,editTask.fieldType,number,pt-PT,Número
+1191,CodeListValue.description,editTask.fieldType,text,pt-PT,Texto
+1192,CodeListValue.description,editTask.scope,db-edit,pt-PT,Edição de base de dados
+1193,CodeListValue.description,editTask.scope,feat-edit,pt-PT,Edição do serviço de entidades (WFS)
+1194,CodeListValue.description,queryTask.parameterType,query,pt-PT,Parâmetro de consulta
+1195,CodeListValue.description,queryTask.parameterType,template,pt-PT,Parâmetro de modelo
+1196,CodeListValue.description,queryTask.scope,cartography-query,pt-PT,Consulta de cartografia
+1197,CodeListValue.description,queryTask.scope,sql-query,pt-PT,Consulta SQL
+1198,CodeListValue.description,queryTask.scope,web-api-query,pt-PT,Consulta de API web
+1199,CodeListValue.description,service.authenticationMode,HTTP Basic authentication,pt-PT,Autenticação HTTP básica
+1200,CodeListValue.description,service.authenticationMode,None,pt-PT,Nenhum
+1201,CodeListValue.description,service.type,WFS,pt-PT,WFS
+1202,CodeListValue.description,service.type,WMS,pt-PT,WMS
+1203,CodeListValue.description,service.type,WMTS,pt-PT,WMTS
+1204,CodeListValue.description,serviceParameter.type,INFO,pt-PT,GetFeatureInfo
+1205,CodeListValue.description,serviceParameter.type,WMS,pt-PT,GetMap
+1206,CodeListValue.description,serviceParameter.type,OLPARAM,pt-PT,OpenLayers
+1207,CodeListValue.description,serviceParameter.type,WMTS,pt-PT,WMTS
+1208,CodeListValue.description,taskEntity.jsonParamType,__NULL_VALUE__,pt-PT,__NULL_VALUE__
+1209,CodeListValue.description,taskEntity.jsonParamType,array,pt-PT,array
+1210,CodeListValue.description,taskEntity.jsonParamType,boolean,pt-PT,boolean
+1211,CodeListValue.description,taskEntity.jsonParamType,number,pt-PT,number
+1212,CodeListValue.description,taskEntity.jsonParamType,object,pt-PT,object
+1213,CodeListValue.description,taskEntity.jsonParamType,string,pt-PT,string
+1214,CodeListValue.description,territory.scope,M,pt-PT,Município
+1215,CodeListValue.description,territory.scope,R,pt-PT,Regional
+1216,CodeListValue.description,territory.scope,T,pt-PT,Total
+1217,CodeListValue.description,tree.type,cartography,pt-PT,Cartografia
+1218,CodeListValue.description,tree.type,edition,pt-PT,Árvore de edição
+1219,CodeListValue.description,tree.type,touristic,pt-PT,Aplicação turística
+1220,CodeListValue.description,treenode.viewmode,dl,pt-PT,Lista detalhada
+1221,CodeListValue.description,treenode.viewmode,evt,pt-PT,Eventos
+1222,CodeListValue.description,treenode.viewmode,evtcat,pt-PT,Categorias de eventos
+1223,CodeListValue.description,treenode.viewmode,evtloc,pt-PT,Localizações de eventos
+1224,CodeListValue.description,treenode.viewmode,gallery,pt-PT,Galeria
+1225,CodeListValue.description,treenode.viewmode,ms,pt-PT,Pesquisa no mapa
+1226,CodeListValue.description,treenode.viewmode,ne,pt-PT,Elementos próximos
+1227,CodeListValue.description,treenode.viewmode,rt,pt-PT,Lista de rotas
+1228,CodeListValue.description,treenode.viewmode,sch,pt-PT,Horário
+1229,CodeListValue.description,user.identificationType,DNI,pt-PT,DNI
+1230,CodeListValue.description,user.identificationType,NIE,pt-PT,NIE
+1231,CodeListValue.description,user.identificationType,PAS,pt-PT,Passaporte
+1232,CodeListValue.description,userPosition.type,POC,pt-PT,Ponto de contacto
+1233,CodeListValue.description,treenode.node.type,cartography,pt-PT,Cartografia
+1234,CodeListValue.description,treenode.node.type,folder,pt-PT,Pasta
+1235,CodeListValue.description,treenode.node.type,list,pt-PT,Lista
+1236,CodeListValue.description,treenode.node.type,menu,pt-PT,Menu
+1237,CodeListValue.description,treenode.node.type,task,pt-PT,Tarefa
+1238,CodeListValue.description,treenode.node.type,fav,pt-PT,Favoritos
+1239,CodeListValue.description,treenode.node.type,map,pt-PT,Mapa
+1240,CodeListValue.description,treenode.node.type,nm,pt-PT,Perto de mim
+1241,CodeListValue.description,cartographyParameter.format,Geometry,pt-PT,Geometria
+1242,CodeListValue.description,cartographyParameter.geometryKind,Curve,pt-PT,Curva
+1243,CodeListValue.description,cartographyParameter.geometryKind,Geometry,pt-PT,Geometria
+1244,CodeListValue.description,cartographyParameter.geometryKind,LineString,pt-PT,Linha
+1245,CodeListValue.description,cartographyParameter.geometryKind,MultiCurve,pt-PT,Multicurva
+1246,CodeListValue.description,cartographyParameter.geometryKind,MultiLineString,pt-PT,Multilinha
+1247,CodeListValue.description,cartographyParameter.geometryKind,MultiPoint,pt-PT,Multiponto
+1248,CodeListValue.description,cartographyParameter.geometryKind,MultiPolygon,pt-PT,Multipolígono
+1249,CodeListValue.description,cartographyParameter.geometryKind,MultiSurface,pt-PT,Multisuperfície
+1250,CodeListValue.description,cartographyParameter.geometryKind,Point,pt-PT,Ponto
+1251,CodeListValue.description,cartographyParameter.geometryKind,Polygon,pt-PT,Polígono
+1252,CodeListValue.description,cartographyParameter.geometryKind,Surface,pt-PT,Superfície
+1253,CodeListValue.description,cartographyParameter.preferredGeometryType,multipoint,pt-PT,Multiponto
+1254,CodeListValue.description,cartographyParameter.preferredGeometryType,multipolygon,pt-PT,Multipolígono
+1255,CodeListValue.description,cartographyParameter.preferredGeometryType,multipolyline,pt-PT,Multipolilinha
+1256,CodeListValue.description,cartographyParameter.preferredGeometryType,point,pt-PT,Ponto
+1257,CodeListValue.description,cartographyParameter.preferredGeometryType,polygon,pt-PT,Polígono
+1258,CodeListValue.description,cartographyParameter.preferredGeometryType,polyline,pt-PT,Polilinha
+1259,CodeListValue.description,cartographyServiceParameter.type,GETMAP,pt-PT,GetMap
+1260,CodeListValue.description,cartographyServiceParameter.type,INFO,pt-PT,GetFeatureInfo
+1261,CodeListValue.description,cartographyServiceParameter.type,OLPARAM,pt-PT,OpenLayers
+1262,CodeListValue.description,cartographyServiceParameter.type,WFS,pt-PT,Todas as operações WFS
+1263,CodeListValue.description,cartographyServiceParameter.type,WMS,pt-PT,Todas as operações WMS
+1264,CodeListValue.description,cartographyServiceParameter.type,WMTS,pt-PT,Ajustes de mosaicos do visualizador
+1265,CodeListValue.description,serviceParameter.type,GETMAP,pt-PT,GetMap
+1266,CodeListValue.description,serviceParameter.type,WFS,pt-PT,Todas as operações WFS
+1267,CodeListValue.description,databaseConnection.driver,org.h2.Driver,pt-PT,Controlador JDBC H2
+1268,CodeListValue.description,databaseConnection.driver,org.postgresql.Driver,pt-PT,Controlador JDBC PostgreSQL
+1269,CodeListValue.description,databaseConnection.driver,oracle.jdbc.OracleDriver,pt-PT,Controlador JDBC Oracle
+1270,CodeListValue.description,databaseConnection.driver,com.microsoft.sqlserver.jdbc.SQLServerDriver,pt-PT,Controlador JDBC Microsoft SQL Server
+1271,Task.name,Attribution,,pt-PT,Atribuição
+1272,Task.name,Basemap Selector,,pt-PT,Seletor de mapa base
+1273,Task.name,Click,,pt-PT,Clique
+1274,Task.name,Coordinates,,pt-PT,Coordenadas
+1275,Task.name,Data Loader,,pt-PT,Carregador de dados
+1276,Task.name,Download,,pt-PT,Descarregar
+1277,Task.name,"Draw, Measure and Modify",,pt-PT,"Desenhar, medir e modificar"
+1278,Task.name,Feature Info,,pt-PT,Informação de elemento
+1279,Task.name,Full Screen,,pt-PT,Ecrã completo
+1280,Task.name,Geolocation,,pt-PT,Geolocalização
+1281,Task.name,Layer Catalog,,pt-PT,Catálogo de camadas
+1282,Task.name,Legend,,pt-PT,Legenda
+1283,Task.name,Loading Indicator,,pt-PT,Indicador de carregamento
+1284,Task.name,Measure,,pt-PT,Medir
+1285,Task.name,Multi Feature Info,,pt-PT,Informação de vários elementos
+1286,Task.name,Navigation Bar,,pt-PT,Barra de navegação
+1287,Task.name,Offline Map Maker,,pt-PT,Criador de mapas offline
+1288,Task.name,Overview Map,,pt-PT,Mapa de situação
+1289,Task.name,Popup,,pt-PT,Janela emergente
+1290,Task.name,Print Map,,pt-PT,Imprimir mapa
+1291,Task.name,Scale,,pt-PT,Escala
+1292,Task.name,Scale Bar,,pt-PT,Barra de escala
+1293,Task.name,Scale Selector,,pt-PT,Seletor de escala
+1294,Task.name,Search,,pt-PT,Pesquisar
+1295,Task.name,Share,,pt-PT,Partilhar
+1296,Task.name,Street View,,pt-PT,Vista de rua
+1297,Task.name,3D View,,pt-PT,Vista 3D
+1298,Task.name,WFSEdit,,pt-PT,Edição WFS
+1299,Task.name,WFS Query,,pt-PT,Consulta WFS
+1300,Task.name,Work Layer Manager,,pt-PT,Gestor de camadas de trabalho
+1301,Task.name,More Info Advanced,,pt-PT,Informação avançada
+1302,TerritoryType.name,Country,,pt-PT,País
+1303,TerritoryType.name,Autonomous Community,,pt-PT,Comunidade Autónoma
+1304,TerritoryType.name,Autonomous City,,pt-PT,Cidade Autónoma
+1305,TerritoryType.name,Provincial Council,,pt-PT,Deputação
+1306,TerritoryType.name,Island Council (Balearic),,pt-PT,Conselho Insular (Baleares)
+1307,TerritoryType.name,Island Council (Canary),,pt-PT,Cabildo Insular (Canárias)
+1308,TerritoryType.name,Municipality,,pt-PT,Câmara Municipal
+1309,TerritoryType.name,Comarca,,pt-PT,Comarca
+1310,TerritoryType.name,Metropolitan Area,,pt-PT,Área Metropolitana
+1311,TerritoryType.name,Commonwealth of Municipalities,,pt-PT,Mancomunidade
+1312,TerritoryType.name,Municipal Grouping,,pt-PT,Agrupamento de municípios
+1313,TerritoryType.name,Sub-municipal Entity,,pt-PT,Entidade de âmbito inferior ao município
+1314,TaskGroup.name,Basic,,pt-PT,Básico

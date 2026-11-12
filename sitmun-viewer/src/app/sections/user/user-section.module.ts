@@ -3,7 +3,7 @@ import { NgModule } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatDialogModule } from '@angular/material/dialog';
 
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslatePipe } from '@ngx-translate/core';
 import { UserRoutingModule } from '@sections/user/user-section-routing.module';
 import { UiModule } from '@ui/ui.module';
 
@@ -24,7 +24,7 @@ import { TerritoryComponent } from '../common/pages/territory/territory.componen
   imports: [
     CommonModule,
     UserRoutingModule,
-    TranslateModule,
+    TranslatePipe,
     FormsModule,
     UiModule,
     MatDialogModule,

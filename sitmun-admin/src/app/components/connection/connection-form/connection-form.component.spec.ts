@@ -6,7 +6,7 @@ import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { provideRouter, RouterModule } from '@angular/router';
 
-import {TranslateLoader, TranslateModule} from '@ngx-translate/core';
+import { TranslateLoader, TranslatePipe, provideTranslateService } from '@ngx-translate/core';
 import {of} from 'rxjs';
 
 import {EntityFormAlertsComponent} from '@app/components/shared/entity-form-alerts/entity-form-alerts.component';
@@ -45,15 +45,16 @@ describe('ConnectionFormComponent', () => {
       teardown: { destroyAfterEach: 0 as any },
       declarations: [ ConnectionFormComponent, FormToolbarComponent ],
       imports : [FormsModule, ReactiveFormsModule, SitmunFrontendGuiModule, EntityFormAlertsComponent, MatIconTestingModule, MaterialModule, RouterModule, BrowserAnimationsModule,
-        TranslateModule.forRoot({
+        TranslatePipe],
+      providers: [
+      provideTranslateService({
           loader: {
             provide: TranslateLoader,
             useFactory: () => ({
               getTranslation: () => of({})
             })
           }
-        })],
-      providers: [
+        }),
         provideRouter([]),
         provideHttpClient(),
         provideHttpClientTesting(),
@@ -96,23 +97,23 @@ describe('ConnectionFormComponent', () => {
   });
   afterAll(() => TestBed.resetTestingModule());
 
-  it('should create', () => {
-    expect(component).toBeTruthy();
+  
+
+  it('requires a name and a driver', () => {
+    expect(component.entityForm.get('name')?.hasError('required')).toBe(true);
+    expect(component.entityForm.get('driver')?.hasError('required')).toBe(true);
+    expect(component.entityForm.get('url')?.hasError('required')).toBe(false);
   });
 
-  it('form invalid when empty', () => {
-    expect(component.entityForm.valid).toBeFalsy();
-  });
-
-  it('form valid when required fields are set', () => {
+  it('accepts a name, a driver, and a url', () => {
     component.entityForm.patchValue({
       name:'testName',
       user: 'user',
       newPassword: 'password',
       url: 'url',
       driver: 'org.h2.Driver'
-    })
-    expect(component.entityForm.valid).toBeTruthy();
+    });
+    expect(component.entityForm.valid).toBe(true);
   });
 
   it('canSave respects form validity', () => {

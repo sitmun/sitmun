@@ -6,7 +6,7 @@ import {MatDividerModule} from '@angular/material/divider';
 import {MatExpansionModule} from '@angular/material/expansion';
 import {MatIconModule} from '@angular/material/icon';
 
-import {TranslateModule} from '@ngx-translate/core';
+import { TranslatePipe } from '@ngx-translate/core';
 
 import {
   EntityFormAlert,
@@ -23,7 +23,7 @@ import {
         MatDividerModule,
         MatBadgeModule,
         MatIconModule,
-        TranslateModule,
+        TranslatePipe,
     ],
     templateUrl: './warnings-panel.component.html',
     styleUrls: ['./warnings-panel.component.scss'],

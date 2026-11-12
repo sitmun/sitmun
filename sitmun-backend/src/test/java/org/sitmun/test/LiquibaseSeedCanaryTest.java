@@ -7,6 +7,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -77,7 +78,7 @@ class LiquibaseSeedCanaryTest {
           Map.entry("GTT_ID", 4L),
           Map.entry("LAN_ID", 5L),
           Map.entry("LTR_ID", 8L),
-          Map.entry("LTV_ID", 29L),
+          Map.entry("LTV_ID", 36L),
           Map.entry("PAP_ID", 22L),
           Map.entry("POS_ID", 1485L),
           Map.entry("PSE_ID", 533L),
@@ -104,49 +105,86 @@ class LiquibaseSeedCanaryTest {
   @Autowired private TaskRepository taskRepository;
 
   @Test
-  @DisplayName("Seed: STM_TREE_NOD rows and Municipal root id 15")
+  @DisplayName("Seed: STM_TREE_NOD rows and Municipal root id 10015")
   void treeNodeSeedIntact() {
     assertThat(count("SELECT COUNT(*) FROM STM_TREE_NOD"))
         .as(POLLUTION + " (STM_TREE_NOD total)")
         .isEqualTo(15);
-    assertThat(count("SELECT COUNT(*) FROM STM_TREE_NOD WHERE TNO_TREEID = 1"))
-        .as(POLLUTION + " (tree 1 nodes)")
+    assertThat(count("SELECT COUNT(*) FROM STM_TREE_NOD WHERE TNO_TREEID = 10001"))
+        .as(POLLUTION + " (tree 10001 nodes)")
         .isEqualTo(14);
 
     Map<String, Object> node15 =
-        jdbc.queryForMap("SELECT TNO_ID, TNO_NAME, TNO_TREEID FROM STM_TREE_NOD WHERE TNO_ID = 15");
-    assertThat(asInt(node15.get("TNO_ID"))).as(POLLUTION + " (node 15 missing)").isEqualTo(15);
+        jdbc.queryForMap(
+            "SELECT TNO_ID, TNO_NAME, TNO_TREEID FROM STM_TREE_NOD WHERE TNO_ID = 10015");
+    assertThat(asInt(node15.get("TNO_ID")))
+        .as(POLLUTION + " (node 10015 missing)")
+        .isEqualTo(10015);
     assertThat(node15.get("TNO_NAME"))
-        .as(POLLUTION + " (node 15 name)")
+        .as(POLLUTION + " (node 10015 name)")
         .isEqualTo("Municipal root");
-    assertThat(asInt(node15.get("TNO_TREEID"))).as(POLLUTION + " (node 15 tree)").isEqualTo(2);
+    assertThat(asInt(node15.get("TNO_TREEID")))
+        .as(POLLUTION + " (node 10015 tree)")
+        .isEqualTo(10002);
   }
 
   @Test
   @DisplayName("Seed: public app/ter 1 trees, cartographies, tasks, permissions")
   void publicAppTerritorySeedIntact() {
     List<Role> roles =
-        roleRepository.findRolesByApplicationAndUserAndTerritory(PUBLIC_PRINCIPAL, 1, 1);
+        roleRepository.findRolesByApplicationAndUserAndTerritory(PUBLIC_PRINCIPAL, 10001, 10001);
 
     List<Tree> trees =
-        applicationTreeRepository.findByAppAndRoles(1, roles).stream()
+        applicationTreeRepository.findByAppAndRoles(10001, roles).stream()
             .map(OrderedTree::tree)
             .toList();
     assertThat(trees).as(POLLUTION + " (app/ter 1 trees)").hasSize(2);
 
-    List<Cartography> cartographies = cartographyRepository.findByRolesAndTerritory(roles, 1);
+    List<Cartography> cartographies = cartographyRepository.findByRolesAndTerritory(roles, 10001);
     assertThat(cartographies).as(POLLUTION + " (app/ter 1 cartographies)").hasSize(11);
 
-    List<Task> tasks = taskRepository.findByRolesAndTerritory(roles, 1);
-    assertThat(tasks).as(POLLUTION + " (app/ter 1 tasks)").hasSize(14);
+    List<Task> tasks = taskRepository.findByRolesAndTerritory(roles, 10001);
+    assertThat(tasks).as(POLLUTION + " (app/ter 10001 tasks)").hasSize(17);
     assertThat(tasks)
-        .as(POLLUTION + " (MIA task ids 42/43)")
+        .as(POLLUTION + " (MIA task ids 10042/10043)")
         .extracting(Task::getId)
-        .contains(42, 43);
+        .contains(10042, 10043);
 
     List<CartographyPermission> permissions =
-        cartographyPermissionRepository.findByRolesAndTerritory(roles, 1);
+        cartographyPermissionRepository.findByRolesAndTerritory(roles, 10001);
     assertThat(permissions).as(POLLUTION + " (app/ter 1 permissions)").hasSize(3);
+  }
+
+  @Test
+  @DisplayName("Seed: baseline task ids are 1 through 37")
+  void baselineTaskIdsAreOneThroughThirtySeven() {
+    // Fixture rows use ids 10000 through 19999. Every other id is shipped seed.
+    List<Integer> ids =
+        jdbc.query(
+            "SELECT TAS_ID FROM STM_TASK WHERE TAS_ID NOT BETWEEN 10000 AND 19999 ORDER BY TAS_ID",
+            (rs, rowNum) -> rs.getInt(1));
+    assertThat(ids)
+        .as(POLLUTION + " (baseline STM_TASK ids)")
+        .containsExactlyElementsOf(IntStream.rangeClosed(1, 37).boxed().toList());
+    String name =
+        jdbc.queryForObject("SELECT TAS_NAME FROM STM_TASK WHERE TAS_ID = 37", String.class);
+    assertThat(name).as(POLLUTION + " (task 37)").isEqualTo("More Info Advanced");
+  }
+
+  @Test
+  @DisplayName("Seed: document export tasks 31-34 are in group 1 with no UI control")
+  void documentExportTasksHaveGroupAndNoUiControl() {
+    List<Map<String, Object>> rows =
+        jdbc.queryForList(
+            "SELECT TAS_ID, TAS_GTASKID, TAS_TUIID FROM STM_TASK"
+                + " WHERE TAS_ID BETWEEN 31 AND 34 ORDER BY TAS_ID");
+    assertThat(rows).as(POLLUTION + " (tasks 31-34)").hasSize(4);
+    assertThat(rows)
+        .as(POLLUTION + " (tasks 31-34 group)")
+        .allSatisfy(row -> assertThat(asInt(row.get("TAS_GTASKID"))).isEqualTo(1));
+    assertThat(rows)
+        .as(POLLUTION + " (tasks 31-34 UI control)")
+        .allSatisfy(row -> assertThat(row.get("TAS_TUIID")).isNull());
   }
 
   /**

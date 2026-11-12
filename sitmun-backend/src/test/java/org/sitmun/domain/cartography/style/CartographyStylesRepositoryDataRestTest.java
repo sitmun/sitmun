@@ -10,8 +10,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.sitmun.test.URIConstants;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -31,7 +31,7 @@ class CartographyStylesRepositoryDataRestTest {
         {
         "name":"test",
         "defaultStyle":false,
-        "cartography":"http://localhost/api/cartographies/1"
+        "cartography":"http://localhost/api/cartographies/10001"
         }""";
 
     String location =
@@ -56,7 +56,14 @@ class CartographyStylesRepositoryDataRestTest {
         {
         "name":"test",
         "defaultStyle":true,
-        "cartography":"http://localhost/api/cartographies/1"
+        "cartography":"http://localhost/api/cartographies/10001"
+        }""";
+    String duplicateDefault =
+        """
+        {
+        "name":"test-other",
+        "defaultStyle":true,
+        "cartography":"http://localhost/api/cartographies/10001"
         }""";
 
     String location1 =
@@ -69,7 +76,7 @@ class CartographyStylesRepositoryDataRestTest {
 
     assertNotNull(location1);
 
-    mvc.perform(post(URIConstants.CARTOGRAPHY_STYLES_URI).content(content))
+    mvc.perform(post(URIConstants.CARTOGRAPHY_STYLES_URI).content(duplicateDefault))
         .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.errors[0].field").value("defaultStyle"))
         .andExpect(

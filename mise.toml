@@ -1,0 +1,12 @@
+[settings]
+idiomatic_version_file_enable_tools = ["node", "java", "pnpm"]
+node.corepack = false
+
+[env]
+NPM_CONFIG_USERCONFIG = "{{config_root}}/config/npm-userconfig"
+
+[tasks.check-pins]
+run = "python3 tools/tests/test_version_pins.py"
+
+[tasks.bump-version]
+run = "tools/scripts/bump-version.sh"

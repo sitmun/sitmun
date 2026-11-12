@@ -68,6 +68,15 @@ module.exports = tseslint.config(
       "import/newline-after-import": "error",
       "import/no-duplicates": "error",
       "@angular-eslint/prefer-standalone": "off",
+      "@angular-eslint/prefer-inject": "off",
+      "@angular-eslint/prefer-on-push-component-change-detection": "off",
+    },
+  },
+  {
+    files: ["jest/stubs/**"],
+    rules: {
+      "@angular-eslint/component-selector": "off",
+      "@angular-eslint/directive-selector": "off",
     },
   },
   {

@@ -1,18 +1,16 @@
 # PowerShell ANSI color codes
-$Red = "`e[31m"      # Red for errors
-$Green = "`e[32m"    # Green for success messages
-$Yellow = "`e[33m"   # Yellow for warnings or process info
-$Reset = "`e[0m"     # Reset color
-
-# Define the expected Git repository URL
-$EXPECTED_REPO = "https://github.com/sitmun/sitmun-application-stack.git"
+$Esc = [char]27       # Windows PowerShell 5.1 has no `e escape
+$Red = "$Esc[31m"    # Red for errors
+$Green = "$Esc[32m"  # Green for success messages
+$Yellow = "$Esc[33m" # Yellow for warnings or process info
+$Reset = "$Esc[0m"   # Reset color
 
 # Display a banner
 function Display-Banner {
     Write-Host "${Green}"
     Write-Host "############################################################"
     Write-Host "#                                                          #"
-    Write-Host "#              SITMUN Application Stack Setup              #"
+    Write-Host "#                       SITMUN setup                       #"
     Write-Host "#                                                          #"
     Write-Host "############################################################"
     Write-Host "${Reset}"
@@ -27,62 +25,43 @@ function Check-GitRepository {
     }
 }
 
-# Check if the repository matches the expected one
-function Check-RepositoryURL {
-    Write-Host "${Yellow}Checking if the repository matches the expected SITMUN Application Stack repository...${Reset}"
-    $REMOTE_URL = git config --get remote.origin.url
-    if ($REMOTE_URL -ne $EXPECTED_REPO) {
-        Write-Host "${Red}Error: The repository does not match the expected SITMUN Application Stack repository.${Reset}"
-        Write-Host "Expected: ${Yellow}$EXPECTED_REPO${Reset}"
-        Write-Host "Found:    ${Yellow}$REMOTE_URL${Reset}"
-        exit 1
+function Add-ComposeSecretIfMissing {
+    param([string]$Key)
+    $present = $false
+    foreach ($line in Get-Content -Path ".env") {
+        if ($line -like "$Key=*") {
+            $present = $true
+            break
+        }
+    }
+    if (-not $present) {
+        $bytes = New-Object byte[] 32
+        $rng = [System.Security.Cryptography.RandomNumberGenerator]::Create()
+        try {
+            $rng.GetBytes($bytes)
+        } finally {
+            $rng.Dispose()
+        }
+        $hex = -join ($bytes | ForEach-Object { $_.ToString("x2") })
+        Add-Content -Path ".env" -Value "$Key=$hex"
     }
 }
 
-# Update from the remote branch without overriding .env file if it exists
-function Update-FromRemote {
-    $CURRENT_BRANCH = git rev-parse --abbrev-ref HEAD
-    Write-Host "${Yellow}Updating from the remote $CURRENT_BRANCH branch...${Reset}"
-
-    # Fetch latest changes from remote
-    git fetch origin $CURRENT_BRANCH
-
-    # Check if local is up to date
-    $LOCAL_COMMIT = git rev-parse "@"
-    $REMOTE_COMMIT = git rev-parse "@{u}"
-
-    if ($LOCAL_COMMIT -eq $REMOTE_COMMIT) {
-        Write-Host "${Green}Your $CURRENT_BRANCH branch is already up to date.${Reset}"
-        git submodule update --recursive --remote
-    } else {
-        Write-Host "${Yellow}Pulling latest changes from remote...${Reset}"
-
-        if (Test-Path ".env") {
-            Write-Host "${Yellow}.env file exists. Creating a backup...${Reset}"
-            Copy-Item -Path ".env" -Destination ".env.backup"
-        }
-
-        git pull --recurse-submodules origin $CURRENT_BRANCH
-
-        if (Test-Path ".env.backup") {
-            Write-Host "${Yellow}Restoring .env file from backup...${Reset}"
-            Copy-Item -Path ".env.backup" -Destination ".env" -Force
-        }
-    }
-}
-
-# Copy default development profile to .env if .env does not exist
+# Copy default development profile to .env if .env does not exist.
+# Profile files do not store secrets. Generate any of the three that are absent,
+# including when .env was copied from a profile by hand.
 function Copy-EnvFileIfMissing {
     if (-Not (Test-Path ".env")) {
         Write-Host "${Yellow}.env file is missing. Copying profiles/development-postgres.env to .env...${Reset}"
         Copy-Item -Path "profiles/development-postgres.env" -Destination ".env"
         Write-Host "${Green}.env file created from profiles/development-postgres.env.${Reset}"
     }
+    Add-ComposeSecretIfMissing -Key "SITMUN_USER_SECRET"
+    Add-ComposeSecretIfMissing -Key "MIDDLEWARE_SECRET"
+    Add-ComposeSecretIfMissing -Key "SITMUN_MBTILES_JOB_HANDLE_SECRET"
 }
 
 # Main logic
 Display-Banner
 Check-GitRepository
-Check-RepositoryURL
-Update-FromRemote
 Copy-EnvFileIfMissing

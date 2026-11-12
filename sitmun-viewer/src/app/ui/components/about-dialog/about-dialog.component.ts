@@ -1,4 +1,4 @@
-import { Component, Inject } from '@angular/core';
+import { Component, Inject, ChangeDetectionStrategy } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 
 export interface AboutDialogData {
@@ -7,17 +7,15 @@ export interface AboutDialogData {
   environmentName: string;
   angularVersion: string;
   buildTimestamp?: string;
-  sitnaVersion?: string;
+  sitnaVersion: string;
+  openLayersVersion: string;
 }
 
-/**
- * Component for displaying application information dialog.
- * TODO: Add unit tests (about-dialog.component.spec.ts)
- */
 @Component({
   standalone: false,
   selector: 'app-about-dialog',
   templateUrl: './about-dialog.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./about-dialog.component.scss']
 })
 export class AboutDialogComponent {

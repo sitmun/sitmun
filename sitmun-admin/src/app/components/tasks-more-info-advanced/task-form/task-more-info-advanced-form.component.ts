@@ -1,4 +1,4 @@
-import {Component, TemplateRef, ViewChild} from '@angular/core';
+import {Component, TemplateRef, ViewChild, ChangeDetectionStrategy} from '@angular/core';
 import {FormControl, FormGroup, FormGroupDirective, NgForm, Validators} from '@angular/forms';
 import {MatAutocompleteSelectedEvent} from '@angular/material/autocomplete';
 import {ErrorStateMatcher} from '@angular/material/core';
@@ -118,6 +118,7 @@ interface IncludedTaskMappingView {
   selector: 'app-task-more-info-advanced-form',
   templateUrl: './task-more-info-advanced-form.component.html',
   styleUrl: './task-more-info-advanced-form.component.scss',
+  changeDetection: ChangeDetectionStrategy.Eager,
   standalone: false
 })
 export class TaskMoreInfoAdvancedFormComponent extends BaseFormComponent<TaskProjection> {
@@ -306,7 +307,7 @@ export class TaskMoreInfoAdvancedFormComponent extends BaseFormComponent<TaskPro
 
     this.entityForm = new FormGroup({
       name: new FormControl(this.entityToEdit.name, {
-        validators: [Validators.required],
+        validators: [Validators.maxLength(512), Validators.required],
         nonNullable: true
       }),
       taskGroupId: new FormControl(this.entityToEdit.groupId, {
@@ -1083,15 +1084,19 @@ export class TaskMoreInfoAdvancedFormComponent extends BaseFormComponent<TaskPro
       return null;
     }
     const parameter = raw as Record<string, unknown>;
+    const explicitName = typeof parameter['name'] === 'string' && parameter['name'].length > 0
+      ? parameter['name']
+      : null;
     const label = typeof parameter['label'] === 'string' && parameter['label'].length > 0
       ? parameter['label']
-      : (typeof parameter['name'] === 'string' && parameter['name'].length > 0 ? parameter['name'] : null);
+      : explicitName;
     if (!label) {
       return null;
     }
     return {
       ...(parameter as unknown as Partial<TaskMoreInfoParameter>),
-      label
+      label,
+      name: explicitName ?? label,
     } as TaskMoreInfoParameter;
   }
 

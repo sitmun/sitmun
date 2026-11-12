@@ -1,4 +1,4 @@
-import {Component} from '@angular/core';
+import {Component, ChangeDetectionStrategy} from '@angular/core';
 import {AbstractControl, UntypedFormControl, UntypedFormGroup, ValidationErrors, ValidatorFn, Validators} from '@angular/forms';
 import {MatDialog} from '@angular/material/dialog';
 import {MatSelectChange} from '@angular/material/select';
@@ -98,6 +98,7 @@ function integerValidator(): ValidatorFn {
     selector: 'app-territory-form',
     templateUrl: './territory-form.component.html',
     styleUrls: ['./territory-form.component.scss'],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class TerritoryFormComponent extends BaseFormComponent<TerritoryProjection> {
@@ -321,7 +322,7 @@ export class TerritoryFormComponent extends BaseFormComponent<TerritoryProjectio
       extentMinY: new UntypedFormControl(this.entityToEdit.extent?.minY, []),
       extentMaxY: new UntypedFormControl(this.entityToEdit.extent?.maxY, []),
       note: new UntypedFormControl(this.entityToEdit.note, [Validators.maxLength(250)]),
-      srs: new UntypedFormControl(this.entityToEdit.srs, [Validators.maxLength(50), srsPatternValidator()]),
+      srs: new UntypedFormControl(this.entityToEdit.srs, [Validators.maxLength(250), srsPatternValidator()]),
       blocked: new UntypedFormControl(this.entityToEdit.blocked ?? true, [Validators.required]),
       defaultZoomLevel: new UntypedFormControl(this.entityToEdit.defaultZoomLevel, [integerValidator()]),
       centerPointX: new UntypedFormControl(this.entityToEdit.center?.x, []),

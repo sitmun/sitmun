@@ -1,83 +1,59 @@
 package org.sitmun.authorization.proxy.protocols.jdbc;
 
-import java.util.Locale;
-
 /**
- * JDBC SQL dialect for proxy-side query shaping. Resolved from connection URL and/or driver class
- * name on {@link JdbcPayloadDto}.
+ * Appends a row limit to proxy SQL. PostgreSQL keeps {@code OFFSET}/{@code FETCH}. Every Oracle
+ * connection, including 12 and later, uses a {@code ROWNUM} wrapper so the SQL stays valid on
+ * Oracle 11g.
  */
-public enum JdbcSqlDialect {
+public final class JdbcSqlDialect {
+
+  private JdbcSqlDialect() {}
 
   /**
-   * PostgreSQL, H2, and other engines that accept trailing {@code LIMIT} / {@code OFFSET} clauses.
+   * Appends pagination to {@code sql}. Null {@code limit} or {@code offset} omits that part. The
+   * numbers are written as decimal digits. {@code jdbcUrl} selects the grammar.
    */
-  LIMIT_OFFSET,
-
-  /**
-   * Oracle 12c+ row limiting ({@code OFFSET n ROWS FETCH NEXT m ROWS ONLY}, {@code FETCH NEXT …}).
-   */
-  ORACLE_FETCH;
-
-  /**
-   * Detects dialect from JDBC URL (preferred) and driver class name. Defaults to {@link
-   * #LIMIT_OFFSET} when unknown.
-   */
-  public static JdbcSqlDialect fromJdbcMetadata(String driverClassName, String jdbcUrl) {
-    String url = jdbcUrl != null ? jdbcUrl.toLowerCase(Locale.ROOT) : "";
-    if (url.startsWith("jdbc:oracle:")) {
-      return ORACLE_FETCH;
-    }
-    if (url.startsWith("jdbc:postgresql:") || url.startsWith("jdbc:h2:")) {
-      return LIMIT_OFFSET;
-    }
-    String driver = driverClassName != null ? driverClassName.toLowerCase(Locale.ROOT) : "";
-    if (driver.contains("oracle")) {
-      return ORACLE_FETCH;
-    }
-    return LIMIT_OFFSET;
-  }
-
-  /**
-   * Appends pagination clauses to {@code sql}. {@code limit} / {@code offset} are expected to be
-   * numeric fragments (same contract as request parameters today).
-   */
-  public String appendPagination(String sql, String limit, String offset) {
-    boolean hasLimit = hasText(limit);
-    boolean hasOffset = hasText(offset);
-    if (!hasLimit && !hasOffset) {
+  public static String appendPagination(String sql, Integer limit, Integer offset, String jdbcUrl) {
+    if (limit == null && offset == null) {
       return sql;
     }
-    return switch (this) {
-      case LIMIT_OFFSET -> appendLimitOffset(sql, limit, offset, hasLimit, hasOffset);
-      case ORACLE_FETCH -> appendOracleFetch(sql, limit, offset, hasLimit, hasOffset);
-    };
+    if (isOracle(jdbcUrl)) {
+      return oracleRownum(sql, limit, offset);
+    }
+    return offsetFetch(sql, limit, offset);
   }
 
-  private static String appendLimitOffset(
-      String sql, String limit, String offset, boolean hasLimit, boolean hasOffset) {
-    StringBuilder b = new StringBuilder(sql);
-    if (hasLimit) {
-      b.append(" LIMIT ").append(limit);
-    }
-    if (hasOffset) {
-      b.append(" OFFSET ").append(offset);
-    }
-    return b.toString();
+  private static boolean isOracle(String jdbcUrl) {
+    return jdbcUrl != null && jdbcUrl.regionMatches(true, 0, "jdbc:oracle:", 0, 12);
   }
 
-  private static String appendOracleFetch(
-      String sql, String limit, String offset, boolean hasLimit, boolean hasOffset) {
-    StringBuilder b = new StringBuilder(sql);
-    if (hasOffset) {
-      b.append(" OFFSET ").append(offset).append(" ROWS");
+  private static String offsetFetch(String sql, Integer limit, Integer offset) {
+    StringBuilder builder = new StringBuilder(sql);
+    if (offset != null) {
+      builder.append(" OFFSET ").append(offset.intValue()).append(" ROWS");
     }
-    if (hasLimit) {
-      b.append(" FETCH NEXT ").append(limit).append(" ROWS ONLY");
+    if (limit != null) {
+      builder.append(" FETCH NEXT ").append(limit.intValue()).append(" ROWS ONLY");
     }
-    return b.toString();
+    return builder.toString();
   }
 
-  private static boolean hasText(String s) {
-    return s != null && !s.isBlank();
+  private static String oracleRownum(String sql, Integer limit, Integer offset) {
+    if (offset == null) {
+      return "SELECT * FROM (" + sql + ") q WHERE ROWNUM <= " + limit.intValue();
+    }
+    if (limit == null) {
+      return "SELECT * FROM (SELECT q.*, ROWNUM rn FROM ("
+          + sql
+          + ") q) WHERE rn > "
+          + offset.intValue();
+    }
+    long end = (long) offset.intValue() + limit.intValue();
+    return "SELECT * FROM (SELECT q.*, ROWNUM rn FROM ("
+        + sql
+        + ") q WHERE ROWNUM <= "
+        + end
+        + ") WHERE rn > "
+        + offset.intValue();
   }
 }

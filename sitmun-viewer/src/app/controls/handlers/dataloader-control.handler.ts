@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 
-import { AppCfg, AppTasks } from '@api/model/app-cfg';
+import type { AppCfg, AppTasks } from '@api/model/app-cfg';
 
 import { SitnaApiService } from '../../services/sitna-api.service';
 import { UIStateService } from '../../services/ui-state.service';
@@ -12,8 +12,9 @@ import { SitnaControlConfig } from '../control-handler.interface';
  * Allows users to load data layers via WMS suggestions and drag-and-drop.
  *
  * Control Type: sitna.dataLoader
- * Patches: None (native SITNA control)
- * Configuration: div + optional wmsSuggestions and enableDragAndDrop parameters
+ * Configuration: div, wmsSuggestions, and enableDragAndDrop.
+ * Nullish modern options are filled in so DataLoader does not read the obsolete
+ * externalWMS / fileImport children.
  */
 @Injectable({
   providedIn: 'root'
@@ -21,7 +22,7 @@ import { SitnaControlConfig } from '../control-handler.interface';
 export class DataLoaderControlHandler extends ControlHandlerBase {
   readonly controlIdentifier = 'sitna.dataLoader';
   readonly sitnaConfigKey = 'dataLoader';
-  readonly requiredPatches = undefined; // No patches needed
+  readonly requiredPatches = undefined;
 
   constructor(
     sitnaApi: SitnaApiService,
@@ -38,10 +39,15 @@ export class DataLoaderControlHandler extends ControlHandlerBase {
     task: AppTasks,
     _context: AppCfg
   ): SitnaControlConfig | null {
-    const config = this.mergeWithParameters(
-      this.getDefaultConfig(),
-      task.parameters
-    );
+    const config: SitnaControlConfig = {
+      ...this.mergeWithParameters(this.getDefaultConfig(), task.parameters)
+    };
+    if (config['wmsSuggestions'] == null) {
+      config['wmsSuggestions'] = [];
+    }
+    if (config['enableDragAndDrop'] == null) {
+      config['enableDragAndDrop'] = false;
+    }
     this.uiStateService.enableToolsButton();
     return config;
   }

@@ -10,4 +10,10 @@ public record HttpSecurityDto(
     String username,
     String password,
     Map<String, String> headers,
-    Map<String, String> queryParams) {}
+    Map<String, String> queryParams) {
+
+  @Override
+  public String toString() {
+    return "HttpSecurityDto[type=" + type + ", scheme=" + scheme + ", username=" + username + "]";
+  }
+}

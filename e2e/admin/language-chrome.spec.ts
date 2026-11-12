@@ -1,18 +1,53 @@
 import { test, expect } from '@playwright/test';
 
-async function readLanguageDefault(
+async function readResolvedLanguage(
   page: import('@playwright/test').Page,
 ): Promise<string> {
   return page.evaluate(async () => {
-    const response = await fetch('/backend/api/configuration-parameters');
-    const body = await response.json();
-    const params = Array.isArray(body)
-      ? body
-      : body?._embedded?.['configuration-parameters'] || [];
-    const found = params.find(
-      (p: { name?: string; value?: string }) => p?.name === 'language.default',
-    );
-    return found?.value || 'en';
+    const aliases: Record<string, string> = { pt: 'pt-PT', oc: 'oc-aranes' };
+    const configResponse = await fetch('/backend/api/configuration-parameters');
+    const configBody = await configResponse.json();
+    const params = Array.isArray(configBody)
+      ? configBody
+      : configBody?._embedded?.['configuration-parameters'] || [];
+    const backendDefault =
+      params.find((item: { name?: string; value?: string }) => item?.name === 'language.default')
+        ?.value || 'en';
+
+    const languagesResponse = await fetch('/backend/api/languages?size=100');
+    const languagesBody = await languagesResponse.json();
+    const languages = (
+      Array.isArray(languagesBody) ? languagesBody : languagesBody?._embedded?.languages || []
+    ) as Array<{ shortname?: string; enabled?: boolean | null }>;
+    const available = languages
+      .filter((item) => item.shortname && item.enabled !== false)
+      .map((item) => item.shortname as string);
+
+    const tags = navigator.languages?.length ? [...navigator.languages] : [];
+    if (navigator.language) {
+      tags.push(navigator.language);
+    }
+    for (const tag of tags) {
+      const exact = available.find((code) => code.toLowerCase() === tag.toLowerCase());
+      if (exact) {
+        return exact;
+      }
+      const primary = tag.trim().split(/[-_]/)[0]?.toLowerCase();
+      if (!primary) {
+        continue;
+      }
+      const alias = aliases[primary];
+      if (alias && available.includes(alias)) {
+        return alias;
+      }
+      const byPrimary = available.find(
+        (code) => code.toLowerCase() === primary || code.toLowerCase().startsWith(`${primary}-`),
+      );
+      if (byPrimary) {
+        return byPrimary;
+      }
+    }
+    return available.includes(backendDefault) ? backendDefault : available[0] || 'en';
   });
 }
 
@@ -30,8 +65,8 @@ test.describe('Admin language chrome', () => {
     });
 
     await page.goto('/#/login');
-    const defaultLang = await readLanguageDefault(page);
-    const expectedIso = toIso(defaultLang);
+    const resolved = await readResolvedLanguage(page);
+    const expectedIso = toIso(resolved);
 
     await expect(page.locator('[formControlName="lang"]')).toHaveCount(0);
 

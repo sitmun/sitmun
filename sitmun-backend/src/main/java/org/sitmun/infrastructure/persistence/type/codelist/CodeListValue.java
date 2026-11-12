@@ -4,9 +4,11 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import java.util.Objects;
 import lombok.*;
 import org.sitmun.domain.PersistenceConstants;
+import org.sitmun.domain.StoredFlagListener;
 import org.sitmun.infrastructure.persistence.type.i18n.I18n;
 import org.sitmun.infrastructure.persistence.type.i18n.I18nListener;
 
@@ -20,7 +22,7 @@ import org.sitmun.infrastructure.persistence.type.i18n.I18nListener;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-@EntityListeners(I18nListener.class)
+@EntityListeners({I18nListener.class, StoredFlagListener.class})
 public class CodeListValue {
 
   /** Unique identifier. */
@@ -33,36 +35,42 @@ public class CodeListValue {
       allocationSize = 1)
   @Id
   @GeneratedValue(strategy = GenerationType.TABLE, generator = "STM_CODELIST_GEN")
-  @Column(name = "COD_ID")
+  @Column(name = "COD_ID", nullable = false)
   private Integer id;
 
   /** Code list name. */
-  @Column(name = "COD_LIST", length = PersistenceConstants.IDENTIFIER)
+  @Column(name = "COD_LIST", length = 250, nullable = false)
+  @Size(max = 250)
   @NotBlank
   private String codeListName;
 
   @JsonIgnore @Transient private String storedCodeListName;
 
   /** Value. */
-  @Column(name = "COD_VALUE", length = PersistenceConstants.IDENTIFIER)
+  @Column(name = "COD_VALUE", length = 250, nullable = false)
+  @Size(max = 250)
   @NotBlank
   private String value;
 
   @JsonIgnore @Transient private String storedValue;
 
   /** Value. */
-  @Column(name = "COD_SYSTEM")
+  @Column(name = "COD_SYSTEM", nullable = false)
   private Boolean system;
 
   @JsonIgnore @Transient private Boolean storedSystem;
 
   /** Value description. */
-  @Column(name = "COD_DESCRIPTION", length = PersistenceConstants.SHORT_DESCRIPTION)
+  @Column(
+      name = "COD_DESCRIPTION",
+      length = PersistenceConstants.SHORT_DESCRIPTION,
+      nullable = false)
+  @NotNull
   @I18n
   private String description;
 
   /** The code should be used as a default value. */
-  @Column(name = "COD_DEFAULT")
+  @Column(name = "COD_DEFAULT", nullable = false)
   @NotNull
   private Boolean defaultCode;
 

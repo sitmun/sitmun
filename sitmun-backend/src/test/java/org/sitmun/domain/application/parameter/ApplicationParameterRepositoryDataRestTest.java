@@ -10,8 +10,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -26,7 +26,7 @@ class ApplicationParameterRepositoryDataRestTest {
   @DisplayName("GET: Retrieve filtered application parameters")
   @WithMockUser(roles = "ADMIN")
   void filteredApplicationParameters() throws Exception {
-    mvc.perform(get(APPLICATION_PARAMETERS_URI, 1, "type", "PRINT_TEMPLATE"))
+    mvc.perform(get(APPLICATION_PARAMETERS_URI, 10001, "type", "PRINT_TEMPLATE"))
         .andDo(print())
         .andExpect(status().isOk())
         .andExpect(jsonPath("$._embedded.application-parameters", hasSize(4)));

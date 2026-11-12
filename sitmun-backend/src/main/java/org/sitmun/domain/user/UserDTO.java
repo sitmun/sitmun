@@ -18,7 +18,7 @@ public class UserDTO {
 
   /** User mail */
   @Email(message = "Email should be valid")
-  @Size(max = 50, message = "Email must not exceed 50 characters")
+  @Size(max = 250, message = "Email must not exceed 250 characters")
   private String email;
 
   /** User login. */
@@ -26,10 +26,8 @@ public class UserDTO {
   @Size(min = 1, max = 50, message = "Username must be between 1 and 50 characters")
   private String username;
 
-  /** User password hash. */
   private String password;
 
-  /** User password hash. */
   private Boolean passwordSet;
 
   /** User's first name. */
@@ -45,7 +43,7 @@ public class UserDTO {
   private String identificationNumber;
 
   /** User identification type. */
-  @Size(max = 20, message = "Identification type must not exceed 20 characters")
+  @Size(max = 50, message = "Identification type must not exceed 50 characters")
   private String identificationType;
 
   /** If <code>true</code>, the user is a system administrator. */

@@ -9,7 +9,6 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -52,6 +51,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.server.ResponseStatusException;
+import tools.jackson.databind.ObjectMapper;
 
 class TemplateExecutionMiaRenderTest extends TemplateExecutionServiceTestFixtures {
   @Test
@@ -1777,7 +1777,8 @@ class TemplateExecutionMiaRenderTest extends TemplateExecutionServiceTestFixture
                 new MapImageFeatureBboxResolver(),
                 mock(
                     org.sitmun.administration.service.mapimage.MapImageTaskExecutionService.class)),
-            new ObjectMapper());
+            new ObjectMapper(),
+            translationRepository());
 
     SecurityContextHolder.getContext()
         .setAuthentication(
@@ -1912,6 +1913,155 @@ class TemplateExecutionMiaRenderTest extends TemplateExecutionServiceTestFixture
       assertThat(response.getTasks().get(0).getHtml()).contains("sitmun-mia-empty");
       verify(proxyConfigurationService).validateUserAccess(any(), any());
       verify(databaseConnectionService, never()).executeQuery(any(), any(), any());
+    } finally {
+      SecurityContextHolder.clearContext();
+    }
+  }
+
+  @Test
+  void renderMoreInfoAdvancedUsesTemplateTitleThenNameAndKeepsQueryName() {
+    TaskRepository taskRepository = mock(TaskRepository.class);
+    TemplateRequestCoordinatesService coordinatesService =
+        mock(TemplateRequestCoordinatesService.class);
+    when(coordinatesService.build(any(), any()))
+        .thenReturn(requestCoordinatesWithUserPermission(7));
+    TemplateExecutionService service =
+        newService(
+            taskRepository,
+            mock(TaskRelationRepository.class),
+            mock(ProxyConfigurationService.class),
+            mock(DatabaseConnectionService.class),
+            mock(HttpClientFactory.class),
+            mock(SystemVariableResolver.class),
+            mock(TemplateRenderService.class),
+            coordinatesService,
+            new ObjectMapper());
+    when(taskRepository.findByRolesAndTerritory(any(), eq(7)))
+        .thenReturn(List.of(Task.builder().id(16).build()));
+
+    Task miaTask = mock(Task.class);
+    when(miaTask.getId()).thenReturn(16);
+    when(miaTask.getName()).thenReturn("MIA parent");
+    when(miaTask.getType())
+        .thenReturn(
+            TaskType.builder().id(DomainConstants.Tasks.TASK_TYPE_ID_MORE_INFO_ADVANCED).build());
+    when(miaTask.getProperties())
+        .thenReturn(
+            Map.of(
+                DomainConstants.Tasks.PROPERTY_PARAMETERS,
+                List.of(
+                    Map.of(
+                        "name",
+                        "includedTasks",
+                        "type",
+                        DomainConstants.Tasks.TYPE_ARRAY,
+                        "value",
+                        "[{\"id\":401,\"name\":\"snapshot template\",\"order\":0,\"childType\":\"template\"},"
+                            + "{\"id\":402,\"name\":\"Cadastre query\",\"order\":1,\"childType\":\"query\"},"
+                            + "{\"id\":403,\"name\":\"snapshot blank\",\"order\":2,\"childType\":\"template\"}]"))));
+    Task titled =
+        Task.builder()
+            .id(401)
+            .name("URB_Barcelona_parcel")
+            .title("Parcel information")
+            .type(TaskType.builder().id(DomainConstants.Tasks.TASK_TYPE_ID_TEMPLATE).build())
+            .build();
+    Task query =
+        Task.builder()
+            .id(402)
+            .name("Other query name")
+            .type(TaskType.builder().id(DomainConstants.Tasks.TASK_TYPE_ID_QUERY).build())
+            .build();
+    Task untitled =
+        Task.builder()
+            .id(403)
+            .name("Fallback name")
+            .type(TaskType.builder().id(DomainConstants.Tasks.TASK_TYPE_ID_TEMPLATE).build())
+            .build();
+    when(taskRepository.findById(16)).thenReturn(Optional.of(miaTask));
+    when(taskRepository.findById(401)).thenReturn(Optional.of(titled));
+    when(taskRepository.findById(402)).thenReturn(Optional.of(query));
+    when(taskRepository.findById(403)).thenReturn(Optional.of(untitled));
+
+    SecurityContextHolder.getContext()
+        .setAuthentication(new UsernamePasswordAuthenticationToken("viewer", "n/a", List.of()));
+    try {
+      MoreInfoAdvancedRenderRequestDto renderRequest = new MoreInfoAdvancedRenderRequestDto();
+      renderRequest.setMiaTaskIds(List.of(16));
+      renderRequest.setAppId(5);
+      renderRequest.setTerId(7);
+      renderRequest.setParameters(Map.of());
+
+      MoreInfoAdvancedRenderResponseDto result =
+          service.renderMoreInfoAdvanced(renderRequest, "en");
+
+      assertThat(result.getTasks()).hasSize(1);
+      assertThat(result.getTasks().get(0).getHtml())
+          .contains(">Parcel information<")
+          .contains(">Cadastre query<")
+          .contains(">Fallback name<")
+          .doesNotContain(">snapshot template<")
+          .doesNotContain(">snapshot blank<")
+          .doesNotContain(">URB_Barcelona_parcel<")
+          .doesNotContain(">Other query name<");
+    } finally {
+      SecurityContextHolder.clearContext();
+    }
+  }
+
+  @Test
+  void renderMoreInfoAdvancedUsesTemplateTitleWhenChildrenComeFromChildOrder() {
+    TaskRepository taskRepository = mock(TaskRepository.class);
+    TemplateRequestCoordinatesService coordinatesService =
+        mock(TemplateRequestCoordinatesService.class);
+    when(coordinatesService.build(any(), any()))
+        .thenReturn(requestCoordinatesWithUserPermission(7));
+    TemplateExecutionService service =
+        newService(
+            taskRepository,
+            mock(TaskRelationRepository.class),
+            mock(ProxyConfigurationService.class),
+            mock(DatabaseConnectionService.class),
+            mock(HttpClientFactory.class),
+            mock(SystemVariableResolver.class),
+            mock(TemplateRenderService.class),
+            coordinatesService,
+            new ObjectMapper());
+    when(taskRepository.findByRolesAndTerritory(any(), eq(7)))
+        .thenReturn(List.of(Task.builder().id(16).build()));
+
+    Task miaTask = mock(Task.class);
+    when(miaTask.getId()).thenReturn(16);
+    when(miaTask.getName()).thenReturn("MIA parent");
+    when(miaTask.getType())
+        .thenReturn(
+            TaskType.builder().id(DomainConstants.Tasks.TASK_TYPE_ID_MORE_INFO_ADVANCED).build());
+    when(miaTask.getProperties()).thenReturn(Map.of("childTaskOrderIds", List.of(401)));
+    Task titled =
+        Task.builder()
+            .id(401)
+            .name("URB_Barcelona_parcel")
+            .title("Parcel information")
+            .type(TaskType.builder().id(DomainConstants.Tasks.TASK_TYPE_ID_TEMPLATE).build())
+            .build();
+    when(taskRepository.findById(16)).thenReturn(Optional.of(miaTask));
+    when(taskRepository.findById(401)).thenReturn(Optional.of(titled));
+
+    SecurityContextHolder.getContext()
+        .setAuthentication(new UsernamePasswordAuthenticationToken("viewer", "n/a", List.of()));
+    try {
+      MoreInfoAdvancedRenderRequestDto renderRequest = new MoreInfoAdvancedRenderRequestDto();
+      renderRequest.setMiaTaskIds(List.of(16));
+      renderRequest.setAppId(5);
+      renderRequest.setTerId(7);
+      renderRequest.setParameters(Map.of());
+
+      MoreInfoAdvancedRenderResponseDto result =
+          service.renderMoreInfoAdvanced(renderRequest, "en");
+
+      assertThat(result.getTasks().get(0).getHtml())
+          .contains(">Parcel information<")
+          .doesNotContain(">URB_Barcelona_parcel<");
     } finally {
       SecurityContextHolder.clearContext();
     }

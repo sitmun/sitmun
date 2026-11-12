@@ -9,7 +9,7 @@ spring:
   # H2 Database Configuration
   datasource:
     type: com.zaxxer.hikari.HikariDataSource
-    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    url: "jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE;TIME ZONE=UTC"
     username: sa
     password:
     driver-class-name: org.h2.Driver
@@ -26,6 +26,8 @@ spring:
     properties:
       dialect: org.hibernate.dialect.H2Dialect
       hibernate:
+        type:
+          java_time_use_direct_jdbc: true
         # Disable CLOB creation for better database compatibility
         jdbc:
           lob:
@@ -33,5 +35,5 @@ spring:
 
   # Liquibase Configuration for H2
   liquibase:
-    change-log: classpath:/db/changelog/db.changelog-h2.yaml
+    change-log: classpath:/db/changelog-test/db.changelog-master.yaml
     enabled: true 

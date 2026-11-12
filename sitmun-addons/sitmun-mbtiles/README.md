@@ -60,7 +60,7 @@ The SITMUN MBTiles Service provides REST API endpoints to:
 - Monitor job progress and status
 - Download completed MBTiles files
 
-This service integrates with the [SITMUN Backend Core](https://github.com/sitmun/sitmun-backend-core) to provide tile generation capabilities for the SITMUN platform.
+This service integrates with the [SITMUN backend](https://github.com/sitmun/sitmun/tree/dev/sitmun-backend) to provide tile generation capabilities for the SITMUN platform.
 
 ## Quick Start
 
@@ -73,24 +73,26 @@ This service integrates with the [SITMUN Backend Core](https://github.com/sitmun
 1. **Clone the repository**
 
    ```bash
-   git clone https://github.com/sitmun/sitmun-mbtiles.git
-   cd sitmun-mbtiles
+   git clone --branch dev https://github.com/sitmun/sitmun.git
+   cd sitmun
    ```
+
+   Gradle runs from this repository root. The boot jar is `sitmun-addons/sitmun-mbtiles/build/libs/sitmun-mbtiles-<version>.jar`, where `<version>` is `version` in `gradle.properties`. Do not run the `-plain` jar.
 
 2. **Build the application**
 
    ```bash
-   ./gradlew build -x test
+   ./gradlew :sitmun-mbtiles:build -x test
    ```
 
 3. **Run the application**
 
    ```bash
    # Run with Java directly (recommended)
-   java -jar build/libs/sitmun-mbtiles.jar --spring.profiles.active=prod
+   java -jar sitmun-addons/sitmun-mbtiles/build/libs/sitmun-mbtiles-$(awk -F= '/^version=/{print $2}' gradle.properties).jar --spring.profiles.active=prod
    
    # Or use Gradle bootRun directly
-   ./gradlew bootRun --args='--spring.profiles.active=prod'
+   ./gradlew :sitmun-mbtiles:bootRun --args='--spring.profiles.active=prod'
   
    ```
 
@@ -112,39 +114,39 @@ This service integrates with the [SITMUN Backend Core](https://github.com/sitmun
 
 ```bash
 # Use different port
-./gradlew bootRun --args='--spring.profiles.active=prod --server.port=8081'
+./gradlew :sitmun-mbtiles:bootRun --args='--spring.profiles.active=prod --server.port=8081'
 ```
 
 #### Memory Issues
 
 ```bash
 # Increase heap size
-./gradlew bootRun --args='--spring.profiles.active=prod -Xmx4g -Xms2g'
+./gradlew :sitmun-mbtiles:bootRun --args='--spring.profiles.active=prod -Xmx4g -Xms2g'
 ```
 
 ### Building
 
 ```bash
-# Build the project (includes Git hooks setup)
-./gradlew build
+# Build the project
+./gradlew :sitmun-mbtiles:build
 
 # Build without tests (faster for development)
-./gradlew build -x test
+./gradlew :sitmun-mbtiles:build -x test
 
 # Run tests
-./gradlew test
+./gradlew :sitmun-mbtiles:test
 
 # Create JAR file
-./gradlew jar
+./gradlew :sitmun-mbtiles:jar
 
 # Format code
-./gradlew spotlessApply
+./gradlew :sitmun-mbtiles:spotlessApply
 
 # Check code coverage
-./gradlew jacocoTestReport
+./gradlew :sitmun-mbtiles:jacocoTestReport
 ```
 
-> **💡 Tip**: For development, use `./gradlew build -x test` for faster builds, then run the JAR directly with `java -jar build/libs/sitmun-mbtiles.jar --spring.profiles.active=dev`
+> **💡 Tip**: For development, use `./gradlew :sitmun-mbtiles:build -x test` for faster builds, then run the JAR directly with `java -jar sitmun-addons/sitmun-mbtiles/build/libs/sitmun-mbtiles-$(awk -F= '/^version=/{print $2}' gradle.properties).jar --spring.profiles.active=dev`
 
 ## Features
 
@@ -174,7 +176,7 @@ This service integrates with the [SITMUN Backend Core](https://github.com/sitmun
 - **Debug Logging**: Detailed logging for development (dev profile only)
 - **Automated Quality Checks**: Git hooks for pre-commit validation
 - **Conventional Commits**: Enforced commit message format
-- **Version Management**: Automated versioning with Axion Release
+- **Version**: `project.version` in `build.gradle`
 - **Code Formatting**: Automated code formatting with Spotless
 - **Coverage Reporting**: JaCoCo integration for code coverage
 - **Comprehensive Testing**: Unit and integration tests with comprehensive coverage
@@ -434,15 +436,15 @@ mbtiles:
 ### Technology Stack
 
 - **Java**: 17
-- **Spring Boot**: 3.5.4
+- **Spring Boot**: 4.1.1
 - **Spring Batch**: 5.2.2 (for job processing)
-- **Build Tool**: Gradle with Version Catalogs
+- **Build Tool**: Gradle 9.8.2 with Version Catalogs
 - **Database**: H2 (in-memory) for Spring Batch metadata
 - **MBTiles Support**: mbtiles4j 1.2.0
 - **Coordinate Transformations**: proj4j 1.1.5
 - **XML Parsing**: dom4j 2.1.4
 - **Testing**: JUnit 5, Spring Boot Test, Mockito
-- **Code Quality**: Spotless (Google Java Format), JaCoCo, Axion Release
+- **Code Quality**: Spotless (Google Java Format), JaCoCo
 - **Development Tools**: Git Hooks, Conventional Commits
 
 ### System Architecture
@@ -662,13 +664,13 @@ For production deployment, use the production profile:
 
 ```bash
 # Build JAR (DevTools automatically excluded in production)
-./gradlew build
+./gradlew :sitmun-mbtiles:build
 
 # Run with production profile (recommended)
-java -jar build/libs/sitmun-mbtiles.jar --spring.profiles.active=prod
+java -jar sitmun-addons/sitmun-mbtiles/build/libs/sitmun-mbtiles-$(awk -F= '/^version=/{print $2}' gradle.properties).jar --spring.profiles.active=prod
 
 # Or use Gradle bootRun directly
-./gradlew bootRun --args='--spring.profiles.active=prod'
+./gradlew :sitmun-mbtiles:bootRun --args='--spring.profiles.active=prod'
 ```
 
 #### Development Deployment
@@ -677,13 +679,13 @@ For development, use the development profile:
 
 ```bash
 # Build JAR (DevTools included for development)
-./gradlew build -x test
+./gradlew :sitmun-mbtiles:build -x test
 
 # Run with development profile (recommended)
-java -jar build/libs/sitmun-mbtiles.jar --spring.profiles.active=dev
+java -jar sitmun-addons/sitmun-mbtiles/build/libs/sitmun-mbtiles-$(awk -F= '/^version=/{print $2}' gradle.properties).jar --spring.profiles.active=dev
 
 # Or use Gradle bootRun directly
-./gradlew bootRun --args='--spring.profiles.active=dev'
+./gradlew :sitmun-mbtiles:bootRun --args='--spring.profiles.active=dev'
 ```
 
 ### Project Structure
@@ -730,7 +732,7 @@ src/
 The project uses Gradle with Version Catalogs for dependency management:
 
 - **Version Catalog**: `gradle/libs.versions.toml` - Centralized dependency versions
-- **Plugins**: Spring Boot, Lombok, Spotless, Axion Release
+- **Plugins**: Spring Boot, Lombok, Spotless, from the root version catalog
 - **Quality Tools**: JaCoCo for coverage, Spotless for formatting
 
 ### Code Quality
@@ -739,82 +741,28 @@ The project includes several code quality tools:
 
 - **Spotless**: Code formatting with Google Java Format
 - **JaCoCo**: Code coverage reporting
-- **Axion Release**: Version management with semantic versioning
+- **Version**: `project.version` in `build.gradle`
 - **Git Hooks**: Automated quality checks and commit validation
 
 ### Running Quality Checks
 
 ```bash
 # Format code
-./gradlew spotlessApply
+./gradlew :sitmun-mbtiles:spotlessApply
 
 # Check formatting without applying
-./gradlew spotlessCheck
+./gradlew :sitmun-mbtiles:spotlessCheck
 
 # Check code coverage
-./gradlew jacocoTestReport
+./gradlew :sitmun-mbtiles:jacocoTestReport
 
 # View coverage report
 open build/reports/jacoco/test/html/index.html
 ```
 
-### Version Management
+### Version
 
-The project uses Axion Release for automated version management:
-
-```bash
-# Check current version
-./gradlew currentVersion
-
-# Create a new release
-./gradlew release
-
-# Create a new patch version
-./gradlew patch
-```
-
-#### Creating a Release
-
-**Prerequisites:**
-1. **Clean Git State**: Ensure all changes are committed
-2. **Working Directory**: No uncommitted changes
-3. **Git Repository**: Must be a valid Git repository
-
-**Step-by-Step Release Process:**
-
-```bash
-# 1. Check current Git status
-git status
-
-# 2. Add and commit any pending changes
-git add .
-git commit -m "docs: update documentation for release"
-
-# 3. Verify the repository is clean
-git status
-
-# 4. Check current version
-./gradlew currentVersion
-
-# 5. Create a new release
-./gradlew release
-
-# 6. Push the release tag
-git push --tags
-```
-
-**Release Types:**
-
-- **`./gradlew release`**: Creates a new patch version (e.g., 1.0.0 → 1.0.1)
-- **`./gradlew release -Prelease.scope=minor`**: Creates a new minor version (e.g., 1.0.0 → 1.1.0)
-- **`./gradlew release -Prelease.scope=major`**: Creates a new major version (e.g., 1.0.0 → 2.0.0)
-
-**Troubleshooting:**
-
-If the release fails with "No such property: commit", ensure:
-1. All changes are committed to Git
-2. You're on a valid branch (not detached HEAD)
-3. Git repository is properly initialized
+The module version is `project.version` in `build.gradle`. Dependencies come from the root `gradle/libs.versions.toml`. Run Gradle from the repository root, for example `./gradlew :sitmun-mbtiles:test`.
 
 ### Testing
 
@@ -822,22 +770,22 @@ The project includes comprehensive testing:
 
 ```bash
 # Run all tests
-./gradlew test
+./gradlew :sitmun-mbtiles:test
 
 # Run specific test class
-./gradlew test --tests MBTilesServiceTest
+./gradlew :sitmun-mbtiles:test --tests MBTilesServiceTest
 
 # Run integration tests
-./gradlew test --tests *IntegrationTest
+./gradlew :sitmun-mbtiles:test --tests *IntegrationTest
 
 # Run validation tests
-./gradlew test --tests *ValidationTest
+./gradlew :sitmun-mbtiles:test --tests *ValidationTest
 
 # Run error handling tests
-./gradlew test --tests GlobalExceptionHandlerTest
+./gradlew :sitmun-mbtiles:test --tests GlobalExceptionHandlerTest
 
 # Run tests with coverage
-./gradlew test jacocoTestReport
+./gradlew :sitmun-mbtiles:test jacocoTestReport
 ```
 
 #### Test Coverage
@@ -904,16 +852,6 @@ git commit -m "fix(mbtiles): resolve memory leak in tile processing"
 git commit -m "docs: update README with MBTiles compliance info"
 git commit -m "test: add integration tests for WMTS harvesting"
 git commit -m "style: format code with Google Java Format"
-```
-
-#### Managing Git Hooks
-
-```bash
-# Install Git hooks (automatic with build)
-./gradlew setupGitHooks
-
-# Remove Git hooks
-./gradlew removeGitHooks
 ```
 
 ## Advanced Features

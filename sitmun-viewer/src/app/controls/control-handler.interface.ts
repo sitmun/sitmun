@@ -1,4 +1,4 @@
-import { AppCfg, AppTasks } from '@api/model/app-cfg';
+import type { AppCfg, AppTasks } from '@api/model/app-cfg';
 
 /**
  * Options passed to needsBootstrap so handlers can decide eligibility without depending on app config.
@@ -108,30 +108,4 @@ export interface ControlHandler {
    * Called from AbstractMap.clearMap before the map DOM is replaced.
    */
   onMapClear?(map?: object): void;
-}
-
-/**
- * Options for loading a control script.
- */
-export interface ControlLoadOptions {
-  /**
-   * Function to check if control is already loaded.
-   */
-  checkLoaded?: () => boolean | Promise<boolean>;
-
-  /**
-   * Dependencies to wait for before loading.
-   * Can be a string ('TC'), array of strings, or async function.
-   */
-  dependencies?: string | string[] | (() => Promise<void>);
-
-  /**
-   * Function that loads the actual script (via require or dynamic import).
-   */
-  loadScript: () => void;
-
-  /**
-   * Name of the control being loaded (for logging/debugging).
-   */
-  controlName: string;
 }

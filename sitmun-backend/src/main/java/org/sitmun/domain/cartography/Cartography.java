@@ -8,14 +8,19 @@ import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import java.util.*;
 import lombok.*;
 import org.hibernate.annotations.BatchSize;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 import org.sitmun.authorization.client.dto.ClientConfigurationViews;
 import org.sitmun.domain.CodeListsConstants;
+import org.sitmun.domain.StoredFlagListener;
 import org.sitmun.domain.cartography.availability.CartographyAvailability;
 import org.sitmun.domain.cartography.filter.CartographyFilter;
 import org.sitmun.domain.cartography.parameter.CartographyParameter;
+import org.sitmun.domain.cartography.parameter.CartographyServiceParameter;
 import org.sitmun.domain.cartography.parameter.CartographySpatialSelectionParameter;
 import org.sitmun.domain.cartography.permission.CartographyPermission;
 import org.sitmun.domain.cartography.style.CartographyStyle;
@@ -33,8 +38,9 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 /** Geographic information. */
 @Entity
-@EntityListeners({AuditingEntityListener.class, I18nListener.class})
+@EntityListeners({AuditingEntityListener.class, I18nListener.class, StoredFlagListener.class})
 @Table(name = "STM_GEOINFO")
+@ValidStaticLegendUrl
 @Builder
 @Getter
 @Setter
@@ -52,12 +58,12 @@ public class Cartography {
       allocationSize = 1)
   @Id
   @GeneratedValue(strategy = GenerationType.TABLE, generator = "STM_GEOINFO_GEN")
-  @Column(name = "GEO_ID")
+  @Column(name = "GEO_ID", nullable = false)
   @JsonView(ClientConfigurationViews.ApplicationTerritory.class)
   private Integer id;
 
   /** Cartography name. */
-  @Column(name = "GEO_NAME", length = 100)
+  @Column(name = "GEO_NAME", length = 100, nullable = false)
   @NotBlank
   @JsonView(ClientConfigurationViews.ApplicationTerritory.class)
   @I18n
@@ -70,7 +76,7 @@ public class Cartography {
   private String description;
 
   /** List of layer identifiers. */
-  @Column(name = "GEO_LAYERS", length = 800)
+  @Column(name = "GEO_LAYERS", length = 800, nullable = false)
   @NotNull
   @Convert(converter = StringListAttributeConverter.class)
   @JsonView(ClientConfigurationViews.ApplicationTerritory.class)
@@ -81,7 +87,12 @@ public class Cartography {
    * column as {@link #layers} but without the converter. This allows JPQL queries to search the
    * comma-separated layer string.
    */
-  @Column(name = "GEO_LAYERS", length = 800, insertable = false, updatable = false)
+  @Column(
+      name = "GEO_LAYERS",
+      length = 800,
+      insertable = false,
+      updatable = false,
+      nullable = false)
   private String layersSearchString;
 
   /** Minimum scale visibility. */
@@ -111,7 +122,7 @@ public class Cartography {
   private Boolean applyFilterToGetMap;
 
   /** If <code>true</code>, the layers are queryable. */
-  @Column(name = "GEO_QUERYABL")
+  @Column(name = "GEO_QUERYABL", nullable = false)
   @NotNull
   private Boolean queryableFeatureAvailable;
 
@@ -119,7 +130,7 @@ public class Cartography {
    * If <code>true</code>, the queryable feature is enabled. This only applies if the layers are
    * queryable
    */
-  @Column(name = "GEO_QUERYACT")
+  @Column(name = "GEO_QUERYACT", nullable = false)
   @NotNull
   private Boolean queryableFeatureEnabled;
 
@@ -227,7 +238,8 @@ public class Cartography {
   private String geometryType;
 
   /** Grouping source. */
-  @Column(name = "GEO_SOURCE", length = IDENTIFIER)
+  @Column(name = "GEO_SOURCE", length = 80)
+  @Size(max = 80)
   private String source;
 
   /** Availailability. */
@@ -251,7 +263,7 @@ public class Cartography {
    * a style.
    */
   @NotNull
-  @Column(name = "GEO_STYUSEALL")
+  @Column(name = "GEO_STYUSEALL", nullable = false)
   @Builder.Default
   private Boolean useAllStyles = false;
 
@@ -267,7 +279,7 @@ public class Cartography {
 
   /** <code>true</code> if the cartography is blocked and cannot be used. */
   @NotNull
-  @Column(name = "GEO_BLOCKED")
+  @Column(name = "GEO_BLOCKED", nullable = false)
   private Boolean blocked;
 
   /** Filters. */
@@ -281,6 +293,12 @@ public class Cartography {
   @BatchSize(size = 50)
   @Builder.Default
   private Set<CartographyParameter> parameters = new HashSet<>();
+
+  /** Fixed OGC parameters applied when this cartography is requested through the proxy. */
+  @OneToMany(mappedBy = "cartography", cascade = CascadeType.ALL, orphanRemoval = true)
+  @BatchSize(size = 50)
+  @Builder.Default
+  private Set<CartographyServiceParameter> serviceParameters = new HashSet<>();
 
   /**
    * Spatial selection parameters.
@@ -301,12 +319,19 @@ public class Cartography {
 
   /** The permissions that this cartography has. */
   @ManyToMany(cascade = {CascadeType.MERGE, CascadeType.PERSIST})
+  @OnDelete(action = OnDeleteAction.CASCADE)
   @JoinTable(
       name = "STM_GGI_GI",
       joinColumns =
-          @JoinColumn(name = "GGG_GIID", foreignKey = @ForeignKey(name = "STM_GGG_FK_GEO")),
+          @JoinColumn(
+              name = "GGG_GIID",
+              nullable = false,
+              foreignKey = @ForeignKey(name = "STM_GGG_FK_GEO")),
       inverseJoinColumns =
-          @JoinColumn(name = "GGG_GGIID", foreignKey = @ForeignKey(name = "STM_GGG_FK_GGI")))
+          @JoinColumn(
+              name = "GGG_GGIID",
+              nullable = false,
+              foreignKey = @ForeignKey(name = "STM_GGG_FK_GGI")))
   @BatchSize(size = 50)
   @Builder.Default
   private Set<CartographyPermission> permissions = new HashSet<>();

@@ -186,7 +186,7 @@ setup('provision edition mobile ED application and user', async ({ request }) =>
   ).toBe(201);
   await expireTerritoryPosition(request, expiryUser.userId, EDITION_TERRITORY_ID);
 
-  // Seed touristic app 6 has no availableRoles; attach role 1 and keep it public so
+  // Fixture touristic app 10006 has no availableRoles; attach role 10001 and keep it public so
   // the anonymous `public` principal can list type T applications.
   const patchTouristic = await request.patch(`/backend/api/applications/${TOURISTIC_APP_ID}`, {
     headers: {

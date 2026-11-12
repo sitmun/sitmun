@@ -1,4 +1,9 @@
-import { Component, HostListener, OnInit } from '@angular/core';
+import {
+  Component,
+  HostListener,
+  OnInit,
+  ChangeDetectionStrategy
+} from '@angular/core';
 
 import { PositionDTO } from '@api/model/position';
 import { TerritoryDTO } from '@api/model/territories';
@@ -13,6 +18,7 @@ import { NotificationService } from 'src/app/notifications/services/Notification
   standalone: false,
   selector: 'app-profile',
   templateUrl: './profile.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./profile.component.scss']
 })
 export class ProfileComponent implements OnInit {
@@ -53,7 +59,6 @@ export class ProfileComponent implements OnInit {
   ngOnInit() {
     this.getUserDetails();
 
-    // Get selected territory
     if (this.territories.length > 0)
       this.selectedTerritory = this.territories[0];
   }
@@ -72,11 +77,7 @@ export class ProfileComponent implements OnInit {
     }
   }
 
-  /**
-   * Get details of the connected user
-   */
   private getUserDetails(): void {
-    // User details
     this.userService.getUserDetails().subscribe({
       next: (res: UserDto) => {
         this.userProfile = res;
@@ -84,7 +85,6 @@ export class ProfileComponent implements OnInit {
       }
     });
 
-    // User territories
     this.userService.getUserTerritories().subscribe({
       next: (res: any) => {
         res.content.forEach((element: TerritoryDTO) => {
@@ -100,13 +100,11 @@ export class ProfileComponent implements OnInit {
 
   selectTerritory(event: any) {
     if (event.target) {
-      // select box territory
       const selectedValue = event.target.value;
       this.selectedTerritory = this.territories.find(
         (territory) => territory.name === selectedValue
       );
     } else {
-      // button select territory
       this.selectedTerritory = event;
     }
   }
@@ -123,7 +121,6 @@ export class ProfileComponent implements OnInit {
       this.verificationAccountService.emailVerification(value).subscribe({
         next: (emailAlreadyExist: any) => {
           if (!emailAlreadyExist) {
-            // update email if not used by another one
             this.userProfile.email = value;
             this.userProfile = { ...this.userProfile, email: value };
           } else {

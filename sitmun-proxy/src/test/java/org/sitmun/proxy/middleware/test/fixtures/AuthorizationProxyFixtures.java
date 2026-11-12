@@ -1,6 +1,7 @@
 package org.sitmun.proxy.middleware.test.fixtures;
 
 import java.util.HashMap;
+import java.util.List;
 import org.sitmun.proxy.middleware.dto.HttpSecurityDto;
 import org.sitmun.proxy.middleware.protocols.http.HttpSecurityConstants;
 import org.sitmun.proxy.middleware.protocols.jdbc.JdbcPayloadDto;
@@ -114,7 +115,8 @@ public class AuthorizationProxyFixtures {
         .user("admin")
         .password("admin")
         .sql("SELECT * FROM t WHERE a=?")
-        .parameters(java.util.List.of("x"))
+        .parameters(
+            List.of(new org.sitmun.proxy.contract.JdbcParameter(java.sql.Types.VARCHAR, "x")))
         .build();
   }
 
@@ -126,7 +128,7 @@ public class AuthorizationProxyFixtures {
         .user("admin")
         .password("admin")
         .sql("SELECT * FROM t")
-        .parameters(java.util.List.of())
+        .parameters(List.of())
         .build();
   }
 }

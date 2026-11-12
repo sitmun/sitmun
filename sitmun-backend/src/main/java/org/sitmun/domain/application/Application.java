@@ -11,9 +11,12 @@ import java.util.*;
 import lombok.*;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Length;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 import org.sitmun.authorization.client.dto.ClientConfigurationViews;
 import org.sitmun.domain.CodeListsConstants;
 import org.sitmun.domain.PersistenceConstants;
+import org.sitmun.domain.StoredFlagListener;
 import org.sitmun.domain.application.background.ApplicationBackground;
 import org.sitmun.domain.application.parameter.ApplicationParameter;
 import org.sitmun.domain.application.territory.ApplicationTerritory;
@@ -32,22 +35,8 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-/**
- * A SITMUN application represents a web-based mapping application.
- *
- * <p>Key features: - Can be configured as private (restricted access) or public - Supports multiple
- * territories and roles - Has configurable parameters and backgrounds - Manages cartography
- * permissions and trees - Tracks creation and modification dates
- *
- * <p>Privacy controls: - Private applications are only accessible to authenticated users - Public
- * applications are available to both authenticated and public users - Role-based access control
- * through availableRoles
- *
- * <p>Territory access: - Can be configured to access parent territories - Can be configured to
- * access children territories - Supports territory-specific configurations
- */
 @Entity
-@EntityListeners({AuditingEntityListener.class, I18nListener.class})
+@EntityListeners({AuditingEntityListener.class, I18nListener.class, StoredFlagListener.class})
 @Table(name = "STM_APP")
 @ValidExternalApplicationUrl
 @Builder
@@ -59,7 +48,7 @@ public class Application {
 
   /** Application unique identifier. */
   @Id
-  @Column(name = "APP_ID")
+  @Column(name = "APP_ID", nullable = false)
   @GeneratedValue(strategy = GenerationType.TABLE, generator = "STM_APP_GEN")
   @TableGenerator(
       name = "STM_APP_GEN",
@@ -75,8 +64,9 @@ public class Application {
   private Integer id;
 
   /** Application name. */
-  @Column(name = "APP_NAME", length = PersistenceConstants.IDENTIFIER)
+  @Column(name = "APP_NAME", length = 80, nullable = false)
   @NotBlank
+  @Size(max = 80)
   @I18n
   private String name;
 
@@ -91,8 +81,8 @@ public class Application {
   private String logo;
 
   /** Application type (external or internal). */
-  @Column(name = "APP_TYPE", length = PersistenceConstants.IDENTIFIER)
-  @NotNull
+  @Column(name = "APP_TYPE", length = 250)
+  @Size(max = 250)
   @CodeList(CodeListsConstants.APPLICATION_TYPE)
   @JsonView(ClientConfigurationViews.ApplicationTerritory.class)
   private String type;
@@ -113,8 +103,9 @@ public class Application {
   private List<String> scales;
 
   /** Projection to be used in this application when it is internal. */
-  @Column(name = "APP_PROJECT", length = PersistenceConstants.IDENTIFIER)
+  @Column(name = "APP_PROJECT", length = 250)
   @Srs
+  @Size(max = 250)
   private String srs;
 
   /**
@@ -147,17 +138,17 @@ public class Application {
   @I18n
   private String maintenanceInformation;
 
-  @Column(name = "APP_UNAVAILABLE")
+  @Column(name = "APP_UNAVAILABLE", nullable = false)
   @Builder.Default
   private Boolean isUnavailable = false;
 
-  @Column(name = "APP_LAST_UPDATE")
+  @Column(name = "APP_LAST_UPDATE", nullable = false)
   @Temporal(TemporalType.TIMESTAMP)
   @LastModifiedDate
   private Date lastUpdate;
 
   /** Application privacy setting. */
-  @Column(name = "APP_PRIVATE")
+  @Column(name = "APP_PRIVATE", nullable = false)
   @Builder.Default
   @NotNull
   private Boolean appPrivate = false;
@@ -177,7 +168,7 @@ public class Application {
   private CartographyPermission situationMap;
 
   /** Created date. */
-  @Column(name = "APP_CREATED")
+  @Column(name = "APP_CREATED", nullable = false)
   @Temporal(TemporalType.TIMESTAMP)
   @CreatedDate
   private Date createdDate;
@@ -189,12 +180,19 @@ public class Application {
 
   /** Roles granted in this application. */
   @ManyToMany(cascade = {CascadeType.MERGE, CascadeType.PERSIST})
+  @OnDelete(action = OnDeleteAction.CASCADE)
   @JoinTable(
       name = "STM_APP_ROL",
       joinColumns =
-          @JoinColumn(name = "ARO_APPID", foreignKey = @ForeignKey(name = "STM_ARO_FK_APP")),
+          @JoinColumn(
+              name = "ARO_APPID",
+              nullable = false,
+              foreignKey = @ForeignKey(name = "STM_ARO_FK_APP")),
       inverseJoinColumns =
-          @JoinColumn(name = "ARO_ROLEID", foreignKey = @ForeignKey(name = "STM_ARO_FK_ROL")))
+          @JoinColumn(
+              name = "ARO_ROLEID",
+              nullable = false,
+              foreignKey = @ForeignKey(name = "STM_ARO_FK_ROL")))
   @Builder.Default
   private Set<Role> availableRoles = new HashSet<>();
 
@@ -218,11 +216,7 @@ public class Application {
   @JsonView(ClientConfigurationViews.Base.class)
   private List<String> warnings;
 
-  /**
-   * Header params for maps sections.
-   *
-   * @param obj
-   */
+  /** Header params for maps sections. */
   @Column(name = "APP_HEADERPARAMS", length = Length.LONG32)
   @Convert(converter = HashMapConverter.class)
   @JsonView(ClientConfigurationViews.ApplicationTerritory.class)

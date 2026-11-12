@@ -12,17 +12,11 @@ import { Role } from '../../role/models/role.model';
 import { Service } from '../../service/models/service.model';
 
 
-//FIXME ensure task creation in admin app upon initialization (as it is done with Roles and default Users)
-/** GEOADMIN_task id */
-export const GEOADMIN_TREE_TASK_ID = "geoadmin";
-
 /** Task model */
 export class Task extends Resource {
-  /** id */
   public override id: number;
-  /** name */
   public name?: string;
-  /** order*/
+  public title?: string;
   public order?: number;
   /** system created date*/
   public createdDate?: any;
@@ -54,22 +48,18 @@ export class Task extends Resource {
    */
   public static fromObject(source: any): Task {
     const task = new Task();
-    // Define the properties to copy
     const propertiesToCopy = [
-      // Resource properties
       'proxyUrl', 'rootUrl', '_links', '_subtypes',
       // Task properties
-      'id', 'name', 'order', 'createdDate', 'group', 'type',
+      'id', 'name', 'title', 'order', 'createdDate', 'group', 'type',
       'ui', 'parameters', 'connection', 'roles',
       'availabilities', 'cartography', 'service', 'properties'
     ];
-    // Copy only defined properties that exist in our class
     propertiesToCopy.forEach(prop => {
       if (source[prop] !== undefined) {
         task[prop] = source[prop];
       }
     });
-    // Ensure properties are initialized as opaque record.
     task.properties = TaskPropertiesContract.fromRaw(source.properties);
     return task;
   }
@@ -78,6 +68,7 @@ export class Task extends Resource {
 export class TaskProjection extends Resource {
   override id: number;
   name: string;
+  title?: string;
   createdDate: string;
   order: number;
   groupName: string;
@@ -101,23 +92,19 @@ export class TaskProjection extends Resource {
    */
   public static fromObject(source: any): TaskProjection {
     const projection = new TaskProjection();
-    // Define the properties to copy
     const propertiesToCopy = [
-      // Resource properties
       'proxyUrl', 'rootUrl', '_links', '_subtypes',
       // TaskProjection properties
-      'id', 'name', 'createdDate', 'order', 'groupName', 'groupId',
+      'id', 'name', 'title', 'createdDate', 'order', 'groupName', 'groupId',
       'uiId', 'properties', 'serviceId', 'serviceName',
       'cartographyId', 'cartographyName', 'typeId', 'typeName', 'typeTitle',
       'connectionId', 'connectionName'
     ];
-    // Copy only defined properties that exist in our class
     propertiesToCopy.forEach(prop => {
       if (source[prop] !== undefined) {
         projection[prop] = source[prop];
       }
     });
-    // Ensure properties are initialized as opaque record.
     projection.properties = TaskPropertiesContract.fromRaw(source.properties);
     return projection;
   }

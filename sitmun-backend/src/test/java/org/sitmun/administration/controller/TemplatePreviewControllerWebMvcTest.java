@@ -26,8 +26,8 @@ import org.sitmun.infrastructure.persistence.type.i18n.DatabaseDefaultLanguageRe
 import org.sitmun.infrastructure.persistence.type.i18n.TranslationRepository;
 import org.sitmun.infrastructure.web.config.RequestLocaleResolutionService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -105,8 +105,7 @@ class TemplatePreviewControllerWebMvcTest {
   @WithMockUser(username = "public", roles = "PUBLIC")
   @DisplayName("PUBLIC principal can reach more-info-advanced/render")
   void publicPrincipalCanReachRender() throws Exception {
-    when(requestLocaleResolutionService.resolveLanguage(any(), any(), any(), any()))
-        .thenReturn("ca");
+    when(requestLocaleResolutionService.resolveLanguage(any(), any(), any())).thenReturn("ca");
     when(templateExecutionService.renderMoreInfoAdvanced(any(), any()))
         .thenReturn(MoreInfoAdvancedRenderResponseDto.builder().tasks(List.of()).build());
 
@@ -126,8 +125,7 @@ class TemplatePreviewControllerWebMvcTest {
   @WithMockUser(roles = "ADMIN")
   @DisplayName("ADMIN principal can reach more-info-advanced/render")
   void adminPrincipalCanReachRender() throws Exception {
-    when(requestLocaleResolutionService.resolveLanguage(any(), any(), any(), any()))
-        .thenReturn("ca");
+    when(requestLocaleResolutionService.resolveLanguage(any(), any(), any())).thenReturn("ca");
     when(templateExecutionService.renderMoreInfoAdvanced(any(), any()))
         .thenReturn(MoreInfoAdvancedRenderResponseDto.builder().tasks(List.of()).build());
 
@@ -147,8 +145,7 @@ class TemplatePreviewControllerWebMvcTest {
   @WithMockUser(roles = "ADMIN")
   @DisplayName("preview does not require appId/terId")
   void previewDoesNotRequireCoordinates() throws Exception {
-    when(requestLocaleResolutionService.resolveLanguage(any(), any(), any(), any()))
-        .thenReturn("ca");
+    when(requestLocaleResolutionService.resolveLanguage(any(), any(), any())).thenReturn("ca");
     when(templateRenderService.renderPreview(any(), any(), any(), any(), any(), any()))
         .thenReturn(TemplatePreviewResponseDto.builder().html("<p>ok</p>").build());
 
@@ -170,8 +167,7 @@ class TemplatePreviewControllerWebMvcTest {
   @WithMockUser(roles = "ADMIN")
   @DisplayName("preview forwards optional appId/terId")
   void previewForwardsOptionalCoordinates() throws Exception {
-    when(requestLocaleResolutionService.resolveLanguage(any(), any(), any(), any()))
-        .thenReturn("ca");
+    when(requestLocaleResolutionService.resolveLanguage(any(), any(), any())).thenReturn("ca");
     when(templateRenderService.renderPreview(any(), any(), any(), any(), any(), any()))
         .thenReturn(TemplatePreviewResponseDto.builder().html("<p>ok</p>").build());
 

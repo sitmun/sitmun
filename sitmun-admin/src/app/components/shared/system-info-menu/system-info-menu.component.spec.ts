@@ -9,7 +9,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { Router } from '@angular/router';
 
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslatePipe, provideTranslateService } from '@ngx-translate/core';
 import { BehaviorSubject } from 'rxjs';
 
 import { AuthService } from '@app/core/auth/auth.service';
@@ -94,9 +94,10 @@ describe('SystemInfoMenuComponent', () => {
         MatDividerModule,
         MatTooltipModule,
         NoopAnimationsModule,
-        TranslateModule.forRoot()
+        TranslatePipe
       ],
       providers: [
+      provideTranslateService(),
         { provide: Principal, useValue: principal },
         { provide: AuthService, useValue: authService },
         { provide: LoginService, useValue: { logout: jest.fn() } },
@@ -124,9 +125,7 @@ describe('SystemInfoMenuComponent', () => {
   afterEach(() => fixture?.destroy());
   afterAll(() => TestBed.resetTestingModule());
 
-  it('should create', () => {
-    expect(component).toBeTruthy();
-  });
+  
 
   describe('subscription behavior', () => {
     it('should subscribe to authentication state on init if token exists', () => {
@@ -158,10 +157,9 @@ describe('SystemInfoMenuComponent', () => {
     });
 
     it('should subscribe to feature flags in constructor if not production', () => {
-      fixture.detectChanges();
-      
-      // Feature flags subscription should be set up
-      expect(featureFlagService.getCategories).toHaveBeenCalled();
+      const markForCheck = jest.spyOn(component['cdr'], 'markForCheck');
+      (featureFlagService.featureFlags$ as BehaviorSubject<unknown>).next({});
+      expect(markForCheck).toHaveBeenCalled();
     });
 
     it('should not error on destroy', () => {

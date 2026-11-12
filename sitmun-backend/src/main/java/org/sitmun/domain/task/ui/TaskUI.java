@@ -31,12 +31,12 @@ public class TaskUI {
       allocationSize = 1)
   @Id
   @GeneratedValue(strategy = GenerationType.TABLE, generator = "STM_TSK_UI_GEN")
-  @Column(name = "TUI_ID")
+  @Column(name = "TUI_ID", nullable = false)
   @JsonView(ClientConfigurationViews.ApplicationTerritory.class)
   private Integer id;
 
   /** Task name. */
-  @Column(name = "TUI_NAME", length = IDENTIFIER)
+  @Column(name = "TUI_NAME", length = IDENTIFIER, nullable = false)
   @NotBlank
   @JsonView(ClientConfigurationViews.ApplicationTerritory.class)
   private String name;

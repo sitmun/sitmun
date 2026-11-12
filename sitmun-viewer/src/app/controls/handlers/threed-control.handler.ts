@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 
-import { AppCfg, AppTasks } from '@api/model/app-cfg';
+import type { AppCfg, AppTasks } from '@api/model/app-cfg';
 
 import { SitnaApiService } from '../../services/sitna-api.service';
 import { ControlHandlerBase } from '../control-handler-base';
@@ -27,7 +27,7 @@ import { SitnaControlConfig } from '../control-handler.interface';
 export class ThreeDControlHandler extends ControlHandlerBase {
   readonly controlIdentifier = 'sitna.threed';
   readonly sitnaConfigKey = 'threeD'; // Explicit SITNA name
-  readonly requiredPatches = undefined; // No patches required - native SITNA control
+  readonly requiredPatches = undefined;
 
   constructor(sitnaApi: SitnaApiService) {
     super(sitnaApi);
@@ -36,10 +36,6 @@ export class ThreeDControlHandler extends ControlHandlerBase {
   /**
    * Build configuration for threeD control.
    * Returns true to enable with auto-placement (SITNA decides where it goes).
-   *
-   * @param _context
-   * @param _task
-   * @param _context
    */
   override buildConfiguration(
     _task: AppTasks,

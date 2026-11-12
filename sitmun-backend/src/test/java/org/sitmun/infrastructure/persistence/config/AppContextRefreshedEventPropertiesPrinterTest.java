@@ -47,7 +47,7 @@ class AppContextRefreshedEventPropertiesPrinterTest {
         "SITMUN_BOOTSTRAP_ADMIN_PASSWORD",
         "SITMUN_USER_SECRET",
         "sitmun.user.secret",
-        "sitmun.startup.built-in-users.admin-password",
+        "sitmun.startup.first-run.admin-password",
         "SPRING_DATASOURCE_PASSWORD",
         "spring.datasource.password",
         "SITMUN_PROXY_MIDDLEWARE_SECRET",

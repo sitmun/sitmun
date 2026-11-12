@@ -1,4 +1,4 @@
-import {AfterViewInit, ChangeDetectorRef, Component, OnDestroy, OnInit, QueryList, ViewChildren, DestroyRef, inject} from "@angular/core";
+import {AfterViewInit, ChangeDetectorRef, Component, OnDestroy, OnInit, QueryList, ViewChildren, DestroyRef, inject, ChangeDetectionStrategy} from "@angular/core";
 import {takeUntilDestroyed} from "@angular/core/rxjs-interop";
 import {FormControl, UntypedFormGroup} from "@angular/forms";
 import {MatDialog} from "@angular/material/dialog";
@@ -42,6 +42,7 @@ import {constants} from "@environments/constants";
  */
 @Component({
     template: '',
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class BaseFormComponent<T extends Resource> implements OnInit, AfterViewInit, OnDestroy, CanComponentDeactivate {
@@ -151,7 +152,7 @@ export class BaseFormComponent<T extends Resource> implements OnInit, AfterViewI
     if (localStorage.lang) {
       return localStorage.lang;
     }
-    return this.translateService.currentLang || config.defaultLang;
+    return this.translateService.getCurrentLang() || config.defaultLang;
   }
 
   protected destroyRef = inject(DestroyRef);
@@ -336,11 +337,9 @@ export class BaseFormComponent<T extends Resource> implements OnInit, AfterViewI
    */
   afterSave() {
     this.resetToFormModifiedState(this.entityForm);
-    // Mark form as pristine to disable save button until new changes are made
     if (this.entityForm) {
       this.entityForm.markAsPristine();
     }
-    // Reset data table changes flag
     this.dataTablesHaveChanges = false;
   }
 
@@ -967,6 +966,32 @@ export class BaseFormComponent<T extends Resource> implements OnInit, AfterViewI
     }
   }
 
+  protected async translateElement(
+    entity: string,
+    property: string,
+    elementId: number,
+    defaultValue: string,
+    maxLength: number
+  ): Promise<void> {
+    const column = `${entity}.${property}`;
+    const translations = this.createTranslationsList(column);
+    const existing = await firstValueFrom(
+      this.translationService.search('byElement', {
+        params: [
+          { key: 'element', value: elementId.toString() },
+          { key: 'column', value: entity }
+        ]
+      })
+    );
+    existing
+      .filter((item) => item.column === column)
+      .forEach((item) => translations.set(item.languageShortname, item));
+    const dialogResult = await this.openTranslationDialog(translations, defaultValue, maxLength, false);
+    if (dialogResult && dialogResult.event == 'Accept') {
+      await this.saveTranslation(elementId, translations, defaultValue, true);
+    }
+  }
+
   /**
    * Provides a detailed explanation of form validity status
    * Examines each control's validation status and error messages
@@ -1116,33 +1141,27 @@ export class BaseFormComponent<T extends Resource> implements OnInit, AfterViewI
     const promises: Promise<any>[] = [];
 
     translationMap.forEach((value: Translation, key: string) => {
-      // Skip if it is not defined the default language and no modifications needed
       if (key !== defaultLanguage && !modifications) {
         this.loggerService.debug(`Skipping non-default language translation for ${key}: no modifications needed`);
         return;
       }
 
-      // Skip non-default languages with empty translations
       if (key !== defaultLanguage && !value?.translation) {
         this.loggerService.debug(`Skipping non-default language translation for ${key}: no translation value`);
         return;
       }
 
-      // Skip default language with no international value
       if (key === defaultLanguage && !internationalValue) {
         this.loggerService.debug(`Skipping default language translation for ${key}: no value provided`);
         return;
       }
 
-      // Set element ID
       value.element = id;
 
-      // Set translation for the default language
       if (key === defaultLanguage) {
         value.translation = internationalValue;
       }
 
-      // Save translation
       promises.push(firstValueFrom(
         this.translationService.save(value).pipe(
           tap(result => translationMap.set(key, result))
@@ -1167,7 +1186,6 @@ export class BaseFormComponent<T extends Resource> implements OnInit, AfterViewI
       return 4000; // Default fallback
     }
 
-    // Extract from maxLength validator
     const validator = control.validator;
     if (validator) {
       const errors = validator(new FormControl({ length: Infinity }));

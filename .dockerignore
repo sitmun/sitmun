@@ -43,7 +43,7 @@ docs/
 sitmun.github.io/
 
 # Generated configuration files
-front/config/default.conf
+docker/front/config/default.conf
 
 # Python (if any)
 __pycache__/
@@ -51,10 +51,27 @@ __pycache__/
 *$py.class
 *.pyc
 
+# Dependencies (exclude installed trees, keep package.json and pnpm-lock.yaml)
+node_modules/
+**/node_modules/
+**/build/
+**/.gradle/
+
+# Mobile apps are not copied into an image. pnpm ci still needs the two
+# workspace manifests, so those files stay in the build context.
+sitmun-mobile/*
+!sitmun-mobile/sitmun-edition
+sitmun-mobile/sitmun-edition/*
+!sitmun-mobile/sitmun-edition/package.json
+!sitmun-mobile/sitmun-touristic
+sitmun-mobile/sitmun-touristic/*
+!sitmun-mobile/sitmun-touristic/package.json
+e2e/
+
 # Keep these files (DO NOT exclude):
-# package.json, package-lock.json (frontend)
+# package.json, pnpm-lock.yaml (frontend)
 # build.gradle, settings.gradle, gradle.properties (backend)
 # gradlew, gradle/ (backend)
 # src/ (source code)
 # *.ts, *.js, *.java (source files)
-# docker-compose.yml, Dockerfile, .dockerignore
+# compose.yaml, Dockerfile, .dockerignore

@@ -6,7 +6,7 @@ import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { RouterModule } from '@angular/router';
 
-import {TranslateLoader, TranslateModule} from '@ngx-translate/core';
+import { TranslateLoader, TranslatePipe, provideTranslateService } from '@ngx-translate/core';
 import {firstValueFrom, of} from 'rxjs';
 
 import {EntityFormAlertsComponent} from '@app/components/shared/entity-form-alerts/entity-form-alerts.component';
@@ -53,15 +53,16 @@ describe('TreesFormComponent', () => {
       teardown: { destroyAfterEach: 0 as any },
       declarations: [ TreesFormComponent, FormToolbarComponent ],
       imports: [FormsModule, ReactiveFormsModule,SitmunFrontendGuiModule, EntityFormAlertsComponent, RouterModule.forRoot([], {}), MaterialModule, MatIconTestingModule, BrowserAnimationsModule,
-         TranslateModule.forRoot({
+         TranslatePipe],
+      providers: [
+      provideTranslateService({
           loader: {
             provide: TranslateLoader,
             useFactory: () => ({
               getTranslation: () => of({})
             })
           }
-        })],
-      providers: [provideHttpClient(), provideHttpClientTesting(), provideErrorHandlerForTests(), TreeService, TreeNodeService, ApplicationService, ApplicationTreeService, ServiceService, CapabilitiesService, CartographyService, CodeListService, TranslationService, ResourceService, ExternalService, TaskService, RoleService,
+        }),provideHttpClient(), provideHttpClientTesting(), provideErrorHandlerForTests(), TreeService, TreeNodeService, ApplicationService, ApplicationTreeService, ServiceService, CapabilitiesService, CartographyService, CodeListService, TranslationService, ResourceService, ExternalService, TaskService, RoleService,
         { provide: 'ExternalConfigurationService', useClass: ExternalConfigurationService },
         {
           provide: AdminRuntimeConfigurationService,
@@ -83,7 +84,7 @@ describe('TreesFormComponent', () => {
     // Mock treeNodesComponent BEFORE any getter access (canSaveEntity is called during detectChanges)
     assignTreeNodesStub(component);
 
-    // Initialize form if not already initialized
+    (component as unknown as {codelists: Map<string, unknown[]>}).codelists.set('tree.type', []);
     if (!component.entityForm) {
       component.entityToEdit = component.empty();
       component.postFetchData();
@@ -98,37 +99,30 @@ describe('TreesFormComponent', () => {
 
   afterAll(() => TestBed.resetTestingModule());
 
-  it('should create', () => {
-    expect(component).toBeTruthy();
+  
+
+  it('requires a name and not a type', () => {
+    expect(component.entityForm.get('name')?.hasError('required')).toBe(true);
+    expect(component.entityForm.get('type')?.hasError('required')).toBe(false);
   });
 
-  it('form tree invalid when empty', () => {
-    expect(component.entityForm.valid).toBeFalsy();
-  });
-
-  it('form tree invalid when mid-empty', () => {
+  it('requires a name', () => {
     component.entityForm.patchValue({
       description: 'description',
-      image: 'www.image.com'
-    })
-    //Miss name
-    expect(component.entityForm.valid).toBeFalsy();
+      image: 'www.image.com',
+      type: 'type',
+    });
+    expect(component.entityForm.get('name')?.hasError('required')).toBe(true);
   });
 
-  it('form tree valid', () => {
+  it('accepts a name and a type', () => {
     component.entityForm.patchValue({
       name: 'name',
       type: 'type',
       description: 'description',
-      image: 'www.image.com'
-    })
-    expect(component.entityForm.valid).toBeTruthy();
-  });
-
-  it('Tree form fields', () => {
-    expect(component.entityForm.get('name')).toBeTruthy();
-    expect(component.entityForm.get('description')).toBeTruthy();
-    expect(component.entityForm.get('image')).toBeTruthy();
+      image: 'www.image.com',
+    });
+    expect(component.entityForm.valid).toBe(true);
   });
 
   describe('treeValidations does not show errors from getters', () => {
@@ -584,7 +578,7 @@ describe('TreesFormComponent', () => {
     });
 
     describe('onImageSelected', () => {
-      it('reads and sets image data URL for valid image file', (done) => {
+      it('reads and sets image data URL for valid image file', async () => {
         const file = new File(['dummy content'], 'test.png', { type: 'image/png' });
         const fileInput = document.createElement('input');
         Object.defineProperty(fileInput, 'files', {
@@ -592,14 +586,21 @@ describe('TreesFormComponent', () => {
           writable: false
         });
         const event = { target: fileInput } as any;
+        const dataUrl = 'data:image/png;base64,ZmFrZQ==';
+        const readSpy = jest
+          .spyOn(FileReader.prototype, 'readAsDataURL')
+          .mockImplementation(function (this: FileReader) {
+            Object.defineProperty(this, 'result', {configurable: true, value: dataUrl});
+            this.onload?.(new ProgressEvent('load') as unknown as ProgressEvent<FileReader>);
+          });
 
-        component.onImageSelected('tree', event);
-
-        setTimeout(() => {
-          expect(component.entityForm.value.image).toBeTruthy();
+        try {
+          await component.onImageSelected('tree', event);
+          expect(component.entityForm.value.image).toBe(dataUrl);
           expect(component.entityForm.value.imageName).toBe('test.png');
-          done();
-        }, 100);
+        } finally {
+          readSpy.mockRestore();
+        }
       });
 
       it('shows error for non-image files', async () => {
@@ -705,10 +706,12 @@ describe('TreesFormComponent', () => {
     });
 
     describe('onTabChange', () => {
-      it('handles tab change event', () => {
+      it('sets the active tab index', () => {
         const event = { index: 1 } as any;
 
-        expect(() => component.onTabChange(event)).not.toThrow();
+        component.onTabChange(event);
+
+        expect(component.activeTabIndex).toBe(1);
       });
     });
 

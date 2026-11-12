@@ -1,3 +1,6 @@
+import { readFileSync } from 'fs';
+import { join } from 'path';
+
 import { provideHttpClient } from '@angular/common/http';
 import {
   provideHttpClientTesting,
@@ -268,5 +271,63 @@ describe('AppConfigService', () => {
       const attribution = service.getAttribution();
       expect(attribution).toBeNull();
     });
+  });
+
+  it('uses the same static language fallback as the admin client', () => {
+    const viewer = JSON.parse(
+      readFileSync(
+        join(process.cwd(), 'src/assets/config/app-config.json'),
+        'utf8'
+      )
+    );
+    const admin = JSON.parse(
+      readFileSync(
+        join(
+          process.cwd(),
+          '../sitmun-admin/src/assets/config/app-config.json'
+        ),
+        'utf8'
+      )
+    );
+
+    expect(viewer.defaultLanguage).toBe(admin.defaultLanguage);
+    expect(viewer.languages.map((language: { shortname: string }) => language.shortname)).toEqual(
+      admin.languages.map((language: { shortname: string }) => language.shortname)
+    );
+  });
+
+  it('falls back to Catalan when no static default is configured', () => {
+    expect(service.getDefaultLanguage()).toBe('ca');
+  });
+
+  it('ships identify controls without persistent highlights', () => {
+    const config = JSON.parse(
+      readFileSync(
+        join(process.cwd(), 'src/assets/config/app-config.json'),
+        'utf8'
+      )
+    );
+
+    expect(config.controlDefaults['sitna.featureInfo'].persistentHighlights).toBe(
+      false
+    );
+    expect(
+      config.controlDefaults['sitna.multiFeatureInfo'].persistentHighlights
+    ).toBe(false);
+  });
+
+  it('does not force Hello World or the locator onto every map', () => {
+    const config = JSON.parse(
+      readFileSync(
+        join(process.cwd(), 'src/assets/config/app-config.json'),
+        'utf8'
+      )
+    );
+
+    expect(config.enabledByDefault).toEqual(['sitna.loadingIndicator']);
+    expect(config.controlDefaults['sitna.helloWorld'].div).toBe(
+      'tc-slot-hello-world'
+    );
+    expect(config.controlDefaults['sitmun.locator'].div).toBe('tc-slot-locator');
   });
 });

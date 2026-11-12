@@ -1,0 +1,125 @@
+ion-content {
+    --background: white;
+    height: 100%;
+}
+
+#map{
+    height: 100%;
+    width: 100%;
+}
+
+ion-fab-button {
+    --background: orange;
+    --color: white;
+    margin-bottom: 0.8rem;
+}
+
+.green-btn{
+    --background: green;
+}
+
+.red-btn{
+    --background: red;
+}
+
+ion-range {
+    --knob-size: 1.5rem;
+    --bar-height: 0.3rem;
+    --bar-border-radius: 0.2rem;
+    --bar-background: rgb(190, 190, 190);
+    --bar-background-active: orange;
+    --pin-background: orange;
+    height: 1.5rem;
+}
+
+.attr-container {
+    max-height: calc(100vh - 130px);
+    overflow: auto;
+}
+
+.attr-container ion-item {
+    --background: white;
+    color: black;
+    margin-bottom: 2rem;
+}
+
+.feature-attr {
+    margin-top: 1.5rem;
+}
+
+.eye.visible {
+    color: green;
+}
+
+.eye {
+    color: red;
+}
+
+.layer-row{
+  background-color: white;
+  padding: 0.5em;
+}
+
+.save-btn{
+    --background: orange;
+    --border-radius: 25% !important;
+    --color: white;
+}
+
+.saveOff-btn{
+    --background: rgb(174, 171, 171) !important;
+    --border-radius: 25% !important;
+    color: white;
+}
+
+.edit-btn{
+    --background: rgb(174, 171, 171);
+    --border-radius: 25% !important;
+    color: white;
+}
+
+.del-feat-btn {
+    --color: white;
+    --background: red;
+    --border-radius: 50%;
+}
+
+.save-feat-btn {
+    --color: white;
+    --background: green;
+    --border-radius: 50%;
+}
+
+.save-feat-btn.unsaved {
+    --background: red;
+}
+
+.active{
+   --background: red;
+    --border-radius: 25% !important; 
+    color: white;
+}
+
+.pos-end {
+    position: absolute;
+    right: 0;
+}
+
+.form-check-input{
+    border: 1px solid black !important;
+}
+
+.img-background{
+  height: 20vw;
+  width: 20vw;
+}
+
+.geomEditionPin {
+    position: absolute;
+    top: calc(50vh + 36px);
+    left: 50vw;
+    transform: translate(-50%, -100%);
+    color: orange;
+    pointer-events: none;
+    z-index: 10;
+}

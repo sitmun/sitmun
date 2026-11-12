@@ -1,4 +1,4 @@
-import { HttpClient, HttpHeaders } from "@angular/common/http";
+import { HttpClient, HttpContext, HttpHeaders } from "@angular/common/http";
 import {Injectable, Injector} from '@angular/core';
 
 import {Observable, of} from "rxjs";
@@ -16,19 +16,19 @@ export class GetInfoService extends RestService<Info> {
   /** API resource path */
   public INFO_API = 'helpers/feature-type?url=';
 
-  /** constructor */
   constructor(injector: Injector, private http: HttpClient) {
     super(Info, "helpers/feature-type?url=", injector);
   }
 
   /** save service*/
-  getInfo(url: string): Observable<unknown> {
+  getInfo(url: string, context?: HttpContext): Observable<unknown> {
     if (url) {
       const headerDict = {
         'Charset': 'UTF-8'
       }
       const requestOptions = {
         headers: new HttpHeaders(headerDict),
+        context,
       };
       let finalUrl = this.resourceService.getResourceUrl(this.INFO_API);
       finalUrl = finalUrl.concat(url);

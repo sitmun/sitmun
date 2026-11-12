@@ -5,7 +5,7 @@ import static org.sitmun.domain.DomainConstants.Tasks.*;
 import static org.sitmun.domain.task.parameter.TaskParameterProcessor.ProfileParameterShape.EDIT_CARTOGRAPHY_WITH_VALUE_QUERY_DEFAULT;
 
 import java.util.Collections;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -23,11 +23,6 @@ import org.sitmun.domain.territory.Territory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-/**
- * Maps cartography query tasks to DTOs for authorization purposes. Handles the transformation of
- * cartography query tasks into a standardized format that includes service parameters, layer
- * information, and proxy URLs.
- */
 @Slf4j
 @Component
 public class TaskEditCartographyService implements TaskMapper {
@@ -55,7 +50,7 @@ public class TaskEditCartographyService implements TaskMapper {
   }
 
   /**
-   * Maps a cartography query task to a TaskDto. Constructs the proxy URL and includes service
+   * Maps a cartography edition task to a TaskDto. Constructs the proxy URL and includes service
    * parameters and layer information.
    *
    * @param task The task to map
@@ -69,7 +64,7 @@ public class TaskEditCartographyService implements TaskMapper {
         taskParameterProcessor.toProfileParameterMap(
             parameters, EDIT_CARTOGRAPHY_WITH_VALUE_QUERY_DEFAULT, false);
 
-    Map<String, Object> fields = new HashMap<>();
+    Map<String, Object> fields = new LinkedHashMap<>();
     Map<String, Object> properties = task.getProperties();
     if (properties != null) {
       fields = convertFieldsToJsonObject(properties, task.getConnection());
@@ -106,7 +101,7 @@ public class TaskEditCartographyService implements TaskMapper {
    */
   private Map<String, Object> convertFieldsToJsonObject(
       Map<String, Object> properties, DatabaseConnection connection) {
-    Map<String, Object> fields = new HashMap<>();
+    Map<String, Object> fields = new LinkedHashMap<>();
 
     @SuppressWarnings("unchecked")
     List<Map<String, Object>> listOfFields =
@@ -137,26 +132,22 @@ public class TaskEditCartographyService implements TaskMapper {
                 ? String.valueOf(field.get(PARAMETERS_VALUE))
                 : null;
 
-        // Handle listValues - either from query or direct value
         List<Map<String, Object>> listValues = null;
         if (field.containsKey(FIELDS_QUERY) && (connection != null)) {
           listValues =
               dbConService.executeQuery(connection, String.valueOf(field.get(FIELDS_QUERY)));
         } else if (field.containsKey(FIELDS_LIST_VALUES)) {
-          // Preserve direct listValues (could be String or List)
           Object listValuesObj = field.get(FIELDS_LIST_VALUES);
           if (listValuesObj instanceof List) {
             @SuppressWarnings("unchecked")
             List<Map<String, Object>> castList = (List<Map<String, Object>>) listValuesObj;
             listValues = castList;
           }
-          // If it's a String, we'll pass it as-is through the field values
         }
 
         Map<String, Object> values =
             getFieldObject(name, label, type, required, selectable, editable, value, listValues);
 
-        // If listValues is a String, preserve it directly
         if (field.containsKey(FIELDS_LIST_VALUES)
             && field.get(FIELDS_LIST_VALUES) instanceof String) {
           values.put(FIELDS_LIST_VALUES, field.get(FIELDS_LIST_VALUES));
@@ -191,7 +182,7 @@ public class TaskEditCartographyService implements TaskMapper {
       Boolean editable,
       String value,
       List<Map<String, Object>> listValues) {
-    Map<String, Object> values = new HashMap<>();
+    Map<String, Object> values = new LinkedHashMap<>();
     values.put(FIELDS_NAME, name); // CRITICAL: edition-mobile needs this to identify fields
     values.put(FIELDS_TYPE, type);
     values.put(FIELDS_LABEL, label);

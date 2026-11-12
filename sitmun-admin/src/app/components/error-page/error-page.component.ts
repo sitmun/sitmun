@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { Router } from '@angular/router';
 
 import { TranslateService } from '@ngx-translate/core';
@@ -9,6 +9,7 @@ import { LoggerService } from '@app/services/logger.service';
     selector: 'app-error-page',
     templateUrl: './error-page.component.html',
     styleUrls: ['./error-page.component.scss'],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class ErrorPageComponent implements OnInit {
@@ -16,6 +17,7 @@ export class ErrorPageComponent implements OnInit {
   @Input() errorType: 'initialization' | 'general' = 'general';
   
   errorMessage = '';
+  titleKey = 'backend.error.general.title';
   errorDetails = '';
   showDetails = false;
   loadedData = false;
@@ -35,6 +37,16 @@ export class ErrorPageComponent implements OnInit {
   }
 
   private processError(): void {
+    this.titleKey = this.errorType === 'initialization'
+      ? 'backend.error.initialization.title'
+      : 'backend.error.general.title';
+    if (this.error?.source === 'setup-status') {
+      this.titleKey = 'backend.error.setupStatus.title';
+      this.errorMessage = 'backend.error.setupStatus';
+      this.errorDetails = JSON.stringify(this.error, null, 2);
+      this.loadedData = true;
+      return;
+    }
     if (this.error) {
       if (typeof this.error === 'string') {
         this.errorMessage = this.error;
@@ -45,7 +57,6 @@ export class ErrorPageComponent implements OnInit {
         this.errorMessage = 'backend.error.unknown';
       }
 
-      // Create detailed error information for display
       const errorInfo = {
         message: this.errorMessage,
         source: this.error.source || 'unknown',
@@ -59,7 +70,6 @@ export class ErrorPageComponent implements OnInit {
       this.errorMessage = 'backend.error.initialization';
     }
     
-    // Mark as loaded after processing
     this.loadedData = true;
   }
 
@@ -68,6 +78,10 @@ export class ErrorPageComponent implements OnInit {
   }
 
   retry(): void {
+    this.reloadPage();
+  }
+
+  reloadPage(): void {
     window.location.reload();
   }
 } 

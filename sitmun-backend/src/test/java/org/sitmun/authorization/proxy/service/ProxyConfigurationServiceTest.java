@@ -95,9 +95,12 @@ class ProxyConfigurationServiceTest {
             systemVariableResolver,
             moreInfoTaskResolver,
             taskParameterProcessor,
-            new UserApplicationAccessPolicy(userRepository, applicationRepository));
+            new UserApplicationAccessPolicy(userRepository, applicationRepository),
+            mock(org.sitmun.domain.cartography.CartographyRepository.class),
+            mock(
+                org.sitmun.domain.cartography.parameter.CartographyServiceParameterRepository
+                    .class));
     ReflectionTestUtils.setField(service, "responseValidityTime", 3600);
-    ReflectionTestUtils.setField(service, "validateUserAccessEnabled", false);
   }
 
   private RequestCoordinates coordinatesFor(ConfigProxyRequestDto request) {
@@ -126,9 +129,12 @@ class ProxyConfigurationServiceTest {
             systemVariableResolver,
             moreInfoTaskResolver,
             taskParameterProcessor,
-            new UserApplicationAccessPolicy(userRepository, applicationRepository));
+            new UserApplicationAccessPolicy(userRepository, applicationRepository),
+            mock(org.sitmun.domain.cartography.CartographyRepository.class),
+            mock(
+                org.sitmun.domain.cartography.parameter.CartographyServiceParameterRepository
+                    .class));
     ReflectionTestUtils.setField(serviceWithValidator, "responseValidityTime", 3600);
-    ReflectionTestUtils.setField(serviceWithValidator, "validateUserAccessEnabled", true);
     return serviceWithValidator;
   }
 
@@ -222,7 +228,7 @@ class ProxyConfigurationServiceTest {
             .build();
 
     ServiceParameter param1 = mock(ServiceParameter.class);
-    when(param1.getType()).thenReturn("FIXED");
+    when(param1.getType()).thenReturn("WMS");
     when(param1.getName()).thenReturn("format");
     when(param1.getValue()).thenReturn("image/png");
 
@@ -271,7 +277,7 @@ class ProxyConfigurationServiceTest {
             .build();
 
     ServiceParameter serviceParam = mock(ServiceParameter.class);
-    when(serviceParam.getType()).thenReturn("FIXED");
+    when(serviceParam.getType()).thenReturn("WMS");
     when(serviceParam.getName()).thenReturn("format");
     when(serviceParam.getValue()).thenReturn("image/png");
 
@@ -300,6 +306,250 @@ class ProxyConfigurationServiceTest {
   }
 
   @Test
+  @DisplayName(
+      "cartography parameters replace service parameters ignoring case and survive the HTTP decorator")
+  void cartographyParametersReplaceServiceParametersIgnoringCase() {
+    var cartographies = mock(org.sitmun.domain.cartography.CartographyRepository.class);
+    var layerParameters =
+        mock(org.sitmun.domain.cartography.parameter.CartographyServiceParameterRepository.class);
+    ProxyConfigurationService configured =
+        new ProxyConfigurationService(
+            serviceRepository,
+            taskRepository,
+            userRepository,
+            territoryRepository,
+            applicationRepository,
+            sqlUserParametrizationDecorator,
+            new HttpUserParametrizationDecorator(),
+            queryPaginationDecorator,
+            Collections.emptyList(),
+            systemVariableResolver,
+            moreInfoTaskResolver,
+            new org.sitmun.domain.task.parameter.TaskParameterProcessor(systemVariableResolver),
+            new UserApplicationAccessPolicy(userRepository, applicationRepository),
+            cartographies,
+            layerParameters);
+    ReflectionTestUtils.setField(configured, "responseValidityTime", 3600);
+
+    Map<String, String> requestParams = new HashMap<>();
+    requestParams.put("cql_filter", "1=1");
+    requestParams.put("LAYERS", "roads");
+    requestParams.put("bbox", "0,0,1,1");
+    ConfigProxyRequestDto request =
+        ConfigProxyRequestDto.builder()
+            .appId(1)
+            .terId(1)
+            .type(TYPE_WMS)
+            .typeId(1)
+            .method("GET")
+            .cartographyId(42)
+            .parameters(requestParams)
+            .build();
+
+    ServiceParameter serviceParam = mock(ServiceParameter.class);
+    when(serviceParam.getType()).thenReturn("WMS");
+    when(serviceParam.getName()).thenReturn("CQL_FILTER");
+    when(serviceParam.getValue()).thenReturn("IN(1)");
+
+    Service mockService = mock(Service.class);
+    when(mockService.getId()).thenReturn(1);
+    when(mockService.getServiceURL()).thenReturn("https://example.com/wms");
+    when(mockService.getType()).thenReturn(TYPE_WMS);
+    when(mockService.getPasswordSet()).thenReturn(false);
+    when(mockService.getParameters()).thenReturn(Set.of(serviceParam));
+    when(serviceRepository.findById(1)).thenReturn(Optional.of(mockService));
+
+    org.sitmun.domain.cartography.Cartography cartography =
+        mock(org.sitmun.domain.cartography.Cartography.class);
+    when(cartography.getId()).thenReturn(42);
+    when(cartography.getService()).thenReturn(mockService);
+    when(cartographies.findById(42)).thenReturn(Optional.of(cartography));
+
+    org.sitmun.domain.cartography.parameter.CartographyServiceParameter layerParam =
+        mock(org.sitmun.domain.cartography.parameter.CartographyServiceParameter.class);
+    when(layerParam.getType()).thenReturn("WMS");
+    when(layerParam.getName()).thenReturn("CQL_FILTER");
+    when(layerParam.getValue()).thenReturn("IN(2)");
+    when(layerParameters.findByCartography_Id(42)).thenReturn(List.of(layerParam));
+
+    RequestCoordinates coordinates = configured.getRequestCoordinates(request, "testuser");
+    ConfigProxyDto result = configured.getConfiguration(request, 0L, coordinates);
+    configured.applyDecorators(result, request, coordinates);
+
+    WmsPayloadDto payload = (WmsPayloadDto) result.getPayload();
+    assertEquals("IN(2)", payload.getParameters().get("CQL_FILTER"));
+    assertEquals("roads", payload.getParameters().get("LAYERS"));
+    assertEquals("0,0,1,1", payload.getParameters().get("bbox"));
+    assertFalse(payload.getParameters().containsKey("cql_filter"));
+  }
+
+  @Test
+  @DisplayName("WMS parameters stay on every operation, including GetCapabilities")
+  void wmsParameterAppliesToCapabilitiesGetMapAndGetFeatureInfo() {
+    for (String request : List.of("GetCapabilities", "GetMap", "GetFeatureInfo")) {
+      Map<String, String> parameters =
+          upstreamParameters(
+              request, List.of(serviceParameter("WMS", "VERSION", "1.1.1")), List.of());
+      assertEquals("1.1.1", parameters.get("VERSION"), request);
+    }
+  }
+
+  @Test
+  @DisplayName("INFO applies only to GetFeatureInfo and GETMAP only to GetMap")
+  void operationCodesApplyOnlyToTheirRequest() {
+    List<ServiceParameter> rows =
+        List.of(
+            serviceParameter("WMS", "VERSION", "1.1.1"),
+            serviceParameter("INFO", "INFO_FORMAT", "application/json"),
+            serviceParameter("GETMAP", "FORMAT", "image/png"),
+            serviceParameter("OLPARAM", "opacity", "0.5"));
+
+    Map<String, String> getMap = upstreamParameters("GetMap", rows, List.of());
+    assertEquals("1.1.1", getMap.get("VERSION"));
+    assertEquals("image/png", getMap.get("FORMAT"));
+    assertFalse(getMap.containsKey("INFO_FORMAT"));
+    assertFalse(getMap.containsKey("opacity"));
+
+    Map<String, String> info = upstreamParameters("GetFeatureInfo", rows, List.of());
+    assertEquals("1.1.1", info.get("VERSION"));
+    assertEquals("application/json", info.get("INFO_FORMAT"));
+    assertFalse(info.containsKey("FORMAT"));
+    assertFalse(info.containsKey("opacity"));
+  }
+
+  @Test
+  @DisplayName("INFO replaces a WMS parameter of the same name on GetFeatureInfo only")
+  void infoReplacesProtocolParameterOnGetFeatureInfo() {
+    List<ServiceParameter> rows =
+        List.of(
+            serviceParameter("WMS", "CQL_FILTER", "IN(1)"),
+            serviceParameter("INFO", "CQL_FILTER", "IN(2)"));
+
+    assertEquals("IN(1)", upstreamParameters("GetMap", rows, List.of()).get("CQL_FILTER"));
+    assertEquals("IN(2)", upstreamParameters("GetFeatureInfo", rows, List.of()).get("CQL_FILTER"));
+  }
+
+  @Test
+  @DisplayName("A layer protocol parameter replaces the service parameter on every operation")
+  void layerProtocolParameterReplacesServiceParameter() {
+    List<org.sitmun.domain.cartography.parameter.CartographyServiceParameter> layer =
+        List.of(layerParameter("WMS", "CQL_FILTER", "IN(2)"));
+    List<ServiceParameter> serviceRows = List.of(serviceParameter("WMS", "CQL_FILTER", "IN(1)"));
+
+    assertEquals("IN(2)", upstreamParameters("GetMap", serviceRows, layer).get("CQL_FILTER"));
+    assertEquals(
+        "IN(2)", upstreamParameters("GetFeatureInfo", serviceRows, layer).get("CQL_FILTER"));
+  }
+
+  @Test
+  @DisplayName("A layer INFO parameter replaces the service WMS parameter only on GetFeatureInfo")
+  void layerInfoReplacesServiceParameterOnlyOnGetFeatureInfo() {
+    List<org.sitmun.domain.cartography.parameter.CartographyServiceParameter> layer =
+        List.of(layerParameter("INFO", "CQL_FILTER", "IN(9)"));
+    List<ServiceParameter> serviceRows = List.of(serviceParameter("WMS", "CQL_FILTER", "IN(1)"));
+
+    assertEquals("IN(1)", upstreamParameters("GetMap", serviceRows, layer).get("CQL_FILTER"));
+    assertEquals(
+        "IN(9)", upstreamParameters("GetFeatureInfo", serviceRows, layer).get("CQL_FILTER"));
+  }
+
+  @Test
+  @DisplayName("OLPARAM and WMTS parameters are not sent upstream")
+  void clientAndProfileParametersAreNotSentUpstream() {
+    List<ServiceParameter> rows =
+        List.of(
+            serviceParameter("WMS", "VERSION", "1.1.1"),
+            serviceParameter("OLPARAM", "opacity", "0.5"),
+            serviceParameter("WMTS", "matrixSet", "EPSG:25831"));
+
+    Map<String, String> parameters = upstreamParameters("GetMap", rows, List.of());
+    assertEquals("1.1.1", parameters.get("VERSION"));
+    assertFalse(parameters.containsKey("opacity"));
+    assertFalse(parameters.containsKey("matrixSet"));
+  }
+
+  private Map<String, String> upstreamParameters(
+      String requestName,
+      List<ServiceParameter> serviceRows,
+      List<org.sitmun.domain.cartography.parameter.CartographyServiceParameter> layerRows) {
+    var cartographies = mock(org.sitmun.domain.cartography.CartographyRepository.class);
+    var layerParameters =
+        mock(org.sitmun.domain.cartography.parameter.CartographyServiceParameterRepository.class);
+    ProxyConfigurationService configured =
+        new ProxyConfigurationService(
+            serviceRepository,
+            taskRepository,
+            userRepository,
+            territoryRepository,
+            applicationRepository,
+            sqlUserParametrizationDecorator,
+            new HttpUserParametrizationDecorator(),
+            queryPaginationDecorator,
+            Collections.emptyList(),
+            systemVariableResolver,
+            moreInfoTaskResolver,
+            new TaskParameterProcessor(systemVariableResolver),
+            new UserApplicationAccessPolicy(userRepository, applicationRepository),
+            cartographies,
+            layerParameters);
+    ReflectionTestUtils.setField(configured, "responseValidityTime", 3600);
+
+    Map<String, String> requestParams = new HashMap<>();
+    requestParams.put("REQUEST", requestName);
+    requestParams.put("LAYERS", "roads");
+    ConfigProxyRequestDto request =
+        ConfigProxyRequestDto.builder()
+            .appId(1)
+            .terId(1)
+            .type(TYPE_WMS)
+            .typeId(1)
+            .method("GET")
+            .cartographyId(layerRows.isEmpty() ? null : 42)
+            .parameters(requestParams)
+            .build();
+
+    Service mockService = mock(Service.class);
+    when(mockService.getServiceURL()).thenReturn("https://example.com/wms");
+    when(mockService.getType()).thenReturn(TYPE_WMS);
+    when(mockService.getPasswordSet()).thenReturn(false);
+    when(mockService.getParameters()).thenReturn(new HashSet<>(serviceRows));
+    when(serviceRepository.findById(1)).thenReturn(Optional.of(mockService));
+
+    if (!layerRows.isEmpty()) {
+      org.sitmun.domain.cartography.Cartography cartography =
+          mock(org.sitmun.domain.cartography.Cartography.class);
+      when(mockService.getId()).thenReturn(1);
+      when(cartography.getId()).thenReturn(42);
+      when(cartography.getService()).thenReturn(mockService);
+      when(cartographies.findById(42)).thenReturn(Optional.of(cartography));
+      when(layerParameters.findByCartography_Id(42)).thenReturn(layerRows);
+    }
+
+    RequestCoordinates coordinates = configured.getRequestCoordinates(request, "testuser");
+    ConfigProxyDto result = configured.getConfiguration(request, 0L, coordinates);
+    configured.applyDecorators(result, request, coordinates);
+    return ((WmsPayloadDto) result.getPayload()).getParameters();
+  }
+
+  private static ServiceParameter serviceParameter(String type, String name, String value) {
+    ServiceParameter parameter = mock(ServiceParameter.class);
+    when(parameter.getType()).thenReturn(type);
+    when(parameter.getName()).thenReturn(name);
+    when(parameter.getValue()).thenReturn(value);
+    return parameter;
+  }
+
+  private static org.sitmun.domain.cartography.parameter.CartographyServiceParameter layerParameter(
+      String type, String name, String value) {
+    org.sitmun.domain.cartography.parameter.CartographyServiceParameter parameter =
+        mock(org.sitmun.domain.cartography.parameter.CartographyServiceParameter.class);
+    when(parameter.getType()).thenReturn(type);
+    when(parameter.getName()).thenReturn(name);
+    when(parameter.getValue()).thenReturn(value);
+    return parameter;
+  }
+
+  @Test
   @DisplayName("getConfiguration resolves system variables in WMS service URL and fixed parameters")
   void getConfigurationResolvesSystemVariablesInWmsServiceUrlAndFixedParameters() {
     // Given
@@ -322,17 +572,17 @@ class ProxyConfigurationServiceTest {
             .build();
 
     ServiceParameter fixedParam1 = mock(ServiceParameter.class);
-    when(fixedParam1.getType()).thenReturn("FIXED");
+    when(fixedParam1.getType()).thenReturn("WMS");
     when(fixedParam1.getName()).thenReturn("env1");
     when(fixedParam1.getValue()).thenReturn("munine:#{TERR_ID}");
 
     ServiceParameter fixedParam2 = mock(ServiceParameter.class);
-    when(fixedParam2.getType()).thenReturn("FIXED");
+    when(fixedParam2.getType()).thenReturn("WMS");
     when(fixedParam2.getName()).thenReturn("env2");
     when(fixedParam2.getValue()).thenReturn("#{TERR_ID}");
 
     ServiceParameter fixedParam3 = mock(ServiceParameter.class);
-    when(fixedParam3.getType()).thenReturn("FIXED");
+    when(fixedParam3.getType()).thenReturn("WMS");
     when(fixedParam3.getName()).thenReturn("env3");
     when(fixedParam3.getValue()).thenReturn("TERR_ID");
 
@@ -1153,6 +1403,41 @@ class ProxyConfigurationServiceTest {
   }
 
   @Test
+  @DisplayName("WMTS service URL expands tileSet from the request")
+  void wmtsServiceUrlExpandsTileSetFromTheRequest() {
+    doCallRealMethod().when(httpUserParametrizationDecorator).apply(any(), any());
+    doCallRealMethod().when(httpUserParametrizationDecorator).accept(any(), any());
+    doCallRealMethod().when(httpUserParametrizationDecorator).addBehavior(any(), any());
+
+    Service wmts = mock(Service.class);
+    when(wmts.getServiceURL()).thenReturn("https://example.com/wmts/{tileSet}/service");
+    when(wmts.getType()).thenReturn("WMTS");
+    when(wmts.getPasswordSet()).thenReturn(false);
+    when(wmts.getParameters()).thenReturn(Set.of());
+    when(serviceRepository.findById(7)).thenReturn(Optional.of(wmts));
+
+    Map<String, String> requestParams = new HashMap<>();
+    requestParams.put("tileSet", "utm");
+    ConfigProxyRequestDto request =
+        ConfigProxyRequestDto.builder()
+            .appId(1)
+            .terId(1)
+            .type("WMTS")
+            .typeId(7)
+            .method("GET")
+            .parameters(requestParams)
+            .build();
+
+    RequestCoordinates coordinates = coordinatesFor(request);
+    ConfigProxyDto result = service.getConfiguration(request, 0L, coordinates);
+    service.applyDecorators(result, request, coordinates);
+
+    assertInstanceOf(WmsPayloadDto.class, result.getPayload());
+    assertEquals(
+        "https://example.com/wmts/utm/service", ((WmsPayloadDto) result.getPayload()).getUri());
+  }
+
+  @Test
   @DisplayName(
       "applyDecorators ignores unmatched incoming SQL params when task does not declare them")
   void applyDecoratorsIgnoresUnmatchedIncomingSqlParamsWhenTaskDoesNotDeclareThem() {
@@ -1185,14 +1470,9 @@ class ProxyConfigurationServiceTest {
 
     RequestCoordinates coordinates = coordinatesFor(request);
     ConfigProxyDto result = service.getConfiguration(request, 0L, coordinates);
-    service.applyDecorators(result, request, coordinates);
 
-    assertNotNull(result);
-    assertInstanceOf(JdbcPayloadDto.class, result.getPayload());
-
-    JdbcPayloadDto payload = (JdbcPayloadDto) result.getPayload();
-    assertEquals("SELECT * FROM STM_TSK_UI", payload.getSql());
-    assertTrue(payload.getParameters().isEmpty());
+    assertThrows(
+        BadRequestException.class, () -> service.applyDecorators(result, request, coordinates));
   }
 
   @Test
@@ -1242,7 +1522,7 @@ class ProxyConfigurationServiceTest {
 
     JdbcPayloadDto payload = (JdbcPayloadDto) result.getPayload();
     assertEquals("SELECT * FROM STM_TSK_UI WHERE tui_name = ?", payload.getSql());
-    assertEquals(List.of("Media"), payload.getParameters());
+    assertEquals("Media", payload.getParameters().get(0).value());
   }
 
   @Test
@@ -1295,8 +1575,7 @@ class ProxyConfigurationServiceTest {
 
     JdbcPayloadDto payload = (JdbcPayloadDto) result.getPayload();
     assertEquals("SELECT * FROM STM_TSK_UI WHERE tui_name = ?", payload.getSql());
-    // Client value wins over literal default
-    assertEquals(List.of("ClientShouldWin"), payload.getParameters());
+    assertEquals("ClientShouldWin", payload.getParameters().get(0).value());
   }
 
   @Test
@@ -1443,7 +1722,7 @@ class ProxyConfigurationServiceTest {
 
     JdbcPayloadDto payload = (JdbcPayloadDto) result.getPayload();
     assertEquals("SELECT * FROM STM_TSK_UI WHERE tui_name = ?", payload.getSql());
-    assertEquals(List.of("FromClient"), payload.getParameters());
+    assertEquals("FromClient", payload.getParameters().get(0).value());
   }
 
   @Test
@@ -1626,7 +1905,7 @@ class ProxyConfigurationServiceTest {
 
     JdbcPayloadDto payload = (JdbcPayloadDto) result.getPayload();
     assertEquals("SELECT * FROM STM_TSK_UI WHERE tui_name = ?", payload.getSql());
-    assertEquals(List.of("FromClient"), payload.getParameters());
+    assertEquals("FromClient", payload.getParameters().get(0).value());
   }
 
   @Test
@@ -1672,13 +1951,12 @@ class ProxyConfigurationServiceTest {
     service.applyDecorators(result, request, coordinates);
 
     JdbcPayloadDto payload = (JdbcPayloadDto) result.getPayload();
-    assertEquals("SELECT * FROM STM_EXAMPLE WHERE 1=1 AND columnA=?", payload.getSql());
-    assertEquals(List.of("client_filter"), payload.getParameters());
+    assertEquals("SELECT * FROM STM_EXAMPLE", payload.getSql());
+    assertTrue(payload.getParameters().isEmpty());
   }
 
   @Test
-  @DisplayName(
-      "getConfiguration normalizes non-String parameter values (expected to fail before fix)")
+  @DisplayName("getConfiguration stores integer and double parameter values as strings")
   void getConfigurationNormalizesNonStringParameterValues() {
     // Given
     Map<String, Object> param1 = new HashMap<>();
@@ -1722,8 +2000,7 @@ class ProxyConfigurationServiceTest {
   }
 
   @Test
-  @DisplayName(
-      "getConfiguration handles duplicate parameter labels with last-wins strategy (expected to fail before fix)")
+  @DisplayName("Duplicate parameter labels keep the last value")
   void getConfigurationHandlesDuplicateParameterLabels() {
     // Given
     Map<String, Object> param1 = new HashMap<>();
@@ -1766,24 +2043,8 @@ class ProxyConfigurationServiceTest {
   }
 
   @Test
-  @DisplayName("validateUserAccess returns true when validation is disabled (default behavior)")
-  void validateUserAccessReturnsTrueWhenDisabled() {
-    // Given: validation is disabled (default)
-    ConfigProxyRequestDto request =
-        ConfigProxyRequestDto.builder().appId(1).terId(1).type(TYPE_SQL).typeId(23).build();
-
-    // When
-    boolean result = service.validateUserAccess(request, "admin");
-
-    // Then: access is granted regardless of validators
-    assertTrue(result);
-  }
-
-  @Test
   @DisplayName("validateUserAccess denies access when username is null")
   void validateUserAccessDeniesAccessWhenUsernameNull() {
-    // Given: validation is enabled
-    ReflectionTestUtils.setField(service, "validateUserAccessEnabled", true);
     ConfigProxyRequestDto request =
         ConfigProxyRequestDto.builder().appId(1).terId(1).type(TYPE_SQL).typeId(23).build();
 
@@ -1797,8 +2058,6 @@ class ProxyConfigurationServiceTest {
   @Test
   @DisplayName("validateUserAccess denies access when username is blank")
   void validateUserAccessDeniesAccessWhenUsernameBlank() {
-    // Given: validation is enabled
-    ReflectionTestUtils.setField(service, "validateUserAccessEnabled", true);
     ConfigProxyRequestDto request =
         ConfigProxyRequestDto.builder().appId(1).terId(1).type(TYPE_SQL).typeId(23).build();
 
@@ -1812,8 +2071,6 @@ class ProxyConfigurationServiceTest {
   @Test
   @DisplayName("validateUserAccess denies access for unknown resource type (no validator)")
   void validateUserAccessDeniesAccessForUnknownType() {
-    // Given: validation is enabled but no validators support "UNKNOWN" type
-    ReflectionTestUtils.setField(service, "validateUserAccessEnabled", true);
     ConfigProxyRequestDto request =
         ConfigProxyRequestDto.builder().appId(1).terId(1).type("UNKNOWN").typeId(100).build();
 
@@ -2056,7 +2313,7 @@ class ProxyConfigurationServiceTest {
 
     JdbcPayloadDto payload = (JdbcPayloadDto) result.getPayload();
     // Backend provided value wins, client attempt is dropped
-    assertEquals(List.of("BackendSecret"), payload.getParameters());
+    assertEquals("BackendSecret", payload.getParameters().get(0).value());
   }
 
   @Test
@@ -2178,10 +2435,6 @@ class ProxyConfigurationServiceTest {
   @Test
   @DisplayName("SQL ${name} declared with no default and client absent binds empty string")
   void sqlPlaceholderDeclaredWithNoDefaultAndClientAbsentBindsEmptyString() {
-    doCallRealMethod().when(sqlUserParametrizationDecorator).apply(any(), any());
-    doCallRealMethod().when(sqlUserParametrizationDecorator).accept(any(), any());
-    doCallRealMethod().when(sqlUserParametrizationDecorator).addBehavior(any(), any());
-
     Map<String, Object> declaredNoDefault = new HashMap<>();
     declaredNoDefault.put("variable", "filter");
     declaredNoDefault.put("value", null);
@@ -2214,15 +2467,9 @@ class ProxyConfigurationServiceTest {
 
     RequestCoordinates coordinates = coordinatesFor(request);
     ConfigProxyDto result = service.getConfiguration(request, 0L, coordinates);
-    service.applyDecorators(result, request, coordinates);
 
-    assertNotNull(result);
-    assertInstanceOf(JdbcPayloadDto.class, result.getPayload());
-
-    JdbcPayloadDto payload = (JdbcPayloadDto) result.getPayload();
-    assertEquals("SELECT * FROM data WHERE category = ?", payload.getSql());
-    // Empty string should be bound
-    assertEquals(List.of(""), payload.getParameters());
+    assertThrows(
+        BadRequestException.class, () -> service.applyDecorators(result, request, coordinates));
   }
 
   @Test
@@ -2270,9 +2517,8 @@ class ProxyConfigurationServiceTest {
     assertInstanceOf(JdbcPayloadDto.class, result.getPayload());
 
     JdbcPayloadDto payload = (JdbcPayloadDto) result.getPayload();
-    // Vary-filter adds WHERE clause with empty string bind
-    assertEquals("SELECT * FROM orders WHERE 1=1 AND status=?", payload.getSql());
-    assertEquals(List.of(""), payload.getParameters());
+    assertEquals("SELECT * FROM orders", payload.getSql());
+    assertTrue(payload.getParameters().isEmpty());
   }
 
   @Test
@@ -2328,8 +2574,7 @@ class ProxyConfigurationServiceTest {
     assertInstanceOf(JdbcPayloadDto.class, result.getPayload());
 
     JdbcPayloadDto payload = (JdbcPayloadDto) result.getPayload();
-    // Vary-filter with locked default binds resolved backend value, not client
-    assertEquals("SELECT * FROM users WHERE 1=1 AND role=?", payload.getSql());
-    assertEquals(List.of("ADMIN_ONLY"), payload.getParameters());
+    assertEquals("SELECT * FROM users", payload.getSql());
+    assertTrue(payload.getParameters().isEmpty());
   }
 }

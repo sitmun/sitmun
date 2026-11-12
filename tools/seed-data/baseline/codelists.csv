@@ -1,0 +1,151 @@
+cod_id,cod_list,cod_value,cod_system,cod_default,cod_description
+1,application.type,ED,true,false,Edition application
+2,application.type,E,true,false,External application
+3,application.type,I,true,false,Internal application
+4,application.type,T,true,false,Tourist application
+5,applicationParameter.type,MOBILE,true,false,Mobile app parameter
+6,applicationParameter.type,Nomenclator,true,false,Nomenclator parameter
+7,applicationParameter.type,PRINT_TEMPLATE,true,false,Print template
+8,cartography.geometryType,LINE,true,false,Line
+9,cartography.geometryType,POINT,true,false,Point
+10,cartography.geometryType,POLYGON,true,false,Polygon
+11,cartography.legendType,LEGENDGRAPHIC,true,false,Prioritize Get Legend Graphic (capabilities)
+12,cartography.legendType,LEGENDURL,true,false,Legend URL (capabilities)
+13,cartography.legendType,LINK,true,false,Static legend URL
+14,cartographyFilter.type,C,true,false,Custom
+15,cartographyFilter.type,D,true,false,Defined
+16,cartographyFilter.valueType,A,true,false,Alphanumeric
+17,cartographyFilter.valueType,D,true,false,Date
+18,cartographyFilter.valueType,N,true,false,Number
+19,cartographyParameter.format,F,true,false,Date
+20,cartographyParameter.format,I,true,false,Image
+21,cartographyParameter.format,N,true,false,Number
+22,cartographyParameter.format,P,true,false,Percentage
+23,cartographyParameter.format,T,true,false,Text
+24,cartographyParameter.format,U,true,false,URL
+25,cartographyParameter.type,INFO,true,true,INFO
+26,cartographyPermission.type,F,true,false,Background map
+27,cartographyPermission.type,C,true,false,Cartography group
+28,cartographyPermission.type,M,true,false,Location map
+29,cartographyPermission.type,I,true,false,Report
+30,cartographySpatialSelectionParameter.format,F,true,false,Date
+31,cartographySpatialSelectionParameter.format,I,true,false,Image
+32,cartographySpatialSelectionParameter.format,N,true,false,Number
+33,cartographySpatialSelectionParameter.format,P,true,false,Percentage
+34,cartographySpatialSelectionParameter.format,T,true,false,Text
+35,cartographySpatialSelectionParameter.format,U,true,false,URL
+36,cartographySpatialSelectionParameter.type,EDIT,true,true,EDIT
+37,cartographySpatialSelectionParameter.type,SELECT,true,false,SELECT
+38,downloadTask.scope,A,false,false,Application
+39,downloadTask.scope,U,false,false,Isolated
+40,downloadTask.scope,C,false,false,Layer
+41,editTask.fieldType,date,true,false,Date
+42,editTask.fieldType,image,true,false,Image
+43,editTask.fieldType,listbox,true,false,ListBox
+44,editTask.fieldType,number,true,false,Number
+45,editTask.fieldType,text,true,false,Text
+46,editTask.scope,db-edit,true,false,Database edition
+47,editTask.scope,feat-edit,true,false,Features service edition (WFS)
+48,queryTask.parameterType,query,true,false,Query parameter
+49,queryTask.parameterType,template,true,false,Template parameter
+50,queryTask.scope,cartography-query,true,false,Cartography Query
+51,queryTask.scope,sql-query,true,false,SQL Query
+52,queryTask.scope,web-api-query,true,false,Web API Query
+53,service.authenticationMode,HTTP Basic authentication,true,false,HTTP Basic authentication
+54,service.authenticationMode,None,true,true,None
+55,service.type,WFS,true,false,WFS
+56,service.type,WMS,true,false,WMS
+57,service.type,WMTS,true,false,WMTS
+58,serviceParameter.type,INFO,true,false,GetFeatureInfo
+59,serviceParameter.type,WMS,true,false,GetMap
+60,serviceParameter.type,OLPARAM,true,false,OpenLayers
+61,serviceParameter.type,WMTS,true,false,WMTS
+62,taskEntity.jsonParamType,__NULL_VALUE__,true,false,__NULL_VALUE__
+63,taskEntity.jsonParamType,array,true,false,array
+64,taskEntity.jsonParamType,boolean,true,false,boolean
+65,taskEntity.jsonParamType,number,true,false,number
+66,taskEntity.jsonParamType,object,true,false,object
+67,taskEntity.jsonParamType,string,true,false,string
+68,territory.scope,M,true,false,Municipality
+69,territory.scope,R,true,false,Regional
+70,territory.scope,T,true,false,Total
+71,tree.type,cartography,true,true,Cartography
+72,tree.type,edition,true,false,Edition tree
+73,tree.type,touristic,true,false,Tourist application
+82,treenode.viewmode,dl,true,false,Detailed list
+83,treenode.viewmode,evt,true,false,Events
+84,treenode.viewmode,evtcat,true,false,Events categories
+85,treenode.viewmode,evtloc,true,false,Events locations
+86,treenode.viewmode,gallery,true,false,Gallery
+87,treenode.viewmode,ms,true,false,Map search
+88,treenode.viewmode,ne,true,false,Near elements
+89,treenode.viewmode,rt,true,false,Routes list
+90,treenode.viewmode,sch,true,false,Schedule
+91,user.identificationType,DNI,true,false,DNI
+92,user.identificationType,NIE,true,false,NIE
+93,user.identificationType,PAS,true,false,Passport
+94,userPosition.type,POC,true,false,Point of contact
+95,treenode.node.type,cartography,true,false,Cartography
+96,treenode.node.type,folder,true,false,Folder
+97,treenode.node.type,list,true,false,List
+98,treenode.node.type,menu,true,false,Menu
+99,treenode.node.type,task,true,false,Task
+100,treenode.node.type,fav,true,false,Favorites
+101,treenode.node.type,map,true,false,Map
+102,treenode.node.type,nm,true,false,Near me
+103,queryTask.scope,external-link,true,false,External link
+105,queryTask.mimeType,image/png,true,false,PNG (.png)
+106,queryTask.mimeType,image/jpeg,true,false,"JPEG (.jpg, .jpeg)"
+107,queryTask.mimeType,image/gif,true,false,GIF (.gif)
+108,queryTask.mimeType,image/svg+xml,true,false,SVG (.svg)
+109,queryTask.mimeType,application/pdf,true,false,PDF (.pdf)
+110,queryTask.mimeType,application/json,true,false,JSON (.json)
+111,queryTask.mimeType,application/xml,true,false,XML (.xml)
+113,queryTask.mimeType,application/msword,true,false,Word (.doc)
+115,queryTask.mimeType,application/vnd.ms-excel,true,false,Excel (.xls)
+117,queryTask.mimeType,application/vnd.oasis.opendocument.text,true,false,ODT (.odt)
+118,queryTask.mimeType,application/vnd.oasis.opendocument.spreadsheet,true,false,ODS (.ods)
+122,service.authenticationMode,API key,true,false,API key
+123,apiKey.header,X-API-Key,true,true,X-API-Key
+124,apiKey.cookie,X-API-Key,true,true,X-API-Key
+125,apiKey.queryParam,API-Key,true,true,API-Key
+126,queryTask.scope,web-api-query-no-proxy,true,false,Web API Query (No Proxy)
+127,documentExport.output,pdf,true,false,pdf
+128,moreInfo.type,API,true,false,API
+129,moreInfo.type,RESOURCE,true,false,RESOURCE
+130,moreInfo.type,SQL,true,false,SQL
+131,moreInfo.type,URL,true,false,URL
+132,queryTask.scope,resource-query,true,false,resource-query
+133,taskEntity.jsonParamType,null,true,false,null
+134,cartographyParameter.format,AUTO,true,false,Automatic
+135,cartographyParameter.format,Geometry,true,false,Geometry
+136,cartographyParameter.geometryKind,Curve,true,false,Curve
+137,cartographyParameter.geometryKind,Geometry,true,false,Geometry
+138,cartographyParameter.geometryKind,LineString,true,false,Line
+139,cartographyParameter.geometryKind,MultiCurve,true,false,Multicurve
+140,cartographyParameter.geometryKind,MultiLineString,true,false,Multiline
+141,cartographyParameter.geometryKind,MultiPoint,true,false,Multipoint
+142,cartographyParameter.geometryKind,MultiPolygon,true,false,Multipolygon
+143,cartographyParameter.geometryKind,MultiSurface,true,false,Multisurface
+144,cartographyParameter.geometryKind,Point,true,false,Point
+145,cartographyParameter.geometryKind,Polygon,true,false,Polygon
+146,cartographyParameter.geometryKind,Surface,true,false,Surface
+147,cartographyParameter.preferredGeometryType,multipoint,true,false,Multipoint
+148,cartographyParameter.preferredGeometryType,multipolygon,true,false,Multipolygon
+149,cartographyParameter.preferredGeometryType,multipolyline,true,false,Multipolyline
+150,cartographyParameter.preferredGeometryType,point,true,false,Point
+151,cartographyParameter.preferredGeometryType,polygon,true,false,Polygon
+152,cartographyParameter.preferredGeometryType,polyline,true,false,Polyline
+153,cartographyServiceParameter.type,GETMAP,true,false,GetMap
+154,cartographyServiceParameter.type,INFO,true,false,GetFeatureInfo
+155,cartographyServiceParameter.type,OLPARAM,true,false,OpenLayers
+156,cartographyServiceParameter.type,WFS,true,false,All WFS operations
+157,cartographyServiceParameter.type,WMS,true,false,All WMS operations
+158,cartographyServiceParameter.type,WMTS,true,false,Viewer tile settings
+159,documentExport.engine,openhtmltopdf,true,true,OpenHTMLToPDF
+160,serviceParameter.type,GETMAP,true,false,GetMap
+161,serviceParameter.type,WFS,true,false,All WFS operations
+162,databaseConnection.driver,org.h2.Driver,true,false,H2 JDBC Driver
+163,databaseConnection.driver,org.postgresql.Driver,true,false,PostgreSQL JDBC Driver
+164,databaseConnection.driver,oracle.jdbc.OracleDriver,true,false,Oracle JDBC driver
+165,databaseConnection.driver,com.microsoft.sqlserver.jdbc.SQLServerDriver,true,false,Microsoft SQL Server JDBC Driver

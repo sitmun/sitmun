@@ -1,8 +1,5 @@
 package org.sitmun.administration.service.template;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -40,6 +37,8 @@ import org.sitmun.domain.task.Task;
 import org.sitmun.domain.task.TaskRepository;
 import org.sitmun.domain.task.relation.TaskRelation;
 import org.sitmun.domain.task.relation.TaskRelationRepository;
+import org.sitmun.infrastructure.persistence.type.i18n.Translation;
+import org.sitmun.infrastructure.persistence.type.i18n.TranslationRepository;
 import org.sitmun.infrastructure.security.core.SecurityConstants;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
@@ -49,6 +48,9 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.util.HtmlUtils;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
 
 @Service
 @RequiredArgsConstructor
@@ -93,6 +95,7 @@ public class TemplateExecutionService {
   private final MiaHtmlRenderer miaHtmlRenderer;
   private final MapImageTemplateTaskExecutor mapImageTemplateTaskExecutor;
   private final ObjectMapper objectMapper;
+  private final TranslationRepository translationRepository;
 
   public TemplateTaskExecutionResponseDto executeLinkedTask(
       TemplateTaskExecutionRequestDto requestDto) {
@@ -732,7 +735,7 @@ public class TemplateExecutionService {
         case DomainConstants.Tasks.TYPE_NULL -> null;
         default -> stringValue == null ? "" : stringValue;
       };
-    } catch (IOException exception) {
+    } catch (JacksonException exception) {
       throw new ResponseStatusException(
           HttpStatus.BAD_REQUEST, "Invalid MIA parameter value", exception);
     }
@@ -843,11 +846,38 @@ public class TemplateExecutionService {
 
   private String resolveChildTitle(
       Map<String, Object> childDefinition, int index, String language) {
+    Integer childTaskId = parseTaskId(childDefinition.get("id"));
+    if (childTaskId != null) {
+      Task childTask = taskRepository.findById(childTaskId).orElse(null);
+      if (childTask != null && isTemplateTask(childTask)) {
+        String title = translatedTaskField(childTask, "title", childTask.getTitle(), language);
+        if (StringUtils.hasText(title)) {
+          return title.trim();
+        }
+        String name = translatedTaskField(childTask, "name", childTask.getName(), language);
+        if (StringUtils.hasText(name)) {
+          return name.trim();
+        }
+      }
+    }
     Object name = childDefinition.get("name");
     if (name == null || String.valueOf(name).isBlank()) {
       return resolveLiteral(CONSULTA_LITERAL, language) + " " + (index + 1);
     }
     return String.valueOf(name);
+  }
+
+  private String translatedTaskField(Task task, String property, String stored, String language) {
+    if (task.getId() == null || !StringUtils.hasText(language)) {
+      return stored;
+    }
+    String column = "Task." + property;
+    return translationRepository.findTranslation(task.getId(), "Task.", language).stream()
+        .filter(translation -> column.equals(translation.getColumn()))
+        .map(Translation::getTranslation)
+        .filter(StringUtils::hasText)
+        .findFirst()
+        .orElse(stored);
   }
 
   private String renderRowsAsTable(List<Map<String, Object>> rows, String language) {

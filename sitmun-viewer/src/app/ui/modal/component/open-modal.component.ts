@@ -5,16 +5,16 @@ import {
   ComponentRef,
   OnDestroy,
   Type,
-  ViewChild
+  ViewChild,
+  ChangeDetectionStrategy
 } from '@angular/core';
 
 import { InsertionDirective } from '@ui/modal/insertion-directive';
 import { Subject } from 'rxjs';
 
-import { OpenModalRef } from '../service/open-modal-ref';
-
 @Component({
   standalone: false,
+  changeDetection: ChangeDetectionStrategy.Eager,
   template: '<div><ng-template appInsertion></ng-template></div>'
 })
 export class OpenModalComponent implements AfterViewInit, OnDestroy {
@@ -28,20 +28,12 @@ export class OpenModalComponent implements AfterViewInit, OnDestroy {
 
   childComponentType!: Type<any>;
 
-  constructor(private cd: ChangeDetectorRef, private dialogRef: OpenModalRef) {}
+  constructor(private cd: ChangeDetectorRef) {}
 
   ngAfterViewInit() {
     this.loadChildComponent(this.childComponentType);
     this.cd.detectChanges();
   }
-
-  // onOverlayClicked(evt: MouseEvent) {
-  //   this.dialogRef.close();
-  // }
-
-  // onDialogClicked(evt: MouseEvent) {
-  //   evt.stopPropagation();
-  // }
 
   loadChildComponent(componentType: Type<any>) {
     const viewContainerRef = this.insertionPoint.viewContainerRef;

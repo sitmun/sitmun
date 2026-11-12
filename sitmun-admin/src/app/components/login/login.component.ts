@@ -1,15 +1,15 @@
-import {Component, effect, OnDestroy, OnInit, signal, WritableSignal} from '@angular/core';
+import {Component, effect, OnDestroy, OnInit, signal, WritableSignal, ChangeDetectionStrategy} from '@angular/core';
 import {UntypedFormBuilder, UntypedFormGroup, Validators} from '@angular/forms';
-import {Router} from '@angular/router';
+import {ActivatedRoute, Router} from '@angular/router';
 
-import {TranslateService} from '@ngx-translate/core';
+import { TranslateService } from '@ngx-translate/core';
 import {Subject} from 'rxjs';
 import {takeUntil} from 'rxjs/operators';
 
 import {LoginService} from '@app/core/auth/login.service';
 import {Language, LanguageService} from '@app/domain';
 import {toLanguageIsoCode} from '@app/services/language-iso';
-import {resolveUiLanguage} from '@app/services/ui-language.resolver';
+import {readBrowserLanguages, resolveUiLanguage} from '@app/services/ui-language.resolver';
 import {config} from '@config';
 
 export interface LoginMethod {
@@ -23,11 +23,11 @@ export interface AuthProvider {
   imagePath: string;
 }
 
-/** Login component*/
 @Component({
     selector: 'app-login',
     templateUrl: './login.component.html',
     styleUrls: ['./login.component.scss'],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class LoginComponent implements OnInit, OnDestroy {
@@ -35,8 +35,9 @@ export class LoginComponent implements OnInit, OnDestroy {
   languages: Language[] = [];
   currentShortname = '';
 
-  /** bad credentials message*/
   badCredentials: string;
+
+  passwordChanged = false;
 
   loginMethods: WritableSignal<Map<string, AuthProvider[]>> = signal(
     new Map<string, AuthProvider[]>()
@@ -44,21 +45,18 @@ export class LoginComponent implements OnInit, OnDestroy {
 
   alternativeLoginMethods: AuthProvider[] = [];
 
-  /** form */
   form: UntypedFormGroup;
 
-  /** default route after successful login */
   private readonly defaultRoute: string = '/dashboard';
 
-  /** destroy subject for cleanup */
   private readonly destroy$ = new Subject<void>();
 
-  /** constructor */
   constructor(
     private readonly fb: UntypedFormBuilder,
     private readonly loginService: LoginService,
     private readonly translateService: TranslateService,
     private readonly router: Router,
+    private readonly route: ActivatedRoute,
     private readonly languageService: LanguageService,
   ) {
     effect(() => {
@@ -83,6 +81,11 @@ export class LoginComponent implements OnInit, OnDestroy {
       username: ['', Validators.required],
       password: ['', Validators.required],
     });
+    this.passwordChanged =
+      this.route.snapshot.queryParamMap.get('passwordChanged') === '1' ||
+      sessionStorage.getItem('sitmun.passwordChanged') === '1';
+    sessionStorage.removeItem('sitmun.passwordChanged');
+
     this.languageService.languagesToUse$
       .pipe(takeUntil(this.destroy$))
       .subscribe((languages) => this.applyLanguages(languages));
@@ -95,14 +98,15 @@ export class LoginComponent implements OnInit, OnDestroy {
   changeLanguage(shortname: string): void {
     this.currentShortname = shortname;
     this.translateService.use(shortname);
-    this.translateService.setDefaultLang(shortname);
+    this.translateService.setFallbackLang(shortname);
     localStorage.setItem('lang', shortname);
   }
 
   private applyLanguages(languages: Language[]): void {
     this.languages = languages;
     const chosen = resolveUiLanguage({
-      stored: this.translateService.currentLang || localStorage.getItem('lang'),
+      stored: localStorage.getItem('lang') || this.translateService.getCurrentLang(),
+      browser: readBrowserLanguages(),
       backendDefault: config.defaultLang,
       availableShortnames: languages.map((language) => language.shortname),
       staticFallback: config.defaultLang || languages[0]?.shortname || 'en',
@@ -114,23 +118,22 @@ export class LoginComponent implements OnInit, OnDestroy {
     }
   }
 
-  /** login action */
   login() {
     const val = this.form.value;
     if (val.username && val.password) {
       const langCode =
-        this.translateService.currentLang ||
         localStorage.getItem('lang') ||
+        this.translateService.getCurrentLang() ||
         this.currentShortname;
       this.loginService.login(val).then(() => {
         this.translateService.use(langCode);
-        this.translateService.setDefaultLang(langCode);
+        this.translateService.setFallbackLang(langCode);
         localStorage.setItem('lang', langCode);
 
         void this.router.navigateByUrl(this.defaultRoute);
       }, () => {
         this.translateService.use(langCode);
-        this.translateService.setDefaultLang(langCode);
+        this.translateService.setFallbackLang(langCode);
         localStorage.setItem('lang', langCode);
         this.badCredentials = 'ERROR';
       });
@@ -141,7 +144,6 @@ export class LoginComponent implements OnInit, OnDestroy {
     this.loginService.initOidcLogin(provider);
   }
 
-  /** cleanup subscriptions */
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();

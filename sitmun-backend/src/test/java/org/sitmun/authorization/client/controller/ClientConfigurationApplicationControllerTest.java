@@ -11,8 +11,8 @@ import org.junit.jupiter.api.Test;
 import org.sitmun.test.URIConstants;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.test.web.servlet.MockMvc;
 
 @SpringBootTest
@@ -31,7 +31,15 @@ class ClientConfigurationApplicationControllerTest {
     mvc.perform(get(URIConstants.CONFIG_CLIENT_APPLICATION_URI))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.content", hasSize(4)))
-        .andExpect(jsonPath("$.content[*].title", hasItem("SITMUN - Municipal")));
+        .andExpect(jsonPath("$.page.totalElements", is(4)))
+        .andExpect(
+            jsonPath(
+                "$.content[*].title",
+                contains(
+                    "SITMUN - Externa",
+                    "SITMUN - Municipal",
+                    "SITMUN - Provincial",
+                    "SITMUN - Supramunicipal")));
   }
 
   @Test
@@ -42,16 +50,17 @@ class ClientConfigurationApplicationControllerTest {
         .andExpect(jsonPath("$.content", hasSize(5)))
         .andExpect(jsonPath("$.page.size", is(pageSize)))
         .andExpect(jsonPath("$.page.number", is(0)))
+        .andExpect(jsonPath("$.page.totalElements", is(5)))
         .andExpect(jsonPath("$.page.totalPages", is(1)))
         .andExpect(
             jsonPath(
                 "$.content[*].title",
-                hasItems(
+                contains(
+                    "SITMUN - Externa",
+                    "SITMUN - Externa protegida",
                     "SITMUN - Municipal",
                     "SITMUN - Provincial",
-                    "SITMUN - Supramunicipal",
-                    "SITMUN - Externa",
-                    "SITMUN - Externa protegida")));
+                    "SITMUN - Supramunicipal")));
   }
 
   @Test
@@ -66,16 +75,6 @@ class ClientConfigurationApplicationControllerTest {
         .andExpect(jsonPath("$.page.number", is(1)))
         .andExpect(jsonPath("$.page.totalPages", is(5)))
         .andExpect(jsonPath("$.content[*].title", hasItem("SITMUN - Externa protegida")));
-  }
-
-  @Test
-  @DisplayName("GET: Default page size applies without explicit size")
-  void readUsesConfiguredDefaultPageSize() throws Exception {
-    mvc.perform(get(URIConstants.CONFIG_CLIENT_APPLICATION_URI).with(user("internal")))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.page.size", is(pageSize)))
-        .andExpect(jsonPath("$.page.number", is(0)))
-        .andExpect(jsonPath("$.page.totalElements", is(5)));
   }
 
   @Test

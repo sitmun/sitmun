@@ -1,8 +1,5 @@
 package org.sitmun.administration.service.i18n;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -24,6 +21,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.web.server.ResponseStatusException;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 
 @Service
 @RequiredArgsConstructor
@@ -33,6 +33,7 @@ public class LiteralTranslationCrudService {
   private final LiteralTranslationRepository literalTranslationRepository;
   private final LiteralTranslationValueRepository literalTranslationValueRepository;
   private final LanguageRepository languageRepository;
+  private final LiteralTranslationWriteLock literalTranslationWriteLock;
   private final ObjectMapper objectMapper;
 
   @Transactional(readOnly = true)
@@ -60,6 +61,7 @@ public class LiteralTranslationCrudService {
     String literal = requireLiteral(requestDto.getLiteral());
     String language = requireLanguage(requestDto.getLanguage());
     Language sourceLanguage = requireSourceLanguage(requestDto.getSourceLanguage());
+    literalTranslationWriteLock.acquire();
     rejectDuplicateLiteral(literal, null);
 
     LiteralTranslation saved =
@@ -75,6 +77,7 @@ public class LiteralTranslationCrudService {
     String literal = requireLiteral(requestDto.getLiteral());
     String language = requireLanguage(requestDto.getLanguage());
     Language sourceLanguage = requireSourceLanguage(requestDto.getSourceLanguage());
+    literalTranslationWriteLock.acquire();
     rejectDuplicateLiteral(literal, id);
     validateSourceLanguageChange(literalTranslation, sourceLanguage);
 
@@ -256,7 +259,7 @@ public class LiteralTranslationCrudService {
                         text(field, "operator"), parsed));
               });
       return new LiteralTranslationFilterModel(columns);
-    } catch (JsonProcessingException e) {
+    } catch (JacksonException e) {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid filter payload", e);
     }
   }

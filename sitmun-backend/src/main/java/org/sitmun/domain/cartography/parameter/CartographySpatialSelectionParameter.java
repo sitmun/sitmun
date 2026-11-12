@@ -1,12 +1,12 @@
 package org.sitmun.domain.cartography.parameter;
 
-import static org.sitmun.domain.PersistenceConstants.IDENTIFIER;
 import static org.sitmun.domain.PersistenceConstants.VALUE;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import java.util.Objects;
 import lombok.*;
 import org.hibernate.annotations.OnDelete;
@@ -41,32 +41,35 @@ public class CartographySpatialSelectionParameter {
       allocationSize = 1)
   @Id
   @GeneratedValue(strategy = GenerationType.TABLE, generator = "STM_PAR_SGI_GEN")
-  @Column(name = "PSG_ID")
+  @Column(name = "PSG_ID", nullable = false)
   private Integer id;
 
   /** Name. */
-  @Column(name = "PSG_NAME", length = IDENTIFIER)
+  @Column(name = "PSG_NAME", length = 250, nullable = false)
+  @Size(max = 250)
   @NotBlank
   private String name;
 
   /** Value. */
-  @Column(name = "PSG_VALUE", length = VALUE)
+  @Column(name = "PSG_VALUE", length = VALUE, nullable = false)
   @NotNull
   private String value;
 
   /** Format. */
-  @Column(name = "PSG_FORMAT", length = IDENTIFIER)
+  @Column(name = "PSG_FORMAT", length = 250)
+  @Size(max = 250)
   @CodeList(CodeListsConstants.CARTOGRAPHY_SPATIAL_SELECTION_PARAMETER_FORMAT)
   private String format;
 
   /** Type. */
-  @Column(name = "PSG_TYPE", length = IDENTIFIER)
+  @Column(name = "PSG_TYPE", length = 250, nullable = false)
+  @Size(max = 250)
   @NotNull
   @CodeList(CodeListsConstants.CARTOGRAPHY_SPATIAL_SELECTION_PARAMETER_TYPE)
   private String type;
 
   /** Cartography that owns this parameter. */
-  @ManyToOne
+  @ManyToOne(optional = false)
   @OnDelete(action = OnDeleteAction.CASCADE)
   @JoinColumn(name = "PSG_GIID", foreignKey = @ForeignKey(name = "STM_PSG_FK_GEO"))
   @NotNull

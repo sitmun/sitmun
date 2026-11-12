@@ -1,6 +1,8 @@
 package org.sitmun.proxy.middleware.protocols.http;
 
 import java.io.IOException;
+import java.security.SecureRandom;
+import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.List;
 import javax.net.ssl.SSLContext;
@@ -12,6 +14,8 @@ import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
+import org.sitmun.upstream.http.ManualRedirects;
+import org.sitmun.upstream.http.UnsafeHostList;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -25,8 +29,8 @@ public class HttpClientFactoryService implements HttpClient {
   private final List<Interceptor> interceptors = new ArrayList<>();
 
   public HttpClientFactoryService(
-      @Value("${sitmun.client.unsafe-allowed-hosts:*}") List<String> unsafeAllowedHosts) {
-    this.unsafeAllowedHosts = unsafeAllowedHosts;
+      @Value("${sitmun.client.unsafe-allowed-hosts:}") List<String> unsafeAllowedHosts) {
+    this.unsafeAllowedHosts = UnsafeHostList.normalize(log, unsafeAllowedHosts);
     safeClient = createSafeClient();
     unsafeClient = createUnsafeClient();
   }
@@ -34,7 +38,10 @@ public class HttpClientFactoryService implements HttpClient {
   private OkHttpClient createUnsafeClient() {
     OkHttpClient.Builder builder = new OkHttpClient.Builder();
     interceptors.forEach(builder::addInterceptor);
-    return configureToIgnoreCertificate(builder).build();
+    return configureToIgnoreCertificate(builder)
+        .followRedirects(false)
+        .followSslRedirects(false)
+        .build();
   }
 
   private OkHttpClient createSafeClient() {
@@ -45,13 +52,13 @@ public class HttpClientFactoryService implements HttpClient {
 
   @Override
   public Response executeRequest(Request httpRequest) throws IOException {
-    return getClient(httpRequest.url().host()).newCall(httpRequest).execute();
+    return ManualRedirects.execute(httpRequest, this::getClient);
   }
 
   public OkHttpClient getClient(String host) {
     try {
       if (unsafeAllowedHosts.contains("*") || unsafeAllowedHosts.contains(host)) {
-        log.warn("Using Unsafe Client");
+        log.debug("Using Unsafe Client");
         return unsafeClient;
       } else {
         return safeClient;
@@ -66,33 +73,28 @@ public class HttpClientFactoryService implements HttpClient {
     log.warn("Ignore SSL Certificate");
     try {
 
-      // Create a trust manager that does not validate certificate chains
       final TrustManager[] trustAllCerts =
           new TrustManager[] {
             new X509TrustManager() {
               @Override
-              public void checkClientTrusted(
-                  java.security.cert.X509Certificate[] chain, String authType) {
+              public void checkClientTrusted(X509Certificate[] chain, String authType) {
                 // No implementation needed for ignoring SSL certificate validation
               }
 
               @Override
-              public void checkServerTrusted(
-                  java.security.cert.X509Certificate[] chain, String authType) {
+              public void checkServerTrusted(X509Certificate[] chain, String authType) {
                 // No implementation needed for ignoring SSL certificate validation
               }
 
               @Override
-              public java.security.cert.X509Certificate[] getAcceptedIssuers() {
-                return new java.security.cert.X509Certificate[] {};
+              public X509Certificate[] getAcceptedIssuers() {
+                return new X509Certificate[] {};
               }
             }
           };
 
-      // Install the all-trusting trust manager
       final SSLContext sslContext = SSLContext.getInstance("SSL");
-      sslContext.init(null, trustAllCerts, new java.security.SecureRandom());
-      // Create a ssl socket factory with our all-trusting manager
+      sslContext.init(null, trustAllCerts, new SecureRandom());
       final SSLSocketFactory sslSocketFactory = sslContext.getSocketFactory();
 
       builder.sslSocketFactory(sslSocketFactory, (X509TrustManager) trustAllCerts[0]);

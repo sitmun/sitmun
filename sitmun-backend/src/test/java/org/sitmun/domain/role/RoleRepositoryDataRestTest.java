@@ -1,5 +1,6 @@
 package org.sitmun.domain.role;
 
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasSize;
 import static org.sitmun.test.URIConstants.ROLE_PERMISSIONS_URI;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -9,8 +10,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -25,27 +26,28 @@ class RoleRepositoryDataRestTest {
   @DisplayName("GET: Retrieve all applications for a role")
   @WithMockUser(roles = "ADMIN")
   void getApplicationsOfARole() throws Exception {
-    mvc.perform(get("http://localhost/api/roles/{0}/applications", 1))
+    mvc.perform(get("http://localhost/api/roles/{0}/applications", 10001))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$._embedded.applications", hasSize(4)))
-        .andExpect(jsonPath("$._embedded.applications[0].id").value(1));
+        .andExpect(
+            jsonPath(
+                "$._embedded.applications[*].id", containsInAnyOrder(10001, 10002, 10003, 10004)));
   }
 
   @Test
   @DisplayName("GET: Retrieve all tasks for a role")
   @WithMockUser(roles = "ADMIN")
   void getTasksOfARole() throws Exception {
-    mvc.perform(get("http://localhost/api/roles/{0}/tasks", 1))
+    mvc.perform(get("http://localhost/api/roles/{0}/tasks", 10001))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$._embedded.*.*", hasSize(43)))
-        .andExpect(jsonPath("$._embedded.tasks", hasSize(43)));
+        .andExpect(jsonPath("$._embedded.tasks", hasSize(46)));
   }
 
   @Test
   @DisplayName("GET: Retrieve all permissions for a role")
   @WithMockUser(roles = "ADMIN")
   void getPermissionsOfARole() throws Exception {
-    mvc.perform(get(ROLE_PERMISSIONS_URI, 1))
+    mvc.perform(get(ROLE_PERMISSIONS_URI, 10001))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$._embedded.cartography-groups", hasSize(3)));
   }

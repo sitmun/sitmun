@@ -9,7 +9,6 @@ import java.util.Objects;
 import lombok.*;
 import org.sitmun.authorization.client.dto.ClientConfigurationViews;
 import org.sitmun.domain.PersistenceConstants;
-import org.sitmun.domain.application.parameter.ApplicationParameter;
 
 /** Configuration parameter. */
 @Entity
@@ -33,11 +32,11 @@ public class ConfigurationParameter {
       allocationSize = 1)
   @Id
   @GeneratedValue(strategy = GenerationType.TABLE, generator = "STM_CONF_GEN")
-  @Column(name = "CNF_ID")
+  @Column(name = "CNF_ID", nullable = false)
   private Integer id;
 
-  /** Application parameter name. */
-  @Column(name = "CNF_NAME", length = PersistenceConstants.IDENTIFIER)
+  /** Parameter name. */
+  @Column(name = "CNF_NAME", length = PersistenceConstants.IDENTIFIER, nullable = false)
   @NotBlank
   @JsonView({
     ClientConfigurationViews.Base.class,
@@ -67,7 +66,7 @@ public class ConfigurationParameter {
       return true;
     }
 
-    if (!(obj instanceof ApplicationParameter other)) {
+    if (!(obj instanceof ConfigurationParameter other)) {
       return false;
     }
 
@@ -76,6 +75,6 @@ public class ConfigurationParameter {
 
   @Override
   public int hashCode() {
-    return getClass().hashCode();
+    return Objects.hashCode(id);
   }
 }

@@ -7,6 +7,52 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.3.0] - 2026-11-12
+
+### Added
+
+- **First run**: While the built-in admin password is null or blank, every admin route opens on a three-step setup: welcome, database language, then that password. The selected language is the interface language when one was chosen, and otherwise the browser language. Saving a password is required and returns to login. Once the password exists, `/first-run` leaves the stepper. The interface follows the browser language, including Spanish, when no language is stored.
+- **Startup**: While the server is still starting, the admin shows the same welcome card with a spinner and keeps trying, instead of an initialization error.
+- **Language**: Portuguese (`pt-PT`) translations and flag ([sitmun-admin-app#485](https://github.com/sitmun/sitmun-admin-app/pull/485)).
+- **SQL query tasks**: The SQL field is a CodeMirror editor with formatting, orange placeholders, and a red underline on an invalid placeholder. The parameter grid keeps a data type, Provided, and Optional, and derives Required. Test runs the saved task twice and shows the bound SQL, the numbered values, and a truncation notice. Test is off for a new task or while there are unsaved changes, and a hint asks to save first. Save does not depend on a test.
+- **Templates**: The template form has an optional Title. The template list still shows the name. Duplicating a template prefixes the name and keeps the title ([sitmun-viewer-app#211](https://github.com/sitmun/sitmun-viewer-app/issues/211)).
+- **Layers**: The layers list and the layer form show the linked service protocol beside the service. The value is the service type (`WMS`, `WMTS`, `WFS`, and the other stored codes) and is not saved as the cartography type ([#498](https://github.com/sitmun/sitmun-admin-app/issues/498)).
+- **Layers**: Seeding feature-information fields adds geometry properties to the same parameter list as the other DescribeFeatureType attributes. A geometry row uses the same columns and editors, except its format stays `Geometry` and cannot be changed to a text, number, or date format. One geometry property is the layer geometry. Several default to the last until the administrator chooses. The options cell shows the GML type, that mark, and `preferredGeometryType` only when the GML type is generic Geometry. A specific GML type does not fill `preferredGeometryType`. Opening the form does not mark it dirty. `GEO_GEOMTYPE` is not written. The geometry-property contract is the operator's change on top of [#499](https://github.com/sitmun/sitmun-admin-app/issues/499).
+- **Services / Layers**: The parameter type list follows the service protocol: WMS, GetMap, GetFeatureInfo, viewer tile settings, WFS, and OpenLayers. A stored code outside that set stays visible on the row being edited.
+- **Layers**: The layer form edits fixed service parameters when the service is proxied. The tab is `LAYERS_SERVICE_PARAMETERS_FEATURE` and stays disabled while the service is not proxied ([sitmun-application-stack#90](https://github.com/sitmun/sitmun-application-stack/issues/90)).
+- **Trees**: The folder metadata and dataset hints say the viewer information button appears when a description, a metadata URL, or a dataset URL is set ([sitmun-viewer-app#173](https://github.com/sitmun/sitmun-viewer-app/issues/173)).
+- **Layers**: The feature-information field grid is on the cartography form without the experimental query-layer flag. The value column is the default-language label and can be translated per parameter. `N` and `P` edit fraction digits and padding. `F` chooses date or date and time, with a preview in the administrator language. A WFS DescribeFeatureType request seeds top-level element names ([sitmun-application-stack#77](https://github.com/sitmun/sitmun-application-stack/issues/77)).
+
+### Changed
+
+- **Language**: Portuguese includes the keys added after the `pt-PT` file landed. Every language file drops keys that no screen uses. `i18n-parity.spec.ts` requires each language file to match the English keys and to contain no empty value.
+- **Layers**: Format `Geometry`, the geometry kind, and the preferred geometry type show the code-list description for the current language. A missing format code stays empty. A missing kind or preferred type shows the stored code.
+- **Dependencies**: Node.js `24.22.0` (engines `^24.22.0 || ^26.0.0`), Angular `22.2.3`, and AG Grid Community `32.3.9`.
+
+### Fixed
+
+- **Data grid**: The filter button and the header selection checkbox have a translated accessible name in every language.
+- **Layers**: A feature layer accepts one type name. A map-image layer still accepts a comma-separated list ([#157](https://github.com/sitmun/sitmun/issues/157)).
+- **Layers**: A feature-service form says feature type for the members of the service, the query sentence, both scale hints, the dataset and metadata addresses, and the order hint. A map-image form still says layer ([#162](https://github.com/sitmun/sitmun/issues/162)).
+- **Trees**: A folder hint says that only the first metadata link is stored, and that only the first dataset link is stored ([#162](https://github.com/sitmun/sitmun/issues/162)).
+- **Trees**: The GetFeatureInfo filter is labeled as the feature-information filter, and the GetMap filter is labeled as the map filter ([#491](https://github.com/sitmun/sitmun-admin-app/issues/491)).
+- **Trees**: Accepting a name or description translation on a saved node marks the form dirty and sends the node update ([#504](https://github.com/sitmun/sitmun-admin-app/issues/504)).
+- **Trees**: Loading layers from a service attaches the cartography of that service when two services share a layer name ([#227](https://github.com/sitmun/sitmun-admin-app/issues/227)).
+- **More Info Advanced**: A child task mapping stores the query parameter name. The option text stays the label ([#506](https://github.com/sitmun/sitmun-admin-app/issues/506)).
+- **Services**: GetCapabilities trims surrounding spaces from the service URL and keeps the trimmed value on the form ([#233](https://github.com/sitmun/sitmun-admin-app/issues/233)).
+- **Layers**: On a WFS cartography, the development-only styles, filters, feature-information, and legend copy says feature type. WMS copy is unchanged ([#492](https://github.com/sitmun/sitmun-admin-app/issues/492)).
+- **Layers**: Loading feature properties marks a field as geometry only when the service types it as a GML geometry. A field named `geometry`, `geom`, `the_geom`, or `shape` with another type stays an ordinary field. Properties declared on parent types and in included or imported schemas are loaded, so INSPIRE `RoadLink` lists `centrelineGeometry`. When a WFS 1.1.0 description is unusable, the request is retried as WFS 2.0.0 ([#509](https://github.com/sitmun/sitmun-admin-app/issues/509)).
+- **Languages**: Set as Default no longer stays disabled after open. Default-language lookups use a single `/api/` slash so Spring Security 7 accepts `findByName`.
+- **Grids**: AG Grid 32 registers `CommunityFeaturesModule` so text/select cell editors mount. Date columns use the Instant-safe `datePicker` editor with `cellDataType: false` so Positions Alta/Baja edit no longer throws in `DateStringCellEditor`.
+- **Tests**: Jest specs match Angular 22 realities (`ng-reflect-*` opt-in, HostListener rename, `@if (; as)` syntax, jsdom Location, FileReader under Node 24) and use a 30s default timeout.
+- **Layers**: An Image feature-information field stores max width and max height in its options. The picture address stays unchanged.
+- **Layers**: Image options label max width and max height. An empty value stays unset, so the viewer sizes the picture automatically.
+- **Templates**: Roles and Territories assigned on the template, document-export, and map-image task forms persist after save ([#467](https://github.com/sitmun/sitmun-admin-app/issues/467)).
+
+### Removed
+
+- **Tooling**: SonarCloud wiring is removed. `pnpm run sonar`, `jest-sonar`, and `sonar-scanner` are gone. Coverage still writes `coverage/admin-app/lcov.info`.
+
 ## [1.2.9] - 2026-09-19
 
 ### Added
@@ -52,6 +98,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Layers**: The feature-information field grid is on the cartography form without the experimental query-layer flag. The value column is the default-language label and can be translated per parameter. `N` and `P` edit fraction digits and padding. `F` chooses date or date and time, with a preview in the administrator language. A WFS DescribeFeatureType request seeds top-level element names ([sitmun-application-stack#77](https://github.com/sitmun/sitmun-application-stack/issues/77)).
 - **Templates**: Form tabs Details / Template / Sources with preview toggle and resizable sash; insert-from-Sources focuses Template.
 - **Templates**: Bound-table **R** chip and table-only Reference rebind (orphan aliases stay visible); inline `{{…}}` code chips in the visual editor.
 
@@ -400,7 +447,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Various bug fixes and improvements from development phase
 
-[Unreleased]: https://github.com/sitmun/sitmun-admin-app/compare/sitmun-admin-app/1.2.9...HEAD
+[Unreleased]: https://github.com/sitmun/sitmun/compare/v1.3.0...HEAD
+[1.3.0]: https://github.com/sitmun/sitmun/compare/legacy/sitmun-admin-app/sitmun-admin-app/1.2.9...v1.3.0
 [1.2.9]: https://github.com/sitmun/sitmun-admin-app/compare/sitmun-admin-app/1.2.8...sitmun-admin-app/1.2.9
 [1.2.8]: https://github.com/sitmun/sitmun-admin-app/compare/sitmun-admin-app/1.2.7...sitmun-admin-app/1.2.8
 [1.2.7]: https://github.com/sitmun/sitmun-admin-app/compare/sitmun-admin-app/1.2.6...sitmun-admin-app/1.2.7

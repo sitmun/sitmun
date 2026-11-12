@@ -18,18 +18,7 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-/**
- * User position in a territory.
- *
- * <p>This entity represents a user's role or position within a specific territory. It includes: -
- * Basic position information (name, organization) - Contact details (email) - Temporal information
- * (creation, modification, expiration dates) - Type classification - Relationships with User and
- * Territory entities
- *
- * <p>The position is identified by its primary key. A user may hold multiple positions in the same
- * territory. When either the user or territory is deleted, the position is automatically removed
- * (cascade delete).
- */
+/** A user may hold multiple positions in the same territory. */
 @Entity
 @EntityListeners(AuditingEntityListener.class)
 @Table(name = "STM_POST")
@@ -50,7 +39,7 @@ public class UserPosition {
       allocationSize = 1)
   @Id
   @GeneratedValue(strategy = GenerationType.TABLE, generator = "STM_POST_GEN")
-  @Column(name = "POS_ID")
+  @Column(name = "POS_ID", nullable = false)
   private Integer id;
 
   /** Position description. */
@@ -89,14 +78,14 @@ public class UserPosition {
   private String type;
 
   /** User. */
-  @ManyToOne
+  @ManyToOne(optional = false)
   @OnDelete(action = OnDeleteAction.CASCADE)
   @JoinColumn(name = "POS_USERID", foreignKey = @ForeignKey(name = "STM_POS_FK_USE"))
   @NotNull
   private User user;
 
   /** Territory. */
-  @ManyToOne
+  @ManyToOne(optional = false)
   @OnDelete(action = OnDeleteAction.CASCADE)
   @JoinColumn(name = "POS_TERID", foreignKey = @ForeignKey(name = "STM_POS_FK_TER"))
   @NotNull

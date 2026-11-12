@@ -22,7 +22,6 @@ import org.sitmun.infrastructure.config.SystemVariableProperties;
 import org.sitmun.infrastructure.persistence.type.envelope.Envelope;
 import org.springframework.context.i18n.LocaleContextHolder;
 
-/** Tests for SystemVariableResolver ensuring proper SpEL-based variable resolution. */
 class SystemVariableResolverTest {
 
   private static final Instant FIXED_INSTANT = Instant.parse("2026-09-13T16:54:00Z");
@@ -202,13 +201,11 @@ class SystemVariableResolverTest {
   }
 
   @Test
-  void resolve_withAccessToNullEntity_returnsEmptyString() {
+  void resolve_withAccessToNullEntity_keepsPlaceholder() {
     String template = "App ID: #{APP_ID}";
 
     String result = resolver.resolve(template, coords(user, territory, null));
 
-    // Since application is null, SpEL evaluation will fail gracefully
-    // and return the placeholder unchanged
     assertThat(result).isEqualTo("App ID: #{APP_ID}");
   }
 
@@ -286,7 +283,7 @@ class SystemVariableResolverTest {
   }
 
   @Test
-  void resolve_sqlInjectionInVariable_isHandledSafely() {
+  void resolve_sqlInjectionInVariable_substitutesVerbatim() {
     // Even if territory code contains SQL injection attempt, it's just a string substitution
     when(territory.getCode()).thenReturn("'; DROP TABLE users; --");
 

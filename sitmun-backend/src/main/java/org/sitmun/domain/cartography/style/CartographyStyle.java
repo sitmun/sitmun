@@ -3,16 +3,22 @@ package org.sitmun.domain.cartography.style;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import java.util.Objects;
 import lombok.*;
-import org.hibernate.annotations.OnDelete;
-import org.hibernate.annotations.OnDeleteAction;
 import org.sitmun.domain.PersistenceConstants;
+import org.sitmun.domain.StoredFlagListener;
 import org.sitmun.domain.cartography.Cartography;
 
 /** Geographic Information style. */
 @Entity
-@Table(name = "STM_STY_GI")
+@EntityListeners(StoredFlagListener.class)
+@Table(
+    name = "STM_STY_GI",
+    uniqueConstraints =
+        @UniqueConstraint(
+            name = "STM_SGI_UK",
+            columnNames = {"SGI_GIID", "SGI_NAME"}))
 @Builder
 @Getter
 @Setter
@@ -30,16 +36,18 @@ public class CartographyStyle {
       allocationSize = 1)
   @Id
   @GeneratedValue(strategy = GenerationType.TABLE, generator = "STM_STY_GI_GEN")
-  @Column(name = "SGI_ID")
+  @Column(name = "SGI_ID", nullable = false)
   private Integer id;
 
   /** Style name. */
-  @Column(name = "SGI_NAME", length = PersistenceConstants.IDENTIFIER)
+  @Column(name = "SGI_NAME", length = 80, nullable = false)
+  @Size(max = 80)
   @NotBlank
   private String name;
 
   /** Style title. */
-  @Column(name = "SGI_TITLE", length = PersistenceConstants.TITLE)
+  @Column(name = "SGI_TITLE", length = PersistenceConstants.SHORT_DESCRIPTION)
+  @Size(max = PersistenceConstants.SHORT_DESCRIPTION)
   private String title;
 
   /** Style abstract. */
@@ -51,7 +59,9 @@ public class CartographyStyle {
   @AttributeOverride(name = "width", column = @Column(name = "SGI_LURL_WIDTH"))
   @AttributeOverride(name = "height", column = @Column(name = "SGI_LURL_HEIGHT"))
   @AttributeOverride(name = "format", column = @Column(name = "SGI_LURL_FORMAT"))
-  @AttributeOverride(name = "onlineResource", column = @Column(name = "SGI_LURL_URL"))
+  @AttributeOverride(
+      name = "onlineResource",
+      column = @Column(name = "SGI_LURL_URL", length = PersistenceConstants.URL))
   private LegendURL legendURL;
 
   /**
@@ -59,15 +69,13 @@ public class CartographyStyle {
    *
    * <p>If more than one is set as preferred, the behaviour is undefined.
    */
-  @Column(name = "SGI_DEFAULT")
+  @Column(name = "SGI_DEFAULT", nullable = false)
   @NotNull
   private Boolean defaultStyle;
 
   /** Cartography that owns the style. */
   @ManyToOne(fetch = FetchType.LAZY)
-  @OnDelete(action = OnDeleteAction.CASCADE)
   @JoinColumn(name = "SGI_GIID", foreignKey = @ForeignKey(name = "STM_SGI_FK_GEO"))
-  @NotNull
   private Cartography cartography;
 
   @Override

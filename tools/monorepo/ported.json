@@ -1,7 +1,7 @@
 {
   "sitmun-backend-core": {
     "main": "6e1498f3de7117cd3c75a79b99c39368149f9adf",
-    "dev": "3188805c550d0015b2ecb9e51a72415d5470a122"
+    "dev": "747461c4c481ffe3b1e418f010bc984285717399"
   },
   "sitmun-proxy-middleware": {
     "main": "a95e8cc279e9a5c720614d79865e6ebbfd4b916d",
@@ -13,7 +13,7 @@
   },
   "sitmun-viewer-app": {
     "main": "32c7b08591bf7613c87e64143896c5db07b2a435",
-    "dev": "c284c17fdeebe375aff2d6d07580557fe7bbb636"
+    "dev": "ac8711098a9ab1f7f9c762d01d59a8fa6486fb80"
   },
   "sitmun-mbtiles": {
     "main": "51b650cd6d74295a8eb66f2079fd2d204216ea0e",
@@ -33,6 +33,6 @@
   },
   "sitmun-application-stack": {
     "main": "a27770010f85f459d54518b075889624e19187b8",
-    "dev": "8b1a6183d5d3cbc724eb673c9bdf445fbffcad25"
+    "dev": "8cbc458c72b805a88401536e428185ef1ffd149b"
   }
 }

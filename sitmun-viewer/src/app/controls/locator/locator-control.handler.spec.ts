@@ -2,7 +2,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 
-import { AppCfg } from '@api/model/app-cfg';
+import type { AppCfg } from '@api/model/app-cfg';
 
 import { LocatorControlHandler } from './locator-control.handler';
 import { prototypeWrappers } from './locator-control.logic';
@@ -106,6 +106,21 @@ describe('LocatorControlHandler', () => {
   describe('sitnaConfigKey', () => {
     it('should use locator config key', () => {
       expect(handler.sitnaConfigKey).toBe('locator');
+    });
+  });
+
+  describe('buildConfiguration()', () => {
+    it('places the control in its slot and leaves search parameters on the task', () => {
+      const config = handler.buildConfiguration(
+        {
+          id: 'task/41',
+          'ui-control': 'sitmun.locator',
+          parameters: { labelField: 'name', resultsPath: 'features' }
+        } as any,
+        mockAppCfg
+      );
+
+      expect(config).toEqual({ div: 'tc-slot-locator' });
     });
   });
 

@@ -12,8 +12,8 @@ import org.junit.jupiter.api.Test;
 import org.sitmun.test.URIConstants;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.test.web.servlet.MockMvc;
 
 @SpringBootTest
@@ -29,7 +29,7 @@ class ClientConfigurationApplicationTerritoryControllerTest {
   @Test
   @DisplayName("GET: Page with public user")
   void readPublicUser() throws Exception {
-    mvc.perform(get(URIConstants.CONFIG_CLIENT_APPLICATION_TERRITORIES_URI, 1))
+    mvc.perform(get(URIConstants.CONFIG_CLIENT_APPLICATION_TERRITORIES_URI, 10001))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.content", hasSize(3)))
         .andExpect(jsonPath("$.content[*].name", hasItem("Municipio B")));
@@ -39,7 +39,8 @@ class ClientConfigurationApplicationTerritoryControllerTest {
   @DisplayName("GET: Page with authenticated user")
   void readOtherUser() throws Exception {
     mvc.perform(
-            get(URIConstants.CONFIG_CLIENT_APPLICATION_TERRITORIES_URI, 1).with(user("internal")))
+            get(URIConstants.CONFIG_CLIENT_APPLICATION_TERRITORIES_URI, 10001)
+                .with(user("internal")))
         .andDo(print())
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.content", hasSize(3)))
@@ -53,7 +54,8 @@ class ClientConfigurationApplicationTerritoryControllerTest {
   @DisplayName("GET: Territories in an application are sorted in alphabetic order")
   void territoriesAreInAlphabeticOrder() throws Exception {
     mvc.perform(
-            get(URIConstants.CONFIG_CLIENT_APPLICATION_TERRITORIES_URI, 1).with(user("internal")))
+            get(URIConstants.CONFIG_CLIENT_APPLICATION_TERRITORIES_URI, 10001)
+                .with(user("internal")))
         .andExpect(status().isOk())
         .andExpect(
             jsonPath(
@@ -65,7 +67,7 @@ class ClientConfigurationApplicationTerritoryControllerTest {
   @DisplayName("GET: Get specific page")
   void readOtherUserWithPagination() throws Exception {
     mvc.perform(
-            get(URIConstants.CONFIG_CLIENT_APPLICATION_TERRITORIES_URI + "?size=1&page=1", 1)
+            get(URIConstants.CONFIG_CLIENT_APPLICATION_TERRITORIES_URI + "?size=1&page=1", 10001)
                 .with(user("internal")))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.content", hasSize(1)))
@@ -79,7 +81,7 @@ class ClientConfigurationApplicationTerritoryControllerTest {
   @DisplayName("GET: Request out of bounds")
   void readOtherUserWithPaginationOutOfBounds() throws Exception {
     mvc.perform(
-            get(URIConstants.CONFIG_CLIENT_APPLICATION_TERRITORIES_URI + "?size=1&page=5", 1)
+            get(URIConstants.CONFIG_CLIENT_APPLICATION_TERRITORIES_URI + "?size=1&page=5", 10001)
                 .with(user("internal")))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.content").isEmpty())

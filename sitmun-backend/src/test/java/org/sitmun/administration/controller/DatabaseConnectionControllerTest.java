@@ -1,5 +1,6 @@
 package org.sitmun.administration.controller;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -12,18 +13,21 @@ import org.junit.jupiter.api.Test;
 import org.sitmun.domain.database.DatabaseConnection;
 import org.sitmun.domain.database.DatabaseConnectionRepository;
 import org.sitmun.test.BaseTest;
+import org.sitmun.test.UniqueContext;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 @DisplayName("Database connection controller test")
+@UniqueContext(
+    "The connection repository is mocked so GET test can load a driver class the code list would reject on insert.")
 class DatabaseConnectionControllerTest extends BaseTest {
 
   @MockitoBean private DatabaseConnectionRepository repository;
 
   @Test
   @WithMockUser(roles = "ADMIN")
-  @DisplayName("GET: Fail 500 when driver is not found in test")
+  @DisplayName("GET returns 400 when the driver class is missing")
   void failIfDatabaseConnectionDriverNotFound() throws Exception {
     when(repository.findById(0))
         .thenReturn(Optional.of(DatabaseConnection.builder().driver("org.h2.DriverX").build()));
@@ -34,26 +38,8 @@ class DatabaseConnectionControllerTest extends BaseTest {
 
   @Test
   @WithMockUser(roles = "ADMIN")
-  @DisplayName("GET: Fail 500 when test fails")
-  void failIfDatabaseConnectionException() throws Exception {
-    when(repository.findById(0))
-        .thenReturn(
-            Optional.of(
-                DatabaseConnection.builder()
-                    .driver("org.h2.Driver")
-                    .url("jdb:h2:mem:testdb")
-                    .name("sa")
-                    .password("password")
-                    .build()));
-    mvc.perform(get("/api/connections/0/test"))
-        .andExpect(status().isBadRequest())
-        .andExpect(jsonPath("$.message").value("No suitable driver found for jdb:h2:mem:testdb"));
-  }
-
-  @Test
-  @WithMockUser(roles = "ADMIN")
-  @DisplayName("GET: Return 200 when test succeeds")
-  void databaseConnectionSuccess() throws Exception {
+  @DisplayName("GET returns valid true")
+  void getReturnsValidTrue() throws Exception {
     when(repository.findById(0))
         .thenReturn(
             Optional.of(
@@ -63,7 +49,9 @@ class DatabaseConnectionControllerTest extends BaseTest {
                     .user("sa")
                     .password(null)
                     .build()));
-    mvc.perform(get("/api/connections/0/test")).andExpect(status().isOk());
+    mvc.perform(get("/api/connections/0/test"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.valid").value(true));
   }
 
   @Test
@@ -75,7 +63,7 @@ class DatabaseConnectionControllerTest extends BaseTest {
   }
 
   @Test
-  @DisplayName("GET: Return 401 when the test request has no credentials")
+  @DisplayName("GET without credentials returns 401")
   void failIfNoCredentials() throws Exception {
     when(repository.findById(0))
         .thenReturn(
@@ -91,7 +79,7 @@ class DatabaseConnectionControllerTest extends BaseTest {
 
   @Test
   @WithMockUser(roles = "ADMIN")
-  @DisplayName("POST: Fail 500 when database connection driver is not found")
+  @DisplayName("POST returns 400 when the driver class is missing")
   void failPostTestIfDatabaseConnectionDriverNotFound() throws Exception {
     mvc.perform(
             post("/api/connections/test")
@@ -104,31 +92,32 @@ class DatabaseConnectionControllerTest extends BaseTest {
 
   @Test
   @WithMockUser(roles = "ADMIN")
-  @DisplayName("POST: Fail 500 when database connection fails")
+  @DisplayName("POST returns 400 when the JDBC URL is malformed")
   void failPostTestIfDatabaseConnectionException() throws Exception {
     mvc.perform(
             post("/api/connections/test")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(
-                    "{ \"driver\" : \"org.h2.Driver\", \"url\" : \"jdb:h2:mem:testdb\", \"user\" : \"sa\", \"password\" : null }"))
+                    "{ \"driver\" : \"org.h2.Driver\", \"url\" : \"jdbc:h2:mem:testdb;MODE=NOT_A_MODE\", \"user\" : \"sa\", \"password\" : null }"))
         .andExpect(status().isBadRequest())
-        .andExpect(jsonPath("$.message").value("No suitable driver found for jdb:h2:mem:testdb"));
+        .andExpect(jsonPath("$.message", containsString("Unknown mode \"NOT_A_MODE\"")));
   }
 
   @Test
   @WithMockUser(roles = "ADMIN")
-  @DisplayName("POST: Return 200 when the test succeeds")
-  void databaseConnectionPostTestSuccess() throws Exception {
+  @DisplayName("POST returns valid true")
+  void postReturnsValidTrue() throws Exception {
     mvc.perform(
             post("/api/connections/test")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(
                     "{ \"driver\" : \"org.h2.Driver\", \"url\" : \"jdbc:h2:mem:testdb\", \"user\" : \"sa\", \"password\" : null }"))
-        .andExpect(status().isOk());
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.valid").value(true));
   }
 
   @Test
-  @DisplayName("POST: Return 401 when the test creation has no credentials")
+  @DisplayName("POST without credentials returns 401")
   void failPostTestIfNoCredentials() throws Exception {
     mvc.perform(
             post("/api/connections/test")

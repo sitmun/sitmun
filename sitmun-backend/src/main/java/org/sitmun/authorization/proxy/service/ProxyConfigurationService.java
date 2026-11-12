@@ -17,10 +17,17 @@ import org.sitmun.authorization.proxy.dto.ConfigProxyRequestDto;
 import org.sitmun.authorization.proxy.dto.HttpSecurityDto;
 import org.sitmun.authorization.proxy.dto.PayloadDto;
 import org.sitmun.authorization.proxy.exception.BadRequestException;
+import org.sitmun.authorization.proxy.ogc.OgcRequestNames;
+import org.sitmun.authorization.proxy.parameter.NamedParameter;
+import org.sitmun.authorization.proxy.parameter.ParameterScopes;
 import org.sitmun.authorization.proxy.protocols.jdbc.JdbcPayloadDto;
 import org.sitmun.authorization.proxy.protocols.wms.WmsPayloadDto;
+import org.sitmun.authorization.proxy.sql.BoundSql;
+import org.sitmun.authorization.proxy.sql.SqlTaskBinder;
 import org.sitmun.authorization.proxy.validator.ResourceAccessValidator;
 import org.sitmun.domain.application.ApplicationRepository;
+import org.sitmun.domain.cartography.CartographyRepository;
+import org.sitmun.domain.cartography.parameter.CartographyServiceParameterRepository;
 import org.sitmun.domain.database.DatabaseConnection;
 import org.sitmun.domain.service.Service;
 import org.sitmun.domain.service.ServiceRepository;
@@ -33,6 +40,7 @@ import org.sitmun.domain.task.parameter.TaskParameterProcessor;
 import org.sitmun.domain.territory.TerritoryRepository;
 import org.sitmun.domain.user.UserRepository;
 import org.sitmun.infrastructure.variables.SystemVariableResolver;
+import org.sitmun.proxy.contract.JdbcBindings;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.util.StringUtils;
 
@@ -77,11 +85,20 @@ public class ProxyConfigurationService {
 
   private final UserApplicationAccessPolicy userApplicationAccessPolicy;
 
+  private final CartographyRepository cartographyRepository;
+
+  private final CartographyServiceParameterRepository cartographyServiceParameterRepository;
+
+  private final SqlTaskBinder sqlTaskBinder;
+
   @Value("${sitmun.proxy-middleware.config-response-validity-in-seconds:3600}")
   private int responseValidityTime;
 
-  @Value("${sitmun.proxy-middleware.validate-user-access:true}")
-  private boolean validateUserAccessEnabled;
+  @Value("${sitmun.jdbc.max-rows:1000}")
+  private int jdbcMaxRows = JdbcBindings.DEFAULT_MAX_ROWS;
+
+  @Value("${sitmun.jdbc.query-timeout-seconds:60}")
+  private int jdbcQueryTimeoutSeconds = JdbcBindings.DEFAULT_TIMEOUT_SECONDS;
 
   public ProxyConfigurationService(
       ServiceRepository serviceRepository,
@@ -96,7 +113,9 @@ public class ProxyConfigurationService {
       SystemVariableResolver systemVariableResolver,
       MoreInfoTaskResolver moreInfoTaskResolver,
       TaskParameterProcessor taskParameterProcessor,
-      UserApplicationAccessPolicy userApplicationAccessPolicy) {
+      UserApplicationAccessPolicy userApplicationAccessPolicy,
+      CartographyRepository cartographyRepository,
+      CartographyServiceParameterRepository cartographyServiceParameterRepository) {
     this.serviceRepository = serviceRepository;
     this.taskRepository = taskRepository;
     this.userRepository = userRepository;
@@ -110,6 +129,9 @@ public class ProxyConfigurationService {
     this.moreInfoTaskResolver = moreInfoTaskResolver;
     this.taskParameterProcessor = taskParameterProcessor;
     this.userApplicationAccessPolicy = userApplicationAccessPolicy;
+    this.cartographyRepository = cartographyRepository;
+    this.cartographyServiceParameterRepository = cartographyServiceParameterRepository;
+    this.sqlTaskBinder = new SqlTaskBinder(systemVariableResolver);
   }
 
   private WmsPayloadDto getOgcWmsConfiguration(
@@ -132,21 +154,36 @@ public class ProxyConfigurationService {
               .build();
     }
 
-    Map<String, String> parameters = configProxyRequestDto.getParameters();
-    if (parameters == null) {
-      parameters = new HashMap<>();
+    Map<String, String> requestParameters = configProxyRequestDto.getParameters();
+    if (requestParameters == null) {
+      requestParameters = new HashMap<>();
+      configProxyRequestDto.setParameters(requestParameters);
     }
+    final Map<String, String> parameters = requestParameters;
     Set<ServiceParameter> servParams = service.getParameters();
     List<String> varyParameters = new ArrayList<>();
-    for (ServiceParameter parameter : servParams) {
-      if (PARAM_TYPE_VARY.equalsIgnoreCase(parameter.getType())) {
-        varyParameters.add(parameter.getName());
-      } else {
-        final String resolvedValue =
-            systemVariableResolver.resolve(parameter.getValue(), coordinates);
-        parameters.put(parameter.getName(), resolvedValue);
+    List<NamedParameter> serviceRows = new ArrayList<>();
+    if (servParams != null) {
+      for (ServiceParameter parameter : servParams) {
+        ParameterScopes.Rule rule = ParameterScopes.of(service.getType(), parameter.getType());
+        if (rule != null && rule.kind() == ParameterScopes.Kind.CACHE_VARY) {
+          varyParameters.add(parameter.getName());
+        } else {
+          serviceRows.add(
+              new NamedParameter(
+                  parameter.getType(),
+                  parameter.getName(),
+                  systemVariableResolver.resolve(parameter.getValue(), coordinates)));
+        }
       }
     }
+    Map<String, String> fixed =
+        ParameterScopes.fixedParameters(
+            service.getType(),
+            OgcRequestNames.parse(parameters, configProxyRequestDto.getRequestBody()).operation(),
+            serviceRows,
+            layerParameters(service, configProxyRequestDto, coordinates));
+    fixed.forEach((name, value) -> ParameterMaps.put(parameters, name, value));
 
     final String resolvedUrl = systemVariableResolver.resolve(service.getServiceURL(), coordinates);
     WmsPayloadDto ogcPayload =
@@ -166,6 +203,33 @@ public class ProxyConfigurationService {
     return ogcPayload;
   }
 
+  private List<NamedParameter> layerParameters(
+      Service service, ConfigProxyRequestDto request, RequestCoordinates coordinates) {
+    Integer cartographyId = request.getCartographyId();
+    if (cartographyId == null || service.getType() == null || service.getId() == null) {
+      return List.of();
+    }
+    return cartographyRepository
+        .findById(cartographyId)
+        .filter(
+            cartography ->
+                cartography.getService() != null
+                    && service.getId().equals(cartography.getService().getId()))
+        .map(
+            cartography ->
+                cartographyServiceParameterRepository
+                    .findByCartography_Id(cartography.getId())
+                    .stream()
+                    .map(
+                        parameter ->
+                            new NamedParameter(
+                                parameter.getType(),
+                                parameter.getName(),
+                                systemVariableResolver.resolve(parameter.getValue(), coordinates)))
+                    .toList())
+        .orElseGet(List::of);
+  }
+
   private static String getSqlByTask(Task task) {
     String sql = "";
     Map<String, Object> taskParams = task.getProperties();
@@ -183,9 +247,6 @@ public class ProxyConfigurationService {
     DatabaseConnection databaseConnection = task.getConnection();
     String sql = getSqlByTask(task);
 
-    // Resolve system variables (#{}) before sending to proxy
-    sql = systemVariableResolver.resolve(sql, coordinates);
-
     if (databaseConnection == null) {
       return null;
     }
@@ -196,20 +257,20 @@ public class ProxyConfigurationService {
         .password(databaseConnection.getPassword())
         .driver(databaseConnection.getDriver())
         .sql(sql)
+        .maxRows(jdbcMaxRows)
+        .timeoutSeconds(jdbcQueryTimeoutSeconds)
         .build();
   }
 
   private WmsPayloadDto getHttpApiConfiguration(Task task, RequestCoordinates coordinates) {
     final Map<String, Object> taskProps = task.getProperties();
 
-    //  Check for null properties
     if (taskProps == null) {
       return null;
     }
 
     String url = (String) taskProps.get(PROPERTY_COMMAND);
 
-    // Check for null or blank URL
     if (!StringUtils.hasText(url)) {
       return null;
     }
@@ -223,7 +284,6 @@ public class ProxyConfigurationService {
     List<TaskParameter> parameters = taskParameterProcessor.parse(task);
     Map<String, String> backendOnlyParameters =
         taskParameterProcessor.buildEffectiveParameters(parameters, null, coordinates);
-    // Filter to only backend-only (LOCKED + PROVIDED) parameters
     Map<String, String> filteredBackendOnly = new LinkedHashMap<>();
     for (TaskParameter param : parameters) {
       if (taskParameterProcessor.classify(param).isBackendOnly()) {
@@ -261,19 +321,11 @@ public class ProxyConfigurationService {
   /**
    * Validates whether the user may obtain proxy configuration for the requested resource.
    *
-   * <p>When {@code sitmun.proxy-middleware.validate-user-access} is enabled (default), denies
-   * access for blocked user accounts (including the built-in {@code public} user), denies the
-   * public principal on private applications ({@code appPrivate}), then delegates to resource
-   * validators for role and service checks. When validation is disabled, returns {@code true}
-   * without any checks.
+   * <p>Denies a blank username, a blocked account (including the built-in {@code public} user), and
+   * the public principal on a private application. Then delegates to the resource validator for the
+   * request type. An unknown type is denied.
    */
   public boolean validateUserAccess(ConfigProxyRequestDto configProxyRequestDto, String userName) {
-    // Check if validation is enabled via configuration
-    if (!validateUserAccessEnabled) {
-      log.debug("User access validation is disabled via configuration");
-      return true;
-    }
-
     if (userName == null || userName.isBlank()) {
       log.warn("Username is null or blank, denying access");
       return false;
@@ -296,7 +348,6 @@ public class ProxyConfigurationService {
         configProxyRequestDto.getAppId(),
         configProxyRequestDto.getTerId());
 
-    // Find appropriate validator using strategy pattern
     return accessValidators.stream()
         .filter(validator -> validator.supports(resourceType))
         .findFirst()
@@ -398,7 +449,6 @@ public class ProxyConfigurationService {
 
     PayloadDto payload = configProxyDto.getPayload();
 
-    // Wrap client parameters in value object
     ClientRequestParameters clientParams =
         ClientRequestParameters.of(configProxyRequestDto.getParameters());
 
@@ -411,17 +461,21 @@ public class ProxyConfigurationService {
     // processing, to prevent injection of system variable expressions.
     clientParams.rejectSystemVariables(taskParameterProcessor);
 
-    // Strip pagination parameters before filtering
     ClientRequestParameters.PaginationExtractionResult paginationResult =
         clientParams.takePagination();
     Pagination pagination = paginationResult.pagination();
     ClientRequestParameters paramsWithoutPagination = paginationResult.remainingParameters();
 
-    // Update the original request to reflect stripped pagination parameters
     configProxyRequestDto.setParameters(new LinkedHashMap<>(paramsWithoutPagination.asMap()));
 
-    // Parse task parameters and filter/build effective parameters
     List<TaskParameter> taskParameters = getTaskParametersForRequest(configProxyRequestDto);
+
+    boolean sqlTask =
+        TYPE_SQL.equalsIgnoreCase(configProxyRequestDto.getType())
+            && payload instanceof JdbcPayloadDto;
+    if (sqlTask) {
+      rejectUndeclaredSqlKeys(taskParameters, paramsWithoutPagination.asMap());
+    }
 
     ClientRequestParameters filteredClientParameters;
     if (taskParameters.isEmpty()) {
@@ -432,6 +486,17 @@ public class ProxyConfigurationService {
       // For task requests (SQL/API), filter client parameters against client-allowed names
       filteredClientParameters =
           paramsWithoutPagination.filterToAllowed(taskParameters, taskParameterProcessor);
+    }
+
+    if (sqlTask) {
+      JdbcPayloadDto jdbc = (JdbcPayloadDto) payload;
+      BoundSql bound =
+          sqlTaskBinder.bind(
+              jdbc.getSql(), taskParameters, filteredClientParameters.asMap(), coordinates);
+      jdbc.setSql(bound.sql());
+      jdbc.setParameters(bound.parameters());
+      jdbc.setMaxRows(jdbcMaxRows);
+      jdbc.setTimeoutSeconds(jdbcQueryTimeoutSeconds);
     }
 
     // Build effectiveParameters with priority: locked > provided > client > literal > empty
@@ -474,6 +539,19 @@ public class ProxyConfigurationService {
    * Gets the parsed task parameters for the current request. Returns empty list for non-task
    * requests (OGC/WMS services).
    */
+  private void rejectUndeclaredSqlKeys(
+      List<TaskParameter> declared, Map<String, String> clientParameters) {
+    Set<String> names = new HashSet<>();
+    for (TaskParameter parameter : declared) {
+      names.add(parameter.name());
+    }
+    for (String key : clientParameters.keySet()) {
+      if (!names.contains(key)) {
+        throw new BadRequestException("Undeclared parameter '" + key + "'");
+      }
+    }
+  }
+
   private List<TaskParameter> getTaskParametersForRequest(
       ConfigProxyRequestDto configProxyRequestDto) {
     if (!TYPE_SQL.equalsIgnoreCase(configProxyRequestDto.getType())
@@ -498,13 +576,13 @@ public class ProxyConfigurationService {
     httpUserParametrizationDecorator.apply(parameters, payload);
   }
 
-  private void addPagination(String limit, String offset, PayloadDto payload) {
+  private void addPagination(Integer limit, Integer offset, PayloadDto payload) {
     Map<String, String> pagination = new HashMap<>();
-    if (StringUtils.hasText(limit)) {
-      pagination.put(SQL_LIMIT, limit);
+    if (limit != null) {
+      pagination.put(SQL_LIMIT, Integer.toString(limit));
     }
-    if (StringUtils.hasText(offset)) {
-      pagination.put(SQL_OFFSET, offset);
+    if (offset != null) {
+      pagination.put(SQL_OFFSET, Integer.toString(offset));
     }
     queryPaginationDecorator.apply(pagination, payload);
   }

@@ -1,4 +1,4 @@
-import {Component} from '@angular/core';
+import {Component, ChangeDetectionStrategy} from '@angular/core';
 import {UntypedFormControl, UntypedFormGroup, Validators} from '@angular/forms';
 import {MatDialog} from '@angular/material/dialog';
 import {ActivatedRoute, Router} from '@angular/router';
@@ -37,6 +37,7 @@ import {config} from '@config';
     selector: 'app-connection-form',
     templateUrl: './connection-form.component.html',
     styleUrls: ['./connection-form.component.scss'],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class ConnectionFormComponent extends BaseFormComponent<Connection> {
@@ -46,10 +47,8 @@ export class ConnectionFormComponent extends BaseFormComponent<Connection> {
   readonly config = Configuration.CONNECTION;
   readonly tasksTable: DataTableDefinition<TaskProjection, TaskProjection>
 
-  /** Flag indicating if the password is set */
   passwordSet = false;
 
-  /** Flag indicating if the password is being edited */
   isPasswordBeingEdited = false;
 
   /** True after the user changes the password field during the current focus session. */
@@ -106,14 +105,14 @@ export class ConnectionFormComponent extends BaseFormComponent<Connection> {
     }
     this.resetPasswordFieldState();
     this.entityForm = new UntypedFormGroup({
-      name: new UntypedFormControl(this.entityToEdit.name, [Validators.required]),
-      driver: new UntypedFormControl(this.entityToEdit.driver, [Validators.required]),
-      user: new UntypedFormControl(this.entityToEdit.user),
+      name: new UntypedFormControl(this.entityToEdit.name, [Validators.required, Validators.maxLength(80)]),
+      driver: new UntypedFormControl(this.entityToEdit.driver, [Validators.maxLength(50), Validators.required]),
+      user: new UntypedFormControl(this.entityToEdit.user, [Validators.maxLength(50)]),
       newPassword: new UntypedFormControl(
         this.passwordSet ? ConnectionFormComponent.PASSWORD_PLACEHOLDER : '',
         []
       ),
-      url: new UntypedFormControl(this.entityToEdit.url, [Validators.required]),
+      url: new UntypedFormControl(this.entityToEdit.url, [Validators.maxLength(250)]),
     });
   }
 

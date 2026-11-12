@@ -2,7 +2,7 @@
 import { readFileSync } from 'fs';
 import { join } from 'path';
 
-import { provideHttpClient } from '@angular/common/http';
+import { HttpErrorResponse, provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
@@ -10,10 +10,12 @@ import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { RouterModule } from '@angular/router';
 
-import {TranslateLoader, TranslateModule} from '@ngx-translate/core';
-import {of} from 'rxjs';
+import { TranslateLoader, TranslatePipe, provideTranslateService } from '@ngx-translate/core';
+import {of, throwError} from 'rxjs';
 
+import {CardLeadComponent} from '@app/components/shared/card-lead/card-lead.component';
 import {EntityFormAlertsComponent} from '@app/components/shared/entity-form-alerts/entity-form-alerts.component';
+import {ExternalUrlLinkComponent} from '@app/components/shared/external-url-link/external-url-link.component';
 import {FormToolbarComponent} from '@app/components/shared/form-toolbar/form-toolbar.component';
 import { ExternalConfigurationService } from '@app/core/config/external-configuration.service';
 import { FeatureFlagComponent } from '@app/core/features/feature-flag.component';
@@ -26,6 +28,7 @@ import {
   CartographyFilterService,
   CartographyGroupService,
   CartographyParameterService,
+  CartographyServiceParameterService,
   CartographyProjection,
   CartographyService,
   CartographySpatialSelectionParameterService,
@@ -39,12 +42,24 @@ import {
   TranslationService,
   TreeNodeService
 , CartographyGroupProjection } from '@app/domain';
+import { CartographyParameter, persistedCartographyParameter } from '@app/domain/cartography/models/cartography-parameter.model';
 import { SitmunFrontendGuiModule } from '@app/frontend-gui/src/lib/public_api';
 import { MaterialModule } from '@app/material-module';
 import {LoggerService} from '@app/services/logger.service';
 import {configureLoggerForTests, provideErrorHandlerForTests} from '@app/testing/test-helpers';
 import {constants} from '@environments/constants';
 
+import { previewFeatureInfoFormat } from './feature-info-preview';
+import {
+  NETWORK_SCHEMA,
+  NETWORK_SCHEMA_URL,
+  ROAD_LINK_DESCRIBE,
+  ROAD_LINK_DESCRIBE_URL,
+  ROAD_SCHEMA,
+  ROAD_SCHEMA_URL,
+  TRANSPORT_SCHEMA,
+  TRANSPORT_SCHEMA_URL
+} from './feature-type-schemas.fixture';
 import { LayersFormComponent } from './layers-form.component';
 
 const layersFormTemplate = readFileSync(join(__dirname, 'layers-form.component.html'), 'utf8');
@@ -53,22 +68,8 @@ describe('LayersFormComponent', () => {
   let component: LayersFormComponent;
   let fixture: ComponentFixture<LayersFormComponent>;
   let cartographyService: CartographyService;
-  let serviceService: ServiceService;
-  let connectionService: ConnectionService;
-  let codeListService: CodeListService;
-  let cartographyGroupService: CartographyGroupService;
-  let territoryTypeService: TerritoryTypeService;
-  let treeNodeService: TreeNodeService;
-  let territoryService: TerritoryService;
+
   let getInfoService: GetInfoService;
-  let cartographyAvailabilityService: CartographyAvailabilityService;
-  let cartographyParameterService: CartographyParameterService;
-  let cartographySpatialSelectionParameterService: CartographySpatialSelectionParameterService;
-  let cartographyFilterService: CartographyFilterService;
-  let cartographyStyleService: CartographyStyleService;
-  let translationService: TranslationService;
-  let resourceService: ResourceService;
-  let externalService: ExternalService;
 
   beforeAll(async () => {
      
@@ -77,21 +78,23 @@ describe('LayersFormComponent', () => {
       declarations: [
         LayersFormComponent,
         FormToolbarComponent,
+        ExternalUrlLinkComponent,
         FeatureFlagDirective,
         FeatureFlagComponent,
         FeatureFlagPipe
       ],
-      imports: [FormsModule, ReactiveFormsModule, RouterModule.forRoot([], {}), SitmunFrontendGuiModule, EntityFormAlertsComponent,
+      imports: [FormsModule, ReactiveFormsModule, RouterModule.forRoot([], {}), SitmunFrontendGuiModule, EntityFormAlertsComponent, CardLeadComponent,
         MaterialModule, RouterModule, MatIconTestingModule, BrowserAnimationsModule,
-        TranslateModule.forRoot({
+        TranslatePipe],
+      providers: [
+      provideTranslateService({
           loader: {
             provide: TranslateLoader,
             useFactory: () => ({
               getTranslation: () => of({})
             })
           }
-        })],
-      providers: [
+        }),
         provideHttpClient(),
         provideHttpClientTesting(),
         provideErrorHandlerForTests(),
@@ -107,6 +110,7 @@ describe('LayersFormComponent', () => {
         CartographyGroupService,
         CartographyAvailabilityService,
         CartographyParameterService,
+        CartographyServiceParameterService,
         CartographySpatialSelectionParameterService,
         CodeListService,
         CartographyFilterService,
@@ -126,23 +130,14 @@ describe('LayersFormComponent', () => {
     const loggerService = TestBed.inject(LoggerService);
     configureLoggerForTests(loggerService);
     cartographyService = TestBed.inject(CartographyService);
-    serviceService = TestBed.inject(ServiceService);
-    connectionService = TestBed.inject(ConnectionService);
-    codeListService = TestBed.inject(CodeListService);
-    cartographyGroupService = TestBed.inject(CartographyGroupService);
-    territoryTypeService = TestBed.inject(TerritoryTypeService);
-    treeNodeService = TestBed.inject(TreeNodeService);
-    territoryService = TestBed.inject(TerritoryService);
+
     getInfoService = TestBed.inject(GetInfoService);
-    cartographyAvailabilityService = TestBed.inject(CartographyAvailabilityService);
-    cartographyParameterService = TestBed.inject(CartographyParameterService);
-    cartographySpatialSelectionParameterService = TestBed.inject(CartographySpatialSelectionParameterService);
-    cartographyFilterService = TestBed.inject(CartographyFilterService);
-    cartographyStyleService = TestBed.inject(CartographyStyleService);
-    translationService = TestBed.inject(TranslationService);
-    resourceService = TestBed.inject(ResourceService);
-    externalService = TestBed.inject(ExternalService);
+
     // Initialize form before detectChanges to prevent afterFetch from failing
+    const codeLists = (component as unknown as {codelists: Map<string, unknown[]>}).codelists;
+    codeLists.set('cartographyParameter.format', []);
+    codeLists.set('cartographyParameter.geometryKind', []);
+    codeLists.set('cartographyParameter.preferredGeometryType', []);
     component.entityToEdit = component.empty();
     component.postFetchData();
     fixture.detectChanges();
@@ -151,89 +146,19 @@ describe('LayersFormComponent', () => {
   afterEach(() => fixture?.destroy());
   afterAll(() => TestBed.resetTestingModule());
 
-  it('should create', () => {
-    expect(component).toBeTruthy();
-  });
+  
 
-  it('should instantiate cartographyService', () => {
-    expect(cartographyService).toBeTruthy();
-  });
-
-  it('should instantiate serviceService', () => {
-    expect(serviceService).toBeTruthy();
-  });
-
-  it('should instantiate connectionService', () => {
-    expect(connectionService).toBeTruthy();
-  });
-
-  it('should instantiate codeListService', () => {
-    expect(codeListService).toBeTruthy();
-  });
-
-  it('should instantiate cartographyGroupService', () => {
-    expect(cartographyGroupService).toBeTruthy();
-  });
-
-  it('should instantiate territoryTypeService', () => {
-    expect(territoryTypeService).toBeTruthy();
-  });
-
-  it('should instantiate treeNodeService', () => {
-    expect(treeNodeService).toBeTruthy();
-  });
-
-  it('should instantiate territoryService', () => {
-    expect(territoryService).toBeTruthy();
-  });
-
-  it('should instantiate getInfoService', () => {
-    expect(getInfoService).toBeTruthy();
-  });
-
-  it('should instantiate cartographyAvailabilityService', () => {
-    expect(cartographyAvailabilityService).toBeTruthy();
-  });
-
-  it('should instantiate cartographyParameterService', () => {
-    expect(cartographyParameterService).toBeTruthy();
-  });
-
-  it('should instantiate cartographySpatialSelectionParameterService', () => {
-    expect(cartographySpatialSelectionParameterService).toBeTruthy();
-  });
-
-  it('should instantiate cartographyFilterService', () => {
-    expect(cartographyFilterService).toBeTruthy();
-  });
-
-  it('should instantiate cartographyStyleService', () => {
-    expect(cartographyStyleService).toBeTruthy();
-  });
-
-  it('should instantiate translationService', () => {
-    expect(translationService).toBeTruthy();
-  });
-
-  it('should instantiate resourceService', () => {
-    expect(resourceService).toBeTruthy();
-  });
-
-  it('should instantiate externalService', () => {
-    expect(externalService).toBeTruthy();
-  });
-
-  it('form invalid when empty', () => {
-    // Initialize form if not already initialized
+  it('requires a name, a service, and a layer list', () => {
     if (!component.entityForm) {
       component.entityToEdit = component.empty();
       component.postFetchData();
     }
-    expect(component.entityForm.valid).toBeFalsy();
+    expect(component.entityForm.get('name')?.hasError('required')).toBe(true);
+    expect(component.entityForm.get('serviceId')?.hasError('required')).toBe(true);
+    expect(component.entityForm.get('joinedLayers')?.hasError('required')).toBe(true);
   });
 
-  it('form invalid when mid-empty', () => {
-    // Initialize form if not already initialized
+  it('requires a name', () => {
     if (!component.entityForm) {
       component.entityToEdit = component.empty();
       component.postFetchData();
@@ -263,13 +188,11 @@ describe('LayersFormComponent', () => {
       spatialSelectionServiceId: 1,
       joinedSelectableLayers: 'layerSelected',
       useAllStyles: true,
-    })
-    //Miss name
-    expect(component.entityForm.valid).toBeFalsy();
+    });
+    expect(component.entityForm.get('name')?.hasError('required')).toBe(true);
   });
 
-  it('form valid', () => {
-    // Initialize form if not already initialized
+  it('accepts a name, a service, and a layer list', () => {
     if (!component.entityForm) {
       component.entityToEdit = component.empty();
       component.postFetchData();
@@ -300,41 +223,8 @@ describe('LayersFormComponent', () => {
       spatialSelectionServiceId: 1,
       joinedSelectableLayers: 'layerSelected',
       useAllStyles: true,
-    })
-    expect(component.entityForm.valid).toBeTruthy();
-  });
-
-  it('Layer form fields', () => {
-    // Initialize form if not already initialized
-    if (!component.entityForm) {
-      component.entityToEdit = component.empty();
-      component.postFetchData();
-    }
-    expect(component.entityForm.get('name')).toBeTruthy();
-    expect(component.entityForm.get('serviceId')).toBeTruthy();
-    expect(component.entityForm.get('joinedLayers')).toBeTruthy();
-    expect(component.entityForm.get('minimumScale')).toBeTruthy();
-    expect(component.entityForm.get('maximumScale')).toBeTruthy();
-    expect(component.entityForm.get('order')).toBeTruthy();
-    expect(component.entityForm.get('transparency')).toBeTruthy();
-    expect(component.entityForm.get('metadataURL')).toBeTruthy();
-    expect(component.entityForm.get('legendType')).toBeTruthy();
-    expect(component.entityForm.get('legendURL')).toBeTruthy();
-    expect(component.entityForm.get('source')).toBeTruthy();
-    expect(component.entityForm.get('description')).toBeTruthy();
-    expect(component.entityForm.get('datasetURL')).toBeTruthy();
-    expect(component.entityForm.get('applyFilterToGetMap')).toBeTruthy();
-    expect(component.entityForm.get('applyFilterToGetFeatureInfo')).toBeTruthy();
-    expect(component.entityForm.get('applyFilterToSpatialSelection')).toBeTruthy();
-    expect(component.entityForm.get('queryableFeatureEnabled')).toBeTruthy();
-    expect(component.entityForm.get('queryableFeatureAvailable')).toBeTruthy();
-    expect(component.entityForm.get('joinedQueryableLayers')).toBeTruthy();
-    expect(component.entityForm.get('thematic')).toBeTruthy();
-    expect(component.entityForm.get('availableForClients')).toBeTruthy();
-    expect(component.entityForm.get('selectableFeatureEnabled')).toBeTruthy();
-    expect(component.entityForm.get('spatialSelectionServiceId')).toBeTruthy();
-    expect(component.entityForm.get('joinedSelectableLayers')).toBeTruthy();
-    expect(component.entityForm.get('useAllStyles')).toBeTruthy();
+    });
+    expect(component.entityForm.valid).toBe(true);
   });
 
   it('transparency defaults to 0 when not provided by the API', () => {
@@ -460,6 +350,45 @@ describe('LayersFormComponent', () => {
       const created = component.createObject(100);
       expect(created.spatialSelectionService?.id).toBe(42);
     });
+  });
+
+  it('allows one feature type name on a feature service and keeps a comma list on a map image', () => {
+    const protocol = constants.codeValue.serviceType;
+    component.entityID = 100;
+    component.entityToEdit = Object.assign(new CartographyProjection(), {
+      name: 'layer',
+      layers: ['a'],
+      serviceId: 7,
+    });
+    component.services = [
+      { id: 7, type: protocol.wfs },
+      { id: 1, type: protocol.wms },
+    ];
+    component.postFetchData();
+    component.entityForm.patchValue({
+      name: 'layer',
+      serviceId: 7,
+      joinedLayers: 'a, b',
+    });
+
+    expect(component.entityForm.get('joinedLayers')?.hasError('oneFeatureType')).toBe(true);
+    expect(component.entityForm.valid).toBe(false);
+    expect(layersFormTemplate).toContain("hasError('oneFeatureType')");
+
+    component.entityForm.patchValue({ joinedLayers: 'a' });
+    expect(component.entityForm.get('joinedLayers')?.hasError('oneFeatureType')).toBe(false);
+
+    component.entityForm.patchValue({ serviceId: 1, joinedLayers: 'a, b' });
+    expect(component.entityForm.get('joinedLayers')?.hasError('oneFeatureType')).toBe(false);
+
+    const en = JSON.parse(readFileSync(
+      join(__dirname, '../../../../assets/i18n/en.json'),
+      'utf8',
+    )) as Record<string, string>;
+    expect(en['entity.cartography.error.oneFeatureType']).toBe('A feature layer allows one type name.');
+    expect(en['entity.cartography.hint.layerSet.wfs']).toBe(
+      'One feature type name. The map uses one feature type on each feature layer.'
+    );
   });
 
   describe('postFetchData load preservation', () => {
@@ -748,6 +677,206 @@ describe('LayersFormComponent', () => {
       expect(table.hasStatusColumn()).toBe(true);
       expect(table.supportsDuplicate()).toBe(false);
       expect(table.hasPickerAdd()).toBe(false);
+      expect(table.relationsColumnsDefs.some((col: { field?: string }) => col.field === 'type')).toBe(false);
+      expect(table.relationsColumnsDefs.some((col: { field?: string }) =>
+        col.field === 'fractionDigits' || col.field === 'padFractionDigits' || col.field === 'dateStyle'
+      )).toBe(false);
+      expect(table.relationsColumnsDefs.some((col: { colId?: string }) => col.colId === 'formatOptions')).toBe(true);
+      const formatColumn = table.relationsColumnsDefs.find((col: { field?: string }) => col.field === 'format') as {
+        editable?: (params: { data?: { format?: string } }) => boolean;
+        cellEditor?: string;
+      };
+      expect(formatColumn?.editable?.({ data: { format: 'T' } })).toBe(true);
+      expect(formatColumn?.editable?.({ data: { format: 'Geometry' } })).toBe(false);
+      expect(formatColumn?.cellEditor).toBe('agSelectCellEditor');
+      const labelColumn = table.relationsColumnsDefs.find((col: { field?: string }) => col.field === 'value') as {
+        headerValueGetter?: () => string;
+      };
+      expect(labelColumn.headerValueGetter?.()).toBe(
+        `${component['utils'].getTranslate('entity.cartography.parameters.value')} (${component.defaultLang})`
+      );
+    });
+
+    it('opens parameter label translations from the Etiqueta cell icon', async () => {
+      const valueColumn = component['parametersTable'].relationsColumnsDefs.find(
+        (col: { field?: string }) => col.field === 'value'
+      ) as { cellRenderer?: (params: { value?: string; data?: { id?: number; value?: string } }) => HTMLElement };
+      const translate = jest.spyOn(component as unknown as {
+        translateElement: (...args: unknown[]) => Promise<void>;
+      }, 'translateElement').mockResolvedValue(undefined);
+      const cell = valueColumn.cellRenderer?.({ value: 'Kind', data: { id: 9102, value: 'Kind' } });
+      const savedButton = cell?.querySelector('button');
+      expect(savedButton?.disabled).toBe(false);
+      expect(savedButton?.classList.contains('iconTranslateDisabled')).toBe(false);
+      savedButton?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+      expect(translate).toHaveBeenCalledWith('CartographyParameter', 'value', 9102, 'Kind', 250);
+
+      translate.mockClear();
+      const unsaved = valueColumn.cellRenderer?.({ value: 'Draft', data: { value: 'Draft' } });
+      const unsavedButton = unsaved?.querySelector('button');
+      expect(unsavedButton?.disabled).toBe(true);
+      expect(unsavedButton?.classList.contains('iconTranslateDisabled')).toBe(true);
+      unsavedButton?.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+      expect(translate).not.toHaveBeenCalled();
+    });
+
+    it('edits format settings in the options cell', () => {
+      const column = component['parametersTable'].relationsColumnsDefs.find(
+        (col: { colId?: string }) => col.colId === 'formatOptions'
+      ) as {
+        editable?: boolean;
+        onCellDoubleClicked?: unknown;
+        cellRenderer?: (params: {
+          data?: {
+            format?: string | null;
+            fractionDigits?: number | null;
+            padFractionDigits?: boolean;
+            dateStyle?: string | null;
+            maxWidth?: number | null;
+            maxHeight?: number | null;
+            status?: string;
+            newItem?: boolean;
+          };
+          api?: { refreshCells: () => void };
+        }) => HTMLElement;
+      };
+      const locale = localStorage.getItem('lang') || 'en';
+      const refreshCells = jest.fn();
+      const gridModified = jest.fn();
+      component['parametersGrid'] = {
+        dataGrid: {
+          someStatusHasChanged: false,
+          changeCounter: 0,
+          previousChangeCounter: 0,
+          gridModified: { emit: gridModified }
+        }
+      } as unknown as LayersFormComponent['parametersGrid'];
+      expect(column.editable).toBe(false);
+      expect(column.onCellDoubleClicked).toBeUndefined();
+
+      const numberRow = {
+        format: 'N',
+        fractionDigits: 2,
+        padFractionDigits: false,
+        status: 'statusOK',
+        newItem: false
+      };
+      const numberCell = column.cellRenderer?.({ data: numberRow, api: { refreshCells } });
+      const digits = numberCell?.querySelector('input[type="number"]') as HTMLInputElement;
+      const pad = numberCell?.querySelector('input[type="checkbox"]') as HTMLInputElement;
+      expect(digits.value).toBe('2');
+      expect(digits.max).toBe('99');
+      expect(pad.checked).toBe(false);
+      expect(numberCell?.querySelector('.sitmun-format-preview')?.textContent)
+        .toBe(previewFeatureInfoFormat('N', 2, false, null, locale));
+      expect(numberCell?.textContent).toContain('entity.cartography.parameters.padFractionDigits');
+
+      digits.value = '0';
+      digits.dispatchEvent(new Event('input'));
+      expect(numberRow.fractionDigits).toBe(0);
+      expect(numberRow.status).toBe('pendingModify');
+      expect(component['parametersGrid']?.dataGrid?.someStatusHasChanged).toBe(true);
+      expect(gridModified).toHaveBeenCalledWith(true);
+      expect(numberCell?.querySelector('.sitmun-format-preview')?.textContent)
+        .toBe(previewFeatureInfoFormat('N', 0, false, null, locale));
+
+      digits.value = '';
+      digits.dispatchEvent(new Event('input'));
+      expect(numberRow.fractionDigits).toBeNull();
+
+      digits.value = '1.5';
+      digits.dispatchEvent(new Event('input'));
+      expect(numberRow.fractionDigits).toBeNull();
+
+      pad.checked = true;
+      pad.dispatchEvent(new Event('change'));
+      expect(numberRow.padFractionDigits).toBe(true);
+      expect(refreshCells).toHaveBeenCalled();
+
+      const draft = {
+        format: 'P',
+        fractionDigits: 1,
+        padFractionDigits: false,
+        status: 'pendingCreation',
+        newItem: true
+      };
+      const percentCell = column.cellRenderer?.({ data: draft, api: { refreshCells } });
+      const percentPad = percentCell?.querySelector('input[type="checkbox"]') as HTMLInputElement;
+      percentPad.checked = true;
+      percentPad.dispatchEvent(new Event('change'));
+      expect(draft.padFractionDigits).toBe(true);
+      expect(draft.status).toBe('pendingCreation');
+      expect(percentCell?.querySelector('.sitmun-format-preview')?.textContent)
+        .toBe(previewFeatureInfoFormat('P', 1, true, null, locale));
+
+      expect(column.cellRenderer?.({ data: { format: 'T' } }).querySelector('input, select')).toBeNull();
+      expect(column.cellRenderer?.({ data: { format: 'U' } }).querySelector('input, select')).toBeNull();
+      expect(column.cellRenderer?.({ data: { format: 'AUTO' } }).querySelector('input, select')).toBeNull();
+
+      const imageRow = {
+        format: 'I',
+        maxWidth: 240 as number | null,
+        maxHeight: 160 as number | null,
+        status: 'statusOK',
+        newItem: false
+      };
+      const imageCell = column.cellRenderer?.({ data: imageRow, api: { refreshCells } });
+      const width = imageCell?.querySelector(
+        'input[aria-label="entity.cartography.parameters.maxWidth"]'
+      ) as HTMLInputElement;
+      const height = imageCell?.querySelector(
+        'input[aria-label="entity.cartography.parameters.maxHeight"]'
+      ) as HTMLInputElement;
+      expect(width.value).toBe('240');
+      expect(height.value).toBe('160');
+      expect(width.closest('label')?.textContent).toContain('entity.cartography.parameters.maxWidth');
+      expect(height.closest('label')?.textContent).toContain('entity.cartography.parameters.maxHeight');
+      expect(width.placeholder).toBe('auto');
+      expect(height.placeholder).toBe('auto');
+      width.value = '200';
+      width.dispatchEvent(new Event('input'));
+      expect(imageRow.maxWidth).toBe(200);
+      expect(imageRow.status).toBe('pendingModify');
+      width.value = '';
+      width.dispatchEvent(new Event('input'));
+      expect(imageRow.maxWidth).toBeNull();
+      const clearedWidth = persistedCartographyParameter(imageRow as unknown as CartographyParameter);
+      expect(clearedWidth.options).toEqual({maxHeight: 160});
+      expect(clearedWidth.maxWidth).toBeUndefined();
+      width.value = '0';
+      width.dispatchEvent(new Event('input'));
+      expect(imageRow.maxWidth).toBeNull();
+      height.value = '';
+      height.dispatchEvent(new Event('input'));
+      expect(imageRow.maxHeight).toBeNull();
+      const saved = persistedCartographyParameter(imageRow as unknown as CartographyParameter);
+      expect(saved.options).toBeNull();
+      expect(saved.maxWidth).toBeUndefined();
+      expect(saved.maxHeight).toBeUndefined();
+      expect(column.cellRenderer?.({ data: { format: null } }).querySelector('input, select')).toBeNull();
+
+      const dateRow = { format: 'F', dateStyle: null as string | null, status: 'statusOK', newItem: false };
+      const dateCell = column.cellRenderer?.({ data: dateRow, api: { refreshCells } });
+      const select = dateCell?.querySelector('select') as HTMLSelectElement;
+      expect(Array.from(select.options).map((option) => option.value)).toEqual(['datetime', 'date']);
+      expect(select.value).toBe('datetime');
+      select.value = 'date';
+      select.dispatchEvent(new Event('change'));
+      expect(dateRow.dateStyle).toBe('date');
+      expect(dateCell?.querySelector('.sitmun-format-preview')?.textContent)
+        .toBe(previewFeatureInfoFormat('F', null, false, 'date', locale));
+      select.value = 'datetime';
+      select.dispatchEvent(new Event('change'));
+      expect(dateRow.dateStyle).toBeNull();
+    });
+
+    it('sets parameter type to INFO when the add dialog opens', () => {
+      const dialog = component['parametersTable'].templateDialog('newParameterDialog');
+      dialog.form.patchValue({ type: 'OTHER' });
+      dialog.preOpenFn(dialog.form);
+      expect(dialog.form.get('type')?.value).toBe('INFO');
+      expect(dialog.form.get('maxWidth')?.value).toBeNull();
+      expect(dialog.form.get('maxHeight')?.value).toBeNull();
     });
 
     it('territorialFiltersTable should have template-dialog, updater, and status capabilities', () => {
@@ -769,10 +898,95 @@ describe('LayersFormComponent', () => {
     });
   });
 
+  describe('static legend address', () => {
+    const legend = constants.codeValue.legendType;
+    const protocol = constants.codeValue.serviceType;
+
+    function fillRequiredFields(): void {
+      component.services = [{ id: 1, type: protocol.wms }];
+      component.entityForm.patchValue({
+        name: 'name',
+        serviceId: 1,
+        joinedLayers: 'layer',
+      });
+    }
+
+    it('rejects an empty or whitespace static legend address and blocks save', () => {
+      fillRequiredFields();
+      expect(component.entityForm.valid).toBe(true);
+
+      component.entityForm.get('legendType').setValue(legend.link);
+      const address = component.entityForm.get('legendURL');
+      expect(address.disabled).toBe(false);
+
+      for (const empty of [null, '', '   ', '\t']) {
+        address.setValue(empty);
+        address.markAsTouched();
+        address.markAsDirty();
+        expect(address.hasError('required')).toBe(true);
+        expect(component.entityForm.valid).toBe(false);
+        expect(component.canSave()).toBe(false);
+        expect(component.canSaveEntity).toBe(false);
+      }
+
+      address.setValue('http://example.com/legend.png');
+      expect(address.hasError('required')).toBe(false);
+      expect(component.entityForm.valid).toBe(true);
+      expect(component.canSave()).toBe(true);
+      expect(component.canSaveEntity).toBe(true);
+      expect(component.createObject(1).legendURL).toBe('http://example.com/legend.png');
+
+      const legendUrlField = layersFormTemplate.match(
+        /formControlName="legendURL"[\s\S]*?<\/mat-form-field>/,
+      )?.[0] ?? '';
+      expect(legendUrlField).toContain("entityForm.get('legendURL')?.hasError('required')");
+      expect(legendUrlField).toContain("'common.error.required' | translate");
+      expect(legendUrlField).not.toMatch(/['"]LINK['"]/);
+    });
+
+    it('clears the address when the legend choice leaves the static one', () => {
+      fillRequiredFields();
+      const address = component.entityForm.get('legendURL');
+
+      for (const choice of [null, legend.legendGraphic, legend.legendUrl]) {
+        component.entityForm.get('legendType').setValue(legend.link);
+        address.setValue('http://example.com/legend.png');
+        component.entityForm.get('legendType').setValue(choice);
+        expect(address.value).toBeNull();
+        expect(address.disabled).toBe(true);
+        expect(component.createObject(1).legendURL).toBeNull();
+        expect(component.entityForm.get('legendURL').hasError('required')).toBe(false);
+      }
+    });
+  });
+
   describe('template markup', () => {
+    it('uses the service-form button for loading feature properties', () => {
+      expect(layersFormTemplate).toContain('id="featureInfoSeedButton"');
+      expect(layersFormTemplate).toContain('mat-raised-button');
+      expect(layersFormTemplate).toContain('color="primary"');
+      expect(layersFormTemplate).toContain('(click)="seedFeatureInfoFields()"');
+    });
+
     it('does not use the undefined and-gap utility class', () => {
       expect(layersFormTemplate).not.toContain('and-gap');
       expect(layersFormTemplate).toContain('add-gap');
+    });
+
+    it('does not show the invariant parameter type in the add dialog', () => {
+      const parameterDialog = layersFormTemplate.match(/#newParameterDialog[\s\S]*?<\/ng-template>/)?.[0] ?? '';
+      expect(parameterDialog).not.toContain('formControlName="type"');
+      expect(parameterDialog).not.toContain('cartographyParameter.type');
+      expect(parameterDialog).toContain(
+        "{{ 'entity.cartography.parameters.value' | translate }} ({{ defaultLang }})"
+      );
+      expect(parameterDialog).toContain('[class.iconTranslateDisabled]="!canTranslateParameterLabel()"');
+      expect(parameterDialog).toContain('parameterFormatShowsImageSize()');
+      expect(parameterDialog).toContain('formatLabel(formatType.value)');
+      expect(parameterDialog.match(/formControlName="maxWidth"/g)).toHaveLength(1);
+      expect(parameterDialog.match(/formControlName="maxHeight"/g)).toHaveLength(1);
+      expect(parameterDialog).toContain('placeholder="auto"');
+      expect(layersFormTemplate).not.toContain('translateSelectedParameter');
     });
 
     it('uses primary slide toggles in modal dialogs instead of checkboxes', () => {
@@ -802,6 +1016,292 @@ describe('LayersFormComponent', () => {
       expect(territoriesTab).not.toContain('sitmun-cartography-form-entity');
     });
 
+    it('shows the linked service protocol beside the service select and leaves the form pristine', () => {
+      component.entityID = 4393;
+      component.duplicateID = -1;
+      component.entityToEdit = Object.assign(new CartographyProjection(), {
+        id: 4393,
+        name: 'ANEI',
+        layers: ['orm02ane_anp'],
+        serviceId: 164,
+        type: 'I',
+        geometryType: null,
+      });
+      component.services = [{ id: 164, name: 'IDEMenorca - Ordenacio', type: 'WMS' }];
+      component.postFetchData();
+      component.dataLoaded = true;
+      (component as unknown as {codelists: Map<string, unknown[]>}).codelists.set('cartography.legendType', []);
+      fixture.detectChanges();
+
+      expect(component.entityForm.pristine).toBe(true);
+      expect(component.entityForm.get('serviceType')).toBeNull();
+      expect(component.entityForm.get('type')).toBeNull();
+      expect(component.entityForm.get('geometryType')).toBeNull();
+      const protocolInput = fixture.nativeElement.querySelector(
+        '.sitmun-layers-service-row input[readonly]'
+      ) as HTMLInputElement;
+      expect(protocolInput.value).toBe('WMS');
+
+      const saved = component.createObject(4393);
+      expect(saved.type).toBe('I');
+      expect(saved.geometryType).toBeNull();
+
+      const detailsTab = layersFormTemplate.match(
+        /label="\{\{ 'common\.form\.details' \| translate \}\}"[\s\S]*?(?=<mat-tab label="\{\{ 'entity\.cartography\.territories)/,
+      )?.[0] ?? '';
+      expect(detailsTab).toContain("'entity.service.type'");
+      expect(detailsTab).not.toContain('formControlName="serviceType"');
+    });
+
+    it('uses feature-type wording when the linked service is WFS', () => {
+      const protocol = constants.codeValue.serviceType;
+      const flags = TestBed.inject(FeatureFlagService);
+      expect(flags.isFeatureEnabled('LAYERS_CARTOGRAPHY_STYLES_TAB_FEATURE')).toBe(true);
+      expect(flags.isFeatureEnabled('LAYERS_FILTERS_TAB_FEATURE')).toBe(true);
+      expect(flags.isFeatureEnabled('LAYERS_FEATURE_INFORMATION_TAB_FEATURE')).toBe(true);
+
+      component.services = [{ id: 7, type: protocol.wfs }];
+      component.entityForm.patchValue({ serviceId: 7 });
+
+      const featureTypeKeys = [
+        'entity.cartography.styles.useAllStyles',
+        'entity.cartography.filters.applyFilterToGetMap',
+        'entity.cartography.featureInformation.layerAll',
+        'entity.cartography.legend.sitnaControlCapabilities',
+        'entity.cartography.layerSet',
+        'entity.cartography.hint.layerSet',
+        'entity.cartography.featureInformation.queryable',
+        'entity.cartography.hint.minimumScale',
+        'entity.cartography.hint.maximumScale',
+        'entity.cartography.datasetURL',
+        'entity.cartography.metadataURL',
+        'entity.cartography.hint.datasetURL',
+        'entity.cartography.hint.metadataURL',
+        'entity.cartography.hint.order',
+      ];
+      for (const key of featureTypeKeys) {
+        expect(component.cartographyCopyKey(key)).toBe(`${key}.wfs`);
+      }
+      for (const key of featureTypeKeys.filter((item) => item !== 'entity.cartography.legend.sitnaControlCapabilities')) {
+        expect(layersFormTemplate).toContain(`cartographyCopyKey('${key}')`);
+      }
+      expect(layersFormTemplate).toContain('entity.cartography.legend.sitnaControlCapabilities.wfs');
+      expect(layersFormTemplate).toContain(
+        "joinedLayers: cartographyCopyKey('entity.cartography.layerSet')"
+      );
+      expect(layersFormTemplate).not.toContain("=== 'WFS'");
+      expect(layersFormTemplate).not.toContain('=== "WFS"');
+
+      const es = JSON.parse(readFileSync(
+        join(__dirname, '../../../../assets/i18n/es.json'),
+        'utf8',
+      )) as Record<string, string>;
+      expect(es['entity.cartography.layerSet.wfs'])
+        .toBe('Tipo de entidad del servicio utilizado');
+      expect(es['entity.cartography.hint.layerSet.wfs'])
+        .toBe('Un solo nombre de tipo de entidad. El mapa usa un tipo de entidad en cada capa.');
+      expect(es['entity.cartography.featureInformation.queryable.wfs'])
+        .toBe('El tipo o tipos de entidad del servicio pueden consultarse para recuperar información alfanumérica');
+      expect(es['entity.cartography.hint.minimumScale.wfs']).toContain('El tipo de entidad se oculta');
+      expect(es['entity.cartography.hint.maximumScale.wfs']).toContain('El tipo de entidad se oculta');
+      expect(es['entity.cartography.datasetURL.wfs']).toBe('URL del dataset del tipo de entidad');
+      expect(es['entity.cartography.metadataURL.wfs']).toBe('URL de la metadata del tipo de entidad');
+      expect(es['entity.cartography.hint.datasetURL.wfs'])
+        .toBe('Se usa en la ventana emergente de información del tipo de entidad.');
+      expect(es['entity.cartography.hint.metadataURL.wfs'])
+        .toBe('Se usa en la ventana emergente de información del tipo de entidad.');
+      expect(es['entity.cartography.hint.order.wfs']).toContain('añadir el tipo de entidad');
+      expect(es['entity.cartography.hint.order.wfs']).toContain('capas de trabajo');
+    });
+
+    it('keeps layer wording when the linked service is WMS', () => {
+      const protocol = constants.codeValue.serviceType;
+      component.services = [{ id: 7, type: protocol.wms }];
+      component.entityForm.patchValue({ serviceId: 7 });
+
+      expect(component.cartographyCopyKey('entity.cartography.styles.useAllStyles'))
+        .toBe('entity.cartography.styles.useAllStyles');
+      expect(component.cartographyCopyKey('entity.cartography.layerSet'))
+        .toBe('entity.cartography.layerSet');
+    });
+
+    it('stores one folder link for metadata and for data', () => {
+      const endings = {
+        es: [
+          'Solo se guarda el primer enlace de metadatos en la carpeta.',
+          'Solo se guarda el primer enlace de datos en la carpeta.',
+        ],
+        en: [
+          'Only the first metadata link is stored on the folder.',
+          'Only the first dataset link is stored on the folder.',
+        ],
+      } as const;
+      for (const locale of ['en', 'ca', 'es', 'fr', 'oc-aranes', 'pt-PT']) {
+        const messages = JSON.parse(readFileSync(
+          join(__dirname, '../../../../assets/i18n', `${locale}.json`),
+          'utf8',
+        )) as Record<string, string>;
+        expect(messages['entity.tree.hint.metadataURL']).not.toContain('MetadataURL');
+        expect(messages['entity.tree.hint.datasetURL']).not.toContain('DataURL');
+        for (const key of [
+          'entity.cartography.layerSet',
+          'entity.cartography.hint.layerSet',
+          'entity.cartography.featureInformation.queryable',
+          'entity.cartography.hint.minimumScale',
+          'entity.cartography.hint.maximumScale',
+          'entity.cartography.datasetURL',
+          'entity.cartography.metadataURL',
+          'entity.cartography.hint.datasetURL',
+          'entity.cartography.hint.metadataURL',
+          'entity.cartography.hint.order',
+        ]) {
+          expect(messages[`${key}.wfs`].length).toBeGreaterThan(0);
+          expect(messages[`${key}.wfs`]).not.toBe(messages[key]);
+        }
+      }
+      const es = JSON.parse(readFileSync(
+        join(__dirname, '../../../../assets/i18n/es.json'),
+        'utf8',
+      )) as Record<string, string>;
+      const en = JSON.parse(readFileSync(
+        join(__dirname, '../../../../assets/i18n/en.json'),
+        'utf8',
+      )) as Record<string, string>;
+      expect(es['entity.tree.hint.metadataURL']).toContain(endings.es[0]);
+      expect(es['entity.tree.hint.datasetURL']).toContain(endings.es[1]);
+      expect(en['entity.tree.hint.metadataURL']).toContain(endings.en[0]);
+      expect(en['entity.tree.hint.datasetURL']).toContain(endings.en[1]);
+    });
+
+    it('filters the legend choice by service and enables the address only for a static legend', () => {
+      const legend = constants.codeValue.legendType;
+      const protocol = constants.codeValue.serviceType;
+      const hintKey = (choice: string) => `entity.cartography.legend.sitnaControlCapabilities.${choice}`;
+      const codeLists = (component as unknown as {
+        codelists: Map<string, { value: string; description: string }[]>;
+      }).codelists;
+      codeLists.set('cartography.legendType', [
+        { value: legend.legendGraphic, description: 'Prioritize Get Legend Graphic (capabilities)' },
+        { value: legend.legendUrl, description: 'Legend URL (capabilities)' },
+        { value: legend.link, description: 'Static legend URL' },
+      ]);
+      component.services = [
+        { id: 1, type: protocol.wms },
+        { id: 2, type: protocol.wmts },
+        { id: 3, type: protocol.wfs },
+      ];
+
+      component.entityForm.patchValue({ serviceId: 1 });
+      expect(component.showsLegendFields()).toBe(true);
+      expect(component.legendChoices().map((item) => item.value))
+        .toEqual([legend.legendGraphic, legend.legendUrl, legend.link]);
+      expect(component.entityForm.get('legendType').value).toBe(legend.legendGraphic);
+      expect(component.legendHintKey()).toBe(hintKey(legend.legendGraphic));
+      expect(component.entityForm.get('legendURL').disabled).toBe(true);
+
+      component.entityForm.get('legendType').setValue(null);
+      expect(component.legendHintKey()).toBe(hintKey('none'));
+      component.entityForm.get('legendType').setValue(legend.legendUrl);
+      expect(component.legendHintKey()).toBe(hintKey(legend.legendUrl));
+      component.entityForm.get('legendURL').setValue('http://example.com/legend.png');
+      expect(component.createObject(1).legendURL).toBeNull();
+
+      component.entityForm.get('legendType').setValue(legend.link);
+      expect(component.legendHintKey()).toBe(hintKey(legend.link));
+      expect(component.entityForm.get('legendURL').disabled).toBe(false);
+      component.entityForm.get('legendURL').setValue('http://example.com/legend.png');
+      expect(component.createObject(1).legendURL).toBe('http://example.com/legend.png');
+
+      component.entityForm.patchValue({ serviceId: 2, legendType: null });
+      expect(component.legendChoices().map((item) => item.value)).toEqual([legend.link]);
+      expect(component.entityForm.get('legendType').value).toBeNull();
+
+      component.entityForm.patchValue({ serviceId: 3 });
+      expect(component.showsLegendFields()).toBe(false);
+      expect(component.legendChoices()).toEqual([]);
+
+      const detailsTab = layersFormTemplate.match(
+        /label="\{\{ 'common\.form\.details' \| translate \}\}"[\s\S]*?(?=<mat-tab label="\{\{ 'entity\.cartography\.territories)/,
+      )?.[0] ?? '';
+      const serviceCard = detailsTab.match(
+        /entity\.service\.type[\s\S]*?<\/mat-card>/,
+      )?.[0] ?? '';
+
+      expect(detailsTab).not.toContain('<mat-tab');
+      expect(serviceCard).toContain('showsLegendFields()');
+      expect(serviceCard).toContain('legendChoices()');
+      expect(serviceCard).toContain('formControlName="legendType"');
+      expect(serviceCard).toContain('formControlName="legendURL"');
+      expect(serviceCard).not.toContain('experimentalSitnaProfileNotice');
+      expect(serviceCard).not.toContain('sitmun-experimental-notice');
+      expect(serviceCard).not.toContain("codeList('cartography.legendType')");
+      expect(layersFormTemplate).not.toContain('LAYERS_LEGEND_TAB_FEATURE');
+      expect(layersFormTemplate).not.toContain('entity.cartography.legend.tab');
+      expect(layersFormTemplate).not.toContain("codeList('cartography.legendType')");
+
+      const legendFields = serviceCard.match(
+        /@if \(showsLegendFields\(\)\)[\s\S]*?@else if/,
+      )?.[0] ?? '';
+      const legendTypeField = legendFields.match(
+        /formControlName="legendType"[\s\S]*?<\/mat-form-field>/,
+      )?.[0] ?? '';
+      expect(legendTypeField).toContain('<mat-hint align="start">{{ legendHintKey() | translate }}</mat-hint>');
+      expect(legendTypeField.indexOf('mat-select')).toBeLessThan(legendTypeField.indexOf('mat-hint'));
+      expect(legendTypeField).not.toContain('sitnaControlCapabilities.wfs');
+      expect(legendTypeField).not.toContain("cartographyCopyKey('entity.cartography.legend.sitnaControlCapabilities')");
+      expect(legendFields.indexOf('formControlName="legendType"'))
+        .toBeLessThan(legendFields.indexOf('formControlName="legendURL"'));
+      expect(legendFields).toContain('codeValues.legendType.link');
+      expect(legendFields.indexOf('codeValues.legendType.link'))
+        .toBeLessThan(legendFields.indexOf('formControlName="legendURL"'));
+      expect(serviceCard).toContain('codeValues.serviceType.wfs');
+      expect(serviceCard).not.toMatch(/['"](?:WMS|WMTS|WFS|LEGENDGRAPHIC|LEGENDURL|LINK)['"]/);
+      expect(serviceCard).toContain(
+        "'entity.cartography.legend.sitnaControlCapabilities.wfs' | translate",
+      );
+      expect(serviceCard.indexOf('sitnaControlCapabilities.wfs'))
+        .toBeGreaterThan(serviceCard.indexOf('@else if'));
+
+      const hintKeys = [
+        hintKey('none'),
+        hintKey(legend.legendGraphic),
+        hintKey(legend.legendUrl),
+        hintKey(legend.link),
+      ];
+      for (const locale of ['en', 'ca', 'es', 'fr', 'oc-aranes']) {
+        const messages = JSON.parse(readFileSync(
+          join(__dirname, '../../../../assets/i18n', `${locale}.json`),
+          'utf8',
+        )) as Record<string, string>;
+        expect(messages['entity.cartography.legend.sitnaControlCapabilities']).toBeUndefined();
+        expect(messages['entity.cartography.legend.sitnaControlCapabilities.wfs'].length).toBeGreaterThan(0);
+        const hints = hintKeys.map((key) => messages[key]);
+        expect(hints.every((hint) => typeof hint === 'string' && hint.length > 0)).toBe(true);
+        expect(new Set(hints).size).toBe(hintKeys.length);
+      }
+      const en = JSON.parse(readFileSync(
+        join(__dirname, '../../../../assets/i18n/en.json'),
+        'utf8',
+      )) as Record<string, string>;
+      expect(en[hintKey('none')]).toBe('No legend image is shown.');
+      expect(en[hintKey(legend.legendGraphic)])
+        .toBe('The legend comes from GetLegendGraphic and, only when that request fails, from the LegendURL.');
+      expect(en[hintKey(legend.legendUrl)])
+        .toBe('The legend comes from the LegendURL.');
+      expect(en[hintKey(legend.link)]).toBe('The legend comes from the specified address.');
+      const es = JSON.parse(readFileSync(
+        join(__dirname, '../../../../assets/i18n/es.json'),
+        'utf8',
+      )) as Record<string, string>;
+      expect(es[hintKey(legend.legendGraphic)])
+        .toBe('La leyenda procede de GetLegendGraphic y, solo cuando esa petición falla, del LegendURL.');
+      expect(es[hintKey(legend.legendUrl)])
+        .toBe('La leyenda procede del LegendURL.');
+      expect(es[hintKey(legend.link)]).toBe('La leyenda procede de la dirección indicada.');
+      expect(es[hintKey('none')]).toBe('No se muestra imagen de leyenda.');
+      expect(es[hintKey('none')].startsWith('La leyenda procede')).toBe(false);
+    });
+
     it('wraps Permissions and Trees relation grids in matTabContent', () => {
       const permissionsTab = layersFormTemplate.match(
         /entity\.cartography\.permissions\.header[\s\S]*?<\/mat-tab>/,
@@ -814,6 +1314,20 @@ describe('LayersFormComponent', () => {
       expect(permissionsTab).toContain('matTabContent');
       expect(treesTab).toContain('app-relation-grid');
       expect(treesTab).toContain('matTabContent');
+    });
+
+    it('hides the service-parameters tab unless the service is proxied', () => {
+      const serviceParametersBlock = layersFormTemplate.match(
+        /\*appFeatureFlag="'LAYERS_SERVICE_PARAMETERS_FEATURE'"[\s\S]*?<\/ng-container>/,
+      )?.[0] ?? '';
+      const proxiedGate = serviceParametersBlock.indexOf('@if (serviceIsProxied())');
+      const tabStart = serviceParametersBlock.indexOf('<mat-tab');
+
+      expect(serviceParametersBlock).toContain(`[flag]="'LAYERS_SERVICE_PARAMETERS_FEATURE'"`);
+      expect(serviceParametersBlock).not.toContain('[disabled]');
+      expect(serviceParametersBlock).not.toContain('!serviceIsProxied()');
+      expect(proxiedGate).toBeGreaterThanOrEqual(0);
+      expect(tabStart).toBeGreaterThan(proxiedGate);
     });
   });
 
@@ -836,6 +1350,462 @@ describe('LayersFormComponent', () => {
       expect(defaultStyleColumn.maxWidth).toBe(120);
     });
 
+    it('labels Geometry from the format code list, and leaves a missing code empty', () => {
+      const translate = component['translateService'];
+      translate.setTranslation('en', {
+        'entity.cartography.parameters.format.Geometry': 'Translated geometry'
+      }, true);
+      translate.use('en');
+      (component as unknown as {codelists: Map<string, {value: string; description?: string}[]>}).codelists.set(
+        'cartographyParameter.format',
+        [
+          {value: 'F', description: 'Date'},
+          {value: 'N', description: 'Number'},
+          {value: 'T', description: 'Text'},
+          {value: 'Geometry', description: 'Seeded geometry'}
+        ]
+      );
+
+      expect(component.formatLabel('Geometry')).toBe('Seeded geometry');
+      expect(component.formatLabel('T')).toBe('Text');
+      expect(component.formatLabel('Missing')).toBe('');
+
+      (component as unknown as {codelists: Map<string, {value: string; description?: string}[]>}).codelists.set(
+        'cartographyParameter.format',
+        [{value: 'T', description: 'Text'}]
+      );
+      expect(component.formatLabel('Geometry')).toBe('');
+    });
+
+    it('seeds a DescribeFeatureType geometry property into the same parameter list', async () => {
+      const schema = {
+        'xsd:schema': {
+          'xsd:complexType': {
+            name: 'farsType',
+            'xsd:complexContent': {
+              'xsd:extension': {
+                base: 'gml:AbstractFeatureType',
+                'xsd:sequence': {
+                  'xsd:element': [
+                    { name: 'the_geom', type: 'gml:PointPropertyType' },
+                    { name: 'nom', type: 'xsd:string' }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      };
+      const dialogRef = {
+        componentInstance: { title: '', message: '' },
+        afterClosed: () => of({ event: 'Accept' })
+      };
+      jest.spyOn(component['dialog'], 'open').mockReturnValue(dialogRef as never);
+      const addItems = jest.fn();
+      component['parametersGrid'] = {
+        dataGrid: { gridApi: {}, getAllCurrentData: () => [], addItems }
+      } as never;
+      component.entityID = 9401;
+      component.duplicateID = -1;
+      component.entityToEdit = Object.assign(new CartographyProjection(), {
+        id: 9401,
+        name: 'Fars',
+        layers: ['turisme:tu007poi_fars'],
+        serviceId: 9401,
+        type: null,
+        geometryType: null
+      });
+      component.services = [{ id: 9401, type: 'WFS', serviceURL: 'https://example.test/wfs' }];
+      component.postFetchData();
+      component.entityForm.patchValue({ serviceId: 9401, joinedLayers: 'turisme:tu007poi_fars' });
+      jest.spyOn(getInfoService, 'getInfo').mockReturnValue(of({ success: true, asJson: schema }));
+
+      component.seedFeatureInfoFields();
+      await flushSeed();
+
+      expect(component.entityForm.pristine).toBe(true);
+      const drafted = addItems.mock.calls.flat().flat() as {
+        name?: string;
+        value?: string;
+        type?: string;
+        format?: string | null;
+        options?: { geometryKind?: string; preferredGeometryType?: string } | null;
+      }[];
+      expect(drafted.map((row) => row.name)).toEqual(['the_geom', 'nom']);
+      const farsGeometry = drafted.find((row) => row.name === 'the_geom');
+      const farsName = drafted.find((row) => row.name === 'nom');
+      expect(farsGeometry).toEqual(expect.objectContaining({
+        name: 'the_geom',
+        value: 'the_geom',
+        type: 'INFO',
+        format: 'Geometry',
+        options: { geometryKind: 'Point' }
+      }));
+      expect(farsName).toEqual(expect.objectContaining({ format: null }));
+      expect(farsName?.options).toBeNull();
+      const formatColumn = component['parametersTable'].relationsColumnsDefs.find(
+        (column: { field?: string }) => column.field === 'format'
+      );
+      expect(formatColumn.editable({ data: farsGeometry })).toBe(false);
+      expect(formatColumn.editable({ data: farsName })).toBe(true);
+      expect(formatColumn.valueSetter({ data: farsGeometry, newValue: 'T' })).toBe(false);
+      expect(farsGeometry?.format).toBe('Geometry');
+      expect(component.entityForm.get('geometryType')).toBeNull();
+      expect(component.entityForm.get('geometryName')).toBeNull();
+      expect(component.entityForm.get('preferredGeometryType')).toBeNull();
+      expect(component.createObject(9401).geometryType).toBeNull();
+      expect(component.createObject(9401).type).toBeNull();
+
+      const pointCell = component['renderFormatOptionsCell']({ data: farsGeometry } as never);
+      expect(pointCell.textContent).toContain('Point');
+      expect(pointCell.querySelector('input[type="checkbox"]')).not.toBeNull();
+      expect(pointCell.querySelector('select')).toBeNull();
+      const textCell = component['renderFormatOptionsCell']({ data: farsName } as never);
+      expect(textCell.querySelector('input, select')).toBeNull();
+
+      const parametersTab = layersFormTemplate.match(
+        /entity\.cartography\.parameters\.header[\s\S]*?<\/mat-tab>/
+      )?.[0] ?? '';
+      expect(parametersTab).toContain('featureInfoSeedMessage');
+      expect(parametersTab).not.toContain('geometryProperties');
+      expect(parametersTab).not.toContain('mat-radio');
+      expect(parametersTab).not.toContain('featureInfoGeometryKinds');
+      expect(parametersTab).not.toContain('preferredGeometryType');
+      expect(parametersTab).not.toContain('sitnaGeometryType');
+      expect(parametersTab).not.toContain('formControlName="geometryType"');
+      expect(parametersTab).not.toContain("'entity.cartography.parameters.geometryKinds'");
+
+      async function flushSeed(): Promise<void> {
+        for (let attempt = 0; attempt < 20; attempt++) {
+          await new Promise((resolve) => setTimeout(resolve, 0));
+        }
+      }
+    });
+
+    it('edits the layer geometry mark and a generic Geometry type on the parameter row', async () => {
+      const schema = {
+        'xsd:schema': {
+          'xsd:complexType': {
+            name: 'mixedType',
+            'xsd:complexContent': {
+              'xsd:extension': {
+                base: 'gml:AbstractFeatureType',
+                'xsd:sequence': {
+                  'xsd:element': [
+                    { name: 'geom_a', type: 'gml:PointPropertyType' },
+                    { name: 'shape', type: 'gml:GeometryPropertyType' },
+                    { name: 'nom', type: 'xsd:string' }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      };
+      const dialogRef = {
+        componentInstance: { title: '', message: '' },
+        afterClosed: () => of({ event: 'Accept' })
+      };
+      jest.spyOn(component['dialog'], 'open').mockReturnValue(dialogRef as never);
+      const rows: {
+        name: string;
+        format?: string | null;
+        order?: number;
+        options?: { geometryKind?: string; layerGeometry?: boolean; preferredGeometryType?: string };
+      }[] = [];
+      component['parametersGrid'] = {
+        dataGrid: {
+          gridApi: {},
+          getAllCurrentData: () => rows,
+          addItems: (items: typeof rows) => { rows.push(...items); },
+          someStatusHasChanged: false,
+          changeCounter: 0,
+          previousChangeCounter: 0,
+          gridModified: { emit: jest.fn() }
+        }
+      } as never;
+      component.entityID = 12;
+      component.duplicateID = -1;
+      component.entityToEdit = Object.assign(new CartographyProjection(), {
+        id: 12,
+        name: 'Mixed',
+        layers: ['app:mixed'],
+        serviceId: 7,
+        geometryType: null
+      });
+      component.services = [{ id: 7, type: 'WFS', serviceURL: 'https://example.test/wfs' }];
+      component.postFetchData();
+      component.entityForm.patchValue({ serviceId: 7, joinedLayers: 'app:mixed' });
+      component.entityForm.markAsPristine();
+      jest.spyOn(getInfoService, 'getInfo').mockReturnValue(of({ success: true, asJson: schema }));
+
+      component.seedFeatureInfoFields();
+      await flushSeed();
+
+      expect(rows.map((row) => row.name)).toEqual(['geom_a', 'shape', 'nom']);
+      expect(rows[0].options).toEqual({ geometryKind: 'Point' });
+      expect(rows[1].options).toEqual({ geometryKind: 'Geometry' });
+      expect(rows[0].format).toBe('Geometry');
+      expect(rows[1].format).toBe('Geometry');
+      expect(rows[2].options).toBeNull();
+      expect(component.entityForm.pristine).toBe(true);
+      expect(component['isEffectiveLayerGeometry'](rows[0] as never)).toBe(false);
+      expect(component['isEffectiveLayerGeometry'](rows[1] as never)).toBe(true);
+      expect(rows[1].options?.layerGeometry).toBeUndefined();
+      expect(component.preferredGeometryTypes).toEqual([
+        'point',
+        'multipoint',
+        'polyline',
+        'polygon',
+        'multipolyline',
+        'multipolygon'
+      ]);
+
+      const translate = component['translateService'];
+      translate.setTranslation('en', {
+        'entity.cartography.parameters.geometryKind.Point': 'Wrong point',
+        'entity.cartography.parameters.geometryKind.Curve': 'Wrong curve',
+        'entity.cartography.parameters.geometryKind.Geometry': 'Wrong generic',
+        'entity.cartography.parameters.preferredGeometryType.polygon': 'Wrong polygon',
+        'entity.cartography.parameters.preferredGeometryType': 'Preferred geometry type',
+        'entity.cartography.parameters.layerGeometry': 'Layer geometry'
+      }, true);
+      translate.use('en');
+      const codeLists = (component as unknown as {
+        codelists: Map<string, {value: string; description?: string}[]>
+      }).codelists;
+      codeLists.set('cartographyParameter.format', [{value: 'Geometry', description: 'Seeded geometry'}]);
+      codeLists.set('cartographyParameter.geometryKind', [
+        {value: 'Geometry', description: 'Generic geometry'},
+        {value: 'Point', description: 'Point label'},
+        {value: 'Curve', description: ''}
+      ]);
+      codeLists.set('cartographyParameter.preferredGeometryType', [
+        {value: 'multipolygon', description: 'Z multipolygon'},
+        {value: 'polygon', description: 'Polygon label'},
+        {value: 'point', description: 'A point'}
+      ]);
+
+      const params = { api: { refreshCells: jest.fn() } };
+      const pointCell = component['renderFormatOptionsCell']({ data: rows[0], ...params } as never);
+      const genericCell = component['renderFormatOptionsCell']({ data: rows[1], ...params } as never);
+      const textCell = component['renderFormatOptionsCell']({
+        data: { ...rows[2], format: 'T' },
+        ...params
+      } as never);
+      const curveCell = component['renderFormatOptionsCell']({
+        data: { name: 'curve', format: 'Geometry', options: { geometryKind: 'Curve' } },
+        ...params
+      } as never);
+      const unknownCell = component['renderFormatOptionsCell']({
+        data: { name: 'other', format: 'Geometry', options: { geometryKind: 'NotAKind' } },
+        ...params
+      } as never);
+      expect(pointCell.querySelector('select')).toBeNull();
+      expect(pointCell.querySelector('input[type="checkbox"]')).not.toBeNull();
+      expect(pointCell.querySelector('span')?.textContent).toBe('Point label');
+      expect(genericCell.querySelector('span')?.textContent).toBe('Generic geometry');
+      const preferredOptions = [...(genericCell.querySelector('select')?.options ?? [])];
+      expect(preferredOptions.map((option) => option.value)).toEqual([
+        '',
+        'point',
+        'multipoint',
+        'polyline',
+        'polygon',
+        'multipolyline',
+        'multipolygon'
+      ]);
+      expect(preferredOptions.find((option) => option.value === 'polygon')?.textContent).toBe('Polygon label');
+      expect(preferredOptions.find((option) => option.value === 'multipoint')?.textContent).toBe('multipoint');
+      expect(curveCell.querySelector('span')?.textContent).toBe('Curve');
+      expect(unknownCell.querySelector('span')?.textContent).toBe('NotAKind');
+      const formatColumn = component['parametersTable'].relationsColumnsDefs.find(
+        (column: { field?: string; valueFormatter?: (params: { value?: string | null }) => string }) =>
+          column.field === 'format'
+      );
+      expect(formatColumn.valueFormatter?.({ value: 'Geometry' })).toBe('Seeded geometry');
+      expect(textCell.querySelector('input, select')).toBeNull();
+
+      component.markLayerGeometry(rows[0] as never, params as never);
+      expect(component.entityForm.pristine).toBe(true);
+      expect(component.createObject(12).geometryType).toBeNull();
+      expect(rows[0].options).toEqual({ geometryKind: 'Point', layerGeometry: true });
+      expect(rows[1].options?.layerGeometry).toBeUndefined();
+
+      component.markLayerGeometry(rows[1] as never, params as never);
+      component.setPreferredGeometryType(rows[1] as never, 'polygon', params as never);
+      expect(rows[1].options).toEqual({
+        geometryKind: 'Geometry',
+        layerGeometry: true,
+        preferredGeometryType: 'polygon'
+      });
+      expect(rows[0].options?.layerGeometry).toBeUndefined();
+      component.setPreferredGeometryType(rows[0] as never, 'polygon', params as never);
+      expect(rows[0].options?.preferredGeometryType).toBeUndefined();
+
+      async function flushSeed(): Promise<void> {
+        for (let attempt = 0; attempt < 20; attempt++) {
+          await new Promise((resolve) => setTimeout(resolve, 0));
+        }
+      }
+    });
+
+    it('loads WMS properties through DescribeLayer and explains when that fails', async () => {
+      const schema = {
+        'xsd:schema': {
+          'xsd:complexType': {
+            name: 'roadsType',
+            'xsd:complexContent': {
+              'xsd:extension': {
+                base: 'gml:AbstractFeatureType',
+                'xsd:sequence': {
+                  'xsd:element': { name: 'season', type: 'xsd:string' }
+                }
+              }
+            }
+          }
+        }
+      };
+      const describeLayer = {
+        DescribeLayerResponse: {
+          LayerDescription: {
+            name: 'roads',
+            owsURL: 'https://example.test/wfs',
+            owsType: 'WFS',
+            Query: { typeName: 'app:roads' }
+          }
+        }
+      };
+      const dialogRef = {
+        componentInstance: { title: '', message: '' },
+        afterClosed: () => of({ event: 'Accept' })
+      };
+      jest.spyOn(component['dialog'], 'open').mockReturnValue(dialogRef as never);
+      const addItems = jest.fn();
+      component['parametersGrid'] = {
+        dataGrid: { gridApi: {}, getAllCurrentData: () => [], addItems }
+      } as never;
+      component.services = [{ id: 7, type: 'WMS', serviceURL: 'https://example.test/wms' }];
+      component.entityForm.patchValue({ serviceId: 7, joinedLayers: 'roads' });
+      const getInfo = jest.spyOn(getInfoService, 'getInfo')
+        .mockReturnValueOnce(throwError(() => new HttpErrorResponse({
+          status: 400,
+          error: { success: false, reason: 'Unmanaged XML response', asJson: describeLayer }
+        })))
+        .mockReturnValueOnce(of({ success: true, asJson: schema }));
+
+      component.seedFeatureInfoFields();
+
+      expect(dialogRef.componentInstance.title).toBe(component['utils'].getTranslate('common.caution'));
+      expect(dialogRef.componentInstance.message).toBe(
+        component['utils'].getTranslate('entity.cartography.parameters.seedConfirm')
+      );
+      await flushSeed();
+      const urls = getInfo.mock.calls.map((call) => decodeURIComponent(String(call[0])));
+      expect(urls[0]).toContain('request=DescribeLayer');
+      expect(urls[0]).toContain('layers=roads');
+      expect(urls[1]).toContain('request=DescribeFeatureType');
+      expect(addItems).toHaveBeenCalledWith([
+        expect.objectContaining({ name: 'season', value: 'season', type: 'INFO' })
+      ]);
+
+      getInfo.mockReset();
+      getInfo.mockReturnValue(throwError(() => new HttpErrorResponse({
+        status: 400,
+        error: { asJson: { 'ows:ExceptionReport': {} } }
+      })));
+      component.seedFeatureInfoFields();
+      await flushSeed();
+      expect(component.featureInfoSeedMessage).toBe(
+        component['translateService'].instant('entity.cartography.parameters.seedDescribeLayerUnavailable')
+      );
+
+      getInfo.mockReset();
+      getInfo
+        .mockReturnValueOnce(of({ success: true, asJson: describeLayer }))
+        .mockReturnValueOnce(throwError(() => new HttpErrorResponse({
+          status: 400,
+          error: { reason: 'Unmanaged XML response' }
+        })));
+      component.seedFeatureInfoFields();
+      await flushSeed();
+      expect(component.featureInfoSeedMessage).toBe(
+        component['translateService'].instant('entity.cartography.parameters.seedFeatureTypeFailed')
+      );
+
+      async function flushSeed(): Promise<void> {
+        for (let attempt = 0; attempt < 20; attempt++) {
+          await new Promise((resolve) => setTimeout(resolve, 0));
+        }
+      }
+    });
+
+    it('seeds an INSPIRE feature type whose geometry comes from imported parent schemas', async () => {
+      const dialogRef = {
+        componentInstance: { title: '', message: '' },
+        afterClosed: () => of({ event: 'Accept' })
+      };
+      jest.spyOn(component['dialog'], 'open').mockReturnValue(dialogRef as never);
+      const addItems = jest.fn();
+      component['parametersGrid'] = {
+        dataGrid: { gridApi: {}, getAllCurrentData: () => [], addItems }
+      } as never;
+      component.services = [{ id: 8, type: 'WFS', serviceURL: 'https://servicios.idee.es/wfs-inspire/transportes' }];
+      component.entityForm.patchValue({ serviceId: 8, joinedLayers: 'tn-ro:RoadLink' });
+      component.entityForm.markAsPristine();
+      const schemas: Record<string, unknown> = {
+        [ROAD_SCHEMA_URL]: ROAD_SCHEMA,
+        [TRANSPORT_SCHEMA_URL]: TRANSPORT_SCHEMA,
+        [NETWORK_SCHEMA_URL]: NETWORK_SCHEMA
+      };
+      const getInfo = jest.spyOn(getInfoService, 'getInfo').mockImplementation((encoded: string) => {
+        const url = decodeURIComponent(encoded);
+        if (url === ROAD_LINK_DESCRIBE_URL) {
+          return throwError(() => new HttpErrorResponse({
+            status: 400,
+            error: { success: false, reason: 'Unmanaged XML response', asJson: ROAD_LINK_DESCRIBE }
+          }));
+        }
+        if (schemas[url]) {
+          return of({ success: true, asJson: schemas[url] });
+        }
+        return throwError(() => new HttpErrorResponse({
+          status: 400,
+          error: { success: false, reason: 'Not a well formed XML' }
+        }));
+      });
+
+      component.seedFeatureInfoFields();
+      await flushSeed();
+
+      const urls = getInfo.mock.calls.map((call) => decodeURIComponent(String(call[0])));
+      expect(urls).toEqual([
+        'https://servicios.idee.es/wfs-inspire/transportes?service=WFS&request=DescribeFeatureType&version=1.1.0&typeName=tn-ro%3ARoadLink',
+        ROAD_LINK_DESCRIBE_URL,
+        ROAD_SCHEMA_URL,
+        TRANSPORT_SCHEMA_URL,
+        NETWORK_SCHEMA_URL
+      ]);
+      const drafted = addItems.mock.calls.flat().flat() as {
+        name?: string;
+        format?: string | null;
+        options?: { geometryKind?: string } | null;
+      }[];
+      expect(drafted.find((row) => row.name === 'centrelineGeometry')).toEqual(expect.objectContaining({
+        format: 'Geometry',
+        options: { geometryKind: 'Curve' }
+      }));
+      expect(drafted.map((row) => row.name)).toEqual(expect.arrayContaining(['fictitious', 'inspireId', 'validTo']));
+      expect(component.featureInfoSeedMessage).toBe('');
+      expect(component.entityForm.pristine).toBe(true);
+
+      async function flushSeed(): Promise<void> {
+        for (let attempt = 0; attempt < 40; attempt++) {
+          await new Promise((resolve) => setTimeout(resolve, 0));
+        }
+      }
+    });
+
     it('keeps style legend URL editable with the editable external URL renderer mode', () => {
       const urlColumn = component['stylesTable'].relationsColumnsDefs
         .find(col => col.field === 'legendURL.onlineResource');
@@ -844,6 +1814,56 @@ describe('LayersFormComponent', () => {
       expect(urlColumn.cellRenderer).toBe('externalUrlRenderer');
       expect(urlColumn.cellRendererParams).toEqual({ editable: true });
     });
+  });
+
+  it('keeps the geometry aria-label and layer geometry keys in every locale', () => {
+    const kept: Record<string, Record<string, string>> = {
+      en: {
+        'entity.cartography.parameters.preferredGeometryType': 'Preferred geometry type',
+        'entity.cartography.parameters.layerGeometry': 'Layer geometry'
+      },
+      es: {
+        'entity.cartography.parameters.preferredGeometryType': 'Tipo de geometría preferido',
+        'entity.cartography.parameters.layerGeometry': 'Geometría de la capa'
+      },
+      ca: {
+        'entity.cartography.parameters.preferredGeometryType': 'Tipus de geometria preferit',
+        'entity.cartography.parameters.layerGeometry': 'Geometria de la capa'
+      },
+      fr: {
+        'entity.cartography.parameters.preferredGeometryType': 'Type de géométrie préféré',
+        'entity.cartography.parameters.layerGeometry': 'Géométrie de la couche'
+      },
+      'oc-aranes': {
+        'entity.cartography.parameters.preferredGeometryType': 'Tipe de geometria preferit',
+        'entity.cartography.parameters.layerGeometry': 'Geometria dera capa'
+      }
+    };
+    const kindCodes = [
+      'Point', 'MultiPoint', 'LineString', 'MultiLineString', 'Curve', 'MultiCurve',
+      'Polygon', 'MultiPolygon', 'Surface', 'MultiSurface', 'Geometry'
+    ];
+    const preferredCodes = ['point', 'multipoint', 'polyline', 'polygon', 'multipolyline', 'multipolygon'];
+    for (const [locale, labels] of Object.entries(kept)) {
+      const messages = JSON.parse(readFileSync(
+        join(__dirname, '../../../../assets/i18n', `${locale}.json`),
+        'utf8'
+      )) as Record<string, string>;
+      expect(messages['entity.cartography.parameters.preferredGeometryType']).toBe(
+        labels['entity.cartography.parameters.preferredGeometryType']
+      );
+      expect(messages['entity.cartography.parameters.layerGeometry']).toBe(
+        labels['entity.cartography.parameters.layerGeometry']
+      );
+      expect(messages['entity.cartography.parameters.format.Geometry']).toBeUndefined();
+      expect(messages['entity.cartography.parameters.geometryKinds']).toBeUndefined();
+      for (const code of kindCodes) {
+        expect(messages[`entity.cartography.parameters.geometryKind.${code}`]).toBeUndefined();
+      }
+      for (const code of preferredCodes) {
+        expect(messages[`entity.cartography.parameters.preferredGeometryType.${code}`]).toBeUndefined();
+      }
+    }
   });
 
 });

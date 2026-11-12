@@ -1,7 +1,8 @@
 @use '@angular/material' as mat;
 @use "mat-form-field-rich-hint";
 @use "styles/entity-warnings-card";
-@include mat.core();
+@include mat.elevation-classes();
+@include mat.app-background();
 
 /* You can add global styles to this file, and also import other style files */
 
@@ -109,6 +110,131 @@ h2 {
   --ag-odd-row-background-color: rgba(0, 0, 0, 0.02);
   --ag-row-hover-color: rgba(0, 0, 0, 0.06);
 }
+.service-access-trend {
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
+  gap: 1px;
+  height: 100%;
+}
+
+.service-access-hour {
+  display: inline-block;
+  flex: 0 0 5px;
+  width: 5px;
+  min-width: 5px;
+  height: 16px;
+  border-radius: 1px;
+}
+
+.dashboard-failing-services-count {
+  font-weight: 600;
+  margin-right: 6px;
+}
+
+.dashboard-affected-use {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dashboard-affected-use i {
+  width: 10px;
+  height: 10px;
+  flex: 0 0 10px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.87);
+  box-sizing: border-box;
+}
+
+.dashboard-affected-use.cfg {
+  color: rgba(0, 0, 0, 0.6);
+}
+
+.dashboard-affected-use.cfg i {
+  background: transparent;
+  border: 2px solid #5c5c5c;
+}
+
+// AG Grid puts `ag-cell-value` on the cell itself when a renderer has no wrapper, and the
+// infinite data-grid sets ellipsis at `:host .sitmun-infinite-grid .ag-cell` (0,3,0).
+.ag-root .ag-row .ag-cell.sitmun-access-status-cell,
+.ag-root .ag-row .ag-cell.sitmun-access-trend-cell,
+.ag-root .ag-row .ag-cell.sitmun-usage-cell {
+  overflow: visible;
+  text-overflow: clip;
+}
+
+.service-usage-30 {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 8px;
+  height: 100%;
+}
+
+.service-usage-bars {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 1px;
+  height: 14px;
+  border-bottom: 1px solid #bdbdbd;
+}
+
+// The Estat header opens the health filter from one funnel that turns orange while filtering.
+.ag-header-cell.sitmun-access-status-header {
+  .ag-header-cell-menu-button {
+    opacity: 1;
+  }
+
+  .ag-filter-icon {
+    display: none;
+  }
+
+  &.ag-header-cell-filtered .ag-header-cell-menu-button .ag-icon {
+    color: #ff9800;
+  }
+}
+
+.service-usage-fail {
+  margin-left: 4px;
+  color: #c62828;
+  font-size: 12px;
+  font-weight: 400;
+  white-space: nowrap;
+}
+
+.service-access-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.service-access-status-dot {
+  width: 14px;
+  height: 14px;
+  flex: 0 0 14px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+// The renderer sets `color` to the status colour.
+.service-access-status-halo {
+  box-shadow: 0 0 0 4px color-mix(in srgb, currentColor 15%, transparent);
+}
+
+.service-usage-bar {
+  display: inline-block;
+  flex: 0 0 3px;
+  width: 3px;
+  background-color: #FF9300;
+  border-radius: 1px 1px 0 0;
+}
+
+.sql-test-dialog-panel .sql-run-grid.ag-theme-material .ag-layout-auto-height .ag-center-cols-viewport,
+.sql-test-dialog-panel .sql-run-grid.ag-theme-material .ag-layout-auto-height .ag-center-cols-container {
+  min-height: 0;
+}
+
 .ag-theme-material {
   --ag-odd-row-background-color: rgba(0, 0, 0, 0.02);
   --ag-row-hover-color: rgba(0, 0, 0, 0.06);
@@ -166,6 +292,54 @@ app-login .mat-app-background {
 .formDialogs mat-dialog-content {
   max-height: min(80vh, 720px);
   overflow-y: auto;
+}
+
+.sql-test-dialog-panel,
+.sql-test-dialog-panel .mat-mdc-dialog-title,
+.sql-test-dialog-panel .mat-mdc-dialog-content,
+.sql-test-dialog-panel .mdc-tab__text-label {
+  font-family: "Open Sans", sans-serif;
+}
+
+.sql-test-dialog-panel .sql-run-card {
+  margin-top: 12px;
+}
+
+.sql-test-dialog-panel .sql-run-card .mat-mdc-form-field {
+  display: block;
+  margin-bottom: 16px;
+}
+
+
+.sql-command-field .mat-mdc-form-field-infix {
+  width: 100%;
+  padding-top: 12px;
+  padding-bottom: 12px;
+}
+
+.sql-command-field textarea.mat-mdc-input-element {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.sql-command-field .sql-editor {
+  border: 0;
+  margin: 0;
+}
+
+.sql-run-field .sql-editor {
+  min-height: 0;
+}
+
+.sql-test-dialog-panel .sql-run-field .mdc-floating-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
 }
 
 
@@ -417,6 +591,123 @@ app-login .mat-app-background {
 
 .iconTranslate{
   cursor: pointer;
+}
+
+.mat-mdc-form-field-icon-suffix .iconTranslate.iconTranslateDisabled,
+.iconTranslate.iconTranslateDisabled,
+.iconTranslate:disabled {
+  cursor: default;
+  color: rgba(0, 0, 0, 0.26);
+  pointer-events: none;
+}
+
+.sitmun-i18n-cell {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  gap: 0.25rem;
+}
+
+.sitmun-i18n-cell-text {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sitmun-i18n-cell-translate {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  line-height: 1;
+
+  .material-icons {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+  }
+}
+
+.ag-cell.sitmun-format-options-cell {
+  .ag-cell-wrapper,
+  .ag-cell-value {
+    display: flex;
+    align-items: center;
+    height: 100%;
+    width: 100%;
+    min-width: 0;
+  }
+}
+
+.sitmun-format-options {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  min-width: 0;
+  height: 100%;
+}
+
+.sitmun-format-digits,
+.sitmun-format-date,
+.sitmun-format-image-limit {
+  box-sizing: border-box;
+  height: 22px;
+  margin: 0;
+  border: 1px solid rgba(0, 0, 0, 0.38);
+  border-radius: 4px;
+  padding: 0 0.35rem;
+  background: #fff;
+  color: inherit;
+  font: inherit;
+  font-size: 13px;
+  line-height: 20px;
+}
+
+.sitmun-format-digits {
+  width: 2.75rem;
+  min-width: 2.75rem;
+  max-width: 2.75rem;
+  flex: 0 0 2.75rem;
+  padding: 0 0.1rem 0 0.35rem;
+}
+
+.sitmun-format-image-limit {
+  width: 4.75rem;
+  min-width: 4.75rem;
+  max-width: 4.75rem;
+  flex: 0 0 4.75rem;
+}
+
+.sitmun-format-image-limit::placeholder {
+  color: rgba(0, 0, 0, 0.42);
+  opacity: 1;
+}
+
+.sitmun-format-pad,
+.sitmun-format-image-field {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin: 0;
+  white-space: nowrap;
+  font-size: 13px;
+}
+
+.sitmun-format-preview {
+  margin-left: auto;
+  color: rgba(0, 0, 0, 0.6);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 //

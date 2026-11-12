@@ -1,4 +1,4 @@
-import {Component} from '@angular/core';
+import {Component, ChangeDetectionStrategy} from '@angular/core';
 import {UntypedFormControl, UntypedFormGroup, Validators} from '@angular/forms';
 import {MatDialog} from '@angular/material/dialog';
 import {ActivatedRoute, Router} from '@angular/router';
@@ -20,6 +20,7 @@ import {UtilsService} from '@app/services/utils.service';
     selector: 'app-territory-type-form',
     templateUrl: './territory-type-form.component.html',
     styles: [],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class TerritoryTypeFormComponent extends BaseFormComponent<TerritoryType> {
@@ -85,7 +86,7 @@ export class TerritoryTypeFormComponent extends BaseFormComponent<TerritoryType>
       throw new Error('Cannot initialize form: entity is undefined');
     }
     this.entityForm = new UntypedFormGroup({
-      name: new UntypedFormControl(this.entityToEdit.name, [Validators.required]),
+      name: new UntypedFormControl(this.entityToEdit.name, [Validators.required, Validators.maxLength(250)]),
       official: new UntypedFormControl(this.entityToEdit.official ?? false),
       topType: new UntypedFormControl(this.entityToEdit.topType ?? false),
       bottomType: new UntypedFormControl(this.entityToEdit.bottomType ?? false),

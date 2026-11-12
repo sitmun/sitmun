@@ -193,6 +193,25 @@ public class DomainConstants {
       return Integer.valueOf(TASK_TYPE_ID_MAP_IMAGE).equals(taskTypeId(task));
     }
 
+    /** Task types a profile mapper accepts. Template and map image stay off the profile. */
+    public static boolean isIncludedInProfile(Task task) {
+      Integer typeId = taskTypeId(task);
+      if (typeId == null) {
+        return false;
+      }
+      return switch (typeId) {
+        case TASK_TYPE_ID_EDIT,
+            TASK_TYPE_ID_BASIC,
+            TASK_TYPE_ID_LOCATOR,
+            TASK_TYPE_ID_QUERY,
+            TASK_TYPE_ID_MORE_INFO,
+            TASK_TYPE_ID_MORE_INFO_ADVANCED,
+            TASK_TYPE_ID_DOCUMENT_EXPORT ->
+            true;
+        default -> false;
+      };
+    }
+
     /** Any task whose type id is {@link #TASK_TYPE_ID_QUERY} (scope/FK rules use other helpers). */
     public static boolean isQueryTask(Task task) {
       return Integer.valueOf(TASK_TYPE_ID_QUERY).equals(taskTypeId(task));
@@ -294,6 +313,12 @@ public class DomainConstants {
       return service != null && TYPE_WFS.equalsIgnoreCase(service.getType());
     }
 
+    public static boolean isSupported(String type) {
+      return TYPE_WMS.equalsIgnoreCase(type)
+          || TYPE_WMTS.equalsIgnoreCase(type)
+          || TYPE_WFS.equalsIgnoreCase(type);
+    }
+
     private Services() {
       // Utility class
     }
@@ -310,7 +335,7 @@ public class DomainConstants {
     public static boolean isTouristicApplication(Application app) {
       if (app == null || app.getType() == null) return false;
       String t = app.getType();
-      return TYPE_TOURISTIC_CODE.equalsIgnoreCase(t) || "Touristic".equalsIgnoreCase(t);
+      return TYPE_TOURISTIC_CODE.equalsIgnoreCase(t);
     }
 
     public static boolean isEditionApplication(Application app) {

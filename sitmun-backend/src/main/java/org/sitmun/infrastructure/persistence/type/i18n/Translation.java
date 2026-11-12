@@ -3,6 +3,7 @@ package org.sitmun.infrastructure.persistence.type.i18n;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import java.util.Objects;
 import lombok.*;
 import org.sitmun.domain.PersistenceConstants;
@@ -29,27 +30,28 @@ public class Translation {
       allocationSize = 1)
   @Id
   @GeneratedValue(strategy = GenerationType.TABLE, generator = "STM_TRANSLATION_GEN")
-  @Column(name = "TRA_ID")
+  @Column(name = "TRA_ID", nullable = false)
   private Integer id;
 
   /** Row identifier. */
-  @Column(name = "TRA_ELEID")
+  @Column(name = "TRA_ELEID", nullable = false)
   @NotNull
   private Integer element;
 
   /** Table and Column identifier. */
-  @Column(name = "TRA_COLUMN", length = PersistenceConstants.IDENTIFIER)
+  @Column(name = "TRA_COLUMN", length = 100, nullable = false)
+  @Size(max = 100)
   @NotBlank
   private String column;
 
   /** Translation language. */
-  @ManyToOne
+  @ManyToOne(optional = false)
   @JoinColumn(name = "TRA_LANID", foreignKey = @ForeignKey(name = "STM_TRA_FK_LAN"))
   @NotNull
   private Language language;
 
   /** Translation. */
-  @Column(name = "TRA_NAME", length = PersistenceConstants.LONG_DESCRIPTION)
+  @Column(name = "TRA_NAME", length = PersistenceConstants.LONG_DESCRIPTION, nullable = false)
   @NotBlank
   private String translation;
 

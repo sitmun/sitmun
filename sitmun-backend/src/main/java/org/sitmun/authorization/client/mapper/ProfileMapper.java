@@ -16,9 +16,13 @@ import org.sitmun.authorization.client.service.ApplicationBackgroundView;
 import org.sitmun.authorization.client.service.ApplicationTreeView;
 import org.sitmun.authorization.client.service.Profile;
 import org.sitmun.authorization.client.service.TaskMapper;
+import org.sitmun.authorization.proxy.parameter.ParameterScopes;
 import org.sitmun.domain.application.Application;
 import org.sitmun.domain.application.territory.ApplicationTerritory;
 import org.sitmun.domain.cartography.Cartography;
+import org.sitmun.domain.cartography.parameter.CartographyParameter;
+import org.sitmun.domain.cartography.parameter.CartographyServiceParameter;
+import org.sitmun.domain.cartography.parameter.FeatureInfoFormatOptions;
 import org.sitmun.domain.cartography.permission.CartographyPermission;
 import org.sitmun.domain.configuration.ConfigurationParameter;
 import org.sitmun.domain.service.Service;
@@ -34,6 +38,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 @Slf4j
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public abstract class ProfileMapper {
+
+  private static final Set<String> SITNA_WFS_GEOMETRY_TYPES =
+      Set.of("point", "multipoint", "polyline", "polygon", "multipolyline", "multipolygon");
 
   @Autowired private List<TaskMapper> taskMappers;
 
@@ -75,14 +82,171 @@ public abstract class ProfileMapper {
         .description(cartography.getDescription())
         .layers(cartography.getLayers())
         .service(PROFILE_SERVICE_ID_PREFIX + cartography.getService().getId())
+        .kind(layerKind(cartography.getService()))
+        .geometryName(publishedGeometryName(cartography))
+        .geometryKind(publishedGeometryKind(cartography))
+        .preferredGeometryType(publishedPreferredGeometryType(cartography))
         .minScaleDenominator(positiveOrNull(cartography.getMinimumScale()))
         .maxScaleDenominator(positiveOrNull(cartography.getMaximumScale()))
         .transparency(cartography.getTransparency())
         .order(cartography.getOrder())
         .metadataURL(cartography.getMetadataURL())
         .datasetURL(cartography.getDatasetURL())
+        .legendType(cartography.getLegendType())
+        .legendURL(cartography.getLegendURL())
         .queryableFeatureEnabled(cartography.getQueryableFeatureEnabled())
+        .featureInfoFields(mapFeatureInfoFields(cartography))
+        .parameters(mapServiceParameters(cartography))
         .build();
+  }
+
+  private Map<String, String> mapServiceParameters(Cartography cartography) {
+    Service service = cartography.getService();
+    if (service == null
+        || !Boolean.TRUE.equals(service.getIsProxied())
+        || cartography.getServiceParameters() == null
+        || cartography.getServiceParameters().isEmpty()) {
+      return null;
+    }
+    Map<String, String> parameters = new LinkedHashMap<>();
+    for (CartographyServiceParameter parameter : cartography.getServiceParameters()) {
+      if (ParameterScopes.publishedOnLayer(service.getType(), parameter.getType())) {
+        parameters.put(parameter.getName(), parameter.getValue());
+      }
+    }
+    return parameters.isEmpty() ? null : parameters;
+  }
+
+  private List<FeatureInfoFieldDto> mapFeatureInfoFields(Cartography cartography) {
+    if (cartography.getParameters() == null || cartography.getParameters().isEmpty()) {
+      return null;
+    }
+    List<FeatureInfoFieldDto> fields =
+        cartography.getParameters().stream()
+            .filter(parameter -> "INFO".equals(parameter.getType()))
+            .sorted(
+                Comparator.comparing(
+                    CartographyParameter::getOrder,
+                    Comparator.nullsLast(Comparator.naturalOrder())))
+            .map(
+                parameter -> {
+                  FeatureInfoFormatOptions options = parameter.getOptions();
+                  return FeatureInfoFieldDto.builder()
+                      .name(parameter.getName())
+                      .label(parameter.getValue())
+                      .format(publishedFormat(parameter))
+                      .order(parameter.getOrder())
+                      .fractionDigits(options == null ? null : options.getFractionDigits())
+                      .padFractionDigits(options == null ? null : options.getPadFractionDigits())
+                      .dateStyle(options == null ? null : blankToNull(options.getDateStyle()))
+                      .maxWidth(options == null ? null : positiveOrNull(options.getMaxWidth()))
+                      .maxHeight(options == null ? null : positiveOrNull(options.getMaxHeight()))
+                      .build();
+                })
+            .toList();
+    return fields.isEmpty() ? null : fields;
+  }
+
+  private static String publishedFormat(CartographyParameter parameter) {
+    if (isGeometryParameter(parameter)) {
+      return "Geometry";
+    }
+    return blankToNull(parameter.getFormat());
+  }
+
+  private static String blankToNull(String value) {
+    if (value == null || value.isBlank()) {
+      return null;
+    }
+    return value;
+  }
+
+  private static String layerKind(Service service) {
+    if (service == null || service.getType() == null) {
+      return null;
+    }
+    return switch (service.getType().toUpperCase(Locale.ROOT)) {
+      case "WFS" -> "vector";
+      case "WMS", "WMTS" -> "raster";
+      default -> null;
+    };
+  }
+
+  private static String publishedGeometryName(Cartography cartography) {
+    if (!"vector".equals(layerKind(cartography.getService()))) {
+      return null;
+    }
+    CartographyParameter chosen = chosenGeometry(cartography);
+    return chosen == null ? null : blankToNull(chosen.getName());
+  }
+
+  private static String publishedGeometryKind(Cartography cartography) {
+    if (!"vector".equals(layerKind(cartography.getService()))) {
+      return null;
+    }
+    CartographyParameter chosen = chosenGeometry(cartography);
+    if (chosen == null || chosen.getOptions() == null) {
+      return null;
+    }
+    return blankToNull(chosen.getOptions().getGeometryKind());
+  }
+
+  private static String publishedPreferredGeometryType(Cartography cartography) {
+    CartographyParameter chosen = chosenGeometry(cartography);
+    if (chosen == null || chosen.getOptions() == null) {
+      return null;
+    }
+    if (!"Geometry".equals(blankToNull(chosen.getOptions().getGeometryKind()))) {
+      return null;
+    }
+    return preferredGeometryType(chosen.getOptions().getPreferredGeometryType());
+  }
+
+  private static CartographyParameter chosenGeometry(Cartography cartography) {
+    List<CartographyParameter> geometry = geometryParameters(cartography);
+    if (geometry.isEmpty()) {
+      return null;
+    }
+    return geometry.stream()
+        .filter(ProfileMapper::isChosenGeometry)
+        .findFirst()
+        .orElse(geometry.get(geometry.size() - 1));
+  }
+
+  private static List<CartographyParameter> geometryParameters(Cartography cartography) {
+    if (cartography.getParameters() == null) {
+      return List.of();
+    }
+    return cartography.getParameters().stream()
+        .filter(ProfileMapper::isGeometryParameter)
+        .sorted(
+            Comparator.comparing(
+                    CartographyParameter::getOrder, Comparator.nullsLast(Comparator.naturalOrder()))
+                .thenComparing(
+                    CartographyParameter::getId, Comparator.nullsLast(Comparator.naturalOrder())))
+        .toList();
+  }
+
+  private static boolean isGeometryParameter(CartographyParameter parameter) {
+    FeatureInfoFormatOptions options = parameter.getOptions();
+    return (options != null && blankToNull(options.getGeometryKind()) != null)
+        || "Geometry".equals(blankToNull(parameter.getFormat()));
+  }
+
+  private static boolean isChosenGeometry(CartographyParameter parameter) {
+    FeatureInfoFormatOptions options = parameter.getOptions();
+    return isGeometryParameter(parameter)
+        && options != null
+        && Boolean.TRUE.equals(options.getLayerGeometry())
+        && blankToNull(parameter.getName()) != null;
+  }
+
+  private static String preferredGeometryType(String value) {
+    String normalized = blankToNull(value);
+    if (normalized == null || !SITNA_WFS_GEOMETRY_TYPES.contains(normalized)) {
+      return null;
+    }
+    return normalized;
   }
 
   /**
@@ -129,7 +293,7 @@ public abstract class ProfileMapper {
         .isProxied(service.getIsProxied())
         .parameters(
             service.getParameters().stream()
-                .filter(it -> Objects.equals(it.getType(), service.getType()))
+                .filter(it -> ParameterScopes.publishedOnService(service.getType(), it.getType()))
                 .map(it -> new String[] {it.getName(), it.getValue()})
                 .collect(Collectors.toMap(it -> it[0], it -> it[1])))
         .crs(service.getSupportedSRS())

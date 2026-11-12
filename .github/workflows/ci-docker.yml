@@ -1,0 +1,55 @@
+name: CI docker
+
+permissions:
+  contents: read
+
+on:
+  workflow_call:
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build images
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [ubuntu-latest, ubuntu-24.04-arm]
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v5
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
+      - name: Build images
+        env:
+          IMAGE_ARCH: ${{ runner.arch }}
+        run: |
+          umask 077
+          cat > "$RUNNER_TEMP/compose.env" << EOF
+          SITMUN_USER_SECRET=$(openssl rand -hex 32)
+          MIDDLEWARE_SECRET=$(openssl rand -hex 32)
+          SITMUN_MBTILES_JOB_HANDLE_SECRET=$(openssl rand -hex 32)
+          EOF
+          export COMPOSE_PARALLEL_LIMIT=1
+          compose=(docker compose --env-file "$RUNNER_TEMP/compose.env" -f compose.yaml -f .github/docker/compose.ci.yaml)
+          "${compose[@]}" build front backend proxy
+          "${compose[@]}" --profile mbtiles build mbtiles
+      - name: Wait until the backend is healthy
+        env:
+          IMAGE_ARCH: ${{ runner.arch }}
+        run: |
+          umask 077
+          cat > "$RUNNER_TEMP/compose.env" << EOF
+          SITMUN_USER_SECRET=$(openssl rand -hex 32)
+          MIDDLEWARE_SECRET=$(openssl rand -hex 32)
+          SITMUN_MBTILES_JOB_HANDLE_SECRET=$(openssl rand -hex 32)
+          EOF
+          export COMPOSE_PARALLEL_LIMIT=1
+          export COMPOSE_PROFILES=postgres
+          export SPRING_PROFILES_ACTIVE=postgres
+          export SPRING_LIQUIBASE_CHANGE_LOG=classpath:/db/changelog/db.changelog-master.yaml
+          compose=(docker compose --env-file "$RUNNER_TEMP/compose.env" -f compose.yaml -f .github/docker/compose.ci.yaml)
+          cleanup() { "${compose[@]}" down -v || true; }
+          trap cleanup EXIT
+          "${compose[@]}" up -d --wait --wait-timeout 300 postgres backend
+          curl -fsS http://localhost:9001/api/dashboard/health

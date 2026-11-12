@@ -14,8 +14,8 @@ import org.junit.jupiter.api.Test;
 import org.sitmun.test.LogTestUtils;
 import org.sitmun.test.URIConstants;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -46,7 +46,7 @@ class LocaleClientConfigurationTest {
   @DisplayName("GET: Obtain original client profile")
   void obtainOriginalVersion() throws Exception {
     sqlLogger.startCapturing();
-    mvc.perform(get(URIConstants.CONFIG_CLIENT_PROFILE_URI, 1, 1))
+    mvc.perform(get(URIConstants.CONFIG_CLIENT_PROFILE_URI, 10001, 10001))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.backgrounds[0].title").value("Background Map"));
     detectUnexpectedUpdates();
@@ -56,7 +56,7 @@ class LocaleClientConfigurationTest {
   @DisplayName("GET: Obtain client profile in Spanish")
   void obtainOriginalClientProfile() throws Exception {
     sqlLogger.startCapturing();
-    mvc.perform(get(URIConstants.CONFIG_CLIENT_PROFILE_URI + "?lang=es", 1, 1))
+    mvc.perform(get(URIConstants.CONFIG_CLIENT_PROFILE_URI + "?lang=es", 10001, 10001))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.backgrounds[0].title").value("Mapa de fondo"));
     detectUnexpectedUpdates();

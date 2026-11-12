@@ -11,7 +11,7 @@ import {
 import { MatDialog } from '@angular/material/dialog';
 import { ActivatedRoute, Router } from '@angular/router';
 
-import { AppCfg, GeneralCfg } from '@api/model/app-cfg';
+import type { AppCfg, GeneralCfg } from '@api/model/app-cfg';
 import { CommonService } from '@api/services/common.service';
 import { TranslateService } from '@ngx-translate/core';
 import { ErrorModalComponent } from '@sections/common/modals/error-modal/error-modal.component';
@@ -28,6 +28,7 @@ import {
 } from 'rxjs/operators';
 import { MAP_CONTAINER_ID } from 'src/app/config/sitna.constants';
 import { LayerCatalogControlHandler } from 'src/app/controls/handlers/layer-catalog-control.handler';
+import { ShareControlHandler } from 'src/app/controls/handlers/share-control.handler';
 import { AppConfigService } from 'src/app/services/app-config.service';
 import { ConfigLookupService } from 'src/app/services/config-lookup.service';
 import { ControlRegistryService } from 'src/app/services/control-registry.service';
@@ -37,6 +38,8 @@ import { MapServiceWorkerService } from 'src/app/services/map-service-worker.ser
 import { MoreInfoAdvancedService } from 'src/app/services/more-info-advanced.service';
 import { SitnaApiService } from 'src/app/services/sitna-api.service';
 import { ToolsPanelSplitterService } from 'src/app/services/tools-panel-splitter.service';
+
+import { mapConfigurationErrorKey } from './map-configuration-error';
 
 const MAP_LOAD_TIMEOUT_MS = 30_000;
 
@@ -59,6 +62,7 @@ export abstract class AbstractMapComponent implements OnInit, OnDestroy {
   private activeRequestId = 0;
   private loadId = 0;
   private readonly layerCatalogHandler = inject(LayerCatalogControlHandler);
+  private readonly shareControlHandler = inject(ShareControlHandler);
   private readonly toolsPanelSplitter = inject(ToolsPanelSplitterService);
   private readonly moreInfoAdvancedService = inject(MoreInfoAdvancedService);
   applicationId!: number;
@@ -87,7 +91,7 @@ export abstract class AbstractMapComponent implements OnInit, OnDestroy {
     const path = this.location.path();
     this.isInEmbedded = path.includes('embedded');
 
-    const currentLang = this.translate.currentLang;
+    const currentLang = this.translate.getCurrentLang() ?? '';
     this.locale = this.parseLang(currentLang);
   }
 
@@ -148,7 +152,6 @@ export abstract class AbstractMapComponent implements OnInit, OnDestroy {
               this.commonService.updateMessage(appCfg.application.theme);
             }
           } else {
-            // Handle null/undefined config from backend
             this.loadingState = 'error';
             console.error(
               '[AbstractMapComponent] Received null/undefined config'
@@ -168,7 +171,7 @@ export abstract class AbstractMapComponent implements OnInit, OnDestroy {
           );
 
           this.dialog.open(ErrorModalComponent, {
-            data: { message: 'map.error.config.fetch.failed' },
+            data: { message: mapConfigurationErrorKey(error?.status) },
             role: 'alertdialog',
             injector: this.injector
           });
@@ -185,7 +188,7 @@ export abstract class AbstractMapComponent implements OnInit, OnDestroy {
               this.territoryId != null &&
               !isNaN(this.territoryId)
           ),
-          map(() => this.parseLang(this.translate.currentLang)),
+          map(() => this.parseLang(this.translate.getCurrentLang() ?? '')),
           filter((newLocale) => newLocale !== this.locale),
           tap((newLocale) => {
             this.locale = newLocale;
@@ -193,7 +196,7 @@ export abstract class AbstractMapComponent implements OnInit, OnDestroy {
             this.clearMap();
           }),
           switchMap(() => {
-            const langForRequest = this.translate.currentLang;
+            const langForRequest = this.translate.getCurrentLang() ?? undefined;
             const requestId = ++this.activeRequestId;
             return this.commonService
               .fetchMapConfiguration(
@@ -239,7 +242,7 @@ export abstract class AbstractMapComponent implements OnInit, OnDestroy {
               error
             );
             this.dialog.open(ErrorModalComponent, {
-              data: { message: 'map.error.config.fetch.failed' },
+              data: { message: mapConfigurationErrorKey(error?.status) },
               role: 'alertdialog',
               injector: this.injector
             });
@@ -251,16 +254,13 @@ export abstract class AbstractMapComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
-    // Signal all subscriptions to complete
     this.componentDestroyed.next();
     this.componentDestroyed.complete();
 
     this.toolsPanelSplitter.unmount();
 
-    // Fully cleanup all control handlers (removes DOM artifacts, restores patches)
     this.controlRegistry.cleanupAll();
 
-    // Clear map resources
     this.clearMap();
   }
 
@@ -295,13 +295,11 @@ export abstract class AbstractMapComponent implements OnInit, OnDestroy {
       this.sitnaApi.setGlobal('currentAppCfg', appCfg);
       this.sitnaApi.setGlobal(
         'currentMapLang',
-        this.translate.currentLang || undefined
+        this.translate.getCurrentLang() || undefined
       );
 
-      // Initialize lookup service for efficient entity lookups
       this.configLookup.initialize(appCfg);
 
-      // Process controls using handler system
       const controls = await this.controlRegistry.processControls(
         appCfg.tasks,
         appCfg
@@ -431,7 +429,6 @@ export abstract class AbstractMapComponent implements OnInit, OnDestroy {
     this.sitnaApi.setGlobal('abstractMapObject', undefined);
     this.sitnaApi.setGlobal('layerCatalogsForModal', undefined);
     this.sitnaApi.setGlobal('currentAppCfg', undefined);
-    // Map container
     const mapFather = this.el.nativeElement.querySelector('.map-container');
     const overview = this.el.nativeElement.querySelector(
       '.tc-ctl-sv-view.tc-hidden'
@@ -449,16 +446,12 @@ export abstract class AbstractMapComponent implements OnInit, OnDestroy {
     this.renderer.setAttribute(div, 'id', MAP_CONTAINER_ID);
 
     if (oldMapDiv) {
-      // Insert new div in the exact same position as the old one
       this.renderer.insertBefore(mapFather, div, oldMapDiv);
-      // Remove the old div
       this.renderer.removeChild(mapFather, oldMapDiv);
     } else {
-      // If no old div exists, just append
       this.renderer.appendChild(mapFather, div);
     }
 
-    // Body
     this.removeSitnaDivs();
     this.removeEmptyDivs();
   }
@@ -523,7 +516,10 @@ export abstract class AbstractMapComponent implements OnInit, OnDestroy {
           return;
         }
         this.mapInterface.updateInterface();
-        this.applyInitialViewAfterLoad(cfg);
+        const mapState = this.route.snapshot.queryParamMap.get('mapState');
+        if (!mapState) {
+          this.applyInitialViewAfterLoad(cfg);
+        }
         try {
           await this.layerCatalogHandler.applyDefaultWorkingLayers(
             this.map,
@@ -534,6 +530,22 @@ export abstract class AbstractMapComponent implements OnInit, OnDestroy {
           console.error(
             '[AbstractMapComponent] applyDefaultWorkingLayers failed',
             error
+          );
+        }
+        if (
+          mapState &&
+          thisLoadId === this.loadId &&
+          !this.componentDestroyed.closed
+        ) {
+          await this.shareControlHandler.restore(
+            this.map,
+            mapState,
+            (profileLayerIds) =>
+              this.layerCatalogHandler.addProfileLayers(
+                this.map,
+                this.currentAppCfg,
+                profileLayerIds
+              )
           );
         }
         this.toolsPanelSplitter.mount(this.document);

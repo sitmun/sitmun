@@ -4,6 +4,7 @@ import static org.sitmun.infrastructure.security.core.SecurityConstants.*;
 import static org.sitmun.infrastructure.security.core.SecurityRole.*;
 
 import java.util.List;
+import java.util.function.Supplier;
 import org.sitmun.authentication.handler.OidcAuthenticationFailureHandler;
 import org.sitmun.authentication.handler.OidcAuthenticationSuccessHandler;
 import org.sitmun.authentication.service.CookieService;
@@ -26,14 +27,19 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authorization.AuthorizationDecision;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.annotation.web.configurers.AuthorizeHttpRequestsConfigurer;
 import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestRedirectFilter;
@@ -41,6 +47,8 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AnonymousAuthenticationFilter;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
+import org.springframework.security.web.util.matcher.AnyRequestMatcher;
+import org.springframework.security.web.util.matcher.OrRequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -62,7 +70,7 @@ import org.springframework.web.filter.CorsFilter;
  */
 @Configuration
 @EnableWebSecurity
-@org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity
+@EnableMethodSecurity
 public class WebSecurityConfigurer {
 
   private final SecurityEntryPoint unauthorizedHandler;
@@ -207,7 +215,21 @@ public class WebSecurityConfigurer {
         .exceptionHandling(
             exceptionHandling ->
                 exceptionHandling
-                    .authenticationEntryPoint(unauthorizedHandler)
+                    // authenticationEntryPoint() discards these matchers. A missing proxy key is
+                    // anonymous, and ingest must still be 403.
+                    .defaultAuthenticationEntryPointFor(
+                        (request, response, authException) ->
+                            accessDeniedHandler.handle(
+                                request,
+                                response,
+                                new AccessDeniedException(authException.getMessage())),
+                        new OrRequestMatcher(
+                            PathPatternRequestMatcher.withDefaults()
+                                .matcher(HttpMethod.POST, "/api/config/proxy/service-checks"),
+                            PathPatternRequestMatcher.withDefaults()
+                                .matcher(HttpMethod.POST, "/api/config/proxy/service-usage")))
+                    .defaultAuthenticationEntryPointFor(
+                        unauthorizedHandler, AnyRequestMatcher.INSTANCE)
                     .accessDeniedHandler(accessDeniedHandler))
         .sessionManagement(
             sessionManagement ->
@@ -238,6 +260,12 @@ public class WebSecurityConfigurer {
               authz) {
     var builder = PathPatternRequestMatcher.withDefaults();
     return authz
+        .requestMatchers(builder.matcher(HttpMethod.GET, "/api/setup/status"))
+        .permitAll()
+        .requestMatchers(builder.matcher("/api/setup/first-run"))
+        .anonymous()
+        .requestMatchers(builder.matcher(HttpMethod.POST, "/api/language-default/change-preview"))
+        .access((authentication, context) -> anonymousOrAdmin(authentication))
         .requestMatchers(builder.matcher(HttpMethod.GET, "/v3/api-docs"))
         .permitAll()
         .requestMatchers(builder.matcher(HttpMethod.GET, "/v3/api-docs.yaml"))
@@ -280,20 +308,18 @@ public class WebSecurityConfigurer {
         .permitAll();
   }
 
-  /**
-   * Configures authorization for user-specific endpoints. These endpoints require USER role
-   * authentication and include:
-   *
-   * <ul>
-   *   <li>/api/account: (GET, POST) User account management
-   *   <li>/api/account/** (GET): User account information retrieval
-   *   <li>/api/user-verification/** (POST): User verification processes
-   *   <li>/api/config/client/territory/position (POST): Territory position updates
-   * </ul>
-   *
-   * @param authz The authorization configuration
-   * @return The updated authorization configuration
-   */
+  /** Password login is closed during first-run. The wizard and its preview stay open. */
+  private static AuthorizationDecision anonymousOrAdmin(
+      Supplier<? extends Authentication> authentication) {
+    Authentication auth = authentication.get();
+    boolean admin =
+        auth != null
+            && auth.getAuthorities().stream()
+                .anyMatch(granted -> ("ROLE_" + ADMIN.name()).equals(granted.getAuthority()));
+    boolean anonymous = auth == null || auth instanceof AnonymousAuthenticationToken;
+    return new AuthorizationDecision(admin || anonymous);
+  }
+
   private AuthorizeHttpRequestsConfigurer<HttpSecurity>.AuthorizationManagerRequestMatcherRegistry
       configureUser(
           AuthorizeHttpRequestsConfigurer<HttpSecurity>.AuthorizationManagerRequestMatcherRegistry
@@ -358,9 +384,8 @@ public class WebSecurityConfigurer {
     return authz
         .requestMatchers(builder.matcher(HttpMethod.GET, "/api/config/languages"))
         .hasAnyRole(USER.name(), PUBLIC.name())
-        .requestMatchers(
-            builder.matcher(HttpMethod.POST, "/api/tasks/template/more-info-advanced/render"))
-        .hasAnyRole(USER.name(), ADMIN.name(), PUBLIC.name())
+        .requestMatchers(builder.matcher(HttpMethod.POST, "/api/config/client/short-url"))
+        .hasAnyRole(USER.name(), PUBLIC.name())
         .requestMatchers(builder.matcher(HttpMethod.GET, "/api/config/client/**"))
         .hasAnyRole(USER.name(), PUBLIC.name());
   }

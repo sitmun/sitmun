@@ -282,6 +282,7 @@ describe('MoreInfoService', () => {
       const req = httpMock.expectOne(
         '/api/sql-proxy/municipis?ID=7&code=08001'
       );
+      expect(req.request.params.has('layer')).toBe(false);
       expect(req.request.method).toBe('GET');
       req.flush({ total: 1 });
 

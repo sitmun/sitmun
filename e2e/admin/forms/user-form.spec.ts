@@ -10,10 +10,10 @@ import {
 } from '../helpers/form';
 
 test.describe('User form', () => {
-  test('disables save when username is cleared', async ({ page }) => {
+  test('keeps save enabled when username is cleared', async ({ page }) => {
     await gotoCreateForm(page, '/#/user/-1/userForm', 'username');
     await touchAndClear(page, 'username');
-    await expect(page.getByTestId('form-save')).toBeDisabled();
+    await expect(page.getByTestId('form-save')).toBeEnabled();
   });
 
   test('creates and updates a user', async ({ page, createdResources }) => {

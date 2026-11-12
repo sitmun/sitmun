@@ -1,0 +1,78 @@
+package org.sitmun.domain.cartography.parameter;
+
+import jakarta.persistence.AttributeConverter;
+import jakarta.persistence.Converter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
+
+@Converter
+public class FeatureInfoFormatOptionsConverter
+    implements AttributeConverter<FeatureInfoFormatOptions, String> {
+
+  private static final Logger LOGGER =
+      LoggerFactory.getLogger(FeatureInfoFormatOptionsConverter.class);
+
+  private final ObjectMapper objectMapper = new ObjectMapper();
+
+  @Override
+  public String convertToDatabaseColumn(FeatureInfoFormatOptions attribute) {
+    if (attribute == null || attribute.isEmpty()) {
+      return null;
+    }
+    try {
+      return objectMapper.writeValueAsString(stored(attribute));
+    } catch (final JacksonException e) {
+      LOGGER.error("JSON writing error", e);
+    }
+    return null;
+  }
+
+  @Override
+  public FeatureInfoFormatOptions convertToEntityAttribute(String dbData) {
+    if (dbData == null || dbData.isBlank()) {
+      return null;
+    }
+    try {
+      FeatureInfoFormatOptions options =
+          objectMapper.readValue(dbData, FeatureInfoFormatOptions.class);
+      return options == null || options.isEmpty() ? null : options;
+    } catch (final JacksonException e) {
+      LOGGER.error("JSON reading error", e);
+    }
+    return null;
+  }
+
+  private static FeatureInfoFormatOptions stored(FeatureInfoFormatOptions source) {
+    FeatureInfoFormatOptions copy = new FeatureInfoFormatOptions();
+    copy.setFractionDigits(source.getFractionDigits());
+    if (Boolean.TRUE.equals(source.getPadFractionDigits())) {
+      copy.setPadFractionDigits(true);
+    }
+    if (source.getDateStyle() != null && !source.getDateStyle().isBlank()) {
+      copy.setDateStyle(source.getDateStyle());
+    }
+    if (positive(source.getMaxWidth())) {
+      copy.setMaxWidth(source.getMaxWidth());
+    }
+    if (positive(source.getMaxHeight())) {
+      copy.setMaxHeight(source.getMaxHeight());
+    }
+    if (source.getGeometryKind() != null && !source.getGeometryKind().isBlank()) {
+      copy.setGeometryKind(source.getGeometryKind());
+    }
+    if (Boolean.TRUE.equals(source.getLayerGeometry())) {
+      copy.setLayerGeometry(true);
+    }
+    if (source.getPreferredGeometryType() != null && !source.getPreferredGeometryType().isBlank()) {
+      copy.setPreferredGeometryType(source.getPreferredGeometryType());
+    }
+    source.additionalProperties().forEach(copy::putAdditionalProperty);
+    return copy;
+  }
+
+  private static boolean positive(Integer value) {
+    return value != null && value > 0;
+  }
+}

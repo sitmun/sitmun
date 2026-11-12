@@ -9,6 +9,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import java.util.Date;
 import java.util.Optional;
 import java.util.Random;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -23,22 +24,25 @@ import org.sitmun.infrastructure.security.password.dto.ResetPasswordRequest;
 import org.sitmun.infrastructure.security.password.service.CodeOTPService;
 import org.sitmun.test.AdditiveActiveProfiles;
 import org.sitmun.test.TestUtils;
+import org.sitmun.test.UniqueContext;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.request.RequestPostProcessor;
 import org.springframework.transaction.annotation.Transactional;
 
 @SpringBootTest
 @AutoConfigureMockMvc
 @Import(MockMailConfig.class)
 @DisplayName("Password Recovery Controller Tests")
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
+@UniqueContext(
+    "Password reset asserts mail sent through the mail profile and a mock JavaMailSender.")
 @AdditiveActiveProfiles(Profiles.MAIL)
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 class ResetPasswordControllerTest {
@@ -53,6 +57,7 @@ class ResetPasswordControllerTest {
   @Autowired private CodeOTPService codeOTPService;
 
   private static final String API_URL = "/api/password-reset/";
+  private static final AtomicInteger CONFIRM_CLIENTS = new AtomicInteger();
   private User testUser;
   private String validToken;
   private String expiredToken;
@@ -65,8 +70,11 @@ class ResetPasswordControllerTest {
    */
   private String testUserEmail;
 
+  private String confirmClientAddress;
+
   @BeforeEach
   void setUp() {
+    confirmClientAddress = "10.7.0." + (CONFIRM_CLIENTS.incrementAndGet() % 200 + 1);
     // Clean up any existing test data
     userTokenRepository.deleteAll();
 
@@ -120,7 +128,7 @@ class ResetPasswordControllerTest {
   }
 
   @Test
-  @DisplayName("POST: Send recovery email with invalid email")
+  @DisplayName("Unknown address returns 200 and creates no token")
   @Transactional
   void sendRecoveryEmailWithInvalidLogin() throws Exception {
     checkService("nonexistent@example.com", false);
@@ -149,7 +157,7 @@ class ResetPasswordControllerTest {
   }
 
   @Test
-  @DisplayName("POST: Send recovery email with empty mail")
+  @DisplayName("Empty email returns 400")
   @Transactional
   void sendRecoveryEmailWithEmptyLogin() throws Exception {
     RequestNewPassword request = new RequestNewPassword();
@@ -163,7 +171,7 @@ class ResetPasswordControllerTest {
   }
 
   @Test
-  @DisplayName("POST: Send recovery email with null mail")
+  @DisplayName("Null email returns 400")
   @Transactional
   void sendRecoveryEmailWithNullLogin() throws Exception {
     RequestNewPassword request = new RequestNewPassword();
@@ -177,10 +185,8 @@ class ResetPasswordControllerTest {
   }
 
   @Test
-  @DisplayName("POST: Await error 429 after 5 request")
-  @DirtiesContext
+  @DisplayName("Sixth password-reset request from one address returns 429")
   void sendRequestTooManyTime() throws Exception {
-    // Clean up any existing tokens for this test
     userTokenRepository.deleteAll();
 
     RequestNewPassword request = new RequestNewPassword();
@@ -190,6 +196,11 @@ class ResetPasswordControllerTest {
     for (int i = 0; i < maxRequest; i++) {
       mvc.perform(
               post(API_URL + "request")
+                  .with(
+                      httpRequest -> {
+                        httpRequest.setRemoteAddr("10.0.0.1");
+                        return httpRequest;
+                      })
                   .contentType(MediaType.APPLICATION_JSON)
                   .content(TestUtils.asJsonString(request)))
           .andExpect(status().isOk());
@@ -197,6 +208,11 @@ class ResetPasswordControllerTest {
 
     mvc.perform(
             post(API_URL + "request")
+                .with(
+                    httpRequest -> {
+                      httpRequest.setRemoteAddr("10.0.0.1");
+                      return httpRequest;
+                    })
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(TestUtils.asJsonString(request)))
         .andExpect(status().isTooManyRequests());
@@ -225,6 +241,7 @@ class ResetPasswordControllerTest {
 
     mvc.perform(
             post(API_URL + "confirm")
+                .with(remoteAddress(confirmClientAddress))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(TestUtils.asJsonString(request)))
         .andExpect(status().isOk())
@@ -240,7 +257,6 @@ class ResetPasswordControllerTest {
   @DisplayName("POST: Reset password with expired token")
   @Transactional
   void resetPasswordWithExpiredToken() throws Exception {
-    // Create expired token for this test
     userTokenRepository.deleteAll();
     UserToken expiredUserToken =
         UserToken.builder()
@@ -256,25 +272,24 @@ class ResetPasswordControllerTest {
     request.setCodeOTP(expiredToken);
     request.setNewPassword("newpassword123");
     request.setEmail(testUser.getEmail());
+    String storedPassword = userRepository.findById(testUser.getId()).orElseThrow().getPassword();
 
     mvc.perform(
             post(API_URL + "confirm")
+                .with(remoteAddress(confirmClientAddress))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(TestUtils.asJsonString(request)))
         .andExpect(status().isGone());
 
-    // Verify password was not updated
-    Optional<User> updatedUser = userRepository.findById(testUser.getId());
-    assertThat(updatedUser).isPresent();
-    // Don't check password encoding in tests as it may not be properly encoded
-    assertThat(updatedUser.get().getPassword()).isNotNull();
+    assertThat(userRepository.findById(testUser.getId()))
+        .isPresent()
+        .hasValueSatisfying(user -> assertThat(user.getPassword()).isEqualTo(storedPassword));
   }
 
   @Test
   @DisplayName("POST: Reset password with token attempt counter exceeded limit")
   @Transactional
   void resetPasswordWithTokenCounterExceedLimit() throws Exception {
-    // Create counter limit exceeded token for this test
     userTokenRepository.deleteAll();
     UserToken counterLimitExcedUserToken =
         UserToken.builder()
@@ -290,25 +305,24 @@ class ResetPasswordControllerTest {
     request.setCodeOTP(counterLimitToken);
     request.setNewPassword("newpassword123");
     request.setEmail(testUser.getEmail());
+    String storedPassword = userRepository.findById(testUser.getId()).orElseThrow().getPassword();
 
     mvc.perform(
             post(API_URL + "confirm")
+                .with(remoteAddress(confirmClientAddress))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(TestUtils.asJsonString(request)))
         .andExpect(status().isGone());
 
-    // Verify password was not updated
-    Optional<User> updatedUser = userRepository.findById(testUser.getId());
-    assertThat(updatedUser).isPresent();
-    // Don't check password encoding in tests as it may not be properly encoded
-    assertThat(updatedUser.get().getPassword()).isNotNull();
+    assertThat(userRepository.findById(testUser.getId()))
+        .isPresent()
+        .hasValueSatisfying(user -> assertThat(user.getPassword()).isEqualTo(storedPassword));
   }
 
   @Test
   @DisplayName("POST: Reset password with token not active")
   @Transactional
   void resetPasswordWithTokenNotActive() throws Exception {
-    // Create inactive token for this test
     userTokenRepository.deleteAll();
     UserToken notActiveUserToken =
         UserToken.builder()
@@ -319,6 +333,7 @@ class ResetPasswordControllerTest {
             .attemptCounter(3)
             .build();
     userTokenRepository.save(notActiveUserToken);
+    String storedPassword = userRepository.findById(testUser.getId()).orElseThrow().getPassword();
 
     ResetPasswordRequest request = new ResetPasswordRequest();
     request.setCodeOTP(notActiveToken);
@@ -327,6 +342,7 @@ class ResetPasswordControllerTest {
 
     mvc.perform(
             post(API_URL + "confirm")
+                .with(remoteAddress(confirmClientAddress))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(TestUtils.asJsonString(request)))
         .andExpect(status().isGone())
@@ -335,18 +351,15 @@ class ResetPasswordControllerTest {
         .andExpect(jsonPath("$.title").value("Gone"))
         .andExpect(jsonPath("$.detail").value("Token has been deactivated"));
 
-    // Verify password was not updated
-    Optional<User> updatedUser = userRepository.findById(testUser.getId());
-    assertThat(updatedUser).isPresent();
-    // Don't check password encoding in tests as it may not be properly encoded
-    assertThat(updatedUser.get().getPassword()).isNotNull();
+    assertThat(userRepository.findById(testUser.getId()))
+        .isPresent()
+        .hasValueSatisfying(user -> assertThat(user.getPassword()).isEqualTo(storedPassword));
   }
 
   @Test
-  @DisplayName("POST: Reset password with invalid token - tests 400 Bad Request response")
+  @DisplayName("Wrong OTP returns 400, body 2, and leaves the password unchanged")
   @Transactional
   void resetPasswordWithInvalidToken() throws Exception {
-    // Create a valid token for this test
     UserToken validUserToken =
         UserToken.builder()
             .codeOTP(validToken)
@@ -356,6 +369,7 @@ class ResetPasswordControllerTest {
             .active(true)
             .build();
     userTokenRepository.save(validUserToken);
+    String storedPassword = userRepository.findById(testUser.getId()).orElseThrow().getPassword();
 
     ResetPasswordRequest request = new ResetPasswordRequest();
     request.setCodeOTP("12345678"); // Invalid OTP
@@ -364,23 +378,63 @@ class ResetPasswordControllerTest {
 
     mvc.perform(
             post(API_URL + "confirm")
+                .with(remoteAddress(confirmClientAddress))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(TestUtils.asJsonString(request)))
         .andExpect(status().isBadRequest())
         .andExpect(content().string("2")); // 3 max attempts - 1 current attempt = 2 remaining
 
-    // Verify password was not updated
-    Optional<User> updatedUser = userRepository.findById(testUser.getId());
-    assertThat(updatedUser).isPresent();
-    // Don't check password encoding in tests as it may not be properly encoded
-    assertThat(updatedUser.get().getPassword()).isNotNull();
+    assertThat(userRepository.findById(testUser.getId()))
+        .isPresent()
+        .hasValueSatisfying(user -> assertThat(user.getPassword()).isEqualTo(storedPassword));
+  }
+
+  @Test
+  @DisplayName("Unknown email confirm matches a wrong code and a known user with no code")
+  @Transactional
+  void confirmUnknownEmailMatchesKnownUserFailure() throws Exception {
+    String hashedToken = codeOTPService.hashCodeOTP(validToken);
+    userTokenRepository.save(
+        UserToken.builder()
+            .codeOTP(hashedToken)
+            .userID(testUser.getId())
+            .expireAt(new Date(System.currentTimeMillis() + 300000))
+            .attemptCounter(0)
+            .active(true)
+            .build());
+
+    User userWithoutCode =
+        userRepository.save(
+            User.builder()
+                .username("testuser2")
+                .email("test2-" + System.nanoTime() + "@example.com")
+                .firstName("Test")
+                .lastName("Two")
+                .password("oldpassword")
+                .administrator(false)
+                .blocked(false)
+                .build());
+
+    MvcResult wrongCode = postConfirm(resetRequest(testUser.getEmail(), "12345678"));
+    MvcResult unknown =
+        postConfirm(resetRequest("missing-" + System.nanoTime() + "@example.com", "12345678"));
+    MvcResult noCode = postConfirm(resetRequest(userWithoutCode.getEmail(), "12345678"));
+
+    assertThat(wrongCode.getResponse().getStatus()).isEqualTo(400);
+    assertThat(wrongCode.getResponse().getContentAsString()).isEqualTo("2");
+    assertThat(unknown.getResponse().getStatus()).isEqualTo(wrongCode.getResponse().getStatus());
+    assertThat(unknown.getResponse().getContentAsString())
+        .isEqualTo(wrongCode.getResponse().getContentAsString());
+    assertThat(noCode.getResponse().getStatus()).isEqualTo(wrongCode.getResponse().getStatus());
+    assertThat(noCode.getResponse().getContentAsString())
+        .isEqualTo(wrongCode.getResponse().getContentAsString());
+    assertThat(userTokenRepository.findByUserID(userWithoutCode.getId())).isEmpty();
   }
 
   @Test
   @DisplayName("POST: Reset password with empty password")
   @Transactional
   void resetPasswordWithEmptyPassword() throws Exception {
-    // Create a valid token for this test
     UserToken validUserToken =
         UserToken.builder()
             .codeOTP(validToken)
@@ -390,6 +444,7 @@ class ResetPasswordControllerTest {
             .active(true)
             .build();
     userTokenRepository.save(validUserToken);
+    String storedPassword = userRepository.findById(testUser.getId()).orElseThrow().getPassword();
 
     ResetPasswordRequest request = new ResetPasswordRequest();
     request.setCodeOTP(validToken);
@@ -398,22 +453,20 @@ class ResetPasswordControllerTest {
 
     mvc.perform(
             post(API_URL + "confirm")
+                .with(remoteAddress(confirmClientAddress))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(TestUtils.asJsonString(request)))
         .andExpect(status().isBadRequest());
 
-    // Verify password was not updated
-    Optional<User> updatedUser = userRepository.findById(testUser.getId());
-    assertThat(updatedUser).isPresent();
-    // Don't check password encoding in tests as it may not be properly encoded
-    assertThat(updatedUser.get().getPassword()).isNotNull();
+    assertThat(userRepository.findById(testUser.getId()))
+        .isPresent()
+        .hasValueSatisfying(user -> assertThat(user.getPassword()).isEqualTo(storedPassword));
   }
 
   @Test
   @DisplayName("POST: Reset password with null password")
   @Transactional
   void resetPasswordWithNullPassword() throws Exception {
-    // Create a valid token for this test
     UserToken validUserToken =
         UserToken.builder()
             .codeOTP(validToken)
@@ -431,6 +484,7 @@ class ResetPasswordControllerTest {
 
     mvc.perform(
             post(API_URL + "confirm")
+                .with(remoteAddress(confirmClientAddress))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(TestUtils.asJsonString(request)))
         .andExpect(status().isBadRequest());
@@ -447,6 +501,7 @@ class ResetPasswordControllerTest {
 
     mvc.perform(
             post(API_URL + "confirm")
+                .with(remoteAddress(confirmClientAddress))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(TestUtils.asJsonString(request)))
         .andExpect(status().isBadRequest());
@@ -456,7 +511,6 @@ class ResetPasswordControllerTest {
   @DisplayName("POST: Reset password with very short password")
   @Transactional
   void resetPasswordWithVeryShortPassword() throws Exception {
-    // Create a valid token for this test
     UserToken validUserToken =
         UserToken.builder()
             .codeOTP(validToken)
@@ -466,6 +520,7 @@ class ResetPasswordControllerTest {
             .active(true)
             .build();
     userTokenRepository.save(validUserToken);
+    String storedPassword = userRepository.findById(testUser.getId()).orElseThrow().getPassword();
 
     ResetPasswordRequest request = new ResetPasswordRequest();
     request.setCodeOTP(validToken);
@@ -474,21 +529,20 @@ class ResetPasswordControllerTest {
 
     mvc.perform(
             post(API_URL + "confirm")
+                .with(remoteAddress(confirmClientAddress))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(TestUtils.asJsonString(request)))
         .andExpect(status().isBadRequest());
 
-    // Verify password was not updated due to validation failure
-    Optional<User> updatedUser = userRepository.findById(testUser.getId());
-    assertThat(updatedUser).isPresent();
-    // Password should not be updated due to validation failure
+    assertThat(userRepository.findById(testUser.getId()))
+        .isPresent()
+        .hasValueSatisfying(user -> assertThat(user.getPassword()).isEqualTo(storedPassword));
   }
 
   @Test
   @DisplayName("POST: Reset password with very long password")
   @Transactional
   void resetPasswordWithVeryLongPassword() throws Exception {
-    // Create a valid token for this test
     UserToken validUserToken =
         UserToken.builder()
             .codeOTP(validToken)
@@ -498,6 +552,7 @@ class ResetPasswordControllerTest {
             .active(true)
             .build();
     userTokenRepository.save(validUserToken);
+    String storedPassword = userRepository.findById(testUser.getId()).orElseThrow().getPassword();
 
     ResetPasswordRequest request = new ResetPasswordRequest();
     request.setCodeOTP(validToken);
@@ -506,15 +561,14 @@ class ResetPasswordControllerTest {
 
     mvc.perform(
             post(API_URL + "confirm")
+                .with(remoteAddress(confirmClientAddress))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(TestUtils.asJsonString(request)))
         .andExpect(status().isBadRequest());
 
-    // Verify password was not updated
-    Optional<User> updatedUser = userRepository.findById(testUser.getId());
-    assertThat(updatedUser).isPresent();
-    // Don't check password encoding in tests as it may not be properly encoded
-    assertThat(updatedUser.get().getPassword()).isNotNull();
+    assertThat(userRepository.findById(testUser.getId()))
+        .isPresent()
+        .hasValueSatisfying(user -> assertThat(user.getPassword()).isEqualTo(storedPassword));
   }
 
   @Test
@@ -548,10 +602,8 @@ class ResetPasswordControllerTest {
   }
 
   @Test
-  @DisplayName("POST: Await error 429 after 3 request")
-  @DirtiesContext
+  @DisplayName("Fourth resend from one address returns 429")
   void sendResendTooManyTime() throws Exception {
-    // Clean up any existing tokens for this test
     userTokenRepository.deleteAll();
 
     RequestNewPassword request = new RequestNewPassword();
@@ -562,6 +614,11 @@ class ResetPasswordControllerTest {
     for (int i = 0; i < maxRequest; i++) {
       mvc.perform(
               post(API_URL + "resend")
+                  .with(
+                      httpRequest -> {
+                        httpRequest.setRemoteAddr("10.0.0.2");
+                        return httpRequest;
+                      })
                   .contentType(MediaType.APPLICATION_JSON)
                   .content(TestUtils.asJsonString(request)))
           .andExpect(status().isOk());
@@ -569,8 +626,65 @@ class ResetPasswordControllerTest {
 
     mvc.perform(
             post(API_URL + "resend")
+                .with(
+                    httpRequest -> {
+                      httpRequest.setRemoteAddr("10.0.0.2");
+                      return httpRequest;
+                    })
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(TestUtils.asJsonString(request)))
         .andExpect(status().isTooManyRequests());
+  }
+
+  @Test
+  @DisplayName("Sixth password-reset confirm from one address returns 429")
+  void confirmTooManyTimes() throws Exception {
+    ResetPasswordRequest request =
+        resetRequest("missing-" + System.nanoTime() + "@example.com", "12345678");
+    RequestPostProcessor remote = remoteAddress("10.0.0.3");
+
+    for (int i = 0; i < 5; i++) {
+      int status =
+          mvc.perform(
+                  post(API_URL + "confirm")
+                      .with(remote)
+                      .contentType(MediaType.APPLICATION_JSON)
+                      .content(TestUtils.asJsonString(request)))
+              .andReturn()
+              .getResponse()
+              .getStatus();
+      assertThat(status).isNotEqualTo(429);
+    }
+
+    mvc.perform(
+            post(API_URL + "confirm")
+                .with(remote)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(TestUtils.asJsonString(request)))
+        .andExpect(status().isTooManyRequests());
+  }
+
+  private MvcResult postConfirm(ResetPasswordRequest request) throws Exception {
+    return mvc.perform(
+            post(API_URL + "confirm")
+                .with(remoteAddress(confirmClientAddress))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(TestUtils.asJsonString(request)))
+        .andReturn();
+  }
+
+  private static ResetPasswordRequest resetRequest(String email, String code) {
+    ResetPasswordRequest request = new ResetPasswordRequest();
+    request.setEmail(email);
+    request.setCodeOTP(code);
+    request.setNewPassword("newpassword123");
+    return request;
+  }
+
+  private static RequestPostProcessor remoteAddress(String address) {
+    return httpRequest -> {
+      httpRequest.setRemoteAddr(address);
+      return httpRequest;
+    };
   }
 }

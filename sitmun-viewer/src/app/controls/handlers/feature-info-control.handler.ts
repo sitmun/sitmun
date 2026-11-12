@@ -1,10 +1,17 @@
 import { Injectable, inject } from '@angular/core';
 
-import { AppCfg } from '@api/model/app-cfg';
+import type { AppCfg } from '@api/model/app-cfg';
 import { TranslateService } from '@ngx-translate/core';
 
+import {
+  applyFeatureInfoOverlay,
+  planFeatureInfoOverlay,
+  rewriteFeatureInfoTable,
+  type FeatureInfoOverlayPlan
+} from './feature-info-field-overlay';
 import { settleHtmlGfiIframes } from './html-gfi-embed.util';
 import { FeatureInfoMoreInfoHandler } from './more-info.handler';
+import { installPopupDragReleasePatch } from './popup-drag-release';
 import { MoreInfoService } from '../../services/more-info.service';
 import { SitnaApiService } from '../../services/sitna-api.service';
 import type { Meld, MeldJoinPoint } from '../../types/meld.types';
@@ -12,6 +19,13 @@ import { ControlHandlerBase } from '../control-handler-base';
 
 declare function require(module: string): unknown;
 const meld = require('meld') as Meld;
+const Draggabilly = require('draggabilly') as {
+  prototype: {
+    _create: () => void;
+    handleEvent?: (event: Event) => void;
+    __sitmunPopupDragRelease?: boolean;
+  };
+};
 
 /**
  * Handler for the native SITNA featureInfo control.
@@ -33,6 +47,9 @@ export class FeatureInfoControlHandler extends ControlHandlerBase {
   private readonly translateService = inject(TranslateService);
   private readonly mapEventCleanups: Array<() => void> = [];
   private appConfig: AppCfg | null = null;
+  private locale = 'en';
+  private overlayPlans: FeatureInfoOverlayPlan[] = [];
+  private overlayServices: Parameters<typeof applyFeatureInfoOverlay>[2];
   private readonly moreInfoHandler = new FeatureInfoMoreInfoHandler(
     this.moreInfoService,
     () => this.appConfig,
@@ -41,6 +58,17 @@ export class FeatureInfoControlHandler extends ControlHandlerBase {
 
   constructor(sitnaApi: SitnaApiService) {
     super(sitnaApi);
+  }
+
+  private applyFieldOverlay(control: { div?: ParentNode } | null | undefined): void {
+    if (!this.overlayPlans.length) {
+      return;
+    }
+    const root = control?.div ?? document;
+    const scoped = root.querySelector?.('.tc-ctl-finfo-layers')
+      ? root
+      : (document.querySelector('.tc-ctl-finfo') ?? root);
+    applyFeatureInfoOverlay(scoped, this.overlayPlans, this.overlayServices);
   }
 
   private scheduleAttachMoreInfoListeners(displayControl: any): void {
@@ -62,6 +90,7 @@ export class FeatureInfoControlHandler extends ControlHandlerBase {
   override async loadPatches(context: AppCfg): Promise<void> {
     this.moreInfoService.initialize(context);
     this.appConfig = context;
+    installPopupDragReleasePatch(Draggabilly);
     await this.withTCAsync(async (TC) => {
       const mapProto = TC?.Map?.prototype;
       if (mapProto?.addControl && !mapProto.__sitmunFiAddControl) {
@@ -107,6 +136,9 @@ export class FeatureInfoControlHandler extends ControlHandlerBase {
           (jp: MeldJoinPoint) => {
             const control = jp.target as any;
             const [map] = jp.args as [any];
+            if (typeof map?.options?.locale === 'string' && map.options.locale) {
+              this.locale = map.options.locale;
+            }
 
             if (
               control.options?.displayElevation === undefined &&
@@ -137,6 +169,7 @@ export class FeatureInfoControlHandler extends ControlHandlerBase {
                 }
 
                 this.scheduleAttachMoreInfoListeners(displayControl);
+                this.applyFieldOverlay(displayControl);
               };
 
               map.on('popup.tc drawtable.tc', onDisplayRender);
@@ -144,6 +177,37 @@ export class FeatureInfoControlHandler extends ControlHandlerBase {
                 map.off('popup.tc drawtable.tc', onDisplayRender);
               });
               control.__sitmunMoreInfoMapEvents = { map, onDisplayRender };
+            }
+
+            if (map?.on && !control.__sitmunWfsFeaturesAdd) {
+              const onFeaturesAdd = (event: {
+                layer?: {
+                  type?: string;
+                  options?: { type?: string; sitmunGfiEnabled?: boolean };
+                  features?: Array<{ showsPopup?: boolean }>;
+                };
+                features?: Array<{ showsPopup?: boolean }>;
+              }) => {
+                const layer = event?.layer;
+                if (
+                  !layer ||
+                  (layer.type !== 'WFS' && layer.options?.type !== 'WFS')
+                ) {
+                  return;
+                }
+                const enabled = layer.options?.sitmunGfiEnabled !== false;
+                const features = event.features ?? layer.features ?? [];
+                for (const feature of features) {
+                  feature.showsPopup = enabled;
+                }
+              };
+              const featuresAdd =
+                TC?.Consts?.event?.FEATURESADD ?? 'featuresadd.tc';
+              map.on(featuresAdd, onFeaturesAdd);
+              this.mapEventCleanups.push(() => {
+                map.off?.(featuresAdd, onFeaturesAdd);
+              });
+              control.__sitmunWfsFeaturesAdd = true;
             }
 
             return result;
@@ -167,6 +231,13 @@ export class FeatureInfoControlHandler extends ControlHandlerBase {
           'responseCallback',
           (jp: MeldJoinPoint) => {
             const [options] = jp.args as [any];
+            this.overlayServices = options?.services;
+            this.overlayPlans = planFeatureInfoOverlay(
+              options?.services,
+              this.appConfig?.layers,
+              this.locale,
+              this.appConfig?.trees
+            );
 
             // Process features BEFORE calling original responseCallback
             if (options?.services && this.moreInfoService.hasMoreInfoTasks()) {
@@ -174,11 +245,11 @@ export class FeatureInfoControlHandler extends ControlHandlerBase {
               this.moreInfoHandler.executeSqlTasksForFeatures(options);
             }
 
-            // Call original responseCallback
             const result = jp.proceedApply(jp.args);
 
             // After render, attach event listeners
             setTimeout(() => {
+              this.applyFieldOverlay(jp.target as { div?: ParentNode });
               this.moreInfoHandler.attachMoreInfoListeners(jp.target);
             }, 100);
 
@@ -207,6 +278,7 @@ export class FeatureInfoControlHandler extends ControlHandlerBase {
               (url, target, features) => window.open(url, target, features)
             );
             setTimeout(() => {
+              this.applyFieldOverlay(jp.target as { div?: ParentNode });
               this.moreInfoHandler.attachMoreInfoListeners(jp.target);
             }, 50);
             return result;
@@ -249,6 +321,41 @@ export class FeatureInfoControlHandler extends ControlHandlerBase {
       // reply with a ServiceException, which Raster.describeLayer (Raster.js:2037) re-throws.
       // That throw propagates out of getFeatureInfo and breaks identify for every layer.
       const RasterProto = this.getRasterPrototype(TC);
+      if (
+        RasterProto?.getDisgregatedLayerNames &&
+        !RasterProto.__sitmunKeepNamedGroup
+      ) {
+        const disgregatedNamesAdvice = meld.around(
+          RasterProto,
+          'getDisgregatedLayerNames',
+          function (
+            this: {
+              names?: string[] | string;
+              getLayerNodeByName?: (name: string) => { Layer?: unknown[] } | null;
+            },
+            jp: MeldJoinPoint
+          ): unknown {
+            const names = Array.isArray(this.names)
+              ? this.names
+              : typeof this.names === 'string'
+                ? this.names.split(',')
+                : [];
+            const node = names.length === 1
+              ? this.getLayerNodeByName?.(names[0])
+              : null;
+            if (node?.Layer?.length) {
+              return [...names];
+            }
+            return jp.proceed();
+          }
+        );
+        RasterProto.__sitmunKeepNamedGroup = true;
+        this.patchManager.add(() => {
+          disgregatedNamesAdvice.remove();
+          delete RasterProto.__sitmunKeepNamedGroup;
+        });
+      }
+
       if (RasterProto?.describeLayer && !RasterProto.__sitmunDescribeLayerSafe) {
         const describeAdvice = meld.around(
           RasterProto,
@@ -339,6 +446,145 @@ export class FeatureInfoControlHandler extends ControlHandlerBase {
           delete ProxProto.__sitmunGfiIsolation;
         });
       }
+
+      const FeatureCtor = TC?.feature?.Feature;
+      if (
+        FeatureCtor?.prototype?.showInfo &&
+        !FeatureCtor.prototype.__sitmunWfsShowInfo
+      ) {
+        // eslint-disable-next-line @typescript-eslint/no-this-alias
+        const featureInfoHandler = this;
+        const showInfoAdvice = meld.around(
+          FeatureCtor.prototype,
+          'showInfo',
+          function (
+            this: {
+              layer?: {
+                type?: string;
+                featureType?: string | string[];
+                options?: {
+                  type?: string;
+                  featureType?: string | string[];
+                  nodeId?: string;
+                };
+              };
+              infoControl?: {
+                getContainerElement?: () => ParentNode;
+                div?: ParentNode;
+              };
+            },
+            jp: MeldJoinPoint
+          ) {
+            featureInfoHandler.prepareWfsPopup(this);
+            return Promise.resolve(jp.proceed()).then((result) => {
+              featureInfoHandler.replaceWfsPopupTable(this);
+              return result;
+            });
+          }
+        );
+        FeatureCtor.prototype.__sitmunWfsShowInfo = true;
+        this.patchManager.add(() => {
+          showInfoAdvice.remove();
+          delete FeatureCtor.prototype.__sitmunWfsShowInfo;
+        });
+      }
     });
+  }
+
+  private wfsOverlayServices(feature: {
+    layer?: {
+      type?: string;
+      featureType?: string | string[];
+      options?: {
+        type?: string;
+        featureType?: string | string[];
+        nodeId?: string;
+      };
+    };
+  }): Parameters<typeof planFeatureInfoOverlay>[0] | undefined {
+    const layer = feature.layer;
+    if (!layer || (layer.type !== 'WFS' && layer.options?.type !== 'WFS')) {
+      return undefined;
+    }
+    const featureType = layer.featureType ?? layer.options?.featureType;
+    const name = Array.isArray(featureType) ? featureType[0] : featureType;
+    if (!name) {
+      return undefined;
+    }
+    return [
+      {
+        layers: [
+          {
+            name,
+            features: [feature as { data?: unknown; getData?: () => unknown }]
+          }
+        ],
+        mapLayers: [
+          {
+            names: [name],
+            options: { nodeId: layer.options?.nodeId }
+          }
+        ]
+      }
+    ];
+  }
+
+  private prepareWfsPopup(feature: {
+    layer?: {
+      type?: string;
+      featureType?: string | string[];
+      options?: {
+        type?: string;
+        featureType?: string | string[];
+        nodeId?: string;
+      };
+    };
+  }): void {
+    if (!this.moreInfoService.hasMoreInfoTasks()) {
+      return;
+    }
+    const services = this.wfsOverlayServices(feature);
+    if (!services) {
+      return;
+    }
+    this.moreInfoHandler.injectMoreInfoFields({ services });
+  }
+
+  private replaceWfsPopupTable(feature: {
+    layer?: {
+      type?: string;
+      featureType?: string | string[];
+      options?: {
+        type?: string;
+        featureType?: string | string[];
+        nodeId?: string;
+      };
+    };
+    infoControl?: {
+      getContainerElement?: () => ParentNode;
+      div?: ParentNode;
+    };
+  }): void {
+    const services = this.wfsOverlayServices(feature);
+    if (!services) {
+      return;
+    }
+    const plans = planFeatureInfoOverlay(
+      services,
+      this.appConfig?.layers,
+      this.locale,
+      this.appConfig?.trees
+    );
+    const rows = plans[0]?.features[0];
+    if (!rows?.length) {
+      return;
+    }
+    const container =
+      feature.infoControl?.getContainerElement?.() ?? feature.infoControl?.div;
+    const table = container?.querySelector?.('table');
+    if (!(table instanceof HTMLTableElement)) {
+      return;
+    }
+    rewriteFeatureInfoTable(table, rows);
   }
 }

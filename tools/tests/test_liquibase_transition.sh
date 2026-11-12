@@ -14,7 +14,6 @@
 set -uo pipefail
 
 REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
-TOOLS_DIR="$REPO_ROOT/tools/bin"
 POSTGRES_PROFILE="$REPO_ROOT/profiles/postgres"
 OLD_COMMIT="197b923"
 
@@ -133,7 +132,8 @@ teardown() {
   # Re-apply the correct 07_sequences.yaml (runOnChange + ON CONFLICT) since it
   # may not yet be committed at HEAD. Phase 2 applies it too; keep them in sync.
   _apply_sequences_fix "$POSTGRES_PROFILE/liquibase/changelog/07_sequences.yaml"
-  (cd "$TOOLS_DIR" && python3 generate_all_seed_outputs.py --scenarios postgres,oracle --baseline en > /dev/null 2>&1)
+  python3 "$REPO_ROOT/tools/bin/generate_baseline_seed.py" >/dev/null
+  python3 "$REPO_ROOT/tools/bin/generate_legacy_upgrade.py" >/dev/null
   echo "  Generated files restored to baseline=en."
 }
 trap teardown EXIT
@@ -208,7 +208,8 @@ _apply_sequences_fix "$POSTGRES_PROFILE/liquibase/changelog/07_sequences.yaml"
 ok "07_sequences.yaml has runOnChange + ON CONFLICT"
 
 echo "  Generating current seed files (baseline=en)..."
-(cd "$TOOLS_DIR" && python3 generate_all_seed_outputs.py --scenarios postgres --baseline en > /dev/null 2>&1)
+python3 "$REPO_ROOT/tools/bin/generate_baseline_seed.py" >/dev/null
+python3 "$REPO_ROOT/tools/bin/generate_legacy_upgrade.py" >/dev/null
 ok "Seed files regenerated for HEAD"
 
 liquibase_update_capture "Phase 2 — new loadUpdateData + runOnChange changelog"

@@ -40,12 +40,10 @@ public class VerificationController {
   @SecurityRequirements
   public ResponseEntity<Boolean> verifyPassword(
       @Valid @RequestBody PasswordVerificationRequest request) {
-    // Get current username from authentication
     Authentication currentAuth = SecurityContextHolder.getContext().getAuthentication();
     String currentUsername = currentAuth.getName();
     try {
 
-      // Check if the password is correct
       Authentication authentication =
           this.authenticationManager.authenticate(
               new UsernamePasswordAuthenticationToken(currentUsername, request.getPassword()));
@@ -59,12 +57,10 @@ public class VerificationController {
   /** Verify is this email is already used */
   @PostMapping("/verify-email")
   public ResponseEntity<Boolean> verifyEmail(@RequestBody(required = false) String email) {
-    // Handle null or empty email
     if (email == null || email.trim().isEmpty()) {
       return ResponseEntity.ok(false);
     }
 
-    // Validate email format using Jakarta Validation
     if (!isValidEmail(email.trim())) {
       return ResponseEntity.ok(false);
     }
@@ -73,12 +69,7 @@ public class VerificationController {
     return ResponseEntity.ok(emailAlreadyTaken);
   }
 
-  /**
-   * Validates the email format using Jakarta Validation's email pattern. This uses the same
-   * validation logic as the @Email annotation.
-   */
   private boolean isValidEmail(@NotNull String email) {
-    // Use the same pattern as Jakarta Validation's @Email annotation
     String emailPattern = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$";
     return email.matches(emailPattern);
   }

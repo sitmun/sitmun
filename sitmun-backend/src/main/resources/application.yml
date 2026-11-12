@@ -20,7 +20,9 @@ spring:
   jmx:
     enabled: false
   liquibase:
-    change-log: file:./config/db/changelog/db.changelog-master.yaml
+    change-log: file:./src/test/resources/db/changelog-test/db.changelog-master.yaml
+    parameters:
+      "[upgrade.defaultLanguage]": ${SITMUN_UPGRADE_DEFAULT_LANGUAGE:}
   jpa:
     hibernate:
       ddl-auto: none
@@ -28,6 +30,9 @@ spring:
     properties:
       # Disable auto-commit to allow lazy collection loading
       hibernate.connection.provider_disables_autocommit: true
+      hibernate.jdbc.time_zone: UTC
+      # LocalDate is bound with JDBC 4.2 setObject. java.sql.Date shifts the civil day when this zone is UTC.
+      hibernate.type.java_time_use_direct_jdbc: true
       # Disable CLOB creation for better database compatibility
       jdbc.lob.non_contextual_creation: true
   data:
@@ -68,7 +73,6 @@ management:
 
 sitmun:
   module: SITMUN 3 Backend Core
-  version: 1.2.9
   language: en
   user:
     secret: ${SITMUN_USER_SECRET}
@@ -83,8 +87,27 @@ sitmun:
     token-validity-in-milliseconds: 900000
     force: false
     url: ${SITMUN_PROXY_MIDDLEWARE_URL:http://localhost:8080/middleware}
-    # When enabled, validates user permissions and enforces role-based access control
-    validate-user-access: true
+  service-check:
+    enabled: true
+    interval: 15m
+    dispatch-interval: 1s
+    max-in-flight: 4
+    max-per-host: 1
+    timeout: 10s
+    connect-timeout: 10s
+    read-timeout: 10s
+    sample-retention: 24h
+    usage-retention: 400d
+    retention-interval: 1h
+    overdue-warn-factor: 2
+    viewer-flush-interval: 1m
+    detail-max-length: 500
+    exception-text-max-length: 200
+    scan-max-bytes: 65536
+  short-url:
+    provider: none
+    tinyurl-legacy:
+      endpoint: https://tinyurl.com/api-create.php
   authentication:
     http-only-cookie: true
     same-site-cookie: Strict
@@ -144,154 +167,12 @@ sitmun:
               where childTerritory member of uc.territory.members)))
         group by app.name
   startup:
-    built-in-users:
-      # Optional. Used only to create missing admin or restore an empty admin password.
-      # No default. Inject via SITMUN_BOOTSTRAP_ADMIN_PASSWORD; remove after health is UP.
+    first-run:
+      # Optional. When the admin password is null, startup runs the first-run wizard with these
+      # values. The password must be 8 to 50 characters and must differ from the username.
+      # Remove the variables after /api/dashboard/health is UP.
       admin-password: ${SITMUN_BOOTSTRAP_ADMIN_PASSWORD:}
-    code-lists:
-      check-on-startup: true
-      database-connection-drivers:
-        - driver-class: org.h2.Driver
-          description: H2 JDBC Driver
-        - driver-class: org.postgresql.Driver
-          description: PostgreSQL JDBC Driver
-        - driver-class: oracle.jdbc.OracleDriver
-          description: Oracle JDBC driver
-        - driver-class: com.microsoft.sqlserver.jdbc.SQLServerDriver
-          description: Microsoft SQL Server JDBC Driver
-      code-list-values:
-        - code-list-name: application.type
-          value: T
-          description: Tourist application
-        - code-list-name: application.type
-          value: ED
-          description: Edition application
-        - code-list-name: tree.type
-          value: touristic
-          description: Tourist application
-        - code-list-name: tree.type
-          value: cartography
-          description: Cartography tree
-        - code-list-name: tree.type
-          value: edition
-          description: Edition tree
-        - code-list-name: treenode.node.type
-          value: cartography
-          description: Cartography
-        - code-list-name: treenode.node.type
-          value: folder
-          description: Folder
-        - code-list-name: treenode.node.type
-          value: list
-          description: List
-        - code-list-name: treenode.node.type
-          value: menu
-          description: Menu
-        - code-list-name: treenode.node.type
-          value: task
-          description: Task
-        - code-list-name: treenode.node.type
-          value: fav
-          description: Favorites
-        - code-list-name: treenode.node.type
-          value: map
-          description: Map
-        - code-list-name: treenode.node.type
-          value: nm
-          description: Near me
-        - code-list-name: treenode.viewmode
-          value: dl
-          description: Detailed list
-        - code-list-name: treenode.viewmode
-          value: ne
-          description: Near elements
-        - code-list-name: treenode.viewmode
-          value: sch
-          description: Schedule
-        - code-list-name: treenode.viewmode
-          value: evtcat
-          description: Events categories
-        - code-list-name: treenode.viewmode
-          value: evt
-          description: Events
-        - code-list-name: treenode.viewmode
-          value: evtloc
-          description: Events locations
-        - code-list-name: treenode.viewmode
-          value: ms
-          description: Map search
-        - code-list-name: treenode.viewmode
-          value: rt
-          description: Routes list
-        - code-list-name: treenode.viewmode
-          value: gallery
-          description: Gallery
-        - code-list-name: taskEntity.jsonParamType
-          value: string
-          description: string
-        - code-list-name: taskEntity.jsonParamType
-          value: number
-          description: number
-        - code-list-name: taskEntity.jsonParamType
-          value: boolean
-          description: boolean
-        - code-list-name: taskEntity.jsonParamType
-          value: object
-          description: object
-        - code-list-name: taskEntity.jsonParamType
-          value: array
-          description: array
-        - code-list-name: taskEntity.jsonParamType
-          value: "null"
-          description: "null"
-        - code-list-name: queryTask.scope
-          value: sql-query
-          description: "SQL Query"
-        - code-list-name: queryTask.scope
-          value: web-api-query
-          description: "Web API Query"
-        - code-list-name: queryTask.scope
-          value: web-api-query-no-proxy
-          description: "Web API Query (No Proxy)"
-        - code-list-name: queryTask.scope
-          value: cartography-query
-          description: "Cartography Query"
-        - code-list-name: queryTask.parameterType
-          value: template
-          description: "Template parameter"
-        - code-list-name: queryTask.parameterType
-          value: query
-          description: "Query parameter"
-        - code-list-name: editTask.scope
-          value: feat-edit
-          description: "Features service edition (WFS)"
-        - code-list-name: editTask.scope
-          value: db-edit
-          description: "Database edition"
-        - code-list-name: editTask.fieldType
-          value: text
-          description: "Text"
-        - code-list-name: editTask.fieldType
-          value: date
-          description: "Date"
-        - code-list-name: editTask.fieldType
-          value: image
-          description: "Image"
-        - code-list-name: editTask.fieldType
-          value: number
-          description: "Number"
-        - code-list-name: editTask.fieldType
-          value: listbox
-          description: "ListBox"
-        - code-list-name: moreInfo.type
-          value: SQL
-          description: "SQL"
-        - code-list-name: moreInfo.type
-          value: API
-          description: "API"
-        - code-list-name: moreInfo.type
-          value: URL
-          description: "URL"
+      language: ${SITMUN_BOOTSTRAP_LANGUAGE:}
   recover-password:
     front:
       url: "http://localhost:9080"
@@ -302,6 +183,9 @@ sitmun:
       token-recovery-password-validity-in-milliseconds: 3600000
     code-otp:
       max-attempt: 3
+  jdbc:
+    max-rows: 1000
+    query-timeout-seconds: 60
   variables:
     # System variables resolved by backend using SpEL expressions.
     # Syntax in task properties: #{VARIABLE_NAME}

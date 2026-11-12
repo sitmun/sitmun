@@ -33,6 +33,42 @@ describe('resolveUiLanguage', () => {
       })
     ).toBe('en');
   });
+
+  it('uses the closest browser language when the server provided none', () => {
+    expect(
+      resolveUiLanguage({
+        stored: null,
+        browser: ['es-MX', 'en-US'],
+        backendDefault: null,
+        availableShortnames: ['ca', 'en', 'es', 'pt-PT'],
+        staticFallback: 'ca'
+      })
+    ).toBe('es');
+  });
+
+  it('keeps the server default ahead of the browser', () => {
+    expect(
+      resolveUiLanguage({
+        stored: null,
+        browser: ['es-ES'],
+        backendDefault: 'en',
+        availableShortnames: ['ca', 'en', 'es'],
+        staticFallback: 'ca'
+      })
+    ).toBe('en');
+  });
+
+  it('maps a Portuguese browser tag to the configured Portuguese language', () => {
+    expect(
+      resolveUiLanguage({
+        stored: null,
+        browser: ['pt-BR'],
+        backendDefault: null,
+        availableShortnames: ['es', 'pt-PT', 'en'],
+        staticFallback: 'es'
+      })
+    ).toBe('pt-PT');
+  });
 });
 
 describe('sortByLanguageOrder', () => {

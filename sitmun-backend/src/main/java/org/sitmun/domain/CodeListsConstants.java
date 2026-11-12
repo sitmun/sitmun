@@ -9,22 +9,25 @@ public final class CodeListsConstants {
   public static final String CARTOGRAPHY_GEOMETRY_TYPE = "cartography.geometryType";
   public static final String CARTOGRAPHY_LEGEND_TYPE = "cartography.legendType";
   public static final String CARTOGRAPHY_PARAMETER_FORMAT = "cartographyParameter.format";
+  public static final String CARTOGRAPHY_PARAMETER_GEOMETRY_KIND =
+      "cartographyParameter.geometryKind";
+  public static final String CARTOGRAPHY_PARAMETER_PREFERRED_GEOMETRY_TYPE =
+      "cartographyParameter.preferredGeometryType";
   public static final String CARTOGRAPHY_PARAMETER_TYPE = "cartographyParameter.type";
+  public static final String CARTOGRAPHY_SERVICE_PARAMETER_TYPE =
+      "cartographyServiceParameter.type";
   public static final String CARTOGRAPHY_SPATIAL_SELECTION_PARAMETER_FORMAT =
       "cartographySpatialSelectionParameter.format";
   public static final String CARTOGRAPHY_SPATIAL_SELECTION_PARAMETER_TYPE =
       "cartographySpatialSelectionParameter.type";
   public static final String CARTOGRAPHY_PERMISSION_TYPE = "cartographyPermission.type";
   public static final String DATABASE_CONNECTION_DRIVER = "databaseConnection.driver";
-  public static final String DOCUMENT_EXPORT_ENGINE = "documentExport.engine";
-  public static final String DOCUMENT_EXPORT_OUTPUT = "documentExport.output";
   public static final String DOWNLOAD_TASK_SCOPE = "downloadTask.scope";
   public static final String SERVICE_NATIVE_PROTOCOL = "service.nativeProtocol";
   public static final String SERVICE_AUTHENTICATION_MODE = "service.authenticationMode";
   public static final String SERVICE_PARAMETER_TYPE = "serviceParameter.type";
   public static final String SERVICE_TYPE = "service.type";
   public static final String TERRITORY_SCOPE = "territory.scope";
-  public static final String QUERY_TASK_MIME_TYPE = "queryTask.mimeType";
   public static final String QUERY_TASK_SCOPE = "queryTask.scope";
   public static final String QUERY_TASK_PARAMETER_TYPE = "queryTask.parameterType";
   public static final String TASK_ENTITY_JSON_PARAM_TYPE = "taskEntity.jsonParamType";

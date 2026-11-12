@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 
-import {
+import type {
   AppCfg,
   AppLayer,
   AppService,
@@ -58,7 +58,6 @@ export class ConfigLookupService {
     if (apiConfig.trees) {
       apiConfig.trees.forEach((tree) => {
         this.treesCache.set(tree.id, tree);
-        // Index all nodes from the nodes object
         const nodesEntries = Object.entries(tree.nodes) as [
           string,
           AppNodeInfo

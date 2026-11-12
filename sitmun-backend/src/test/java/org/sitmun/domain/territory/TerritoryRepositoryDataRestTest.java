@@ -1,5 +1,6 @@
 package org.sitmun.domain.territory;
 
+import static org.hamcrest.Matchers.hasItem;
 import static org.sitmun.test.DateTimeMatchers.isIso8601DateAndTime;
 import static org.sitmun.test.TestUtils.*;
 import static org.sitmun.test.URIConstants.*;
@@ -14,8 +15,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
@@ -79,10 +80,12 @@ class TerritoryRepositoryDataRestTest {
   }
 
   @Test
-  @DisplayName("GET: can list as admin")
+  @DisplayName("GET lists seed territory Provincia A")
   @WithMockUser(roles = "ADMIN")
   void getTerritoriesAsPublic() throws Exception {
-    mvc.perform(get(TERRITORIES_URI)).andExpect(status().isOk());
+    mvc.perform(get(TERRITORIES_URI))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$._embedded.territories[*].name", hasItem("Provincia A")));
   }
 
   @Test
@@ -104,7 +107,7 @@ class TerritoryRepositoryDataRestTest {
   @DisplayName("GET: has link to task availabilities")
   @WithMockUser(roles = "ADMIN")
   void hasLinkToTaskAvailability() throws Exception {
-    mvc.perform(get(TERRITORY_URI, 1))
+    mvc.perform(get(TERRITORY_URI, 10001))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$._links.taskAvailabilities").exists());
   }
@@ -113,7 +116,7 @@ class TerritoryRepositoryDataRestTest {
   @DisplayName("GET: has computed center")
   @WithMockUser(roles = "ADMIN")
   void hasComputedCenter() throws Exception {
-    mvc.perform(get(TERRITORY_URI, 1))
+    mvc.perform(get(TERRITORY_URI, 10001))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.center.x").value(422552.0))
         .andExpect(jsonPath("$.center.y").value(4623846.0));
@@ -123,7 +126,7 @@ class TerritoryRepositoryDataRestTest {
   @DisplayName("GET: has link to cartography availabilities")
   @WithMockUser(roles = "ADMIN")
   void hasLinkToCartographyAvailabilities() throws Exception {
-    mvc.perform(get(TERRITORY_URI, 1))
+    mvc.perform(get(TERRITORY_URI, 10001))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$._links.cartographyAvailabilities").exists());
   }

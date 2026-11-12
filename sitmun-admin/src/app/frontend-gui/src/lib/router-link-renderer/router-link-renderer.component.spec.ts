@@ -1,12 +1,16 @@
+import { Component } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { By } from '@angular/platform-browser';
-import { provideRouter } from '@angular/router';
+import { provideRouter, RouterLink } from '@angular/router';
 
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslatePipe, provideTranslateService } from '@ngx-translate/core';
 
 import { RouterLinkRendererComponent } from './router-link-renderer.component';
+
+@Component({selector: 'app-router-link-target', template: '', standalone: true})
+class RouterLinkTargetComponent {}
 
 describe('RouterLinkRendererComponent', () => {
   let component: RouterLinkRendererComponent;
@@ -18,9 +22,12 @@ describe('RouterLinkRendererComponent', () => {
         RouterLinkRendererComponent,
         MatIconModule,
         MatTooltipModule,
-        TranslateModule.forRoot(),
+        TranslatePipe,
       ],
-      providers: [provideRouter([])],
+      providers: [
+      provideTranslateService(),provideRouter([
+        {path: 'connection/:id/connectionForm', component: RouterLinkTargetComponent},
+      ])],
     }).compileComponents();
 
     fixture = TestBed.createComponent(RouterLinkRendererComponent);
@@ -48,8 +55,7 @@ describe('RouterLinkRendererComponent', () => {
     const expectedRoute = ['', 'connection', 2, 'connectionForm'];
 
     expect(textLink.nativeElement.textContent.trim()).toBe('Demo connection');
-    expect(textLink.attributes['ng-reflect-router-link'] ?? textLink.properties['routerLink'])
-      .toBeTruthy();
+    expect(textLink.injector.get(RouterLink)).toBeTruthy();
     expect(component.getRouterLink()).toEqual(expectedRoute);
     expect(textLink.attributes['target']).toBeUndefined();
     expect(textLink.nativeElement.getAttribute('target')).toBeNull();

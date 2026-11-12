@@ -1,4 +1,4 @@
-import {Component} from '@angular/core';
+import {Component, ChangeDetectionStrategy} from '@angular/core';
 import {UntypedFormControl, UntypedFormGroup, Validators} from '@angular/forms';
 import {MatDialog} from '@angular/material/dialog';
 import {ActivatedRoute, Router} from '@angular/router';
@@ -20,6 +20,7 @@ import {UtilsService} from '@app/services/utils.service';
     selector: 'app-codelist-value-form',
     templateUrl: './codelist-value-form.component.html',
     styles: [],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class CodelistValueFormComponent extends BaseFormComponent<CodeList> {
@@ -83,13 +84,13 @@ export class CodelistValueFormComponent extends BaseFormComponent<CodeList> {
     this.entityForm = new UntypedFormGroup({
       codeListName: new UntypedFormControl(
         {value: this.entityToEdit.codeListName, disabled: this.isSystemRecord}, 
-        [Validators.required]
+        [Validators.required, Validators.maxLength(250)]
       ),
       value: new UntypedFormControl(
         {value: this.entityToEdit.value, disabled: this.isSystemRecord}, 
-        [Validators.required]
+        [Validators.required, Validators.maxLength(250)]
       ),
-      description: new UntypedFormControl(this.entityToEdit.description, []),
+      description: new UntypedFormControl(this.entityToEdit.description, [Validators.required, Validators.maxLength(250)]),
       defaultCode: new UntypedFormControl(
         {value: this.entityToEdit.defaultCode || false, disabled: this.isSystemRecord}, 
         []

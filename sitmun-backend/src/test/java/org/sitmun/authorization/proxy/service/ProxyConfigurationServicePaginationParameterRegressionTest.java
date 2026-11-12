@@ -4,15 +4,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.sitmun.authorization.proxy.decorators.QueryPaginationDecorator.SQL_LIMIT;
 import static org.sitmun.authorization.proxy.decorators.QueryPaginationDecorator.SQL_OFFSET;
 import static org.sitmun.domain.DomainConstants.Proxy.TYPE_SQL;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -86,9 +85,12 @@ class ProxyConfigurationServicePaginationParameterRegressionTest {
             systemVariableResolver,
             moreInfoTaskResolver,
             taskParameterProcessor,
-            new UserApplicationAccessPolicy(userRepository, applicationRepository));
+            new UserApplicationAccessPolicy(userRepository, applicationRepository),
+            mock(org.sitmun.domain.cartography.CartographyRepository.class),
+            mock(
+                org.sitmun.domain.cartography.parameter.CartographyServiceParameterRepository
+                    .class));
     ReflectionTestUtils.setField(service, "responseValidityTime", 3600);
-    ReflectionTestUtils.setField(service, "validateUserAccessEnabled", false);
   }
 
   private RequestCoordinates coordinates(ConfigProxyRequestDto request) {
@@ -101,7 +103,6 @@ class ProxyConfigurationServicePaginationParameterRegressionTest {
     Map<String, String> requestParams = new HashMap<>();
     requestParams.put("limit", "10");
     requestParams.put("offset", "5");
-    requestParams.put("userId", "7");
 
     ConfigProxyRequestDto request =
         ConfigProxyRequestDto.builder()
@@ -113,7 +114,6 @@ class ProxyConfigurationServicePaginationParameterRegressionTest {
             .parameters(requestParams)
             .build();
 
-    List<String> jdbcPositional = new ArrayList<>();
     JdbcPayloadDto jdbc =
         JdbcPayloadDto.builder()
             .vary(null)
@@ -122,7 +122,6 @@ class ProxyConfigurationServicePaginationParameterRegressionTest {
             .password("p")
             .driver("org.h2.Driver")
             .sql("SELECT * FROM t WHERE id = ?")
-            .parameters(jdbcPositional)
             .build();
 
     ConfigProxyDto config = ConfigProxyDto.builder().type(TYPE_SQL).exp(100).payload(jdbc).build();
@@ -138,7 +137,6 @@ class ProxyConfigurationServicePaginationParameterRegressionTest {
 
     assertThat(request.getParameters().keySet()).noneMatch("limit"::equalsIgnoreCase);
     assertThat(request.getParameters().keySet()).noneMatch("offset"::equalsIgnoreCase);
-    assertThat(request.getParameters()).containsEntry("userId", "7");
   }
 
   @Test

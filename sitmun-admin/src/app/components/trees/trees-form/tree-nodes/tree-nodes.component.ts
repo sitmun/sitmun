@@ -1,11 +1,11 @@
-import {ChangeDetectorRef, Component, DestroyRef, ElementRef, EventEmitter, HostListener, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges, TemplateRef, ViewChild, inject} from '@angular/core';
+import {ChangeDetectorRef, Component, DestroyRef, ElementRef, EventEmitter, HostListener, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges, TemplateRef, ViewChild, inject, ChangeDetectionStrategy} from '@angular/core';
 import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
 import {FormControl, UntypedFormControl, UntypedFormGroup, Validators} from '@angular/forms';
 import {MatAutocompleteSelectedEvent, MatAutocompleteTrigger} from '@angular/material/autocomplete';
 import {MatDialog} from '@angular/material/dialog';
 import {MatAccordion} from '@angular/material/expansion';
 
-import {TranslateService} from '@ngx-translate/core';
+import { TranslateService } from '@ngx-translate/core';
 import {XMLParser} from 'fast-xml-parser';
 import {firstValueFrom, forkJoin, Observable, of, Subject} from 'rxjs';
 import {map, timeout} from 'rxjs/operators';
@@ -46,6 +46,7 @@ import {LoadingOverlayService} from '@app/services/loading-overlay.service';
 import {LoggerService} from '@app/services/logger.service';
 import {NotificationService} from '@app/services/notification.service';
 import {UtilsService} from '@app/services/utils.service';
+import {wfsCapabilityNodes} from '@app/services/wfs-capabilities';
 import { compareNullableString } from '@app/utils/compare-nullable-string';
 import {
   formatImageAccept,
@@ -61,7 +62,6 @@ interface TreeNodeTaskInputParameter {
   value: unknown;
 }
 
-
 /**
  * Component for managing tree nodes associated with a tree entity.
  * Handles displaying, creating, editing, and saving tree nodes.
@@ -70,6 +70,7 @@ interface TreeNodeTaskInputParameter {
     selector: 'app-tree-nodes',
     templateUrl: './tree-nodes.component.html',
     styleUrls: ['./tree-nodes.component.scss'],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class TreeNodesComponent implements OnInit, OnDestroy, OnChanges {
@@ -141,13 +142,11 @@ export class TreeNodesComponent implements OnInit, OnDestroy, OnChanges {
   availableNodeTypes: CodeList[] = []; // Cache for available node types
   fieldsConfigTreeGenerated = false;
 
-  // Cartography autocomplete properties
   filteredCartographies: any[] = [];
   allCartographies: any[] = [];
   cartographiesLoaded = false;
   cartographiesLoading = false;
 
-  // Task autocomplete properties
   filteredTasks: any[] = [];
   allTasks: any[] = [];
   tasksLoaded = false;
@@ -158,7 +157,6 @@ export class TreeNodesComponent implements OnInit, OnDestroy, OnChanges {
   cartographyAutocompleteTrigger?: MatAutocompleteTrigger;
   @ViewChild('taskInput') taskInputRef?: ElementRef<HTMLInputElement>;
 
-  // Style dropdown properties
   availableStyles: CartographyStyle[] = [];
   defaultStyleSentinel = 'null'; // Sentinel value for null/default style (only used when no default style exists)
   currentCartographyStyles: CartographyStyle[] = [];
@@ -182,7 +180,6 @@ export class TreeNodesComponent implements OnInit, OnDestroy, OnChanges {
   }) private fieldsConfigDialog: TemplateRef<any>;
   @ViewChild(MatAccordion) accordion: MatAccordion;
 
-  // Track current node ID for panel state management
   currentNodeId: number | null = null;
   /** Last tree row id focused before detail close (accessibility return focus). */
   private lastFocusedNodeId: number | null = null;
@@ -195,7 +192,7 @@ export class TreeNodesComponent implements OnInit, OnDestroy, OnChanges {
   /** True during a node switch to suppress spurious Material `(closed)` events. */
   private suppressPanelStateUpdates = false;
 
-  filterOptions = [{value: 'UNDEFINED', description: 'common.boolean.undefined'}, {value: true, description: 'common.boolean.yes'}, {value: false, description: 'common.boolean.no'}];
+  filterOptions = [{value: true, description: 'common.boolean.yes'}, {value: false, description: 'common.boolean.no'}];
   codeValues = constants.codeValue;
   get defaultLang(): string {
     return config.defaultLang;
@@ -236,7 +233,6 @@ export class TreeNodesComponent implements OnInit, OnDestroy, OnChanges {
   private cachedTaskOutputParameters: { key: string; label: string }[] = [];
   private cachedTaskOutputMode = '';
 
-  // Resizable layout properties
   treePanelWidth = 45; // Percentage
   isResizing = false;
   minTreeWidth = 20; // Minimum width percentage
@@ -265,7 +261,6 @@ export class TreeNodesComponent implements OnInit, OnDestroy, OnChanges {
   }
 
   async ngOnInit(): Promise<void> {
-    // Load saved preferences from localStorage
     if (typeof localStorage !== 'undefined') {
       const savedWidth = localStorage.getItem('treePanelWidth');
       if (savedWidth !== null) {
@@ -280,10 +275,9 @@ export class TreeNodesComponent implements OnInit, OnDestroy, OnChanges {
 
     this.layersList = await firstValueFrom(this.getAllCartographies());
 
-    // Load and cache cartographies for autocomplete
     await this.loadCartographies();
+    await this.loadServiceTypes();
 
-    // Set up cartography autocomplete filtering
     this.treeNodeForm.get(constants.treeDomainKey.cartography)?.valueChanges
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(value => {
@@ -292,15 +286,12 @@ export class TreeNodesComponent implements OnInit, OnDestroy, OnChanges {
       if (typeof value === 'string') {
         this.filterCartographies(value.toLowerCase());
       } else if (value && typeof value === 'object') {
-        // Reset to show all when an object is selected
         this.filteredCartographies = [...this.allCartographies];
       }
     });
 
-    // Load and cache tasks for autocomplete
     await this.loadTasks();
 
-    // Set up task autocomplete filtering
     this.treeNodeForm.get(constants.treeDomainKey.task)?.valueChanges
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(value => {
@@ -338,7 +329,6 @@ export class TreeNodesComponent implements OnInit, OnDestroy, OnChanges {
       this.utils.getStatusColumnDef()
     ];
 
-    // Load node-level translations if editing
     if (this.isEdition() && this.tree) {
       this.translationService.fetchAllItems()
         .pipe(
@@ -355,7 +345,6 @@ export class TreeNodesComponent implements OnInit, OnDestroy, OnChanges {
         });
     }
 
-    // Subscribe to save requests
     this.getAllElementsNodes
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(event => {
@@ -547,7 +536,6 @@ export class TreeNodesComponent implements OnInit, OnDestroy, OnChanges {
     return this.availableNodeTypes;
   }
 
-
   /**
    * Effective node type for behavior/UI. Folder is the container type (replacement for cartography as container).
    */
@@ -663,9 +651,64 @@ export class TreeNodesComponent implements OnInit, OnDestroy, OnChanges {
       && this.treeRulesService.supportsNodeCapability(this.currentTreeType, 'folder', 'loadData');
   }
 
+  private readonly serviceTypeById = new Map<number, string>();
+
   get showQueryableActiveToggle(): boolean {
     return !this.currentNodeIsFolder
       && this.effectiveNodeType === constants.treeDomainKey.cartography;
+  }
+
+  get linkedCartographyIsWfs(): boolean {
+    const cartography = this.currentNodeCartography;
+    if (!cartography || typeof cartography !== 'object') {
+      return false;
+    }
+    const embeddedType = cartography.service?.type;
+    if (embeddedType === 'WFS') {
+      return true;
+    }
+    if (typeof embeddedType === 'string' && embeddedType.length > 0) {
+      return false;
+    }
+    const serviceId = this.linkedServiceId(cartography);
+    return serviceId != null && this.serviceTypeById.get(serviceId) === 'WFS';
+  }
+
+  get queryableActiveLabelKey(): string {
+    return this.linkedCartographyIsWfs
+      ? 'entity.tree.queryableActive.wfs'
+      : 'entity.tree.queryableActive';
+  }
+
+  get queryableActiveHintKey(): string {
+    return this.linkedCartographyIsWfs
+      ? 'entity.tree.hint.queryableActive.wfs'
+      : 'entity.tree.hint.queryableActive';
+  }
+
+  get queryableActiveDisabledHintKey(): string {
+    return this.linkedCartographyIsWfs
+      ? 'entity.tree.hint.queryableActive.layerDisabled.wfs'
+      : 'entity.tree.hint.queryableActive.layerDisabled';
+  }
+
+  private linkedServiceId(cartography: {
+    serviceId?: number;
+    service?: { id?: number };
+    _links?: { service?: { href?: string } };
+  }): number | null {
+    if (typeof cartography.serviceId === 'number') {
+      return cartography.serviceId;
+    }
+    if (typeof cartography.service?.id === 'number') {
+      return cartography.service.id;
+    }
+    const href = cartography._links?.service?.href;
+    if (typeof href !== 'string') {
+      return null;
+    }
+    const match = /\/services\/(\d+)/.exec(href);
+    return match ? Number(match[1]) : null;
   }
 
   /** True when the linked layer allows GetFeatureInfo (`queryableFeatureEnabled`). */
@@ -1162,8 +1205,8 @@ export class TreeNodesComponent implements OnInit, OnDestroy, OnChanges {
   initializeTreesNodeForm(): void {
     this.treeNodeForm = new UntypedFormGroup({
       id: new UntypedFormControl(null, []),
-      name: new UntypedFormControl(null, [Validators.required]),
-      tooltip: new UntypedFormControl(null, []),
+      name: new UntypedFormControl(null, [Validators.required, Validators.maxLength(80)]),
+      tooltip: new UntypedFormControl(null, [Validators.maxLength(100)]),
       nodeType: new UntypedFormControl(null, []), // Optional for folders, will be validated conditionally
       cartography: new UntypedFormControl({ value: null, disabled: false }, []),
       radio: new UntypedFormControl(null, []),
@@ -1171,9 +1214,9 @@ export class TreeNodesComponent implements OnInit, OnDestroy, OnChanges {
       queryableActive: new UntypedFormControl(false, []),
       datasetURL: new UntypedFormControl(null, []),
       metadataURL: new UntypedFormControl(null, []),
-      description: new UntypedFormControl(null, []),
+      description: new UntypedFormControl(null, [Validators.maxLength(250)]),
       image: new UntypedFormControl(null, []),
-      imageName: new UntypedFormControl(null, []),
+      imageName: new UntypedFormControl(null, [Validators.maxLength(255)]),
       task: new UntypedFormControl({ value: null, disabled: false }, []),
       viewMode: new UntypedFormControl(null, []),
       filterable: new UntypedFormControl(null, []),
@@ -1183,9 +1226,9 @@ export class TreeNodesComponent implements OnInit, OnDestroy, OnChanges {
       parent: new UntypedFormControl(null, []),
       type: new UntypedFormControl(null, []),
       order: new UntypedFormControl(null, []),
-      filterGetFeatureInfo: new UntypedFormControl("UNDEFINED", []),
-      filterGetMap: new UntypedFormControl("UNDEFINED", []),
-      filterSelectable: new UntypedFormControl("UNDEFINED", []),
+      filterGetFeatureInfo: new UntypedFormControl(false, []),
+      filterGetMap: new UntypedFormControl(false, []),
+      filterSelectable: new UntypedFormControl(false, []),
       nameTranslations: new UntypedFormControl(null, []),
       descriptionTranslations: new UntypedFormControl(null, []),
       nameTranslationsModified: new UntypedFormControl(null, []),
@@ -1281,7 +1324,6 @@ export class TreeNodesComponent implements OnInit, OnDestroy, OnChanges {
     this.currentFolderHasChildren = !!(this.currentNodeIsFolder && node.children?.length);
     this.getAvailableNodeTypes();
 
-    // Set current node ID for panel state management
     this.currentNodeId = node.id;
 
     this.currentNodeType = nodeType;
@@ -1302,13 +1344,11 @@ export class TreeNodesComponent implements OnInit, OnDestroy, OnChanges {
           ?? this.getAvailableFolderTypes()[0]?.value ?? constants.treeRenderType.folder)
       : (this.treeRulesService.getDefaultLeafTypeFromRules(this.currentTreeType, this.getAvailableLeafTypes())
           ?? this.getAvailableLeafTypes()[0]?.value ?? constants.treeDomainKey.cartography));
-    // Find cartography object from cache if cartographyId is available
     let cartographyObj = null;
     if (node.cartographyId && this.allCartographies.length > 0) {
       cartographyObj = this.allCartographies.find(c => c.id === node.cartographyId);
     }
 
-    // Find task object from cache if taskId is available
     let taskObj = null;
     if (node.taskId && this.allTasks.length > 0) {
       taskObj = this.allTasks.find(t => t.id === node.taskId);
@@ -1347,9 +1387,9 @@ export class TreeNodesComponent implements OnInit, OnDestroy, OnChanges {
       descriptionFormModified: descriptionFormModified,
       nameTranslations: node.nameTranslations,
       descriptionTranslations: node.descriptionTranslations,
-      filterGetFeatureInfo: (node.filterGetFeatureInfo == null || false) ? "UNDEFINED" : node.filterGetFeatureInfo,
-      filterGetMap: (node.filterGetMap == null || false) ? "UNDEFINED" : node.filterGetMap,
-      filterSelectable: (node.filterSelectable == null || false) ? "UNDEFINED" : node.filterSelectable,
+      filterGetFeatureInfo: node.filterGetFeatureInfo === true,
+      filterGetMap: node.filterGetMap === true,
+      filterSelectable: node.filterSelectable === true,
       style: node.style,
       status: status,
       type: currentType,
@@ -1358,7 +1398,6 @@ export class TreeNodesComponent implements OnInit, OnDestroy, OnChanges {
     this.syncFormControlsDisabledState();
     this.nodeImagePreviewState = 'stored';
 
-    // If cartography not found in cache yet, load cartographies and then set it
     if (node.cartographyId && !cartographyObj) {
       this.loadCartographies().then(async () => {
         if (!this.isCurrentNodeDetail(node.id)) {
@@ -1372,19 +1411,15 @@ export class TreeNodesComponent implements OnInit, OnDestroy, OnChanges {
             cartographyId: loadedCartography.id
           }, { emitEvent: false });
           this.currentNodeCartography = loadedCartography;
-          // Load styles for the cartography
           await this.updateAvailableStyles(loadedCartography.id);
         }
       });
     } else if (cartographyObj) {
       this.currentNodeCartography = cartographyObj;
-      // Load styles for the cartography
       await this.updateAvailableStyles(cartographyObj.id);
     } else if (node.cartographyId) {
-      // Cartography ID exists but not in cache - load styles directly
       await this.updateAvailableStyles(node.cartographyId);
     } else {
-      // No cartography - clear styles
       await this.updateAvailableStyles(null);
     }
 
@@ -1399,7 +1434,6 @@ export class TreeNodesComponent implements OnInit, OnDestroy, OnChanges {
       }
     }
 
-    // If task not found in cache yet, load tasks and then set it
     if (node.taskId && !taskObj) {
       this.loadTasks().then(async () => {
         if (!this.isCurrentNodeDetail(node.id)) {
@@ -1447,7 +1481,6 @@ export class TreeNodesComponent implements OnInit, OnDestroy, OnChanges {
 
     // Image preview is now handled by the ImagePreviewComponent via imageSource input
 
-    // Load translations lazily without blocking selection rendering.
     const shouldLoadNodeTranslations = node.id >= 0 &&
       !this.translationLoadsCompleted.has(node.id) &&
       (!this.nameTranslations.has(node.id) || !this.descriptionTranslations.has(node.id));
@@ -1469,11 +1502,9 @@ export class TreeNodesComponent implements OnInit, OnDestroy, OnChanges {
       }, { emitEvent: false });
     }
 
-    // Store original values for change detection
     this.currentNodeName = node.name || '';
     this.currentNodeDescription = node.description || '';
 
-    // Mark form as pristine after loading node data (so dirty state only reflects user changes)
     this.treeNodeForm.markAsPristine();
 
     setTimeout(() => {
@@ -1542,9 +1573,9 @@ export class TreeNodesComponent implements OnInit, OnDestroy, OnChanges {
       children: [],
       status: 'pendingCreation',
       nodeType,
-      filterGetFeatureInfo: 'UNDEFINED',
-      filterGetMap: 'UNDEFINED',
-      filterSelectable: 'UNDEFINED',
+      filterGetFeatureInfo: false,
+      filterGetMap: false,
+      filterSelectable: false,
       visible: true,
       active: false
     });
@@ -1558,7 +1589,6 @@ export class TreeNodesComponent implements OnInit, OnDestroy, OnChanges {
   }
 
   onTreeNodeTypeChange(type) {
-    // Validate that type is not empty
     if (!type || type.trim() === '') {
       return;
     }
@@ -1607,7 +1637,6 @@ export class TreeNodesComponent implements OnInit, OnDestroy, OnChanges {
       return 4000; // Default fallback
     }
 
-    // Extract from maxLength validator
     const validator = control.validator;
     if (validator) {
       const errors = validator(new FormControl({ length: Infinity }));
@@ -1679,6 +1708,7 @@ export class TreeNodesComponent implements OnInit, OnDestroy, OnChanges {
         nameTranslations: dialogResult.data,
         nameTranslationsModified: true
       });
+      this.markPersistedTranslationModified();
     }
   }
 
@@ -1712,12 +1742,36 @@ export class TreeNodesComponent implements OnInit, OnDestroy, OnChanges {
         descriptionTranslations: dialogResult.data,
         descriptionTranslationsModified: true
       });
+      this.markPersistedTranslationModified();
     }
+  }
+
+  private markPersistedTranslationModified(): void {
+    this.treeNodeForm.markAsDirty();
+    if (this.newElement || this.treeNodeForm.get('id')?.value < 0) {
+      return;
+    }
+    this.treeNodeForm.patchValue({ status: "Modified" });
+    this.updateNode();
   }
 
   getAllCartographies = (): Observable<any> => {
     return this.cartographyService.fetchAllItems();
   };
+
+  private async loadServiceTypes(): Promise<void> {
+    try {
+      const services = await firstValueFrom(this.serviceService.fetchAllItems());
+      this.serviceTypeById.clear();
+      for (const service of services ?? []) {
+        if (service?.id != null && typeof service.type === 'string') {
+          this.serviceTypeById.set(service.id, service.type);
+        }
+      }
+    } catch (error) {
+      this.loggerService.error('TreeNodesComponent.loadServiceTypes', error);
+    }
+  }
 
   getAllTasks = (): Observable<any> => {
     const lang: HalParam = {key: 'lang', value: this.requestLang()};
@@ -1742,7 +1796,7 @@ export class TreeNodesComponent implements OnInit, OnDestroy, OnChanges {
     if (localStorage.lang) {
       return localStorage.lang;
     }
-    return this.translateService.currentLang || config.defaultLang;
+    return this.translateService.getCurrentLang() || config.defaultLang;
   }
 
   /**
@@ -1901,13 +1955,13 @@ export class TreeNodesComponent implements OnInit, OnDestroy, OnChanges {
   getAllServices = (): Observable<any> => {
     return this.serviceService.fetchAllItems().pipe(
       map((resp) => {
-        const wmsServices = [];
+        const services = [];
         resp.forEach(service => {
-          if (service.type === 'WMS') {
-            wmsServices.push(service);
+          if (service.type === 'WMS' || service.type === 'WFS') {
+            services.push(service);
           }
         });
-        return wmsServices;
+        return services;
       })
     );
   };
@@ -1946,14 +2000,14 @@ export class TreeNodesComponent implements OnInit, OnDestroy, OnChanges {
           }));
           if (capabilitiesResult.success) {
             const groupLayersResult = this.changeServiceDataByCapabilities(capabilitiesResult.asJson);
-            this.createNodesWithCapabilities(groupLayersResult, data, null);
+            this.createNodesWithCapabilities(groupLayersResult, data, null, service.id);
           }
         }
       }
     }
   }
 
-  private createNodesWithCapabilities(groupLayersResult: Array<any>, existingNodes: Array<any>, parentId?) {
+  private createNodesWithCapabilities(groupLayersResult: Array<any>, existingNodes: Array<any>, parentId: number | null | undefined, serviceId: number) {
     groupLayersResult.forEach(element => {
       let newNode: any = {};
       let name = element.Title;
@@ -1965,7 +2019,7 @@ export class TreeNodesComponent implements OnInit, OnDestroy, OnChanges {
         if (element.Layer) {
           newNode = this.createNewFolderWithCapabilities(element);
         } else {
-          newNode = this.createNewNodeWithCapabilities(element);
+          newNode = this.createNewNodeWithCapabilities(element, serviceId);
         }
 
         if (newNode) {
@@ -1988,7 +2042,7 @@ export class TreeNodesComponent implements OnInit, OnDestroy, OnChanges {
           }
 
           if (childrenLayers) {
-            this.createNodesWithCapabilities(childrenLayers, existingNodes, newNode.id);
+            this.createNodesWithCapabilities(childrenLayers, existingNodes, newNode.id, serviceId);
           }
         }
       }
@@ -2019,7 +2073,7 @@ export class TreeNodesComponent implements OnInit, OnDestroy, OnChanges {
     return newFolder;
   }
 
-  private createNewNodeWithCapabilities(capability) {
+  private createNewNodeWithCapabilities(capability, serviceId: number) {
     const newNode: any = {};
 
     let layersLyr;
@@ -2035,7 +2089,9 @@ export class TreeNodesComponent implements OnInit, OnDestroy, OnChanges {
     if (!layersLyr) {
       return null;
     }
-    const cartography = this.layersList.find(element => element.layers.join() == layersLyr.join());
+    const cartography = this.layersList.find(element =>
+      element.layers.join() == layersLyr.join() && this.linkedServiceId(element) === serviceId
+    );
     if (!cartography) {
       return null;
     }
@@ -2048,6 +2104,10 @@ export class TreeNodesComponent implements OnInit, OnDestroy, OnChanges {
   }
 
   changeServiceDataByCapabilities(serviceCapabilitiesData, _refresh?): Array<any> {
+    const wfsNodes = serviceCapabilitiesData ? wfsCapabilityNodes(serviceCapabilitiesData) : null;
+    if (wfsNodes) {
+      return wfsNodes;
+    }
     const capabilitiesLayers = [];
     const data = serviceCapabilitiesData.WMT_MS_Capabilities != undefined ? serviceCapabilitiesData.WMT_MS_Capabilities : serviceCapabilitiesData.WMS_Capabilities;
     if (data != undefined) {
@@ -2225,7 +2285,7 @@ export class TreeNodesComponent implements OnInit, OnDestroy, OnChanges {
         }
         this.nodeInputsControls.push(control);
         const newGroup = new UntypedFormGroup({
-          value: new UntypedFormControl('', []),
+          value: new UntypedFormControl('', [Validators.required, Validators.maxLength(250)]),
           calculated: new UntypedFormControl(false, { nonNullable: true })
         });
         inputFormGroup.addControl(String(control.name), newGroup);
@@ -2305,7 +2365,7 @@ export class TreeNodesComponent implements OnInit, OnDestroy, OnChanges {
         };
         this.nodeNamespacesControls.push(control);
         const newGroup = new UntypedFormGroup({
-          value: new UntypedFormControl(null, []),
+          value: new UntypedFormControl(null, [Validators.required, Validators.maxLength(250)]),
         });
         namespacesFormGroup.addControl(String(control.name), newGroup);
         const formValue = {
@@ -2570,9 +2630,9 @@ export class TreeNodesComponent implements OnInit, OnDestroy, OnChanges {
       treeNodeObj.metadataURL = treeNode.metadataURL;
       treeNodeObj.description = treeNode.description;
       treeNodeObj.tree = tree;
-      treeNodeObj.filterGetFeatureInfo = treeNode.filterGetFeatureInfo == "UNDEFINED" ? null : treeNode.filterGetFeatureInfo;
-      treeNodeObj.filterGetMap = treeNode.filterGetMap == "UNDEFINED" ? null : treeNode.filterGetMap;
-      treeNodeObj.filterSelectable = treeNode.filterSelectable == "UNDEFINED" ? null : treeNode.filterSelectable;
+      treeNodeObj.filterGetFeatureInfo = treeNode.filterGetFeatureInfo === true;
+      treeNodeObj.filterGetMap = treeNode.filterGetMap === true;
+      treeNodeObj.filterSelectable = treeNode.filterSelectable === true;
       // Convert sentinel value back to null before saving
       if (treeNode.style === this.defaultStyleSentinel) {
         treeNodeObj.style = null;
@@ -3025,18 +3085,6 @@ export class TreeNodesComponent implements OnInit, OnDestroy, OnChanges {
       });
     }
 
-    if (!this.currentNodeIsFolder) {
-      if (this.treeNodeForm.get('filterGetFeatureInfo').value == "UNDEFINED") {
-        this.treeNodeForm.get('filterGetFeatureInfo').patchValue(null);
-      }
-      if (this.treeNodeForm.get('filterGetMap').value == "UNDEFINED") {
-        this.treeNodeForm.get('filterGetMap').patchValue(null);
-      }
-      if (this.treeNodeForm.get('filterSelectable').value == "UNDEFINED") {
-        this.treeNodeForm.get('filterSelectable').patchValue(null);
-      }
-    }
-
     let newNameTranslation: Map<string, Translation> = null;
     let newDescriptionTranslation: Map<string, Translation> = null;
 
@@ -3125,18 +3173,6 @@ export class TreeNodesComponent implements OnInit, OnDestroy, OnChanges {
       this.treeNodeForm.patchValue({
         status: "Modified"
       });
-    }
-
-    if (!this.currentNodeIsFolder) {
-      if (this.treeNodeForm.get('filterGetFeatureInfo').value == "UNDEFINED") {
-        this.treeNodeForm.get('filterGetFeatureInfo').patchValue(null);
-      }
-      if (this.treeNodeForm.get('filterGetMap').value == "UNDEFINED") {
-        this.treeNodeForm.get('filterGetMap').patchValue(null);
-      }
-      if (this.treeNodeForm.get('filterSelectable').value == "UNDEFINED") {
-        this.treeNodeForm.get('filterSelectable').patchValue(null);
-      }
     }
 
     let newNameTranslation: Map<string, Translation> = null;
@@ -3353,7 +3389,6 @@ export class TreeNodesComponent implements OnInit, OnDestroy, OnChanges {
       this.clearNodeSelection();
     }
   }
-
 
   private focusNameField(): void {
     setTimeout(() => {
@@ -3586,8 +3621,11 @@ export class TreeNodesComponent implements OnInit, OnDestroy, OnChanges {
     this.isResizing = true;
   }
 
-  @HostListener('document:keydown.escape', ['$event'])
-  onDocumentEscape(event: KeyboardEvent): void {
+  @HostListener('document:keydown', ['$event'])
+  onDocumentKeydown(event: KeyboardEvent): void {
+    if (event.key !== 'Escape') {
+      return;
+    }
     if (!this.hasNodeSelection || this.dialog.openDialogs.length > 0) {
       return;
     }
@@ -3796,7 +3834,6 @@ export class TreeNodesComponent implements OnInit, OnDestroy, OnChanges {
       }
 
       return !!(task.groupName && task.groupName.toLowerCase().includes(term));
-
 
     });
   }

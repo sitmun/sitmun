@@ -1,4 +1,4 @@
-import {Component} from '@angular/core';
+import {Component, ChangeDetectionStrategy} from '@angular/core';
 import {FormControl, FormGroup, Validators} from '@angular/forms';
 import {MatDialog} from '@angular/material/dialog';
 import {ActivatedRoute, Router} from '@angular/router';
@@ -24,6 +24,7 @@ import {UtilsService} from '@app/services/utils.service';
     selector: 'app-task-ui-form',
     templateUrl: './task-ui-form.component.html',
     styles: [],
+    changeDetection: ChangeDetectionStrategy.Eager,
     standalone: false
 })
 export class TaskUIFormComponent extends BaseFormComponent<TaskUI> {
@@ -122,7 +123,6 @@ export class TaskUIFormComponent extends BaseFormComponent<TaskUI> {
   /**
    * Creates a TaskUI object from the current form values.
    * Applies the form values to a copy of the current entity and converts it to a TaskUI domain object.
-   * This method ensures that entity data is not directly modified until explicitly saved.
    *
    * @param id - Optional ID for the new object, used when updating
    * @returns New TaskUI instance populated with form values

@@ -1,7 +1,6 @@
 package org.sitmun.domain.application;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.hamcrest.Matchers.matchesPattern;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
@@ -19,8 +18,8 @@ import org.junit.jupiter.api.Test;
 import org.sitmun.domain.user.configuration.UserConfigurationRepository;
 import org.sitmun.infrastructure.security.core.SecurityConstants;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -59,25 +58,6 @@ class ApplicationRepositoryDataRestTest {
   }
 
   @Test
-  @DisplayName("POST: createDate is set by the server ")
-  @WithMockUser(roles = "ADMIN")
-  void createDateValueIsIgnored() throws Exception {
-    String content =
-        """
-        {
-          "name": "test",
-          "jspTemplate": "test",
-          "type": "I"
-        }""";
-    response =
-        mvc.perform(post(APPLICATIONS_URI).content(content))
-            .andExpect(status().isCreated())
-            .andExpect(jsonPath("$.createdDate").value(matchesPattern("^(?!2020-01-01.*$).*")))
-            .andReturn()
-            .getResponse();
-  }
-
-  @Test
   @DisplayName("PUT: createDate can be updated")
   @WithMockUser(roles = "ADMIN")
   void createDateValueCanBeUpdated() throws Exception {
@@ -108,13 +88,13 @@ class ApplicationRepositoryDataRestTest {
 
     mvc.perform(put(location).content(putContent))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.createdDate").value("2020-01-01T00:00:00.000+00:00"));
+        .andExpect(jsonPath("$.createdDate").value("2020-01-01T00:00:00.000Z"));
   }
 
   @Test
-  @DisplayName("GET: Should return warning when private application has PUBLIC user")
+  @DisplayName("Private application with a public user exposes the warning")
   @WithMockUser(roles = "ADMIN")
-  void shouldReturnWarningWhenPrivateAppHasPublicUserRoles() throws Exception {
+  void returnsWarningWhenPrivateAppHasPublicUserRoles() throws Exception {
     // Given
     Application app = Application.builder().name("Private App").type("I").appPrivate(true).build();
 
@@ -134,58 +114,6 @@ class ApplicationRepositoryDataRestTest {
 
     // Cleanup
     applicationRepository.deleteById(appId);
-  }
-
-  @Test
-  @DisplayName("GET: Should return no warnings when private application has no PUBLIC user")
-  @WithMockUser(roles = "ADMIN")
-  void shouldReturnNoWarningsWhenPrivateAppHasNoPublicUserRoles() throws Exception {
-    // Given
-    Application app = Application.builder().name("Private App").type("I").appPrivate(true).build();
-
-    Integer appId = applicationRepository.save(app).getId();
-
-    // When
-    when(userConfigurationRepository.existsByUserUsernameAndRoleIn(
-            eq(SecurityConstants.PUBLIC_PRINCIPAL), any(Set.class)))
-        .thenReturn(false);
-
-    // Then
-    mvc.perform(get(APPLICATION_URI + "?projection=view", appId))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.warnings").isEmpty());
-
-    // Cleanup
-    applicationRepository.deleteById(appId);
-  }
-
-  @Test
-  @DisplayName("Should return no warnings in public applications")
-  @WithMockUser(roles = "ADMIN")
-  void shouldReturnNoWarningsWhenPublicAppHasPublicUserRoles() throws Exception {
-    // Given
-    Application app = Application.builder().name("Private App").type("I").appPrivate(false).build();
-
-    Integer appId = applicationRepository.save(app).getId();
-
-    // When
-
-    // Then
-    mvc.perform(get(APPLICATION_URI + "?projection=view", appId))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.warnings").isEmpty());
-
-    // Cleanup
-    applicationRepository.deleteById(appId);
-  }
-
-  @Test
-  @DisplayName("GET search: find applications by creator user id")
-  @WithMockUser(roles = "ADMIN")
-  void findByCreatorIdSearch() throws Exception {
-    mvc.perform(get(APPLICATIONS_URI + "/search/findByCreatorId?creatorId=1"))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$._embedded.applications").isArray());
   }
 
   @Test

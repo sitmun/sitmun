@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonView;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import java.util.Map;
 import java.util.Objects;
 import lombok.*;
@@ -13,6 +14,7 @@ import org.hibernate.annotations.OnDeleteAction;
 import org.sitmun.authorization.client.dto.ClientConfigurationViews;
 import org.sitmun.domain.CodeListsConstants;
 import org.sitmun.domain.PersistenceConstants;
+import org.sitmun.domain.StoredFlagListener;
 import org.sitmun.domain.cartography.Cartography;
 import org.sitmun.domain.task.Task;
 import org.sitmun.domain.tree.Tree;
@@ -24,7 +26,7 @@ import org.sitmun.infrastructure.persistence.type.map.HashMapConverter;
 
 /** Tree node. */
 @Entity
-@EntityListeners(I18nListener.class)
+@EntityListeners({I18nListener.class, StoredFlagListener.class})
 @Table(name = "STM_TREE_NOD")
 @Builder
 @Getter
@@ -43,7 +45,7 @@ public class TreeNode {
       allocationSize = 1)
   @Id
   @GeneratedValue(strategy = GenerationType.TABLE, generator = "STM_TREE_NOD_GEN")
-  @Column(name = "TNO_ID")
+  @Column(name = "TNO_ID", nullable = false)
   @JsonView(ClientConfigurationViews.ApplicationTerritory.class)
   private Integer id;
 
@@ -53,7 +55,7 @@ public class TreeNode {
   private TreeNode parent;
 
   /** Name. */
-  @Column(name = "TNO_NAME", length = 80)
+  @Column(name = "TNO_NAME", length = 80, nullable = false)
   @NotBlank
   @JsonView(ClientConfigurationViews.ApplicationTerritory.class)
   @I18n
@@ -135,7 +137,8 @@ public class TreeNode {
   private String image;
 
   /** Image name. */
-  @Column(name = "TNO_IMAGE_NAME")
+  @Column(name = "TNO_IMAGE_NAME", length = 4000)
+  @Size(max = 4000)
   private String imageName;
 
   /** View mode. */
@@ -155,7 +158,7 @@ public class TreeNode {
   /** Tree. */
   @OnDelete(action = OnDeleteAction.CASCADE)
   @JoinColumn(name = "TNO_TREEID", foreignKey = @ForeignKey(name = "STM_TNO_FK_TRE"))
-  @ManyToOne
+  @ManyToOne(optional = false)
   @NotNull
   private Tree tree;
 
