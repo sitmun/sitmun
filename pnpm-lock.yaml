@@ -318,8 +318,8 @@ catalogs:
       specifier: 9.39.5
       version: 9.39.5
     '@ionic/angular':
-      specifier: 8.6.2
-      version: 8.6.2
+      specifier: 9.0.10
+      version: 9.0.10
     '@ionic/angular-toolkit':
       specifier: 12.2.0
       version: 12.2.0
@@ -896,7 +896,7 @@ importers:
         version: 8.0.4(@capacitor/core@8.6.0)
       '@ionic/angular':
         specifier: 'catalog:'
-        version: 8.6.2(add9bf361dfc53f460321ee036ee694b)
+        version: 9.0.10(add9bf361dfc53f460321ee036ee694b)
       '@ionic/core':
         specifier: 'catalog:'
         version: 8.6.2
@@ -1065,7 +1065,7 @@ importers:
         version: 8.0.4(@capacitor/core@8.6.0)
       '@ionic/angular':
         specifier: 'catalog:'
-        version: 8.6.2(add9bf361dfc53f460321ee036ee694b)
+        version: 9.0.10(add9bf361dfc53f460321ee036ee694b)
       '@ionic/core':
         specifier: 'catalog:'
         version: 8.6.2
@@ -1555,6 +1555,7 @@ packages:
   '@angular/animations@22.2.5':
     resolution: {integrity: sha512-ezoKEndTK4F7qmKfmuUFaBrJ1YKd/YwLFBVCdGWld3jKcIvsm+hB9J6wl8kc+PAg/XWet9L+0ZITAa5+J5U3Fg==}
     engines: {node: ^22.22.3 || ^24.15.0 || >=26.0.0}
+    deprecated: '@angular/animations is deprecated. Use `animate.enter` and `animate.leave` instead. For more information see: https://v22.angular.dev/guide/animations.'
     peerDependencies:
       '@angular/core': 22.2.5
 
@@ -1685,6 +1686,7 @@ packages:
   '@angular/platform-browser-dynamic@22.2.5':
     resolution: {integrity: sha512-PkGRpia8wPzuPT+P0X6YknU1DmdN96nECwpgWXqAWT+B2/nXpgfUDRkRRWxbMLZt6JnFd1b8KJJ3SP/Izp2qVg==}
     engines: {node: ^22.22.3 || ^24.15.0 || >=26.0.0}
+    deprecated: '@angular/platform-browser-dynamic is deprecated. Use `@angular/platform-browser` instead.'
     peerDependencies:
       '@angular/common': 22.2.5
       '@angular/compiler': 22.2.5
@@ -3002,14 +3004,17 @@ packages:
   '@ionic/angular-toolkit@12.2.0':
     resolution: {integrity: sha512-N8gXCPygqvApfkvnLXFZI23P3HsHO525mA+h+xfFOnYOgB4VeSARfMBtlPVvSfaS5H8y1ntU2Cq4RnvD8KGX0A==}
 
-  '@ionic/angular@8.6.2':
-    resolution: {integrity: sha512-1mObblBsi8kNdaLk5VjvDWaJfOK1f9uLAkSFmMcXcFLKU7vdOLIealilcALsSKU8XMnEMWFpuJUNzVLdjbwEoA==}
+  '@ionic/angular@9.0.10':
+    resolution: {integrity: sha512-4QGoBQWoI3rx73HYYanPH6s6bCkpcTrpbkr9J2Lu2XoN2fKhMjE0xRDOMZFkRIXjhwof/F40HO7VupGlngEGaQ==}
     peerDependencies:
-      '@angular/core': '>=16.0.0'
-      '@angular/forms': '>=16.0.0'
-      '@angular/router': '>=16.0.0'
+      '@angular/core': '>=18.0.0'
+      '@angular/forms': '>=18.0.0'
+      '@angular/router': '>=18.0.0'
       rxjs: '>=7.5.0'
       zone.js: '>=0.13.0'
+    peerDependenciesMeta:
+      zone.js:
+        optional: true
 
   '@ionic/cli-framework-output@2.2.8':
     resolution: {integrity: sha512-TshtaFQsovB4NWRBydbNFawql6yul7d5bMiW1WYYf17hd99V6xdDdk3vtF51bw6sLkxON3bDQpWsnUc9/hVo3g==}
@@ -3017,6 +3022,10 @@ packages:
 
   '@ionic/core@8.6.2':
     resolution: {integrity: sha512-CGZ9CDp/XHtm9WrK3wt0ZtR2f2B76qEvJIaF/juCqmpza9Al6u2L9R/NTEwInDRCWfbkAIF22nHNH54/VvN78Q==}
+
+  '@ionic/core@9.0.10':
+    resolution: {integrity: sha512-Pel8zRdgKJq4zhAHmMOBt4TgEg8yd6AtUBbRO3h5ZEKsflfcbFXZrWmeoWGW7DEwkstj54J8/dOrnDl2SCguhw==}
+    engines: {node: '>= 16'}
 
   '@ionic/utils-array@2.1.6':
     resolution: {integrity: sha512-0JZ1Zkp3wURnv8oq6Qt7fMPo5MpjbLoUoa9Bu2Q4PJuSDWM8H8gwF3dQO7VTeUj3/0o1IB1wGkFWZZYgUXZMUg==}
@@ -6599,6 +6608,9 @@ packages:
   ionicons@7.4.0:
     resolution: {integrity: sha512-ZK94MMqgzMCPPMhmk8Ouu6goyVHFIlw/ACP6oe3FrikcI0N7CX0xcwVaEbUc0G/v3W0shI93vo+9ve/KpvcNhQ==}
 
+  ionicons@8.1.0:
+    resolution: {integrity: sha512-XSM2gYWTXxSYTwjmKWAoy4yR7AbAFDjpc5ZIivAiGXskM0fe5CdMPfs6InQRUcrYtVb2WZ/0HQ1/jeh3JW78SA==}
+
   ipaddr.js@1.9.1:
     resolution: {integrity: sha512-0KI/607xoxSToH7GjN1FfSbLoU0+btTicjsQSWQlh/hZykN8KpmMf7uYwPW3R+akZ6R/w18ZlXSHBYXiYUPO3g==}
     engines: {node: '>= 0.10'}
@@ -8971,6 +8983,7 @@ packages:
 
   tldts-core@7.4.20:
     resolution: {integrity: sha512-C630TWXZCZmLq0F2bW4QqwnaaxCQ/svpAqvJwnC4JvgEM5ohhBnGsEzTLSOXcN+xjz+kEaHS5uoWIw2klnqd0A==}
+    deprecated: Partial release, see https://github.com/remusao/tldts/issues/2735. Use >=7.4.22.
 
   tldts@6.1.86:
     resolution: {integrity: sha512-WMi/OQ2axVTf/ykqCQgXiIct+mSQDFdH2fkwhPwgEwvJ1kSzZRiinb0zF2Xb8u4+OqPChmyI6MEu4EezNJz+FQ==}
@@ -12289,16 +12302,17 @@ snapshots:
     transitivePeerDependencies:
       - chokidar
 
-  '@ionic/angular@8.6.2(add9bf361dfc53f460321ee036ee694b)':
+  '@ionic/angular@9.0.10(add9bf361dfc53f460321ee036ee694b)':
     dependencies:
       '@angular/core': 22.2.5(@angular/compiler@22.2.5)(rxjs@7.8.2)(zone.js@0.15.1)
       '@angular/forms': 22.2.5(@angular/common@22.2.5(@angular/core@22.2.5(@angular/compiler@22.2.5)(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@22.2.5(@angular/compiler@22.2.5)(rxjs@7.8.2)(zone.js@0.15.1))(@angular/platform-browser@22.2.5(@angular/animations@22.2.5(@angular/core@22.2.5(@angular/compiler@22.2.5)(rxjs@7.8.2)(zone.js@0.15.1)))(@angular/common@22.2.5(@angular/core@22.2.5(@angular/compiler@22.2.5)(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@22.2.5(@angular/compiler@22.2.5)(rxjs@7.8.2)(zone.js@0.15.1)))(rxjs@7.8.2)
       '@angular/router': 22.2.5(@angular/common@22.2.5(@angular/core@22.2.5(@angular/compiler@22.2.5)(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@22.2.5(@angular/compiler@22.2.5)(rxjs@7.8.2)(zone.js@0.15.1))(@angular/platform-browser@22.2.5(@angular/animations@22.2.5(@angular/core@22.2.5(@angular/compiler@22.2.5)(rxjs@7.8.2)(zone.js@0.15.1)))(@angular/common@22.2.5(@angular/core@22.2.5(@angular/compiler@22.2.5)(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@22.2.5(@angular/compiler@22.2.5)(rxjs@7.8.2)(zone.js@0.15.1)))(rxjs@7.8.2)
-      '@ionic/core': 8.6.2
-      ionicons: 7.4.0
+      '@ionic/core': 9.0.10
+      ionicons: 8.1.0
       jsonc-parser: 3.3.1
       rxjs: 7.8.2
       tslib: 2.8.1
+    optionalDependencies:
       zone.js: 0.15.1
 
   '@ionic/cli-framework-output@2.2.8(supports-color@8.1.1)':
@@ -12313,6 +12327,12 @@ snapshots:
     dependencies:
       '@stencil/core': 4.33.1
       ionicons: 7.4.0
+      tslib: 2.8.1
+
+  '@ionic/core@9.0.10':
+    dependencies:
+      '@stencil/core': 4.45.2
+      ionicons: 8.1.0
       tslib: 2.8.1
 
   '@ionic/utils-array@2.1.6(supports-color@8.1.1)':
@@ -16296,6 +16316,10 @@ snapshots:
   interpret@3.1.1: {}
 
   ionicons@7.4.0:
+    dependencies:
+      '@stencil/core': 4.45.2
+
+  ionicons@8.1.0:
     dependencies:
       '@stencil/core': 4.45.2
 
