@@ -45,16 +45,16 @@ To stop it, run `docker compose -p sitmun-showcase down` in the same folder. Add
 
 ## Modules
 
-| Path | Runtime | Compose |
-| --- | --- | --- |
-| `sitmun-admin` | Angular 22 | `front` (`/admin/`) |
-| `sitmun-viewer` | Angular 22 | `front` (`/viewer/`) |
-| `sitmun-mobile/sitmun-edition` | Ionic 8, Angular 22, Capacitor 8 | none |
-| `sitmun-mobile/sitmun-touristic` | Ionic 8, Angular 22, Capacitor 8 | none |
-| `sitmun-backend` | Spring Boot 4.1, Java 17 | `backend` |
-| `sitmun-proxy` | Spring Boot 4.1, Java 17 | `proxy` |
-| `sitmun-addons/sitmun-mbtiles` | Spring Boot 4.1, Java 17 | `mbtiles` |
-| `sitmun-common` | Java 17 libraries | none |
+| Name | Path | Runtime | Compose |
+| --- | --- | --- | --- |
+| SITMUN Administration | `sitmun-admin` | Angular 22 | `front` (`/admin/`) |
+| SITMUN Viewer | `sitmun-viewer` | Angular 22 | `front` (`/viewer/`) |
+| SITMUN Mobile Editor | `sitmun-mobile/sitmun-edition` | Ionic 8, Angular 22, Capacitor 8 | none |
+| SITMUN Touristic | `sitmun-mobile/sitmun-touristic` | Ionic 8, Angular 22, Capacitor 8 | none |
+| SITMUN Backend | `sitmun-backend` | Spring Boot 4.1, Java 17 | `backend` |
+| SITMUN Proxy | `sitmun-proxy` | Spring Boot 4.1, Java 17 | `proxy` |
+| SITMUN MBTiles | `sitmun-addons/sitmun-mbtiles` | Spring Boot 4.1, Java 17 | `mbtiles` |
+| SITMUN Common | `sitmun-common` | Java 17 libraries | none |
 
 ## Toolchain
 

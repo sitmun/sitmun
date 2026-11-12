@@ -1,4 +1,6 @@
-# SITMUN Edition Mobile Application
+# SITMUN Mobile Editor
+
+The name on the device is SITMUN Mobile Editor. The server application type stays `ED`. The directory stays `sitmun-mobile/sitmun-edition`.
 
 ## Plataforma de desarrollo
 

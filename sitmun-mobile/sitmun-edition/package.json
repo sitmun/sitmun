@@ -1,6 +1,7 @@
 {
   "name": "edition-mobile-app",
   "version": "1.0.0",
+  "description": "SITMUN Mobile Editor",
   "author": "Ionic Framework",
   "homepage": "https://ionicframework.com/",
   "scripts": {

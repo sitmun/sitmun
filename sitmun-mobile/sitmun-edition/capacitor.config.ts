@@ -1,8 +1,8 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'edition.mobile.app',
-  appName: 'edition-mobile-app',
+  appId: 'org.sitmun.mobile.editor',
+  appName: 'SITMUN Mobile Editor',
   webDir: 'www',
   server: {
     cleartext: true,
