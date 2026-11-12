@@ -4,11 +4,13 @@ This repository has one version in the root `gradle.properties` file. `tools/scr
 
 This repository is [sitmun/sitmun](https://github.com/sitmun/sitmun). Components are directories in this repository. `dev` is the integration branch. `main` receives release pull requests from `dev`.
 
+A release tag is an annotated tag. Its name is `v` plus `MAJOR.MINOR.PATCH`. The image tag is that name without the leading `v`. `git clone --branch` selects that tag once it exists. The platform version in `gradle.properties` is `1.2.9`.
+
 Tags imported from the previous repositories use `legacy/<repository>/<tag>`, for example `legacy/sitmun-application-stack/sitmun-application-stack/1.2.6`.
 
 ## Images
 
-[`.github/workflows/publish-images.yml`](.github/workflows/publish-images.yml) pushes `ghcr.io/sitmun/front`, `ghcr.io/sitmun/backend`, `ghcr.io/sitmun/proxy`, and `ghcr.io/sitmun/mbtiles` for `linux/amd64` and `linux/arm64`. CI and a local checkout both call [`tools/scripts/publish-images.sh`](tools/scripts/publish-images.sh), which runs `docker compose build --push`. A manual run publishes tag `1.3.0`. A `v*` git tag publishes the version without the leading `v`, so `v1.3.0` publishes `1.3.0`. The front image is built with `PUBLIC_BASE_PATH=/` and `ENVIRONMENT=production`.
+[`.github/workflows/publish-images.yml`](.github/workflows/publish-images.yml) pushes `ghcr.io/sitmun/front`, `ghcr.io/sitmun/backend`, `ghcr.io/sitmun/proxy`, and `ghcr.io/sitmun/mbtiles` for `linux/amd64` and `linux/arm64`. CI and a local checkout both call [`tools/scripts/publish-images.sh`](tools/scripts/publish-images.sh), which runs `docker compose build --push`. A manual run publishes image tag `1.3.0`. Pushing a tag `vMAJOR.MINOR.PATCH` or `vMAJOR.MINOR.PATCH-*` publishes the image tag with the leading `v` removed. The front image is built with `PUBLIC_BASE_PATH=/` and `ENVIRONMENT=production`.
 
 GitHub creates each package private. After the first push, set `front`, `backend`, `proxy`, and `mbtiles` to public in Package settings. The Packages API cannot change visibility, and later pushes keep it. An anonymous `docker pull ghcr.io/sitmun/front:1.3.0` confirms it. Operators run the images with the steps in [README.md](README.md).
 
@@ -41,4 +43,4 @@ done
 
 Delete only those ids: `gh api -X DELETE "/orgs/sitmun/packages/container/<name>/versions/<id>"`. The account must be an admin of the `sitmun` organization.
 
-The platform version in `gradle.properties` stays `1.2.9` until `tools/scripts/bump-version.sh` runs. The image tag for this publish is `1.3.0`.
+The platform version in `gradle.properties` is `1.2.9`. A manual publish passes image tag `1.3.0`.

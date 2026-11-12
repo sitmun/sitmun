@@ -21,13 +21,11 @@ Background maps come from other organisations. One failed background map blocks 
 
 ### Install the showcase
 
-You need Docker Desktop and Git.
+You need Docker Desktop. Run these commands in an existing checkout. The release checkout will be the annotated tag once that tag exists.
 
 Windows:
 
 ```powershell
-git clone --branch main https://github.com/sitmun/sitmun.git
-cd sitmun
 Copy-Item profiles\showcase.env .env
 .\setup.ps1
 docker compose -p sitmun-showcase up -d --pull always --no-build
@@ -36,8 +34,6 @@ docker compose -p sitmun-showcase up -d --pull always --no-build
 Linux:
 
 ```bash
-git clone --branch main https://github.com/sitmun/sitmun.git
-cd sitmun
 cp profiles/showcase.env .env
 ./setup.sh
 docker compose -p sitmun-showcase up -d --pull always --no-build
@@ -138,15 +134,13 @@ On a development database the administrator is `admin` / `admin`. On a new produ
 
 ### Published images
 
-1.3.0 runs from `ghcr.io/sitmun/front`, `backend`, `proxy`, and `mbtiles` at tag `1.3.0`. Each image is `linux/amd64` and `linux/arm64`, so an Apple M1 pulls a native image with no `--platform` flag. Clone the `v1.3.0` tag, so `compose.yaml` and `profiles/` match those images. Copy a production profile, then start without building:
+1.3.0 runs from `ghcr.io/sitmun/front`, `backend`, `proxy`, and `mbtiles` at tag `1.3.0`. Each image is `linux/amd64` and `linux/arm64`, so an Apple M1 pulls a native image with no `--platform` flag. Run these commands in an existing checkout, so `compose.yaml` and `profiles/` match those images. The release checkout will be the annotated tag once that tag exists. Copy a production profile, then start without building:
 
 Use `profiles\oracle.env` on Windows, or `profiles/oracle.env` on Linux, instead of the PostgreSQL profile for Oracle.
 
 Windows:
 
 ```powershell
-git clone --branch v1.3.0 https://github.com/sitmun/sitmun.git
-cd sitmun
 Copy-Item profiles\postgres.env .env
 .\setup.ps1
 docker compose up -d --pull always --no-build
@@ -155,8 +149,6 @@ docker compose up -d --pull always --no-build
 Linux:
 
 ```bash
-git clone --branch v1.3.0 https://github.com/sitmun/sitmun.git
-cd sitmun
 cp profiles/postgres.env .env
 ./setup.sh
 docker compose up -d --pull always --no-build
