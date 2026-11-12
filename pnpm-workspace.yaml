@@ -54,7 +54,7 @@ catalog:
   '@codemirror/lang-sql': 6.10.0
   '@codemirror/language': 6.13.1
   '@codemirror/state': 6.5.2
-  '@codemirror/view': 6.38.1
+  '@codemirror/view': 6.43.15
   '@jest/globals': 30.5.2
   '@ionic/angular': 8.6.2
   '@ionic/angular-toolkit': 12.2.0
