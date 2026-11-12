@@ -85,7 +85,6 @@
     "typescript-eslint": "catalog:",
     "typescript": "catalog:"
   },
-  "description": "An Ionic project",
   "engines": {
     "node": ">=24.22.0"
   }
