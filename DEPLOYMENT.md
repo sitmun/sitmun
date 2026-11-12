@@ -2,7 +2,19 @@
 
 Deploy [sitmun/sitmun](https://github.com/sitmun/sitmun). Components are directories in that repository. The Compose file is `compose.yaml`. Historical release tags are `legacy/<repository>/<tag>`.
 
-1.3.0 runs from `ghcr.io/sitmun/front`, `backend`, `proxy`, and `mbtiles` at tag `1.3.0`. Clone the `v1.3.0` tag, because `front` mounts `docker/front/config` and `backend` mounts `profiles/` from that checkout. Copy `profiles/postgres.env` or `profiles/oracle.env` to `.env`. `./setup.sh` (Windows: `./setup.ps1`) appends `SITMUN_USER_SECRET`, `MIDDLEWARE_SECRET`, and `SITMUN_MBTILES_JOB_HANDLE_SECRET`.
+1.3.0 runs from `ghcr.io/sitmun/front`, `backend`, `proxy`, and `mbtiles` at tag `1.3.0`. Clone the `v1.3.0` tag, because `front` mounts `docker/front/config` and `backend` mounts `profiles/` from that checkout. Copy `profiles/postgres.env` or `profiles/oracle.env` to `.env`. `setup.ps1` or `setup.sh` appends `SITMUN_USER_SECRET`, `MIDDLEWARE_SECRET`, and `SITMUN_MBTILES_JOB_HANDLE_SECRET`.
+
+Windows:
+
+```powershell
+git clone --branch v1.3.0 https://github.com/sitmun/sitmun.git
+cd sitmun
+Copy-Item profiles\postgres.env .env
+.\setup.ps1
+docker compose up -d --pull always --no-build
+```
+
+Linux:
 
 ```bash
 git clone --branch v1.3.0 https://github.com/sitmun/sitmun.git
@@ -32,7 +44,6 @@ SITMUN answers at the root of a hostname, for example `https://sitmun3.example.c
 PUBLIC_URL_SCHEME=https
 PUBLIC_HOSTNAME=sitmun3.example.com
 PUBLIC_PORT=
-# PUBLIC_NON_STANDARD_PORT=1
 PUBLIC_BASE_PATH=/
 ```
 
@@ -44,14 +55,13 @@ SITMUN answers under a path on another host, for example `https://example.com/si
 PUBLIC_URL_SCHEME=https
 PUBLIC_HOSTNAME=example.com
 PUBLIC_PORT=
-# PUBLIC_NON_STANDARD_PORT=1
 PUBLIC_BASE_PATH=/sitmun3/
 LOCAL_BASE_PATH=/sitmun3/
 ```
 
 Then build `front`, pull the published `backend` and `proxy`, and start without pulling `front` again:
 
-```bash
+```text
 docker compose build front
 docker compose pull --policy always backend proxy
 docker compose up -d --no-build

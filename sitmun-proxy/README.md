@@ -551,21 +551,7 @@ server:
 
 ### Technology Stack
 
-- **Spring Boot 3.5.4**: Application framework with Spring Web, JDBC, and Actuator
-- **Spring Web**: REST API support
-- **Spring JDBC**: Database connectivity
-- **Spring Actuator**: Health checks and monitoring
-- **OkHttp 4.12.0**: HTTP client for service communication
-- **JJWT 0.12.6**: JWT token handling with API, implementation, and Jackson modules
-- **PostgreSQL/Oracle**: Database drivers for JDBC connections
-- **H2 2.2.224**: In-memory database for testing
-- **JSON 20240303**: JSON processing library
-- **Gradle**: Build system with Version Catalogs
-- **Docker**: Multi-stage containerization with Amazon Corretto
-- **Spotless 7.2.0**: Code formatting with Google Java Format
-- **JaCoCo**: Code coverage reporting
-- **Version**: `project.version` in `build.gradle`
-- **Lombok 8.6**: Reduces boilerplate code
+Library versions, including Spring Boot and OkHttp, are the keys in [`gradle/libs.versions.toml`](../gradle/libs.versions.toml). The root [README](../README.md) is the stack description. Do not copy those versions into this README.
 
 ### System Architecture
 
@@ -798,13 +784,7 @@ The project uses Gradle with Version Catalogs for dependency management:
 - **Packaging**: Configurable JAR or WAR output via `-Ppackaging` property
 - **Plugins**: Spring Boot, Lombok, Spotless, from the root version catalog
 - **Quality Tools**: JaCoCo for coverage, Spotless for formatting
-- **Dependencies**:
-  - Spring Boot Starters (Web, JDBC, Actuator)
-  - OkHttp 4.12.0 for HTTP client
-  - JJWT 0.12.6 for JWT handling
-  - PostgreSQL and Oracle JDBC drivers
-  - H2 2.2.224 for testing
-  - JSON 20240303 for JSON processing
+- **Dependencies**: Spring Boot starters, OkHttp, JJWT, and the database drivers named in [`gradle/libs.versions.toml`](../gradle/libs.versions.toml)
 
 ### Code Quality
 

@@ -5,14 +5,64 @@
 
 SITMUN (Sistema de Información Territorial de la Mancomunidad de Municipios) is a geospatial information system. This repository is [sitmun/sitmun](https://github.com/sitmun/sitmun).
 
-## Modules
+## Showcase
+
+### Using the showcase
+
+The showcase is three maps you can open in a browser: SDI Viewer, Camí de Cavalls, and Case processing support.
+
+Open http://localhost:9000/viewer/. SDI Viewer and Camí de Cavalls open with no login. The user `demo` and the password `demo` open all three.
+
+The first time you open Admin, it asks you to choose a password and a language.
+
+The text is in English. Spanish and Catalan are available as translations. To show Spanish by default, sign in to Admin, turn off French and Aranese, and set the default language to Spanish.
+
+Background maps come from other organisations. One failed background map blocks the whole map. Street View has no Google key.
+
+### Install the showcase
+
+You need Docker Desktop and Git.
+
+Windows:
+
+```powershell
+git clone --branch main https://github.com/sitmun/sitmun.git
+cd sitmun
+Copy-Item profiles\showcase.env .env
+.\setup.ps1
+docker compose -p sitmun-showcase up -d --pull always --no-build
+```
+
+Linux:
+
+```bash
+git clone --branch main https://github.com/sitmun/sitmun.git
+cd sitmun
+cp profiles/showcase.env .env
+./setup.sh
+docker compose -p sitmun-showcase up -d --pull always --no-build
+```
+
+If another SITMUN is already running, stop it first (`docker compose stop`).
+
+To save a copy of the database after setup:
+
+```text
+docker compose -p sitmun-showcase exec -T postgres pg_dump -U sitmun3 -d sitmun3 -Fc > sitmun-showcase.dump
+```
+
+That copy matches only the backend image it was taken from. Restore it into an empty showcase volume before starting the backend.
+
+## For developers
+
+### Modules
 
 | Path | Runtime | Compose |
 | --- | --- | --- |
 | `sitmun-admin` | Angular 22 | `front` (`/admin/`) |
 | `sitmun-viewer` | Angular 22 | `front` (`/viewer/`) |
-| `sitmun-mobile/sitmun-edition` | Ionic 8, Angular 18 | none |
-| `sitmun-mobile/sitmun-touristic` | Ionic 8, Angular 18 | none |
+| `sitmun-mobile/sitmun-edition` | Ionic 8, Angular 22 | none |
+| `sitmun-mobile/sitmun-touristic` | Ionic 8, Angular 22 | none |
 | `sitmun-backend` | Spring Boot 4, Java 17 | `backend` |
 | `sitmun-proxy` | Spring Boot 4, Java 17 | `proxy` |
 | `sitmun-addons/sitmun-mbtiles` | Spring Boot 4, Java 17 | `mbtiles` (profile, no host port) |
@@ -22,11 +72,15 @@ Image definitions are under `docker/`. The Compose file is `compose.yaml`.
 
 Common, proxy, MBTiles, and the backend are one Gradle build. From the repository root:
 
+```powershell
+.\gradlew.bat :sitmun-backend:test :sitmun-proxy:test :sitmun-mbtiles:test :sitmun-spring-upstream:test :sitmun-proxy-contract:test
+```
+
 ```bash
 ./gradlew :sitmun-backend:test :sitmun-proxy:test :sitmun-mbtiles:test :sitmun-spring-upstream:test :sitmun-proxy-contract:test
 ```
 
-## Toolchain
+### Toolchain
 
 Java is the root `.java-version` (17). Gradle provisions that JDK itself through the Foojay resolver (`org.gradle.java.installations.auto-detect=false` in `gradle.properties`) and ignores the host JDK. After a JDK security release, delete the old directory under `~/.gradle/jdks` so Gradle downloads the patched build. Node is the root `.nvmrc` (24.22.0). pnpm is the `packageManager` field on the root `package.json`. mise is optional and reads those files. CI does not use mise: `actions/setup-node` with `node-version-file: .nvmrc` and `pnpm/action-setup`, then `pnpm ci`.
 
@@ -34,57 +88,36 @@ The root `pnpm-workspace.yaml` lists `sitmun-admin`, `sitmun-viewer`, `sitmun-mo
 
 Commands: `pnpm ci`, `pnpm install`, `pnpm add`, `pnpm run`, `pnpm exec`.
 
-## Quick start
-
-Docker Engine and Docker Compose (or Docker Desktop), plus Git. Every path needs a checkout, because `front` mounts `docker/front/config` and `backend` mounts `profiles/`.
-
-### Showcase
-
-The showcase is the sales database: SDI Viewer, Camí de Cavalls, and Case processing support. It uses the published images and does not compile this checkout. `./setup.sh` keeps an `.env` that already exists, and it still copies `profiles/development-postgres.env` only when `.env` is missing, so copy the showcase file first.
-
-```bash
-git clone --branch dev https://github.com/sitmun/sitmun.git
-cd sitmun
-cp profiles/showcase.env .env
-./setup.sh                      # Windows: ./setup.ps1
-docker compose -p sitmun-showcase up -d --pull always --no-build
-```
-
-Open http://localhost:9000/viewer/. Public applications need no login. `demo` / `demo` sees all three applications. `admin` / `admin` is the baseline administrator. Change that password before any host other than localhost.
-
-`-p sitmun-showcase` keeps this database in its own volume. It does not replace a development database. The two stacks both publish ports 9000–9003, so stop the other stack first (`docker compose stop`).
-
-Images are `ghcr.io/sitmun/front`, `backend`, and `proxy` at `${SITMUN_VERSION:-1.3.0}`. Run the showcase from the release that contains `profiles/showcase`. On `dev`, before that tag, the checkout and the `1.3.0` jar can differ. The baseline comes from the jar. The showcase rows come from this checkout.
-
-Stored text is English. Spanish and Catalan are translations. To show Spanish by default, sign in to admin, disable French and Aranese, then change the default language from `en` to `es`.
-
-Thumbnails come from `ide.cime.es`. Basemaps depend on IGN, GOIB, and SITNA. One broken background service blocks the whole map. Street View has no Google key.
-
-To reset without reloading Liquibase, pin the image digests in a local Compose overlay (not `compose.override.yaml`, which Compose loads for every project) and save the database after setup:
-
-```bash
-docker compose -p sitmun-showcase exec -T postgres pg_dump -U sitmun3 -d sitmun3 -Fc > sitmun-showcase.dump
-```
-
-A dump is valid only for the backend digest it was taken from. Restore it into an empty `sitmun-showcase` volume before starting the backend.
+Every development path needs a checkout, because `front` mounts `docker/front/config` and `backend` mounts `profiles/`.
 
 ### Development setup
 
-`docker compose up -d` on `dev` builds from this checkout (`pull_policy: build`). `ENVIRONMENT` defaults to `development` unless the profile sets it. `./setup.sh` copies `profiles/development-postgres.env` to `.env` only when `.env` is missing, then appends the three secrets when those keys are absent.
+`docker compose up -d` on `dev` builds from this checkout (`pull_policy: build`). `ENVIRONMENT` defaults to `development` unless the profile sets it. `setup.ps1` and `setup.sh` copy `profiles/development-postgres.env` to `.env` only when `.env` is missing, then append the three secrets when those keys are absent.
+
+Windows:
+
+```powershell
+git clone --branch dev https://github.com/sitmun/sitmun.git
+cd sitmun
+.\setup.ps1
+docker compose up -d
+```
+
+Linux:
 
 ```bash
 git clone --branch dev https://github.com/sitmun/sitmun.git
 cd sitmun
-./setup.sh          # Windows: ./setup.ps1
+./setup.sh
 docker compose up -d
 ```
 
-To choose a profile yourself, copy one file to `.env` and run `./setup.sh` (Windows: `./setup.ps1`). Compose marks the three secrets required (`:?`) and refuses to start without them.
+To choose a profile yourself, copy one file to `.env` and run `setup.ps1` or `setup.sh`. Compose marks the three secrets required (`:?`) and refuses to start without them.
 
 | Profile | Use |
 | --- | --- |
 | `profiles/showcase.env` | Showcase PostgreSQL. Published images, three demo applications. |
-| `profiles/development-postgres.env` | Development PostgreSQL. This is what `setup.sh` copies. |
+| `profiles/development-postgres.env` | Development PostgreSQL. This is what setup copies when `.env` is missing. |
 | `profiles/development-oracle.env` | Development Oracle |
 | `profiles/development-lvh.env` | Development PostgreSQL announced as `http://lvh.me:9000` |
 | `profiles/postgres.env` | Production PostgreSQL (`ENVIRONMENT=production`, minimal seed) |
@@ -92,7 +125,7 @@ To choose a profile yourself, copy one file to `.env` and run `./setup.sh` (Wind
 
 Copying a profile over an existing `.env` drops secrets already appended. Append them again.
 
-Seeded login: `admin` / `admin`. A new database that is still on that password and on `language.default=en` asks an administrator, after login, to choose the database language and optionally replace the password. Skip leaves both as they are. For a deployment other than a local demo, replace the database password (Compose falls back to `sitmun3` / `sitmun3`).
+On a development database the administrator is `admin` / `admin`. On a new production database, and on the showcase, the first visit to Admin asks for a password and a language. For a deployment other than a local demo, replace the database password (Compose falls back to `sitmun3` / `sitmun3`).
 
 | URL | What |
 | --- | --- |
@@ -107,15 +140,29 @@ Seeded login: `admin` / `admin`. A new database that is still on that password a
 
 1.3.0 runs from `ghcr.io/sitmun/front`, `backend`, `proxy`, and `mbtiles` at tag `1.3.0`. Each image is `linux/amd64` and `linux/arm64`, so an Apple M1 pulls a native image with no `--platform` flag. Clone the `v1.3.0` tag, so `compose.yaml` and `profiles/` match those images. Copy a production profile, then start without building:
 
-```bash
+Use `profiles\oracle.env` on Windows, or `profiles/oracle.env` on Linux, instead of the PostgreSQL profile for Oracle.
+
+Windows:
+
+```powershell
 git clone --branch v1.3.0 https://github.com/sitmun/sitmun.git
 cd sitmun
-cp profiles/postgres.env .env   # or profiles/oracle.env
-./setup.sh                      # Windows: ./setup.ps1
+Copy-Item profiles\postgres.env .env
+.\setup.ps1
 docker compose up -d --pull always --no-build
 ```
 
-Add `--profile mbtiles` for MBTiles. `./setup.sh` and `./setup.ps1` append `SITMUN_USER_SECRET`, `MIDDLEWARE_SECRET`, and `SITMUN_MBTILES_JOB_HANDLE_SECRET` when those keys are absent, including on an `.env` you already copied. Do not commit the values.
+Linux:
+
+```bash
+git clone --branch v1.3.0 https://github.com/sitmun/sitmun.git
+cd sitmun
+cp profiles/postgres.env .env
+./setup.sh
+docker compose up -d --pull always --no-build
+```
+
+Add `--profile mbtiles` for MBTiles. `setup.ps1` and `setup.sh` append `SITMUN_USER_SECRET`, `MIDDLEWARE_SECRET`, and `SITMUN_MBTILES_JOB_HANDLE_SECRET` when those keys are absent, including on an `.env` you already copied. Do not commit the values.
 
 Publishing and republishing a tag is in [RELEASE.md](RELEASE.md#images).
 
@@ -150,6 +197,8 @@ Compose `:-` defaults below apply when the variable is unset. Runtime `FROM` lin
 | `MIDDLEWARE_SECRET` | Shared secret. Backend receives it as `SITMUN_PROXY_MIDDLEWARE_SECRET`. Proxy receives it as `SITMUN_BACKEND_CONFIG_SECRET`. | required |
 | `SITMUN_MBTILES_JOB_HANDLE_SECRET` | Proxy MBTiles job-handle secret. Minimum 32 characters. | required |
 | `SITMUN_UPGRADE_DEFAULT_LANGUAGE` | Language of existing database text on an upgrade. Must match `STM_CONF` `language.default`. Compose forwards it to the backend. Empty on a new install. | empty |
+| `SITMUN_BOOTSTRAP_ADMIN_PASSWORD` | Password applied when the built-in admin password is empty. 8 to 50 characters, and not the username. Compose forwards it. Remove it from `.env` after `GET /api/dashboard/health` is UP. | empty |
+| `SITMUN_BOOTSTRAP_LANGUAGE` | Database language applied with that password. An unknown, disabled, or already-current value does not change translations. | empty |
 
 `SecuritySecretValidator` (backend) and `ProxySecretValidator` (proxy) abort startup with `IllegalStateException` when a secret is blank or shorter than 32 characters.
 
@@ -169,27 +218,35 @@ Root Playwright and backend tests use in-memory H2. Compose does not start H2.
 | `COMPOSE_PROFILES` | `postgres` | `oracle` |
 | JDBC prefix | `jdbc:postgresql://postgres:5432/` | `jdbc:oracle:thin:@//oracle:1521/` |
 | Profile file | `profiles/postgres/application-postgres.yml` or `profiles/development/backend/application-postgres.yml` | `application-oracle.yml` (profile `oracle`) or `application-oracle-11.yml` (profile `oracle-11`) in `profiles/oracle/` and `profiles/development/backend/` |
-| `hibernate.dialect` in that file | `org.hibernate.dialect.PostgreSQLDialect` | `org.hibernate.dialect.OracleDialect` for `oracle`. `org.hibernate.community.dialect.OracleLegacyDialect` for `oracle-11` |
+| `hibernate.dialect` in that file | `org.hibernate.dialect.PostgreSQLDialect` | `org.sitmun.infrastructure.persistence.dialect.SitmunOracleDialect` for `oracle`. `org.sitmun.infrastructure.persistence.dialect.SitmunOracleLegacyDialect` for `oracle-11` |
 
-The backend service in `compose.yaml` also sets `SPRING_JPA_DATABASE_PLATFORM` to `org.hibernate.dialect.PostgreSQLDialect`.
+`compose.yaml` also sets `SPRING_JPA_DATABASE_PLATFORM` to `org.hibernate.dialect.PostgreSQLDialect`. That is `spring.jpa.database-platform`. The mounted profile sets `spring.jpa.properties.hibernate.dialect`. Spring keeps a dialect that is already set, so the Compose value does not replace the Sitmun Oracle dialect. Confirmed in Spring ORM `AbstractEntityManagerFactoryBean` (vendor dialect is applied only when `hibernate.dialect` is absent) on the Spring ORM 7.0.10 sources used with Spring Boot 4.1.2.
 
 Development profiles mount `profiles/development/backend` (`SITMUN_CONFIG_DIR` default). `profiles/postgres.env` sets `SITMUN_CONFIG_DIR=postgres`. `profiles/oracle.env` sets `SITMUN_CONFIG_DIR=oracle`. `profiles/showcase.env` sets `SITMUN_CONFIG_DIR=showcase` and `SPRING_LIQUIBASE_CONTEXTS=showcase`. Liquibase runs on backend startup.
+
+Windows:
+
+```powershell
+Copy-Item profiles\postgres.env .env
+.\setup.ps1
+docker compose up -d --pull always --no-build
+```
+
+Linux:
 
 ```bash
 cp profiles/postgres.env .env
 ./setup.sh
 docker compose up -d --pull always --no-build
-
-cp profiles/oracle.env .env
-./setup.sh
-docker compose up -d --pull always --no-build
 ```
+
+Oracle uses the same steps with `profiles\oracle.env` on Windows, or `profiles/oracle.env` on Linux, before setup.
 
 Oracle's first start waits on its healthcheck (`start_period: 60s`). Follow it with `docker compose logs -f oracle`.
 
 To point at a database outside Compose, leave `COMPOSE_PROFILES` empty and set `SPRING_PROFILES_ACTIVE`, `DATABASE_URL`, `DATABASE`, `DATABASE_USERNAME`, `DATABASE_PASSWORD`, and the three secrets. `depends_on.required: false` skips a profiled database that is not started, so `docker compose up -d --pull always --no-build` starts `front`, `backend`, and `proxy` only. A development checkout uses `docker compose up -d` and builds those images.
 
-Switch databases with `docker compose down`, copy the other profile to `.env`, run `./setup.sh`, then `docker compose up -d --pull always --no-build`.
+Switch databases with `docker compose down`, copy the other profile to `.env`, run `setup.ps1` or `setup.sh`, then `docker compose up -d --pull always --no-build`.
 
 #### Example database
 
@@ -249,9 +306,9 @@ Admin ───┘
 
 Root Playwright runs admin and viewer against backend-core on in-memory H2. No Docker Compose. Coverage: [e2e/README.md](e2e/README.md).
 
-`pnpm run e2e`, `pnpm run e2e:viewer`, `pnpm run e2e:mia-cross`, `pnpm run e2e:application-contact`, and `pnpm run e2e:mobile:web` share port 18080. Run one at a time.
+`pnpm run e2e`, `pnpm run e2e:viewer`, `pnpm run e2e:mia-cross`, `pnpm run e2e:application-contact`, `pnpm run e2e:first-run`, and `pnpm run e2e:mobile:web` share port 18080. Run one at a time.
 
-```bash
+```text
 pnpm ci
 pnpm run e2e:install
 pnpm run e2e
@@ -261,12 +318,15 @@ Install the suite from the repository root before the browser suites: `pnpm ci -
 
 ### Apps and backend
 
-```bash
+```text
 pnpm ci --filter ./sitmun-admin...
 cd sitmun-admin
 pnpm start
+```
 
-cd ..
+From the repository root again:
+
+```text
 pnpm ci --filter ./sitmun-viewer...
 cd sitmun-viewer
 pnpm start
@@ -274,31 +334,53 @@ pnpm start
 
 `pnpm start` is `ng serve` with the `development` configuration. For edition or touristic, install from the repository root with `pnpm ci --filter ./sitmun-mobile/sitmun-edition...` or `--filter ./sitmun-mobile/sitmun-touristic...`, then run `pnpm start` in that app.
 
+```powershell
+.\gradlew.bat :sitmun-backend:bootRun
+.\gradlew.bat :sitmun-proxy:bootRun --args='--spring.profiles.active=dev'
+```
+
 ```bash
 ./gradlew :sitmun-backend:bootRun
-
-# repository root; proxy dev profile is sitmun-proxy/src/main/resources/application-dev.yml
 ./gradlew :sitmun-proxy:bootRun --args='--spring.profiles.active=dev'
 ```
+
+The proxy dev profile is `sitmun-proxy/src/main/resources/application-dev.yml`. Run both from the repository root.
 
 Backend has no `application-dev.yml`. Supply `SITMUN_USER_SECRET`, `SITMUN_PROXY_MIDDLEWARE_SECRET`, and a datasource. The H2 arguments used by Playwright are in `e2e/scripts/e2e-backend.mjs`.
 
 ### Checks
 
+```text
+cd sitmun-admin
+pnpm run lint
+pnpm test
+```
+
+From the repository root, then the viewer:
+
+```text
+cd sitmun-viewer
+pnpm run lint
+pnpm test
+```
+
+```powershell
+.\gradlew.bat :sitmun-backend:test :sitmun-backend:spotlessCheck
+.\gradlew.bat :sitmun-proxy:test :sitmun-proxy:spotlessCheck
+.\gradlew.bat :sitmun-mbtiles:test :sitmun-mbtiles:spotlessCheck
+```
+
 ```bash
-cd sitmun-admin && pnpm run lint && pnpm test
-cd sitmun-viewer && pnpm run lint && pnpm test
-
 ./gradlew :sitmun-backend:test :sitmun-backend:spotlessCheck
-
-# repository root
 ./gradlew :sitmun-proxy:test :sitmun-proxy:spotlessCheck
 ./gradlew :sitmun-mbtiles:test :sitmun-mbtiles:spotlessCheck
 ```
 
+Run the Gradle checks from the repository root.
+
 Rebuild one Compose service:
 
-```bash
+```text
 docker compose build service_name
 docker compose up service_name -d
 ```
@@ -338,37 +420,75 @@ Proxy process, on port 9002 or under `/middleware/` after nginx strips that pref
 
 Authentication in this tree is username/password, LDAP when the `ldap` profile is active, and OIDC when the `oidc` profile is active. Browser sessions use the cookies above. `WebSecurityConfigurer.corsConfigurationSource()` allows credentials, all headers, methods `OPTIONS`, `GET`, `POST`, `PUT`, and `DELETE`, and `allowedOriginPattern("*")`.
 
-Generate secrets with `openssl rand -hex 32`. `SITMUN_USER_SECRET` stays on the backend. `MIDDLEWARE_SECRET` must match on both sides. Do not commit secrets.
+`setup.ps1` and `setup.sh` generate the three secrets. To make one by hand:
+
+```powershell
+$bytes = New-Object byte[] 32
+[System.Security.Cryptography.RandomNumberGenerator]::Create().GetBytes($bytes)
+($bytes | ForEach-Object { $_.ToString('x2') }) -join ''
+```
+
+```bash
+openssl rand -hex 32
+```
+
+`SITMUN_USER_SECRET` stays on the backend. `MIDDLEWARE_SECRET` must match on both sides. Do not commit secrets.
 
 ## Troubleshooting
 
-```bash
+```text
 docker compose ps
 docker compose logs -f backend
+```
+
+```powershell
+curl.exe http://localhost:9001/api/dashboard/health
+curl.exe http://localhost:9002/actuator/health
+```
+
+```bash
 curl http://localhost:9001/api/dashboard/health
 curl http://localhost:9002/actuator/health
 ```
 
+PowerShell's `curl` name is a different command. Use `curl.exe` there.
+
 `SITMUN_CONFIG_DIR`, `SPRING_PROFILES_ACTIVE`, and `COMPOSE_PROFILES` have to name the same database. PostgreSQL JDBC prefix: `jdbc:postgresql://postgres:5432/`. Oracle: `jdbc:oracle:thin:@//oracle:1521/`. Host ports 9003 and 9004 must be free.
 
-```bash
+```text
 docker compose exec postgres pg_isready -U sitmun3
 docker compose exec -it postgres psql -U sitmun3 -d sitmun3
 ```
 
-Admin login (cookie `admin_access_token`):
+Admin login on a development database (cookie `admin_access_token`):
+
+```powershell
+curl.exe -X POST http://localhost:9001/api/authenticate/admin -c cookies.txt -H "Content-Type: application/json" -d '{"username":"admin","password":"admin"}'
+curl.exe -b cookies.txt -H "X-SITMUN-Client: admin" http://localhost:9001/api/account
+```
 
 ```bash
-curl -X POST http://localhost:9001/api/authenticate/admin \
-  -c cookies.txt \
-  -H "Content-Type: application/json" \
-  -d '{"username":"admin","password":"admin"}'
+curl -X POST http://localhost:9001/api/authenticate/admin -c cookies.txt -H "Content-Type: application/json" -d '{"username":"admin","password":"admin"}'
 curl -b cookies.txt -H "X-SITMUN-Client: admin" http://localhost:9001/api/account
 ```
 
 The backend reads `admin_access_token` only when the request sends `X-SITMUN-Client: admin` ([`AuthenticationController.resolveSessionCookieName`](sitmun-backend/src/main/java/org/sitmun/authentication/controller/AuthenticationController.java)). Without it, `/api/account` returns 401.
 
-Reinstall from the repository root: `rm -rf node_modules && pnpm ci`. Node must match `.nvmrc`. Java must match `.java-version`. Backend clean: `./gradlew :sitmun-backend:clean`. Proxy clean: `./gradlew :sitmun-proxy:clean`.
+Reinstall from the repository root. Node must match `.nvmrc`. Java must match `.java-version`.
+
+```powershell
+Remove-Item -Recurse -Force node_modules
+pnpm ci
+.\gradlew.bat :sitmun-backend:clean
+.\gradlew.bat :sitmun-proxy:clean
+```
+
+```bash
+rm -rf node_modules
+pnpm ci
+./gradlew :sitmun-backend:clean
+./gradlew :sitmun-proxy:clean
+```
 
 `LOGGING_LEVEL_ORG_SITMUN` is passed through Compose (default `DEBUG`). Set it in `.env` and run `docker compose up -d backend proxy`.
 
