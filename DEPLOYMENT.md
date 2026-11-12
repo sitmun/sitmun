@@ -12,7 +12,7 @@ Copy-Item profiles\postgres.env .env
 docker compose up -d --pull always --no-build
 ```
 
-Linux:
+macOS or Linux:
 
 ```bash
 cp profiles/postgres.env .env
@@ -116,7 +116,7 @@ pnpm ci
 .\gradlew.bat :sitmun-proxy:clean
 ```
 
-Linux:
+macOS or Linux:
 
 ```bash
 rm -rf node_modules

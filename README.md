@@ -13,13 +13,13 @@ The showcase is for someone who wants to look at SITMUN in a browser.
 
 Open http://localhost:9000/viewer/. SDI Viewer and Camí de Cavalls open straight away. Case processing support is for a signed-in user. The user `demo` and the password `demo` open it.
 
-Admin is at http://localhost:9000/admin/. That account has no password yet. The first visit asks you to choose a password and a language.
+Admin is at http://localhost:9000/admin/. That account has no password yet. The first visit asks you to choose a password and a language. Anyone who can reach port 9000 can make that first visit, so run the showcase on your own computer, or put `SITMUN_BOOTSTRAP_ADMIN_PASSWORD=<your password>` in `.env` before you start it.
 
 The default language for the system is English. Spanish and Catalan are included. You choose the default language on that first visit to http://localhost:9000/admin/.
 
 ### Install the showcase
 
-You need Docker Desktop and Git.
+You need Git and Docker (Docker Desktop on Windows and macOS). The showcase uses ports 9000 to 9003. Stop any other SITMUN first.
 
 Windows:
 
@@ -31,7 +31,7 @@ Copy-Item profiles\showcase.env .env
 docker compose -p sitmun-showcase up -d --pull always --no-build
 ```
 
-Linux:
+macOS or Linux:
 
 ```bash
 git clone https://github.com/sitmun/sitmun.git
@@ -40,6 +40,8 @@ cp profiles/showcase.env .env
 ./setup.sh
 docker compose -p sitmun-showcase up -d --pull always --no-build
 ```
+
+To stop it, run `docker compose -p sitmun-showcase down` in the same folder. Add `-v` to delete its database and start over.
 
 ## Modules
 
@@ -75,7 +77,7 @@ cd sitmun
 docker compose up -d
 ```
 
-Linux:
+macOS or Linux:
 
 ```bash
 git clone --branch dev https://github.com/sitmun/sitmun.git
@@ -92,8 +94,8 @@ To choose a profile yourself, copy one file to `.env` and run `setup.ps1` or `se
 | `profiles/development-postgres.env` | Development PostgreSQL. This is what setup copies when `.env` is missing. |
 | `profiles/development-oracle.env` | Development Oracle |
 | `profiles/development-lvh.env` | Development PostgreSQL announced as `http://lvh.me:9000` |
-| `profiles/postgres.env` | Production PostgreSQL (`ENVIRONMENT=production`, minimal seed) |
-| `profiles/oracle.env` | Production Oracle (`ENVIRONMENT=production`, minimal seed) |
+| `profiles/postgres.env` | Production PostgreSQL. No demo data. |
+| `profiles/oracle.env` | Production Oracle. No demo data. |
 
 Copying a profile over an existing `.env` drops secrets already appended. Append them again.
 
@@ -102,7 +104,7 @@ On a development database the administrator is `admin` / `admin`.
 | URL | What |
 | --- | --- |
 | http://localhost:9000/viewer/ | Viewer. Public applications do not require a login. |
-| http://localhost:9000/admin/ | Admin. Requires authentication. |
+| http://localhost:9000/admin/ | Admin |
 | http://localhost:9000/backend/ | Backend through nginx |
 | http://localhost:9001/api/dashboard/health | Backend health |
 | http://localhost:9002/actuator/health | Proxy health |
@@ -136,11 +138,9 @@ Admin ───┘
          └── Proxy ── upstream WMS/WMTS/WFS, SQL, API
 ```
 
-## API
-
-Swagger UI: http://localhost:9001/swagger-ui/index.html
-
 ## Troubleshooting
+
+For the showcase, add `-p sitmun-showcase` after `docker compose`.
 
 ```text
 docker compose ps
@@ -154,7 +154,7 @@ curl.exe http://localhost:9001/api/dashboard/health
 curl.exe http://localhost:9002/actuator/health
 ```
 
-Linux:
+macOS or Linux:
 
 ```bash
 curl http://localhost:9001/api/dashboard/health
@@ -163,11 +163,11 @@ curl http://localhost:9002/actuator/health
 
 PowerShell's `curl` name is a different command. Use `curl.exe` there.
 
-## Contributing
+## More
 
-[CONTRIBUTING.md](CONTRIBUTING.md).
-
-Issues: https://github.com/sitmun/sitmun/issues
+- API: Swagger UI at http://localhost:9001/swagger-ui/index.html
+- Contributing: [CONTRIBUTING.md](CONTRIBUTING.md)
+- Issues: https://github.com/sitmun/sitmun/issues
 
 ## License
 
