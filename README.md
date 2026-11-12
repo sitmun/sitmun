@@ -115,7 +115,7 @@ Tests and checks are in [CONTRIBUTING.md](CONTRIBUTING.md) and [e2e/README.md](e
 
 ## Deployment
 
-Published images, configuration, databases, and backup are in [DEPLOYMENT.md](DEPLOYMENT.md). Image tags are in [RELEASE.md](RELEASE.md). An upgrade from 1.2.8 or 1.2.9 is in [Upgrade 1.2.9 to 1.3.0](docs/upgrade/1.2.9-to-1.3.0.md) and [Upgrade 1.2.8 to 1.3.0](docs/upgrade/1.2.8-to-1.3.0.md).
+Published images, configuration, databases, and backup are in [DEPLOYMENT.md](DEPLOYMENT.md). Image tags are in [RELEASE.md](RELEASE.md#images). An upgrade from 1.2.8 or 1.2.9 is in [Upgrade 1.2.9 to 1.3.0](docs/upgrade/1.2.9-to-1.3.0.md) and [Upgrade 1.2.8 to 1.3.0](docs/upgrade/1.2.8-to-1.3.0.md).
 
 ## Services
 
