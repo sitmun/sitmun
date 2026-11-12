@@ -9,15 +9,15 @@ SITMUN (Sistema de Información Territorial de la Mancomunidad de Municipios) is
 
 ### Using the showcase
 
-The showcase is three maps you can open in a browser: SDI Viewer, Camí de Cavalls, and Case processing support.
+The showcase is for someone who wants to look at SITMUN in a browser.
 
-Open http://localhost:9000/viewer/. SDI Viewer and Camí de Cavalls open with no login. The user `demo` and the password `demo` open all three.
+Open http://localhost:9000/viewer/. SDI Viewer and Camí de Cavalls open straight away. Case processing support is for a signed-in user. The user `demo` and the password `demo` open it.
 
-The first time you open Admin, it asks you to choose a password and a language.
+Admin is at http://localhost:9000/admin/. That account has no password yet. The first visit asks you to choose a password and a language.
 
-The text is in English. Spanish and Catalan are available as translations. To show Spanish by default, sign in to Admin, turn off French and Aranese, and set the default language to Spanish.
+The maps start in English. Spanish and Catalan are included. You choose the language on that first visit to Admin.
 
-Background maps come from other organisations. One failed background map blocks the whole map. Street View has no Google key.
+Some of the background maps come from other organisations. If one of them fails, the map does not load. Street View has no Google key, so it does not open.
 
 ### Install the showcase
 
