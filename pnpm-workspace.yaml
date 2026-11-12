@@ -96,7 +96,7 @@ catalog:
   cordova-plugin-httpd: 0.9.3
   dompurify: 3.4.17
   draggabilly: 2.4.1
-  echarts: 5.6.0
+  echarts: 6.1.0
   eslint: 9.39.5
   eslint-plugin-import: 2.32.0
   eslint-plugin-unused-imports: 4.4.1
