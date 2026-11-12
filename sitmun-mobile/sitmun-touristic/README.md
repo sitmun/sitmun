@@ -2,29 +2,37 @@
 
 ## Plataforma de desarrollo
 
-La aplicación en `sitmun-mobile/sitmun-touristic` ha sido desarrollada
-utilizando el **framework Ionic**, en conjunto con **Angular** para la construcción de la interfaz y lógica de negocio, y **Capacitor** para acceder a funcionalidades nativas de los dispositivos móviles.
+La aplicación en `sitmun-mobile/sitmun-touristic` usa Ionic, Angular y Capacitor.
 
+## Requisitos
 
-## REQUISITOS DEL SISTEMA
+Las versiones salen del `catalog` de [`pnpm-workspace.yaml`](../../pnpm-workspace.yaml).
 
-|                            |                       |                                                          |
-|----------------------------|-----------------------|----------------------------------------------------------|
-| Herramienta                | Versión recomendada   | Notas                                                    |
-| Node.js                    | 22.x LTS              | <https://nodejs.org/es>                                  |
-| pnpm                       | packageManager        | Node y pnpm locales salen de mise (opcional). Corepack está desactivado. CI usa actions/setup-node y pnpm/action-setup. |
-| Ionic CLI                  | 7.x                   | <https://ionicframework.com/>                            |
-| Angular CLI                | 19.x                  | <https://angular.dev/installation>                       |
-| Capacitor                  | 6.x                   | Incluido en Ionic                                        |
-| Java JDK                   | 17.x                  | <https://www.oracle.com/es/java/technologies/downloads/> |
-| Android SDK                | 34.x                  | <https://developer.android.com/studio?hl=es-419>         |
-| Git                        | Cualquiera compatible | Para clonar el repositorio                               |
-| Dispositivo móvil Android  | Android 13.x          | Para pruebas físicas                                     |
+- Node.js 24.22.0 ([`.nvmrc`](../../.nvmrc)) y pnpm (`packageManager` en el `package.json` de la raíz)
+- Angular 22, Ionic 8 y Capacitor 8
+- JDK 21 y Android SDK 36 para compilar Android. Capacitor 8 compila con Java 21 y `compileSdk` 36. La versión mínima de Android es la 7.0 (`minSdk` 24). No hay proyecto `android/` versionado.
 
-Para que la aplicación funcione correctamente, previamente será
-necesario tener desplegado [sitmun/sitmun](https://github.com/sitmun/sitmun) así como el servicio que devuelve la lista de instancias disponibles.
+La aplicación necesita un [sitmun/sitmun](https://github.com/sitmun/sitmun) desplegado y un servicio que devuelva la lista de instancias.
 
-Para pruebas en local se puede montar de forma muy sencilla con python y Flask el servicio que devuelva un fichero json con la lista de instancias
+## Servicio de instancias
+
+El servicio devuelve un JSON. Cada clave es una instancia. `name` es el texto del selector de instancia y `urlBackend` es la URL del backend.
+
+```json
+{
+  "menorca": {
+    "name": "Menorca",
+    "urlBackend": "https://sitmun.menorca.es/backend"
+  },
+  "barcelona": {
+    "name": "Barcelona",
+    "urlBackend": "https://sitmun.barcelona.es/backend"
+  }
+}
+```
+
+Para probar en local, este servicio Flask sirve ese fichero:
+
 ```python
 from flask import Flask, send_file
 
@@ -39,103 +47,39 @@ if __name__ == '__main__':
     app.run(host='0.0.0.0')
 ```
 
-Formato del json de instancias:
-```json
-{
-   "menorca": {
-     "name": "Menorca", //texto que se muestra en el selector de instancia
-     "urlBackend": "https://sitmun.menorca.es/backend"
-   },
-   "barcelona": {
-     "name": "Barcelona",
-     "urlBackend": "https://sitmun.barcelona.es/backend"
-   }
-}
-```
+En `src/environments/environment.ts`, `environment.prod.ts` y `environment.dev.ts`, `instancesUrl` es la URL de ese servicio. Si `instancesUrl` está vacía, la aplicación usa `instancesData`, con el mismo formato.
 
+## Instalación
 
-## CLONACIÓN DEL PROYECTO
+Desde la raíz del repositorio:
 
-Clonar el proyecto utilizando git en el directorio local deseado:
 ```bash
-git clone --branch dev https://github.com/sitmun/sitmun.git
-cd sitmun/sitmun-mobile/sitmun-touristic
+pnpm ci --filter ./sitmun-mobile/sitmun-touristic...
 ```
-## INSTALACIÓN DE DEPENDENCIAS
 
-Instalar las dependencias necesarias de la aplicación, desde `sitmun-mobile/sitmun-touristic`:
+## Integración con Capacitor
+
+Desde `sitmun-mobile/sitmun-touristic`, añadir la plataforma Android (no está en el repositorio):
+
 ```bash
-pnpm install
+pnpm exec cap add android
 ```
-## INTEGRACIÓN CON CAPACITOR
 
-Añadir plataforma para compilar en Android:
+Copiar `resources/android/AndroidManifest.xml` a `android/app/src/main`.
+
+## Compilar y abrir Android Studio
+
 ```bash
-ionic cap add android
+pnpm run android
 ```
 
-## CONFIGURACIONES
+El script hace `pnpm exec ng build`, `pnpm exec cap sync android`, `pnpm exec cap copy android` y `pnpm exec cap open android`. En Android Studio, **Build / Generate APK** deja la APK de depuración en `android/app/build/outputs/apk/debug`.
 
-1\. **Establecer la url al servicio de instancias**
+Para ejecutarla en un dispositivo conectado por USB con las opciones de desarrollador activadas:
 
-En los ficheros de entorno hay que establecer la url a la que se van a realizar la petición de obtención de instancias (**instancesUrl**).
-
->src/environments/environment.ts
->
->src/environments/environment.prod.ts
->
->src/environments/environment.dev.ts
-
-Como opción alternativa se puede establecer el json de instancias en las propias variables de entorno (**instancesData**) y se usará si **instanceUrl** es nula o cadena vacía.
-
-2\. **Copiar configuraciones SO**
-
-**Android:**
-
-Copiar el fichero /resources/android/AndroidManifest.xml en /android/app/src/main
-
-
-## COMPILAR Y EJECUTAR EN ANDROID
-
-Compilar la aplicación:
 ```bash
-ionic cap build
+pnpm exec ng build
+pnpm exec cap run android
 ```
-Copia los ficheros a la versión Android:
-```bash
-ionic cap copy android
-```
-Para generar la apk, es posible utilizar solo las herramientas de líneas
-de comandos, obtenidas en el paquete SDK de android, o mediante Android
-Studio, que tiene incorporado las mismas herramientas.
 
-1\. Línea de comandos
-
-Para poder ejecutar la aplicación mediante linea de comandos en un dispositivo físico debe estar conectado por USB y tener las opciones de desarrollador activadas.
-
-Compilar y ejecutar la aplicación en el dispositivo móvil
-```bash
-ionic cap run android --device
-```
-Este comando mostrará las opciones de dispositivos y emuladores disponibles. Seleccionar el deseado.
-
-El comando, aparte de ejecutar la app en el dispositivo elegido, genera la apk. Se encuentra en el directorio del proyecto, en
-**/android/app/build/outputs/apk/debug**.
-Si se prefiere usar la apk, transferir la APK al
-dispositivo (por USB, correo, Drive, etc.) y abrir el archivo *.apk*
-desde un **gestor de archivos** o el navegador.
-
-2\. Instalar la app en el dispositivo a través de Android
-Studio:
-
-Abrir la aplicación en Android Studio:
-```bash
-ionic cap open android
-```
-Una vez la aplicación ha sido cargada en Android Studio, generar la APK
-correspondiente en la opción Build / Generate APK de Android Studio.
-
-El fichero generado se encuentra en el directorio del proyecto, en
-**/android/app/build/outputs/apk/debug**. Transferir la APK al
-dispositivo (por USB, correo, Drive, etc.) y abrir el archivo *.apk*
-desde un **gestor de archivos** o el navegador.
+`cap run` pregunta qué dispositivo o emulador usar.

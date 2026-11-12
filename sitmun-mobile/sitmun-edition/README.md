@@ -8,13 +8,11 @@ The name on the device is SITMUN Mobile Editor. The server application type stay
 
 ## Requisitos
 
-Node.js es 24.22.0 ([`.nvmrc`](../../.nvmrc) en la raíz). pnpm es `packageManager` en el `package.json` de la raíz. mise es opcional.
+Las versiones salen del `catalog` de [`pnpm-workspace.yaml`](../../pnpm-workspace.yaml).
 
-- Angular 18.2.13 (`@angular/cli` y `@angular/*`)
-- Ionic `^8.4.1` (`@ionic/angular` y `@ionic/core`)
-- Capacitor 6.2.1 (`@capacitor/core`); `@capacitor/cli` y `@capacitor/android` 6.1.2
-- Java 17 ([`.java-version`](../../.java-version))
-- Android SDK 34 (Capacitor 6; no hay proyecto `android/` versionado)
+- Node.js 24.22.0 ([`.nvmrc`](../../.nvmrc)) y pnpm (`packageManager` en el `package.json` de la raíz)
+- Angular 22, Ionic 8 y Capacitor 8
+- JDK 21 y Android SDK 36 para compilar Android. Capacitor 8 compila con Java 21 y `compileSdk` 36. La versión mínima de Android es la 7.0 (`minSdk` 24). No hay proyecto `android/` versionado.
 
 ## Instalación
 
