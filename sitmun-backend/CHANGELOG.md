@@ -6,24 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
-### Security
-
-- **Upstream TLS**: `sitmun.client.unsafe-allowed-hosts` is empty unless a deployment sets it. An empty list checks the certificate and the hostname on every upstream call. A deployment that must reach a self-signed server sets `SITMUN_CLIENT_UNSAFE_ALLOWED_HOSTS` to those hosts, or to `*`. `*` turns the checks off for every host and is logged at startup. A rejected certificate says `certificate check failed` and names that setting ([#319](https://github.com/sitmun/sitmun/issues/319)).
-
 ### Added
 
-- **First run**: `GET` and `POST /api/setup/first-run` are available while the built-in admin password is null or blank, and both return 404 once that password exists. `POST` accepts anonymous callers only. The password is required and is stored only while the admin password is still empty. The post can also set the database language, with the same missing-translation choice as the language-default API. A password change sets `lastPasswordChange`, so existing sessions stop working. A new 1.3.0 database clears the seeded admin password. A 1.2.9 upgrade keeps its password. Password login rejects a null or blank password. OIDC sign-in does not. Startup repair leaves a null admin password in place.
+- **First run**: `GET /api/setup/status` reports whether the built-in admin password is empty, with the default language and the enabled languages. `GET /api/setup/first-run` is removed. `POST /api/setup/first-run` is anonymous only while that password is empty, stores the password, and can set the database language. A new 1.3.0 database clears the seeded password. A 1.2.9 upgrade keeps its password. Password login rejects a null or blank password. OIDC sign-in does not. Startup repair leaves a null admin password in place.
 - **i18n**: Portuguese now covers the code-list descriptions, task names, territory types, the Basic task group, and the seven literal sentences that were still missing. A fresh database gets them from the baseline. An upgrade from 1.2.9 inserts them when the row is absent. `check_translations.py` exits 1 when any of those rows is missing. Databases that already applied the seed, code-list, translation, or literal changesets keep the checksums they stored.
 - **i18n**: Fresh installs ship Portuguese (`pt-PT`). A database with no `pt-PT` row receives that language, using the next free id, even when it is not a 1.2.9 upgrade. A fresh database has no `stm_language` yet, so that check is skipped and the baseline still inserts the row. An upgrade from 1.2.9 also inserts missing `Language.name` rows for it. An existing Portuguese row is left alone ([#132](https://github.com/sitmun/sitmun/pull/132)).
 - **Service checks**: A blank detail is stored as null. The health API still shows that blank as an empty string. On Oracle, `SEC_OBSERVED` and `SCS_OBSERVED` become `TIMESTAMP(6) WITH TIME ZONE`. Existing values are copied as UTC before the column changes ([sitmun-backend-core#355](https://github.com/sitmun/sitmun-backend-core/pull/355)).
 - **SQL query tasks**: `POST /api/tasks/query/test` is admin-only. It takes a saved task id plus test values, checks the save rules, then runs the task's stored SQL twice on the task's connection: as written, and as one page (`limit` 10 and `offset` 0 unless the request sets them). Each run reports the SQL with `?`, the bound values, the rows, a failure message, and whether the row cap cut the result. A database account that can execute functions can still cause side effects inside a `SELECT`. Use an account that can only read.
-
-### Changed
-
-- **SQL query tasks** (breaking): `${name}` and `#{VAR}` are bound as typed parameters. Nothing from the request or a system variable is pasted or appended into the SQL. An undeclared client key is rejected with 400, including when the task declares no parameters. A value for a Provided parameter is ignored. `#{MUN_INES}` is allowed only as the whole content of `IN (...)`. `#{DATE}` binds as a timestamp. SQL that does not start with `SELECT`, or that contains `WITH`, `;`, or a trailing `--` comment, is rejected on save. A Provided parameter needs a value. A value cannot contain `#{`. A value together with Optional is rejected. `required` is derived. Execution is read-only and always rolls back, times out at `sitmun.jdbc.query-timeout-seconds` (60), and stops at `sitmun.jdbc.max-rows` (1000). The proxy receives both limits in the JDBC payload.
-
-### Added
-
 - **Templates**: A template has an optional title of 250 characters. The More Info Advanced tab shows that title, and a blank title shows the template name. The client profile includes edit, basic, locator, query, more-info, more-info-advanced, and document-export tasks. Template and map-image tasks stay out of the profile. Rendering and PDF export still authorize them through the role and territory assignment ([sitmun-viewer-app#211](https://github.com/sitmun/sitmun-viewer-app/issues/211)).
 - **Database**: An upgrade from 1.2.8 reaches 1.3.0 directly. It applies the 1.2.9 steps that are missing, then the 1.2.9 hop. A 1.2.7 database stops with `upgrade to 1.2.8 first`. Oracle 19c was not tested; Oracle 21 is the stand-in ([#87](https://github.com/sitmun/sitmun/issues/87)).
 - **Database**: Oracle 11 and Oracle 21 no longer treat a rewritten changeset 22 as a finished 1.2.9. A released 1.2.9 install on those engines stops at changeset 22c, and the upgrade continues from that partial history ([#107](https://github.com/sitmun/sitmun/issues/107)).
@@ -37,14 +26,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - **Map**: `POST /api/config/client/short-url` accepts a viewer map URL on this host. The caller must be able to open that application and territory, including a public visitor with no cookie. A foreign URL is rejected before any shortener runs. `sitmun.short-url.provider` defaults to `none` and returns the submitted URL. `tinyurl-legacy` calls TinyURL from the server. A provider I/O failure returns the detail `Short URL provider failed` and keeps the exception text in the server log ([#272](https://github.com/sitmun/sitmun-backend-core/issues/272)).
 - **Profile**: Client profile layers publish ordered `featureInfoFields` for `INFO` cartography parameters (`name`, translated `label`, `format`, `order`, `fractionDigits`, `padFractionDigits`, `dateStyle`). The list is omitted when the layer has no INFO rows. `CartographyParameter.value` is overlaid from `STM_TRANSLATION`. Liquibase `23_feature_info_field_format` adds `PGI_OPTIONS` and format code `AUTO` ([sitmun-application-stack#77](https://github.com/sitmun/sitmun-application-stack/issues/77)).
 
-### Removed
-
-- **Tooling**: The SonarQube plugin and `sonar.gradle` are removed. JaCoCo coverage reports stay.
-- **Code lists**: The backend no longer inserts code-list rows at startup. `sitmun.startup.code-lists` is removed. Readiness no longer waits for that step. The four JDBC drivers are rows in the shipped seed.
-- **Database**: `sitmun-backend/config` is no longer the development changelog. A local boot loads the test changelog. Production profiles load the shipped master.
 
 ### Changed
 
+- **SQL query tasks** (breaking): `${name}` and `#{VAR}` are bound as typed parameters. Nothing from the request or a system variable is pasted or appended into the SQL. An undeclared client key is rejected with 400, including when the task declares no parameters. A value for a Provided parameter is ignored. `#{MUN_INES}` is allowed only as the whole content of `IN (...)`. `#{DATE}` binds as a timestamp. SQL that does not start with `SELECT`, or that contains `WITH`, `;`, or a trailing `--` comment, is rejected on save. A Provided parameter needs a value. A value cannot contain `#{`. A value together with Optional is rejected. `required` is derived. Execution is read-only and always rolls back, times out at `sitmun.jdbc.query-timeout-seconds` (60), and stops at `sitmun.jdbc.max-rows` (1000). The proxy receives both limits in the JDBC payload.
 - **i18n**: Two saves that introduce the same new template sentence wait on `language.default` and keep one row. A manual create, a rename, a CSV import of a sentence, and a default-language change share that lock. On Oracle and PostgreSQL a waiter gives up after 10 seconds. H2 keeps its own lock timeout, because Hibernate does not apply this hint there. The sentence is stored with the domain entities, and an existing sentence is not overwritten.
 - **Database**: Sample task "More Info Advanced" is id 37. An upgrade from 1.2.9 renumbers id 32306 to 37 and moves rows that point at it, then the sequence counters set `TAS_ID` to one past the highest task id, so the next task an administrator creates is 38. When id 37 is already a different task, 32306 is left as it is. A fresh install inserts the task as 37. Tasks 31 to 36 stay, and they have no role or application, so Export PDF appears in a new viewer only after an administrator assigns them ([#86](https://github.com/sitmun/sitmun/issues/86)).
 - **Tests**: `LiquibaseSeedCanaryTest` requires the shipped task ids, outside the fixture band, to be 1 through 37 ([#86](https://github.com/sitmun/sitmun/issues/86)).
@@ -54,10 +39,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - **Database**: An upgrade from 1.2.9 widens `use_email` to 250 characters. A fresh PostgreSQL, Oracle, and H2 database already creates that column at 250.
 - **Database**: An upgrade from 1.2.9 fills an empty tree type with `cartography` when the tree has a layer and no task. On a cartography or edition tree, an empty node type becomes `cartography` when the node has a layer, and `folder` when it has neither a layer nor a task. A type that is already set stays.
 - **Database**: The 1.2.9 upgrade is the hop `db/changelog/upgrade/1.2.9-to-1.3.0/`, included from `upgrade/db.changelog-upgrade.yaml`. Changeset ids are `upgrade-version-check-*` and `upgrade-1.2.9-to-1.3.0-*`. Recreate a local database that already applied a 1.3.0 snapshot. Those ids changed, and 1.3.0 is unreleased.
-- **Database**: The Oracle JDBC driver is `ojdbc10` 19.32.0.0. Profile `oracle` sets `org.hibernate.dialect.OracleDialect`. Profile `oracle-11` sets `org.hibernate.community.dialect.OracleLegacyDialect`. Task paging does not read a version property.
-- **Build**: Spring Boot is 4.1.1; springdoc-openapi is 3.1.1; Liquibase via `spring-boot-starter-liquibase`; OIDC via `spring-boot-starter-security-oauth2-client`.
+- **Database**: The Oracle JDBC driver is `ojdbc10` 19.32.0.0. Profile `oracle` sets `org.sitmun.infrastructure.persistence.dialect.SitmunOracleDialect`. Profile `oracle-11` sets `org.sitmun.infrastructure.persistence.dialect.SitmunOracleLegacyDialect`. Task paging does not read a version property.
+- **Build**: Spring Boot is 4.1.2; springdoc-openapi is 3.1.1; Liquibase via `spring-boot-starter-liquibase`; OIDC via `spring-boot-starter-security-oauth2-client`.
 - **Build**: `setupGitHooks` is no longer a dependency of `build` (submodule-safe / opt-in via `./gradlew setupGitHooks`).
-- **Build**: Gradle wrapper is 8.14.6.
+- **Build**: Gradle wrapper is 9.8.2.
 - **Proxy**: `INFO` parameters are sent only on GetFeatureInfo. `GETMAP` parameters are sent only on GetMap. `WMS` and `WFS` parameters stay on every operation of that protocol. `WMTS` parameters stay on the service profile and are not sent upstream, so a `format` row on a WMS service no longer replaces the client `FORMAT`. `OLPARAM` parameters are not sent upstream. A parameter code must be allowed for the service protocol; changing the protocol is rejected while a stored row is outside that set. Liquibase `27_parameter_operation_scope` adds `GETMAP` and `WFS` to `serviceParameter.type`, and `GETMAP` and `INFO` to `cartographyServiceParameter.type`. Stored rows are not rewritten.
 - **HTTP**: OkHttp is 5.5.0.
 - **Service checks**: Transport text sent for classification is capped at `exceptionTextMaxLength`.
@@ -78,16 +63,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - **Tests**: `UserChecksServiceTest` calls `getWarnings` without a Spring context. `JsonWebTokenServiceTest` loads only `JsonWebTokenService` with a fixed clock. `SpatialReferenceSystemTest`, `UserPositionBusinessLogicTest`, and `UserPositionRepositoryDataRestTest` reuse an existing suite context. Password reset, MIA render security, language change, task literal enrollment, and database connection tests name why their context stays unique ([#315](https://github.com/sitmun/sitmun-backend-core/issues/315)).
 - **Tests**: `TerritoryMembershipAssociationWriteTest` locks `PUT /api/territories/{id}/members` and `PUT /api/territories/{id}/memberOf` on `STM_GRP_TER`. `ApplicationRoleAssociationWriteTest` locks `PUT /api/applications/{id}/availableRoles` and `PUT /api/roles/{id}/applications` on `STM_APP_ROL`. Each side stays an owning association. Replacing one side leaves the other side's join row ([#297](https://github.com/sitmun/sitmun-backend-core/issues/297)).
 
-### Security
-
-- **Proxy**: `POST /api/config/proxy` allows a task or service only when the caller holds a role of that application in the territory. The check uses the same link as the client profile ([#298](https://github.com/sitmun/sitmun-backend-core/issues/298)).
-- **Proxy**: `POST /api/config/proxy/mbtiles` denies a blocked account. Estimate and create also deny a blocked service or a blocked layer before rebuilding the tile request ([#287](https://github.com/sitmun/sitmun-backend-core/issues/287)).
-- **Auth**: `POST /api/config/client/territory/position` keeps the stored `expirationDate` and `type`. The owner can still update name, organization, and email ([#296](https://github.com/sitmun/sitmun-backend-core/issues/296)).
-- **Auth**: `POST /api/password-reset/confirm` returns the same HTTP 400 and attempts-remaining body for an unknown email, a known email with no reset code, and a wrong code. The reset code is drawn from `SecureRandom`. Confirm allows 5 calls per address each 15 minutes, the same limit as request ([#291](https://github.com/sitmun/sitmun-backend-core/issues/291)).
-- **Auth**: A legacy proxy JWT is rejected after the account password changes. The check uses the same `lastPasswordChange` claim as the session cookie and the mobile proxy token ([#283](https://github.com/sitmun/sitmun-backend-core/issues/283)).
-- **Proxy**: `sitmun.proxy-middleware.validate-user-access` is removed. `POST /api/config/proxy` and template child execution always run the account, privacy, and resource checks ([#286](https://github.com/sitmun/sitmun-backend-core/issues/286)).
-- **Proxy**: `LIMIT` and `OFFSET` on `POST /api/config/proxy` must be non-negative integers. Any other value returns HTTP 400 before the SQL is built. PostgreSQL and H2 keep `OFFSET n ROWS FETCH NEXT m ROWS ONLY`. Every Oracle connection uses a `ROWNUM` wrapper, including Oracle 12 and later ([#284](https://github.com/sitmun/sitmun-backend-core/issues/284)). Using offset and fetch when the remote Oracle server is 19 or newer is deferred ([sitmun#53](https://github.com/sitmun/sitmun/issues/53)).
-- **Auth**: A session cookie accepts only a session JWT. An `edition_access` or `mobile_proxy_access` token sent as `viewer_access_token` or the admin cookie is rejected, so it no longer receives that user's database roles, including `ROLE_ADMIN` ([#282](https://github.com/sitmun/sitmun-backend-core/issues/282)).
 
 ### Fixed
 
@@ -118,13 +93,32 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - **Cartography**: Create and save of a cartography style both report `defaultStyle` when another default already exists. Saving the style that is already the default still succeeds. The error field is `defaultStyle` on `CartographyStyle` ([#289](https://github.com/sitmun/sitmun-backend-core/issues/289)).
 - **Services**: `service.type` keeps `WMS`, `WFS`, and `WMTS`. A stored service of another type stays in the database and is left out of the client profile, along with layers and tasks that use it ([sitmun-application-stack#101](https://github.com/sitmun/sitmun-application-stack/issues/101)).
 - **Cartography**: `GET /api/cartographies` with a large page size no longer 500s under Hibernate 7. The paged `findAll` EntityGraph no longer joins the `styles` bag (styles still load via `@BatchSize`).
-
 - **Profile**: `featureInfoFields` publishes `maxWidth` and `maxHeight` from `PGI_OPTIONS` for an Image field.
 - **Usage**: Usage ingest returns HTTP 400 when `hourStart`, `serviceId`, or `applicationId` is null. An explicit `0` still binds.
 - **Usage**: Usage ingest returns HTTP 400 with `Unknown service {id}` or `Unknown application {id}` when a row names a service or application that does not exist. No row of that report is written. Before, H2 stored the row and PostgreSQL returned HTTP 500, because the failed insert aborted the transaction before the retry.
 - **Service checks**: Service-check ingest returns HTTP 400 when `requestContext` or `exchangeSignals` is missing.
 - **Images**: A PNG data URI is source-subsampled to the configured size before scaling, matching URL images, so a large bitmap is not decoded at full size. SVG data URIs stay `image/svg+xml` ([#309](https://github.com/sitmun/sitmun-backend-core/issues/309)).
 - **Config**: `ConfigurationParameter` equality follows its id. Two rows with the same id compare equal and share a hash code, including in a `HashSet`. A configuration parameter is not equal to an application parameter with the same id ([#295](https://github.com/sitmun/sitmun-backend-core/issues/295)).
+
+
+### Security
+
+- **Upstream TLS**: `sitmun.client.unsafe-allowed-hosts` is empty unless a deployment sets it. An empty list checks the certificate and the hostname on every upstream call. A deployment that must reach a self-signed server sets `SITMUN_CLIENT_UNSAFE_ALLOWED_HOSTS` to those hosts, or to `*`. `*` turns the checks off for every host and is logged at startup. A rejected certificate says `certificate check failed` and names that setting ([#319](https://github.com/sitmun/sitmun/issues/319)).
+- **Proxy**: `POST /api/config/proxy` allows a task or service only when the caller holds a role of that application in the territory. The check uses the same link as the client profile ([#298](https://github.com/sitmun/sitmun-backend-core/issues/298)).
+- **Proxy**: `POST /api/config/proxy/mbtiles` denies a blocked account. Estimate and create also deny a blocked service or a blocked layer before rebuilding the tile request ([#287](https://github.com/sitmun/sitmun-backend-core/issues/287)).
+- **Auth**: `POST /api/config/client/territory/position` keeps the stored `expirationDate` and `type`. The owner can still update name, organization, and email ([#296](https://github.com/sitmun/sitmun-backend-core/issues/296)).
+- **Auth**: `POST /api/password-reset/confirm` returns the same HTTP 400 and attempts-remaining body for an unknown email, a known email with no reset code, and a wrong code. The reset code is drawn from `SecureRandom`. Confirm allows 5 calls per address each 15 minutes, the same limit as request ([#291](https://github.com/sitmun/sitmun-backend-core/issues/291)).
+- **Auth**: A legacy proxy JWT is rejected after the account password changes. The check uses the same `lastPasswordChange` claim as the session cookie and the mobile proxy token ([#283](https://github.com/sitmun/sitmun-backend-core/issues/283)).
+- **Proxy**: `sitmun.proxy-middleware.validate-user-access` is removed. `POST /api/config/proxy` and template child execution always run the account, privacy, and resource checks ([#286](https://github.com/sitmun/sitmun-backend-core/issues/286)).
+- **Proxy**: `LIMIT` and `OFFSET` on `POST /api/config/proxy` must be non-negative integers. Any other value returns HTTP 400 before the SQL is built. PostgreSQL and H2 keep `OFFSET n ROWS FETCH NEXT m ROWS ONLY`. Every Oracle connection uses a `ROWNUM` wrapper, including Oracle 12 and later ([#284](https://github.com/sitmun/sitmun-backend-core/issues/284)). Using offset and fetch when the remote Oracle server is 19 or newer is deferred ([sitmun#53](https://github.com/sitmun/sitmun/issues/53)).
+- **Auth**: A session cookie accepts only a session JWT. An `edition_access` or `mobile_proxy_access` token sent as `viewer_access_token` or the admin cookie is rejected, so it no longer receives that user's database roles, including `ROLE_ADMIN` ([#282](https://github.com/sitmun/sitmun-backend-core/issues/282)).
+
+
+### Removed
+
+- **Tooling**: The SonarQube plugin and `sonar.gradle` are removed. JaCoCo coverage reports stay.
+- **Code lists**: The backend no longer inserts code-list rows at startup. `sitmun.startup.code-lists` is removed. Readiness no longer waits for that step. The four JDBC drivers are rows in the shipped seed.
+- **Database**: `sitmun-backend/config` is no longer the development changelog. A local boot loads the test changelog. Production profiles load the shipped master.
 
 ## [1.2.9] - 2026-09-19
 
@@ -507,7 +501,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 - Various bug fixes and improvements from development phase
 
-[Unreleased]: https://github.com/sitmun/sitmun-backend-core/compare/sitmun-backend-core/1.2.9...HEAD
+[Unreleased]: https://github.com/sitmun/sitmun/compare/legacy/sitmun-backend-core/sitmun-backend-core/1.2.9...HEAD
 [1.2.9]: https://github.com/sitmun/sitmun-backend-core/compare/sitmun-backend-core/1.2.8...sitmun-backend-core/1.2.9
 [1.2.8]: https://github.com/sitmun/sitmun-backend-core/compare/sitmun-backend-core/1.2.7...sitmun-backend-core/1.2.8
 [1.2.7]: https://github.com/sitmun/sitmun-backend-core/compare/sitmun-backend-core/1.2.6...sitmun-backend-core/1.2.7

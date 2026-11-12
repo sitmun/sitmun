@@ -552,26 +552,14 @@ spring:
   jpa:
     properties:
       hibernate:
-        dialect: org.hibernate.dialect.OracleDialect
+        dialect: org.sitmun.infrastructure.persistence.dialect.SitmunOracleDialect
 ```
 
 ## Architecture
 
 ### Technology Stack
 
-- **Java**: 17 (LTS)
-- **Spring Boot**: 3.5.4
-- **Spring Security**: JWT authentication and authorization
-- **Spring Data JPA**: Data persistence layer
-- **Spring Data REST**: REST API generation
-- **QueryDSL**: Type-safe query building
-- **MapStruct**: Object mapping
-- **Liquibase**: Database migration
-- **H2/PostgreSQL/Oracle**: Database support
-- **OpenAPI/Swagger**: API documentation
-- **JUnit 5**: Testing framework
-- **Gradle**: Build system
-- **Docker**: Containerization
+Java is the root `.java-version`. Library versions, including Spring Boot, are the keys in [`gradle/libs.versions.toml`](../gradle/libs.versions.toml). The root [README](../README.md) is the stack description.
 
 ### System Architecture
 
@@ -656,19 +644,7 @@ src/
 
 ### Build System
 
-The project uses Gradle with version catalogs for dependency management:
-
-```toml
-# gradle/libs.versions.toml
-[versions]
-spring-boot = "3.5.4"
-project-version = "0.9.0-SNAPSHOT"
-
-[libraries]
-spring-boot-starter-data-jpa = { module = "org.springframework.boot:spring-boot-starter-data-jpa" }
-spring-boot-starter-security = { module = "org.springframework.boot:spring-boot-starter-security" }
-# ... additional dependencies
-```
+The project uses the root Gradle version catalog, [`gradle/libs.versions.toml`](../gradle/libs.versions.toml). Do not copy versions into this README.
 
 ### Code Quality
 

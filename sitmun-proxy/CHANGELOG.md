@@ -24,7 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **JDBC**: The proxy loads the H2 driver, so a connection whose driver is `org.h2.Driver` can open. A connection that does not open returns the SQL error problem instead of a null-pointer stack trace.
 - **JDBC** (breaking): Query parameters are typed `{sqlType, value}` values, not strings. The executor binds them with `setObject` or `setNull`. A boolean is native on PostgreSQL and H2, `BIT` on SQL Server, and `1` or `0` on Oracle (only for a `NUMBER` column that stores 0 or 1). The statement runs in a read-only transaction that always rolls back, with the timeout and row cap from the backend payload. An extra row is dropped and the response sets `X-SITMUN-Truncated: true`. The body stays an array. The proxy has no cap of its own.
-- **Build**: Spring Boot is 4.1.1 (`spring-boot-starter-webmvc` + `spring-boot-starter-restclient`).
+- **Build**: Spring Boot is 4.1.2 (`spring-boot-starter-webmvc` + `spring-boot-starter-restclient`).
 - **Build**: Gradle wrapper is 8.14.6.
 - **Build**: `setupGitHooks` is no longer a dependency of `build` (submodule-safe / opt-in via `./gradlew setupGitHooks`).
 - **HTTP**: OkHttp is 5.5.0. The unsafe client does not follow redirects itself. Each hop selects the client for the `Location` host.
@@ -207,7 +207,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Various bug fixes and improvements from the development phase
 
-[Unreleased]: https://github.com/sitmun/sitmun-proxy-middleware/compare/sitmun-proxy-middleware/1.2.9...HEAD
+[Unreleased]: https://github.com/sitmun/sitmun/compare/legacy/sitmun-proxy-middleware/sitmun-proxy-middleware/1.2.9...HEAD
 [1.2.9]: https://github.com/sitmun/sitmun-proxy-middleware/compare/sitmun-proxy-middleware/1.2.8...sitmun-proxy-middleware/1.2.9
 [1.2.8]: https://github.com/sitmun/sitmun-proxy-middleware/compare/sitmun-proxy-middleware/1.2.7...sitmun-proxy-middleware/1.2.8
 

@@ -1,8 +1,9 @@
 # PowerShell ANSI color codes
-$Red = "`e[31m"      # Red for errors
-$Green = "`e[32m"    # Green for success messages
-$Yellow = "`e[33m"   # Yellow for warnings or process info
-$Reset = "`e[0m"     # Reset color
+$Esc = [char]27       # Windows PowerShell 5.1 has no `e escape
+$Red = "$Esc[31m"    # Red for errors
+$Green = "$Esc[32m"  # Green for success messages
+$Yellow = "$Esc[33m" # Yellow for warnings or process info
+$Reset = "$Esc[0m"   # Reset color
 
 # Display a banner
 function Display-Banner {

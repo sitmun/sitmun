@@ -53,7 +53,9 @@ class PublishedImagesTest(unittest.TestCase):
     def test_publish_workflow_pushes_1_3_0_and_makes_the_packages_public(self) -> None:
         text = (ROOT / ".github/workflows/publish-images.yml").read_text(encoding="utf-8")
         self.assertIn("workflow_dispatch:", text)
-        self.assertIn('- "v*"', text)
+        self.assertIn('- "v[0-9]+.[0-9]+.[0-9]+"', text)
+        self.assertIn('- "v[0-9]+.[0-9]+.[0-9]+-*"', text)
+        self.assertNotIn('- "v*"', text)
         self.assertNotIn("publish-1.3.0", text)
         self.assertIn("packages: write", text)
         self.assertIn("version=1.3.0", text)
