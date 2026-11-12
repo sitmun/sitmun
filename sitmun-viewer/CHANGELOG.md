@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file. The format 
 
 ## [Unreleased]
 
+## [1.3.0] - 2026-11-12
+
 ### Added
 
 - **Language**: Portuguese (`pt-PT`) translations, map-style strings, and flag ([sitmun-viewer-app#204](https://github.com/sitmun/sitmun-viewer-app/pull/204)).
@@ -429,7 +431,8 @@ All notable changes to this project will be documented in this file. The format 
 - API integration errors
 - Performance optimization issues
 
-[unreleased]: https://github.com/sitmun/sitmun/compare/legacy/sitmun-viewer-app/sitmun-viewer-app/1.2.9...HEAD
+[unreleased]: https://github.com/sitmun/sitmun/compare/v1.3.0...HEAD
+[1.3.0]: https://github.com/sitmun/sitmun/compare/legacy/sitmun-viewer-app/sitmun-viewer-app/1.2.9...v1.3.0
 [1.2.9]: https://github.com/sitmun/sitmun-viewer-app/compare/sitmun-viewer-app/1.2.8...sitmun-viewer-app/1.2.9
 [1.2.8]: https://github.com/sitmun/sitmun-viewer-app/compare/sitmun-viewer-app/1.2.7...sitmun-viewer-app/1.2.8
 [1.2.7]: https://github.com/sitmun/sitmun-viewer-app/compare/sitmun-viewer-app/1.2.6...sitmun-viewer-app/1.2.7

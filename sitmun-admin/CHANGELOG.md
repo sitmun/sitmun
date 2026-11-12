@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.3.0] - 2026-11-12
+
 ### Added
 
 - **First run**: While the built-in admin password is null or blank, every admin route opens on a three-step setup: welcome, database language, then that password. The selected language is the interface language when one was chosen, and otherwise the browser language. Saving a password is required and returns to login. Once the password exists, `/first-run` leaves the stepper. The interface follows the browser language, including Spanish, when no language is stored.
@@ -20,23 +22,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Layers**: The layer form edits fixed service parameters when the service is proxied. The tab is `LAYERS_SERVICE_PARAMETERS_FEATURE` and stays disabled while the service is not proxied ([sitmun-application-stack#90](https://github.com/sitmun/sitmun-application-stack/issues/90)).
 - **Trees**: The folder metadata and dataset hints say the viewer information button appears when a description, a metadata URL, or a dataset URL is set ([sitmun-viewer-app#173](https://github.com/sitmun/sitmun-viewer-app/issues/173)).
 - **Layers**: The feature-information field grid is on the cartography form without the experimental query-layer flag. The value column is the default-language label and can be translated per parameter. `N` and `P` edit fraction digits and padding. `F` chooses date or date and time, with a preview in the administrator language. A WFS DescribeFeatureType request seeds top-level element names ([sitmun-application-stack#77](https://github.com/sitmun/sitmun-application-stack/issues/77)).
-- **Auth**: Sliding `POST /api/authenticate/refresh` every 2 minutes. Resource 401s prove life with `/refresh`, not `/account` ([sitmun-backend-core#264](https://github.com/sitmun/sitmun-backend-core/issues/264)).
-- **Users**: Positions tab columns are Territory, Position, Organization, Valid from / Valid until (ES Fecha de alta / Fecha de baja), Email, Type. Empty `createdDate` is “Not set”; empty `expirationDate` is Active. Header tooltips: first/last day the position is active (inclusive). `createdDate` is editable; pre-2000 dates stay visible. Inverted interval surfaces `entity.user.warning.position-inverted-interval`. Civil day follows the JVM/Compose `TZ` ([#462](https://github.com/sitmun/sitmun-admin-app/issues/462)).
-- **Templates / Map image**: Task type 18 form, layer catalog, source reorder, and Plantilla Sources linking for map-image children.
-- **Templates / Document export**: Task type 17 form restricted to PDF output (`downloadFormat` `pdf`).
-- **Templates / TipTap**: PDF header, footer, and full-bleed region classes with validator rules.
-
 
 ### Changed
 
 - **Language**: Portuguese includes the keys added after the `pt-PT` file landed. Every language file drops keys that no screen uses. `i18n-parity.spec.ts` requires each language file to match the English keys and to contain no empty value.
 - **Layers**: Format `Geometry`, the geometry kind, and the preferred geometry type show the code-list description for the current language. A missing format code stays empty. A missing kind or preferred type shows the stored code.
 - **Dependencies**: Node.js `24.22.0` (engines `^24.22.0 || ^26.0.0`), Angular `22.2.3`, and AG Grid Community `32.3.9`.
-- **CI / Dependabot**: npm updates target `dev` weekly. Angular, TipTap, and echarts majors are ignored; Angular and TipTap minors/patches are grouped into one PR each.
-- **Services / Capabilities**: Fetch details/layers POST `helpers/capabilities` JSON (`url`, `type`, optional overlay credentials). Backend builds GetCapabilities (keeps `?map=`). Authentication other than None forces proxied on ([sitmun-backend-core#260](https://github.com/sitmun/sitmun-backend-core/issues/260)).
-- **Tests**: `npm test` no longer collects coverage; `npm run test:coverage` writes `coverage/admin-app/lcov.info`. Jest stubs AG Grid, echarts, and the Material barrels so form specs do not compile the real libraries or unused Material modules.
-- **Templates / Preview**: Preview language selector stays in the Template preview pane only; Sources Execute inherits that language (no Sources language UI).
-
 
 ### Fixed
 
@@ -57,6 +48,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Layers**: An Image feature-information field stores max width and max height in its options. The picture address stays unchanged.
 - **Layers**: Image options label max width and max height. An empty value stays unset, so the viewer sizes the picture automatically.
 - **Templates**: Roles and Territories assigned on the template, document-export, and map-image task forms persist after save ([#467](https://github.com/sitmun/sitmun-admin-app/issues/467)).
+
+### Removed
+
+- **Tooling**: SonarCloud wiring is removed. `pnpm run sonar`, `jest-sonar`, and `sonar-scanner` are gone. Coverage still writes `coverage/admin-app/lcov.info`.
+
+## [1.2.9] - 2026-09-19
+
+### Added
+
+- **Auth**: Sliding `POST /api/authenticate/refresh` every 2 minutes. Resource 401s prove life with `/refresh`, not `/account` ([sitmun-backend-core#264](https://github.com/sitmun/sitmun-backend-core/issues/264)).
+- **Users**: Positions tab columns are Territory, Position, Organization, Valid from / Valid until (ES Fecha de alta / Fecha de baja), Email, Type. Empty `createdDate` is “Not set”; empty `expirationDate` is Active. Header tooltips: first/last day the position is active (inclusive). `createdDate` is editable; pre-2000 dates stay visible. Inverted interval surfaces `entity.user.warning.position-inverted-interval`. Civil day follows the JVM/Compose `TZ` ([#462](https://github.com/sitmun/sitmun-admin-app/issues/462)).
+- **Templates / Map image**: Task type 18 form, layer catalog, source reorder, and Plantilla Sources linking for map-image children.
+- **Templates / Document export**: Task type 17 form restricted to PDF output (`downloadFormat` `pdf`).
+- **Templates / TipTap**: PDF header, footer, and full-bleed region classes with validator rules.
+
+### Security
+
+- **Dependencies**: `npm audit --fix` (no `--force`) applied semver-compatible lockfile patches (48 → 32 advisories). Remaining Angular, TipTap, and echarts majors were not forced.
+- **Templates / Preview**: Nested execute-child results render in a sandboxed iframe (`sandbox` with no allow-tokens). The main Template preview pane is still trusted HTML.
+
+### Fixed
+
 - **Dashboard**: Registration chart plots every day instead of capping at the last 30 points; README docker build updated to use `ENVIRONMENT=development` instead of the removed `BUILD_MODE=docker-dev`.
 - **Literal translations**: Infinite grid reload no longer sticks on the loading spinner. Stale or destroyed AG Grid `getRows` now call `failCallback` so a replacement datasource can load.
 - **Layers**: Relation tabs (Territories, Permissions, Trees, and experimental grids) load on tab select instead of all at form open. `saveAll` skips unvisited grids so Details-only save does not wait 5s ([sitmun-application-stack#41](https://github.com/sitmun/sitmun-application-stack/issues/41)).
@@ -74,16 +87,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Tests**: Entity form specs import standalone `EntityFormAlertsComponent` so NG0303 unknown-property errors are not emitted. `dialog-form` uses `configureLoggerForTests`.
 - **Query tasks**: `configureForm` no-ops when scope is unset instead of logging an unknown type.
 
+### Changed
 
-### Security
-
-- **Dependencies**: `npm audit --fix` (no `--force`) applied semver-compatible lockfile patches (48 → 32 advisories). Remaining Angular, TipTap, and echarts majors were not forced.
-- **Templates / Preview**: Nested execute-child results render in a sandboxed iframe (`sandbox` with no allow-tokens). The main Template preview pane is still trusted HTML.
-
-
-### Removed
-
-- **Tooling**: SonarCloud wiring is removed. `pnpm run sonar`, `jest-sonar`, and `sonar-scanner` are gone. Coverage still writes `coverage/admin-app/lcov.info`.
+- **CI / Dependabot**: npm updates target `dev` weekly. Angular, TipTap, and echarts majors are ignored; Angular and TipTap minors/patches are grouped into one PR each.
+- **Services / Capabilities**: Fetch details/layers POST `helpers/capabilities` JSON (`url`, `type`, optional overlay credentials). Backend builds GetCapabilities (keeps `?map=`). Authentication other than None forces proxied on ([sitmun-backend-core#260](https://github.com/sitmun/sitmun-backend-core/issues/260)).
+- **Tests**: `npm test` no longer collects coverage; `npm run test:coverage` writes `coverage/admin-app/lcov.info` and `reports/ut_report.xml` for Sonar. Jest stubs AG Grid, echarts, and the Material barrels so form specs do not compile the real libraries or unused Material modules.
+- **Templates / Preview**: Preview language selector stays in the Template preview pane only; Sources Execute inherits that language (no Sources language UI).
 
 ## [1.2.8] - 2026-07-30
 
@@ -438,7 +447,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Various bug fixes and improvements from development phase
 
-[Unreleased]: https://github.com/sitmun/sitmun/compare/legacy/sitmun-admin-app/sitmun-admin-app/1.2.9...HEAD
+[Unreleased]: https://github.com/sitmun/sitmun/compare/v1.3.0...HEAD
+[1.3.0]: https://github.com/sitmun/sitmun/compare/legacy/sitmun-admin-app/sitmun-admin-app/1.2.9...v1.3.0
 [1.2.9]: https://github.com/sitmun/sitmun-admin-app/compare/sitmun-admin-app/1.2.8...sitmun-admin-app/1.2.9
 [1.2.8]: https://github.com/sitmun/sitmun-admin-app/compare/sitmun-admin-app/1.2.7...sitmun-admin-app/1.2.8
 [1.2.7]: https://github.com/sitmun/sitmun-admin-app/compare/sitmun-admin-app/1.2.6...sitmun-admin-app/1.2.7

@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [1.3.0] - 2026-11-12
+
 ### Added
 
 #### Backend Core
@@ -86,6 +88,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 - **Compose**: The web container waits until the proxy health check passes before it starts.
 - **Setup**: `setup.ps1` and `setup.sh` fill a missing secret in an existing `.env` and leave a value that is already set.
+- **Mobile**: The Mobile Editor and SITMUN Touristic READMEs list Angular 22, Ionic 8, Capacitor 8, JDK 21, and Android SDK 36. Each app's `package.json` description is its app name ([#326](https://github.com/sitmun/sitmun/pull/326)).
 
 ### Security
 
@@ -1258,7 +1261,8 @@ For detailed changelogs of individual components, see:
 
 ## Links
 
-[unreleased]: https://github.com/sitmun/sitmun/compare/legacy/sitmun-application-stack/sitmun-application-stack/1.2.9...HEAD
+[unreleased]: https://github.com/sitmun/sitmun/compare/v1.3.0...HEAD
+[1.3.0]: https://github.com/sitmun/sitmun/compare/legacy/sitmun-application-stack/sitmun-application-stack/1.2.9...v1.3.0
 [1.2.9]: https://github.com/sitmun/sitmun-application-stack/compare/sitmun-application-stack/1.2.8...sitmun-application-stack/1.2.9
 [1.2.8]: https://github.com/sitmun/sitmun-application-stack/compare/sitmun-application-stack/1.2.7...sitmun-application-stack/1.2.8
 [1.2.7]: https://github.com/sitmun/sitmun-application-stack/compare/sitmun-application-stack/1.2.6...sitmun-application-stack/1.2.7
