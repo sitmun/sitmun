@@ -2,11 +2,13 @@
 
 Deploy [sitmun/sitmun](https://github.com/sitmun/sitmun). Components are directories in that repository. The Compose file is `compose.yaml`. Historical release tags are `legacy/<repository>/<tag>`.
 
-1.3.0 runs from `ghcr.io/sitmun/front`, `backend`, `proxy`, and `mbtiles` at tag `1.3.0`. Run these commands in an existing checkout, because `front` mounts `docker/front/config` and `backend` mounts `profiles/` from that checkout. The release checkout will be the annotated tag once that tag exists. Copy `profiles/postgres.env` or `profiles/oracle.env` to `.env`. `setup.ps1` or `setup.sh` appends `SITMUN_USER_SECRET`, `MIDDLEWARE_SECRET`, and `SITMUN_MBTILES_JOB_HANDLE_SECRET`.
+1.3.0 runs from `ghcr.io/sitmun/front`, `backend`, `proxy`, and `mbtiles` at tag `1.3.0`. Clone the `v1.3.0` release tag, because `front` mounts `docker/front/config` and `backend` mounts `profiles/` from that checkout. Copy `profiles/postgres.env` or `profiles/oracle.env` to `.env`. `setup.ps1` or `setup.sh` appends `SITMUN_USER_SECRET`, `MIDDLEWARE_SECRET`, and `SITMUN_MBTILES_JOB_HANDLE_SECRET`.
 
 Windows:
 
 ```powershell
+git clone --branch v1.3.0 https://github.com/sitmun/sitmun.git
+cd sitmun
 Copy-Item profiles\postgres.env .env
 .\setup.ps1
 docker compose up -d --pull always --no-build
@@ -15,6 +17,8 @@ docker compose up -d --pull always --no-build
 macOS or Linux:
 
 ```bash
+git clone --branch v1.3.0 https://github.com/sitmun/sitmun.git
+cd sitmun
 cp profiles/postgres.env .env
 ./setup.sh
 docker compose up -d --pull always --no-build

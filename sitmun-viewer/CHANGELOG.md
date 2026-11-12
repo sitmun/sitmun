@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file. The format 
 
 ## [Unreleased]
 
-## [1.3.0] - YYYY-MM-DD
+## [1.3.0] - 2026-11-12
 
 ### Added
 
