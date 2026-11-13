@@ -1198,6 +1198,21 @@ input[type='range']:focus {
   padding: 10px !important;
 }
 
+/* API-SITNA 4.10 renders some tools as custom elements (sitna-*) inside the
+   tool slots, instead of using the slot as the control. Give them the look the
+   two rules above gave the slot and its content with 4.9.1: a block with no
+   padding (custom elements are inline, and .tc-ctl adds 0.5em), and 10px
+   around the tool content (#353). */
+.tc-left-panel .tc-panel-content > [data-tools-tab] > .tc-ctl {
+  display: block;
+  padding: 0;
+}
+
+.tc-left-panel .tc-panel-content > [data-tools-tab] > .tc-ctl > div {
+  width: 300px;
+  padding: 10px !important;
+}
+
 .tc-panel-content .tc-ctl-wlm > h2,
 .tc-panel-content .tc-ctl-lcat > h2,
 .tc-panel-content .tc-ctl-bms > h2,
