@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file. The format 
 
 ## [Unreleased]
 
+### Fixed
+
+- **Search**: The map search box shows its placeholder and tooltip and lists results again. The API-SITNA 4.10.0 result-list template lacks the `for` attribute that `Search.js` looks for, so the control stopped before it bound its text and events. `patches/api-sitna@4.10.0.patch` adds the attribute ([#352](https://github.com/sitmun/sitmun/issues/352)).
+
 ## [1.3.0] - 2026-11-12
 
 ### Added
