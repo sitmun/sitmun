@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file. The format 
 
 ## [Unreleased]
 
+### Fixed
+
+- **Map**: The tools panel no longer shows a large empty space above and below the Download, Draw and measure, Measure, Print and Share titles. API-SITNA 4.10.0 renders these tools as custom elements, which are inline by default. `custom-main.css` now shows them as blocks inside the tool slots ([#353](https://github.com/sitmun/sitmun/issues/353)).
+
 ## [1.3.0] - 2026-11-12
 
 ### Added

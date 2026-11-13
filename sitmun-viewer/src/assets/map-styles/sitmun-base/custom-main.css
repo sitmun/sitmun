@@ -1198,6 +1198,13 @@ input[type='range']:focus {
   padding: 10px !important;
 }
 
+/* API-SITNA 4.10 renders some tools as custom elements (sitna-*) inside the
+   tool slots. Custom elements are inline by default, which adds empty lines
+   around the tool title (#353). */
+.tc-left-panel .tc-panel-content > [data-tools-tab] > .tc-ctl {
+  display: block;
+}
+
 .tc-panel-content .tc-ctl-wlm > h2,
 .tc-panel-content .tc-ctl-lcat > h2,
 .tc-panel-content .tc-ctl-bms > h2,
