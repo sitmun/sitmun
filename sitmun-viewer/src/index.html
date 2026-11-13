@@ -9,9 +9,14 @@
     <script src="assets/js/d3/d3.js"></script>
     <script>
       // Define SITNA_BASE_URL before any modules load (required by SITNA documentation)
-      // This ensures it's available when api-sitna module is imported
-      window.SITNA_BASE_URL = 'assets/js/api-sitna/';
-      globalThis.SITNA_BASE_URL = 'assets/js/api-sitna/';
+      // This ensures it's available when api-sitna module is imported.
+      // Absolute URL from <base href>: TC/Cfg.js resolves a relative value
+      // against the route (location.href), not the base (#351).
+      window.SITNA_BASE_URL = new URL(
+        'assets/js/api-sitna/',
+        document.baseURI
+      ).href;
+      globalThis.SITNA_BASE_URL = window.SITNA_BASE_URL;
     </script>
     <link
       href="https://fonts.googleapis.com/icon?family=Material+Icons"

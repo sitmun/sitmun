@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file. The format 
 
 ## [Unreleased]
 
+### Fixed
+
+- **Map**: Map pages no longer log "Could not fetch predefined layer configuration". `SITNA_BASE_URL` was relative in `index.html` and host-rooted in `main.ts`. API-SITNA resolves a relative value against the map route, so it asked for `predefined-layers.json` under `/viewer/public/map/<app>/` and got the viewer page. Both files now set the same absolute URL built from `<base href>` ([#351](https://github.com/sitmun/sitmun/issues/351)).
+
 ## [1.3.0] - 2026-11-12
 
 ### Added
