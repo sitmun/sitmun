@@ -10,12 +10,13 @@ import {
 async function bootstrap(): Promise<void> {
   // Define SITNA_BASE_URL before importing the API (required by SITNA documentation)
   // See: https://sitna.navarra.es/api/doc/index.html
+  // Same value as index.html: an absolute URL built from <base href>, because
+  // TC/Cfg.js resolves a relative value against the route, not the base (#351).
+  const sitnaBaseUrl = new URL('assets/js/api-sitna/', document.baseURI).href;
   // Use window explicitly to ensure it's accessible in the module context
-  (window as { SITNA_BASE_URL?: string }).SITNA_BASE_URL =
-    '/assets/js/api-sitna/';
+  (window as { SITNA_BASE_URL?: string }).SITNA_BASE_URL = sitnaBaseUrl;
   // Also set on globalThis for compatibility
-  (globalThis as { SITNA_BASE_URL?: string }).SITNA_BASE_URL =
-    '/assets/js/api-sitna/';
+  (globalThis as { SITNA_BASE_URL?: string }).SITNA_BASE_URL = sitnaBaseUrl;
 
   // Ensure d3 v3 global is available for c3 charts (SITNA ResultsPanel elevation charts)
   // c3 expects window.d3 with d3.scale.category10() for color generation
