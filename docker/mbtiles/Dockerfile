@@ -11,7 +11,7 @@ RUN --mount=type=cache,target=/root/.gradle-mbtiles \
     GRADLE_USER_HOME=/root/.gradle-mbtiles ./gradlew --no-daemon :sitmun-mbtiles:build \
     -x :sitmun-mbtiles:check
 
-FROM amazoncorretto:17.0.21@sha256:b505ecf1fd737d85c0fd3930b8ab3ed0cb560326809aacc838b3938a9bc84c4b
+FROM amazoncorretto:27.0.0@sha256:f58d4541b3aab1fd90493bbcb0ea2448ff57469d044dbb463e22fdecc2eee25c
 LABEL org.opencontainers.image.source=https://github.com/sitmun/sitmun
 LABEL org.opencontainers.image.licenses=EUPL-1.2
 LABEL org.opencontainers.image.description="SITMUN MBTiles"
