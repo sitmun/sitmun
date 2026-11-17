@@ -13,7 +13,7 @@ jobs:
   stale:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/stale@v9.1.0
+      - uses: actions/stale@v11.0.0
         with:
           # Number of days of inactivity before an issue becomes stale
           days-before-stale: 60

@@ -22,7 +22,7 @@ jobs:
       db: ${{ steps.scope.outputs.db }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
       - name: Test the database selector
@@ -50,7 +50,7 @@ jobs:
     timeout-minutes: 120
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
       - name: Test the backend on PostgreSQL 16
         uses: ./.github/actions/backend-database
         with:
