@@ -63,3 +63,8 @@ updates:
     target-branch: dev
     schedule:
       interval: weekly
+    # The images follow .java-version (17). A new Java major changes
+    # .java-version, the Gradle toolchain, and every image in one PR.
+    ignore:
+      - dependency-name: amazoncorretto
+        update-types: ["version-update:semver-major"]
