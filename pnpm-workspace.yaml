@@ -80,7 +80,7 @@ catalog:
   '@types/proj4': 2.5.2
   '@types/xml2js': 0.4.14
   '@types/xmldom': 0.1.34
-  ajv: 8.17.1
+  ajv: 8.20.0
   api-sitna: 4.10.0
   '@types/jest': 30.0.0
   '@types/jsonpath': 0.2.4
