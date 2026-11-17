@@ -410,21 +410,21 @@ def _failures_js_catalog(_root: Path) -> list[str]:
         failures.append(
             f"catalog @ngx-translate/http-loader is {catalog.get('@ngx-translate/http-loader') or 'missing'}, expected 18.1.0"
         )
-    if catalog.get("@angular/core") != "22.2.5":
+    if catalog.get("@angular/core") != "22.2.6":
         failures.append(
-            f"catalog @angular/core is {catalog.get('@angular/core') or 'missing'}, expected 22.2.5"
+            f"catalog @angular/core is {catalog.get('@angular/core') or 'missing'}, expected 22.2.6"
         )
     if catalog.get("typescript") != "6.0.3":
         failures.append(f"catalog typescript is {catalog.get('typescript') or 'missing'}, expected 6.0.3")
     if catalog.get("zone.js") != "0.15.1":
         failures.append(f"catalog zone.js is {catalog.get('zone.js') or 'missing'}, expected 0.15.1")
     cleared_catalog_pins = {
-        "@angular/cli": "22.2.6",
-        "@angular-devkit/build-angular": "22.2.6",
+        "@angular/cli": "22.2.7",
+        "@angular-devkit/build-angular": "22.2.7",
         "js-beautify": "2.0.3",
         "jsdom": "31.0.0",
         "@babel/preset-env": "8.0.7",
-        "@babel/core": "8.0.7",
+        "@babel/core": "8.1.2",
     }
     for name, expected in cleared_catalog_pins.items():
         if catalog.get(name) != expected:
@@ -509,7 +509,7 @@ def _failures_js_catalog(_root: Path) -> list[str]:
         "@types/proj4": "2.5.2",
         "@types/xml2js": "0.4.14",
         "@types/xmldom": "0.1.34",
-        "ajv": "8.17.1",
+        "ajv": "8.20.0",
         "capacitor-native-settings": "8.2.0",
         "codemirror": "6.0.1",
         "copy-webpack-plugin": "14.0.0",
