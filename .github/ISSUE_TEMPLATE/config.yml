@@ -1,1 +1,8 @@
 blank_issues_enabled: true
+contact_links:
+  - name: Errors or gaps in the documentation
+    url: https://github.com/sitmun/sitmun.github.io/issues/new/choose
+    about: Report mistakes in https://sitmun.github.io (installation, manual, guides, architecture) in the documentation repository.
+  - name: Security vulnerabilities
+    url: https://github.com/sitmun/sitmun/security/advisories/new
+    about: Report vulnerabilities privately, never in a public issue (see the security policy).
