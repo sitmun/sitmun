@@ -16,6 +16,14 @@ body:
         - component:proxy
         - component:touristic
         - component:viewer
+        - component:docker
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: SITMUN version
+      description: The release you run (for example 1.3.0), or the commit for a build from source. For Docker or Compose problems, also give the Docker and Docker Compose versions.
     validations:
       required: true
   - type: textarea
