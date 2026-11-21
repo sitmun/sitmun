@@ -11,6 +11,7 @@ body:
         - component:admin
         - component:backend
         - component:common
+        - component:docker
         - component:edition
         - component:mbtiles
         - component:proxy

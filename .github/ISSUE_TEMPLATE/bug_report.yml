@@ -11,12 +11,12 @@ body:
         - component:admin
         - component:backend
         - component:common
+        - component:docker
         - component:edition
         - component:mbtiles
         - component:proxy
         - component:touristic
         - component:viewer
-        - component:docker
     validations:
       required: true
   - type: input
