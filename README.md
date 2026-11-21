@@ -5,6 +5,8 @@
 
 SITMUN is a geospatial information system. This repository is [sitmun/sitmun](https://github.com/sitmun/sitmun).
 
+Documentation (installation, administrator manual, guides and architecture, in Spanish): <https://sitmun.github.io>.
+
 ## Showcase
 
 ### Using the showcase
