@@ -25,19 +25,19 @@ sitmun-admin-app	sitmun-admin-app/1.2.6	legacy	legacy/sitmun-admin-app/sitmun-ad
 sitmun-admin-app	sitmun-admin-app/1.2.7	legacy	legacy/sitmun-admin-app/sitmun-admin-app/1.2.7
 sitmun-admin-app	sitmun-admin-app/1.2.8	legacy	legacy/sitmun-admin-app/sitmun-admin-app/1.2.8
 sitmun-admin-app	sitmun-admin-app/1.2.9	legacy	legacy/sitmun-admin-app/sitmun-admin-app/1.2.9
-sitmun-viewer-app	sitmun-viewer-app/1.0.0	legacy	legacy/sitmun-viewer-app/sitmun-viewer-app/1.0.0
-sitmun-viewer-app	sitmun-viewer-app/1.1.0	legacy	legacy/sitmun-viewer-app/sitmun-viewer-app/1.1.0
-sitmun-viewer-app	sitmun-viewer-app/1.2.0	legacy	legacy/sitmun-viewer-app/sitmun-viewer-app/1.2.0
-sitmun-viewer-app	sitmun-viewer-app/1.2.1	legacy	legacy/sitmun-viewer-app/sitmun-viewer-app/1.2.1
-sitmun-viewer-app	sitmun-viewer-app/1.2.2	legacy	legacy/sitmun-viewer-app/sitmun-viewer-app/1.2.2
-sitmun-viewer-app	sitmun-viewer-app/1.2.3	legacy	legacy/sitmun-viewer-app/sitmun-viewer-app/1.2.3
-sitmun-viewer-app	sitmun-viewer-app/1.2.4	legacy	legacy/sitmun-viewer-app/sitmun-viewer-app/1.2.4
-sitmun-viewer-app	sitmun-viewer-app/1.2.5	legacy	legacy/sitmun-viewer-app/sitmun-viewer-app/1.2.5
-sitmun-viewer-app	sitmun-viewer-app/1.2.6	legacy	legacy/sitmun-viewer-app/sitmun-viewer-app/1.2.6
-sitmun-viewer-app	sitmun-viewer-app/1.2.7	legacy	legacy/sitmun-viewer-app/sitmun-viewer-app/1.2.7
-sitmun-viewer-app	sitmun-viewer-app/1.2.8	legacy	legacy/sitmun-viewer-app/sitmun-viewer-app/1.2.8
-sitmun-viewer-app	sitmun-viewer-app/1.2.9	legacy	legacy/sitmun-viewer-app/sitmun-viewer-app/1.2.9
-sitmun-viewer-app	v1.0.0	legacy	legacy/sitmun-viewer-app/v1.0.0
+sitmun-viewer-app	sitmun-viewer-app/1.0.0	drop	
+sitmun-viewer-app	sitmun-viewer-app/1.1.0	drop	
+sitmun-viewer-app	sitmun-viewer-app/1.2.0	drop	
+sitmun-viewer-app	sitmun-viewer-app/1.2.1	drop	
+sitmun-viewer-app	sitmun-viewer-app/1.2.2	drop	
+sitmun-viewer-app	sitmun-viewer-app/1.2.3	drop	
+sitmun-viewer-app	sitmun-viewer-app/1.2.4	drop	
+sitmun-viewer-app	sitmun-viewer-app/1.2.5	drop	
+sitmun-viewer-app	sitmun-viewer-app/1.2.6	drop	
+sitmun-viewer-app	sitmun-viewer-app/1.2.7	drop	
+sitmun-viewer-app	sitmun-viewer-app/1.2.8	drop	
+sitmun-viewer-app	sitmun-viewer-app/1.2.9	drop	
+sitmun-viewer-app	v1.0.0	drop	
 sitmun-viewer-app	wip-issue-135-screenshots-20260722	drop	
 sitmun-backend-core	sitmun-backend-core/1.0.0	legacy	legacy/sitmun-backend-core/sitmun-backend-core/1.0.0
 sitmun-backend-core	sitmun-backend-core/1.1.0	legacy	legacy/sitmun-backend-core/sitmun-backend-core/1.1.0
