@@ -12,6 +12,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 - **CI**: An upgrade from 1.3.0 runs on PostgreSQL 12, PostgreSQL 16, and Oracle 23ai. It installs the published 1.3.0 backend image, then checks that this tree's backend starts on that database and that every 1.3.0 changeset keeps its checksum.
 
+### Changed
+
+#### Stack
+
+- **Security**: `compose.yaml` no longer publishes the backend on host port 9001 or the proxy on 9002. Port 9001 skipped the nginx front. [`compose.dev-ports.yaml`](compose.dev-ports.yaml) publishes both, and `profiles/development-*.env` load it through `COMPOSE_FILE`. A development `.env` copied before this change needs those `COMPOSE_PATH_SEPARATOR` and `COMPOSE_FILE` lines. The front still reaches them at `/backend/` and `/middleware/`.
+
 ### Fixed
 
 #### Stack

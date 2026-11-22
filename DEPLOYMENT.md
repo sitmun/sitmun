@@ -39,6 +39,7 @@ Defaults below apply when the variable is unset.
 | `LOCAL_PORT` | Host port published by nginx | `9000` |
 | `LOCAL_BASE_PATH` | Prefix inside the nginx container | `/` |
 | `ENVIRONMENT` | Frontend image. `development` builds Angular `docker-dev`. Any other value builds `production`. | `development` |
+| `COMPOSE_FILE` | Compose files to load. `profiles/development-*.env` set `compose.yaml:compose.dev-ports.yaml` with `COMPOSE_PATH_SEPARATOR=:`. | `compose.yaml` |
 | `COMPOSE_PROFILES` | `postgres` or `oracle`. Add `,demo` for the example database (`,dev` is a deprecated alias). Add `,mbtiles` for MBTiles. | unset |
 | `DATABASE_TYPE` | Fallback Spring profile when `SPRING_PROFILES_ACTIVE` is unset | `postgres` |
 | `SPRING_PROFILES_ACTIVE` | Backend Spring profiles | `DATABASE_TYPE`, else `postgres` |
@@ -58,6 +59,22 @@ Defaults below apply when the variable is unset.
 A secret that is blank or shorter than 32 characters stops the backend or the proxy from starting. `setup.ps1` and `setup.sh` append the three secrets when those keys are absent. Do not commit the values.
 
 On a new production database the first visit to Admin asks for a password and a language. Replace the database password for a deployment other than a local demo. Compose falls back to `sitmun3` / `sitmun3`.
+
+### Host ports
+
+| Service | Host port | Published by |
+| --- | --- | --- |
+| `front` (nginx) | `LOCAL_PORT`, default `9000` | `compose.yaml` |
+| `backend` | `9001` | `compose.dev-ports.yaml` only |
+| `proxy` | `9002` | `compose.dev-ports.yaml` only |
+| `postgres` / `oracle` / `example` | `9003` / `9004` / `9005` | `compose.yaml`, when the profile is on |
+
+`profiles/postgres.env`, `profiles/oracle.env`, and `profiles/showcase.env` do not load `compose.dev-ports.yaml`. The backend and the proxy are reachable only through nginx at `/backend/` and `/middleware/`. Port 9001 would skip every control the front applies. Do not add the overlay on a production host. Check that nothing listens on 9001 or 9002:
+
+```text
+docker compose ps --format '{{.Service}} {{.Ports}}'
+curl http://localhost:9000/backend/api/dashboard/health
+```
 
 ## Databases
 

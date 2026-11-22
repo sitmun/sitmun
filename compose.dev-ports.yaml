@@ -1,0 +1,15 @@
+# Development overlay: publishes the backend and proxy on the host so
+# developers can reach them without the nginx front.
+#
+# Production profiles do not load this file. Port 9001 bypasses every control
+# the front applies (docker/front/config/default.conf.template).
+#
+# Development profiles enable it through COMPOSE_FILE. Ad hoc use:
+#   docker compose -f compose.yaml -f compose.dev-ports.yaml up -d
+services:
+  backend:
+    ports:
+      - "9001:8080"
+  proxy:
+    ports:
+      - "9002:8080"
