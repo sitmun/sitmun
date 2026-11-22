@@ -170,6 +170,7 @@ PowerShell's `curl` name is a different command. Use `curl.exe` there.
 - API: Swagger UI at http://localhost:9001/swagger-ui/index.html
 - Contributing: [CONTRIBUTING.md](CONTRIBUTING.md)
 - Issues: https://github.com/sitmun/sitmun/issues
+- Security: report vulnerabilities privately, as the [security policy](https://github.com/sitmun/.github/blob/main/SECURITY.md) explains (needs a GitHub account)
 
 ## License
 
