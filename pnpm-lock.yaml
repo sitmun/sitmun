@@ -555,8 +555,8 @@ catalogs:
       specifier: 6.0.1
       version: 6.0.1
     xml2js:
-      specifier: 0.4.23
-      version: 0.4.23
+      specifier: 0.6.2
+      version: 0.6.2
     xmlbuilder2:
       specifier: 3.1.1
       version: 3.1.1
@@ -1125,7 +1125,7 @@ importers:
         version: 0.2.0
       xml2js:
         specifier: 'catalog:'
-        version: 0.4.23
+        version: 0.6.2
       xmlbuilder2:
         specifier: 'catalog:'
         version: 3.1.1
@@ -9684,10 +9684,6 @@ packages:
 
   xml-utils@1.10.2:
     resolution: {integrity: sha512-RqM+2o1RYs6T8+3DzDSoTRAUfrvaejbVHcp3+thnAtDKo8LskR+HomLajEy5UjTz24rpka7AxVBRR3g2wTUkJA==}
-
-  xml2js@0.4.23:
-    resolution: {integrity: sha512-ySPiMjM0+pLDftHgXY4By0uswI3SPKLDw/i3UXbnO8M/p28zqexCUoPmQFrYD+/1BzhGJSs2i1ERWKJAtiLrug==}
-    engines: {node: '>=4.0.0'}
 
   xml2js@0.6.2:
     resolution: {integrity: sha512-T4rieHaC1EXcES0Kxxj4JWgaUQHDk+qwHcYOCFHfiwKz7tOVPLq7Hjq9dM1WCMhylqMEfP7hMcOIChvotiZegA==}
@@ -19981,11 +19977,6 @@ snapshots:
   xml-naming@0.3.0: {}
 
   xml-utils@1.10.2: {}
-
-  xml2js@0.4.23:
-    dependencies:
-      sax: 1.6.1
-      xmlbuilder: 11.0.1
 
   xml2js@0.6.2:
     dependencies:
