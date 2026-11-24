@@ -92,7 +92,7 @@ catalog:
   bootstrap: 5.3.7
   capacitor-native-settings: 8.2.0
   cesium: 1.142.0
-  codemirror: 6.0.1
+  codemirror: 6.0.2
   copy-webpack-plugin: 14.0.0
   cordova-plugin-httpd: 0.9.3
   d3: 3.5.17
