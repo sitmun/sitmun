@@ -13,25 +13,25 @@ catalog:
   '@ag-grid-community/styles': 32.3.9
   '@angular-builders/custom-webpack': 22.0.1
   '@angular-builders/jest': 22.0.1
-  '@angular-devkit/build-angular': 22.2.7
-  '@angular-eslint/builder': 22.6.0
-  '@angular-eslint/eslint-plugin': 22.6.0
-  '@angular-eslint/eslint-plugin-template': 22.6.0
-  '@angular-eslint/schematics': 22.6.0
-  '@angular-eslint/template-parser': 22.6.0
-  '@angular/animations': 22.2.6
-  '@angular/cdk': 22.2.7
-  '@angular/cli': 22.2.7
-  '@angular/common': 22.2.6
-  '@angular/compiler': 22.2.6
-  '@angular/compiler-cli': 22.2.6
-  '@angular/core': 22.2.6
-  '@angular/forms': 22.2.6
-  '@angular/language-service': 22.2.6
-  '@angular/material': 22.2.7
-  '@angular/platform-browser': 22.2.6
-  '@angular/platform-browser-dynamic': 22.2.6
-  '@angular/router': 22.2.6
+  '@angular-devkit/build-angular': 22.3.0
+  '@angular-eslint/builder': 22.8.0
+  '@angular-eslint/eslint-plugin': 22.8.0
+  '@angular-eslint/eslint-plugin-template': 22.8.0
+  '@angular-eslint/schematics': 22.8.0
+  '@angular-eslint/template-parser': 22.8.0
+  '@angular/animations': 22.3.0
+  '@angular/cdk': 22.3.0
+  '@angular/cli': 22.3.0
+  '@angular/common': 22.3.0
+  '@angular/compiler': 22.3.0
+  '@angular/compiler-cli': 22.3.0
+  '@angular/core': 22.3.0
+  '@angular/forms': 22.3.0
+  '@angular/language-service': 22.3.0
+  '@angular/material': 22.3.0
+  '@angular/platform-browser': 22.3.0
+  '@angular/platform-browser-dynamic': 22.3.0
+  '@angular/router': 22.3.0
   '@babel/core': 8.1.2
   '@babel/preset-env': 8.0.7
   '@capacitor-community/device': 8.0.0
@@ -87,7 +87,7 @@ catalog:
   '@types/node': 24.19.2
   '@types/uri-templates': 0.1.34
   '@eslint/js': 9.39.5
-  angular-eslint: 22.6.0
+  angular-eslint: 22.8.0
   babel-jest: 30.5.2
   bootstrap: 5.3.7
   capacitor-native-settings: 8.2.0
