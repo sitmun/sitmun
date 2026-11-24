@@ -135,7 +135,7 @@ catalog:
   util: 0.12.5
   webpack: 5.112.2
   webpack-cli: 6.0.1
-  xml2js: 0.4.23
+  xml2js: 0.6.2
   xmldom: 0.6.0
   xpath: 0.0.34
   zone.js: 0.15.1
