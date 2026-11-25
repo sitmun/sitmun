@@ -18,6 +18,19 @@ const CAPABILITIES = `<?xml version="1.0" encoding="UTF-8"?>
     <ows:ServiceType>OGC WMTS</ows:ServiceType>
     <ows:ServiceTypeVersion>1.0.0</ows:ServiceTypeVersion>
   </ows:ServiceIdentification>
+  <!-- API-SITNA reads OperationsMetadata to pick the request encoding. -->
+  <ows:OperationsMetadata>
+    <ows:Operation name="GetCapabilities">
+      <ows:DCP><ows:HTTP><ows:Get xlink:href="http://${HOST}:${PORT}/wmts?">
+        <ows:Constraint name="GetEncoding"><ows:AllowedValues><ows:Value>KVP</ows:Value></ows:AllowedValues></ows:Constraint>
+      </ows:Get></ows:HTTP></ows:DCP>
+    </ows:Operation>
+    <ows:Operation name="GetTile">
+      <ows:DCP><ows:HTTP><ows:Get xlink:href="http://${HOST}:${PORT}/wmts?">
+        <ows:Constraint name="GetEncoding"><ows:AllowedValues><ows:Value>KVP</ows:Value></ows:AllowedValues></ows:Constraint>
+      </ows:Get></ows:HTTP></ows:DCP>
+    </ows:Operation>
+  </ows:OperationsMetadata>
   <Contents>
     <Layer>
       <ows:Title>topo</ows:Title>
@@ -70,6 +83,16 @@ const CAPABILITIES = `<?xml version="1.0" encoding="UTF-8"?>
         <MatrixWidth>1</MatrixWidth>
         <MatrixHeight>1</MatrixHeight>
       </TileMatrix>
+      <!-- API-SITNA reads a single TileMatrix as an object, not a list, and fails. -->
+      <TileMatrix>
+        <ows:Identifier>1</ows:Identifier>
+        <ScaleDenominator>250000000</ScaleDenominator>
+        <TopLeftCorner>-1000000 5000000</TopLeftCorner>
+        <TileWidth>256</TileWidth>
+        <TileHeight>256</TileHeight>
+        <MatrixWidth>2</MatrixWidth>
+        <MatrixHeight>2</MatrixHeight>
+      </TileMatrix>
     </TileMatrixSet>
   </Contents>
 </Capabilities>
@@ -86,6 +109,8 @@ function fail(message) {
 }
 
 const server = createServer((req, res) => {
+  // The viewer suite loads the stub from the browser (localhost:4400), a different origin.
+  res.setHeader('Access-Control-Allow-Origin', '*');
   const url = new URL(req.url ?? '/', `http://${HOST}:${PORT}`);
   if (req.method === 'GET' && url.pathname === '/health') {
     res.writeHead(200, { 'Content-Type': 'text/plain' });

@@ -636,6 +636,62 @@ describe('OverviewMapControlHandler', () => {
       });
     });
 
+    describe('WMTS layer (#388)', () => {
+      const task = { 'ui-control': 'sitna.overviewMap', parameters: {} } as any;
+      const wmtsService = {
+        id: 'service/wmts',
+        url: 'https://www.ign.es/wmts/pnoa-ma',
+        type: 'WMTS',
+        parameters: { matrixSet: 'GoogleMapsCompatible', format: 'image/jpeg' }
+      };
+      const wmtsLayer = {
+        id: 'layer/ortho',
+        title: 'Ortofoto',
+        service: 'service/wmts',
+        layers: ['OI.OrthoimageCoverage']
+      };
+      const group = { id: 'group/ortho', layers: ['layer/ortho'] };
+      const expectedLayer = {
+        id: 'Ortofoto',
+        title: 'Ortofoto',
+        url: 'https://www.ign.es/wmts/pnoa-ma',
+        type: 'WMTS',
+        layerNames: 'OI.OrthoimageCoverage',
+        matrixSet: 'GoogleMapsCompatible',
+        format: 'image/jpeg'
+      };
+
+      beforeEach(() => {
+        mockConfigLookup.findGroup.mockReturnValue(group);
+        mockConfigLookup.findLayer.mockReturnValue(wmtsLayer);
+        mockConfigLookup.findService.mockReturnValue(wmtsService);
+      });
+
+      it('passes matrixSet, format and one layer name for the first background', () => {
+        const context: AppCfg = {
+          ...mockAppCfg,
+          backgrounds: [{ id: 'group/ortho', title: 'Ortofoto', thumbnail: '' }],
+          groups: [group],
+          layers: [wmtsLayer],
+          services: [wmtsService]
+        };
+
+        expect(handler.buildConfiguration(task, context)?.['layer']).toEqual(expectedLayer);
+      });
+
+      it('passes matrixSet, format and one layer name for the situation map', () => {
+        const context: AppCfg = {
+          ...mockAppCfg,
+          application: { ...mockAppCfg.application, 'situation-map': 'group/ortho' },
+          groups: [group],
+          layers: [wmtsLayer],
+          services: [wmtsService]
+        };
+
+        expect(handler.buildConfiguration(task, context)?.['layer']).toEqual(expectedLayer);
+      });
+    });
+
     it('should build correct SitnaBaseLayer structure', () => {
       const task: AppTasks = {
         'ui-control': 'sitna.overviewMap',
