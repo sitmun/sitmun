@@ -117,6 +117,31 @@ def is_valid_checksum_only_diff(diff_text: str) -> bool:
     return added
 
 
+MASTER_XML_PIN = " logicalFilePath:master.xml"
+
+
+def is_master_xml_pin_only_diff(diff_text: str) -> bool:
+    """True when the diff only appends logicalFilePath:master.xml to --changeset lines.
+
+    The profile master records master.xml for a changeset without its own
+    logicalFilePath. Pinning that name keeps the recorded identity and the
+    checksum (#404).
+    """
+    removed: list[str] = []
+    pinned = False
+    for line in diff_text.splitlines():
+        if line.startswith(("diff ", "index ", "+++ ", "--- ", "@@", "new file", "old mode", "new mode")):
+            continue
+        if line.startswith("-"):
+            removed.append(line[1:])
+        elif line.startswith("+"):
+            old = removed.pop(0) if removed else None
+            if old is None or not old.startswith("--changeset ") or line[1:] != old.rstrip() + MASTER_XML_PIN:
+                return False
+            pinned = True
+    return pinned and not removed
+
+
 def git_diff_text(repo_root: Path, start: str | None, path: str) -> str:
     if start and start != "HEAD":
         args = ["git", "diff", f"{start}...HEAD", "--", path]
@@ -358,15 +383,13 @@ def main(argv: list[str] | None = None) -> int:
     released: list[str] = []
     if tag:
         tree_rels = [posix_rel(t, repo_root) for t in trees if t.is_dir()]
-        released = [
-            rel
-            for rel in released_file_violations(repo_root, tree_rels, changed, tag)
-            if not is_valid_checksum_only_diff(
-                subprocess.run(
-                    ["git", "diff", tag, "--", rel], cwd=repo_root, capture_output=True, text=True, check=False
-                ).stdout
-            )
-        ]
+        released = []
+        for rel in released_file_violations(repo_root, tree_rels, changed, tag):
+            diff = subprocess.run(
+                ["git", "diff", tag, "--", rel], cwd=repo_root, capture_output=True, text=True, check=False
+            ).stdout
+            if not (is_valid_checksum_only_diff(diff) or is_master_xml_pin_only_diff(diff)):
+                released.append(rel)
 
     if kept:
         print("Liquibase immutability: do not edit includes below the tree tip.")

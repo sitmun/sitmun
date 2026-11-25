@@ -515,7 +515,8 @@ def changeset(step: str, dialect: str, guards: list[str], statements: list[str])
     schema = "changelog/01_schema.oracle.sql" if dialect == "oracle" else "changelog/01_schema.postgresql.sql"
     header = (
         f"--changeset sitmun:upgrade-1.2.8-to-1.2.9-{step}-{dbms} "
-        f"dbms:{dbms} splitStatements:true endDelimiter:{DELIMITER} stripComments:false"
+        # 1.3.0 recorded these under the profile master's logicalFilePath (#404).
+        f"dbms:{dbms} splitStatements:true endDelimiter:{DELIMITER} stripComments:false logicalFilePath:master.xml"
     )
     lines = [
         header,

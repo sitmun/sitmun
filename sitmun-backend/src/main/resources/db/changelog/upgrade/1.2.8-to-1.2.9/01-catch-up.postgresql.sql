@@ -1,6 +1,6 @@
 --liquibase formatted sql
 
---changeset sitmun:upgrade-1.2.8-to-1.2.9-19-postgresql dbms:postgresql splitStatements:true endDelimiter:@sitmun-end stripComments:false
+--changeset sitmun:upgrade-1.2.8-to-1.2.9-19-postgresql dbms:postgresql splitStatements:true endDelimiter:@sitmun-end stripComments:false logicalFilePath:master.xml
 --preconditions onFail:MARK_RAN
 --precondition-sql-check expectedResult:1 SELECT COUNT(*) FROM databasechangelog WHERE id = '1' AND filename = 'changelog/01_schema.postgresql.sql'
 --precondition-sql-check expectedResult:0 SELECT COUNT(*) FROM databasechangelog WHERE id = '19-add-tno-default-postgresql' AND author = 'sitmun' AND filename = 'changelog/19_add_tree_node_default.yaml'
@@ -8,7 +8,7 @@
 ALTER TABLE stm_tree_nod ADD COLUMN tno_default boolean DEFAULT false NOT NULL
 @sitmun-end
 
---changeset sitmun:upgrade-1.2.8-to-1.2.9-20-postgresql dbms:postgresql splitStatements:true endDelimiter:@sitmun-end stripComments:false
+--changeset sitmun:upgrade-1.2.8-to-1.2.9-20-postgresql dbms:postgresql splitStatements:true endDelimiter:@sitmun-end stripComments:false logicalFilePath:master.xml
 --preconditions onFail:MARK_RAN
 --precondition-sql-check expectedResult:1 SELECT COUNT(*) FROM databasechangelog WHERE id = '1' AND filename = 'changelog/01_schema.postgresql.sql'
 --precondition-sql-check expectedResult:0 SELECT COUNT(*) FROM databasechangelog WHERE id = '20_application_tree_order_postgresql' AND author = 'sitmun' AND filename = 'changelog/20_application_tree_order.yaml'
@@ -47,7 +47,7 @@ BEGIN
 END $$;
 @sitmun-end
 
---changeset sitmun:upgrade-1.2.8-to-1.2.9-21-postgresql dbms:postgresql splitStatements:true endDelimiter:@sitmun-end stripComments:false
+--changeset sitmun:upgrade-1.2.8-to-1.2.9-21-postgresql dbms:postgresql splitStatements:true endDelimiter:@sitmun-end stripComments:false logicalFilePath:master.xml
 --preconditions onFail:MARK_RAN
 --precondition-sql-check expectedResult:1 SELECT COUNT(*) FROM databasechangelog WHERE id = '1' AND filename = 'changelog/01_schema.postgresql.sql'
 --precondition-sql-check expectedResult:0 SELECT COUNT(*) FROM databasechangelog WHERE id = '21-align-tet-name-postgresql' AND author = 'sitmun' AND filename = 'changelog/21_align_schema_with_development.yaml'
@@ -138,7 +138,7 @@ BEGIN
 END $$;
 @sitmun-end
 
---changeset sitmun:upgrade-1.2.8-to-1.2.9-22-postgresql dbms:postgresql splitStatements:true endDelimiter:@sitmun-end stripComments:false
+--changeset sitmun:upgrade-1.2.8-to-1.2.9-22-postgresql dbms:postgresql splitStatements:true endDelimiter:@sitmun-end stripComments:false logicalFilePath:master.xml
 --preconditions onFail:MARK_RAN
 --precondition-sql-check expectedResult:1 SELECT COUNT(*) FROM databasechangelog WHERE id = '1' AND filename = 'changelog/01_schema.postgresql.sql'
 --precondition-sql-check expectedResult:0 SELECT COUNT(*) FROM databasechangelog WHERE id = '22_document_export_task_type' AND author = 'sitmun' AND filename = 'changelog/22_add_map_image_task_type.yaml'
@@ -147,14 +147,14 @@ INSERT INTO stm_tsk_typ (tty_id, tty_name, tty_title, tty_enabled, tty_parentid,
 INSERT INTO stm_tsk_typ (tty_id, tty_name, tty_title, tty_enabled, tty_parentid, tty_order, tty_spec) SELECT 18, 'mapImage', 'Map Image', true, NULL, 19, '{  "form": {    "label": "entity.task.mapImage.label",    "elements": {      "type": {        "hidden": true,        "value": 18,        "required": true      },      "name": {        "label": "tasksEntity.name",        "control": "input",        "required": true      },      "group": {        "label": "tasksEntity.group",        "control": "selector",        "selector": {          "data": "taskGroup",          "name": "name",          "value": "id"        },        "required": true      }    }  }}' WHERE NOT EXISTS (SELECT 1 FROM stm_tsk_typ WHERE tty_id = 18)
 @sitmun-end
 
---changeset sitmun:upgrade-1.2.8-to-1.2.9-22b-postgresql dbms:postgresql splitStatements:true endDelimiter:@sitmun-end stripComments:false
+--changeset sitmun:upgrade-1.2.8-to-1.2.9-22b-postgresql dbms:postgresql splitStatements:true endDelimiter:@sitmun-end stripComments:false logicalFilePath:master.xml
 --preconditions onFail:MARK_RAN
 --precondition-sql-check expectedResult:1 SELECT COUNT(*) FROM databasechangelog WHERE id = '1' AND filename = 'changelog/01_schema.postgresql.sql'
 --precondition-sql-check expectedResult:0 SELECT COUNT(*) FROM databasechangelog WHERE id = '22b_map_image_task_type_seq' AND author = 'sitmun' AND filename = 'changelog/22_add_map_image_task_type.yaml'
 UPDATE stm_sequence SET seq_count = GREATEST(seq_count, (SELECT COALESCE(MAX(tty_id), 0) + 1 FROM stm_tsk_typ)) WHERE seq_name = 'TTY_ID'
 @sitmun-end
 
---changeset sitmun:upgrade-1.2.8-to-1.2.9-23-postgresql dbms:postgresql splitStatements:true endDelimiter:@sitmun-end stripComments:false
+--changeset sitmun:upgrade-1.2.8-to-1.2.9-23-postgresql dbms:postgresql splitStatements:true endDelimiter:@sitmun-end stripComments:false logicalFilePath:master.xml
 --preconditions onFail:MARK_RAN
 --precondition-sql-check expectedResult:1 SELECT COUNT(*) FROM databasechangelog WHERE id = '1' AND filename = 'changelog/01_schema.postgresql.sql'
 --precondition-sql-check expectedResult:0 SELECT COUNT(*) FROM databasechangelog WHERE id = '23_document_export_tasks' AND author = 'sitmun' AND filename = 'changelog/23_add_document_export_tasks.yaml'
@@ -169,7 +169,7 @@ INSERT INTO stm_task (tas_id, tas_name, tas_gtaskid, tas_ttaskid, tas_tuiid, tas
 UPDATE stm_sequence SET seq_count = GREATEST(seq_count, (SELECT COALESCE(MAX(tas_id), 0) + 1 FROM stm_task)) WHERE seq_name = 'TAS_ID'
 @sitmun-end
 
---changeset sitmun:upgrade-1.2.8-to-1.2.9-24-postgresql dbms:postgresql splitStatements:true endDelimiter:@sitmun-end stripComments:false
+--changeset sitmun:upgrade-1.2.8-to-1.2.9-24-postgresql dbms:postgresql splitStatements:true endDelimiter:@sitmun-end stripComments:false logicalFilePath:master.xml
 --preconditions onFail:MARK_RAN
 --precondition-sql-check expectedResult:1 SELECT COUNT(*) FROM databasechangelog WHERE id = '1' AND filename = 'changelog/01_schema.postgresql.sql'
 --precondition-sql-check expectedResult:0 SELECT COUNT(*) FROM databasechangelog WHERE id = '24_default_template_regions' AND author = 'sitmun' AND filename = 'changelog/24_add_default_template_regions.yaml'
@@ -180,7 +180,7 @@ INSERT INTO stm_task (tas_id, tas_name, tas_gtaskid, tas_ttaskid, tas_params) SE
 UPDATE stm_sequence SET seq_count = GREATEST(seq_count, (SELECT COALESCE(MAX(tas_id), 0) + 1 FROM stm_task)) WHERE seq_name = 'TAS_ID'
 @sitmun-end
 
---changeset sitmun:upgrade-1.2.8-to-1.2.9-25-postgresql dbms:postgresql splitStatements:true endDelimiter:@sitmun-end stripComments:false
+--changeset sitmun:upgrade-1.2.8-to-1.2.9-25-postgresql dbms:postgresql splitStatements:true endDelimiter:@sitmun-end stripComments:false logicalFilePath:master.xml
 --preconditions onFail:MARK_RAN
 --precondition-sql-check expectedResult:1 SELECT COUNT(*) FROM databasechangelog WHERE id = '1' AND filename = 'changelog/01_schema.postgresql.sql'
 --precondition-sql-check expectedResult:0 SELECT COUNT(*) FROM databasechangelog WHERE id = '25-fix-auth-mode-swap' AND author = 'sitmun' AND filename = 'changelog/25_fix_auth_mode_swap.yaml'
@@ -191,7 +191,7 @@ UPDATE stm_codelist SET cod_value = 'None', cod_description = 'None' WHERE cod_i
 UPDATE stm_codelist SET cod_value = 'HTTP Basic authentication', cod_description = 'HTTP Basic authentication' WHERE cod_id = 53 AND cod_list = 'service.authenticationMode' AND cod_value = '__sitmun_tmp_auth_mode__'
 @sitmun-end
 
---changeset sitmun:upgrade-1.2.8-to-1.2.9-admin-postgresql dbms:postgresql splitStatements:true endDelimiter:@sitmun-end stripComments:false
+--changeset sitmun:upgrade-1.2.8-to-1.2.9-admin-postgresql dbms:postgresql splitStatements:true endDelimiter:@sitmun-end stripComments:false logicalFilePath:master.xml
 --preconditions onFail:MARK_RAN
 --precondition-sql-check expectedResult:1 SELECT COUNT(*) FROM databasechangelog WHERE id = '1' AND filename = 'changelog/01_schema.postgresql.sql'
 UPDATE stm_user SET use_user = 'admin' WHERE use_id = 1 AND use_user IS NULL

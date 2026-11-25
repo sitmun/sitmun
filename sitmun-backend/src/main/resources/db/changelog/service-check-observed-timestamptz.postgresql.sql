@@ -4,7 +4,7 @@
 -- were written with hibernate.jdbc.time_zone set to UTC, so the copy
 -- treats each stored value as UTC before the column gains a time zone.
 
---changeset sitmun:service-check-sec-observed-timestamptz-postgresql dbms:postgresql splitStatements:false
+--changeset sitmun:service-check-sec-observed-timestamptz-postgresql dbms:postgresql splitStatements:false logicalFilePath:master.xml
 DO $$
 DECLARE
   l_type text;
@@ -40,7 +40,7 @@ BEGIN
   END IF;
 END $$;
 
---changeset sitmun:service-check-scs-observed-timestamptz-postgresql dbms:postgresql splitStatements:false
+--changeset sitmun:service-check-scs-observed-timestamptz-postgresql dbms:postgresql splitStatements:false logicalFilePath:master.xml
 DO $$
 DECLARE
   l_type text;

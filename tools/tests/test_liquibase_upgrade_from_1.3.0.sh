@@ -144,6 +144,7 @@ install_source() {
 }
 
 boot_backend() {
+  local changelog="${1:-file:${REPO_ROOT}/profiles/${PROFILE}/liquibase/master.xml}"
   stop_backend
   : >"$BACKEND_LOG"
   SITMUN_USER_SECRET='ci-db-boot-user-secret-at-least-32-chars' \
@@ -153,7 +154,7 @@ boot_backend() {
   SPRING_DATASOURCE_URL="$HOST_URL" \
   SPRING_DATASOURCE_USERNAME="$DB_USER" \
   SPRING_DATASOURCE_PASSWORD="$DB_PASS" \
-  SPRING_LIQUIBASE_CHANGE_LOG="file:${REPO_ROOT}/profiles/${PROFILE}/liquibase/master.xml" \
+  SPRING_LIQUIBASE_CHANGE_LOG="$changelog" \
   SPRING_LIQUIBASE_CONTEXTS='' \
   SERVER_PORT="$BACKEND_PORT" \
     java -Duser.timezone=Etc/UTC -jar "$JAR" >"$BACKEND_LOG" 2>&1 &
@@ -230,6 +231,25 @@ if [[ "$(changelog_csv)" == "$upgraded" ]]; then
   ok "second start added no changelog rows"
 else
   fail "second start changed DATABASECHANGELOG"
+fi
+
+# The profile master sets logicalFilePath="master.xml". A changeset without
+# its own logicalFilePath is recorded under that name and would run again
+# when the shipped master is loaded without the profile (#404).
+echo "── $ENGINE: start through the shipped master changes nothing ──"
+boot_backend "classpath:/db/changelog/db.changelog-master.yaml"
+if wait_health; then
+  ok "shipped-master start health is UP"
+else
+  fail "shipped-master start health did not come up"
+  tail -60 "$BACKEND_LOG" || true
+fi
+stop_backend
+if [[ "$(changelog_csv)" == "$upgraded" ]]; then
+  ok "shipped-master start added no changelog rows"
+else
+  fail "shipped-master start changed DATABASECHANGELOG:"
+  diff <(printf '%s\n' "$upgraded") <(changelog_csv) | head -20
 fi
 
 echo "── $ENGINE: liquibase validate ──"

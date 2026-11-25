@@ -429,6 +429,40 @@ class PrefixAndAllowlistTest(unittest.TestCase):
     def test_empty_diff_is_not_valid_checksum_only(self) -> None:
         self.assertFalse(cci.is_valid_checksum_only_diff(""))
 
+    def test_master_xml_pin_on_changeset_lines_is_allowed(self) -> None:
+        diff = """@@ -7,1 +7,1 @@
+---changeset sitmun:a dbms:oracle splitStatements:false
++--changeset sitmun:a dbms:oracle splitStatements:false logicalFilePath:master.xml
+@@ -51,1 +51,1 @@
+---changeset sitmun:b dbms:oracle
++--changeset sitmun:b dbms:oracle logicalFilePath:master.xml
+"""
+        self.assertTrue(cci.is_master_xml_pin_only_diff(diff))
+
+    def test_pin_with_another_change_is_not_allowed(self) -> None:
+        diff = """@@ -7,1 +7,1 @@
+---changeset sitmun:a dbms:oracle splitStatements:false
++--changeset sitmun:a dbms:oracle splitStatements:true logicalFilePath:master.xml
+"""
+        self.assertFalse(cci.is_master_xml_pin_only_diff(diff))
+
+    def test_pin_to_another_path_is_not_allowed(self) -> None:
+        diff = """@@ -7,1 +7,1 @@
+---changeset sitmun:a dbms:oracle
++--changeset sitmun:a dbms:oracle logicalFilePath:db/changelog/a.sql
+"""
+        self.assertFalse(cci.is_master_xml_pin_only_diff(diff))
+
+    def test_pin_next_to_a_body_edit_is_not_allowed(self) -> None:
+        diff = """@@ -7,2 +7,2 @@
+---changeset sitmun:a dbms:oracle
++--changeset sitmun:a dbms:oracle logicalFilePath:master.xml
+-ALTER TABLE t ADD c INT;
++ALTER TABLE t ADD c BIGINT;
+"""
+        self.assertFalse(cci.is_master_xml_pin_only_diff(diff))
+        self.assertFalse(cci.is_master_xml_pin_only_diff(""))
+
 
 if __name__ == "__main__":
     unittest.main()

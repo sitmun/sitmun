@@ -5,7 +5,7 @@
 -- Copy each value onto a new column as UTC. The backend stores these
 -- instants with hibernate.jdbc.time_zone set to UTC.
 
---changeset sitmun:service-check-sec-observed-timestamptz-oracle dbms:oracle splitStatements:false endDelimiter:/
+--changeset sitmun:service-check-sec-observed-timestamptz-oracle dbms:oracle splitStatements:false endDelimiter:/ logicalFilePath:master.xml
 DECLARE
   l_type VARCHAR2(128);
   l_tz NUMBER;
@@ -48,7 +48,7 @@ BEGIN
 END;
 /
 
---changeset sitmun:service-check-scs-observed-timestamptz-oracle dbms:oracle splitStatements:false endDelimiter:/
+--changeset sitmun:service-check-scs-observed-timestamptz-oracle dbms:oracle splitStatements:false endDelimiter:/ logicalFilePath:master.xml
 DECLARE
   l_type VARCHAR2(128);
   l_tz NUMBER;
