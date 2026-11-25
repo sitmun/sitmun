@@ -63,6 +63,35 @@ for key in SITMUN_USER_SECRET MIDDLEWARE_SECRET SITMUN_MBTILES_JOB_HANDLE_SECRET
   assert_generated "$created/.env" "$key"
 done
 
+# A .env whose last line has no trailing newline (#390).
+assert_unterminated_kept() {
+  local file="$1"
+  if ! grep -qx 'COMPOSE_PROFILES=postgres' "$file"; then
+    echo "last line without a newline was corrupted in ${file}:" >&2
+    cat "$file" >&2
+    exit 1
+  fi
+  for key in SITMUN_USER_SECRET MIDDLEWARE_SECRET SITMUN_MBTILES_JOB_HANDLE_SECRET; do
+    assert_generated "$file" "$key"
+  done
+}
+
+unterminated="$work/unterminated"
+mkdir -p "$unterminated"
+printf 'COMPOSE_PROFILES=postgres' > "$unterminated/.env"
+run_copy "$unterminated"
+assert_unterminated_kept "$unterminated/.env"
+
+if command -v pwsh >/dev/null; then
+  ps="$work/ps"
+  mkdir -p "$ps/.git"
+  printf 'COMPOSE_PROFILES=postgres' > "$ps/.env"
+  (cd "$ps" && pwsh -NoProfile -File "$ROOT/setup.ps1" >/dev/null)
+  assert_unterminated_kept "$ps/.env"
+else
+  echo "pwsh not found: setup.ps1 not checked" >&2
+fi
+
 if grep -q 'openssl rand' "$ROOT"/profiles/*.env; then
   echo "a profile env template still tells operators to run openssl" >&2
   exit 1

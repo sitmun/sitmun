@@ -43,6 +43,11 @@ function Add-ComposeSecretIfMissing {
             $rng.Dispose()
         }
         $hex = -join ($bytes | ForEach-Object { $_.ToString("x2") })
+        # A last line without a newline would swallow the appended key (#390).
+        $content = Get-Content -Path ".env" -Raw
+        if ($content -and -not $content.EndsWith("`n")) {
+            Add-Content -Path ".env" -Value ""
+        }
         Add-Content -Path ".env" -Value "$Key=$hex"
     }
 }
