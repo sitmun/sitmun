@@ -1,9 +1,10 @@
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpContext, HttpHeaders } from '@angular/common/http';
 import {Injectable, Injector} from '@angular/core';
 
 import {Observable, of} from 'rxjs';
 
 import {RestService} from '@app/core/hal/rest/rest.service';
+import {SUPPRESS_SUCCESS_NOTIFICATION} from '@app/core/interceptors/messages.interceptor';
 
 import {Capabilities} from '../models/capabilities.model';
 
@@ -61,7 +62,10 @@ export class CapabilitiesService extends RestService<Capabilities> {
     return this.http.post(
       this.resourceService.getResourceUrl(this.CAPABILITIES_API),
       body,
-      { headers: new HttpHeaders({ Charset: 'UTF-8' }) }
+      {
+        headers: new HttpHeaders({ Charset: 'UTF-8' }),
+        context: new HttpContext().set(SUPPRESS_SUCCESS_NOTIFICATION, true),
+      }
     );
   }
 

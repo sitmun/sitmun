@@ -13,6 +13,9 @@ import {getProblemTranslationKey, isProblemDetail, getErrorMessage, formatValida
 
 export const SUPPRESS_HTTP_NOTIFICATION = new HttpContextToken<boolean>(() => false);
 
+/** For a POST that only reads, such as a capabilities lookup: errors still show, «saved» does not. */
+export const SUPPRESS_SUCCESS_NOTIFICATION = new HttpContextToken<boolean>(() => false);
+
 export const SKIP_MESSAGES_INTERCEPTOR = new HttpContextToken<boolean>(() => false);
 
 @Injectable({
@@ -193,7 +196,8 @@ export class MessagesInterceptor implements HttpInterceptor {
                         if (this.stateService.isEnabled()) {
                             // Show unified success message for all successful operations
                             if ((request.method === "POST" || request.method === "PUT" || request.method === "DELETE")
-                              && !request.context.get(SUPPRESS_HTTP_NOTIFICATION)) {
+                              && !request.context.get(SUPPRESS_HTTP_NOTIFICATION)
+                              && !request.context.get(SUPPRESS_SUCCESS_NOTIFICATION)) {
                                 this.notificationService.showSuccess('backend.status.title', 'backend.operation.saved');
                             }
                         }

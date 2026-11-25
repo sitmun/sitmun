@@ -1,11 +1,18 @@
-import { provideHttpClient } from '@angular/common/http';
+import { HTTP_INTERCEPTORS, provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
+import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 
+import { provideTranslateService } from '@ngx-translate/core';
 import { firstValueFrom, toArray } from 'rxjs';
 
 import { ExternalConfigurationService } from '@app/core/config/external-configuration.service';
 import { ExternalService, ResourceService } from '@app/core/hal';
+import { MessagesInterceptor, MessagesInterceptorStateService } from '@app/core/interceptors/messages.interceptor';
+import { ErrorTrackingService } from '@app/services/error-tracking.service';
+import { NotificationService } from '@app/services/notification.service';
+import { UtilsService } from '@app/services/utils.service';
 
 import { CapabilitiesService } from './capabilities.service';
 
@@ -128,5 +135,57 @@ describe('CapabilitiesService', () => {
       });
       req.flush({ success: true });
     });
+  });
+});
+
+describe('CapabilitiesService with MessagesInterceptor', () => {
+  let service: CapabilitiesService;
+  let httpMock: HttpTestingController;
+  let notifications: NotificationService;
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      imports: [NoopAnimationsModule, MatSnackBarModule],
+      providers: [
+        provideTranslateService(),
+        provideHttpClient(withInterceptorsFromDi()),
+        provideHttpClientTesting(),
+        CapabilitiesService,
+        ResourceService,
+        ExternalService,
+        { provide: 'ExternalConfigurationService', useClass: ExternalConfigurationService },
+        MessagesInterceptorStateService,
+        NotificationService,
+        ErrorTrackingService,
+        { provide: UtilsService, useValue: { enableLoading: jest.fn(), disableLoading: jest.fn() } },
+        { provide: HTTP_INTERCEPTORS, useClass: MessagesInterceptor, multi: true },
+      ],
+    });
+    TestBed.inject(MessagesInterceptorStateService).enable();
+    service = TestBed.inject(CapabilitiesService);
+    httpMock = TestBed.inject(HttpTestingController);
+    notifications = TestBed.inject(NotificationService);
+  });
+
+  afterEach(() => httpMock.verify());
+
+  it('does not report «changes saved» after reading capabilities', () => {
+    const success = jest.spyOn(notifications, 'showSuccess');
+
+    service.getInfo({ url: 'https://example.com/wms', type: 'WMS' }).subscribe();
+    httpMock.expectOne((request) => request.url.includes('helpers/capabilities')).flush({ success: true });
+
+    expect(success).not.toHaveBeenCalled();
+  });
+
+  it('still reports a failed capabilities read', () => {
+    const error = jest.spyOn(notifications, 'showError');
+
+    service.getInfo({ url: 'https://example.com/wms', type: 'WMS' }).subscribe({ error: () => undefined });
+    httpMock
+      .expectOne((request) => request.url.includes('helpers/capabilities'))
+      .flush({ message: 'boom' }, { status: 502, statusText: 'Bad Gateway' });
+
+    expect(error).toHaveBeenCalledTimes(1);
   });
 });

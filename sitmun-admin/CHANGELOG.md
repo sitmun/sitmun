@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **Services**: «Obtener detalles del servicio» and the layer load no longer show «Cambios guardados correctamente». The capabilities lookup is a `POST` that saves nothing, so it sends `SUPPRESS_SUCCESS_NOTIFICATION`. A failed lookup still shows its error ([#391](https://github.com/sitmun/sitmun/issues/391)).
+
 ## [1.3.0] - 2026-11-12
 
 ### Added
