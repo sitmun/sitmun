@@ -23,7 +23,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 #### Admin Application
 
-- **Services**: «Obtener detalles del servicio» no longer says the changes were saved before the service is saved ([#391](https://github.com/sitmun/sitmun/issues/391)). See `sitmun-admin/CHANGELOG.md`.
+- **Services**: Getting a service's metadata from its server no longer says the changes were saved before the service is saved ([#391](https://github.com/sitmun/sitmun/issues/391)). See `sitmun-admin/CHANGELOG.md`.
 
 ## [1.3.0] - 2026-11-12
 

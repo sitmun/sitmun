@@ -1,12 +1,20 @@
+import { readdirSync, readFileSync } from 'node:fs';
 import { test, expect } from '../fixtures';
 import { control, dismissBlockingOverlays, gotoCreateForm } from '../helpers/form';
 
 const MAPSERVER_SERVICE_URL =
   'https://pcivil.icgc.cat/ogc/geoservei?map=/opt/idec/dades/pcivil/risc_quimic.map';
 
-// backend.operation.saved in every admin language.
-const SAVED_MESSAGE =
-  /Alterações\ salvas\ com\ sucesso|Cambios\ guardados\ correctamente|Cambis\ guardats\ correctament|Canvis\ desats\ correctament|Changes\ saved\ successfully|Modifications\ enregistrées\ avec\ succès/;
+const I18N_DIR = 'sitmun-admin/src/assets/i18n';
+
+// backend.operation.saved in every admin language, read from the language files.
+const SAVED_TEXTS = readdirSync(I18N_DIR)
+  .filter((file) => file.endsWith('.json'))
+  .map((file) => JSON.parse(readFileSync(`${I18N_DIR}/${file}`, 'utf8'))['backend.operation.saved'] as string)
+  .filter(Boolean);
+const SAVED_MESSAGE = new RegExp(
+  SAVED_TEXTS.map((text) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|'),
+);
 
 const CAPABILITIES_TITLE = 'E2E MapServer Risc Quimic';
 
@@ -92,6 +100,7 @@ test.describe('Service form MapServer capabilities', () => {
     await expect(control(page, 'name')).toHaveValue(CAPABILITIES_TITLE, { timeout: 15_000 });
     await expect(control(page, 'description')).toHaveValue('E2E capabilities stub');
 
+    expect(SAVED_TEXTS.length, `backend.operation.saved in ${I18N_DIR}`).toBeGreaterThan(0);
     // Success toasts appear after a 500 ms debounce and stay 4 s. A retrying assertion would
     // wait the toast out, so take one snapshot inside that window.
     await page.waitForTimeout(1_500);
