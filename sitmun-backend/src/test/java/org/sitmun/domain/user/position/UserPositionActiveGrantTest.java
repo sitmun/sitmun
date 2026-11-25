@@ -175,6 +175,64 @@ class UserPositionActiveGrantTest {
     assertThat(userPositionRepository.hasAnyActivePosition(fx.user.getUsername())).isFalse();
   }
 
+  @Test
+  @DisplayName("Children-only application is listed and opens in the child, not the parent")
+  void childrenOnlyApplicationIsListedAndOpensInChild() {
+    Fixture fx = persistParentChild(false, true);
+    persistPosition(fx.user, fx.live, null, null);
+    String username = fx.user.getUsername();
+    Integer appId = fx.application.getId();
+    fx.application.setAppPrivate(false);
+    applicationRepository.save(fx.application);
+
+    assertThat(applicationRepository.findByUser(username, PageRequest.of(0, 20)).getContent())
+        .extracting(Application::getId)
+        .contains(appId);
+    assertThat(applicationRepository.findByPublicUser(username, PageRequest.of(0, 20)).getContent())
+        .extracting(Application::getId)
+        .contains(appId);
+    assertThat(
+            applicationRepository
+                .findByUserAndKeywords(username, "", PageRequest.of(0, 20))
+                .getContent())
+        .extracting(Application::getId)
+        .contains(appId);
+    assertThat(
+            applicationRepository
+                .findByPublicUserAndKeywords(username, "", PageRequest.of(0, 20))
+                .getContent())
+        .extracting(Application::getId)
+        .contains(appId);
+
+    assertThat(
+            applicationRepository.findByRestrictedUserApplicationAndTerritory(
+                username, appId, fx.expired.getId()))
+        .isPresent();
+    assertThat(
+            applicationRepository.findByRestrictedUserApplicationAndTerritory(
+                username, appId, fx.live.getId()))
+        .isEmpty();
+  }
+
+  @Test
+  @DisplayName("Children-only application is not listed when the assigned territory has no child")
+  void childrenOnlyApplicationNotListedWithoutChildren() {
+    TerritoryType type = persistType();
+    Territory lone = persistTerritory(type, "lone");
+    User user = persistUser();
+    Role role = persistRole();
+    Application application = persistApplication(role, false, true, "I");
+    persistConfiguration(user, lone, role, true);
+    persistPosition(user, lone, null, null);
+
+    assertThat(
+            applicationRepository
+                .findByUser(user.getUsername(), PageRequest.of(0, 20))
+                .getContent())
+        .extracting(Application::getId)
+        .doesNotContain(application.getId());
+  }
+
   private Fixture persistTwoTerritories() {
     TerritoryType type = persistType();
     Territory live = persistTerritory(type, "live");
@@ -188,6 +246,10 @@ class UserPositionActiveGrantTest {
   }
 
   private Fixture persistParentChild() {
+    return persistParentChild(true, true);
+  }
+
+  private Fixture persistParentChild(boolean accessParent, boolean accessChildren) {
     TerritoryType type = persistType();
     Territory parent = persistTerritory(type, "parent");
     Territory child = persistTerritory(type, "child");
@@ -195,7 +257,7 @@ class UserPositionActiveGrantTest {
     parent = territoryRepository.save(parent);
     User user = persistUser();
     Role role = persistRole();
-    Application application = persistApplication(role, true, true, "I");
+    Application application = persistApplication(role, accessParent, accessChildren, "I");
     persistConfiguration(user, parent, role, true);
     return new Fixture(user, parent, child, role, application);
   }

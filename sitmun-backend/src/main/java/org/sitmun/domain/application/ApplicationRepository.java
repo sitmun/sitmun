@@ -67,7 +67,7 @@ public interface ApplicationRepository extends JpaRepository<Application, Intege
         where uc.role member of app.availableRoles and uc.user.username = ?1"""
           + UserPositionActiveGrant.ON_GRANT
           + """
-         and uc.territory in (select childTerritory from Territory childTerritory where childTerritory member of uc.territory.members) and uc.appliesToChildrenTerritories = true and app.accessChildrenTerritory = true)
+         and exists (select childTerritory from Territory childTerritory where childTerritory member of uc.territory.members) and uc.appliesToChildrenTerritories = true and app.accessChildrenTerritory = true)
   """)
   Page<Application> findByUser(String username, Pageable pageable);
 
@@ -89,7 +89,7 @@ public interface ApplicationRepository extends JpaRepository<Application, Intege
         where uc.role member of app.availableRoles and uc.user.username = ?1"""
           + UserPositionActiveGrant.ON_GRANT
           + """
-         and uc.territory in (select childTerritory from Territory childTerritory where childTerritory member of uc.territory.members) and uc.appliesToChildrenTerritories = true and app.accessChildrenTerritory = true))
+         and exists (select childTerritory from Territory childTerritory where childTerritory member of uc.territory.members) and uc.appliesToChildrenTerritories = true and app.accessChildrenTerritory = true))
       and app.appPrivate = false
   """)
   Page<Application> findByPublicUser(String username, Pageable pageable);
@@ -206,7 +206,7 @@ public interface ApplicationRepository extends JpaRepository<Application, Intege
         where uc.role member of app.availableRoles and uc.user.username = ?1"""
           + UserPositionActiveGrant.ON_GRANT
           + """
-         and uc.territory in (select childTerritory from Territory childTerritory where childTerritory member of uc.territory.members) and uc.appliesToChildrenTerritories = true and app.accessChildrenTerritory = true))
+         and exists (select childTerritory from Territory childTerritory where childTerritory member of uc.territory.members) and uc.appliesToChildrenTerritories = true and app.accessChildrenTerritory = true))
       and (lower(coalesce(app.title, app.name)) like lower(concat('%', ?2, '%'))
         or lower(coalesce(app.description, '')) like lower(concat('%', ?2, '%'))
         or lower(app.name) like lower(concat('%', ?2, '%')))
@@ -231,7 +231,7 @@ public interface ApplicationRepository extends JpaRepository<Application, Intege
         where uc.role member of app.availableRoles and uc.user.username = ?1"""
           + UserPositionActiveGrant.ON_GRANT
           + """
-         and uc.territory in (select childTerritory from Territory childTerritory where childTerritory member of uc.territory.members) and uc.appliesToChildrenTerritories = true and app.accessChildrenTerritory = true))
+         and exists (select childTerritory from Territory childTerritory where childTerritory member of uc.territory.members) and uc.appliesToChildrenTerritories = true and app.accessChildrenTerritory = true))
       and app.appPrivate = false
       and (lower(coalesce(app.title, app.name)) like lower(concat('%', ?2, '%'))
         or lower(coalesce(app.description, '')) like lower(concat('%', ?2, '%'))
