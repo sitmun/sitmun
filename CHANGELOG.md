@@ -29,6 +29,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 - **Services**: Getting a service's metadata from its server no longer says the changes were saved before the service is saved ([#391](https://github.com/sitmun/sitmun/issues/391)). See `sitmun-admin/CHANGELOG.md`.
 
+### Removed
+
+#### Stack
+
+- **Compose**: `FORCE_USE_OF_PROXY` and `SITMUN_PROXY_MIDDLEWARE_VALIDATE_USER_ACCESS` are removed from `compose.yaml`, the `profiles/*.env` comments, and `DEPLOYMENT.md` ([#389](https://github.com/sitmun/sitmun/issues/389)). Compose passed `FORCE_USE_OF_PROXY` as `SITMUN_PROXY_FORCE`, which the backend never read, and nothing read `SITMUN_PROXY_MIDDLEWARE_VALIDATE_USER_ACCESS`.
+
+#### Backend Core
+
+- **Proxy**: `sitmun.proxy-middleware.force` is removed. Whether a service goes through the proxy depends only on the service's `isProxied` flag ([#389](https://github.com/sitmun/sitmun/issues/389)). See `sitmun-backend/CHANGELOG.md`.
+
+
 ## [1.3.0] - 2026-11-12
 
 ### Added

@@ -60,7 +60,6 @@ sitmun:
   backend:
     url: http://localhost:8080/api
   proxy-middleware:
-    force: false
     url: http://localhost:8080/middleware
   variables:
     # System variables for testing

@@ -14,7 +14,6 @@ import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -358,20 +357,6 @@ class ServiceUsageTest {
     assertThat(hiddenWindow.failed()).isNull();
     assertThat(hiddenWindow.days()).isNull();
     assertThat(hiddenWindow.viewerLoads()).isEqualTo(3);
-
-    ServiceUsageQueries forcedQueries =
-        new ServiceUsageQueries(
-            usageRepository,
-            serviceRepository,
-            applicationRepository,
-            true,
-            ZoneId.systemDefault());
-    UsageWindow forced =
-        forcedQueries
-            .windows(List.of(hidden.getId()), Map.of(hidden.getId(), false), Instant.now())
-            .get(hidden.getId());
-    assertThat(forced.measured()).isTrue();
-    assertThat(forced.total()).isEqualTo(9);
   }
 
   @Test

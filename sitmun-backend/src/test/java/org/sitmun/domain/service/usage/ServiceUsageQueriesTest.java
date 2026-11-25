@@ -50,7 +50,7 @@ class ServiceUsageQueriesTest {
     when(applications.findAllById(any())).thenReturn(apps);
 
     ServiceUsageView view =
-        new ServiceUsageQueries(usage, services, applications, false, ZoneId.of("UTC"))
+        new ServiceUsageQueries(usage, services, applications, ZoneId.of("UTC"))
             .view(7, "30d", Instant.parse("2026-10-06T12:00:00Z"));
 
     assertThat(view.applications()).extracting(UsageApplicationTotal::applicationId).hasSize(11);
