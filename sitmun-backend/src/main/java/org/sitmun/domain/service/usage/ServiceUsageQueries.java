@@ -15,7 +15,6 @@ import org.sitmun.domain.application.ApplicationRepository;
 import org.sitmun.domain.service.Service;
 import org.sitmun.domain.service.ServiceRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
@@ -30,28 +29,24 @@ public class ServiceUsageQueries {
   private final ServiceUsageRepository usage;
   private final ServiceRepository services;
   private final ApplicationRepository applications;
-  private final boolean proxyForced;
   private final ZoneId zone;
 
   @Autowired
   public ServiceUsageQueries(
       ServiceUsageRepository usage,
       ServiceRepository services,
-      ApplicationRepository applications,
-      @Value("${sitmun.proxy-middleware.force}") boolean proxyForced) {
-    this(usage, services, applications, proxyForced, ZoneId.systemDefault());
+      ApplicationRepository applications) {
+    this(usage, services, applications, ZoneId.systemDefault());
   }
 
   ServiceUsageQueries(
       ServiceUsageRepository usage,
       ServiceRepository services,
       ApplicationRepository applications,
-      boolean proxyForced,
       ZoneId zone) {
     this.usage = usage;
     this.services = services;
     this.applications = applications;
-    this.proxyForced = proxyForced;
     this.zone = zone;
   }
 
@@ -63,8 +58,8 @@ public class ServiceUsageQueries {
     return today.plusDays(1);
   }
 
-  static boolean measured(Boolean proxied, boolean force) {
-    return force || Boolean.TRUE.equals(proxied);
+  static boolean measured(Boolean proxied) {
+    return Boolean.TRUE.equals(proxied);
   }
 
   @Transactional(readOnly = true)
@@ -75,7 +70,7 @@ public class ServiceUsageQueries {
     Map<Integer, List<ServiceUsage>> rows = rowsByService(from, thirtyDayEnd(today));
     Map<Integer, UsageWindow> windows = new HashMap<>();
     for (Integer serviceId : serviceIds) {
-      boolean isMeasured = measured(proxied.get(serviceId), proxyForced);
+      boolean isMeasured = measured(proxied.get(serviceId));
       windows.put(
           serviceId,
           summarize(isMeasured, rows.getOrDefault(serviceId, List.of()), from, DAYS_30, false)
@@ -98,7 +93,7 @@ public class ServiceUsageQueries {
     List<ServiceUsage> rows =
         usage.findByIdServiceIdAndIdUsageDayGreaterThanEqualAndIdUsageDayLessThan(
             serviceId, from, to);
-    boolean isMeasured = measured(service.getIsProxied(), proxyForced);
+    boolean isMeasured = measured(service.getIsProxied());
     Long previousTotal = null;
     Long previousFailed = null;
     if (isMeasured) {

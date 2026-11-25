@@ -45,9 +45,6 @@ class ClientConfigurationProfileControllerTest {
 
   @Autowired private ConfigurationParameterRepository configurationParameterRepository;
 
-  @Value("${sitmun.proxy-middleware.force:false}")
-  private boolean proxyForce;
-
   @Value("${sitmun.proxy-middleware.url:}")
   private String proxyUrl;
 
@@ -204,10 +201,7 @@ class ClientConfigurationProfileControllerTest {
   @Test
   @DisplayName("GET: Get services details")
   void services() throws Exception {
-    String url =
-        proxyForce
-            ? proxyUrl + "/proxy/10001/10001/WMTS/1"
-            : "https://geoserveis.icgc.cat/icc_mapesmultibase/utm/wmts/service";
+    String url = "https://geoserveis.icgc.cat/icc_mapesmultibase/utm/wmts/service";
 
     mvc.perform(get(CONFIG_CLIENT_PROFILE_URI, 10001, 10001))
         .andExpect(status().isOk())
@@ -823,9 +817,7 @@ class ClientConfigurationProfileControllerTest {
   @Test
   @DisplayName("GET: SQL query task - parameters block and top-level fields snapshot")
   void sqlQueryTaskWireFormatSnapshot() throws Exception {
-    String expectedUrl =
-        (proxyForce ? proxyUrl : "http://localhost:8080/middleware")
-            + "/proxy/10001/10001/SQL/10034";
+    String expectedUrl = proxyUrl + "/proxy/10001/10001/SQL/10034";
     mvc.perform(get(CONFIG_CLIENT_PROFILE_URI, 10001, 10001))
         .andExpect(status().isOk())
         // Parameters block
@@ -849,9 +841,7 @@ class ClientConfigurationProfileControllerTest {
   @Test
   @DisplayName("GET: Web API proxied task - parameters block and top-level fields snapshot")
   void webApiProxiedTaskWireFormatSnapshot() throws Exception {
-    String expectedUrl =
-        (proxyForce ? proxyUrl : "http://localhost:8080/middleware")
-            + "/proxy/10001/10001/API/10037";
+    String expectedUrl = proxyUrl + "/proxy/10001/10001/API/10037";
     mvc.perform(get(CONFIG_CLIENT_PROFILE_URI, 10001, 10001))
         .andExpect(status().isOk())
         // Parameters block

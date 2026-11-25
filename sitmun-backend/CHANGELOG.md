@@ -16,6 +16,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - **Proxy token**: `POST /api/authenticate/proxy` adds the user's `lastPasswordChange` claim to the viewer proxy token, as the mobile proxy token already did ([#387](https://github.com/sitmun/sitmun/issues/387)). A user with a recorded password change no longer gets 401 `Backend configuration request was rejected` from the proxy. The token still stops working after the next password change.
 - **Territorial roles**: The application lists (`ApplicationRepository.findByUser`, `findByPublicUser`, `findByUserAndKeywords`, `findByPublicUserAndKeywords`) include an application with only `accessChildrenTerritory` when the user configuration has `appliesToChildrenTerritories` and its territory has at least one member ([#379](https://github.com/sitmun/sitmun/issues/379)). The children clause compared the assigned territory with its own members, so it never matched. Opening the application in the assigned territory itself still needs `accessParentTerritory`.
 
+### Removed
+
+- **Proxy**: `sitmun.proxy-middleware.force` is removed ([#389](https://github.com/sitmun/sitmun/issues/389)). A service goes through the proxy only when its `isProxied` flag is set. Before, the setting rewrote every service URL in the client profile to the proxy and counted every service in the usage statistics. Setting it now has no effect.
+
+
 ## [1.3.0] - 2026-11-12
 
 ### Added

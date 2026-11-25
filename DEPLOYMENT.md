@@ -47,8 +47,6 @@ Defaults below apply when the variable is unset.
 | `DATABASE` | Database name | `sitmun3` |
 | `DATABASE_USERNAME` | Database user | `sitmun3` |
 | `DATABASE_PASSWORD` | Database password | `sitmun3` |
-| `FORCE_USE_OF_PROXY` | Sets `SITMUN_PROXY_FORCE` | `false` |
-| `SITMUN_PROXY_MIDDLEWARE_VALIDATE_USER_ACCESS` | Proxy access check | `true` |
 | `SITMUN_USER_SECRET` | Backend JWT signing secret. Minimum 32 characters. | required |
 | `MIDDLEWARE_SECRET` | Shared secret. Backend receives it as `SITMUN_PROXY_MIDDLEWARE_SECRET`. Proxy receives it as `SITMUN_BACKEND_CONFIG_SECRET`. | required |
 | `SITMUN_MBTILES_JOB_HANDLE_SECRET` | Proxy MBTiles job-handle secret. Minimum 32 characters. | required |

@@ -58,9 +58,6 @@ public class ClientConfigurationController {
   private final MobileEditionAccessService mobileEditionAccessService;
   private final ProxyMiddlewareUrlResolver proxyMiddlewareUrlResolver;
 
-  @Value("${sitmun.proxy-middleware.force:false}")
-  private boolean proxyForce;
-
   @Value("${sitmun.backend.url:}")
   private String backendUrl;
 
@@ -429,7 +426,7 @@ public class ClientConfigurationController {
           .getServices()
           .forEach(
               service -> {
-                if (proxyForce || Boolean.TRUE.equals(service.getIsProxied())) {
+                if (Boolean.TRUE.equals(service.getIsProxied())) {
                   service.setIsProxied(true);
                   String uriTemplate = middlewareBase + "/proxy/{appId}/{terId}/{type}/{typeId}";
                   log.info(

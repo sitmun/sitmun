@@ -55,12 +55,6 @@
       "description": "Configuration response validity duration in seconds."
     },
     {
-      "name": "sitmun.proxy-middleware.force",
-      "type": "java.lang.Boolean",
-      "description": "Force proxy middleware usage.",
-      "defaultValue": false
-    },
-    {
       "name": "sitmun.proxy-middleware.url",
       "type": "java.lang.String",
       "description": "Proxy middleware URL."
