@@ -14,6 +14,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+#### Stack
+
+- **Setup**: `setup.sh` and `setup.ps1` add a newline before appending a missing secret when `.env` does not end with one. The first secret was joined to the last line, for example `COMPOSE_PROFILES=postgresSITMUN_USER_SECRET=…`, which broke that line and left the secret unset ([#390](https://github.com/sitmun/sitmun/issues/390)). `tools/tests/test_setup_compose_secrets.sh` checks both scripts; the `setup.ps1` case needs `pwsh`.
+
 #### Backend Core
 
 - **Database**: An upgrade from a 1.2.x database, whatever file name its Liquibase recorded, or from an Oracle database that took the `26_*` fix for changeset 22c, no longer stops with `upgrade to 1.2.8 first` ([#403](https://github.com/sitmun/sitmun/issues/403)). See `sitmun-backend/CHANGELOG.md`.

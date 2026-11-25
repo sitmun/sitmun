@@ -30,6 +30,10 @@ check_git_repository() {
 append_compose_secret_if_missing() {
     local key="$1"
     if ! grep -q "^${key}=" .env; then
+        # A last line without a newline would swallow the appended key (#390).
+        if [ -s .env ] && [ -n "$(tail -c1 .env)" ]; then
+            echo >> .env
+        fi
         echo "${key}=$(openssl rand -hex 32)" >> .env
     fi
 }
