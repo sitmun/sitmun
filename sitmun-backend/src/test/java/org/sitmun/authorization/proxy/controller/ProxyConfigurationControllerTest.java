@@ -2,10 +2,12 @@ package org.sitmun.authorization.proxy.controller;
 
 import static org.sitmun.test.URIConstants.*;
 import static org.springframework.http.MediaType.*;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.jayway.jsonpath.JsonPath;
 import java.util.Date;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -287,5 +289,57 @@ class ProxyConfigurationControllerTest {
             jsonPath("$.payload.sql").value("SELECT * FROM EXAMPLE WHERE TERR_COD=? AND columnA=?"))
         .andExpect(jsonPath("$.payload.parameters[0].value").value("60001"))
         .andExpect(jsonPath("$.payload.parameters[1].value").value("123"));
+  }
+
+  @Test
+  @DisplayName("POST: Accepts the viewer proxy token of a user with a recorded password change")
+  void acceptsViewerProxyTokenAfterPasswordChange() throws Exception {
+    User admin = userRepository.findByUsername("admin").orElseThrow();
+    Date original = admin.getLastPasswordChange();
+    String content =
+        """
+        {
+          "appId": 10001,
+          "terId": 10001,
+          "type": "SQL",
+          "typeId": 10023,
+          "method": "GET"
+        }
+      """;
+    try {
+      admin.setLastPasswordChange(new Date(1_700_000_000_000L));
+      userRepository.save(admin);
+
+      String proxyToken =
+          JsonPath.read(
+              mvc.perform(post("/api/authenticate/proxy").secure(true).with(user("admin")))
+                  .andExpect(status().isOk())
+                  .andReturn()
+                  .getResponse()
+                  .getContentAsString(),
+              "$.proxy_token");
+
+      mvc.perform(
+              post(CONFIG_PROXY_URI)
+                  .with(user("proxy").roles("PROXY"))
+                  .contentType(APPLICATION_JSON)
+                  .header(HttpHeaders.AUTHORIZATION, "Bearer " + proxyToken)
+                  .content(content))
+          .andExpect(status().isOk());
+
+      admin.setLastPasswordChange(new Date(1_800_000_000_000L));
+      userRepository.save(admin);
+
+      mvc.perform(
+              post(CONFIG_PROXY_URI)
+                  .with(user("proxy").roles("PROXY"))
+                  .contentType(APPLICATION_JSON)
+                  .header(HttpHeaders.AUTHORIZATION, "Bearer " + proxyToken)
+                  .content(content))
+          .andExpect(status().isUnauthorized());
+    } finally {
+      admin.setLastPasswordChange(original);
+      userRepository.save(admin);
+    }
   }
 }

@@ -18,6 +18,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 - **Database**: An upgrade from a 1.2.x database, whatever file name its Liquibase recorded, or from an Oracle database that took the `26_*` fix for changeset 22c, no longer stops with `upgrade to 1.2.8 first` ([#403](https://github.com/sitmun/sitmun/issues/403)). See `sitmun-backend/CHANGELOG.md`.
 - **Database**: A database upgraded to 1.3.x no longer runs 23 changesets again when the shipped changelog is loaded without the profile master ([#404](https://github.com/sitmun/sitmun/issues/404)). See `sitmun-backend/CHANGELOG.md`.
+- **Proxy token**: A viewer user whose account has a recorded password change (the `admin` after first run, or any user after a password reset) can use private layers and SQL or Web API tasks again; the proxy no longer answers 401 ([#387](https://github.com/sitmun/sitmun/issues/387)). See `sitmun-backend/CHANGELOG.md`.
 
 ## [1.3.0] - 2026-11-12
 
