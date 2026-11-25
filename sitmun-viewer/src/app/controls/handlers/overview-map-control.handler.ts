@@ -1,7 +1,9 @@
 import { Injectable } from '@angular/core';
 
-import type { AppCfg, AppTasks } from '@api/model/app-cfg';
+import type { AppCfg, AppLayer, AppService, AppTasks } from '@api/model/app-cfg';
 import type { SitnaBaseLayer } from '@api/model/sitna-cfg';
+
+import { constants } from '@environments/constants';
 
 import { ConfigLookupService } from '../../services/config-lookup.service';
 import { SitnaApiService } from '../../services/sitna-api.service';
@@ -127,15 +129,7 @@ export class OverviewMapControlHandler extends ControlHandlerBase {
       return null;
     }
 
-    // Build SitnaBaseLayer matching LayerCatalog.addLayerToMap structure
-    const result: SitnaBaseLayer = {
-      id: layer.title,
-      title: layer.title,
-      url: service.url,
-      type: service.type,
-      layerNames: layer.layers
-    };
-    return result;
+    return this.toBaseLayer(layer, service);
   }
 
   /**
@@ -177,14 +171,23 @@ export class OverviewMapControlHandler extends ControlHandlerBase {
       return null;
     }
 
-    // Build SitnaBaseLayer matching LayerCatalog.addLayerToMap structure
-    const result: SitnaBaseLayer = {
+    return this.toBaseLayer(layer, service);
+  }
+
+  /**
+   * Same layer fields as the main map (MapConfigurationService): WMTS needs matrixSet,
+   * format, and a single layer identifier.
+   */
+  private toBaseLayer(layer: AppLayer, service: AppService): SitnaBaseLayer {
+    const isWmts = service.type === constants.codeValue.serviceType.wmts;
+    return {
       id: layer.title,
       title: layer.title,
       url: service.url,
       type: service.type,
-      layerNames: layer.layers
+      layerNames: isWmts ? layer.layers[0] : layer.layers,
+      matrixSet: service.parameters?.matrixSet,
+      format: service.parameters?.format
     };
-    return result;
   }
 }

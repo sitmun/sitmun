@@ -43,6 +43,14 @@ export default defineConfig({
       gracefulShutdown: { signal: 'SIGTERM', timeout: 5_000 },
     },
     {
+      command: 'pnpm run e2e:wmts-stub',
+      cwd: repoRoot,
+      url: 'http://127.0.0.1:18094/health',
+      timeout: 30_000,
+      reuseExistingServer: false,
+      gracefulShutdown: { signal: 'SIGTERM', timeout: 5_000 },
+    },
+    {
       // e2e-proxy waits for backend health before bootRun (parallel webServers).
       command: 'pnpm run e2e:proxy',
       cwd: repoRoot,
@@ -98,6 +106,12 @@ export default defineConfig({
     {
       name: 'viewer-basemap',
       testMatch: /basemap-none\.spec\.ts/,
+      dependencies: ['viewer-setup'],
+      use: { ...devices['Desktop Chrome'] },
+    },
+    {
+      name: 'viewer-overview',
+      testMatch: /overview-map-wmts\.spec\.ts/,
       dependencies: ['viewer-setup'],
       use: { ...devices['Desktop Chrome'] },
     },
