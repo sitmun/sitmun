@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **Services**: Reading a service's capabilities no longer shows the `backend.operation.saved` message. This covers the service form's get-metadata button (`entity.service.button.getMetadata`), loading the service layers, and adding a service to a tree. The capabilities lookup is a `POST` that saves nothing, so it sends `SUPPRESS_SUCCESS_NOTIFICATION`. A failed lookup still shows its error ([#391](https://github.com/sitmun/sitmun/issues/391)).
+
 ## [1.3.0] - 2026-11-12
 
 ### Added
