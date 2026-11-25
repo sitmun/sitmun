@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import csv
 import importlib.util
+import sqlite3
 import unittest
 from pathlib import Path
 
@@ -12,6 +13,16 @@ ROOT = Path(__file__).resolve().parents[2]
 GENERATOR = ROOT / "tools" / "bin" / "generate_legacy_upgrade.py"
 UPGRADE = ROOT / "sitmun-backend/src/main/resources/db/changelog/upgrade"
 HOP = UPGRADE / "1.2.9-to-1.3.0"
+
+
+def changelog_db() -> sqlite3.Connection:
+    db = sqlite3.connect(":memory:")
+    db.execute(
+        "CREATE TABLE databasechangelog (id TEXT, author TEXT, filename TEXT, dateexecuted TEXT,"
+        " orderexecuted INTEGER, exectype TEXT, md5sum TEXT, description TEXT, comments TEXT,"
+        " liquibase TEXT, deployment_id TEXT)"
+    )
+    return db
 
 
 def load_generator():
@@ -104,6 +115,103 @@ class VersionCheckGeneratorTest(unittest.TestCase):
         self.assertIn("ltr.ltr_literal = 'No data'", generated)
         self.assertIn("lang.lan_shortname = 'oc-aranes'", generated)
         self.assertIn("'Cap de donades'", generated)
+
+    def test_restore_gives_master_xml_rows_their_file_back(self) -> None:
+        generator = load_generator()
+        for fixture, name in (("postgres-16.csv", "postgresql"), ("oracle-23.csv", "oracle")):
+            rows = generator.load_fixture(fixture)
+            check = (UPGRADE / f"00-version-check.{name}.sql").read_text()
+            replacements = generator.ORACLE_REPLACEMENTS if name == "oracle" else ()
+            generated = generator.restore_filenames(rows, check, replacements)
+            shipped = (UPGRADE.parent / "releases/1.3.1" / f"00-restore-changelog-filenames.{name}.sql").read_text()
+            self.assertEqual(generated, shipped, name)
+            head, _, rest = generated.partition("\nBEGIN\n")
+            updates, _, body = rest.partition("  SELECT COUNT(*) INTO base_present")
+            self.assertEqual(check, head + "\nBEGIN\n  SELECT COUNT(*) INTO base_present" + body, name)
+            db = changelog_db()
+            db.executemany(
+                "INSERT INTO databasechangelog (id, author, filename) VALUES (?, ?, 'master.xml')",
+                [(changeset_id, author) for changeset_id, author, _ in rows]
+                + [("upgrade-1.2.8-to-1.2.9-19-" + name, "sitmun"), ("1", "partner")],
+            )
+            db.executescript(updates)
+            present = set(db.execute("SELECT id, author, filename FROM databasechangelog"))
+            self.assertTrue(generator.history_accepted(present, rows), name)
+            self.assertEqual(
+                {
+                    ("upgrade-1.2.8-to-1.2.9-19-" + name, "sitmun", "master.xml"),
+                    ("1", "partner", "master.xml"),
+                },
+                {row for row in present if row[2] == "master.xml"},
+                name,
+            )
+
+    def test_restore_matches_legacy_rows_by_id_whatever_the_filename(self) -> None:
+        generator = load_generator()
+        for fixture, name in (("postgres-16.csv", "postgresql"), ("oracle-23.csv", "oracle")):
+            rows = generator.load_fixture(fixture)
+            check = (UPGRADE / f"00-version-check.{name}.sql").read_text()
+            generated = generator.restore_filenames(rows, check)
+            writes = generated.partition("\nBEGIN\n")[2].partition("  SELECT COUNT(*) INTO base_present")[0]
+            forms = ("master.xml", "file:/usr/src/config/liquibase/{}", "{}")
+            db = changelog_db()
+            db.executemany(
+                "INSERT INTO databasechangelog (id, author, filename) VALUES (?, ?, ?)",
+                [
+                    (changeset_id, author, forms[n % len(forms)].format(filename))
+                    for n, (changeset_id, author, filename) in enumerate(rows)
+                ]
+                + [
+                    ("1", "partner", "master.xml"),
+                    ("upgrade-1.2.8-to-1.2.9-19-" + name, "sitmun", "master.xml"),
+                ],
+            )
+            db.executescript(writes)
+            present = set(db.execute("SELECT id, author, filename FROM databasechangelog"))
+            self.assertTrue(set(rows) <= present, name)
+            self.assertTrue(generator.history_accepted(present, rows), name)
+            self.assertEqual(
+                {("1", "partner", "master.xml"), ("upgrade-1.2.8-to-1.2.9-19-" + name, "sitmun", "master.xml")},
+                present - set(rows),
+                name,
+            )
+            db.executescript(writes)
+            self.assertEqual(present, set(db.execute("SELECT id, author, filename FROM databasechangelog")), name)
+
+    def test_restore_records_22_rows_that_ran_as_26_on_oracle(self) -> None:
+        generator = load_generator()
+        rows = generator.load_fixture("oracle-23.csv")
+        check = (UPGRADE / "00-version-check.oracle.sql").read_text()
+        generated = generator.restore_filenames(rows, check, generator.ORACLE_REPLACEMENTS)
+        writes = generated.partition("\nBEGIN\n")[2].partition("  SELECT COUNT(*) INTO base_present")[0]
+        replaced = dict(generator.ORACLE_REPLACEMENTS)
+        stopped = [row for row in rows if row[0] != "22c_document_export_codelists"]
+        db = changelog_db()
+        db.executemany(
+            "INSERT INTO databasechangelog (id, author, filename, orderexecuted, exectype)"
+            " VALUES (?, 'sitmun', 'master.xml', ?, 'EXECUTED')",
+            [(changeset_id, n) for n, (changeset_id, _, _) in enumerate(stopped)]
+            + [(replacement, 900 + n) for n, replacement in enumerate(replaced.values())],
+        )
+        self.assertFalse(
+            generator.history_accepted(set(db.execute("SELECT id, author, filename FROM databasechangelog")), rows)
+        )
+        db.executescript(writes)
+        present = set(db.execute("SELECT id, author, filename FROM databasechangelog"))
+        self.assertTrue(generator.history_accepted(present, rows))
+        recorded = list(
+            db.execute(
+                "SELECT exectype, comments, orderexecuted FROM databasechangelog"
+                " WHERE id = '22c_document_export_codelists'"
+            )
+        )
+        self.assertEqual([("MARK_RAN", "applied as 26c_document_export_codelists", 903)], recorded)
+        for original in ("22_document_export_task_type", "22_map_image_task_type", "22b_map_image_task_type_seq"):
+            self.assertEqual(
+                1, db.execute("SELECT COUNT(*) FROM databasechangelog WHERE id = ?", (original,)).fetchone()[0]
+            )
+        db.executescript(writes)
+        self.assertEqual(present, set(db.execute("SELECT id, author, filename FROM databasechangelog")))
 
     def test_prefix_rule_accepts_128_full_129_and_stopped_22c(self) -> None:
         generator = load_generator()

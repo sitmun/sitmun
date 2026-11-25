@@ -76,6 +76,10 @@ jobs:
           git fetch --no-tags origin tag legacy/sitmun-application-stack/sitmun-application-stack/1.2.9
       - name: Upgrade 1.2.9 to the shipped master
         run: bash tools/tests/test_liquibase_upgrade_from_1.2.9.sh postgres-12
+      - name: Upgrade 1.2.9 seeded by the Liquibase 4.29 CLI
+        env:
+          SITMUN_SOURCE_LIQUIBASE: '4.29'
+        run: bash tools/tests/test_liquibase_upgrade_from_1.2.9.sh postgres-12
 
   postgres-16-from:
     name: Upgrade PostgreSQL 16 from 1.2.9

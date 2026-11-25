@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Fixed
+
+- **Database**: An upgrade from 1.2.8 or 1.2.9 no longer stops with `upgrade to 1.2.8 first`, whatever file name the 1.2.x Liquibase recorded ([#403](https://github.com/sitmun/sitmun/issues/403)). The 1.2.x backends ran Liquibase 4.31.1 or 4.33.0, which write the profile changelog's `logicalFilePath`, `master.xml`, as the file name of each included changeset. A first changeset now matches those rows by id and gives them their 1.2.9 file names back before the version check runs.
+- **Tests**: The 1.2.9 upgrade harness installs each source release with the Liquibase its backend shipped, and checks that every 1.2.9 to 1.3.0 step runs instead of being marked as run.
+- **Database**: An Oracle database that applied the stack `dev` fix for changeset 22c (changesets `26_*`, sitmun/sitmun-application-stack#74) no longer stops with `upgrade to 1.2.8 first` ([#403](https://github.com/sitmun/sitmun/issues/403)). The same first changeset records each missing `22*` row as `MARK_RAN`, pointing at the `26*` row that did its work.
+
 ## [1.3.0] - 2026-11-12
 
 ### Added

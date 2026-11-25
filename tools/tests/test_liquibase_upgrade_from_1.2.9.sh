@@ -2,6 +2,7 @@
 # Upgrade a tagged source database to the shipped 1.3.0 master.
 # Usage: bash tools/tests/test_liquibase_upgrade_from_1.2.9.sh postgres-16 [1.2.9]
 #        bash tools/tests/test_liquibase_upgrade_from_1.2.9.sh oracle-11 1.2.9 stopped-22c
+# SITMUN_SOURCE_LIQUIBASE=4.29 seeds with that Liquibase instead of the one the release shipped.
 set -uo pipefail
 
 ENGINE="${1:?usage: postgres-16|postgres-12|oracle-23|oracle-21|oracle-11 [source-tag]}"
@@ -89,8 +90,26 @@ sql_count() {
   fi
 }
 
+# The Liquibase each backend release ran at startup, from its version catalog:
+# sitmun-backend-core 1.2.0 and 1.2.1 pin 4.33.0; 1.2.2 onward take Spring Boot
+# 3.5.4's 4.31.1. From 4.31.0 the profile master's logicalFilePath, master.xml,
+# is recorded as the FILENAME of every included changeset.
+shipped_liquibase() {
+  if [[ -n "${SITMUN_SOURCE_LIQUIBASE:-}" ]]; then
+    echo "$SITMUN_SOURCE_LIQUIBASE"
+    return
+  fi
+  case "${1##*/}" in
+    1.2.0|1.2.1) echo 4.33.0 ;;
+    1.2.[2-9]) echo 4.31.1 ;;
+    *) echo "no shipped Liquibase known for $1" >&2; return 1 ;;
+  esac
+}
+
 apply_tag() {
   local tag="$1" dest="$2"
+  local version
+  version=$(shipped_liquibase "$tag") || exit 2
   rm -rf "$dest"
   mkdir -p "$dest"
   git -C "$REPO_ROOT" archive "$tag" "profiles/$LIQUIBASE_PROFILE/liquibase" | tar -x -C "$dest"
@@ -103,14 +122,14 @@ apply_tag() {
   else
     url="jdbc:oracle:thin:@//${CONTAINER}:1521/sitmun3"
   fi
-  echo "── Liquibase $tag ──"
+  echo "── Liquibase $version: $tag ──"
   local lb=( "${DOCKER[@]}" run --rm --network "$NETWORK" )
   if [[ "$KIND" == "oracle11" ]]; then
     lb+=(-e "JAVA_TOOL_OPTIONS=-Doracle.jdbc.timezoneAsRegion=false")
   fi
   "${lb[@]}" \
     -v "$changelog:/usr/src/config/liquibase:ro" \
-    liquibase/liquibase:4.29 \
+    "liquibase/liquibase:$version" \
     --search-path=/usr/src/config/liquibase \
     --url="$url" --username="$DB_USER" --password="$DB_PASS" \
     --changeLogFile=master.xml \
@@ -269,7 +288,7 @@ run_stopped_at_22c() {
   local present_22 absent_22c absent_23
   present_22=$(sql_count "SELECT COUNT(*) FROM databasechangelog WHERE id = '22_map_image_task_type'")
   absent_22c=$(sql_count "SELECT COUNT(*) FROM databasechangelog WHERE id = '22c_document_export_codelists'")
-  absent_23=$(sql_count "SELECT COUNT(*) FROM databasechangelog WHERE filename LIKE '%23_add_document_export_tasks%'")
+  absent_23=$(sql_count "SELECT COUNT(*) FROM databasechangelog WHERE id = '23_document_export_tasks'")
   if [[ "$present_22" == "1" && "$absent_22c" == "0" && "$absent_23" == "0" ]]; then
     ok "changelog has changeset 22 and not 22c or 23"
   else
@@ -284,12 +303,65 @@ run_stopped_at_22c() {
     tail -60 "$BACKEND_LOG" || true
   fi
   assert_duplicate_literal_merged
+  assert_hop_executed
   stop_backend
+}
+
+schema_filename() {
+  if [[ "$KIND" == "postgres" ]]; then
+    echo "changelog/01_schema.postgresql.sql"
+  else
+    echo "changelog/01_schema.oracle.sql"
+  fi
+}
+
+legacy_ids() {
+  local fixture=oracle-23
+  [[ "$KIND" == "postgres" ]] && fixture=postgres-16
+  tail -n +2 "$REPO_ROOT/sitmun-backend/src/test/resources/db/databasechangelog/1.2.9/${fixture}.csv" \
+    | cut -d, -f1 | sed "s/.*/'&'/" | paste -sd, -
+}
+
+# Without SITMUN_SOURCE_LIQUIBASE the seed is the shipped Liquibase, which
+# records master.xml for every 1.2.9 row.
+assert_seed_filenames() {
+  [[ -n "${SITMUN_SOURCE_LIQUIBASE:-}" ]] && return 0
+  local total master_xml
+  total=$(sql_count "SELECT COUNT(*) FROM databasechangelog WHERE id IN ($(legacy_ids))")
+  master_xml=$(sql_count "SELECT COUNT(*) FROM databasechangelog WHERE filename = 'master.xml' AND id IN ($(legacy_ids))")
+  if [[ "$total" -gt 0 && "$master_xml" == "$total" ]]; then
+    ok "shipped Liquibase recorded master.xml for $total 1.2.9 rows"
+  else
+    fail "seed rows=$total master.xml=$master_xml"
+  fi
+}
+
+assert_filenames_restored() {
+  local restored others
+  restored=$(sql_count "SELECT COUNT(*) FROM databasechangelog WHERE id = '1' AND author = 'sitmun' AND filename = '$(schema_filename)'")
+  others=$(sql_count "SELECT COUNT(*) FROM databasechangelog WHERE id IN ($(legacy_ids)) AND filename NOT LIKE 'changelog/%'")
+  if [[ "$restored" == "1" && "$others" == "0" ]]; then
+    ok "1.2.9 rows name their own changelog file"
+  else
+    fail "restored schema row=$restored 1.2.9 rows without their file=$others"
+  fi
+}
+
+# MARK_RAN here would mean the upgrade recorded a step it did not run.
+assert_hop_executed() {
+  local hop skipped
+  hop=$(sql_count "SELECT COUNT(*) FROM databasechangelog WHERE id LIKE 'upgrade-1.2.9-to-1.3.0-%'")
+  skipped=$(sql_count "SELECT COUNT(*) FROM databasechangelog WHERE id LIKE 'upgrade-1.2.9-to-1.3.0-%' AND exectype <> 'EXECUTED'")
+  if [[ "$hop" -gt 0 && "$skipped" == "0" ]]; then
+    ok "all $hop 1.2.9 to 1.3.0 steps EXECUTED"
+  else
+    fail "1.2.9 to 1.3.0 steps=$hop not EXECUTED=$skipped"
+  fi
 }
 
 echo "── Build backend jar ──"
 (cd "$REPO_ROOT" && ./gradlew --no-daemon -q :sitmun-backend:bootJar) || { echo "bootJar failed" >&2; exit 1; }
-JAR=$(ls "$REPO_ROOT"/sitmun-backend/build/libs/*.jar | grep -v -- '-plain\.jar$' | head -1)
+JAR=$(ls -t "$REPO_ROOT"/sitmun-backend/build/libs/*.jar | grep -v -- '-plain\.jar$' | head -1)
 
 if [[ "${3:-}" == "stopped-22c" ]]; then
   run_stopped_at_22c
@@ -356,14 +428,6 @@ else
   fail "1.2.7 refusal refused=$refused rows $before -> $after"
   tail -40 "$BACKEND_LOG" || true
 fi
-
-schema_filename() {
-  if [[ "$KIND" == "postgres" ]]; then
-    echo "changelog/01_schema.postgresql.sql"
-  else
-    echo "changelog/01_schema.oracle.sql"
-  fi
-}
 
 expect_language_refusal() {
   local lang="$1" label="$2"
@@ -434,10 +498,10 @@ fi
 echo "── $ENGINE: 1.2.9 upgrades ──"
 start_db
 apply_tag "$TAG_129" "$TMP/129"
+assert_seed_filenames
 echo "── $ENGINE: default language must be confirmed ──"
 expect_language_refusal "" "missing SITMUN_UPGRADE_DEFAULT_LANGUAGE refused"
 expect_language_refusal "ca" "SITMUN_UPGRADE_DEFAULT_LANGUAGE ca refused while STM_CONF is en"
-SCHEMA_FILE="$(schema_filename)"
 SQLFILE="$TMP/mutate.sql"
 if [[ "$KIND" == "postgres" ]]; then
   cat >"$SQLFILE" <<EOF
@@ -460,7 +524,7 @@ EOF
 fi
 run_sql_file "$SQLFILE"
 inject_duplicate_literal
-old_md5=$(sql_count "SELECT md5sum FROM databasechangelog WHERE id = '1' AND filename = '${SCHEMA_FILE}'")
+old_md5=$(sql_count "SELECT md5sum FROM databasechangelog WHERE id = '1' AND author = 'sitmun'")
 boot_backend
 if wait_health; then
   ok "upgraded database health is UP"
@@ -469,6 +533,8 @@ else
   tail -60 "$BACKEND_LOG" || true
 fi
 stop_backend
+assert_filenames_restored
+assert_hop_executed
 if [[ "$KIND" == "postgres" ]]; then
   restored=$(sql_count "SELECT COUNT(*) FROM stm_codelist WHERE cod_list = 'application.type' AND cod_value = 'I' AND cod_system")
 else
@@ -525,7 +591,7 @@ if [[ "$aranes_ok" == "7" ]]; then
   ok "seven oc-aranes template sentences inserted"
 fi
 rows_after=$(sql_count "SELECT COUNT(*) FROM databasechangelog")
-new_md5=$(sql_count "SELECT md5sum FROM databasechangelog WHERE id = '1' AND filename = '${SCHEMA_FILE}'")
+new_md5=$(sql_count "SELECT md5sum FROM databasechangelog WHERE id = '1' AND author = 'sitmun'")
 if [[ "$old_md5" == "$new_md5" && -n "$old_md5" ]]; then
   ok "1.2.9 schema checksum unchanged ($old_md5)"
 else

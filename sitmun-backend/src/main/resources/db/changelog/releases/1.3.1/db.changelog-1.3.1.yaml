@@ -1,0 +1,36 @@
+databaseChangeLog:
+  - property:
+      name: upgrade.defaultLanguage
+      value: ""
+  - changeSet:
+      id: upgrade-restore-changelog-filenames-postgresql
+      author: sitmun
+      dbms: postgresql
+      logicalFilePath: db/changelog/releases/1.3.1/00-restore-changelog-filenames.postgresql.sql
+      preConditions:
+        - onFail: MARK_RAN
+        - sqlCheck:
+            expectedResult: "0"
+            sql: SELECT COUNT(*) FROM databasechangelog WHERE id = 'upgrade-version-check-postgresql' AND author = 'sitmun'
+      changes:
+        - sqlFile:
+            path: 00-restore-changelog-filenames.postgresql.sql
+            relativeToChangelogFile: true
+            splitStatements: false
+            stripComments: false
+  - changeSet:
+      id: upgrade-restore-changelog-filenames-oracle
+      author: sitmun
+      dbms: oracle
+      logicalFilePath: db/changelog/releases/1.3.1/00-restore-changelog-filenames.oracle.sql
+      preConditions:
+        - onFail: MARK_RAN
+        - sqlCheck:
+            expectedResult: "0"
+            sql: SELECT COUNT(*) FROM databasechangelog WHERE id = 'upgrade-version-check-oracle' AND author = 'sitmun'
+      changes:
+        - sqlFile:
+            path: 00-restore-changelog-filenames.oracle.sql
+            relativeToChangelogFile: true
+            splitStatements: false
+            stripComments: false

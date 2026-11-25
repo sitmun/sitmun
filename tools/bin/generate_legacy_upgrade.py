@@ -44,6 +44,62 @@ def load_fixture(name: str) -> list[tuple[str, str, str]]:
         ]
 
 
+# 22c needs Oracle 23ai syntax. Stack dev commit a8b494e1d
+# (sitmun/sitmun-application-stack#74) ran 22, 22b and 22c again on Oracle as
+# 26, 26b and 26c. Each 26 changeset writes what its 22 counterpart writes.
+ORACLE_REPLACEMENTS = (
+    ("22_document_export_task_type", "26_document_export_task_type"),
+    ("22_map_image_task_type", "26_map_image_task_type"),
+    ("22b_map_image_task_type_seq", "26b_map_image_task_type_seq"),
+    ("22c_document_export_codelists", "26c_document_export_codelists"),
+)
+
+
+def restore_filenames(
+    rows: list[tuple[str, str, str]],
+    check: str,
+    replacements: tuple[tuple[str, str], ...] = (),
+) -> str:
+    """Give every 1.2.x row its 1.2.9 file name back, then check.
+
+    Rows are matched by id and author. The file name a 1.2.x row carries
+    depends on the Liquibase that wrote it: from 4.31.0 the profile master's
+    logicalFilePath, master.xml, replaces every included file. The version check
+    and the catch-up preconditions match on the 1.2.9 file name.
+    A missing 1.2.9 row whose replacement ran is recorded as MARK_RAN, with
+    the replacement's id in COMMENTS. The writes run inside the check's block,
+    so a refusal rolls them back.
+    """
+    files: dict[str, list[str]] = {}
+    for changeset_id, author, filename in rows:
+        if author != "sitmun":
+            raise SystemExit(f"unexpected author {author} in the 1.2.9 fixture")
+        files.setdefault(filename, []).append(changeset_id)
+    updates = "".join(
+        f"  UPDATE databasechangelog SET filename = {sql_text(filename)}\n"
+        f"  WHERE author = 'sitmun' AND filename <> {sql_text(filename)}\n"
+        f"    AND id IN ({', '.join(sql_text(i) for i in ids)});\n"
+        for filename, ids in files.items()
+    )
+    file_of = {changeset_id: filename for changeset_id, _, filename in rows}
+    inserts = "".join(
+        "  INSERT INTO databasechangelog (id, author, filename, dateexecuted, orderexecuted, exectype,"
+        " md5sum, description, comments, liquibase, deployment_id)\n"
+        f"  SELECT {sql_text(original)}, 'sitmun', {sql_text(file_of[original])}, r.dateexecuted,"
+        f" r.orderexecuted, 'MARK_RAN', NULL, r.description, {sql_text('applied as ' + replacement)},"
+        " r.liquibase, r.deployment_id\n"
+        "  FROM databasechangelog r\n"
+        f"  WHERE r.id = {sql_text(replacement)} AND r.author = 'sitmun'\n"
+        "    AND NOT EXISTS (SELECT 1 FROM databasechangelog d"
+        f" WHERE d.id = {sql_text(original)} AND d.author = 'sitmun');\n"
+        for original, replacement in replacements
+    )
+    head, sep, tail = check.partition("\nBEGIN\n")
+    if not sep:
+        raise SystemExit("version check has no BEGIN line")
+    return head + sep + updates + inserts + tail
+
+
 def version_check_postgres(rows: list[tuple[str, str, str]]) -> str:
     base, extra = split_history(rows)
     return f"""DO $$
@@ -416,6 +472,7 @@ def sequences(oracle: bool) -> str:
 
 
 CATCH_UP = LEGACY.parent / "1.2.8-to-1.2.9"
+RELEASE_131 = LEGACY.parents[1] / "releases/1.3.1"
 PG_WIDEN = (
     ("stm_fil_gi", "fgi_valuetype", 50),
     ("stm_geoinfo", "geo_type", 50),
@@ -788,6 +845,12 @@ def main() -> None:
     CATCH_UP.mkdir(parents=True, exist_ok=True)
     postgres_rows = load_fixture("postgres-16.csv")
     oracle_rows = load_fixture("oracle-23.csv")
+    (RELEASE_131 / "00-restore-changelog-filenames.postgresql.sql").write_text(
+        restore_filenames(postgres_rows, version_check_postgres(postgres_rows))
+    )
+    (RELEASE_131 / "00-restore-changelog-filenames.oracle.sql").write_text(
+        restore_filenames(oracle_rows, version_check_oracle(oracle_rows), ORACLE_REPLACEMENTS)
+    )
     (version_check / "00-version-check.postgresql.sql").write_text(version_check_postgres(postgres_rows))
     (version_check / "00-version-check.oracle.sql").write_text(version_check_oracle(oracle_rows))
     (CATCH_UP / "01-catch-up.postgresql.sql").write_text(catch_up("postgresql"))
