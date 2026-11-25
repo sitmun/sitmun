@@ -226,7 +226,7 @@ public class AuthenticationController {
     final String shortLivedToken =
         SecurityRole.isMobileEdition()
             ? jsonWebTokenService.generateMobileProxyToken(username, lastPasswordChange)
-            : jsonWebTokenService.generateToken(username, new Date(), validity);
+            : jsonWebTokenService.generateToken(username, new Date(), lastPasswordChange, validity);
 
     AuthenticationResponse authResponse = new AuthenticationResponse();
     authResponse.setProxyToken(shortLivedToken);
