@@ -97,8 +97,7 @@ test.describe('User form', () => {
     expect(login.ok(), `authenticate failed: ${login.status()} ${await login.text()}`).toBeTruthy();
   });
 
-  // #386: the add-roles picker compared role ids with assignment ids. In the test data, admin
-  // (user 1) has assignments 10000-10002, all with role 10001, so roles 10001 and 10002 vanished.
+  // Test data: admin (user 1) has assignments 10000-10002, sharing ids with roles 10001 and 10002.
   test('add-roles dialog lists roles whose id matches an assignment id (#386)', async ({ page }) => {
     await page.goto('/#/user/1/userForm');
     await waitForFormReady(page, 'username');
