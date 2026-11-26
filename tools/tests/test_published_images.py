@@ -90,6 +90,14 @@ class PublishedImagesTest(unittest.TestCase):
         readme = (ROOT / "README.md").read_text(encoding="utf-8")
         self.assertIn("RELEASE.md#images", readme)
 
+    def test_backend_and_proxy_forward_the_unsafe_allowed_hosts(self) -> None:
+        text = (ROOT / "compose.yaml").read_text(encoding="utf-8")
+        backend = text.split("\n  backend:\n", 1)[1].split("\n  proxy:\n", 1)[0]
+        proxy = text.split("\n  proxy:\n", 1)[1].split("\n  mbtiles:\n", 1)[0]
+        line = "SITMUN_CLIENT_UNSAFE_ALLOWED_HOSTS=${SITMUN_CLIENT_UNSAFE_ALLOWED_HOSTS:-}"
+        self.assertIn(line, backend)
+        self.assertIn(line, proxy)
+
     def test_front_waits_for_a_healthy_proxy(self) -> None:
         text = (ROOT / "compose.yaml").read_text(encoding="utf-8")
         front = text.split("\n  front:\n", 1)[1].split("\n  backend:\n", 1)[0]
