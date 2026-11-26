@@ -1474,11 +1474,18 @@ test.describe('Map chrome responsive (#135)', () => {
       sel: '#tools-tab' | '#legend-tab',
       expectedTopPx: number,
     ) => {
+      // The collapsed class lands before the slide starts: read and click only at rest.
+      await waitLayoutStable(page, '.tc-left-panel');
+      await waitLayoutStable(page, sel);
       const before = await readTabChrome(page, sel);
       expect(before.visible, `${sel} opener must be visible`).toBe(true);
 
       await page.locator(sel).click();
       await expect(page.locator('.tc-left-panel')).not.toHaveClass(/tc-collapsed-left/);
+      await waitLayoutStable(page, '.tc-left-panel');
+      await waitLayoutStable(page, sel);
+      // Hover turns the close #a51818; keep the pointer off it for the colour check.
+      await page.mouse.move(0, 0);
 
       await expect
         .poll(async () => {
@@ -1503,6 +1510,7 @@ test.describe('Map chrome responsive (#135)', () => {
 
       await page.locator(sel).click();
       await expect(page.locator('.tc-left-panel')).toHaveClass(/tc-collapsed-left/);
+      await waitLayoutStable(page, '.tc-left-panel');
     };
 
     await assertCloseAtOpenerHeight('#tools-tab', 64);
