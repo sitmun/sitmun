@@ -164,6 +164,46 @@ async function openLegendPanel(page: Page): Promise<void> {
   ).toBeVisible({ timeout: 30_000 });
 }
 
+/**
+ * API-SITNA LayerLegend re-reads the legend 300 ms after the panel enters view or the map
+ * zooms, and that read clears and redraws the entry. Wait until no entry is loading and the
+ * legend DOM has been quiet for longer than that delay.
+ */
+async function waitLegendSettled(page: Page): Promise<void> {
+  await page.evaluate(
+    () =>
+      new Promise<void>((resolve, reject) => {
+        const slot = document.getElementById('tc-slot-legend');
+        if (!slot) {
+          reject(new Error('#tc-slot-legend missing'));
+          return;
+        }
+        const quietMs = 700;
+        let timer: ReturnType<typeof setTimeout>;
+        const arm = () => {
+          clearTimeout(timer);
+          timer = setTimeout(() => {
+            if (slot.querySelector('.tc-ctl-layer-legend-loading')) {
+              arm();
+              return;
+            }
+            observer.disconnect();
+            clearTimeout(deadline);
+            resolve();
+          }, quietMs);
+        };
+        const observer = new MutationObserver(arm);
+        observer.observe(slot, { childList: true, subtree: true });
+        const deadline = setTimeout(() => {
+          observer.disconnect();
+          clearTimeout(timer);
+          reject(new Error('legend did not settle within 15 s'));
+        }, 15_000);
+        arm();
+      }),
+  );
+}
+
 test.describe('Map Legend task (#164)', () => {
   test('shows symbology from capabilities LegendURL when DescribeLayer is denied', async ({
     page,
@@ -215,6 +255,7 @@ test.describe('Map Legend task (#164)', () => {
     const heading = (await title.innerText()).trim();
     expect(heading.length).toBeGreaterThan(0);
 
+    await waitLegendSettled(page);
     await entry.evaluate((el) => {
       el.firstElementChild?.setAttribute('data-sitmun-probe', '1');
     });
