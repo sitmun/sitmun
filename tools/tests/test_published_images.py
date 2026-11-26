@@ -15,7 +15,9 @@ LABELS = (
     "org.opencontainers.image.source=https://github.com/sitmun/sitmun",
     "org.opencontainers.image.licenses=EUPL-1.2",
     "org.opencontainers.image.description=",
+    "org.opencontainers.image.documentation=https://sitmun.github.io/usuario/instalacion/instalacion/",
 )
+INDEX_KEYS = ("source", "licenses", "description", "documentation")
 DOCKERFILES = {
     "front": ROOT / "docker/front/Dockerfile",
     "backend": ROOT / "docker/backend/Dockerfile",
@@ -49,6 +51,22 @@ class PublishedImagesTest(unittest.TestCase):
             text = path.read_text(encoding="utf-8")
             for label in LABELS:
                 self.assertIn(label, text, path.name)
+
+    def test_index_annotations_repeat_the_dockerfile_labels(self) -> None:
+        # GHCR reads a multi-arch package description from the index annotations (#383).
+        helper = ROOT / "tools/scripts/image-index-annotations.sh"
+        self.assertTrue(os.access(helper, os.X_OK), helper)
+        for name, path in DOCKERFILES.items():
+            result = subprocess.run([helper, str(path)], capture_output=True, text=True, check=True)
+            args = result.stdout.splitlines()
+            for key in INDEX_KEYS:
+                matches = [a for a in args if a.startswith(f"index:org.opencontainers.image.{key}=")]
+                self.assertEqual(len(matches), 1, f"{name} {key}: {args}")
+            description = next(a for a in args if ".description=" in a)
+            self.assertNotIn('"', description, name)
+        script = (ROOT / "tools/scripts/publish-images.sh").read_text(encoding="utf-8")
+        self.assertIn("imagetools create", script)
+        self.assertIn("image-index-annotations.sh", script)
 
     def test_publish_workflow_pushes_1_3_0_and_makes_the_packages_public(self) -> None:
         text = (ROOT / ".github/workflows/publish-images.yml").read_text(encoding="utf-8")

@@ -17,6 +17,7 @@ FROM amazoncorretto:17.0.21@sha256:b505ecf1fd737d85c0fd3930b8ab3ed0cb560326809aa
 LABEL org.opencontainers.image.source=https://github.com/sitmun/sitmun
 LABEL org.opencontainers.image.licenses=EUPL-1.2
 LABEL org.opencontainers.image.description="SITMUN backend"
+LABEL org.opencontainers.image.documentation=https://sitmun.github.io/usuario/instalacion/instalacion/
 ENV JAVA_TOOL_OPTIONS="-XX:MaxRAMPercentage=75"
 COPY --from=build-backend-core /usr/src/sitmun-backend/build/libs/*.jar /usr/src/sitmun.jar
 WORKDIR /usr/src

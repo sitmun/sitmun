@@ -15,6 +15,7 @@ FROM amazoncorretto:17.0.21@sha256:b505ecf1fd737d85c0fd3930b8ab3ed0cb560326809aa
 LABEL org.opencontainers.image.source=https://github.com/sitmun/sitmun
 LABEL org.opencontainers.image.licenses=EUPL-1.2
 LABEL org.opencontainers.image.description="SITMUN MBTiles"
+LABEL org.opencontainers.image.documentation=https://sitmun.github.io/usuario/instalacion/instalacion/
 COPY --from=build-mbtiles /usr/src/sitmun-addons/sitmun-mbtiles/build/libs/*.jar /usr/src/mbtiles.jar
 WORKDIR /usr/src
 VOLUME ["/tmp/mbtiles"]

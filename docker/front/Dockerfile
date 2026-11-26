@@ -69,6 +69,7 @@ FROM nginx:1.30-alpine@sha256:583b7f2fce1cdb8da5ad5c39ebd3c33b98b87d493190e548bd
 LABEL org.opencontainers.image.source=https://github.com/sitmun/sitmun
 LABEL org.opencontainers.image.licenses=EUPL-1.2
 LABEL org.opencontainers.image.description="SITMUN admin and viewer"
+LABEL org.opencontainers.image.documentation=https://sitmun.github.io/usuario/instalacion/instalacion/
 COPY --from=build-apps /home/node/app/sitmun-admin/dist/admin-app/ /usr/share/nginx/html/admin
 COPY --from=build-apps /home/node/app/sitmun-viewer/dist/viewer-app/ /usr/share/nginx/html/viewer
 HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 CMD wget -q --spider http://localhost/admin/ || exit 1
