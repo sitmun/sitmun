@@ -600,7 +600,9 @@ export class DataTable2Definition<RELATION, TARGET_LEFT, TARGET_RIGHT> implement
             columnDefsTable: [this.targetsLeftColumnsDefs, this.targetsRightColumnsDefs],
             title: this.targetsTitle,
             titlesTable: [this.targetsLeftTitle, this.targetsRightTitle],
-            currentData: [relations],
+            // A relation is a (left, right) pair: never filter a picker by existing relations;
+            // withFieldRestrictions rejects duplicate pairs.
+            currentData: [],
             nonEditable: false,
           }
         }
