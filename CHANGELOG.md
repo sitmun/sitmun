@@ -16,6 +16,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 #### Stack
 
+- **Images**: The ghcr.io package pages of `front`, `backend`, `proxy`, and `mbtiles` get a description, licence, source, and documentation link ([#383](https://github.com/sitmun/sitmun/issues/383)). The images are multi-arch, and GitHub reads a multi-arch package description from the image index annotations, not from the Dockerfile labels the images already had. `tools/scripts/publish-images.sh` now copies each Dockerfile's `org.opencontainers.image.*` labels onto the index after the push, through `tools/scripts/image-index-annotations.sh`. Each Dockerfile also gains `org.opencontainers.image.documentation`. The 1.3.0 packages change only if their tags are published again.
 - **Setup**: `setup.sh` and `setup.ps1` add a newline before appending a missing secret when `.env` does not end with one. The first secret was joined to the last line, for example `COMPOSE_PROFILES=postgresSITMUN_USER_SECRET=…`, which broke that line and left the secret unset ([#390](https://github.com/sitmun/sitmun/issues/390)). `tools/tests/test_setup_compose_secrets.sh` checks both scripts; the `setup.ps1` case needs `pwsh`.
 
 #### Backend Core

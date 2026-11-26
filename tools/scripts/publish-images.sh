@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Build and push front, backend, proxy, and mbtiles for linux/amd64 and linux/arm64.
+# Build and push front, backend, proxy, and mbtiles for linux/amd64 and linux/arm64, then
+# copy each Dockerfile's org.opencontainers.image.* labels onto the image index.
 # The caller logs in to ghcr.io. A dirty tree is refused.
 set -euo pipefail
 
@@ -41,7 +42,14 @@ docker compose --env-file "$envfile" \
   front backend proxy mbtiles
 
 for name in front backend proxy mbtiles; do
-  inspect=$(docker buildx imagetools inspect "ghcr.io/sitmun/${name}:${tag}")
+  image="ghcr.io/sitmun/${name}:${tag}"
+  annotations=()
+  while IFS= read -r annotation; do
+    annotations+=(--annotation "$annotation")
+  done < <(tools/scripts/image-index-annotations.sh "docker/${name}/Dockerfile")
+  docker buildx imagetools create --builder "$builder" "${annotations[@]}" --tag "$image" "$image"
+
+  inspect=$(docker buildx imagetools inspect "$image")
   printf '%s\n' "$inspect"
   printf '%s\n' "$inspect" | grep -q 'linux/amd64' || {
     echo "missing linux/amd64: $name" >&2
@@ -49,6 +57,10 @@ for name in front backend proxy mbtiles; do
   }
   printf '%s\n' "$inspect" | grep -q 'linux/arm64' || {
     echo "missing linux/arm64: $name" >&2
+    exit 1
+  }
+  docker buildx imagetools inspect "$image" --raw | grep -q '"org.opencontainers.image.description"' || {
+    echo "missing index description: $name" >&2
     exit 1
   }
 done
