@@ -27,6 +27,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - **Proxy token**: A viewer user whose account has a recorded password change (the `admin` after first run, or any user after a password reset) can use private layers and SQL or Web API tasks again; the proxy no longer answers 401 ([#387](https://github.com/sitmun/sitmun/issues/387)). See `sitmun-backend/CHANGELOG.md`.
 - **Territorial roles**: An application with only **Garantizar acceso a territorios hijo** now appears in the viewer for a user whose assignment has **Rol territorial** on, and opens in the child territories of the assigned territory ([#379](https://github.com/sitmun/sitmun/issues/379)). See `sitmun-backend/CHANGELOG.md`.
 - **Capabilities**: In the admin, **Obtener detalles del servicio** and **Obtener tipos de entidad del servicio** work for a WFS service. The backend helper rejected every WFS with «Error del backend» ([#382](https://github.com/sitmun/sitmun/issues/382)). See `sitmun-backend/CHANGELOG.md`.
+- **Feature types**: In the admin layer form, **Cargar propiedades del servicio** reads the fields of a WFS feature type from servers whose schema has no `xsd:` prefix, such as INSPIRE services. It showed «No se ha podido leer el tipo de entidad del WFS» ([#419](https://github.com/sitmun/sitmun/issues/419)). See `sitmun-backend/CHANGELOG.md`.
 
 #### Admin Application
 

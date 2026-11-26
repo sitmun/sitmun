@@ -13,6 +13,7 @@
  *
  * /wfs (same process): WFS 2.0.0 GetCapabilities with GetFeature GET and no CountDefault,
  * plus GetFeature GML2 for type e2e_wfs_point (include-list fields code and place, plus secret).
+ * /wfs-inspire: DescribeFeatureType only, an XML Schema with no `xsd:` prefix (INSPIRE style, #419).
  */
 import { createServer } from 'node:http';
 import { readFileSync } from 'node:fs';
@@ -106,6 +107,26 @@ const WFS_CAPABILITIES_XML = `<?xml version="1.0" encoding="UTF-8"?>
     </FeatureType>
   </FeatureTypeList>
 </wfs:WFS_Capabilities>
+`;
+
+/** INSPIRE-style DescribeFeatureType: XSD in the default namespace, no `xsd:` prefix (#419). */
+const INSPIRE_TYPE_NAME = 'e2e_inspire_point';
+const INSPIRE_SCHEMA_XML = `<?xml version="1.0" encoding="UTF-8"?>
+<schema xmlns="http://www.w3.org/2001/XMLSchema" xmlns:gml="http://www.opengis.net/gml/3.2" xmlns:app="http://e2e.sitmun/inspire" targetNamespace="http://e2e.sitmun/inspire" elementFormDefault="qualified">
+  <import namespace="http://www.opengis.net/gml/3.2" schemaLocation="http://schemas.opengis.net/gml/3.2.1/gml.xsd"/>
+  <element name="${INSPIRE_TYPE_NAME}" type="app:${INSPIRE_TYPE_NAME}Type" substitutionGroup="gml:AbstractFeature"/>
+  <complexType name="${INSPIRE_TYPE_NAME}Type">
+    <complexContent>
+      <extension base="gml:AbstractFeatureType">
+        <sequence>
+          <element name="code" type="string"/>
+          <element name="place" type="string"/>
+          <element name="geom" type="gml:PointPropertyType"/>
+        </sequence>
+      </extension>
+    </complexContent>
+  </complexType>
+</schema>
 `;
 
 const WFS_GML = `<?xml version="1.0" encoding="UTF-8"?>
@@ -512,6 +533,20 @@ const server = createServer((req, res) => {
       'Access-Control-Allow-Headers': 'Authorization, Content-Type',
     });
     res.end();
+    return;
+  }
+
+  if (method === 'GET' && url.pathname === '/wfs-inspire') {
+    const requestName = requestNameOf(url);
+    console.error(`[e2e-wms-stub] ${method} /wfs-inspire request=${requestName || 'none'}`);
+    rememberQuery(url);
+    if (requestName !== 'describefeaturetype') {
+      res.writeHead(400, { 'Content-Type': 'text/plain' });
+      res.end('only DescribeFeatureType');
+      return;
+    }
+    res.writeHead(200, { 'Content-Type': 'text/xml', 'X-E2E-Upstream': 'wfs-inspire-schema' });
+    res.end(INSPIRE_SCHEMA_XML);
     return;
   }
 
