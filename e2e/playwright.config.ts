@@ -34,6 +34,14 @@ export default defineConfig({
       gracefulShutdown: { signal: 'SIGTERM', timeout: 10_000 },
     },
     {
+      command: 'pnpm run e2e:wms-stub',
+      cwd: repoRoot,
+      url: 'http://127.0.0.1:18093/health',
+      timeout: 30_000,
+      reuseExistingServer: false,
+      gracefulShutdown: { signal: 'SIGTERM', timeout: 5_000 },
+    },
+    {
       command: 'pnpm run e2e:admin',
       cwd: repoRoot,
       url: 'http://localhost:4300',

@@ -5,6 +5,7 @@ import okhttp3.HttpUrl;
 final class CapabilitiesUrlBuilder {
 
   static final String TYPE_WMS = "WMS";
+  static final String TYPE_WFS = "WFS";
 
   private CapabilitiesUrlBuilder() {}
 
@@ -15,7 +16,7 @@ final class CapabilitiesUrlBuilder {
     if (type == null || type.isBlank()) {
       throw new IllegalArgumentException("type is required");
     }
-    if (!TYPE_WMS.equals(type)) {
+    if (!TYPE_WMS.equals(type) && !TYPE_WFS.equals(type)) {
       throw new IllegalArgumentException("Unsupported service type for capabilities: " + type);
     }
     HttpUrl parsed = HttpUrl.parse(endpoint);
@@ -28,7 +29,7 @@ final class CapabilitiesUrlBuilder {
     return parsed
         .newBuilder()
         .setQueryParameter("request", "GetCapabilities")
-        .setQueryParameter("service", "WMS")
+        .setQueryParameter("service", type)
         .build()
         .toString();
   }

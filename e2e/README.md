@@ -21,6 +21,7 @@ Browser E2E against backend-core. The default database is in-memory H2. No Docke
 - Service form type list offers only `WMS`, `WFS`, and `WMTS` (`e2e/admin/forms/service-type-options.spec.ts`, project `admin-forms`, [sitmun-application-stack#101](https://github.com/sitmun/sitmun-application-stack/issues/101))
 - Service form Get Metadata: MapServer-style URL with existing `?map=` POSTs `helpers/capabilities` JSON (`url` is the form endpoint, `type` is WMS); backend adds GetCapabilities (intercepted stub; no live ICGC); no «saved» toast follows the lookup ([#391](https://github.com/sitmun/sitmun/issues/391)) (`e2e/admin/forms/service-capabilities-mapserver.spec.ts`, project `admin-forms`)
 - Service form layer registration: a WMS layer with three styles (intercepted capabilities stub) registered from the Layers tab stores all three styles, each `POST /api/cartography-styles` 2xx ([#384](https://github.com/sitmun/sitmun/issues/384); `e2e/admin/forms/service-layer-styles.spec.ts`, project `admin-forms`)
+- Service form WFS capabilities, against the backend and the `/wfs` path of the WMS stub (no browser interception): **Get Metadata** fills name and description from `ows:ServiceIdentification`, and the **Feature types** tab lists `e2e_wfs_point`; `POST helpers/capabilities` with `type` WFS answers 200 ([#382](https://github.com/sitmun/sitmun/issues/382); `e2e/admin/forms/service-capabilities-wfs.spec.ts`, project `admin-forms`)
 - Layers list delete: create via form, search, grid delete → `DELETE /api/cartographies/{id}` **204** and GET **404** (`e2e/admin/forms/layers-list-delete.spec.ts`, project `admin-forms`)
 - Plantilla dry-run: ADMIN `POST /api/tasks/template/preview` and `/execute-child` without required `appId`/`terId` (`e2e/admin/forms/template-execute-child.spec.ts`, project `admin-forms`)
 - Plantilla nested preview-only: create nested A→B, assert admin preview / execute-child panel contains B’s marker (`e2e/admin/forms/template-nested-preview.spec.ts`, project `admin-forms`)
@@ -141,7 +142,7 @@ Rerun the suite outside the sandbox. A missing browser executable is environment
 | WMTS stub (mobile) | 18094 |
 | MBTiles (internal; not on gateway) | 18084 |
 
-The suite starts its own processes and fails if a listed port is already occupied. Viewer, mia-cross, and both mobile suites also bind proxy port 18082.
+The suite starts its own processes and fails if a listed port is already occupied. Viewer, mia-cross, and both mobile suites also bind proxy port 18082. Admin, viewer, and mia-cross also bind the WMS stub port 18093.
 
 ## Commands
 
