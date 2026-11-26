@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Services**: Reading a service's capabilities no longer shows the `backend.operation.saved` message. This covers the service form's get-metadata button (`entity.service.button.getMetadata`), loading the service layers, and adding a service to a tree. The capabilities lookup is a `POST` that saves nothing, so it sends `SUPPRESS_SUCCESS_NOTIFICATION`. A failed lookup still shows its error ([#391](https://github.com/sitmun/sitmun/issues/391)).
 - **Users, roles, territories**: The two-step dialogs that add role assignments list every candidate. They hid a candidate whose `id` matched the `id` of an existing assignment (`user-configurations`), so a role, user, or territory could not be picked. This affects the user form (roles × territories), the role form (users × territories), and the territory form (users × roles). `DataTable2Definition.openDialog` no longer filters its pickers by the existing assignments; `withFieldRestrictions` on the assignments grid still rejects a duplicate pair ([#386](https://github.com/sitmun/sitmun/issues/386)).
+- **Services**: Registering a WMS layer that advertises several styles stores every style. `WMSCapabilitiesService.createStyle` now sets `defaultStyle` to `false`, and the first style still gets `true`. Before, only the first style had the field, so the backend rejected each other style with 400 on `defaultStyle` ([#384](https://github.com/sitmun/sitmun/issues/384)).
 
 ## [1.3.0] - 2026-11-12
 

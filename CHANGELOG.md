@@ -29,6 +29,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 - **Services**: Getting a service's metadata from its server no longer says the changes were saved before the service is saved ([#391](https://github.com/sitmun/sitmun/issues/391)). See `sitmun-admin/CHANGELOG.md`.
 - **Role assignments**: The dialogs that add role assignments in the user, role, and territory forms list every candidate again ([#386](https://github.com/sitmun/sitmun/issues/386)). See `sitmun-admin/CHANGELOG.md`.
+- **Services**: Registering a WMS layer with several styles stores all of them, the first as the default ([#384](https://github.com/sitmun/sitmun/issues/384)). See `sitmun-admin/CHANGELOG.md`.
 
 #### Viewer Application
 

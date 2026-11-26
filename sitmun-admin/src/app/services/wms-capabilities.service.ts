@@ -504,7 +504,9 @@ export class WMSCapabilitiesService {
     const newStyle = Object.assign(new CartographyStyle(), {
       name: style.Name,
       description: style.Abstract,
-      title: style.Title
+      title: style.Title,
+      // The backend requires defaultStyle; extractCartography sets it on the first style.
+      defaultStyle: false
     });
 
     if (style.LegendURL?.OnlineResource) {

@@ -1,7 +1,7 @@
 import { test as base, expect, APIRequestContext } from '@playwright/test';
 
 export type CreatedResource = {
-  collection: 'roles' | 'users' | 'territories' | 'tasks' | 'cartographies' | 'trees';
+  collection: 'roles' | 'users' | 'territories' | 'tasks' | 'cartographies' | 'trees' | 'services';
   id: number;
 };
 
