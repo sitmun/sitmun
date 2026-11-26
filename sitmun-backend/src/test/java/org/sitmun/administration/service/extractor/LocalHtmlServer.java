@@ -28,6 +28,16 @@ public final class LocalHtmlServer implements AutoCloseable {
               + "<Service><Title>local</Title></Service>"
               + "</WMT_MS_Capabilities>")
           .getBytes(StandardCharsets.UTF_8);
+  private static final byte[] WFS_200 =
+      ("<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+              + "<wfs:WFS_Capabilities version=\"2.0.0\" xmlns:wfs=\"http://www.opengis.net/wfs/2.0\""
+              + " xmlns:ows=\"http://www.opengis.net/ows/1.1\">"
+              + "<ows:ServiceIdentification><ows:Title>local wfs</ows:Title>"
+              + "</ows:ServiceIdentification>"
+              + "<FeatureTypeList><FeatureType><Name>local_point</Name></FeatureType>"
+              + "</FeatureTypeList>"
+              + "</wfs:WFS_Capabilities>")
+          .getBytes(StandardCharsets.UTF_8);
   private static final byte[] GML_SCHEMA =
       ("<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
               + "<xsd:schema xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\""
@@ -61,6 +71,12 @@ public final class LocalHtmlServer implements AutoCloseable {
           } else if ("/wms-130".equals(path)) {
             body = WMS_130;
             contentType = "application/xml; charset=UTF-8";
+          } else if ("/wfs-200".equals(path)) {
+            body =
+                "WFS".equals(query(exchange.getRequestURI().getQuery(), "service"))
+                    ? WFS_200
+                    : HOME;
+            contentType = "application/xml; charset=UTF-8";
           } else if ("/wms-111".equals(path)) {
             body = WMS_111;
             contentType = "application/xml; charset=UTF-8";
@@ -75,6 +91,19 @@ public final class LocalHtmlServer implements AutoCloseable {
         });
     server.start();
     return new LocalHtmlServer(server);
+  }
+
+  private static String query(String rawQuery, String name) {
+    if (rawQuery == null) {
+      return null;
+    }
+    for (String pair : rawQuery.split("&")) {
+      String[] parts = pair.split("=", 2);
+      if (parts[0].equalsIgnoreCase(name)) {
+        return parts.length > 1 ? parts[1] : "";
+      }
+    }
+    return null;
   }
 
   public String url(String path) {

@@ -41,8 +41,17 @@ class CapabilitiesUrlBuilderTest {
   }
 
   @Test
-  @DisplayName("Rejects non-WMS types")
-  void rejectsNonWmsType() {
+  @DisplayName("Adds request and service=WFS for a bare WFS URL (#382)")
+  void addsGetCapabilitiesForBareWfsUrl() {
+    String result = CapabilitiesUrlBuilder.build("https://example.com/wfs", "WFS");
+
+    assertThat(result).contains("request=GetCapabilities");
+    assertThat(result).contains("service=WFS");
+  }
+
+  @Test
+  @DisplayName("Rejects types other than WMS and WFS")
+  void rejectsWmtsType() {
     assertThatThrownBy(() -> CapabilitiesUrlBuilder.build("https://example.com/wmts", "WMTS"))
         .isInstanceOf(IllegalArgumentException.class)
         .hasMessage("Unsupported service type for capabilities: WMTS");

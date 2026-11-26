@@ -77,6 +77,12 @@ const WFS_TYPE_NAME = 'e2e_wfs_point';
 
 const WFS_CAPABILITIES_XML = `<?xml version="1.0" encoding="UTF-8"?>
 <wfs:WFS_Capabilities version="2.0.0" xmlns:wfs="http://www.opengis.net/wfs" xmlns:ows="http://www.opengis.net/ows" xmlns:xlink="http://www.w3.org/1999/xlink">
+  <ows:ServiceIdentification>
+    <ows:Title>E2E WFS stub</ows:Title>
+    <ows:Abstract>E2E WFS capabilities stub</ows:Abstract>
+    <ows:ServiceType>WFS</ows:ServiceType>
+    <ows:ServiceTypeVersion>2.0.0</ows:ServiceTypeVersion>
+  </ows:ServiceIdentification>
   <ows:OperationsMetadata>
     <ows:Operation name="GetFeature">
       <ows:DCP>

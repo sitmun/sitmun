@@ -45,7 +45,7 @@ class ServiceCapabilitiesExtractorIntegrationTest extends BaseTest {
 
   @Test
   @WithMockUser(roles = "ADMIN")
-  @DisplayName("Non-WMS type fails before origin fetch")
+  @DisplayName("WMTS type fails before origin fetch")
   void rejectNonWmsType() throws Exception {
     postCapabilities(
             new JSONObject().put("url", "https://example.com/wmts").put("type", "WMTS").toString())
@@ -77,6 +77,17 @@ class ServiceCapabilitiesExtractorIntegrationTest extends BaseTest {
         .andExpect(jsonPath("$.type").value("OGC:WMS 1.3.0"))
         .andExpect(jsonPath("$.asText", startsWith("<?xml")))
         .andExpect(jsonPath("$.asJson.WMS_Capabilities").exists());
+  }
+
+  @Test
+  @WithMockUser(roles = "ADMIN")
+  @DisplayName("WFS GetCapabilities: a bare WFS URL gets service=WFS and is extracted (#382)")
+  void extractKnownWFSService200() throws Exception {
+    postCapabilities(body(html.url("/wfs-200"), "WFS"))
+        .andExpect(MockMvcResultMatchers.status().isOk())
+        .andExpect(jsonPath("$.success").value(true))
+        .andExpect(jsonPath("$.type").value("OGC:WFS 2.0.0"))
+        .andExpect(jsonPath("$.asJson['wfs:WFS_Capabilities']").isMap());
   }
 
   @Test
