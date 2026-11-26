@@ -78,15 +78,17 @@ self.addEventListener('fetch', (event) => {
         method: request.method,
         execute: (token) => {
           const headers = new Headers(request.headers);
-          if (token) {
-            headers.set('Authorization', `Bearer ${token}`);
-            if (DEBUG) {
-              console.debug(`[SW] Requested ${url} with Authorization header`);
-            }
-          } else {
+          if (!token) {
             console.warn('[SW] Token not found!');
+            return fetch(new Request(request, { headers }));
           }
-          return fetch(new Request(request, { headers }));
+          headers.set('Authorization', `Bearer ${token}`);
+          if (DEBUG) {
+            console.debug(`[SW] Requested ${url} with Authorization header`);
+          }
+          return fetch(
+            new Request(request, proxyAuthPolicy.authorizedRequestInit(request.mode, headers))
+          );
         }
       });
     } catch (error) {

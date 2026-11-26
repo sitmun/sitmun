@@ -111,7 +111,7 @@ export default defineConfig({
     },
     {
       name: 'viewer-overview',
-      testMatch: /overview-map-wmts\.spec\.ts/,
+      testMatch: /overview-map-(?:wmts|proxy)\.spec\.ts/,
       dependencies: ['viewer-setup'],
       use: { ...devices['Desktop Chrome'] },
     },

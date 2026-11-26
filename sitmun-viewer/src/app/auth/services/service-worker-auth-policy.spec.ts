@@ -2,6 +2,10 @@ interface ProxyAuthPolicy {
   getMessageType(status: number): string | null;
   isMiddlewareRequest(requestUrl: string, middlewareUrl: string): boolean;
   isRetryableMethod(method: string): boolean;
+  authorizedRequestInit(
+    mode: string,
+    headers: unknown,
+  ): { headers: unknown; mode?: string; credentials?: string };
   shouldRetry(status: number, method: string, retryCount: number): boolean;
   createAuthFetchOrchestrator(options: {
     readInitialToken: () => Promise<string | null>;
@@ -30,6 +34,16 @@ describe('service worker proxy auth policy', () => {
         SitmunProxyAuthPolicy: ProxyAuthPolicy;
       }
     ).SitmunProxyAuthPolicy;
+  });
+
+  it('re-issues a no-cors middleware request as cors so the token header is kept', () => {
+    const headers = { authorization: 'Bearer t' };
+    expect(policy.authorizedRequestInit('no-cors', headers)).toEqual({
+      headers,
+      mode: 'cors',
+      credentials: 'same-origin',
+    });
+    expect(policy.authorizedRequestInit('cors', headers)).toEqual({ headers });
   });
 
   it('distinguishes proxy authentication from access denial', () => {
