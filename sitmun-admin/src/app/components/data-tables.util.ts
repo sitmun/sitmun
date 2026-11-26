@@ -600,7 +600,10 @@ export class DataTable2Definition<RELATION, TARGET_LEFT, TARGET_RIGHT> implement
             columnDefsTable: [this.targetsLeftColumnsDefs, this.targetsRightColumnsDefs],
             title: this.targetsTitle,
             titlesTable: [this.targetsLeftTitle, this.targetsRightTitle],
-            currentData: [relations],
+            // A relation is a (left, right) pair, so one picker row is never already added on its
+            // own. Passing the relations here hid left rows whose id matched a relation id (#386).
+            // withFieldRestrictions on the relations grid still rejects duplicate pairs.
+            currentData: [],
             nonEditable: false,
           }
         }

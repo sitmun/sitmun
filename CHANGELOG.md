@@ -28,6 +28,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 #### Admin Application
 
 - **Services**: Getting a service's metadata from its server no longer says the changes were saved before the service is saved ([#391](https://github.com/sitmun/sitmun/issues/391)). See `sitmun-admin/CHANGELOG.md`.
+- **Role assignments**: The dialogs that add role assignments in the user, role, and territory forms list every candidate again ([#386](https://github.com/sitmun/sitmun/issues/386)). See `sitmun-admin/CHANGELOG.md`.
 
 #### Viewer Application
 
