@@ -203,6 +203,41 @@ describe('WMSCapabilitiesService', () => {
     });
   });
 
+  describe('layer styles (#384)', () => {
+    it('marks the first style as default and every other style as not default', async () => {
+      capabilitiesService.getInfo.mockReturnValue(
+        of({
+          asJson: {
+            WMS_Capabilities: {
+              Capability: {
+                Layer: {
+                  CRS: ['EPSG:25831'],
+                  Layer: {
+                    Name: 'AU.AdministrativeUnit',
+                    Title: 'Unidades administrativas',
+                    Style: [
+                      { Name: 'default', Title: 'Default' },
+                      { Name: 'border', Title: 'Border' },
+                      { Name: 'label', Title: 'Label' },
+                    ],
+                  },
+                },
+              },
+            },
+          },
+        } as never)
+      );
+
+      const result = await service.processWMSServiceCapabilities({ url: 'https://example.org/wms', type: 'WMS' });
+
+      expect(result.styles.get('AU.AdministrativeUnit')?.map((style) => [style.name, style.defaultStyle])).toEqual([
+        ['default', true],
+        ['border', false],
+        ['label', false],
+      ]);
+    });
+  });
+
   describe('capabilities helper payload', () => {
     it('posts the form URL without appending GetCapabilities', async () => {
       mockCapabilitiesResponse({
