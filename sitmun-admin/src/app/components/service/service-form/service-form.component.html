@@ -196,9 +196,9 @@
     <mat-card appearance="outlined">
       <mat-card-content>
         @if (dataLoaded) {
+          <!-- No [allNewElements]: it would relabel fetched capabilities rows as pendingCreation, but only registered rows are created on save (#371). -->
           <app-relation-grid
             [table]="layersTable"
-            [allNewElements]="isNewOrDuplicated()"
             [addButton]="false"
             [duplicateButton]="false"
             [registerButton]="true"
