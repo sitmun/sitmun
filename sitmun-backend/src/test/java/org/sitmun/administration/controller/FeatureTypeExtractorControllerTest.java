@@ -44,6 +44,17 @@ class FeatureTypeExtractorControllerTest extends BaseTest {
 
   @Test
   @WithMockUser(roles = "ADMIN")
+  @DisplayName("GET: Extract a DescribeFeatureType schema in the default XSD namespace (#419)")
+  void extractUnprefixedFeatureTypeSchema() throws Exception {
+    mvc.perform(get(URI_TEMPLATE, html.url("/gml-schema-unprefixed")))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.success").value(true))
+        .andExpect(jsonPath("$.type").value("GML Schema"))
+        .andExpect(jsonPath("$.asJson.schema").exists());
+  }
+
+  @Test
+  @WithMockUser(roles = "ADMIN")
   @DisplayName("GET: Extract from a bad request to a WFS")
   void extractFailedService() throws Exception {
     mvc.perform(get(URI_TEMPLATE, html.url("/wfs-exception")))

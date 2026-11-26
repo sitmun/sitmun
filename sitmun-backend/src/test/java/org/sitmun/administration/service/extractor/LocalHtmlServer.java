@@ -46,6 +46,14 @@ public final class LocalHtmlServer implements AutoCloseable {
               + "</xsd:schema>")
           .getBytes(StandardCharsets.UTF_8);
 
+  private static final byte[] GML_SCHEMA_UNPREFIXED =
+      ("<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+              + "<schema xmlns=\"http://www.w3.org/2001/XMLSchema\""
+              + " xmlns:gml=\"http://www.opengis.net/gml/3.2\">"
+              + "<element name=\"AdministrativeUnit\"/>"
+              + "</schema>")
+          .getBytes(StandardCharsets.UTF_8);
+
   private final HttpServer server;
 
   private LocalHtmlServer(HttpServer server) {
@@ -79,6 +87,9 @@ public final class LocalHtmlServer implements AutoCloseable {
             contentType = "application/xml; charset=UTF-8";
           } else if ("/wms-111".equals(path)) {
             body = WMS_111;
+            contentType = "application/xml; charset=UTF-8";
+          } else if ("/gml-schema-unprefixed".equals(path)) {
+            body = GML_SCHEMA_UNPREFIXED;
             contentType = "application/xml; charset=UTF-8";
           } else if ("/gml-schema".equals(path)) {
             body = GML_SCHEMA;
