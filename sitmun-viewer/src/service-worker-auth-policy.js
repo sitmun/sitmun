@@ -87,6 +87,17 @@
       }
     },
 
+    /**
+     * Init for re-issuing a middleware request with the proxy token. Browsers drop
+     * Authorization from a no-cors request (a plain <img>, as SITNA uses for the
+     * overview map), so it goes out as cors, like a crossOrigin="anonymous" image.
+     */
+    authorizedRequestInit(mode, headers) {
+      return mode === 'no-cors'
+        ? { headers, mode: 'cors', credentials: 'same-origin' }
+        : { headers };
+    },
+
     isRetryableMethod(method) {
       return retryableMethods.has(String(method).toUpperCase());
     },
