@@ -53,6 +53,7 @@ Defaults below apply when the variable is unset.
 | `SITMUN_UPGRADE_DEFAULT_LANGUAGE` | Language of existing database text on an upgrade. Must match `STM_CONF` `language.default`. Compose forwards it to the backend. Empty on a new install. | empty |
 | `SITMUN_BOOTSTRAP_ADMIN_PASSWORD` | Password applied when the built-in admin password is empty. 8 to 50 characters, and not the username. Compose forwards it. Remove it from `.env` after `GET /api/dashboard/health` is UP. | empty |
 | `SITMUN_BOOTSTRAP_LANGUAGE` | Database language applied with that password. An unknown, disabled, or already-current value does not change translations. | empty |
+| `SITMUN_CLIENT_UNSAFE_ALLOWED_HOSTS` | Comma-separated upstream hosts whose certificate and hostname are not checked, or `*` for every host. Compose forwards it to the backend and the proxy. | empty |
 
 A secret that is blank or shorter than 32 characters stops the backend or the proxy from starting. `setup.ps1` and `setup.sh` append the three secrets when those keys are absent. Do not commit the values.
 
