@@ -3,7 +3,7 @@ databaseChangeLog:
       name: upgrade.defaultLanguage
       value: ""
   - changeSet:
-      id: 1.3.1-restore-changelog-filenames-postgresql
+      id: 1.3.1-403-restore-changelog-filenames-postgresql
       author: sitmun
       dbms: postgresql
       logicalFilePath: master.xml
@@ -14,12 +14,12 @@ databaseChangeLog:
             sql: SELECT COUNT(*) FROM databasechangelog WHERE id = 'upgrade-version-check-postgresql' AND author = 'sitmun'
       changes:
         - sqlFile:
-            path: 00-restore-changelog-filenames.postgresql.sql
+            path: 1.3.1/00-restore-changelog-filenames.postgresql.sql
             relativeToChangelogFile: true
             splitStatements: false
             stripComments: false
   - changeSet:
-      id: 1.3.1-restore-changelog-filenames-oracle
+      id: 1.3.1-403-restore-changelog-filenames-oracle
       author: sitmun
       dbms: oracle
       logicalFilePath: master.xml
@@ -30,7 +30,7 @@ databaseChangeLog:
             sql: SELECT COUNT(*) FROM databasechangelog WHERE id = 'upgrade-version-check-oracle' AND author = 'sitmun'
       changes:
         - sqlFile:
-            path: 00-restore-changelog-filenames.oracle.sql
+            path: 1.3.1/00-restore-changelog-filenames.oracle.sql
             relativeToChangelogFile: true
             splitStatements: false
             stripComments: false

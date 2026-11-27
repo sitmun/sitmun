@@ -330,7 +330,12 @@ class ReleasedFileGateTest(unittest.TestCase):
             root = Path(td)
             _released_repo(root, "v1.3.0")
             master = f"{BACKEND_TREE}/db.changelog-master.yaml"
-            (root / master).write_text("databaseChangeLog:\n  - include: {file: releases/x.sql}\n", encoding="utf-8")
+            (root / BACKEND_TREE / "releases").mkdir()
+            (root / BACKEND_TREE / "releases" / "1.3.1.yaml").write_text("databaseChangeLog: []\n", encoding="utf-8")
+            (root / master).write_text(
+                "databaseChangeLog: []\n  - include:\n      file: releases/1.3.1.yaml\n      relativeToChangelogFile: true\n",
+                encoding="utf-8",
+            )
             self.assertEqual(cci.released_file_violations(root, [BACKEND_TREE], [master], "v1.3.0"), [])
 
     def test_unchanged_content_passes(self) -> None:
@@ -462,6 +467,113 @@ class PrefixAndAllowlistTest(unittest.TestCase):
 """
         self.assertFalse(cci.is_master_xml_pin_only_diff(diff))
         self.assertFalse(cci.is_master_xml_pin_only_diff(""))
+
+
+UPGRADE = "  - include:\n      file: upgrade/db.changelog-upgrade.yaml\n      relativeToChangelogFile: true\n"
+TAGGED_YAML = "databaseChangeLog:\n" + UPGRADE + "  - changeSet:\n      id: baseline\n      author: sitmun\n"
+TAGGED_XML = (
+    '<databaseChangeLog logicalFilePath="master.xml">\n'
+    '  <include file="classpath:/db/changelog/db.changelog-master.yaml"/>\n'
+    '  <include file="changelog/01_data.yaml" relativeToChangelogFile="true"/>\n'
+    "</databaseChangeLog>\n"
+)
+
+
+def _include(name: str) -> str:
+    return f"  - include:\n      file: {name}\n      relativeToChangelogFile: true\n"
+
+
+def _xml(tagged: str, *lines: str) -> str:
+    return tagged.replace("</databaseChangeLog>", "".join(f"{line}\n" for line in lines) + "</databaseChangeLog>")
+
+
+class MasterGateTest(unittest.TestCase):
+    """A released master keeps its lines and only gains releases/<version>.yaml includes."""
+
+    def check(self, tagged: str, current: str, *, xml: bool = False, exists=lambda name: True) -> list[str]:
+        return cci.master_violations(tagged, current, xml=xml, released=(1, 3, 0), exists=exists)
+
+    def test_every_tree_is_checked(self) -> None:
+        self.assertEqual(
+            {
+                "sitmun-backend/src/main/resources/db/changelog",
+                "sitmun-backend/src/test/resources/db/changelog-test",
+                "profiles/showcase/liquibase",
+                "profiles/development/backend/liquibase",
+                "profiles/postgres/liquibase",
+                "profiles/oracle/liquibase",
+            },
+            set(cci.DEFAULT_TREES),
+        )
+
+    def test_appending_version_includes_passes(self) -> None:
+        current = TAGGED_YAML + _include("releases/1.3.1.yaml") + _include("releases/1.4.0.yaml")
+        self.assertEqual([], self.check(TAGGED_YAML, current))
+
+    def test_an_upgrade_include_goes_before_the_upgrade_path(self) -> None:
+        before = TAGGED_YAML.replace(UPGRADE, "  # why\n" + _include("releases/1.3.1-upgrade.yaml") + UPGRADE)
+        self.assertEqual([], self.check(TAGGED_YAML, before))
+        self.assertEqual(1, len(self.check(TAGGED_YAML, TAGGED_YAML + _include("releases/1.3.1-upgrade.yaml"))))
+
+    def test_editing_or_removing_a_released_line_fails(self) -> None:
+        self.assertNotEqual([], self.check(TAGGED_YAML, TAGGED_YAML.replace("id: baseline", "id: other")))
+        self.assertEqual(1, len(self.check(TAGGED_YAML, TAGGED_YAML.replace("      author: sitmun\n", ""))))
+
+    def test_any_other_added_entry_fails(self) -> None:
+        for added in (
+            _include("loose-new.yaml"),
+            "  - include: {file: releases/1.3.1.yaml}\n",
+            "  - includeAll:\n      path: releases/\n",
+            "  - changeSet:\n      id: 1.3.1-x\n      author: sitmun\n",
+            _include("releases/1.3.1/01-x.yaml"),
+            _include('"releases/1.3.1.yaml"').replace('"', "'") + "      context: dev\n",
+        ):
+            with self.subTest(added=added):
+                self.assertNotEqual([], self.check(TAGGED_YAML, TAGGED_YAML + added))
+
+    def test_a_released_or_unordered_version_fails(self) -> None:
+        self.assertEqual(1, len(self.check(TAGGED_YAML, TAGGED_YAML + _include("releases/1.3.0.yaml"))))
+        current = TAGGED_YAML + _include("releases/1.10.0.yaml") + _include("releases/1.9.0.yaml")
+        self.assertEqual(1, len(self.check(TAGGED_YAML, current)))
+
+    def test_an_include_must_name_an_existing_file(self) -> None:
+        current = TAGGED_YAML + _include("releases/1.3.1.yaml")
+        self.assertEqual(1, len(self.check(TAGGED_YAML, current, exists=lambda name: False)))
+
+    def test_quoted_yaml_paths_pass(self) -> None:
+        current = TAGGED_YAML + _include('"releases/1.3.1.yaml"')
+        self.assertEqual([], self.check(TAGGED_YAML, current))
+
+    def test_xml_master_takes_version_includes_in_any_attribute_order(self) -> None:
+        current = _xml(
+            TAGGED_XML,
+            '  <include file="releases/1.3.1.yaml" relativeToChangelogFile="true"/>',
+            '  <include relativeToChangelogFile="true" file="releases/1.4.0.yaml"/>',
+        )
+        self.assertEqual([], self.check(TAGGED_XML, current, xml=True))
+
+    def test_xml_master_rejects_anything_else(self) -> None:
+        for added in (
+            '  <include relativeToChangelogFile="true" file="changelog/05_new.yaml"/>',
+            '  <includeAll path="changelog/extra/" relativeToChangelogFile="true"/>',
+            '  <changeSet id="x" author="me"/>',
+            '  <include file="releases/1.3.1-upgrade.yaml" relativeToChangelogFile="true"/>',
+            '  <include file="releases/1.3.1.yaml"/>',
+        ):
+            with self.subTest(added=added):
+                self.assertNotEqual([], self.check(TAGGED_XML, _xml(TAGGED_XML, added), xml=True))
+
+    def test_main_checks_a_released_master(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            _released_repo(root, "v1.3.0")
+            master = f"{BACKEND_TREE}/db.changelog-master.yaml"
+            (root / master).write_text("databaseChangeLog: []\n  - includeAll:\n      path: x/\n", encoding="utf-8")
+            buf = io.StringIO()
+            with patch("sys.stdout", buf):
+                rc = cci.main(["--repo-root", str(root), "--tree", BACKEND_TREE, "--changed-file", master])
+            self.assertEqual(rc, 1)
+            self.assertIn(master, buf.getvalue())
 
 
 if __name__ == "__main__":

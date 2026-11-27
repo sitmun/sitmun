@@ -1,7 +1,7 @@
 databaseChangeLog:
-  # Runs before the 1.3.0 version check: it renames 1.2.x rows that check reads.
+  # releases/<version>-upgrade.yaml runs before the upgrade path: 1.3.1 renames 1.2.x rows the 1.3.0 version check reads (#403).
   - include:
-      file: releases/1.3.1/db.changelog-1.3.1-pre-upgrade.yaml
+      file: releases/1.3.1-upgrade.yaml
       relativeToChangelogFile: true
   - include:
       file: upgrade/db.changelog-upgrade.yaml

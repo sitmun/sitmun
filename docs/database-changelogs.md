@@ -1,52 +1,50 @@
-# Liquibase changelogs
+# Database changelogs
 
-How database changes are laid out across versions. This file is outside the changelog trees on purpose: the immutability gate freezes every file in them once it is tagged. It applies to three trees:
+How Liquibase changes are laid out across versions. The same rules apply to every Liquibase tree in the repository:
 
-| Tree | Master | Context |
+| Tree | Master | Loaded by |
 |---|---|---|
-| Shipped (every install) | [`db.changelog-master.yaml`](../sitmun-backend/src/main/resources/db/changelog/db.changelog-master.yaml) | none |
-| Showcase profile | [`profiles/showcase/liquibase/master.xml`](../profiles/showcase/liquibase/master.xml) | `showcase` |
-| Development profile | [`profiles/development/backend/liquibase/master.xml`](../profiles/development/backend/liquibase/master.xml) | `dev` |
+| Shipped | [`sitmun-backend/src/main/resources/db/changelog/db.changelog-master.yaml`](../sitmun-backend/src/main/resources/db/changelog/db.changelog-master.yaml) | every install, through the profiles below |
+| Backend tests | [`sitmun-backend/src/test/resources/db/changelog-test/db.changelog-master.yaml`](../sitmun-backend/src/test/resources/db/changelog-test/db.changelog-master.yaml) | Gradle tests on H2, PostgreSQL, and Oracle |
+| PostgreSQL profile | [`profiles/postgres/liquibase/master.xml`](../profiles/postgres/liquibase/master.xml) | `profiles/postgres.env` |
+| Oracle profile | [`profiles/oracle/liquibase/master.xml`](../profiles/oracle/liquibase/master.xml) | `profiles/oracle.env` |
+| Showcase | [`profiles/showcase/liquibase/master.xml`](../profiles/showcase/liquibase/master.xml) | `profiles/showcase.env`, context `showcase` |
+| Development | [`profiles/development/backend/liquibase/master.xml`](../profiles/development/backend/liquibase/master.xml) | `profiles/development-*.env`, context `dev` |
 
-Both profile masters include the shipped master first. `profiles/postgres` and `profiles/oracle` only include it.
+Every other master includes the shipped one, so a shipped change reaches every tree. The PostgreSQL and Oracle profiles have no changes of their own.
 
 ## Rules
 
-1. **A released file is frozen.** A file that is in the latest `v*` tag is never edited, moved, or deleted. Liquibase stores each changeset's checksum, and a changed file stops the backend of every database that applied it. Fix it with a new changeset in the next version.
-2. **One folder per version.** A new changeset goes in `releases/<version>/` of its tree (the shipped tree is `sitmun-backend/src/main/resources/db/changelog`), where `<version>` is the next release. The folder's entry file is `db.changelog-<version>.yaml`. The master includes it after every earlier entry, in version order.
-3. **Pre-upgrade slot.** In the shipped tree only, a change that the upgrade's version check depends on goes in `db.changelog-<version>-pre-upgrade.yaml`. The master includes it before `upgrade/db.changelog-upgrade.yaml`, in version order. It also runs on a fresh install, before the baseline creates any table, so it has to work on an empty database. [`releases/1.3.1/db.changelog-1.3.1-pre-upgrade.yaml`](../sitmun-backend/src/main/resources/db/changelog/releases/1.3.1/db.changelog-1.3.1-pre-upgrade.yaml) is the first.
-4. **File names.** Inside a folder, files are `NN-topic[.dbms].sql|yaml|csv`. `NN` starts at `01` in each version. The entry file lists them in order.
-5. **Identity.** Liquibase tells changesets apart by id, author, and `FILENAME`. Each new changeset pins `logicalFilePath: master.xml`, has author `sitmun`, and has an id `<version>-<topic>[-<dbms>]`, for example `1.3.1-legend-type`, unique across the three trees. `FILENAME` is then `master.xml` for every new row, the name most 1.2.x and 1.3.0 rows already have, and the id alone identifies the changeset. The pin goes on every changeset, not once on a master: a master's `logicalFilePath` reaches included files only from Liquibase 4.31.0 on, so the same changeset would get another name under another version or master ([#403](https://github.com/sitmun/sitmun/issues/403), [#404](https://github.com/sitmun/sitmun/issues/404)). Liquibase allows any string here ([logicalFilePath](https://docs.liquibase.com/oss/reference-guide-4-33/changelog-attributes/logicalfilepath)). Rows written before this policy keep their names: the baseline and upgrade changesets record their own paths, and released ids never change.
-6. **Open until the tag.** Files in the folder of the version under development may change. A database that already applied the old content fails its checksum and has to be recreated. Once the version is tagged, the folder is frozen and takes no new file.
-7. **Seed data moves forward.** A released CSV is never edited. A wrong row is fixed with an `UPDATE` in the version folder. New rows may come from a CSV in that folder. A changeset that inserts rows with explicit ids also advances `STM_SEQUENCE` for those tables: in the development profile, `14_update_sequences.sql` runs before the version folders.
-8. **Dialects.** The shipped tree runs on PostgreSQL 12 or later and Oracle 11g Release 2 or later. Split a statement by `dbms:` when the dialects differ, and check both. The showcase runs on PostgreSQL only.
+1. **Released files never change.** A file in the latest `v*` tag is never edited, moved, or deleted. A released master keeps every line and only gains `releases/<version>.yaml` includes. Liquibase stores each changeset's checksum, and a changed changeset stops the backend of every database that ran it.
+2. **A merged changeset never changes.** Once a changeset is on `dev`, developer and staging databases may have run it. A fix is a new changeset.
+3. **One changelog per version.** Each tree keeps the changes of a version in `releases/<version>.yaml`, included at the end of its master, in version order. The changesets are inline. SQL and CSV files they call through `sqlFile` or `loadData` sit in `releases/<version>/`, and hold no changesets themselves.
+4. **Identity.** Every changeset in a version file has `logicalFilePath: master.xml`, author `sitmun`, and an id `<version>-<issue>-<topic>[-<dbms>]`, for example `1.3.1-375-legend-type`, unique across the trees. Leave out `<issue>` only when there is none.
 
-## Before this layout
+Rule 4 follows from how Liquibase tells changesets apart: by id, author, and `FILENAME`. Pinned to `master.xml`, a changeset records the same `FILENAME` whatever master loads it and whatever Liquibase version runs it, and the id alone identifies it. Without the pin, a master's `logicalFilePath` reaches included files only from Liquibase 4.31.0 on, and the same changeset is recorded under another name by another master ([#403](https://github.com/sitmun/sitmun/issues/403), [#404](https://github.com/sitmun/sitmun/issues/404)). Liquibase allows any string here ([logicalFilePath](https://docs.liquibase.com/oss/reference-guide-4-33/changelog-attributes/logicalfilepath)). Keycloak uses the same version-file layout and id form ([jpa-changelog-26.8.0.xml](https://github.com/keycloak/keycloak/blob/main/model/jpa/src/main/resources/META-INF/jpa-changelog-26.8.0.xml)).
 
-These entries predate the policy and stay where they are, frozen by rule 1. New work does not join them.
+## Notes
 
-- Shipped tree: `upgrade/`, the `baseline-*` changesets, and the 1.3.0 files at the top of `db/changelog` (`service-check-observed-timestamptz.*`, `setup-language-configured.*`, `literal-translation-value-pkey.postgresql.sql`).
-- Showcase: `changelog/01_showcase_data.yaml` to `changelog/04_showcase_cami_extent.yaml`.
-- Development: `changelog/04_initial_data_dev.yaml` to `changelog/86_dev_setup_language_configured.sql`, and `changelog/14_update_sequences.sql`.
+- **The 1.3.1 exception.** [`releases/1.3.1-upgrade.yaml`](../sitmun-backend/src/main/resources/db/changelog/releases/1.3.1-upgrade.yaml) is included before `upgrade/db.changelog-upgrade.yaml`, not at the end. It renames 1.2.x `DATABASECHANGELOG` rows that the frozen 1.3.0 version check reads ([#403](https://github.com/sitmun/sitmun/issues/403), [1.2.9 to 1.3.0](upgrade/1.2.9-to-1.3.0.md)). It also runs on a fresh install, before the baseline creates any table. Only the shipped tree has an `-upgrade` file.
+- **Dialects.** The shipped tree runs on PostgreSQL 12 or later and Oracle 11g Release 2 or later. Split a changeset by `dbms:` when they differ. The backend tests also run the shipped changesets on H2: a change H2 needs and the shipped changeset filters out goes in the test tree's version file with `dbms: h2`.
+- **Seed data.** A wrong released row is fixed with an `UPDATE` in the version file. A changeset that inserts rows with explicit ids also advances `STM_SEQUENCE` for those tables.
+- **Before this layout.** Files outside `releases/` predate it: the `upgrade/` path, the baseline, the loose 1.3.0 files, the test fixtures, the showcase `changelog/01_`–`04_` files, and the development `changelog/NN_` files. Rule 1 freezes them, and new work does not join them. Their `FILENAME`s vary: the baseline, the 1.2.9 to 1.3.0 upgrade, and `setup-language-configured.*` record their own paths; the 1.2.8 to 1.2.9 upgrade, `service-check-observed-timestamptz.*`, and `literal-translation-value-pkey.postgresql.sql` record `master.xml`; unpinned profile changesets record their master's `logicalFilePath`.
 
 ## Adding a change
 
-1. Create `releases/<next-version>/` in the tree if it does not exist, with its entry file, and include the entry file in the master.
-2. Add `NN-topic.sql` (or `.yaml`/`.csv`) and a changeset for it in the entry file, with `logicalFilePath: master.xml`, a `<version>-<topic>` id, and the tree's context.
+1. Open `releases/<next-version>.yaml` in the tree, creating it with `databaseChangeLog:` and an include at the end of the master if it does not exist.
+2. Append a changeset with `logicalFilePath: master.xml`, author `sitmun`, a `<version>-<issue>-<topic>` id, and the tree's context. Put long or per-dialect SQL in `releases/<next-version>/` and call it with `sqlFile`.
 3. Run the gates.
 
 ## Gates
 
 ```bash
-python3 tools/tests/test_changelog_layout.py
 python3 tools/tests/test_changelog_logical_paths.py
 python3 tools/bin/check_changelog_immutability.py --base origin/dev
 ```
 
 | Check | Enforces |
 |---|---|
-| [`test_changelog_layout.py`](../tools/tests/test_changelog_layout.py) | Rules 2, 3, 4, and the frozen folder of rule 6 |
-| [`test_changelog_logical_paths.py`](../tools/tests/test_changelog_logical_paths.py) | Rule 5 |
-| [`check_changelog_immutability.py`](../tools/bin/check_changelog_immutability.py) | Rule 1 |
+| [`check_changelog_immutability.py`](../tools/bin/check_changelog_immutability.py) | Rule 1 in every tree, including that a released master only gains version includes, after the released entries, in version order, for versions after the tag, naming files that exist |
+| [`test_changelog_logical_paths.py`](../tools/tests/test_changelog_logical_paths.py) | Rules 3 and 4: version files hold block-style changesets only and are included by their master, called files sit in their version folder and are all called, and every changeset has the pin, author, and id. It fails on anything it cannot read |
 
-The CI job is [`liquibase-immutability.yml`](../.github/workflows/liquibase-immutability.yml). An upgrade is checked end to end by [`liquibase-upgrade.yml`](../.github/workflows/liquibase-upgrade.yml).
+Rule 2 is not checked: a changeset merged to `dev` and edited before the release tag passes the gates, and breaks the databases that ran it. The CI job is [`liquibase-immutability.yml`](../.github/workflows/liquibase-immutability.yml). An upgrade runs end to end in [`liquibase-upgrade.yml`](../.github/workflows/liquibase-upgrade.yml).
