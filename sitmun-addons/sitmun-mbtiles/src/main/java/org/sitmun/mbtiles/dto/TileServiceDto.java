@@ -17,7 +17,6 @@ public class TileServiceDto {
   BoundingBoxDto bbox;
   int minZoom;
   int maxZoom;
-  String matrixSet;
 
   @JsonPOJOBuilder(withPrefix = "")
   public static class TileServiceDtoBuilder {}
