@@ -16,6 +16,7 @@ on:
       - 'tools/bin/check_changelog_immutability.py'
       - 'tools/tests/test_changelog_immutability.py'
       - 'tools/tests/test_changelog_logical_paths.py'
+      - 'tools/tests/test_changelog_layout.py'
       - '.github/workflows/liquibase-immutability.yml'
   workflow_dispatch:
 
@@ -46,6 +47,9 @@ jobs:
 
       - name: Fetch release tags
         run: git fetch --force origin 'refs/tags/v*:refs/tags/v*'
+
+      - name: One folder per version
+        run: python3 tools/tests/test_changelog_layout.py
 
       - name: PR diff gate
         if: github.event_name == 'pull_request'
