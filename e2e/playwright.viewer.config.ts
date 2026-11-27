@@ -110,6 +110,12 @@ export default defineConfig({
       use: { ...devices['Desktop Chrome'] },
     },
     {
+      name: 'viewer-scale',
+      testMatch: /scale-controls\.spec\.ts/,
+      dependencies: ['viewer-setup'],
+      use: { ...devices['Desktop Chrome'] },
+    },
+    {
       name: 'viewer-overview',
       testMatch: /overview-map-(?:wmts|proxy)\.spec\.ts/,
       dependencies: ['viewer-setup'],
