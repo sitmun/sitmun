@@ -173,13 +173,11 @@ test.describe('New service fetched layers', () => {
     expect(writes.failures).toEqual([]);
   });
 
-  test('a new service: a removed, unregistered row is not deleted on save (#371)', async ({ page, createdResources }) => {
+  test('a new service: a removed, unregistered row is not deleted on save (#371, #430)', async ({ page, createdResources }) => {
     const { panel } = await newWmsServiceWithLayers(page);
     await rowAt(panel, 1).locator('.ag-checkbox-input').check();
     await deleteSelected(page, panel);
     await expect(rowAt(panel, 1).locator('.sitmun-status-dot')).toHaveAttribute('aria-label', 'Pending delete');
-    // Removing keeps the row selected; Registrar would register it too.
-    await rowAt(panel, 1).locator('.ag-checkbox-input').uncheck();
     const registered = await registerRow(page, panel, rowAt(panel, 0));
     const writes = trackLayerWrites(page, createdResources);
     await page.getByTestId('form-save').click();
@@ -188,6 +186,16 @@ test.describe('New service fetched layers', () => {
     expect(writes.created).toHaveLength(1);
     expect(writes.otherWrites, 'nothing to delete for a row that was never created').toEqual([]);
     expect(writes.failures).toEqual([]);
+  });
+
+  test('a new service: undoing an edit on an unregistered row keeps it unregistered (#431)', async ({ page }) => {
+    const { panel } = await newWmsServiceWithLayers(page);
+    const dot = rowAt(panel, 0).locator('.sitmun-status-dot');
+    await expect(dot).toHaveAttribute('aria-label', 'Unregistered layer');
+    await editAbstract(rowAt(panel, 0), 'e2e undone abstract');
+    await panel.locator('#undo').click();
+    await expect(rowAt(panel, 0).locator('[col-id="description"]')).not.toContainText('e2e undone abstract');
+    await expect(dot).toHaveAttribute('aria-label', 'Unregistered layer');
   });
 });
 

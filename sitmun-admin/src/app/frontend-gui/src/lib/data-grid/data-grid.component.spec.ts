@@ -171,10 +171,11 @@ describe('DataGridComponent', () => {
   }));
 
   describe('undo/redo', () => {
-    const rowData = {status: 'pendingModify'};
+    const rowData: {status: string; newItem?: boolean} = {status: 'pendingModify'};
 
     beforeEach(() => {
       rowData.status = 'pendingModify';
+      delete rowData.newItem;
       component.changeCounter = 1;
       component.previousChangeCounter = 1;
       component.redoCounter = 0;
@@ -227,10 +228,76 @@ describe('DataGridComponent', () => {
       expect(component.gridApi.getRowNode('row-1').data.status).toBe('statusOK');
     });
 
+    const descriptionChange = (source: string, oldValue: string, value: string) => ({
+      source,
+      node: {id: 'row-1'},
+      rowIndex: 0,
+      colDef: {field: 'description'},
+      oldValue,
+      value,
+    });
+
+    it('undoing the only edit restores the status the row had before it (#431)', () => {
+      Object.assign(rowData, {status: 'pendingRegistration'});
+      component.changesMap = new Map();
+      component.previousChangeCounter = 0;
+
+      component.onCellValueChanged(descriptionChange('edit', 'a', 'b'));
+      expect(rowData.status).toBe('pendingModify');
+
+      component.onCellValueChanged(descriptionChange('undo', 'b', 'a'));
+      expect(rowData.status).toBe('pendingRegistration');
+    });
+
+    it('undoing the only edit on a new unregistered row keeps it unregistered (#431)', () => {
+      Object.assign(rowData, {status: 'unregisteredLayer', newItem: true});
+      component.changesMap = new Map();
+      component.previousChangeCounter = 0;
+
+      component.onCellValueChanged(descriptionChange('edit', 'a', 'b'));
+      component.onCellValueChanged(descriptionChange('undo', 'b', 'a'));
+
+      expect(rowData.status).toBe('unregisteredLayer');
+    });
+
     it('cellValuesEqual treats boolean and string equivalents as equal', () => {
       expect(component['cellValuesEqual']('false', false)).toBe(true);
       expect(component['cellValuesEqual'](true, 'true')).toBe(true);
       expect(component['cellValuesEqual'](false, true)).toBe(false);
+    });
+  });
+
+  describe('removeData', () => {
+    const selected = [{id: 'row-1', data: {status: 'unregisteredLayer'}}];
+
+    beforeEach(() => {
+      component.gridApi = {
+        stopEditing: jest.fn(),
+        getSelectedNodes: jest.fn(() => selected),
+        getRowNode: jest.fn((id: string) => selected.find((node) => node.id === id)),
+        deselectAll: jest.fn(),
+        refreshCells: jest.fn(),
+      } as any;
+    });
+
+    it('marks selected rows pendingDelete and deselects them in status grids (#430)', () => {
+      component.statusColumn = true;
+
+      component.removeData();
+
+      expect(selected[0].data.status).toBe('pendingDelete');
+      expect(component.gridApi.deselectAll).toHaveBeenCalled();
+    });
+
+    it('keeps the selection in grids without a status column', () => {
+      component.statusColumn = false;
+      const emitted = jest.fn();
+      component.remove.subscribe(emitted);
+
+      component.removeData();
+
+      expect(emitted).toHaveBeenCalledWith([selected[0].data]);
+      expect(component.gridApi.deselectAll).not.toHaveBeenCalled();
     });
   });
 

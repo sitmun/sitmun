@@ -301,6 +301,9 @@ export class DataGridComponent implements OnInit, OnDestroy, OnChanges {
   /** Map tracking changes to cells */
   changesMap: Map<string, Map<string, number>> = new Map<string, Map<string, number>>();
 
+  /** Status a row had before its first edit set it to pendingModify; undoing every edit restores it. */
+  private readonly preEditStatus = new Map<string, string>();
+
   /** Pending row edits in infinite mode (keyed by stable row id) */
   infiniteRowChanges: Map<string, any> = new Map<string, any>();
 
@@ -688,6 +691,7 @@ export class DataGridComponent implements OnInit, OnDestroy, OnChanges {
         .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe(() => {
           this.changesMap.clear();
+          this.preEditStatus.clear();
           this.infiniteRowChanges.clear();
           this.someStatusHasChangedToDelete = false;
           this.someStatusHasChanged = false;
@@ -1725,6 +1729,7 @@ export class DataGridComponent implements OnInit, OnDestroy, OnChanges {
       this.gridModified.emit(false);
       this.infiniteRowChanges.clear();
       this.changesMap.clear();
+      this.preEditStatus.clear();
       this.changeCounter = 0;
       this.previousChangeCounter = 0;
       this.redoCounter = 0;
@@ -1757,6 +1762,7 @@ export class DataGridComponent implements OnInit, OnDestroy, OnChanges {
     this.sendChanges.emit(itemsChanged);
     this.gridModified.emit(false);
     this.changesMap.clear();
+    this.preEditStatus.clear();
     this.changeCounter = 0;
     this.previousChangeCounter = 0;
     this.redoCounter = 0;
@@ -1911,6 +1917,8 @@ export class DataGridComponent implements OnInit, OnDestroy, OnChanges {
       for (const id of selectedRows) {
         this.gridApi.getRowNode(id).data.status = 'pendingDelete';
       }
+      // Rows marked for removal must not stay selected, or Registrar re-registers them (#430).
+      this.gridApi.deselectAll();
       this.gridApi.refreshCells();
     }
   }
@@ -1967,6 +1975,7 @@ export class DataGridComponent implements OnInit, OnDestroy, OnChanges {
     if (this.rowModelMode === 'infinite') {
       this.infiniteRowChanges.clear();
       this.changesMap.clear();
+      this.preEditStatus.clear();
       this.changeCounter = 0;
       this.previousChangeCounter = 0;
       this.redoCounter = 0;
@@ -1983,6 +1992,7 @@ export class DataGridComponent implements OnInit, OnDestroy, OnChanges {
     }
 
     this.changesMap.clear();
+    this.preEditStatus.clear();
     //this.previousChangeCounter = 0;
     this.redoCounter = 0;
     this.manualUndoStack.length = 0;
@@ -2107,6 +2117,7 @@ export class DataGridComponent implements OnInit, OnDestroy, OnChanges {
           if (this.statusColumn) {
             const rowData = this.gridApi.getRowNode(params.node.id).data;
             if (rowData.status !== 'pendingCreation' && !rowData.newItem) {
+              this.preEditStatus.set(params.node.id, rowData.status);
               rowData.status = 'pendingModify';
             }
           }
@@ -2349,11 +2360,10 @@ export class DataGridComponent implements OnInit, OnDestroy, OnChanges {
         const row = this.gridApi.getDisplayedRowAtIndex(params.rowIndex);
         if (this.statusColumn) {
           const rowData = this.gridApi.getRowNode(params.node.id).data;
-          if (rowData.newItem || rowData.status === 'pendingCreation') {
-            rowData.status = 'pendingCreation';
-          } else {
-            rowData.status = 'statusOK';
+          if (rowData.status === 'pendingModify') {
+            rowData.status = this.preEditStatus.get(params.node.id) ?? 'statusOK';
           }
+          this.preEditStatus.delete(params.node.id);
         }
         this.gridApi.redrawRows({rowNodes: [row]});
       } else {
