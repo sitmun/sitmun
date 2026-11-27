@@ -8,4 +8,5 @@
   <include file="changelog/02_showcase_extent.yaml" relativeToChangelogFile="true"/>
   <include file="changelog/03_showcase_cami_basemap.yaml" relativeToChangelogFile="true"/>
   <include file="changelog/04_showcase_cami_extent.yaml" relativeToChangelogFile="true"/>
+  <include file="releases/1.3.1.yaml" relativeToChangelogFile="true"/>
 </databaseChangeLog>

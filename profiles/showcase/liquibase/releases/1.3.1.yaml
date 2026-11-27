@@ -1,0 +1,21 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1.3.1-375-legend-type
+      author: sitmun
+      logicalFilePath: master.xml
+      context: showcase
+      comment: >
+        The showcase seed kept the 1.2.x legend types, so the viewer drew no legend for its layers.
+        Same mapping as upgrade/1.2.9-to-1.3.0/07-legend-type.sql.
+      changes:
+        - sql:
+            sql: >
+              UPDATE stm_geoinfo SET geo_legendtip = 'LEGENDURL' WHERE geo_legendtip = 'CAPABILITIES';
+              UPDATE stm_geoinfo SET geo_legendtip = NULL, geo_legendurl = NULL
+              WHERE geo_serid IN (SELECT ser_id FROM stm_service WHERE ser_protocol = 'WFS');
+              UPDATE stm_geoinfo SET geo_legendtip = NULL
+              WHERE geo_serid IN (SELECT ser_id FROM stm_service WHERE ser_protocol = 'WMTS')
+                AND (geo_legendtip IS NULL OR geo_legendtip <> 'LINK' OR geo_legendurl IS NULL OR TRIM(geo_legendurl) = '');
+              UPDATE stm_geoinfo SET geo_legendtip = 'LEGENDGRAPHIC'
+              WHERE geo_serid IN (SELECT ser_id FROM stm_service WHERE ser_protocol = 'WMS')
+                AND (geo_legendtip IS NULL OR TRIM(geo_legendtip) = '' OR geo_legendtip NOT IN ('LEGENDGRAPHIC', 'LEGENDURL', 'LINK'));

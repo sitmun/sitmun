@@ -21,6 +21,10 @@ CHANGELOG = PROFILE / "liquibase" / "changelog" / "01_showcase_data.yaml"
 EXTENT_CHANGELOG = PROFILE / "liquibase" / "changelog" / "02_showcase_extent.yaml"
 CAMI_BASEMAP = PROFILE / "liquibase" / "changelog" / "03_showcase_cami_basemap.yaml"
 CAMI_EXTENT = PROFILE / "liquibase" / "changelog" / "04_showcase_cami_extent.yaml"
+RELEASE_131 = PROFILE / "liquibase" / "releases" / "1.3.1.yaml"
+LEGEND_UPGRADE = (
+    ROOT / "sitmun-backend/src/main/resources/db/changelog/upgrade/1.2.9-to-1.3.0/07-legend-type.sql"
+)
 # CIME EPSG:25831 matrix, measured from the live WMTS view resolutions.
 CIME_ZOOM_6_RESOLUTION = 68.58832100644014
 CIME_ZOOM_7_RESOLUTION = 34.29416050322007
@@ -68,6 +72,12 @@ def max_id(path: Path, column: str) -> int:
         return max(int(row[column]) for row in rows)
 
 
+def geoinfo_updates(text: str) -> list[str]:
+    """`UPDATE stm_geoinfo ...;` statements, compared without case or whitespace."""
+    found = re.findall(r"UPDATE\s+stm_geoinfo\b.*?;", text, re.I | re.S)
+    return [re.sub(r"\s+", "", statement.lower()) for statement in found]
+
+
 class ShowcaseProfileTest(unittest.TestCase):
     def test_master_includes_the_shipped_changelog_then_the_showcase(self) -> None:
         text = MASTER.read_text(encoding="utf-8")
@@ -78,6 +88,7 @@ class ShowcaseProfileTest(unittest.TestCase):
         self.assertEqual(includes[2], "changelog/02_showcase_extent.yaml")
         self.assertEqual(includes[3], "changelog/03_showcase_cami_basemap.yaml")
         self.assertEqual(includes[4], "changelog/04_showcase_cami_extent.yaml")
+        self.assertEqual(includes[5], "releases/1.3.1.yaml")
 
     def test_every_changeset_uses_the_showcase_context(self) -> None:
         text = CHANGELOG.read_text(encoding="utf-8")
@@ -217,6 +228,18 @@ class ShowcaseProfileTest(unittest.TestCase):
                 abs(needed - CIME_ZOOM_7_RESOLUTION),
                 (map_width, map_height, needed),
             )
+
+    def test_legend_types_get_the_1_3_0_mapping(self) -> None:
+        # The seed still has the 1.2.x legend type CAPABILITIES, which 1.3.0 renamed
+        # LEGENDURL, so the viewer drew no legend for the showcase layers (#375). The
+        # released seed stays as it is; 1.3.1 runs the upgrade's stm_geoinfo mapping.
+        expected = geoinfo_updates(LEGEND_UPGRADE.read_text(encoding="utf-8"))
+        self.assertEqual(4, len(expected))
+        self.assertTrue(RELEASE_131.is_file(), f"missing {RELEASE_131.relative_to(ROOT)}")
+        text = RELEASE_131.read_text(encoding="utf-8")
+        self.assertIn("id: 1.3.1-375-legend-type", text)
+        self.assertIn("context: showcase", text)
+        self.assertEqual(expected, geoinfo_updates(text))
 
     def test_territory_types_exist_in_the_baseline(self) -> None:
         with (BASELINE / "territory_types.csv").open(encoding="utf-8", newline="") as handle:
