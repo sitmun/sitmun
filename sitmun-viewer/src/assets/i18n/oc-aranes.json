@@ -171,6 +171,7 @@
   "map.territoriesApplication.save": "Aplicar canvis",
   "map.territoriesApplication.territoriesTitle": "Seleccionar territori disponible per a l'aplicació",
   "map.territoriesListFilter": "Filtra la llista de territoris",
+  "map.warning.baseLayerSkipped": "No s'ha pogut carregar el mapa de fons «{{title}}» i s'ha omès. Reviseu la configuració del seu servei si us plau.",
   "map.warning.title": "Avis...",
   "menu.changeAppOrTerritory": "Canviar",
   "menu.continue": "Continuar",

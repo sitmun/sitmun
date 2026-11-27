@@ -37,6 +37,7 @@ import { MapInterfaceService } from 'src/app/services/map-interface.service';
 import { MapServiceWorkerService } from 'src/app/services/map-service-worker.service';
 import { MoreInfoAdvancedService } from 'src/app/services/more-info-advanced.service';
 import { SitnaApiService } from 'src/app/services/sitna-api.service';
+import { SitnaBaseLayerGuard } from 'src/app/services/sitna-base-layer-guard.service';
 import { ToolsPanelSplitterService } from 'src/app/services/tools-panel-splitter.service';
 
 import { mapConfigurationErrorKey } from './map-configuration-error';
@@ -64,6 +65,7 @@ export abstract class AbstractMapComponent implements OnInit, OnDestroy {
   private readonly layerCatalogHandler = inject(LayerCatalogControlHandler);
   private readonly shareControlHandler = inject(ShareControlHandler);
   private readonly toolsPanelSplitter = inject(ToolsPanelSplitterService);
+  private readonly baseLayerGuard = inject(SitnaBaseLayerGuard);
   private readonly moreInfoAdvancedService = inject(MoreInfoAdvancedService);
   applicationId!: number;
   territoryId!: number;
@@ -497,6 +499,7 @@ export abstract class AbstractMapComponent implements OnInit, OnDestroy {
     const thisLoadId = ++this.loadId;
     try {
       this.loadingState = 'creating-map';
+      this.baseLayerGuard.ensurePatched();
       this.map = new SitnaMap(MAP_CONTAINER_ID, cfg);
     } catch (error) {
       this.loadingState = 'error';

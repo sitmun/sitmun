@@ -17,6 +17,7 @@ import { MapInterfaceService } from 'src/app/services/map-interface.service';
 import { MapServiceWorkerService } from 'src/app/services/map-service-worker.service';
 import { MoreInfoAdvancedService } from 'src/app/services/more-info-advanced.service';
 import { SitnaApiService } from 'src/app/services/sitna-api.service';
+import { SitnaBaseLayerGuard } from 'src/app/services/sitna-base-layer-guard.service';
 
 import { AbstractMapComponent } from './abstract-map.component';
 
@@ -127,6 +128,7 @@ describe('AbstractMapComponent lifecycle', () => {
       providers: [
         TestMapComponent,
         { provide: LayerCatalogControlHandler, useValue: layerCatalogHandler },
+        { provide: SitnaBaseLayerGuard, useValue: { ensurePatched: jest.fn() } },
         {
           provide: MoreInfoAdvancedService,
           useValue: { setMapContext: jest.fn() }
