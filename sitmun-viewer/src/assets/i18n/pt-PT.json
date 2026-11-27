@@ -171,6 +171,7 @@
   "map.territoriesApplication.save": "Aplicar alterações",
   "map.territoriesApplication.territoriesTitle": "Selecionar território disponível para a aplicação",
   "map.territoriesListFilter": "Filtrar a lista de territórios",
+  "map.warning.baseLayerSkipped": "Não foi possível carregar o mapa de fundo «{{title}}», que foi omitido. Por favor, verifique a configuração do respetivo serviço.",
   "map.warning.title": "Aviso",
   "menu.changeAppOrTerritory": "Alterar",
   "menu.continue": "Continuar",

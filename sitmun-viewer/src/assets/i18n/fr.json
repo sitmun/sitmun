@@ -171,6 +171,7 @@
   "map.territoriesApplication.save": "Appliquer les changements",
   "map.territoriesApplication.territoriesTitle": "Sélectionner un territoire disponible pour l'application",
   "map.territoriesListFilter": "Filtrer la liste des territoires",
+  "map.warning.baseLayerSkipped": "Le fond de carte « {{title}} » n’a pas pu être chargé et a été omis. Veuillez vérifier la configuration de son service.",
   "map.warning.title": "Avertissement",
   "menu.changeAppOrTerritory": "Changer",
   "menu.continue": "Continuer",

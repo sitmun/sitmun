@@ -75,6 +75,20 @@ const CAPABILITIES = `<?xml version="1.0" encoding="UTF-8"?>
       <ResourceURL format="image/png" resourceType="tile"
         template="http://${HOST}:${PORT}/wmts/tile/e2e-layer/{TileMatrix}/{TileCol}/{TileRow}.png"/>
     </Layer>
+    <!-- Web Mercator only: a WMTS background whose grid differs from the map CRS (#380). -->
+    <Layer>
+      <ows:Title>merc</ows:Title>
+      <ows:Identifier>merc</ows:Identifier>
+      <Style isDefault="true">
+        <ows:Identifier>default</ows:Identifier>
+      </Style>
+      <Format>image/png</Format>
+      <TileMatrixSetLink>
+        <TileMatrixSet>EPSG:3857</TileMatrixSet>
+      </TileMatrixSetLink>
+      <ResourceURL format="image/png" resourceType="tile"
+        template="http://${HOST}:${PORT}/wmts/tile/merc/{TileMatrix}/{TileCol}/{TileRow}.png"/>
+    </Layer>
     <TileMatrixSet>
       <ows:Identifier>EPSG:25831</ows:Identifier>
       <ows:SupportedCRS>EPSG:25831</ows:SupportedCRS>

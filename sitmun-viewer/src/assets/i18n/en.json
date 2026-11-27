@@ -171,6 +171,7 @@
   "map.territoriesApplication.save": "Apply changes",
   "map.territoriesApplication.territoriesTitle": "Select territory available for the application",
   "map.territoriesListFilter": "Filter the list of territories",
+  "map.warning.baseLayerSkipped": "The background map «{{title}}» could not be loaded and has been left out. Please check its service configuration.",
   "map.warning.title": "Warning",
   "menu.changeAppOrTerritory": "Change",
   "menu.continue": "Continue",
