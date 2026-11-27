@@ -19,7 +19,8 @@
   </app-entity-form-alerts>
 }
 
-<mat-tab-group mat-stretch-tabs="false" mat-align-tabs="end" [dynamicHeight]="true" preserveContent="true">
+<mat-tab-group mat-stretch-tabs="false" mat-align-tabs="end" [dynamicHeight]="true" preserveContent="true"
+               (selectedTabChange)="onTabChange($event.index)">
   <mat-tab label="{{ 'common.form.details' | translate }}">
     @if (dataLoaded) {
       <form [formGroup]="entityForm">
@@ -493,6 +494,7 @@
       <mat-card-content>
         @if (dataLoaded) {
           <app-relation-grid
+            #parametersGrid
             [table]="parametersTable"
             [allNewElements]="isNewOrDuplicated()"
             templateDialogName="newParameterDialog">

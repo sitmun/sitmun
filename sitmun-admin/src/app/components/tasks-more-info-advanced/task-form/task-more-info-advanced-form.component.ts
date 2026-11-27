@@ -10,6 +10,7 @@ import {firstValueFrom, map, Observable, of, startWith} from 'rxjs';
 
 import {BaseFormComponent} from '@app/components/base-form.component';
 import {DataTableDefinition, TemplateDialog} from '@app/components/data-tables.util';
+import {RelationGridComponent} from '@app/components/shared/relation-grid/relation-grid.component';
 import {Configuration} from '@app/core/config/configuration';
 import {MessagesInterceptorStateService} from '@app/core/interceptors/messages.interceptor';
 import {
@@ -128,6 +129,9 @@ export class TaskMoreInfoAdvancedFormComponent extends BaseFormComponent<TaskPro
 
   @ViewChild('newParameterDialog', {static: true})
   private readonly newParameterDialog: TemplateRef<any>;
+
+  @ViewChild('parametersGrid')
+  private readonly parametersGrid?: RelationGridComponent;
 
   protected readonly rolesTable: DataTableDefinition<Role, Role>;
   protected readonly availabilitiesTable: DataTableDefinition<TaskAvailabilityProjection, TerritoryProjection>;
@@ -492,6 +496,13 @@ export class TaskMoreInfoAdvancedFormComponent extends BaseFormComponent<TaskPro
   }
 
   // --- Child task parameter mapping helpers ---
+
+  /** Picks up parameters added on the Parámetros tab when returning to the details tab. */
+  onTabChange(index: number): void {
+    if (index === 0) {
+      this.rebuildIncludedTaskMappingViews();
+    }
+  }
 
   getMiaParameters(): TaskMoreInfoParameter[] {
     return this.miaParameters;
@@ -900,7 +911,7 @@ export class TaskMoreInfoAdvancedFormComponent extends BaseFormComponent<TaskPro
   }
 
   private rebuildIncludedTaskMappingViews(): void {
-    this.miaParameters = this.readMiaParameters();
+    this.refreshMiaParameters();
     this.includedTasks.forEach(task => this.initializeMappingArraysForTask(task));
     this.includedTaskMappingViews = this.includedTasks.map(task => {
       const mappings = this.ensureChildMappings(task.id);
@@ -1048,7 +1059,29 @@ export class TaskMoreInfoAdvancedFormComponent extends BaseFormComponent<TaskPro
     return this.miaParameters.filter(p => !usedParams.has(p.label));
   }
 
+  /**
+   * Keeps the same objects while the parameters are unchanged: the mapping selects track options
+   * by identity, and new objects during a selection leave its overlay open.
+   */
+  private refreshMiaParameters(): void {
+    const next = this.readMiaParameters();
+    const unchanged = next.length === this.miaParameters.length
+      && next.every((p, i) => p.label === this.miaParameters[i].label && p.value === this.miaParameters[i].value);
+    if (!unchanged) {
+      this.miaParameters = next;
+    }
+  }
+
+  /**
+   * The Parámetros grid's live rows, so a parameter can be mapped before it is saved (#373).
+   * Until the grid is ready, the saved parameters.
+   */
   private readMiaParameters(): TaskMoreInfoParameter[] {
+    if (this.parametersGrid?.dataGrid?.gridApi) {
+      return this.parametersGrid.getAllCurrentData()
+        .filter(row => canKeepOrUpdate(row) && !!row.label)
+        .map(row => TaskMoreInfoParameter.fromObject(row));
+    }
     const raw = this.entityToEdit?.properties?.parameters;
     return Array.isArray(raw) ? raw as TaskMoreInfoParameter[] : [];
   }
