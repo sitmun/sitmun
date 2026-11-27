@@ -16,8 +16,11 @@ public class WMTSCoordinatesUtils {
       TileServiceDto service, WMTSLayerCapabilities layerCapabilities, double[] bounds) {
     List<WMTSTileCoordinate> list = new ArrayList<>();
     for (int zoom = service.getMinZoom(); zoom <= service.getMaxZoom(); zoom++) {
-      WMTSTileMatrix tileMatrix =
-          calculateTileMatrixByExtent(layerCapabilities.getLimitsByMatrix(zoom), bounds, zoom);
+      WMTSTileMatrix matrix = layerCapabilities.getTileMatrixByZoom(zoom);
+      if (matrix == null) {
+        continue;
+      }
+      WMTSTileMatrix tileMatrix = calculateTileMatrixByExtent(matrix, bounds, zoom);
       int maxCol = tileMatrix.getMaxCol();
       int maxRow = tileMatrix.getMaxRow();
       int minCol = tileMatrix.getMinCol();

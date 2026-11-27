@@ -1,16 +1,16 @@
 package org.sitmun.mbtiles.service;
 
+import java.util.ArrayList;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.sitmun.mbtiles.batch.MBTilesNoStrategyException;
+import org.sitmun.mbtiles.batch.MBTilesServiceSkippedException;
 import org.sitmun.mbtiles.batch.MBTilesTaskContext;
 import org.sitmun.mbtiles.dto.MBTilesEstimateDto;
 import org.sitmun.mbtiles.dto.MapServiceDto;
 import org.sitmun.mbtiles.dto.TileRequestDto;
 import org.sitmun.mbtiles.dto.TileServiceDto;
-import org.sitmun.mbtiles.tilesources.wmts.WMTSConstants;
-import org.springframework.batch.core.job.JobExecutionException;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -25,35 +25,37 @@ public class MBTilesEstimateService {
 
   public MBTilesEstimateDto estimateSize(TileRequestDto tileRequest) {
     MBTilesEstimateDto estimation = MBTilesEstimateDto.builder().build();
+    int estimated = 0;
+    List<String> skipped = new ArrayList<>();
     for (MapServiceDto mapService : tileRequest.getMapServices()) {
       MBTilesTaskContext context = getContext(tileRequest, mapService);
       try {
         MBTilesEstimateDto result = computeEstimate(context);
+        estimated++;
         if (result != null) {
           estimation = sumMBTilesEstimations(estimation, result);
         }
+      } catch (MBTilesServiceSkippedException e) {
+        log.warn(e.getMessage());
+        skipped.add(e.getMessage());
       } catch (Exception e) {
         log.error("Error estimating MBTiles size", e);
         throw new MBTilesUnexpectedInternalException(e);
       }
     }
+    if (estimated == 0 && !skipped.isEmpty()) {
+      throw new MBTilesUnexpectedRequestException(
+          "No map service could be downloaded: " + String.join(" | ", skipped));
+    }
     return estimation;
   }
 
-  private MBTilesEstimateDto computeEstimate(MBTilesTaskContext context)
-      throws JobExecutionException {
-    MBTilesEstimateDto result;
-    try {
-      result =
-          mbTilesStrategies.stream()
-              .filter(estimateStrategy -> estimateStrategy.accept(context))
-              .findFirst()
-              .orElseThrow(MBTilesNoStrategyException::new)
-              .estimate(context);
-    } catch (Exception e) {
-      throw new JobExecutionException(e.getMessage(), e);
-    }
-    return result;
+  private MBTilesEstimateDto computeEstimate(MBTilesTaskContext context) {
+    return mbTilesStrategies.stream()
+        .filter(estimateStrategy -> estimateStrategy.accept(context))
+        .findFirst()
+        .orElseThrow(MBTilesNoStrategyException::new)
+        .estimate(context);
   }
 
   @NotNull
@@ -67,7 +69,6 @@ public class MBTilesEstimateService {
             .bbox(tileRequest.getBbox())
             .minZoom(tileRequest.getMinZoom())
             .maxZoom(tileRequest.getMaxZoom())
-            .matrixSet(WMTSConstants.MB_TILES_SRS)
             .build();
     return MBTilesTaskContext.builder().service(tileService).build();
   }
