@@ -66,10 +66,10 @@
       "div": "tc-slot-scale"
     },
     "sitna.scaleBar": {
-      "div": "tc-slot-scale"
+      "div": "tc-slot-scalebar"
     },
     "sitna.scaleSelector": {
-      "div": "tc-slot-scale"
+      "div": "tc-slot-scaleselector"
     },
     "sitna.workLayerManager": {
       "div": "tc-slot-wlm"
