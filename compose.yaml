@@ -55,6 +55,12 @@
 #   - Optional: add ,demo for example demo DB (host port 9005; ,dev still works)
 #   - Optional: add ,mbtiles for edition-mobile tile export service
 #
+# Backend and proxy:
+#   - No host port. The front reaches them on the Compose network at
+#     /backend/ and /middleware/.
+#   - compose.dev-ports.yaml publishes backend 9001 and proxy 9002. The
+#     development profiles load it through COMPOSE_FILE.
+#
 # Databases (when profiles enabled):
 #   - PostgreSQL on port 9003 (profile postgres)
 #   - Example demo DB on port 9005 (profile demo; alias dev)
@@ -103,8 +109,6 @@ services:
     build:
       context: .
       dockerfile: docker/backend/Dockerfile
-    ports:
-      - "9001:8080"
     restart: always
     environment:
       - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE:-${DATABASE_TYPE:-postgres}}
@@ -152,8 +156,6 @@ services:
       context: .
       dockerfile: docker/proxy/Dockerfile
     restart: always
-    ports:
-      - "9002:8080"
     depends_on:
       backend:
         condition: service_started

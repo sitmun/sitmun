@@ -186,29 +186,27 @@ run_target() {
   local front_port
   front_port="$(grep -E '^LOCAL_PORT=' "$env_file" | cut -d= -f2 | tr -d '"' | head -1 || true)"
 
-  local backend_port proxy_port
   if [[ -n "$compose_file" ]]; then
     # Standalone compose files use ${LOCAL_PORT:-80} for the front.
     front_port="${front_port:-80}"
-    backend_port=8080
-    proxy_port=8081
   else
     front_port="${front_port:-9000}"
-    backend_port=9001
-    proxy_port=9002
   fi
+  # Production profiles do not publish the backend or the proxy; go through nginx.
+  local backend_url="http://localhost:${front_port}/backend"
+  local proxy_url="http://localhost:${front_port}/middleware"
 
   local ok=true
   if ! wait_healthy "http://localhost:${front_port}/" 60; then
     fail "$label: front not healthy at :${front_port}"
     ok=false
   fi
-  if ! wait_healthy "http://localhost:${backend_port}/api/dashboard/health" 120; then
-    fail "$label: backend not healthy at :${backend_port}"
+  if ! wait_healthy "${backend_url}/api/dashboard/health" 120; then
+    fail "$label: backend not healthy at ${backend_url}"
     ok=false
   fi
-  if ! wait_healthy "http://localhost:${proxy_port}/actuator/health" 60; then
-    fail "$label: proxy not healthy at :${proxy_port}"
+  if ! wait_healthy "${proxy_url}/actuator/health" 60; then
+    fail "$label: proxy not healthy at ${proxy_url}"
     ok=false
   fi
 
@@ -220,10 +218,10 @@ run_target() {
     jar="$(mktemp)"
     if ! curl -sf -c "$jar" -H 'Content-Type: application/json' \
       -d '{"username":"admin","password":"admin"}' \
-      "http://localhost:${backend_port}/api/authenticate" >/dev/null; then
+      "${backend_url}/api/authenticate" >/dev/null; then
       fail "$label: admin login failed before profile 12/4 check"
       ok=false
-    elif ! curl -sf -b "$jar" -o "$jar.profile" "http://localhost:${backend_port}/api/config/client/profile/12/4"; then
+    elif ! curl -sf -b "$jar" -o "$jar.profile" "${backend_url}/api/config/client/profile/12/4"; then
       fail "$label: profile 12/4 request failed"
       ok=false
     elif ! grep -q '/WFS/9401' "$jar.profile"; then

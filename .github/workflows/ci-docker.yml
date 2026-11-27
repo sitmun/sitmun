@@ -48,7 +48,7 @@ jobs:
           export COMPOSE_PROFILES=postgres
           export SPRING_PROFILES_ACTIVE=postgres
           export SPRING_LIQUIBASE_CHANGE_LOG=classpath:/db/changelog/db.changelog-master.yaml
-          compose=(docker compose --env-file "$RUNNER_TEMP/compose.env" -f compose.yaml -f .github/docker/compose.ci.yaml)
+          compose=(docker compose --env-file "$RUNNER_TEMP/compose.env" -f compose.yaml -f compose.dev-ports.yaml -f .github/docker/compose.ci.yaml)
           cleanup() { "${compose[@]}" down -v || true; }
           trap cleanup EXIT
           "${compose[@]}" up -d --wait --wait-timeout 300 postgres backend

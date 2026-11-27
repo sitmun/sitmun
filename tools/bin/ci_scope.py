@@ -88,6 +88,7 @@ FILTERS = {
     "docker": (
         "docker/**",
         "compose.yaml",
+        "compose.dev-ports.yaml",
         ".dockerignore",
         "sitmun-admin/**",
         "sitmun-viewer/**",

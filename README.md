@@ -108,8 +108,10 @@ On a development database the administrator is `admin` / `admin`.
 | http://localhost:9000/viewer/ | Viewer. Public applications do not require a login. |
 | http://localhost:9000/admin/ | Admin |
 | http://localhost:9000/backend/ | Backend through nginx |
-| http://localhost:9001/api/dashboard/health | Backend health |
-| http://localhost:9002/actuator/health | Proxy health |
+| http://localhost:9000/backend/api/dashboard/health | Backend health through nginx |
+| http://localhost:9000/middleware/actuator/health | Proxy health through nginx |
+| http://localhost:9001/api/dashboard/health | Backend health, development profiles only |
+| http://localhost:9002/actuator/health | Proxy health, development profiles only |
 
 Run one app from its own README: [sitmun-admin](sitmun-admin/README.md), [sitmun-viewer](sitmun-viewer/README.md), [sitmun-mobile/sitmun-edition](sitmun-mobile/sitmun-edition/README.md), [sitmun-mobile/sitmun-touristic](sitmun-mobile/sitmun-touristic/README.md), [sitmun-backend](sitmun-backend/README.md), [sitmun-proxy](sitmun-proxy/README.md).
 
@@ -131,7 +133,7 @@ With `PUBLIC_BASE_PATH=/` and nginx on port 9000:
 | `/middleware/` | `proxy:8080` (prefix stripped) |
 | `/mbtiles` | 404 |
 
-Direct host ports: backend `9001`, proxy `9002`, PostgreSQL `9003`, Oracle `9004`, example database `9005`.
+Direct host ports: PostgreSQL `9003`, Oracle `9004`, example database `9005`. Backend `9001` and proxy `9002` are published only by [`compose.dev-ports.yaml`](compose.dev-ports.yaml), which the `development-*` profiles load through `COMPOSE_FILE`. Production profiles and the showcase reach them through nginx only.
 
 ```text
 Viewer ──┐
@@ -152,22 +154,22 @@ docker compose logs -f backend
 Windows:
 
 ```powershell
-curl.exe http://localhost:9001/api/dashboard/health
-curl.exe http://localhost:9002/actuator/health
+curl.exe http://localhost:9000/backend/api/dashboard/health
+curl.exe http://localhost:9000/middleware/actuator/health
 ```
 
 macOS or Linux:
 
 ```bash
-curl http://localhost:9001/api/dashboard/health
-curl http://localhost:9002/actuator/health
+curl http://localhost:9000/backend/api/dashboard/health
+curl http://localhost:9000/middleware/actuator/health
 ```
 
 PowerShell's `curl` name is a different command. Use `curl.exe` there.
 
 ## More
 
-- API: Swagger UI at http://localhost:9001/swagger-ui/index.html
+- API: Swagger UI at http://localhost:9001/swagger-ui/index.html (development profiles)
 - Contributing: [CONTRIBUTING.md](CONTRIBUTING.md)
 - Issues: https://github.com/sitmun/sitmun/issues
 - Security: report vulnerabilities privately, as the [security policy](https://github.com/sitmun/.github/blob/main/SECURITY.md) explains (needs a GitHub account)

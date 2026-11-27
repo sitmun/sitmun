@@ -117,7 +117,7 @@ From the repository root, the published stack runs `ghcr.io/sitmun/backend:1.3.0
 **Verify deployment**
 
 ```bash
-curl http://localhost:9001/api/dashboard/health
+curl http://localhost:9000/backend/api/dashboard/health
 ```
 
 ### Troubleshooting
@@ -152,7 +152,7 @@ docker compose exec backend ping postgres
 docker compose exec backend ping oracle
 
 # Verify database configuration
-curl http://localhost:9001/api/dashboard/health
+curl http://localhost:9000/backend/api/dashboard/health
 ```
 
 ### Packaging Options

@@ -128,7 +128,7 @@ From the repository root, the published stack runs `ghcr.io/sitmun/proxy:1.3.0` 
 **Verify deployment**
 
 ```bash
-curl http://localhost:9002/actuator/health
+curl http://localhost:9000/middleware/actuator/health
 ```
 
 ### Troubleshooting
