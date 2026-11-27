@@ -9,18 +9,21 @@ not on the diff base, master files, and the seed paths in TREE_ALLOWLIST.
 Everything else with a lower number fails.
 
 Once a vMAJOR.MINOR.PATCH tag exists, a file in a checked tree that exists at
-the newest such tag must keep that tag's content, whatever its name. Master
-files may still change, so a release can include new files.
+the newest such tag must keep that tag's content, whatever its name. A master
+from that tag keeps every line and only gains `releases/<version>.yaml`
+includes for versions after the tag (docs/database-changelogs.md).
 """
 
 from __future__ import annotations
 
 import argparse
+import difflib
 import re
 import subprocess
 import sys
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Callable
 
 INCLUDE_XML = re.compile(r"<include\s+file=\"([^\"]+)\"")
 INCLUDE_YAML = re.compile(r"^\s+file:\s+(\S+)", re.M)
@@ -30,7 +33,11 @@ RELEASE_TAG = re.compile(r"^v\d+\.\d+\.\d+$")
 
 DEFAULT_TREES = (
     "sitmun-backend/src/main/resources/db/changelog",
+    "sitmun-backend/src/test/resources/db/changelog-test",
     "profiles/showcase/liquibase",
+    "profiles/development/backend/liquibase",
+    "profiles/postgres/liquibase",
+    "profiles/oracle/liquibase",
 )
 
 TREE_ALLOWLIST: dict[str, tuple[str, ...]] = {
@@ -66,6 +73,18 @@ TREE_ALLOWLIST: dict[str, tuple[str, ...]] = {
 }
 
 MASTER_NAMES = frozenset({"master.xml", "db.changelog-master.yaml"})
+
+VERSION_FILE = re.compile(r"^releases/(\d+\.\d+\.\d+)(-upgrade)?\.yaml$")
+YAML_ADDED = (
+    ("include", re.compile(r"^  - include:\s*$")),
+    ("file", re.compile(r"^      file:\s*([\"']?)(\S+?)\1\s*$")),
+    ("relative", re.compile(r"^      relativeToChangelogFile:\s*true\s*$")),
+    ("note", re.compile(r"^\s*(#.*)?$")),
+)
+XML_INCLUDE_LINE = re.compile(r"^\s*<include\s+([^>]*?)\s*/>\s*$")
+XML_ATTR = re.compile(r'(\w+)="([^"]*)"')
+XML_NOTE = re.compile(r"^\s*(<!--.*-->)?\s*$")
+YAML_UPGRADE_FILE = re.compile(r"^      file:\s*([\"']?)upgrade/db\.changelog-upgrade\.yaml\1\s*$")
 
 
 @dataclass(frozen=True)
@@ -288,13 +307,84 @@ def latest_release_tag(repo_root: Path) -> str | None:
     return next((t for t in listed.stdout.split() if RELEASE_TAG.match(t)), None)
 
 
+def version_key(version: str) -> tuple[int, ...]:
+    return tuple(int(part) for part in version.split("."))
+
+
+def _added_includes(lines: list[str], *, xml: bool) -> tuple[list[tuple[int, str]], list[str]]:
+    """Version files named by added master lines, and the added lines that are not allowed."""
+    files: list[tuple[int, str]] = []
+    bad: list[str] = []
+    entries = 0
+    for index, line in lines:
+        if xml:
+            match = XML_INCLUDE_LINE.match(line)
+            attrs = dict(XML_ATTR.findall(match.group(1))) if match else {}
+            if match and set(attrs) == {"file", "relativeToChangelogFile"} and attrs["relativeToChangelogFile"] == "true":
+                files.append((index, attrs["file"]))
+            elif not XML_NOTE.match(line):
+                bad.append(line.strip())
+            continue
+        kind = next((name for name, pattern in YAML_ADDED if pattern.match(line)), None)
+        if kind == "include":
+            entries += 1
+        elif kind == "file":
+            files.append((index, YAML_ADDED[1][1].match(line).group(2)))
+        elif kind is None:
+            bad.append(line.strip())
+    if not xml and entries != len(files):
+        bad.append(f"{entries} include entries for {len(files)} file lines")
+    return files, bad
+
+
+def master_violations(
+    tagged: str, current: str, *, xml: bool, released: tuple[int, ...], exists: Callable[[str], bool]
+) -> list[str]:
+    """Why a master from the release tag breaks the policy; empty when it only gained version includes."""
+    old, new = tagged.splitlines(), current.splitlines()
+    problems: list[str] = []
+    added: list[tuple[int, str]] = []
+    kept: list[int] = []
+    for op, i1, i2, j1, j2 in difflib.SequenceMatcher(None, old, new, autojunk=False).get_opcodes():
+        if op in ("replace", "delete"):
+            problems.extend(f"released line changed or removed: {line.strip()}" for line in old[i1:i2])
+        if op in ("replace", "insert"):
+            added.extend((j, new[j]) for j in range(j1, j2))
+        if op == "equal":
+            kept.extend(j for j in range(j1, j2) if new[j].strip() and not new[j].strip().startswith("</"))
+    files, bad = _added_includes(added, xml=xml)
+    problems.extend(f"only releases/<version>.yaml includes may be added: {line}" for line in bad)
+    last_kept = max(kept, default=-1)
+    upgrade_at = next((i for i, line in enumerate(new) if not xml and YAML_UPGRADE_FILE.match(line)), None)
+    order: dict[bool, list[tuple[int, ...]]] = {True: [], False: []}
+    for index, name in files:
+        match = VERSION_FILE.match(name)
+        if not match:
+            problems.append(f"{name}: not releases/<version>.yaml")
+            continue
+        version, early = version_key(match.group(1)), bool(match.group(2))
+        if early and (xml or upgrade_at is None or index > upgrade_at):
+            problems.append(f"{name}: an -upgrade file goes before upgrade/db.changelog-upgrade.yaml, in the shipped master only")
+        elif not early and index < last_kept:
+            problems.append(f"{name}: goes after every released entry")
+        if version <= released:
+            problems.append(f"{name}: {match.group(1)} is already released")
+        if not exists(name):
+            problems.append(f"{name}: no such file")
+        order[early].append(version)
+    problems.extend(
+        "version includes are not in ascending order" for versions in order.values() if versions != sorted(set(versions))
+    )
+    return problems
+
+
 def released_file_violations(
     repo_root: Path, tree_rels: list[str], changed_files: list[str], tag: str
 ) -> list[str]:
     prefixes = [t.rstrip("/") + "/" for t in tree_rels]
     violations: list[str] = []
     for rel in sorted({f.replace("\\", "/") for f in changed_files if f}):
-        if not any(rel.startswith(p) for p in prefixes) or Path(rel).name in MASTER_NAMES:
+        if not any(rel.startswith(p) for p in prefixes):
             continue
         shipped = subprocess.run(
             ["git", "show", f"{tag}:{rel}"], cwd=repo_root, capture_output=True, check=False
@@ -302,7 +392,16 @@ def released_file_violations(
         if shipped.returncode != 0:
             continue
         current = repo_root / rel
-        if not current.is_file() or current.read_bytes() != shipped.stdout:
+        if Path(rel).name in MASTER_NAMES and current.is_file():
+            problems = master_violations(
+                shipped.stdout.decode("utf-8"),
+                current.read_text(encoding="utf-8"),
+                xml=rel.endswith(".xml"),
+                released=version_key(tag[1:]),
+                exists=lambda name, base=current.parent: (base / name).is_file(),
+            )
+            violations.extend(f"{rel}: {problem}" for problem in problems)
+        elif not current.is_file() or current.read_bytes() != shipped.stdout:
             violations.append(rel)
     return violations
 
@@ -385,6 +484,9 @@ def main(argv: list[str] | None = None) -> int:
         tree_rels = [posix_rel(t, repo_root) for t in trees if t.is_dir()]
         released = []
         for rel in released_file_violations(repo_root, tree_rels, changed, tag):
+            if ": " in rel:
+                released.append(rel)
+                continue
             diff = subprocess.run(
                 ["git", "diff", tag, "--", rel], cwd=repo_root, capture_output=True, text=True, check=False
             ).stdout
@@ -401,7 +503,7 @@ def main(argv: list[str] | None = None) -> int:
         if kept:
             print()
         print(f"Liquibase immutability: these files shipped in {tag}. Do not edit or delete them.")
-        print("Add a new file under db/changelog/releases/ and include it from the master.")
+        print("Add a changeset to releases/<version>.yaml of that tree instead (docs/database-changelogs.md).")
         print()
         for rel in released:
             print(f"  {rel}")

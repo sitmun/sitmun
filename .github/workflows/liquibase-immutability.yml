@@ -13,6 +13,8 @@ on:
     paths:
       - 'profiles/**/liquibase/**'
       - 'sitmun-backend/src/main/resources/db/changelog/**'
+      - 'sitmun-backend/src/test/resources/db/changelog-test/**'
+      - 'docs/database-changelogs.md'
       - 'tools/bin/check_changelog_immutability.py'
       - 'tools/tests/test_changelog_immutability.py'
       - 'tools/tests/test_changelog_logical_paths.py'

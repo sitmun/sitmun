@@ -11,6 +11,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 #### Stack
 
 - **CI**: An upgrade from 1.3.0 runs on PostgreSQL 12, PostgreSQL 16, and Oracle 23ai. It installs the published 1.3.0 backend image, then checks that this tree's backend starts on that database and that every 1.3.0 changeset keeps its checksum.
+- **Database**: [docs/database-changelogs.md](docs/database-changelogs.md) sets one policy for Liquibase changes after 1.3.0 in every tree (shipped, backend tests, and the postgres, oracle, showcase, and development profiles): released files never change, each version's changes go in one `releases/<version>.yaml` per tree, and every changeset in it pins `logicalFilePath: master.xml` with author `sitmun` and a `<version>-<issue>-<topic>` id unique across the trees. `check_changelog_immutability.py` now checks all six trees, and a released master may only gain version includes. `test_changelog_logical_paths.py` reads each version file strictly and fails on anything it cannot read. The unreleased 1.3.1 changesets follow it: `releases/1.3.1-upgrade.yaml`, which runs before the upgrade path, with ids `1.3.1-403-restore-changelog-filenames-postgresql` and `-oracle`. A database that ran the earlier 1.3.1 ids records the new ones as `MARK_RAN`.
 
 ### Changed
 
