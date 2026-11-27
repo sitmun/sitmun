@@ -19,6 +19,7 @@
 
 ### Fixed
 
+- **Map**: The online map uses the application projection (`application.srs`, for example EPSG:25831) instead of always EPSG:3857, and falls back to EPSG:3857 when the projection is unknown. WMTS layers whose only grid is in that projection now draw: the IDEIB 1956 and 1984 orthophotos showed nothing over Menorca because API-CNIG built their EPSG:25831 tile grid from an EPSG:3857 extent ([#313](https://github.com/sitmun/sitmun/issues/313)). The offline MBTiles map stays in EPSG:3857.
 - **Download**: A background job that fails, returns an error, or does not finish stops the progress dialog and shows `download.backgroundFailed`. The application and its layers are not stored as downloaded ([#312](https://github.com/sitmun/sitmun/issues/312)).
 - **Download**: A ticked tree node with an editing task and no cartography is downloaded. A node with cartography and no task no longer throws ([#314](https://github.com/sitmun/sitmun/issues/314)).
 - **Applications**: Main list and offline cache show `name` when `title` is null ([#5](https://github.com/sitmun/edition-mobile-app/issues/5)).

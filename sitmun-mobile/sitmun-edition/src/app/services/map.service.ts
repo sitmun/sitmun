@@ -18,6 +18,8 @@ declare var ol: any;
 // eslint-disable-next-line no-var -- ambient global shared across modules
 declare var cordova: any;
 
+const WEB_MERCATOR = 'EPSG:3857';
+
 
 @Injectable({
   providedIn: 'root'
@@ -27,7 +29,7 @@ export class MapService {
   editableLayers: any[] = [];
   move: any = null;
   private mapProfileApplication: any;
-  mapProj = 'EPSG:3857';
+  mapProj = WEB_MERCATOR;
   centerMapTransformed: number[] = [] 
 
   constructor(
@@ -43,11 +45,12 @@ export class MapService {
   async initMap(container: string, profile: any, downloadZoom: number = 9, downloadExtent: number[] = [], selectedProj: string ) {
     this.editableLayers = [];
     this.mapProfileApplication = profile.application;
+    this.mapProj = ol.proj.get(profile.application?.srs) ? profile.application.srs : WEB_MERCATOR;
     M.proxy(false);
 
     const mapa = new M.map({
       container,
-      projection: 'EPSG:3857*m',
+      projection: this.mapProjection(),
       layers: ['OSM'],
     });
     if (profile) {
@@ -60,6 +63,8 @@ export class MapService {
 
   async initMapOffline(container: string, zoom: number, extent: number[], selectedProj: string, bgLayer: any, databaseLayers: any[]) {
     this.editableLayers = [];
+    // MBTiles backgrounds are Web Mercator tiles.
+    this.mapProj = WEB_MERCATOR;
     M.proxy(false);
 
     const fileName = bgLayer.path;
@@ -92,7 +97,7 @@ export class MapService {
 
       const mapa = new M.map({
         container,
-        projection: 'EPSG:3857*m',
+        projection: this.mapProjection(),
         center: { x: center[0], y: center[1] },
         bbox,
         zoom,
@@ -176,6 +181,13 @@ export class MapService {
         }
       });
     });
+  }
+
+  // API-CNIG builds each WMTS tile grid from an extent in the map projection, so the map
+  // must share the grids' projection (the application srs) for regional WMTS layers to load.
+  private mapProjection() {
+    const degrees = ol.proj.get(this.mapProj).getUnits() === 'degrees';
+    return `${this.mapProj}*${degrees ? 'd' : 'm'}`;
   }
 
   private async applyMapDataFromProfile(mapa: any, application: any, zoom: number, downloadExtent: number[], selectedProj: string) {

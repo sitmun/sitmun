@@ -43,6 +43,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - **Map**: The overview map draws a WMTS background instead of staying empty ([#388](https://github.com/sitmun/sitmun/issues/388)). See `sitmun-viewer/CHANGELOG.md`.
 - **Map**: An application with the scale and the scale bar (or the scale selector) shows them stacked instead of on top of each other, and no longer warns «Configuration conflict» ([#374](https://github.com/sitmun/sitmun/issues/374)). See `sitmun-viewer/CHANGELOG.md`.
 
+#### Mobile Editor
+
+- **Map**: The online map uses the application projection instead of always EPSG:3857, so the IDEIB 1956 and 1984 orthophotos (EPSG:25831 grid only) draw over Menorca ([#313](https://github.com/sitmun/sitmun/issues/313)). See `sitmun-mobile/sitmun-edition/CHANGELOG.md`.
+
 ### Removed
 
 #### Stack
