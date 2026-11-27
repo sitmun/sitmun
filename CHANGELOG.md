@@ -28,6 +28,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - **Territorial roles**: An application with only **Garantizar acceso a territorios hijo** now appears in the viewer for a user whose assignment has **Rol territorial** on, and opens in the child territories of the assigned territory ([#379](https://github.com/sitmun/sitmun/issues/379)). See `sitmun-backend/CHANGELOG.md`.
 - **Capabilities**: In the admin, **Obtener detalles del servicio** and **Obtener tipos de entidad del servicio** work for a WFS service. The backend helper rejected every WFS with «Error del backend» ([#382](https://github.com/sitmun/sitmun/issues/382)). See `sitmun-backend/CHANGELOG.md`.
 - **Feature types**: In the admin layer form, **Cargar propiedades del servicio** reads the fields of a WFS feature type from servers whose schema has no `xsd:` prefix, such as INSPIRE services. It showed «No se ha podido leer el tipo de entidad del WFS» ([#419](https://github.com/sitmun/sitmun/issues/419)). See `sitmun-backend/CHANGELOG.md`.
+- **Data REST filters**: Lists filtered by a related item show only matching rows again. The Localizador, Imagen de mapa and Exportación documental task lists, the Plantilla, tree-node, locator and more-info task pickers, the task group's tasks, and the territory's users all listed every row ([#372](https://github.com/sitmun/sitmun/issues/372)). See `sitmun-backend/CHANGELOG.md`.
 
 #### Admin Application
 
