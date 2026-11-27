@@ -254,6 +254,22 @@ if [[ "${SITMUN_PROFILE:-}" == "showcase" ]]; then
     fail "showcase changesets: ${changelog:-none}"
   fi
 
+  # #375: the 1.2.x legend types in the seed draw no legend in a 1.3.x viewer.
+  legend_changeset=$(docker exec "$CONTAINER" psql -U "$DB_USER" -d sitmun3 -tAc \
+    "SELECT exectype FROM databasechangelog WHERE id = '1.3.1-375-legend-type' AND author = 'sitmun'" \
+    2>/dev/null || true)
+  bad_legends=$(docker exec "$CONTAINER" psql -U "$DB_USER" -d sitmun3 -tAc \
+    "SELECT COUNT(*) FROM stm_geoinfo g JOIN stm_service s ON s.ser_id = g.geo_serid
+      WHERE (g.geo_legendtip IS NOT NULL AND g.geo_legendtip NOT IN
+              (SELECT cod_value FROM stm_codelist WHERE cod_list = 'cartography.legendType'))
+         OR (s.ser_protocol = 'WMS' AND g.geo_legendtip IS NULL)" \
+    2>/dev/null || true)
+  if [[ "$legend_changeset" == "EXECUTED" && "$bad_legends" == "0" ]]; then
+    ok "showcase layer legend types are 1.3.0 values"
+  else
+    fail "showcase legend types: changeset ${legend_changeset:-missing}, ${bad_legends:-?} layers with a pre-1.3.0 type"
+  fi
+
   apps_file="$(mktemp "${TMPDIR:-/tmp}/sitmun-showcase-apps.XXXXXX")"
   curl -fsS -m 30 "$BASE/api/config/client/application?page=0&size=20" -o "$apps_file" \
     && ok "public application list" || fail "public application list"
