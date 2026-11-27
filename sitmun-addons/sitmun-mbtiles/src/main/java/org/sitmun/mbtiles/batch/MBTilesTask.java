@@ -1,12 +1,12 @@
 package org.sitmun.mbtiles.batch;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.sitmun.mbtiles.dto.MapServiceDto;
 import org.sitmun.mbtiles.dto.TileRequestDto;
 import org.sitmun.mbtiles.dto.TileServiceDto;
-import org.sitmun.mbtiles.tilesources.wmts.WMTSConstants;
 import org.springframework.batch.core.job.JobExecutionException;
 import org.springframework.batch.core.scope.context.StepContext;
 import org.springframework.stereotype.Component;
@@ -52,6 +52,8 @@ public class MBTilesTask {
       throw new JobExecutionException("MapServices list is null or empty");
     }
 
+    int written = 0;
+    List<String> skipped = new ArrayList<>();
     for (MapServiceDto mapService : mapServices) {
       if (mapService == null) {
         log.warn("Skipping null MapServiceDto");
@@ -66,9 +68,18 @@ public class MBTilesTask {
               .bbox(tileRequest.getBbox())
               .minZoom(tileRequest.getMinZoom())
               .maxZoom(tileRequest.getMaxZoom())
-              .matrixSet(WMTSConstants.MB_TILES_SRS)
               .build();
-      processTile(tileService, outputPath, stepContext);
+      try {
+        processTile(tileService, outputPath, stepContext);
+        written++;
+      } catch (MBTilesServiceSkippedException e) {
+        log.warn(e.getMessage());
+        skipped.add(e.getMessage());
+      }
+    }
+    if (written == 0 && !skipped.isEmpty()) {
+      throw new JobExecutionException(
+          "No map service could be downloaded: " + String.join(" | ", skipped));
     }
   }
 
@@ -81,6 +92,8 @@ public class MBTilesTask {
           .findFirst()
           .orElseThrow(MBTilesNoStrategyException::new)
           .process(stepContext, taskContext);
+    } catch (MBTilesServiceSkippedException e) {
+      throw e;
     } catch (Exception e) {
       throw new JobExecutionException(e.getMessage(), e);
     }

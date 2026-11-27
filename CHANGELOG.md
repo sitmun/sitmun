@@ -47,6 +47,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 - **Map**: The online map uses the application projection instead of always EPSG:3857, so the IDEIB 1956 and 1984 orthophotos (EPSG:25831 grid only) draw over Menorca ([#313](https://github.com/sitmun/sitmun/issues/313)). See `sitmun-mobile/sitmun-edition/CHANGELOG.md`.
 
+#### MBTiles Service
+
+- **WMTS**: An offline background download no longer fails as a whole when one WMTS service has no tile matrix set named `EPSG:3857` with `TileMatrixLimits`. The service picks each layer's Web Mercator grid by its CRS, computes the tile range when limits are missing, and skips a service with no Web Mercator grid, naming it and the reason in the log. The estimate applies the same rules ([#321](https://github.com/sitmun/sitmun/issues/321)). The IDEIB orthophotos publish only `default028mm` in EPSG:25831, so they are skipped, not downloaded. See `sitmun-addons/sitmun-mbtiles/CHANGELOG.md`.
+
 ### Removed
 
 #### Stack

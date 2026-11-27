@@ -14,6 +14,7 @@ import java.math.RoundingMode;
 import java.util.*;
 import javax.imageio.ImageIO;
 import lombok.extern.slf4j.Slf4j;
+import org.sitmun.mbtiles.batch.MBTilesServiceSkippedException;
 import org.sitmun.mbtiles.batch.MBTilesTaskContext;
 import org.sitmun.mbtiles.batch.MBTilesTaskStrategy;
 import org.sitmun.mbtiles.dto.BoundingBoxDto;
@@ -61,11 +62,11 @@ public class WMTSProcess implements MBTilesTaskStrategy, MBTilesEstimateStrategy
         log.info("Estimating size for layer: {}", lc.getLayerIdentifier());
         List<WMTSTileCoordinate> coordinates =
             WMTSCoordinatesUtils.calculateCoordinates(service, lc, bounds);
-        estimateSize += getAvgTileSize(service, lc.getLayerIdentifier(), coordinates) / 1024;
+        estimateSize += getAvgTileSize(service, lc, coordinates) / 1024;
         tileCount += coordinates.size();
       }
       double avgSizeKb =
-          BigDecimal.valueOf(estimateSize / tileCount)
+          BigDecimal.valueOf(tileCount == 0 ? 0 : estimateSize / tileCount)
               .setScale(3, RoundingMode.HALF_UP)
               .doubleValue();
       double avgSizeMb =
@@ -76,6 +77,8 @@ public class WMTSProcess implements MBTilesTaskStrategy, MBTilesEstimateStrategy
           .estimatedTileSizeKb(avgSizeKb)
           .estimatedMbtilesSizeMb(avgSizeMb)
           .build();
+    } catch (MBTilesServiceSkippedException e) {
+      throw e;
     } catch (Exception e) {
       log.error("Error estimating WMTSTile size", e);
       return null;
@@ -83,7 +86,7 @@ public class WMTSProcess implements MBTilesTaskStrategy, MBTilesEstimateStrategy
   }
 
   private double getAvgTileSize(
-      TileServiceDto service, String layer, List<WMTSTileCoordinate> coordinates) {
+      TileServiceDto service, WMTSLayerCapabilities layer, List<WMTSTileCoordinate> coordinates) {
     double estimation = 0;
     Map<String, List<WMTSTileCoordinate>> coordinatesByZoom = new HashMap<>();
 
@@ -138,7 +141,12 @@ public class WMTSProcess implements MBTilesTaskStrategy, MBTilesEstimateStrategy
         int tileRow = coordinate[1];
         tileData =
             WMTSUtils.downloadTile(
-                service.getUrl(), layer, service.getMatrixSet(), tileColumn, tileRow, zoomLevel);
+                service.getUrl(),
+                layer.getLayerIdentifier(),
+                layer.getTileMatrixSet(),
+                tileColumn,
+                tileRow,
+                zoomLevel);
         if (tileData != null) {
           totalBytes += tileData.length;
           validSampleCount++;
@@ -191,8 +199,7 @@ public class WMTSProcess implements MBTilesTaskStrategy, MBTilesEstimateStrategy
             return;
           }
 
-          BufferedImage tile =
-              getTileImage(service, layerCapabilities.getLayerIdentifier(), coordinate);
+          BufferedImage tile = getTileImage(service, layerCapabilities, coordinate);
 
           if (tile != null) {
             addOrUpdateTitle(coordinate, reader, tile, writer);
@@ -222,6 +229,8 @@ public class WMTSProcess implements MBTilesTaskStrategy, MBTilesEstimateStrategy
               MetadataEntry.TileMimeType.PNG,
               metBounds));
       writer.close();
+    } catch (MBTilesServiceSkippedException e) {
+      throw e;
     } catch (Exception e) {
       throw new WMTSHarvestException(e);
     }
@@ -251,12 +260,12 @@ public class WMTSProcess implements MBTilesTaskStrategy, MBTilesEstimateStrategy
   }
 
   private BufferedImage getTileImage(
-      TileServiceDto service, String layer, WMTSTileCoordinate coordinate) {
+      TileServiceDto service, WMTSLayerCapabilities layer, WMTSTileCoordinate coordinate) {
     byte[] tileData =
         WMTSUtils.downloadTile(
             service.getUrl(),
-            layer,
-            service.getMatrixSet(),
+            layer.getLayerIdentifier(),
+            layer.getTileMatrixSet(),
             coordinate.getX(),
             coordinate.getY(),
             coordinate.getZId());

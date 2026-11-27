@@ -1,0 +1,243 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Capabilities xmlns="http://www.opengis.net/wmts/1.0"
+	xmlns:ows="http://www.opengis.net/ows/1.1"
+	xmlns:xlink="http://www.w3.org/1999/xlink"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:gml="http://www.opengis.net/gml"
+	xsi:schemaLocation="http://www.opengis.net/wmts/1.0 http://schemas.opengis.net/wmts/1.0/wmtsGetCapabilities_response.xsd"
+	version="1.0.0">
+  <!-- Service Identification --> 
+ <ows:ServiceIdentification>
+	<ows:Title>imatges_GOIB_Orto_IB</ows:Title>
+	<ows:ServiceType>OGC WMTS</ows:ServiceType>
+	<ows:ServiceTypeVersion>1.0.0</ows:ServiceTypeVersion>
+</ows:ServiceIdentification> <!-- Operations Metadata --> <ows:OperationsMetadata>
+	<ows:Operation name="GetCapabilities">
+		<ows:DCP>
+			<ows:HTTP>
+				<ows:Get xlink:href="https://ideib.caib.es/geoserveis/rest/services/imatges/GOIB_Orto_IB/MapServer/WMTS/1.0.0/WMTSCapabilities.xml">
+					<ows:Constraint name="GetEncoding">
+						<ows:AllowedValues>
+							<ows:Value>RESTful</ows:Value>
+						</ows:AllowedValues>
+					</ows:Constraint>
+				</ows:Get>
+                <!-- add KVP binding in 10.1 -->
+                <ows:Get xlink:href="https://ideib.caib.es/geoserveis/rest/services/imatges/GOIB_Orto_IB/MapServer/WMTS?">
+                  <ows:Constraint name="GetEncoding">
+                    <ows:AllowedValues>
+                      <ows:Value>KVP</ows:Value>
+                    </ows:AllowedValues>
+                  </ows:Constraint>
+                </ows:Get>
+    		</ows:HTTP>
+    </ows:DCP>
+	</ows:Operation>
+	<ows:Operation name="GetTile">
+		<ows:DCP>
+			<ows:HTTP>
+				<ows:Get xlink:href="https://ideib.caib.es/geoserveis/rest/services/imatges/GOIB_Orto_IB/MapServer/WMTS/tile/1.0.0/">
+					<ows:Constraint name="GetEncoding">
+						<ows:AllowedValues>
+							<ows:Value>RESTful</ows:Value>
+						</ows:AllowedValues>
+					</ows:Constraint>
+				</ows:Get>
+                <ows:Get xlink:href="https://ideib.caib.es/geoserveis/rest/services/imatges/GOIB_Orto_IB/MapServer/WMTS?">
+                  <ows:Constraint name="GetEncoding">
+                    <ows:AllowedValues>
+                      <ows:Value>KVP</ows:Value>
+                    </ows:AllowedValues>
+                  </ows:Constraint>
+                </ows:Get>
+            </ows:HTTP>
+		</ows:DCP>
+	</ows:Operation>
+</ows:OperationsMetadata> 
+<Contents>
+  <!--Layer-->  
+  <Layer>
+    <ows:Title>imatges_GOIB_Orto_IB</ows:Title> 
+    <ows:Identifier>imatges_GOIB_Orto_IB</ows:Identifier>
+    <ows:BoundingBox crs="urn:ogc:def:crs:EPSG::25831">
+	  <ows:LowerCorner>-313360.2976 4001114.1513</ows:LowerCorner>
+			<ows:UpperCorner>1195004.4074 4816035.9147</ows:UpperCorner>
+		</ows:BoundingBox>  
+      <ows:WGS84BoundingBox crs="urn:ogc:def:crs:OGC:2:84">
+      <ows:LowerCorner>-6.985159181804621 35.816397013818424</ows:LowerCorner>
+      <ows:UpperCorner>11.54933369516265 43.497249487723295</ows:UpperCorner>
+    </ows:WGS84BoundingBox>
+    <Style isDefault="true">
+      <ows:Title>Default Style</ows:Title>
+      <ows:Identifier>default</ows:Identifier>
+    </Style>
+    <Format>image/jpgpng</Format>
+    <TileMatrixSetLink>
+      <TileMatrixSet>default028mm</TileMatrixSet>
+    </TileMatrixSetLink>
+
+      <ResourceURL format="image/jpgpng" resourceType="tile" template="https://ideib.caib.es/geoserveis/rest/services/imatges/GOIB_Orto_IB/MapServer/WMTS/tile/1.0.0/imatges_GOIB_Orto_IB/{Style}/{TileMatrixSet}/{TileMatrix}/{TileRow}/{TileCol}" />
+  </Layer> 
+   <!--TileMatrixSet-->
+   <TileMatrixSet>
+     <ows:Title>TileMatrix using 0.28mm</ows:Title>
+     <ows:Abstract>The tile matrix set that has scale values calculated based on the dpi defined by OGC specification (dpi assumes 0.28mm as the physical distance of a pixel).</ows:Abstract> 
+     <ows:Identifier>default028mm</ows:Identifier>
+     <ows:SupportedCRS>urn:ogc:def:crs:EPSG::25831</ows:SupportedCRS>
+      <TileMatrix>
+          <ows:Identifier>0</ows:Identifier>
+          <ScaleDenominator>2834827.0982252685</ScaleDenominator>
+          <TopLeftCorner>-5120900.0 9998100.0</TopLeftCorner>  
+          <TileWidth>256</TileWidth> 
+          <TileHeight>256</TileHeight>
+          <MatrixWidth>32</MatrixWidth> 
+            <MatrixHeight>30</MatrixHeight>
+          </TileMatrix>
+          <TileMatrix>
+          <ows:Identifier>1</ows:Identifier>
+          <ScaleDenominator>1889884.7321501793</ScaleDenominator>
+          <TopLeftCorner>-5120900.0 9998100.0</TopLeftCorner>  
+          <TileWidth>256</TileWidth> 
+          <TileHeight>256</TileHeight>
+          <MatrixWidth>47</MatrixWidth> 
+            <MatrixHeight>45</MatrixHeight>
+          </TileMatrix>
+          <TileMatrix>
+          <ows:Identifier>2</ows:Identifier>
+          <ScaleDenominator>944942.3660750897</ScaleDenominator>
+          <TopLeftCorner>-5120900.0 9998100.0</TopLeftCorner>  
+          <TileWidth>256</TileWidth> 
+          <TileHeight>256</TileHeight>
+          <MatrixWidth>94</MatrixWidth> 
+            <MatrixHeight>89</MatrixHeight>
+          </TileMatrix>
+          <TileMatrix>
+          <ows:Identifier>3</ows:Identifier>
+          <ScaleDenominator>755953.8928600716</ScaleDenominator>
+          <TopLeftCorner>-5120900.0 9998100.0</TopLeftCorner>  
+          <TileWidth>256</TileWidth> 
+          <TileHeight>256</TileHeight>
+          <MatrixWidth>117</MatrixWidth> 
+            <MatrixHeight>111</MatrixHeight>
+          </TileMatrix>
+          <TileMatrix>
+          <ows:Identifier>4</ows:Identifier>
+          <ScaleDenominator>472471.18303754483</ScaleDenominator>
+          <TopLeftCorner>-5120900.0 9998100.0</TopLeftCorner>  
+          <TileWidth>256</TileWidth> 
+          <TileHeight>256</TileHeight>
+          <MatrixWidth>187</MatrixWidth> 
+            <MatrixHeight>178</MatrixHeight>
+          </TileMatrix>
+          <TileMatrix>
+          <ows:Identifier>5</ows:Identifier>
+          <ScaleDenominator>377976.9464300358</ScaleDenominator>
+          <TopLeftCorner>-5120900.0 9998100.0</TopLeftCorner>  
+          <TileWidth>256</TileWidth> 
+          <TileHeight>256</TileHeight>
+          <MatrixWidth>234</MatrixWidth> 
+            <MatrixHeight>222</MatrixHeight>
+          </TileMatrix>
+          <TileMatrix>
+          <ows:Identifier>6</ows:Identifier>
+          <ScaleDenominator>188988.4732150179</ScaleDenominator>
+          <TopLeftCorner>-5120900.0 9998100.0</TopLeftCorner>  
+          <TileWidth>256</TileWidth> 
+          <TileHeight>256</TileHeight>
+          <MatrixWidth>467</MatrixWidth> 
+            <MatrixHeight>443</MatrixHeight>
+          </TileMatrix>
+          <TileMatrix>
+          <ows:Identifier>7</ows:Identifier>
+          <ScaleDenominator>94494.23660750895</ScaleDenominator>
+          <TopLeftCorner>-5120900.0 9998100.0</TopLeftCorner>  
+          <TileWidth>256</TileWidth> 
+          <TileHeight>256</TileHeight>
+          <MatrixWidth>933</MatrixWidth> 
+            <MatrixHeight>886</MatrixHeight>
+          </TileMatrix>
+          <TileMatrix>
+          <ows:Identifier>8</ows:Identifier>
+          <ScaleDenominator>47247.118303754476</ScaleDenominator>
+          <TopLeftCorner>-5120900.0 9998100.0</TopLeftCorner>  
+          <TileWidth>256</TileWidth> 
+          <TileHeight>256</TileHeight>
+          <MatrixWidth>1865</MatrixWidth> 
+            <MatrixHeight>1771</MatrixHeight>
+          </TileMatrix>
+          <TileMatrix>
+          <ows:Identifier>9</ows:Identifier>
+          <ScaleDenominator>23623.559151877238</ScaleDenominator>
+          <TopLeftCorner>-5120900.0 9998100.0</TopLeftCorner>  
+          <TileWidth>256</TileWidth> 
+          <TileHeight>256</TileHeight>
+          <MatrixWidth>3730</MatrixWidth> 
+            <MatrixHeight>3542</MatrixHeight>
+          </TileMatrix>
+          <TileMatrix>
+          <ows:Identifier>10</ows:Identifier>
+          <ScaleDenominator>18898.84732150179</ScaleDenominator>
+          <TopLeftCorner>-5120900.0 9998100.0</TopLeftCorner>  
+          <TileWidth>256</TileWidth> 
+          <TileHeight>256</TileHeight>
+          <MatrixWidth>4663</MatrixWidth> 
+            <MatrixHeight>4427</MatrixHeight>
+          </TileMatrix>
+          <TileMatrix>
+          <ows:Identifier>11</ows:Identifier>
+          <ScaleDenominator>14174.135491126344</ScaleDenominator>
+          <TopLeftCorner>-5120900.0 9998100.0</TopLeftCorner>  
+          <TileWidth>256</TileWidth> 
+          <TileHeight>256</TileHeight>
+          <MatrixWidth>6217</MatrixWidth> 
+            <MatrixHeight>5903</MatrixHeight>
+          </TileMatrix>
+          <TileMatrix>
+          <ows:Identifier>12</ows:Identifier>
+          <ScaleDenominator>9449.423660750896</ScaleDenominator>
+          <TopLeftCorner>-5120900.0 9998100.0</TopLeftCorner>  
+          <TileWidth>256</TileWidth> 
+          <TileHeight>256</TileHeight>
+          <MatrixWidth>9325</MatrixWidth> 
+            <MatrixHeight>8854</MatrixHeight>
+          </TileMatrix>
+          <TileMatrix>
+          <ows:Identifier>13</ows:Identifier>
+          <ScaleDenominator>4724.711830375448</ScaleDenominator>
+          <TopLeftCorner>-5120900.0 9998100.0</TopLeftCorner>  
+          <TileWidth>256</TileWidth> 
+          <TileHeight>256</TileHeight>
+          <MatrixWidth>18650</MatrixWidth> 
+            <MatrixHeight>17708</MatrixHeight>
+          </TileMatrix>
+          <TileMatrix>
+          <ows:Identifier>14</ows:Identifier>
+          <ScaleDenominator>1889.8847321501792</ScaleDenominator>
+          <TopLeftCorner>-5120900.0 9998100.0</TopLeftCorner>  
+          <TileWidth>256</TileWidth> 
+          <TileHeight>256</TileHeight>
+          <MatrixWidth>46624</MatrixWidth> 
+            <MatrixHeight>44269</MatrixHeight>
+          </TileMatrix>
+          <TileMatrix>
+          <ows:Identifier>15</ows:Identifier>
+          <ScaleDenominator>944.9423660750896</ScaleDenominator>
+          <TopLeftCorner>-5120900.0 9998100.0</TopLeftCorner>  
+          <TileWidth>256</TileWidth> 
+          <TileHeight>256</TileHeight>
+          <MatrixWidth>93247</MatrixWidth> 
+            <MatrixHeight>88538</MatrixHeight>
+          </TileMatrix>
+          <TileMatrix>
+          <ows:Identifier>16</ows:Identifier>
+          <ScaleDenominator>472.4711830375448</ScaleDenominator>
+          <TopLeftCorner>-5120900.0 9998100.0</TopLeftCorner>  
+          <TileWidth>256</TileWidth> 
+          <TileHeight>256</TileHeight>
+          <MatrixWidth>186493</MatrixWidth> 
+            <MatrixHeight>177076</MatrixHeight>
+          </TileMatrix>
+          </TileMatrixSet>
+   </Contents>
+<ServiceMetadataURL xlink:href="https://ideib.caib.es/geoserveis/rest/services/imatges/GOIB_Orto_IB/MapServer/WMTS/1.0.0/WMTSCapabilities.xml" /> 
+</Capabilities>

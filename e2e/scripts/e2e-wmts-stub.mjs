@@ -42,6 +42,10 @@ const CAPABILITIES = `<?xml version="1.0" encoding="UTF-8"?>
       <TileMatrixSetLink>
         <TileMatrixSet>EPSG:25831</TileMatrixSet>
       </TileMatrixSetLink>
+      <!-- MBTiles downloads only Web Mercator grids (#321); the mobile suites use topo. -->
+      <TileMatrixSetLink>
+        <TileMatrixSet>EPSG:3857</TileMatrixSet>
+      </TileMatrixSetLink>
       <ResourceURL format="image/png" resourceType="tile"
         template="http://${HOST}:${PORT}/wmts/tile/topo/{TileMatrix}/{TileCol}/{TileRow}.png"/>
     </Layer>
@@ -88,6 +92,28 @@ const CAPABILITIES = `<?xml version="1.0" encoding="UTF-8"?>
         <ows:Identifier>1</ows:Identifier>
         <ScaleDenominator>250000000</ScaleDenominator>
         <TopLeftCorner>-1000000 5000000</TopLeftCorner>
+        <TileWidth>256</TileWidth>
+        <TileHeight>256</TileHeight>
+        <MatrixWidth>2</MatrixWidth>
+        <MatrixHeight>2</MatrixHeight>
+      </TileMatrix>
+    </TileMatrixSet>
+    <TileMatrixSet>
+      <ows:Identifier>EPSG:3857</ows:Identifier>
+      <ows:SupportedCRS>urn:ogc:def:crs:EPSG::3857</ows:SupportedCRS>
+      <TileMatrix>
+        <ows:Identifier>EPSG:3857:0</ows:Identifier>
+        <ScaleDenominator>559082264.0287178</ScaleDenominator>
+        <TopLeftCorner>-20037508.3427892 20037508.3427892</TopLeftCorner>
+        <TileWidth>256</TileWidth>
+        <TileHeight>256</TileHeight>
+        <MatrixWidth>1</MatrixWidth>
+        <MatrixHeight>1</MatrixHeight>
+      </TileMatrix>
+      <TileMatrix>
+        <ows:Identifier>EPSG:3857:1</ows:Identifier>
+        <ScaleDenominator>279541132.0143589</ScaleDenominator>
+        <TopLeftCorner>-20037508.3427892 20037508.3427892</TopLeftCorner>
         <TileWidth>256</TileWidth>
         <TileHeight>256</TileHeight>
         <MatrixWidth>2</MatrixWidth>
