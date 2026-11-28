@@ -20,11 +20,7 @@ test.describe('SQL query task test', () => {
     await expect(page.getByTestId('sql-test')).toBeDisabled();
     await expect(page.getByTestId('sql-test-save-first')).toBeVisible();
     await saveSqlTask(page, createdResources);
-    await expect(page.getByTestId('sql-test-save-first')).toHaveCount(0);
-    await expect(page.getByTestId('sql-test')).toBeEnabled();
-    await page.getByTestId('sql-test').click();
-    const testDialog = page.locator('mat-dialog-container').getByTestId('sql-test-dialog');
-    await expect(testDialog).toBeVisible();
+    const testDialog = await openSqlTest(page);
     await testDialog.getByTestId('sql-client-p').fill('hi');
     await testDialog.getByTestId('sql-test-run').click();
     await expect(page.getByTestId('sql-run-Run 1 as written')).toContainText('SELECT ? AS echo');
@@ -80,8 +76,7 @@ test.describe('SQL query task test', () => {
     await page.locator('[data-testid=sql-editor] .cm-content').click();
     await page.keyboard.type(sql);
     await saveSqlTask(page, createdResources);
-    await page.getByTestId('sql-test').click();
-    const testDialog = page.locator('mat-dialog-container').getByTestId('sql-test-dialog');
+    const testDialog = await openSqlTest(page);
     await testDialog.getByTestId('sql-test-run').click();
     await expect(testDialog.getByTestId('sql-truncated')).toBeVisible();
   });
@@ -91,9 +86,7 @@ test.describe('SQL query task test', () => {
     await page.locator('[data-testid=sql-editor] .cm-content').click();
     await page.keyboard.type('SELECT 1 AS n FETCH FIRST 5 ROWS ONLY');
     await saveSqlTask(page, createdResources);
-    await expect(page.getByTestId('sql-test')).toBeEnabled();
-    await page.getByTestId('sql-test').click();
-    const testDialog = page.locator('mat-dialog-container').getByTestId('sql-test-dialog');
+    const testDialog = await openSqlTest(page);
     await testDialog.getByTestId('sql-test-run').click();
     await expect(testDialog.getByTestId('sql-run-Run 1 as written')).toHaveAttribute('data-ok', 'true');
     await testDialog.getByRole('tab').nth(1).click();
@@ -115,8 +108,7 @@ test.describe('SQL query task test', () => {
     await page.locator('[data-testid=sql-editor] .cm-content').click();
     await page.keyboard.type('SELECT 1 AS n WHERE 1 = 0');
     await saveSqlTask(page, createdResources);
-    await page.getByTestId('sql-test').click();
-    const testDialog = page.locator('mat-dialog-container').getByTestId('sql-test-dialog');
+    const testDialog = await openSqlTest(page);
     await testDialog.getByTestId('sql-test-run').click();
     await expect(testDialog.getByTestId('sql-run-Run 1 as written')).toHaveAttribute('data-ok', 'true');
     await expect(testDialog.getByTestId('sql-run-Run 1 as written')).toContainText(/No rows\.|Sin filas\.|Sense files\.|Aucune ligne\.|Cap de linha\./);
@@ -132,8 +124,7 @@ test.describe('SQL query task test', () => {
     await addProvidedParameter(page, 'secret', 'Secret', 'kept');
     await openDetails(page);
     await saveSqlTask(page, createdResources);
-    await page.getByTestId('sql-test').click();
-    const testDialog = page.locator('mat-dialog-container').getByTestId('sql-test-dialog');
+    const testDialog = await openSqlTest(page);
     await expect(testDialog).toContainText('secret: kept');
     await expect(testDialog.getByTestId('sql-client-secret')).toHaveCount(0);
     await testDialog.getByTestId('sql-test-run').click();
@@ -146,8 +137,7 @@ test.describe('SQL query task test', () => {
     await page.locator('[data-testid=sql-editor] .cm-content').click();
     await page.keyboard.type('SELECT 1 AS n');
     await saveSqlTask(page, createdResources);
-    await page.getByTestId('sql-test').click();
-    const testDialog = page.locator('mat-dialog-container').getByTestId('sql-test-dialog');
+    const testDialog = await openSqlTest(page);
     await testDialog.getByTestId('sql-limit').fill('2');
     await testDialog.getByTestId('sql-offset').fill('1');
     await testDialog.getByTestId('sql-test-run').click();
@@ -170,8 +160,7 @@ test.describe('SQL query task test', () => {
     await page.locator('[data-testid=sql-editor] .cm-content').click();
     await page.keyboard.type('SELECT * FROM table_that_does_not_exist');
     await saveSqlTask(page, createdResources);
-    await page.getByTestId('sql-test').click();
-    const testDialog = page.locator('mat-dialog-container').getByTestId('sql-test-dialog');
+    const testDialog = await openSqlTest(page);
     await testDialog.getByTestId('sql-test-run').click();
     await expect(testDialog.getByTestId('sql-run-Run 1 as written')).toHaveAttribute('data-ok', 'false');
     await expect(testDialog.getByTestId('sql-run-Run 1 as written').locator('textarea').last()).not.toHaveValue('');
@@ -189,10 +178,7 @@ test.describe('SQL query task test', () => {
       await page.evaluate((lang) => localStorage.setItem('lang', lang), locale);
       await page.goto(`/#/taskQuery/${id}/5`);
       await page.reload();
-      await expect(page.getByTestId('sql-test')).toBeEnabled();
-      await page.getByTestId('sql-test').click();
-      const dialog = page.locator('mat-dialog-container').getByTestId('sql-test-dialog');
-      await expect(dialog).toBeVisible();
+      const dialog = await openSqlTest(page);
       await expect(dialog).not.toContainText('entity.task.query.');
       await page.keyboard.press('Escape');
     }
@@ -253,7 +239,17 @@ async function ensureConnection(page: Page): Promise<string> {
 async function saveSqlTask(page: Page, createdResources: CreatedResource[]): Promise<number> {
   const id = await saveAndCaptureId(page, 'tasks');
   createdResources.push({ collection: 'tasks', id });
+  await expect(page.getByTestId('sql-test-save-first')).toHaveCount(0);
   return id;
+}
+
+async function openSqlTest(page: Page) {
+  const button = page.getByTestId('sql-test');
+  await expect(button).toBeEnabled();
+  await button.click();
+  const dialog = page.locator('mat-dialog-container').getByTestId('sql-test-dialog');
+  await expect(dialog).toBeVisible();
+  return dialog;
 }
 
 async function addParameter(page: Page, name: string, label: string): Promise<void> {
@@ -294,7 +290,8 @@ async function openParameterDialog(page: Page) {
     .first()
     .click();
   const dialog = page.locator('mat-dialog-container').filter({ has: page.locator('[formControlName=name]') });
-  await expect(dialog).toBeVisible();
+  // MatDialog focuses its first field only after the open animation; text typed before then lands in Name.
+  await expect(dialog.locator('[formControlName=name]')).toBeFocused();
   return dialog;
 }
 
