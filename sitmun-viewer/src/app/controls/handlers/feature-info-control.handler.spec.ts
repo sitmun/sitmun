@@ -7,10 +7,22 @@ import { TestBed } from '@angular/core/testing';
 
 import type { AppCfg, AppTasks } from '@api/model/app-cfg';
 import { TranslatePipe, provideTranslateService } from '@ngx-translate/core';
+import RasterWrapper from 'api-sitna/TC/ol/layer/Raster.js';
 
 import { FeatureInfoControlHandler } from './feature-info-control.handler';
 import { AppConfigService } from '../../services/app-config.service';
+import { resolveSitmunGfiEnabled } from '../../services/profile-layer-queryable';
 import { SitnaApiService } from '../../services/sitna-api.service';
+
+// The real module pulls in OpenLayers ESM that Jest does not transform.
+jest.mock('api-sitna/TC/ol/layer/Raster.js', () => ({
+  __esModule: true,
+  default: class RasterWrapper {
+    getInfo(): Record<string, unknown> {
+      return {};
+    }
+  }
+}));
 
 describe('FeatureInfoControlHandler', () => {
   let handler: FeatureInfoControlHandler;
@@ -204,15 +216,6 @@ describe('FeatureInfoControlHandler', () => {
             }
           }
         },
-        wrap: {
-          layer: {
-            Raster: {
-              prototype: {
-                getInfo: jest.fn().mockReturnValue({ queryable: true, title: 'L' })
-              }
-            }
-          }
-        },
         tool: {
           Proxification: {
             prototype: {
@@ -234,32 +237,9 @@ describe('FeatureInfoControlHandler', () => {
       mockSitnaApi.getSITNA.mockReturnValue(SITNA);
     });
 
-    it('getInfo returns queryable false when parent.options.sitmunGfiEnabled is false', async () => {
-      const wrapProto = TC.wrap.layer.Raster.prototype;
-      wrapProto.getInfo.mockReturnValue({ queryable: true, title: 'L' });
-
-      await handler.loadPatches({} as AppCfg);
-
-      const wrap = Object.create(wrapProto);
-      wrap.parent = { options: { sitmunGfiEnabled: false } };
-      expect(wrap.getInfo('layer-a')).toEqual({
-        queryable: false,
-        title: 'L'
-      });
-    });
-
-    it('getInfo keeps capabilities queryable when sitmunGfiEnabled is not false', async () => {
-      const wrapProto = TC.wrap.layer.Raster.prototype;
-      wrapProto.getInfo.mockReturnValue({ queryable: true, title: 'L' });
-
-      await handler.loadPatches({} as AppCfg);
-
-      const wrap = Object.create(wrapProto);
-      wrap.parent = { options: { sitmunGfiEnabled: true } };
-      expect(wrap.getInfo('layer-a')).toEqual({
-        queryable: true,
-        title: 'L'
-      });
+    // RasterWrapper is a shared module prototype, not part of the TC fixture.
+    afterEach(() => {
+      handler.cleanup();
     });
 
     it('should wrap Raster.describeLayer to resolve with WMS fallback when full=true and rejection occurs', async () => {
@@ -397,7 +377,7 @@ describe('FeatureInfoControlHandler', () => {
       const originalDisplayResultsCallback =
         TC.control.FeatureInfo.prototype.displayResultsCallback;
       const originalDescribeLayer = TC.layer.Raster.prototype.describeLayer;
-      const originalGetInfo = TC.wrap.layer.Raster.prototype.getInfo;
+      const originalGetInfo = RasterWrapper.prototype.getInfo;
       const originalFetch = TC.tool.Proxification.prototype.fetch;
 
       await handler.loadPatches({} as AppCfg);
@@ -415,7 +395,7 @@ describe('FeatureInfoControlHandler', () => {
       expect(TC.layer.Raster.prototype.describeLayer).not.toBe(
         originalDescribeLayer
       );
-      expect(TC.wrap.layer.Raster.prototype.getInfo).not.toBe(originalGetInfo);
+      expect(RasterWrapper.prototype.getInfo).not.toBe(originalGetInfo);
       expect(TC.tool.Proxification.prototype.fetch).not.toBe(originalFetch);
 
       handler.cleanup();
@@ -431,7 +411,7 @@ describe('FeatureInfoControlHandler', () => {
       expect(TC.layer.Raster.prototype.describeLayer).toBe(
         originalDescribeLayer
       );
-      expect(TC.wrap.layer.Raster.prototype.getInfo).toBe(originalGetInfo);
+      expect(RasterWrapper.prototype.getInfo).toBe(originalGetInfo);
       expect(TC.tool.Proxification.prototype.fetch).toBe(originalFetch);
       expect(TC.Map.prototype.__sitmunFiAddControl).toBeUndefined();
       expect(TC.control.FeatureInfo.prototype.__sitmunFiRegister).toBeUndefined();
@@ -440,7 +420,7 @@ describe('FeatureInfoControlHandler', () => {
         TC.control.FeatureInfo.prototype.__sitmunMoreInfoDisplayResults
       ).toBeUndefined();
       expect(TC.layer.Raster.prototype.__sitmunDescribeLayerSafe).toBeUndefined();
-      expect(TC.wrap.layer.Raster.prototype.__sitmunGfiUserGate).toBeUndefined();
+      expect((RasterWrapper.prototype as { __sitmunGfiUserGate?: boolean }).__sitmunGfiUserGate).toBeUndefined();
       expect(TC.tool.Proxification.prototype.__sitmunGfiIsolation).toBeUndefined();
     });
 
@@ -635,6 +615,59 @@ describe('FeatureInfoControlHandler', () => {
       // Assert: still works correctly (no double-wrap)
       const result = await TC.layer.Raster.prototype.describeLayer(true);
       expect(result).toEqual([{ owsType: 'WMS', layerName: '' }]);
+    });
+  });
+
+  describe('map-click GFI gate on the api-sitna Raster wrapper (#377)', () => {
+    // api-sitna 4.10 does not publish RasterWrapper on TC.wrap.layer.
+    const realisticTC = { wrap: { layer: {} } };
+
+    async function wrapperFor(sitmunGfiEnabled: boolean): Promise<{
+      getInfo: (name: string) => { queryable?: boolean };
+    }> {
+      jest
+        .spyOn(RasterWrapper.prototype, 'getInfo')
+        .mockReturnValue({ queryable: true, title: 'Cubiertas del suelo' });
+      mockSitnaApi.getTC.mockReturnValue(realisticTC as any);
+      await handler.loadPatches({} as AppCfg);
+      const wrapper = Object.create(RasterWrapper.prototype);
+      wrapper.parent = { options: { sitmunGfiEnabled } };
+      return wrapper;
+    }
+
+    afterEach(() => {
+      handler.cleanup();
+      jest.restoreAllMocks();
+    });
+
+    it('api-sitna exposes the Raster wrapper only as the default export of TC/ol/layer/Raster.js', () => {
+      const dir = path.join(process.cwd(), 'node_modules/api-sitna/TC/ol/layer');
+      const raster = readFileSync(path.join(dir, 'Raster.js'), 'utf8');
+      const layer = readFileSync(path.join(dir, 'Layer.js'), 'utf8');
+
+      expect(raster).toContain('export default class RasterWrapper');
+      expect(raster).toContain('result._wrap = self');
+      expect(raster).not.toMatch(/wrap\.layer\.Raster\s*=/);
+      expect(layer).not.toMatch(/wrap\.layer\.Raster\s*=/);
+    });
+
+    it('drops the layer from map-click GetFeatureInfo when the tree node has Consultable off', async () => {
+      const sitmunGfiEnabled = resolveSitmunGfiEnabled(false, {
+        id: 'layer/22',
+        title: 'Cubiertas del suelo',
+        layers: ['LC.LandCoverSurfaces'],
+        service: 'service/1',
+        queryableFeatureEnabled: true
+      });
+      const wrapper = await wrapperFor(sitmunGfiEnabled);
+
+      expect(wrapper.getInfo('LC.LandCoverSurfaces').queryable).toBe(false);
+    });
+
+    it('keeps capabilities queryable when the tree node and cartography allow GFI', async () => {
+      const wrapper = await wrapperFor(true);
+
+      expect(wrapper.getInfo('LC.LandCoverSurfaces').queryable).toBe(true);
     });
   });
 });
