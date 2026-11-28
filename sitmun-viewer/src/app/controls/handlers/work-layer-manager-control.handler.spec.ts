@@ -973,6 +973,55 @@ describe('WorkLayerManagerControlHandler', () => {
     });
   });
 
+  describe('more-tools chevron', () => {
+    it('keeps the CSS chevron after SITNA expands and collapses the row', async () => {
+      const TC = mockSitnaApi.getTC();
+      const wlmProto = TC.control.WorkLayerManager.prototype as {
+        updateLayerTree?: () => void;
+      };
+      wlmProto.updateLayerTree = function () {
+        return undefined;
+      };
+      await handler.loadPatches({} as AppCfg);
+
+      const div = document.createElement('div');
+      div.innerHTML = `
+        <ul><li class="tc-ctl-wlm-elm" data-layer-id="wms-1">
+          <div class="tc-ctl-wlm-tools">
+            <sitna-button class="tc-ctl-wlm-btn-more"></sitna-button>
+          </div>
+        </li></ul>`;
+      document.body.append(div);
+      // SITNA 4.10 WorkLayerManager.register: btn-more click listener.
+      div.addEventListener('click', (e) => {
+        const button = e.target as HTMLElement;
+        if (!button.classList.contains('tc-ctl-wlm-btn-more')) {
+          return;
+        }
+        const expanded = button.parentElement!.classList.toggle('tc-expanded');
+        button.setAttribute('icon-text', expanded ? '⯇' : '•••');
+      });
+      const control = Object.create(wlmProto) as {
+        updateLayerTree: () => void;
+        div: HTMLElement;
+        map: { getLayer: () => object };
+      };
+      control.div = div;
+      control.map = { getLayer: () => ({ options: {} }) };
+      control.updateLayerTree();
+
+      const more = div.querySelector('.tc-ctl-wlm-btn-more') as HTMLElement;
+      more.click();
+      expect(more.parentElement!.classList.contains('tc-expanded')).toBe(true);
+      expect(more.hasAttribute('icon-text')).toBe(false);
+
+      more.click();
+      expect(more.parentElement!.classList.contains('tc-expanded')).toBe(false);
+      expect(more.hasAttribute('icon-text')).toBe(false);
+      div.remove();
+    });
+  });
+
   describe('WFS legend swatch', () => {
     it('paints a WFS legend swatch when features arrive after the Capas row', async () => {
       const TC = mockSitnaApi.getTC();

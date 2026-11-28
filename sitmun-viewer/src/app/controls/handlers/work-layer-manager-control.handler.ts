@@ -730,10 +730,21 @@ export class WorkLayerManagerControlHandler extends ControlHandlerBase {
         );
         target.title = this.gfiTitle(false, checked);
       };
+      // SITNA's btn-more click sets icon-text (⯇ / •••), and the shadow
+      // `button[data-icon-text]::before` rule then beats the CSS chevron
+      // in custom-specific.css. This listener runs after SITNA's (#172).
+      const onMoreClick = (event: Event) => {
+        const target = event.target as HTMLElement | null;
+        if (target?.classList?.contains('tc-ctl-wlm-btn-more')) {
+          target.removeAttribute('icon-text');
+        }
+      };
       div.addEventListener('change', onChange);
+      div.addEventListener('click', onMoreClick);
       this.wlmGfiChangeHooks.add(wlmControl);
       this.patchManager.add(() => {
         div.removeEventListener('change', onChange);
+        div.removeEventListener('click', onMoreClick);
         this.wlmGfiChangeHooks.delete(wlmControl);
       });
     }
