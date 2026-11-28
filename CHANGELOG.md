@@ -27,6 +27,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - **Compose**: `compose.yaml` forwards `SITMUN_CLIENT_UNSAFE_ALLOWED_HOSTS` to the backend and the proxy. In 1.3.0 the variable never reached either container, so a value in `.env` had no effect and self-signed upstream servers kept failing the certificate check ([#378](https://github.com/sitmun/sitmun/issues/378)).
 - **Setup**: `setup.sh` and `setup.ps1` add a newline before appending a missing secret when `.env` does not end with one. The first secret was joined to the last line, for example `COMPOSE_PROFILES=postgresSITMUN_USER_SECRET=…`, which broke that line and left the secret unset ([#390](https://github.com/sitmun/sitmun/issues/390)). `tools/tests/test_setup_compose_secrets.sh` checks both scripts; the `setup.ps1` case needs `pwsh`.
 - **Showcase**: The showcase layers show their legends again ([#375](https://github.com/sitmun/sitmun/issues/375)). The showcase seed kept the 1.2.x legend type `CAPABILITIES`, which 1.3.0 renamed `LEGENDURL`, so the viewer drew none. `profiles/showcase/liquibase/releases/1.3.1.yaml` runs the `stm_geoinfo` mapping of the 1.2.9 to 1.3.0 upgrade, once, on a new or kept showcase database. The released seed is unchanged.
+- **E2E**: The commands in `e2e/README.md` pass `--project=…` straight to Playwright. With `pnpm run e2e -- --project=admin-forms`, pnpm passed the `--` on and Playwright ignored what followed, so the whole suite ran ([#429](https://github.com/sitmun/sitmun/issues/429)).
 
 #### Backend Core
 
@@ -47,6 +48,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - **Services**: Removing layers on a service's **Capas** tab deselects them, so **Registrar** no longer registers them again and saving no longer creates them ([#430](https://github.com/sitmun/sitmun/issues/430)). See `sitmun-admin/CHANGELOG.md`.
 - **Services**: Undoing an edit on a layer read from the service keeps it «Capa no registrada», not «Pendiente crear» ([#431](https://github.com/sitmun/sitmun/issues/431)). See `sitmun-admin/CHANGELOG.md`.
 - **More info advanced**: A parameter added on **Parámetros** can be mapped to an included task right away, without saving the task first ([#373](https://github.com/sitmun/sitmun/issues/373)).
+- **Build**: Admin builds, the `front` image included, no longer ship a Jest spec from `src/assets`, and `pnpm test` ignores `dist/` ([#428](https://github.com/sitmun/sitmun/issues/428)). See `sitmun-admin/CHANGELOG.md`.
 
 #### Viewer Application
 

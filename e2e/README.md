@@ -160,20 +160,20 @@ pnpm run e2e:install
 # admin
 pnpm run e2e
 pnpm run e2e:ui
-pnpm run e2e -- --project=admin-forms
+pnpm run e2e --project=admin-forms
 
 # viewer (+ proxy + secured stub)
 pnpm run e2e:viewer
 pnpm run e2e:viewer:ui
-pnpm run e2e:viewer -- --project=viewer-public
-pnpm run e2e:viewer -- --project=viewer-password
-pnpm run e2e:viewer -- --project=viewer-catalog
-pnpm run e2e:viewer -- --project=viewer-legend
-pnpm run e2e:viewer -- --project=viewer-basemap
-pnpm run e2e:viewer -- --project=viewer-overview
+pnpm run e2e:viewer --project=viewer-public
+pnpm run e2e:viewer --project=viewer-password
+pnpm run e2e:viewer --project=viewer-catalog
+pnpm run e2e:viewer --project=viewer-legend
+pnpm run e2e:viewer --project=viewer-basemap
+pnpm run e2e:viewer --project=viewer-overview
 pnpm run e2e:viewer --project=viewer-broken-background
 pnpm run e2e:viewer --project=viewer-scale
-pnpm run e2e:viewer -- --project=viewer-mia
+pnpm run e2e:viewer --project=viewer-mia
 
 # MIA / Plantilla / literal cross-stack (admin + viewer + proxy + stub)
 pnpm run e2e:mia-cross
