@@ -1796,6 +1796,59 @@ test.describe('WFS catalog leaf (#91)', () => {
       await deleteWfsCatalogLeaf(request, seed);
     }
   });
+
+  test('Capas more button keeps its chevron after expand and collapse (#172)', async ({
+    page,
+    request,
+  }) => {
+    test.setTimeout(180_000);
+    const seed = await seedWfsCatalogLeaf(request);
+    try {
+      await page.addInitScript((lang) => {
+        localStorage.setItem('language', lang);
+      }, seed.uiLanguage);
+      await loginAndOpenMap(page);
+      await expandNodeByTitle(page, NON_RADIO_ROOT_FOLDER_TITLE);
+      await expandNodeByTitle(page, CHECKBOX_LOAD_FOLDER_TITLE);
+      const leafLoad = page.locator(
+        `#tc-slot-toc input.sitmun-lcat-leaf-load[data-layer-name="node/${seed.nodeId}"]`,
+      );
+      await expect(leafLoad).toBeVisible({ timeout: 30_000 });
+      await leafLoad.click();
+
+      let workLayer: { id: string; count: number } | null = null;
+      await expect
+        .poll(async () => {
+          workLayer = await wfsWorkLayer(page);
+          return workLayer?.id ?? '';
+        }, { timeout: 60_000 })
+        .not.toBe('');
+      const tools = page.locator(
+        `#tc-slot-wlm li.tc-ctl-wlm-elm[data-layer-id="${workLayer!.id}"] .tc-ctl-wlm-tools`,
+      );
+      const more = tools.locator(':scope > sitna-button.tc-ctl-wlm-btn-more');
+      await expect(more).toBeVisible({ timeout: 30_000 });
+
+      // SITNA's click sets icon-text (⯇ / •••); the custom-specific.css chevron must win.
+      const chevron = () =>
+        more.evaluate((host) => {
+          const inner = host.shadowRoot?.querySelector('button');
+          if (!inner) {
+            throw new Error('sitna-button has no shadow button');
+          }
+          return getComputedStyle(inner, '::before').content;
+        });
+      await expect.poll(chevron).toBe('"›"');
+      await more.click();
+      await expect(tools).toHaveClass(/tc-expanded/);
+      await expect.poll(chevron).toBe('"‹"');
+      await more.click();
+      await expect(tools).not.toHaveClass(/tc-expanded/);
+      await expect.poll(chevron).toBe('"›"');
+    } finally {
+      await deleteWfsCatalogLeaf(request, seed);
+    }
+  });
 });
 
 async function seedWfsCatalogLeaf(admin: APIRequestContext): Promise<WfsSeed> {
