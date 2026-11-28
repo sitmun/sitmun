@@ -107,7 +107,7 @@ class ProxyValidateUserAccessGateTest {
     accessibleService = Service.builder().id(SERVICE_ID).blocked(false).build();
     when(serviceRepository.findById(SERVICE_ID)).thenReturn(Optional.of(accessibleService));
     when(applicationRepository.existsById(APP_ID)).thenReturn(true);
-    when(territoryRepository.existsById(TER_ID)).thenReturn(true);
+    when(territoryRepository.existsByIdAndBlockedFalse(TER_ID)).thenReturn(true);
   }
 
   @Test

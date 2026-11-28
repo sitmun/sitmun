@@ -49,6 +49,7 @@ class AuthorizationServiceProfileTasksTest {
         mock(ConfigurationParameterRepository.class);
     when(roleRepository.findRolesByApplicationAndUserAndTerritory("viewer", 5, 7))
         .thenReturn(List.of(Role.builder().id(3).build()));
+    when(territoryRepository.existsByIdAndBlockedFalse(7)).thenReturn(true);
     when(territoryRepository.findById(7))
         .thenReturn(Optional.of(Territory.builder().id(7).build()));
     when(backgroundRepository.findActiveByApplication(5)).thenReturn(List.of());

@@ -232,6 +232,9 @@ public class AuthorizationService {
    */
   public Page<Application> findApplicationsByUserAndTerritory(
       String username, Integer territoryId, Pageable pageable) {
+    if (!territoryRepository.existsByIdAndBlockedFalse(territoryId)) {
+      return Page.empty(pageable);
+    }
     Page<Application> page;
     if (usesPublicCatalog(username)) {
       page = applicationRepository.findByPublicUserAndTerritory(username, territoryId, pageable);
@@ -245,6 +248,10 @@ public class AuthorizationService {
   /** Finds a single application accessible to {@code username} in the given app/territory pair. */
   public Optional<Application> findApplicationByUserApplicationAndTerritory(
       String username, Integer appId, Integer territoryId) {
+    // A blocked territory gives no access: no profile, MBTiles, or short URL (#376).
+    if (!territoryRepository.existsByIdAndBlockedFalse(territoryId)) {
+      return Optional.empty();
+    }
     Optional<Application> application;
     if (usesPublicCatalog(username)) {
       application =
