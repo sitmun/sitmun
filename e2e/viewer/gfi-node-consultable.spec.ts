@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test';
 import { QUERYABLE_LEAF_CARTOGRAPHY_ID, QUERYABLE_LEAF_NODE_ID } from './fixtures';
 import {
+  enableCapasGfi,
   identifyAtMapCenter,
   loadQueryableLeafIntoCapas,
   loginAndOpenMap,
@@ -15,10 +16,11 @@ type ProfileBody = {
 };
 
 /**
- * Tree node Consultable off (`queryableActive = false`) blocks map-click
- * GetFeatureInfo even when the cartography allows it (#377).
+ * Tree node Consultable off (`queryableActive = false`) and the Capas GFI
+ * toggle off both block map-click GetFeatureInfo, even when the cartography
+ * allows it (#377).
  */
-test.describe('GetFeatureInfo tree node Consultable', () => {
+test.describe('GetFeatureInfo gates', () => {
   test('node with Consultable off sends no GetFeatureInfo on identify', async ({ page }) => {
     // The viewer service worker fetches the profile. page.route does not see that.
     await page.context().route(/\/config\/client\/profile\//, async (route) => {
@@ -69,5 +71,24 @@ test.describe('GetFeatureInfo tree node Consultable', () => {
     await expect(
       page.locator('.tc-ctl-popup .tc-ctl-finfo-layers table'),
     ).toHaveCount(0);
+  });
+
+  test('Capas GFI toggle off sends no GetFeatureInfo on identify', async ({ page }) => {
+    await loginAndOpenMap(page);
+    await loadQueryableLeafIntoCapas(page);
+    await enableCapasGfi(page);
+    const gfi = page.locator('#tc-slot-wlm .sitmun-wlm-gfi').first();
+    await gfi.click();
+    await expect(gfi).toHaveAttribute('data-sitmun-wlm-gfi', 'off');
+
+    const gfiUrls: string[] = [];
+    page.on('request', (request) => {
+      if (/REQUEST=GetFeatureInfo/i.test(request.url())) {
+        gfiUrls.push(request.url());
+      }
+    });
+    await identifyAtMapCenter(page);
+
+    expect(gfiUrls.filter((url) => url.includes(LAYER_NAME))).toEqual([]);
   });
 });
