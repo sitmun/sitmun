@@ -55,6 +55,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - **Map**: The overview map draws a WMTS background instead of staying empty ([#388](https://github.com/sitmun/sitmun/issues/388)). See `sitmun-viewer/CHANGELOG.md`.
 - **Map**: A misconfigured background, such as a WMTS service without `matrixSet`, a wrong layer name, or a grid in another reference system, is left out with a warning instead of stopping the whole map ([#380](https://github.com/sitmun/sitmun/issues/380)). See `sitmun-viewer/CHANGELOG.md`.
 - **Map**: An application with the scale and the scale bar (or the scale selector) shows them stacked instead of on top of each other, and no longer warns «Configuration conflict» ([#374](https://github.com/sitmun/sitmun/issues/374)). See `sitmun-viewer/CHANGELOG.md`.
+- **Map**: A Loaded Layers row keeps its chevron after it is expanded or collapsed ([#172](https://github.com/sitmun/sitmun/issues/172)). See `sitmun-viewer/CHANGELOG.md`.
 
 #### Mobile Editor
 
