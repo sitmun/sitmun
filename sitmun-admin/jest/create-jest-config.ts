@@ -53,6 +53,6 @@ export function createJestConfig(mode: JestRunMode): Config {
       '/node_modules/(?!(\\.pnpm/(@angular\\+|rxjs@)|@angular/|rxjs/|.*\\.mjs$))'
     ],
     testMatch: ['**/*.spec.ts'],
-    testPathIgnorePatterns: ['/node_modules/']
+    testPathIgnorePatterns: ['/node_modules/', '<rootDir>/dist/']
   };
 }

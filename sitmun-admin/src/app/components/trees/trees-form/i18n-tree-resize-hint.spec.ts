@@ -19,7 +19,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 
-const I18N_DIR = path.join(__dirname);
+const I18N_DIR = path.join(__dirname, '../../../../assets/i18n');
 const LOCALES = ['ca', 'en', 'es', 'fr', 'oc-aranes'];
 
 /** Words that must not appear in resizeHint in any locale (case-insensitive). */
