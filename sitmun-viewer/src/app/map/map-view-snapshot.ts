@@ -214,11 +214,9 @@ export interface MapSnapshotTarget {
     setVisibility?: (visible: boolean) => void;
     setLayerNames?: (names: string[]) => void;
   }>;
-  view3D?: {
-    cameraControls?: { setCameraState?: (state: unknown) => void };
-  };
+  view3D?: { importState?: (state: unknown) => Promise<unknown> };
   on3DView?: boolean;
-  controls?: Array<{ set3D?: () => void }>;
+  controls?: Array<{ set3D?: () => Promise<void> }>;
 }
 
 export function applyMapSnapshot(
@@ -308,19 +306,13 @@ export async function applySharedView3D(
   map: MapSnapshotTarget,
   camera: unknown
 ): Promise<void> {
-  if (camera == null) {
+  if (!isCamera(camera)) {
     return;
   }
   if (!map.on3DView) {
-    const enter3D = map.controls?.find(
-      (control) => typeof control.set3D === 'function'
-    )?.set3D;
-    enter3D?.();
+    await map.controls?.find((control) => control.set3D)?.set3D?.();
   }
-  if (!map.view3D?.cameraControls?.setCameraState) {
-    await waitForCamera(map);
-  }
-  map.view3D?.cameraControls?.setCameraState?.(camera);
+  await map.view3D?.importState?.(camera);
 }
 
 function controlStates(value: unknown): unknown[] {
@@ -331,18 +323,6 @@ function controlStates(value: unknown): unknown[] {
       typeof item === 'object' &&
       typeof (item as { id?: unknown }).id === 'string'
   );
-}
-
-function waitForCamera(map: MapSnapshotTarget): Promise<void> {
-  return new Promise((resolve) => {
-    const started = Date.now();
-    const timer = setInterval(() => {
-      if (map.view3D?.cameraControls?.setCameraState || Date.now() - started > 2000) {
-        clearInterval(timer);
-        resolve();
-      }
-    }, 50);
-  });
 }
 
 function diffLayer(
@@ -394,6 +374,18 @@ function compactDelta(
 
 function sameList(left: string[], right: string[]): boolean {
   return left.length === right.length && left.every((item, index) => item === right[index]);
+}
+
+// Same vw3 shape SITNA Map.checkLocation accepts.
+function isCamera(value: unknown): boolean {
+  const camera = value as { cp?: unknown; chpr?: unknown; bcpd?: unknown } | null;
+  return (
+    Array.isArray(camera?.cp) &&
+    camera.cp.length === 3 &&
+    Array.isArray(camera.chpr) &&
+    camera.chpr.length === 3 &&
+    !!camera.bcpd
+  );
 }
 
 function isExtent(value: unknown): value is MapExtent {

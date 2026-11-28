@@ -291,24 +291,42 @@ describe('map view snapshot', () => {
     ).toEqual(['9']);
   });
 
-  it.skip('turns 3D on before applying the camera (#175: SITNA has no setCameraState)', async () => {
-    const setCameraState = jest.fn();
+  const camera = { cp: [0.1, 0.7, 900], chpr: [0.2, -0.5, 0], bcpd: 1200 };
+
+  function threeDMap() {
+    const importState = jest.fn().mockResolvedValue(undefined);
     const map: {
       on3DView: boolean;
-      view3D?: { cameraControls: { setCameraState: jest.Mock } };
-      controls: Array<{ set3D: () => void }>;
+      view3D?: { importState: jest.Mock };
+      controls: Array<{ set3D: jest.Mock }>;
     } = {
       on3DView: false,
       controls: [
         {
-          set3D() {
+          // SITNA ThreeD.set3D resolves once the 3D view is loaded; view3D.importState exists only then.
+          set3D: jest.fn(async () => {
+            await Promise.resolve();
             map.on3DView = true;
-            map.view3D = { cameraControls: { setCameraState } };
-          }
+            map.view3D = { importState };
+          })
         }
       ]
     };
-    await applySharedView3D(map, { cp: [1, 2, 3] });
-    expect(setCameraState).toHaveBeenCalledWith({ cp: [1, 2, 3] });
+    return { map, importState };
+  }
+
+  it('opens the 3D view and then imports the shared camera', async () => {
+    const { map, importState } = threeDMap();
+    await applySharedView3D(map, camera);
+    expect(map.controls[0].set3D).toHaveBeenCalledTimes(1);
+    expect(importState).toHaveBeenCalledWith(camera);
+  });
+
+  it('keeps the flat view for a link without a 3D camera', async () => {
+    const { map, importState } = threeDMap();
+    await applySharedView3D(map, undefined);
+    await applySharedView3D(map, { cp: [1, 2] });
+    expect(map.controls[0].set3D).not.toHaveBeenCalled();
+    expect(importState).not.toHaveBeenCalled();
   });
 });
