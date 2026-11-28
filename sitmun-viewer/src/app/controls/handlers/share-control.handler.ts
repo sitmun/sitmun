@@ -458,17 +458,15 @@ interface SitnaMapInfo {
     workLayers?: SitnaWorkLayer[];
     controls?: Array<{
       exportState?: () => unknown;
-      set3D?: () => void;
+      set3D?: () => Promise<void>;
       getLayerUIElements?: () => ArrayLike<HTMLElement>;
       div?: HTMLElement;
     }>;
     importControlStates?: (states: unknown[]) => void;
     on3DView?: boolean;
     view3D?: {
-      cameraControls?: {
-        getCameraState?: () => unknown;
-        setCameraState?: (state: unknown) => void;
-      };
+      cameraControls?: { getCameraState?: () => unknown };
+      importState?: (state: unknown) => Promise<unknown>;
     };
     toast?: (message: string, options?: { type?: string }) => void;
     setExtent?: MapSnapshotTargetSetExtent;

@@ -116,6 +116,12 @@ export default defineConfig({
       use: { ...devices['Desktop Chrome'] },
     },
     {
+      name: 'viewer-share-3d',
+      testMatch: /share-3d-camera\.spec\.ts/,
+      dependencies: ['viewer-setup'],
+      use: { ...devices['Desktop Chrome'] },
+    },
+    {
       name: 'viewer-broken-background',
       testMatch: /broken-background\.spec\.ts/,
       dependencies: ['viewer-setup'],
