@@ -291,9 +291,16 @@ export class FeatureInfoControlHandler extends ControlHandlerBase {
         });
       }
 
-      // --- Capas GFI user toggle: gate queryable via layer.options.sitmunGfiEnabled ---
-      const WrapRasterProto = TC?.wrap?.layer?.Raster?.prototype;
-      if (WrapRasterProto?.getInfo && !WrapRasterProto.__sitmunGfiUserGate) {
+      // --- Capas GFI gate: queryable via layer.options.sitmunGfiEnabled ---
+      // api-sitna does not publish RasterWrapper on TC.wrap.layer; import()
+      // returns the instance api-sitna already loaded (#377).
+      const { default: RasterWrapper } = await import(
+        'api-sitna/TC/ol/layer/Raster.js'
+      );
+      const WrapRasterProto = RasterWrapper.prototype as typeof RasterWrapper.prototype & {
+        __sitmunGfiUserGate?: boolean;
+      };
+      if (!WrapRasterProto.__sitmunGfiUserGate) {
         const getInfoAdvice = meld.around(
           WrapRasterProto,
           'getInfo',

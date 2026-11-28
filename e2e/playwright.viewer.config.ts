@@ -146,7 +146,7 @@ export default defineConfig({
     },
     {
       name: 'viewer-gfi-fields',
-      testMatch: /gfi-field-list\.spec\.ts/,
+      testMatch: /gfi-(?:field-list|node-consultable)\.spec\.ts/,
       dependencies: ['viewer-setup'],
       use: { ...devices['Desktop Chrome'] },
     },
