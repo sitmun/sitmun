@@ -11,6 +11,8 @@ import org.junit.jupiter.api.Test;
 import org.sitmun.authentication.dto.UserPasswordAuthenticationRequest;
 import org.sitmun.domain.application.Application;
 import org.sitmun.domain.application.ApplicationRepository;
+import org.sitmun.domain.territory.Territory;
+import org.sitmun.domain.territory.TerritoryRepository;
 import org.sitmun.infrastructure.security.core.SecurityConstants;
 import org.sitmun.test.TestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,6 +35,7 @@ class MbtilesProxyConfigurationIntegrationTest {
   @Autowired private MockMvc mvc;
   @Autowired private ObjectMapper objectMapper;
   @Autowired private ApplicationRepository applicationRepository;
+  @Autowired private TerritoryRepository territoryRepository;
 
   @Value("${sitmun.proxy-middleware.secret}")
   private String proxySecret;
@@ -71,6 +74,37 @@ class MbtilesProxyConfigurationIntegrationTest {
                 .content(body))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.tileRequest.mapServices[0].url").isNotEmpty());
+  }
+
+  @Test
+  @DisplayName("Forbids a blocked territory (#376)")
+  void forbidsBlockedTerritory() throws Exception {
+    Territory territory = territoryRepository.findById(10001).orElseThrow();
+    territory.setBlocked(true);
+    territoryRepository.saveAndFlush(territory);
+    String proxyToken = mobileProxyToken();
+
+    String body =
+        """
+        {
+          "appId": 10001,
+          "territoryId": 10001,
+          "action": "estimate",
+          "bbox": {"minX":0,"minY":0,"maxX":1,"maxY":1},
+          "minZoom": 0,
+          "maxZoom": 1,
+          "srs": "EPSG:3857",
+          "services": [{"serviceId":10001,"layerIds":[10001]}]
+        }
+        """;
+
+    mvc.perform(
+            post("/api/config/proxy/mbtiles")
+                .contentType(APPLICATION_JSON)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + proxyToken)
+                .header(SecurityConstants.PROXY_MIDDLEWARE_KEY, proxySecret)
+                .content(body))
+        .andExpect(status().isForbidden());
   }
 
   private String mobileProxyToken() throws Exception {

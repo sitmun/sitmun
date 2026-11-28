@@ -29,7 +29,7 @@ public interface TerritoryRepository extends JpaRepository<Territory, Integer> {
       """
       SELECT DISTINCT t
       FROM Territory t
-      WHERE t.id IN (SELECT uc.territory.id
+      WHERE t.blocked = false AND (t.id IN (SELECT uc.territory.id
                      FROM UserConfiguration uc, Application app
                      WHERE app.id = ?2 AND uc.user.username = ?1"""
           + UserPositionActiveGrant.ON_GRANT
@@ -46,7 +46,7 @@ public interface TerritoryRepository extends JpaRepository<Territory, Integer> {
                      WHERE childTerritory member of uc.territory.members AND  app.id = ?2 AND uc.user.username = ?1"""
           + UserPositionActiveGrant.ON_GRANT
           + """
-         AND uc.role member of app.availableRoles AND uc.appliesToChildrenTerritories = true and app.accessChildrenTerritory = true)""")
+         AND uc.role member of app.availableRoles AND uc.appliesToChildrenTerritories = true and app.accessChildrenTerritory = true))""")
   Page<Territory> findByRestrictedUserAndApplication(
       String username, Integer appId, Pageable pageable);
 
@@ -55,7 +55,7 @@ public interface TerritoryRepository extends JpaRepository<Territory, Integer> {
       """
       SELECT DISTINCT t
       FROM Territory t
-      WHERE t.id IN (SELECT uc.territory.id
+      WHERE t.blocked = false AND (t.id IN (SELECT uc.territory.id
                      FROM UserConfiguration uc, Application app
                      WHERE app.appPrivate = false AND app.id = ?2 AND uc.user.username = ?1"""
           + UserPositionActiveGrant.ON_GRANT
@@ -72,7 +72,7 @@ public interface TerritoryRepository extends JpaRepository<Territory, Integer> {
                      WHERE app.appPrivate = false AND childTerritory member of uc.territory.members AND  app.id = ?2 AND uc.user.username = ?1"""
           + UserPositionActiveGrant.ON_GRANT
           + """
-         AND uc.role member of app.availableRoles AND uc.appliesToChildrenTerritories = true and app.accessChildrenTerritory = true)""")
+         AND uc.role member of app.availableRoles AND uc.appliesToChildrenTerritories = true and app.accessChildrenTerritory = true))""")
   Page<Territory> findByPublicUserAndApplication(String username, Integer appId, Pageable pageable);
 
   @RestResource(exported = false)
@@ -80,7 +80,7 @@ public interface TerritoryRepository extends JpaRepository<Territory, Integer> {
       """
       SELECT DISTINCT t
       FROM Territory t
-      WHERE t.id IN (SELECT uc.territory.id
+      WHERE t.blocked = false AND (t.id IN (SELECT uc.territory.id
                      FROM UserConfiguration uc, Application app
                      WHERE uc.user.username = ?1"""
           + UserPositionActiveGrant.ON_GRANT
@@ -97,7 +97,7 @@ public interface TerritoryRepository extends JpaRepository<Territory, Integer> {
                      WHERE childTerritory member of uc.territory.members AND uc.user.username = ?1"""
           + UserPositionActiveGrant.ON_GRANT
           + """
-         AND uc.role member of app.availableRoles AND uc.appliesToChildrenTerritories = true and app.accessChildrenTerritory = true)""")
+         AND uc.role member of app.availableRoles AND uc.appliesToChildrenTerritories = true and app.accessChildrenTerritory = true))""")
   Page<Territory> findByRestrictedUser(String username, Pageable pageable);
 
   @RestResource(exported = false)
@@ -105,7 +105,7 @@ public interface TerritoryRepository extends JpaRepository<Territory, Integer> {
       """
       SELECT DISTINCT t
       FROM Territory t
-      WHERE t.id IN (SELECT uc.territory.id
+      WHERE t.blocked = false AND (t.id IN (SELECT uc.territory.id
                      FROM UserConfiguration uc, Application app
                      WHERE app.appPrivate = false AND uc.user.username = ?1"""
           + UserPositionActiveGrant.ON_GRANT
@@ -122,7 +122,7 @@ public interface TerritoryRepository extends JpaRepository<Territory, Integer> {
                      WHERE app.appPrivate = false AND childTerritory member of uc.territory.members AND uc.user.username = ?1"""
           + UserPositionActiveGrant.ON_GRANT
           + """
-         AND uc.role member of app.availableRoles AND uc.appliesToChildrenTerritories = true and app.accessChildrenTerritory = true)""")
+         AND uc.role member of app.availableRoles AND uc.appliesToChildrenTerritories = true and app.accessChildrenTerritory = true))""")
   Page<Territory> findByPublicUser(String username, Pageable pageable);
 
   @RestResource(exported = false)
@@ -130,7 +130,7 @@ public interface TerritoryRepository extends JpaRepository<Territory, Integer> {
       """
       SELECT DISTINCT t
       FROM Territory t
-      WHERE (t.id IN (SELECT uc.territory.id
+      WHERE t.blocked = false AND ((t.id IN (SELECT uc.territory.id
                      FROM UserConfiguration uc, Application app
                      WHERE uc.user.username = ?1"""
           + UserPositionActiveGrant.ON_GRANT
@@ -148,7 +148,7 @@ public interface TerritoryRepository extends JpaRepository<Territory, Integer> {
           + UserPositionActiveGrant.ON_GRANT
           + """
          AND uc.role member of app.availableRoles AND uc.appliesToChildrenTerritories = true and app.accessChildrenTerritory = true))
-      AND lower(t.name) like lower(concat('%', ?2, '%'))""")
+      AND lower(t.name) like lower(concat('%', ?2, '%')))""")
   Page<Territory> findByRestrictedUserAndKeywords(
       String username, String keywords, Pageable pageable);
 
@@ -157,7 +157,7 @@ public interface TerritoryRepository extends JpaRepository<Territory, Integer> {
       """
       SELECT DISTINCT t
       FROM Territory t
-      WHERE (t.id IN (SELECT uc.territory.id
+      WHERE t.blocked = false AND ((t.id IN (SELECT uc.territory.id
                      FROM UserConfiguration uc, Application app
                      WHERE app.appPrivate = false AND uc.user.username = ?1"""
           + UserPositionActiveGrant.ON_GRANT
@@ -175,6 +175,10 @@ public interface TerritoryRepository extends JpaRepository<Territory, Integer> {
           + UserPositionActiveGrant.ON_GRANT
           + """
          AND uc.role member of app.availableRoles AND uc.appliesToChildrenTerritories = true and app.accessChildrenTerritory = true))
-      AND lower(t.name) like lower(concat('%', ?2, '%'))""")
+      AND lower(t.name) like lower(concat('%', ?2, '%')))""")
   Page<Territory> findByPublicUserAndKeywords(String username, String keywords, Pageable pageable);
+
+  /** {@code true} when the territory exists and is not blocked (#376). */
+  @RestResource(exported = false)
+  boolean existsByIdAndBlockedFalse(Integer id);
 }

@@ -158,7 +158,7 @@ class ServiceResourceAccessValidatorTest {
     when(serviceRepository.findById(153)).thenReturn(Optional.of(service));
     when(userRepository.findByUsername("testuser")).thenReturn(Optional.of(user));
     when(applicationRepository.existsById(1)).thenReturn(true);
-    when(territoryRepository.existsById(1)).thenReturn(true);
+    when(territoryRepository.existsByIdAndBlockedFalse(1)).thenReturn(true);
     when(cartographyRepository.findByRolesAndTerritory(anyList(), eq(1)))
         .thenReturn(List.of(cartography));
 
@@ -168,6 +168,32 @@ class ServiceResourceAccessValidatorTest {
     // Then
     assertTrue(result);
     verify(serviceRepository).findById(153);
+  }
+
+  @Test
+  @DisplayName("validate returns false when the territory is blocked (#376)")
+  void validateReturnsFalseWhenTerritoryIsBlocked() {
+    ConfigProxyRequestDto request =
+        ConfigProxyRequestDto.builder().appId(1).terId(1).type("WMS").typeId(153).build();
+    Service service = Service.builder().id(153).blocked(false).build();
+    Cartography cartography = mock(Cartography.class);
+    lenient().when(cartography.getService()).thenReturn(service);
+
+    lenient().when(serviceRepository.findById(153)).thenReturn(Optional.of(service));
+    lenient()
+        .when(userRepository.findByUsername("testuser"))
+        .thenReturn(Optional.of(mock(User.class)));
+    lenient().when(applicationRepository.existsById(1)).thenReturn(true);
+    lenient().when(territoryRepository.existsById(1)).thenReturn(true);
+    lenient().when(territoryRepository.existsByIdAndBlockedFalse(1)).thenReturn(false);
+    lenient()
+        .when(roleRepository.findRolesByApplicationAndUserAndTerritory("testuser", 1, 1))
+        .thenReturn(List.of(mock(Role.class)));
+    lenient()
+        .when(cartographyRepository.findByRolesAndTerritory(anyList(), eq(1)))
+        .thenReturn(List.of(cartography));
+
+    assertFalse(validator.validate(request, "testuser"));
   }
 
   @Test
@@ -223,7 +249,7 @@ class ServiceResourceAccessValidatorTest {
     when(serviceRepository.findById(153)).thenReturn(Optional.of(service));
     when(userRepository.findByUsername("testuser")).thenReturn(Optional.of(user));
     when(applicationRepository.existsById(1)).thenReturn(true);
-    when(territoryRepository.existsById(999)).thenReturn(false);
+    when(territoryRepository.existsByIdAndBlockedFalse(999)).thenReturn(false);
 
     // When
     boolean result = validator.validate(request, "testuser");
@@ -251,7 +277,7 @@ class ServiceResourceAccessValidatorTest {
 
     // Then - Should fail because user has no roles for territory 0
     assertFalse(result);
-    verify(territoryRepository, never()).existsById(anyInt());
+    verify(territoryRepository, never()).existsByIdAndBlockedFalse(anyInt());
   }
 
   @Test
@@ -273,7 +299,7 @@ class ServiceResourceAccessValidatorTest {
     when(serviceRepository.findById(153)).thenReturn(Optional.of(service));
     when(userRepository.findByUsername("testuser")).thenReturn(Optional.of(user));
     when(applicationRepository.existsById(1)).thenReturn(true);
-    when(territoryRepository.existsById(1)).thenReturn(true);
+    when(territoryRepository.existsByIdAndBlockedFalse(1)).thenReturn(true);
     when(cartographyRepository.findByRolesAndTerritory(anyList(), eq(1)))
         .thenReturn(List.of(cartography));
 
@@ -305,7 +331,7 @@ class ServiceResourceAccessValidatorTest {
     when(serviceRepository.findById(153)).thenReturn(Optional.of(service));
     when(userRepository.findByUsername("testuser")).thenReturn(Optional.of(user));
     when(applicationRepository.existsById(1)).thenReturn(true);
-    when(territoryRepository.existsById(1)).thenReturn(true);
+    when(territoryRepository.existsByIdAndBlockedFalse(1)).thenReturn(true);
     when(cartographyRepository.findByRolesAndTerritory(anyList(), eq(1)))
         .thenReturn(List.of(cartography));
 
@@ -346,7 +372,7 @@ class ServiceResourceAccessValidatorTest {
     when(serviceRepository.findById(153)).thenReturn(Optional.of(service));
     when(userRepository.findByUsername("testuser")).thenReturn(Optional.of(user));
     when(applicationRepository.existsById(1)).thenReturn(true);
-    when(territoryRepository.existsById(1)).thenReturn(true);
+    when(territoryRepository.existsByIdAndBlockedFalse(1)).thenReturn(true);
     when(cartographyRepository.findByRolesAndTerritory(anyList(), eq(1)))
         .thenReturn(List.of(cartography));
 
@@ -383,7 +409,7 @@ class ServiceResourceAccessValidatorTest {
     when(serviceRepository.findById(153)).thenReturn(Optional.of(service));
     when(userRepository.findByUsername("testuser")).thenReturn(Optional.of(user));
     when(applicationRepository.existsById(1)).thenReturn(true);
-    when(territoryRepository.existsById(1)).thenReturn(true);
+    when(territoryRepository.existsByIdAndBlockedFalse(1)).thenReturn(true);
     when(cartographyRepository.findByRolesAndTerritory(anyList(), eq(1)))
         .thenReturn(List.of(cartography));
 
@@ -420,7 +446,7 @@ class ServiceResourceAccessValidatorTest {
     when(serviceRepository.findById(153)).thenReturn(Optional.of(service));
     when(userRepository.findByUsername("testuser")).thenReturn(Optional.of(user));
     when(applicationRepository.existsById(1)).thenReturn(true);
-    when(territoryRepository.existsById(1)).thenReturn(true);
+    when(territoryRepository.existsByIdAndBlockedFalse(1)).thenReturn(true);
     when(cartographyRepository.findByRolesAndTerritory(anyList(), eq(1)))
         .thenReturn(List.of(cartography));
 
@@ -461,7 +487,7 @@ class ServiceResourceAccessValidatorTest {
     when(serviceRepository.findById(153)).thenReturn(Optional.of(service));
     when(userRepository.findByUsername("testuser")).thenReturn(Optional.of(user));
     when(applicationRepository.existsById(1)).thenReturn(true);
-    when(territoryRepository.existsById(1)).thenReturn(true);
+    when(territoryRepository.existsByIdAndBlockedFalse(1)).thenReturn(true);
     when(cartographyRepository.findByRolesAndTerritory(anyList(), eq(1)))
         .thenReturn(List.of(cartography1, cartography2));
 
@@ -502,7 +528,7 @@ class ServiceResourceAccessValidatorTest {
     when(serviceRepository.findById(153)).thenReturn(Optional.of(service));
     when(userRepository.findByUsername("testuser")).thenReturn(Optional.of(user));
     when(applicationRepository.existsById(1)).thenReturn(true);
-    when(territoryRepository.existsById(1)).thenReturn(true);
+    when(territoryRepository.existsByIdAndBlockedFalse(1)).thenReturn(true);
     when(cartographyRepository.findByRolesAndTerritory(anyList(), eq(1)))
         .thenReturn(List.of(cartography1, cartography2));
 
@@ -539,7 +565,7 @@ class ServiceResourceAccessValidatorTest {
     when(serviceRepository.findById(153)).thenReturn(Optional.of(service));
     when(userRepository.findByUsername("testuser")).thenReturn(Optional.of(user));
     when(applicationRepository.existsById(1)).thenReturn(true);
-    when(territoryRepository.existsById(1)).thenReturn(true);
+    when(territoryRepository.existsByIdAndBlockedFalse(1)).thenReturn(true);
     when(cartographyRepository.findByRolesAndTerritory(anyList(), eq(1)))
         .thenReturn(List.of(cartography));
 
@@ -576,7 +602,7 @@ class ServiceResourceAccessValidatorTest {
     when(serviceRepository.findById(153)).thenReturn(Optional.of(service));
     when(userRepository.findByUsername("testuser")).thenReturn(Optional.of(user));
     when(applicationRepository.existsById(1)).thenReturn(true);
-    when(territoryRepository.existsById(1)).thenReturn(true);
+    when(territoryRepository.existsByIdAndBlockedFalse(1)).thenReturn(true);
     when(cartographyRepository.findByRolesAndTerritory(anyList(), eq(1)))
         .thenReturn(List.of(cartography));
 
@@ -613,7 +639,7 @@ class ServiceResourceAccessValidatorTest {
     when(serviceRepository.findById(153)).thenReturn(Optional.of(service));
     when(userRepository.findByUsername("testuser")).thenReturn(Optional.of(user));
     when(applicationRepository.existsById(1)).thenReturn(true);
-    when(territoryRepository.existsById(1)).thenReturn(true);
+    when(territoryRepository.existsByIdAndBlockedFalse(1)).thenReturn(true);
     when(cartographyRepository.findByRolesAndTerritory(anyList(), eq(1)))
         .thenReturn(List.of(cartography));
 
@@ -650,7 +676,7 @@ class ServiceResourceAccessValidatorTest {
     when(serviceRepository.findById(153)).thenReturn(Optional.of(service));
     when(userRepository.findByUsername("testuser")).thenReturn(Optional.of(user));
     when(applicationRepository.existsById(1)).thenReturn(true);
-    when(territoryRepository.existsById(1)).thenReturn(true);
+    when(territoryRepository.existsByIdAndBlockedFalse(1)).thenReturn(true);
     when(cartographyRepository.findByRolesAndTerritory(anyList(), eq(1)))
         .thenReturn(List.of(cartography));
 
@@ -686,7 +712,7 @@ class ServiceResourceAccessValidatorTest {
     when(serviceRepository.findById(153)).thenReturn(Optional.of(service));
     when(userRepository.findByUsername("testuser")).thenReturn(Optional.of(user));
     when(applicationRepository.existsById(1)).thenReturn(true);
-    when(territoryRepository.existsById(1)).thenReturn(true);
+    when(territoryRepository.existsByIdAndBlockedFalse(1)).thenReturn(true);
     when(cartographyRepository.findByRolesAndTerritory(anyList(), eq(1)))
         .thenReturn(List.of(cartography));
 
@@ -723,7 +749,7 @@ class ServiceResourceAccessValidatorTest {
     when(serviceRepository.findById(153)).thenReturn(Optional.of(service));
     when(userRepository.findByUsername("testuser")).thenReturn(Optional.of(user));
     when(applicationRepository.existsById(1)).thenReturn(true);
-    when(territoryRepository.existsById(1)).thenReturn(true);
+    when(territoryRepository.existsByIdAndBlockedFalse(1)).thenReturn(true);
     when(cartographyRepository.findByRolesAndTerritory(anyList(), eq(1)))
         .thenReturn(List.of(cartography));
 
@@ -760,7 +786,7 @@ class ServiceResourceAccessValidatorTest {
     when(serviceRepository.findById(153)).thenReturn(Optional.of(service));
     when(userRepository.findByUsername("testuser")).thenReturn(Optional.of(user));
     when(applicationRepository.existsById(1)).thenReturn(true);
-    when(territoryRepository.existsById(1)).thenReturn(true);
+    when(territoryRepository.existsByIdAndBlockedFalse(1)).thenReturn(true);
     when(cartographyRepository.findByRolesAndTerritory(anyList(), eq(1)))
         .thenReturn(List.of(cartography));
 
@@ -946,7 +972,7 @@ class ServiceResourceAccessValidatorTest {
     when(serviceRepository.findById(153)).thenReturn(Optional.of(service));
     when(userRepository.findByUsername("testuser")).thenReturn(Optional.of(user));
     when(applicationRepository.existsById(1)).thenReturn(true);
-    when(territoryRepository.existsById(1)).thenReturn(true);
+    when(territoryRepository.existsByIdAndBlockedFalse(1)).thenReturn(true);
     when(cartographyRepository.findByRolesAndTerritory(anyList(), eq(1))).thenReturn(cartographies);
   }
 }

@@ -78,7 +78,7 @@ class ProxyApplicationRoleValidatorTest {
     User user = userWithTerritoryRole();
     lenient().when(userRepository.findByUsername(USER)).thenReturn(Optional.of(user));
     lenient().when(applicationRepository.existsById(APPLICATION_ID)).thenReturn(true);
-    lenient().when(territoryRepository.existsById(TERRITORY_ID)).thenReturn(true);
+    lenient().when(territoryRepository.existsByIdAndBlockedFalse(TERRITORY_ID)).thenReturn(true);
     lenient().when(taskRepository.existsById(TASK_ID)).thenReturn(true);
     lenient()
         .when(serviceRepository.findById(SERVICE_ID))

@@ -123,9 +123,9 @@ public class ServiceResourceAccessValidator implements ResourceAccessValidator {
 
     // Check if territory exists (terId can be 0 for public access)
     if (request.getTerId() > 0) {
-      var territoryExists = territoryRepository.existsById(request.getTerId());
+      var territoryExists = territoryRepository.existsByIdAndBlockedFalse(request.getTerId());
       if (!territoryExists) {
-        log.warn("Territory not found: {}", request.getTerId());
+        log.warn("Territory not found or blocked: {}", request.getTerId());
         return false;
       }
     }
